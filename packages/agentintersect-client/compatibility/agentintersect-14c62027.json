@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "support": "current-private-implementation-candidate",
+  "commit": "14c620271cd02e455d3244241de951e00ef77a4d",
+  "package": {
+    "name": "@contextloop/manager",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "node": ">=24"
+  },
+  "runtime": {
+    "nodeMajor": 24,
+    "daemonDefault": "http://127.0.0.1:3761",
+    "dashboardDefault": "http://127.0.0.1:3762",
+    "daemonRequestBodyBytes": 262144
+  },
+  "health": {
+    "service": "agentintersect-daemon/v1",
+    "protocol": 1,
+    "exactKeys": [
+      "ok",
+      "pid",
+      "processStartTime",
+      "protocol",
+      "service",
+      "workspaceIdentity"
+    ]
+  },
+  "sourceHashes": {
+    "src/daemon.mjs": "a8893c0b18418f3ea81808e9d7010ef5dc32543c1bb8c5a853aa2967c12d477b",
+    "src/dashboard-server.mjs": "a77a2100d0f3571e746da0ba4f253f790262f639e83fc4e9cab4f9af3c0f241b",
+    "src/mcp-surface.mjs": "0c7cf7539921cd68bf1ede2dde89524eff1225cfb0501708a79c3e21ad3aa516",
+    "src/worker-queue.mjs": "5099a9748b6c23609df1ea1a9cdb1c4249fe903f28f94982e507bb7fd9b1bd71",
+    "src/workspace-identity.mjs": "0d8383d3ba6e296206734d45c34fb6dfe5d5b2a8f9d095b6b8b87a307f13f11d",
+    "src/owned-processes.mjs": "b78a7eb6aa72a55d4f27b622e181e44167dcd08ff5396e3f9a4ed6b3fcb83d52"
+  },
+  "routes": {
+    "daemonCount": 11,
+    "dashboardHandlerCount": 34,
+    "dashboardReadCandidates": [
+      "GET /api/health",
+      "GET /api/snapshot",
+      "GET /api/events",
+      "GET /api/events/stream",
+      "GET /api/dashboard-state"
+    ]
+  },
+  "sse": {
+    "event": "events",
+    "hasEventIds": false,
+    "honorsLastEventId": false,
+    "reconnectCandidate": "fresh-feed-plus-snapshot-events-reconciliation"
+  },
+  "mcp": {
+    "protocol": "2024-11-05",
+    "serverName": "agentintersect-clm",
+    "serverVersion": "0.1.0",
+    "tools": [
+      "clm_get_current_phase",
+      "clm_report_telemetry",
+      "clm_request_handoff",
+      "clm_get_resume_packet",
+      "clm_record_evidence"
+    ],
+    "resources": false
+  }
+}

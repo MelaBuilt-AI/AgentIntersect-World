@@ -1,0 +1,23 @@
+{
+  "name": "agentintersect-world",
+  "version": "0.0.0-phase0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test:phase0": "AGENTINTERSECT_CHECKOUT=/home/mela_ai/AgentIntersect npx --yes node@24 --test packages/agentintersect-client/test/*.test.mts",
+    "typecheck": "npx --yes node@24 ./node_modules/typescript/bin/tsc --noEmit",
+    "format:check": "npx --yes node@24 ./node_modules/prettier/bin/prettier.cjs --check .",
+    "security:scan": "npx --yes node@24 /usr/lib/node_modules/npm/bin/npm-cli.js audit --audit-level=high"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  }
+}

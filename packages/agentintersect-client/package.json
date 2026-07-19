@@ -1,0 +1,12 @@
+{
+  "name": "@agentintersect-world/agentintersect-client",
+  "version": "0.0.0-phase0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
