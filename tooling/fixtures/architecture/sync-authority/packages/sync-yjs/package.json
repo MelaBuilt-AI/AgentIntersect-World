@@ -1,0 +1,6 @@
+{
+  "name": "@agentintersect-world/sync-yjs",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

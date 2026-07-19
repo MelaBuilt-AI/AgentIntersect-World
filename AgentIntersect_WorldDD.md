@@ -7,7 +7,7 @@ tags: [project, coding, ai-agent, decision, needs-review]
 sources:
   - _inbox/AgentIntersect World/AgentIntersect World.docx
   - _inbox/AgentIntersect World/AIW tech stack.docx
-status: design-approval-required
+status: active-implementation
 product: AgentIntersect World
 version: 0.1-design
 ---
@@ -16,11 +16,11 @@ version: 0.1-design
 
 ## Document status
 
-**Status:** Canonical design proposal; implementation-ready; not approved for implementation.
+**Status:** Canonical active design. Phase 0 is complete; Phase 1 is next and follows the project-local rules in `AGENTS.md`.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
-**Decision:** AgentIntersect World is a new, separate sibling project and repository. AgentIntersect remains unchanged, private, independently versioned, and authoritative for lifecycle and execution control. World initially integrates with the existing AgentIntersect HTTP daemon, dashboard/SSE, worker, MCP, lifecycle, handoff, evidence, replay, and audit surfaces. There is no long-lived AgentIntersect feature branch. Shared-package extraction is deferred until a working vertical slice demonstrates stable seams.
+**Decision:** AgentIntersect World is a new, separate project and repository. The original AgentIntersect repository remains untouched. Phase 0 established a one-time compatibility baseline; normal World development no longer repeatedly inspects or verifies the original checkout. When baseline code is needed, the required code may be copied into World with provenance recorded once and is then maintained as World-owned code. World may still consume compatible local HTTP/SSE/MCP/worker surfaces, but the original AgentIntersect repository is not an ongoing phase gate.
 
 This document uses three maturity labels:
 
@@ -30,30 +30,42 @@ This document uses three maturity labels:
 
 No code, package, repository, release, or external configuration change is authorized by this document.
 
+### Development operating rules — 2026-07-19 override
+
+These rules supersede older phase text when there is a conflict:
+
+1. Build functional vertical slices first. Use focused tests during implementation and integrated/full tests once the slice works.
+2. Perform one bounded post-build review/audit, fix confirmed defects once, and retest. Do not run recursive broad review cycles by default.
+3. Defer broad security hardening, internet threat models, enterprise controls, supply-chain ceremony, and speculative abuse-case work until a dedicated hardening milestone after the product path functions.
+4. Retain only inexpensive baseline safeguards against accidental data loss, destructive mutation, secret leakage, and unintended exposure beyond the configured loopback/trusted-LAN boundary.
+5. “Multiplayer” means one human/operator using one or more agents owned by that human on the same computer or trusted LAN. Multiple browser views represent that same operator. Unrelated users, outside agents, public rooms, cloud multi-tenancy, and internet collaboration are out of scope.
+6. Do not recheck the original AgentIntersect repository unless the user explicitly requests a baseline refresh/original-project change or a concrete live compatibility failure requires diagnosis.
+7. `AGENTS.md` is the authoritative project-local workflow contract for implementation agents.
+
 ### Source provenance
 
 The authoritative concept inputs are the relocated Obsidian copies `AgentIntersect World.docx` and `AIW tech stack.docx`, read together with [[agentintersect-agentworld-studio-base-evaluation|the AgentIntersect World base evaluation]] and current private AgentIntersect source. The Word filenames and opening titles are semantically reversed: `AgentIntersect World.docx` contains the longer v0.1 tech-stack proposal, while `AIW tech stack.docx` contains the concept/opportunity proposal. This is provenance only, not a blocker. The historical OneDrive document and relocated `AgentIntersect World.docx` were verified byte-for-byte identical; the Obsidian copy is canonical.
 
 ## Decision summary
 
-| Decision                                 | Maturity                                       | Consequence                                                                |
-| ---------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
-| Separate sibling repository              | AgentIntersect World v0.1                      | Independent UI, dependencies, versions, and security boundary              |
-| AgentIntersect owns execution/lifecycle  | Current AgentIntersect + v0.1 integration rule | World never duplicates the worker/process controller                       |
-| Browser-first spatial IDE/world          | AgentIntersect World v0.1                      | React/R3F canvas with an accessible 2D operational shell                   |
-| Local-first runtime                      | AgentIntersect World v0.1                      | Local server binds loopback by default; repository data stays local        |
-| CRDT for presentation collaboration only | AgentIntersect World v0.1                      | Yjs changes cannot execute commands or mutate files                        |
-| One real vertical slice first            | AgentIntersect World v0.1                      | Prove repo island → AgentIntersect job → edit/test/evidence → two browsers |
-| Shared package extraction                | Future/Deferred                                | Consider only after stable contract evidence                               |
-| XR, physics, cloud execution             | Future/Deferred                                | Optional adapters; not v0.1 dependencies                                   |
+| Decision                           | Maturity                  | Consequence                                                              |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------------------ |
+| Independent World repository       | AgentIntersect World v0.1 | Original AgentIntersect remains untouched and is not a recurring gate    |
+| World-owned baseline reuse         | AgentIntersect World v0.1 | Needed copied code is owned and evolved here after one provenance record |
+| Browser-first spatial IDE/world    | AgentIntersect World v0.1 | React/R3F canvas with an accessible 2D operational shell                 |
+| Local/LAN-first runtime            | AgentIntersect World v0.1 | One trusted operator; loopback default and explicit trusted-LAN support  |
+| Presentation sync for one operator | AgentIntersect World v0.1 | Multi-view/multi-agent state, not unrelated-user collaboration           |
+| Functional vertical slices first   | AgentIntersect World v0.1 | Build → test → one audit → fix → retest                                  |
+| Broad security hardening           | Future/Deferred           | Dedicated milestone after the main product path functions                |
+| XR, physics, cloud execution       | Future/Deferred           | Optional adapters; not v0.1 dependencies                                 |
 
 ## Executive summary
 
 **One-sentence pitch:** AgentIntersect World lets people enter a live spatial model of a repository and watch real AI agents build software as visible, evidence-backed collaborators.
 
-AgentIntersect World is a spatial embodied AI development world, not a new agent runtime and not a decorative code city. A browser turns packages, directories, files, symbols, tests, dependencies, issues, phases, and runs into a navigable Spatial Code Graph. A local World server indexes the repository, projects control-plane events into a normalized world protocol, and validates user command intents. Unchanged AgentIntersect performs real worker execution and remains authoritative for phases, sessions, handoffs, evidence, audit, replay, safe pause, emergency stop, and owned processes. Yjs and PartyKit synchronize presence and collaborative presentation, never execution authority.
+AgentIntersect World is a spatial embodied AI development world, not a decorative code city. A browser turns packages, directories, files, symbols, tests, dependencies, issues, phases, and runs into a navigable Spatial Code Graph. A local World server indexes the repository and coordinates one human operator with one or more of that operator’s local/LAN agents. World may reuse a copied AgentIntersect baseline and compatible local control-plane surfaces while remaining independently developed. Presentation synchronization is for the same trusted operator’s browser views and agents, not unrelated internet users.
 
-The v0.1 proof is deliberately narrow: open one repository, render one island, join from two browser windows, enqueue one real `phase_run` worker job through the unchanged AgentIntersect daemon, observe a real edit and test result, animate affected objects, and expose the diff, telemetry, evidence, and lifecycle outcome. If this path is reliable, the system can widen language support, graph semantics, avatar modules, multiplayer annotations, and adapters without rewriting the control plane.
+The v0.1 proof is deliberately narrow: open one repository, render one island, open one or more views for the same local operator, run one or more of that operator’s agents, observe real edits and test results, animate affected objects, and expose the diff, telemetry, evidence, and lifecycle outcome. If this path is reliable, the system can widen language support, graph semantics, avatar modules, and local multi-agent coordination.
 
 ## Product thesis, category, and value
 
@@ -70,8 +82,8 @@ The product category is **spatial agentic development**: a repo-first developmen
 1. **Real execution:** visual actions are projections of real AgentIntersect jobs and filesystem/Git outcomes.
 2. **Visible evidence:** every construction animation resolves to a diff, test, event, handoff, or evidence link; animation is never proof by itself.
 3. **Embodied continuity:** agent identity, phase, status, and work location become legible without copying private raw memory into a room.
-4. **Shared spatial context:** multiple users can point, annotate, navigate, and arrange presentation state around the same repo model.
-5. **Control-plane reuse:** lifecycle, worker ownership, safety, audit, and handoff rules stay in AgentIntersect instead of being rebuilt inside a 3D application.
+4. **Shared operator context:** one human can coordinate multiple owned agents and browser views around the same repo model.
+5. **Baseline reuse without coupling:** useful AgentIntersect behavior may seed World, but World evolves independently without recurring original-repository checks.
 6. **Arbitrary-repo opening with bounded detail:** any safe local repository can degrade to searchable hierarchy and summary geometry even when full symbol rendering is impossible.
 
 ### Personas
@@ -81,15 +93,15 @@ The product category is **spatial agentic development**: a repo-first developmen
 | Solo agent-heavy developer    | Understand what a long-running agent is doing | Spatial affected-area animation plus exact diff/evidence                   |
 | Tech lead/reviewer            | See phase, risk, tests, and ownership         | Phase zones, run timeline, evidence panel, no execution from peers         |
 | New contributor               | Learn an unfamiliar repository                | District hierarchy, dependency bridges, search-to-focus                    |
-| Pair/mob team                 | Share attention and context                   | Two-browser presence, pointers, annotations, presenter follow mode         |
-| Agent-platform maintainer     | Verify integration behavior                   | Contract tests against pinned unchanged AgentIntersect                     |
+| Solo multi-agent operator     | Coordinate several owned agents               | Multi-view presence, agent status, pointers, annotations                   |
+| Agent-platform maintainer     | Verify World-owned integration behavior       | Tests against World fixtures and locally owned baseline code               |
 | Accessibility-first developer | Operate without 3D navigation                 | Complete keyboard-accessible 2D tree, command palette, inspector, timeline |
 
 ### Jobs to be done
 
 - When an agent works across a repository, show where it is acting and what evidence supports the claimed outcome.
 - When entering an unfamiliar repo, provide a stable spatial map without forcing the user to learn a new source of truth.
-- When collaborating, synchronize focus and annotations without granting remote peers filesystem or command authority.
+- When using multiple agents or views, synchronize focus and annotations for the same trusted local/LAN operator.
 - When a run fails or reconnects, reconstruct what happened from durable events and current AgentIntersect state.
 - When motion or 3D is unsuitable, preserve the full workflow through a 2D operational shell.
 
@@ -103,11 +115,11 @@ The product category is **spatial agentic development**: a repo-first developmen
 
 - Open and safely index a local Git repository.
 - Build a deterministic, searchable Spatial Code Graph with progressive LOD.
-- Integrate with an unchanged, attested local AgentIntersect instance.
+- Reuse the Phase 0 baseline through World-owned code/fixtures and compatible local interfaces without repeatedly verifying the original repository.
 - Normalize AgentIntersect snapshot, event, telemetry, worker, phase, handoff, and evidence signals into a versioned World protocol.
 - Submit bounded `phase_run` command intents only after local authority validation.
 - Show real changes, tests, evidence, safe pause, and emergency-stop state.
-- Provide two-browser Yjs presence and durable collaborative annotations.
+- Provide same-operator multi-view presence and durable annotations locally or on the trusted LAN.
 - Provide an accessible 2D shell equivalent for every required operation.
 - Persist graph/cache/run projections locally and rebuild deterministically after loss.
 
@@ -123,28 +135,28 @@ The product category is **spatial agentic development**: a repo-first developmen
 
 ### v0.1 cutline
 
-The cutline contains one workspace, one active repo, hierarchy plus language Tier 1 symbol parsing, one unchanged local AgentIntersect integration, one real worker job at a time in the demo, two-browser presence, annotations, diff/evidence inspection, run replay, safe pause, emergency-stop projection, and deterministic recovery. Multiple repo continents, multi-agent choreography, remote LAN control, XR, physics, plugin execution, and cloud sync are deferred.
+The cutline contains one workspace, one active repo, hierarchy plus language Tier 1 symbol parsing, World-owned baseline integration, working local agent execution, same-operator multi-view presence, annotations, diff/evidence inspection, run replay, safe pause, emergency-stop projection, and deterministic recovery. Multiple repo continents, public/internet collaboration, unrelated-user access, XR, physics, plugin execution, and cloud sync are deferred. Trusted-LAN operation for the same human’s machines and agents is allowed when explicitly configured.
 
 ### Relationship to AgentIntersect and AgentClutch
 
-**Current AgentIntersect** is the lifecycle/execution control plane. It owns process and command execution, worker jobs and claims, phase/session transitions, safe pause, auto-advance, handoffs, evidence, audit, replay, and owned-process emergency stopping. World is a consumer and projection layer.
+**Phase 0 AgentIntersect baseline** documented the lifecycle/execution behavior from which World begins. The original repository remains untouched and is no longer a routine verification dependency. World may consume compatible running surfaces or own copied baseline code inside this repository.
 
-**AgentIntersect World v0.1** owns repository indexing for visualization, spatial layout, world-object identity, normalized projection events, browser UI, multiplayer presence/annotations, and locally validated intents sent to AgentIntersect.
+**AgentIntersect World v0.1** owns repository indexing, spatial layout, world-object identity, normalized events, browser UI, same-operator multi-agent/multi-view presence, annotations, and its local/LAN execution integration.
 
 **AgentClutch** remains a separate product lane centered on the pre-action consequential-control boundary. World may display an external approval state in the future, but it does not clone or bypass AgentClutch controls.
 
 ## Design principles
 
 1. **Repo-first:** geometry is subordinate to the real repository and Git state.
-2. **Local-first:** code, paths, events, and evidence remain local unless the host explicitly enables a bounded collaboration export.
+2. **Local/LAN-first:** code, paths, events, and evidence remain on the operator’s computer or trusted LAN.
 3. **Browser-first:** one URL, desktop browser, progressive enhancement; XR is optional later.
 4. **Real execution:** World depicts AgentIntersect-managed work; it does not simulate success.
 5. **Visible evidence:** every status links to durable, inspectable evidence or says that evidence is unavailable.
-6. **Multiplayer without execution authority:** collaboration state is not a command channel.
+6. **One-human multi-agent operation:** all agents and views belong to the same trusted operator.
 7. **LOD-first:** every graph feature declares aggregation and degradation behavior before detailed rendering.
-8. **Adapters over rewrites:** integrate stable surfaces; do not transplant control-plane code prematurely.
+8. **Independent evolution:** copied baseline code becomes World-owned code; do not couple phase progress to the original checkout.
 9. **Accessible dual representation:** every spatial object and state has a semantic 2D representation.
-10. **Fail closed at boundaries, degrade gracefully in presentation:** uncertain authority blocks mutation; missing visuals fall back to lists and summaries.
+10. **Functionality before hardening:** keep cheap data-loss/exposure safeguards, then defer broad hardening until the working product path exists.
 
 ## Current AgentIntersect capability inventory
 
@@ -1768,49 +1780,51 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 1 — Monorepo and engineering foundations
 
-**Objective:** Establish the pnpm/Turborepo TypeScript skeleton and enforce dependency/security boundaries.
+**Completion:** COMPLETE on 2026-07-19. See `PHASE_1_REPORT.md`. The functioning pnpm/Turborepo workspace, Vite/React app, Fastify health server, typed shared packages, architecture checks, 13 tests, 1 Playwright E2E, clean-browser bootstrap, smoke, aggregate check, and 107-file fresh-copy verification are green. One bounded audit found two automation blockers; one targeted correction fixed both, parent verification passed, and no second broad review was run.
 
-**Rationale:** Package boundaries must prevent browser/CRDT code from importing command and filesystem authority before feature pressure begins.
+**Objective:** Establish a functioning pnpm/Turborepo TypeScript foundation with runnable Vite and Fastify applications, dependable tests/builds, and clear package boundaries.
 
-**In scope:** Workspace manifests, strict TypeScript configs, package exports, lint/dependency rules, Vite/Fastify minimal apps, Vitest/Playwright scaffolds, formatting, build metadata, lockfile policy, CI tasks, architecture tests.
+**Rationale:** The project needs a working development loop and maintainable package graph before larger features are added. Broad security hardening is deliberately deferred.
 
-**Out of scope:** Product implementation, 3D assets, real AgentIntersect mutations, PartyKit deployment.
+**In scope:** Workspace manifests, strict TypeScript configs, package exports, lint/dependency rules, functioning Vite/Fastify minimal apps, Vitest/Playwright scaffolds, formatting, build metadata, lockfile policy, CI tasks, and lightweight architecture tests.
+
+**Out of scope:** Full product features, 3D assets, changes to the original AgentIntersect repository, PartyKit/public-room deployment, internet multi-tenancy, and broad security hardening.
 
 **Dependencies:** Phase 0 contract names and supported Node 24 baseline.
 
-**Concrete tasks:** Create the structure in this design; configure incremental builds and deterministic task outputs; prohibit Node modules in web and authority imports in `sync-yjs`; create shared result/error/correlation types; add license/provenance/SBOM jobs; define reference hardware and fixture sizes.
+**Concrete tasks:** Create the structure in this design; configure incremental builds and deterministic task outputs; keep browser packages free of accidental Node-only imports; create shared result/error/correlation types; provide working development entry points; define reference hardware and fixture sizes.
 
 **Code/artifacts:** Root manifests/configs; empty public packages; minimal health endpoints/pages; CI workflow proposal; architecture-dependency tests.
 
 **Tests/evidence:** Locked fresh install, typecheck, lint, unit smoke, build, fresh-clone script, deliberate forbidden-import test.
 
-**Acceptance criteria:** One command runs dev apps; one command builds/tests; package cycles and forbidden dependency directions fail; no lifecycle or process code copied from AgentIntersect.
+**Acceptance criteria:** One command runs the usable minimal apps; one command builds/tests; package cycles and forbidden dependency directions fail; any copied baseline code lives only in World with recorded provenance; the original AgentIntersect checkout is untouched and not revalidated as a phase gate.
 
-**Exit gate:** Standard foundation review and green fresh-clone build.
+**Exit gate:** Functional apps plus green fresh-clone build, followed by one bounded review/audit, one targeted defect-fix pass if needed, and final relevant test/build verification.
 
 **Risks:** Tooling sprawl and premature abstractions. Keep packages skeletal and add dependencies only for an immediate phase.
 
 ## Phase 2 — Local authority server and configuration
 
-**Objective:** Implement the loopback Fastify server, configuration, session/CSRF boundary, error envelopes, health/readiness, and operation framework.
+**Objective:** Evolve the Phase 1 Fastify shell into a functioning local composition root with observable configuration, readiness, stable error envelopes, correlation, cancellable operations, graceful shutdown, and explicit loopback/trusted-LAN behavior.
 
-**Rationale:** Every later local and upstream action needs one hardened composition root.
+**Rationale:** Later product features need a dependable working local server before repository, spatial, and multi-agent functionality can build on it. The project-level functionality-first and bounded-review rules supersede the older security-first sequencing.
 
-**In scope:** Loopback-only host validation, boot-token exchange, in-memory/secure-cookie local session, CSRF, exact CORS/origin/Host policy, correlation IDs, Zod route schemas, rate/body limits, config precedence, structured/redacted logging, cancellable operations.
+**In scope:** Configuration precedence/validation, `GET /health`, `GET /ready`, stable typed error envelopes, correlation propagation, cancellable operation/idempotency interfaces, graceful shutdown, port-collision reporting, loopback default, explicit trusted-LAN opt-in, and minimal operator-visible readiness/configuration.
 
-**Out of scope:** Repository parsing, PartyKit, job execution, LAN binding, arbitrary PTY.
+**Out of scope:** Broad security hardening, enterprise auth/CSRF/rate-limit matrices, public or unrelated-user access, cloud multi-tenancy, repository parsing, PartyKit, real AgentIntersect mutation, job execution, and arbitrary PTY.
 
 **Dependencies:** Phase 1 schema/config packages.
 
-**Concrete tasks:** Implement `/health`, `/ready`, `/session/exchange`, error envelopes, request hooks, safe shutdown, port collision reporting, `doctor` primitives, operation/idempotency ledger interfaces; add secret-safe config loaders and permissions checks.
+**Concrete tasks:** Freeze a minimal vertical slice, then implement `/ready`, typed errors, config readback/validation, correlation, graceful shutdown, port collision reporting, and operation/idempotency interfaces; expose the useful readiness state in the local UI.
 
 **Code/artifacts:** `apps/local-server`; `packages/config`, `observability`; local API OpenAPI/JSON Schema output; threat-boundary tests.
 
-**Tests/evidence:** Cross-origin and missing-CSRF rejection, malicious Host, oversized/deep JSON, invalid correlation/idempotency IDs, log redaction, loopback IPv4/IPv6, graceful shutdown.
+**Tests/evidence:** Working configuration/readiness paths, stable typed errors, correlation propagation, invalid local configuration, port collision, cancellation/idempotency behavior, graceful shutdown, loopback default, and trusted-LAN opt-in smoke when available.
 
-**Acceptance criteria:** Mutations require authenticated local session and CSRF; wildcard CORS and LAN bind are impossible by config; errors carry stable codes/correlation IDs; logs contain no fixture secrets.
+**Acceptance criteria:** The operator can start the server, inspect readiness/configuration, receive stable correlated errors, run/cancel a bounded local operation, stop cleanly, and explicitly choose loopback or trusted-LAN scope. Public-internet or unrelated-user infrastructure is not required.
 
-**Exit gate:** High-risk local-boundary review.
+**Exit gate:** Working vertical slice plus focused/integrated tests, one bounded post-build audit, one confirmed-defect correction pass if needed, and final relevant test/build verification.
 
 **Risks:** Browser boot-token leakage and proxy ambiguity. Disable proxy trust and exchange one-time fragments/tokens without query logging.
 
@@ -1958,27 +1972,27 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Risks:** Misattribution under concurrent edits. Show observation windows/provenance and avoid exclusive authorship claims.
 
-## Phase 9 — Multiplayer presence and guarded presentation CRDT
+## Phase 9 — Local multi-agent presence and presentation synchronization
 
-**Objective:** Enable two-browser presence and collaborative presentation without exposing code or execution authority.
+**Objective:** Enable the same human operator to see and coordinate one or more owned agents across local or trusted-LAN browser views.
 
-**Rationale:** Shared context is core to the product thesis, but must be proven on a narrow document model.
+**Rationale:** The operator needs a shared view of multiple agents and devices without building unrelated-user or public-internet collaboration infrastructure.
 
-**In scope:** PartyKit/Y-PartyKit dev room, scoped tokens, awareness cursor/avatar/focus, durable annotations/bookmarks/layout, schema/rate/size guards, offline/reconnect, orphan references, presenter mode.
+**In scope:** Local or self-hosted trusted-LAN synchronization, awareness cursor/avatar/focus, durable annotations/bookmarks/layout, offline/reconnect, orphan references, and presenter/follow mode for the same operator.
 
-**Out of scope:** Commands over CRDT, raw repo graph/file/diff/terminal/memory replication, public room discovery, enterprise roles.
+**Out of scope:** Unrelated users or agents, public rooms, cloud relay/multi-tenancy, internet discovery, enterprise roles, and commands over presentation synchronization.
 
-**Dependencies:** Phase 4 stable IDs, Phase 2 token issuer, Phase 5 UI, approved PartyKit version/API proof.
+**Dependencies:** Phase 4 stable IDs, Phase 5 UI, and a local/self-hosted synchronization provider selected when implementation begins.
 
-**Concrete tasks:** Implement Y.Doc roots; awareness expiry; room token preview/issue; PartyKit connection guards; snapshots/update compaction; annotation sanitization; local/offline provider; privacy-sharing preview; two-context harness.
+**Concrete tasks:** Implement the smallest working presentation document, awareness, snapshots/update compaction, local/offline provider, trusted-LAN connection option, and a two-context same-operator harness.
 
-**Code/artifacts:** `sync-yjs`, `apps/party-server`, collaboration UI, room retention/delete/export endpoints.
+**Code/artifacts:** Presentation-sync package, optional local sync server, multi-agent UI, and local retention/delete/export support.
 
-**Tests/evidence:** Two-browser convergence; concurrent edits; offline state-vector merge; token expiry/replay/wrong-room; update flood/oversize; forbidden root/command-shaped injection; no paths/secrets in captured room traffic.
+**Tests/evidence:** Same-machine two-browser convergence, trusted-LAN smoke when available, concurrent presentation edits, offline merge, reconnect, and confirmation that presentation messages do not directly trigger commands.
 
-**Acceptance criteria:** Second browser sees presence and annotations; cannot enqueue/stop/mutate files through any room message; disconnect clears awareness; durable state recovers; privacy preview matches wire data.
+**Acceptance criteria:** The same operator’s second browser sees owned-agent presence and annotations; disconnect clears awareness; durable presentation state recovers; no public/internet room service is required.
 
-**Exit gate:** High-risk CRDT/security review and packet inspection.
+**Exit gate:** Working local multi-view demo, focused/integrated tests, one bounded functional review/audit, defect fixes, and retest.
 
 **Risks:** Provider API drift and document bloat. Pin versions, abstract provider, cap/compact updates, measure doc sizes.
 

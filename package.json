@@ -1,23 +1,48 @@
 {
   "name": "agentintersect-world",
-  "version": "0.0.0-phase0",
+  "version": "0.1.0-phase1",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@11.15.0",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "test:phase0": "AGENTINTERSECT_CHECKOUT=/home/mela_ai/AgentIntersect npx --yes node@24 --test packages/agentintersect-client/test/*.test.mts",
-    "typecheck": "npx --yes node@24 ./node_modules/typescript/bin/tsc --noEmit",
-    "format:check": "npx --yes node@24 ./node_modules/prettier/bin/prettier.cjs --check .",
-    "security:scan": "npx --yes node@24 /usr/lib/node_modules/npm/bin/npm-cli.js audit --audit-level=high"
+    "dev": "corepack pnpm@11.15.0 build:packages && concurrently --kill-others --success first --names server,web --prefix-colors blue,green \"corepack pnpm@11.15.0 --filter @agentintersect-world/local-server dev\" \"corepack pnpm@11.15.0 --filter @agentintersect-world/web dev\"",
+    "build:packages": "turbo run build --filter='./packages/*'",
+    "build": "turbo run build",
+    "typecheck": "corepack pnpm@11.15.0 build:packages && tsc -p tsconfig.json && turbo run typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "corepack pnpm@11.15.0 build:packages && vitest run",
+    "test:e2e:install": "playwright install chromium",
+    "test:e2e": "corepack pnpm@11.15.0 test:e2e:install && corepack pnpm@11.15.0 build && playwright test",
+    "check:architecture": "tsx tooling/scripts/check-architecture.ts && vitest run tooling/scripts/architecture.test.ts",
+    "smoke": "corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts",
+    "verify:fresh": "tsx tooling/scripts/verify-fresh.ts",
+    "check": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts && corepack pnpm@11.15.0 test:e2e"
   },
   "devDependencies": {
-    "@types/node": "24.10.1",
-    "prettier": "3.6.2",
-    "typescript": "5.9.3"
+    "@agentintersect-world/world-schema": "workspace:*",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.61.1",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "concurrently": "10.0.3",
+    "eslint": "10.7.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.3",
+    "globals": "17.7.0",
+    "pnpm": "11.15.0",
+    "prettier": "3.9.5",
+    "tsx": "4.23.1",
+    "turbo": "2.10.5",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.64.0",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
   }
 }

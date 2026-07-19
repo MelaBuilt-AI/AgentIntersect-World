@@ -1,0 +1,9 @@
+{
+  "name": "@agentintersect-world/b",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@agentintersect-world/a": "workspace:*"
+  }
+}

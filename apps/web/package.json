@@ -1,0 +1,25 @@
+{
+  "name": "@agentintersect-world/web",
+  "version": "0.1.0-phase1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/main.tsx"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agentintersect-world/config": "workspace:*",
+    "@agentintersect-world/ui": "workspace:*",
+    "@agentintersect-world/world-schema": "workspace:*",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.3",
+    "vite": "8.1.5"
+  }
+}

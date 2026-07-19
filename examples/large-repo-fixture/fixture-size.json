@@ -1,0 +1,10 @@
+{
+  "schema": "aiw.fixture-size/0.1",
+  "profile": "large-repository-stress",
+  "fileCount": 100000,
+  "packageCount": 250,
+  "directoriesPerPackage": 8,
+  "averageFileBytes": 2048,
+  "maximumFileBytes": 2000000,
+  "generatedTreeCommitted": false
+}

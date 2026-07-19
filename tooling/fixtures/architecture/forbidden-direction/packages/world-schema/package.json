@@ -1,0 +1,9 @@
+{
+  "name": "@agentintersect-world/world-schema",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@agentintersect-world/ui": "workspace:*"
+  }
+}

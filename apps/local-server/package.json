@@ -1,0 +1,23 @@
+{
+  "name": "@agentintersect-world/local-server",
+  "version": "0.1.0-phase1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agentintersect-world/config": "workspace:*",
+    "@agentintersect-world/observability": "workspace:*",
+    "@agentintersect-world/world-schema": "workspace:*",
+    "fastify": "5.10.0"
+  }
+}

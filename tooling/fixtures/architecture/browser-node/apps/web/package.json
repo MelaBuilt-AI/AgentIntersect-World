@@ -1,0 +1,6 @@
+{
+  "name": "@agentintersect-world/web",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

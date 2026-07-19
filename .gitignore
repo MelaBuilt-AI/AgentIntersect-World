@@ -1,5 +1,8 @@
 node_modules/
 coverage/
 dist/
+.turbo/
+playwright-report/
+test-results/
 *.log
 .DS_Store
