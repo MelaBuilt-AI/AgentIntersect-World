@@ -76,6 +76,9 @@ importers:
       "@agentintersect-world/observability":
         specifier: workspace:*
         version: link:../../packages/observability
+      "@agentintersect-world/repo-indexer":
+        specifier: workspace:*
+        version: link:../../packages/repo-indexer
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:../../packages/world-schema
@@ -127,7 +130,14 @@ importers:
 
   packages/renderer-r3f: {}
 
-  packages/repo-indexer: {}
+  packages/repo-indexer:
+    dependencies:
+      "@agentintersect-world/world-schema":
+        specifier: workspace:*
+        version: link:../world-schema
+      ignore:
+        specifier: 7.0.6
+        version: 7.0.6
 
   packages/spatial-code-graph: {}
 

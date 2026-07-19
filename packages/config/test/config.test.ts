@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-describe("Phase 2 local-server configuration", () => {
+describe("Phase 3 local-server configuration", () => {
   it("loads loopback defaults and exposes only the safe configuration view", async () => {
     const { loadLocalServerConfig, toSafeConfig } =
       await import("../src/node.js");
@@ -13,13 +13,14 @@ describe("Phase 2 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 2",
-      version: "0.2.0-phase2",
+      phase: "Phase 3",
+      version: "0.3.0-phase3",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",
       port: 3770,
       demoOperationMaxMs: expect.any(Number),
+      repositoryMaxFiles: 2_500,
     });
   });
 
@@ -52,6 +53,7 @@ describe("Phase 2 local-server configuration", () => {
     [{ AIW_PORT: "0" }, "AIW_PORT"],
     [{ AIW_INSTANCE_NAME: "   " }, "AIW_INSTANCE_NAME"],
     [{ AIW_DEMO_OPERATION_MAX_MS: "999999" }, "AIW_DEMO_OPERATION_MAX_MS"],
+    [{ AIW_REPOSITORY_MAX_FILES: "10001" }, "AIW_REPOSITORY_MAX_FILES"],
   ])("rejects invalid configuration %o", async (environment, field) => {
     const { loadLocalServerConfig } = await import("../src/node.js");
     expect(() => loadLocalServerConfig(environment)).toThrow(field);

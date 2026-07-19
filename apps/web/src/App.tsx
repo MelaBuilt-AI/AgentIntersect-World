@@ -1,5 +1,9 @@
 import { APP_METADATA } from "@agentintersect-world/config";
-import type { OperationRecord } from "@agentintersect-world/world-schema";
+import type {
+  OperationRecord,
+  RepositoryGeneration,
+  RepositoryIndexOperation,
+} from "@agentintersect-world/world-schema";
 import { useEffect, useState } from "react";
 
 import {
@@ -9,6 +13,12 @@ import {
   startDemoOperation,
   type AuthorityLoadResult,
 } from "./health-client.js";
+import {
+  cancelRepositoryIndex,
+  getCurrentRepositoryIndex,
+  getRepositoryIndex,
+  startRepositoryIndex,
+} from "./repository-index-client.js";
 
 const foundations = [
   ["Workspace", "pnpm 11 + Turborepo"],
@@ -17,6 +27,10 @@ const foundations = [
 ] as const;
 
 type AuthorityState = { status: "loading" } | AuthorityLoadResult;
+type LastGoodState =
+  | { status: "loading" }
+  | { status: "ready"; generation: RepositoryGeneration | null }
+  | { status: "error"; message: string };
 
 function OperationDetails({
   operation,
@@ -42,6 +56,224 @@ function OperationDetails({
         </>
       )}
     </div>
+  );
+}
+
+function RepositoryIndexFlow({
+  authorityReady,
+}: {
+  readonly authorityReady: boolean;
+}) {
+  const [rootPath, setRootPath] = useState("");
+  const [operation, setOperation] = useState<RepositoryIndexOperation | null>(
+    null,
+  );
+  const [lastGood, setLastGood] = useState<LastGoodState>({
+    status: "loading",
+  });
+  const [message, setMessage] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void getCurrentRepositoryIndex().then((result) => {
+      if (!active) return;
+      if (result.status === "ok")
+        setLastGood({ status: "ready", generation: result.data.generation });
+      else setLastGood({ status: "error", message: result.message });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (operation?.status !== "running") return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const id = operation.id;
+    const poll = async () => {
+      const result = await getRepositoryIndex(id);
+      if (!active) return;
+      if (result.status !== "ok") {
+        setMessage(result.message);
+        return;
+      }
+      setOperation(result.data);
+      if (result.data.status === "succeeded" && result.data.generation)
+        setLastGood({
+          status: "ready",
+          generation: result.data.generation,
+        });
+      if (result.data.status === "running")
+        timer = setTimeout(() => void poll(), 150);
+    };
+    timer = setTimeout(() => void poll(), 100);
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [operation?.id, operation?.status]);
+
+  const canStart =
+    authorityReady &&
+    rootPath.trim().length > 0 &&
+    operation?.status !== "running" &&
+    !starting;
+  const canCancel = operation?.status === "running" && !cancelling;
+  const start = async () => {
+    if (!canStart) return;
+    setStarting(true);
+    setMessage(null);
+    const result = await startRepositoryIndex(
+      rootPath.trim(),
+      `repository-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    );
+    if (result.status === "ok") setOperation(result.data);
+    else setMessage(result.message);
+    setStarting(false);
+  };
+  const cancel = async () => {
+    if (!canCancel || !operation) return;
+    setCancelling(true);
+    setMessage(null);
+    const result = await cancelRepositoryIndex(operation.id);
+    if (result.status === "ok") setOperation(result.data);
+    else setMessage(result.message);
+    setCancelling(false);
+  };
+
+  return (
+    <section
+      className="repository-section"
+      aria-label="Repository index controls"
+    >
+      <div className="section-heading">
+        <span className="eyebrow">Phase 3 · Repository discovery</span>
+        <h2>Deterministic metadata index</h2>
+        <p>
+          Inspect a selected local Git or non-Git directory without executing
+          its content.
+        </p>
+      </div>
+      <div className="operator-flow repository-flow">
+        <section className="operator-step">
+          <span className="card-number">01</span>
+          <h2>Step 1 — Select and index repository</h2>
+          <label htmlFor="repository-root">Repository root</label>
+          <input
+            id="repository-root"
+            value={rootPath}
+            onChange={(event) => setRootPath(event.target.value)}
+            placeholder="/absolute/path/to/repository"
+          />
+          <button
+            type="button"
+            onClick={() => void start()}
+            disabled={!canStart}
+          >
+            {starting
+              ? "Starting…"
+              : lastGood.status === "ready" && lastGood.generation
+                ? "Rescan"
+                : "Start index"}
+          </button>
+        </section>
+        <section className="operator-step">
+          <span className="card-number">02</span>
+          <h2>Step 2 — Cancel current index</h2>
+          <p>
+            Stop active discovery while preserving the last successful
+            generation.
+          </p>
+          <button
+            type="button"
+            onClick={() => void cancel()}
+            disabled={!canCancel}
+          >
+            {cancelling ? "Cancelling…" : "Cancel current index"}
+          </button>
+        </section>
+        <section className="operator-step operator-step--review">
+          <span className="card-number">03</span>
+          <h2>Step 3 — Review repository metadata</h2>
+          {message && (
+            <p className="action-error" role="alert">
+              {message}
+            </p>
+          )}
+          <div className="review-grid repository-review">
+            <article data-testid="current-index">
+              <h3>Current index</h3>
+              {!operation ? (
+                <p>None yet — select a repository to begin.</p>
+              ) : (
+                <>
+                  <strong
+                    className={`operation-status operation-status--${operation.status}`}
+                  >
+                    {operation.status}
+                  </strong>
+                  <p>
+                    {operation.progress.phase}:{" "}
+                    {operation.progress.indexedFiles}/
+                    {operation.progress.discoveredFiles} files ·{" "}
+                    {operation.progress.bytesHashed} bytes hashed
+                  </p>
+                  <code>{operation.rootPath}</code>
+                  {operation.error && <p>{operation.error}</p>}
+                </>
+              )}
+            </article>
+            <article data-testid="last-good-index">
+              <h3>Last good generation</h3>
+              {lastGood.status === "loading" ? (
+                <p aria-live="polite">Loading last good generation…</p>
+              ) : lastGood.status === "error" ? (
+                <p className="action-error" role="alert">
+                  {lastGood.message}
+                </p>
+              ) : !lastGood.generation ? (
+                <p>None yet</p>
+              ) : (
+                <>
+                  <strong>{lastGood.generation.repositoryName}</strong>
+                  <p>
+                    {lastGood.generation.git.present
+                      ? `Git · ${lastGood.generation.git.branch ?? "detached"} · ${lastGood.generation.git.dirty ? "dirty" : "clean"}`
+                      : "Non-Git repository"}
+                  </p>
+                  <p>
+                    {lastGood.generation.coverage.indexedFiles} files ·{" "}
+                    {lastGood.generation.coverage.directories} directories ·{" "}
+                    {lastGood.generation.coverage.packages} packages
+                  </p>
+                  <code className="fingerprint">
+                    {lastGood.generation.fingerprint}
+                  </code>
+                  {lastGood.generation.packages.length > 0 && (
+                    <p>
+                      Packages:{" "}
+                      {lastGood.generation.packages
+                        .map((item) => item.name ?? item.path)
+                        .join(", ")}
+                    </p>
+                  )}
+                  <ul className="file-preview">
+                    {lastGood.generation.files.slice(0, 12).map((file) => (
+                      <li key={file.path}>
+                        {file.path} · {file.language ?? file.fileKind}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
   );
 }
 
@@ -153,7 +385,7 @@ export function App() {
       </header>
 
       <section className="hero" id="authority">
-        <div className="eyebrow">Phase 2 · Local authority</div>
+        <div className="eyebrow">Phase 3 · Local authority</div>
         <h1>AgentIntersect World</h1>
         <p className="lede">
           Inspect the local authority, run one bounded demo operation, cancel
@@ -258,6 +490,8 @@ export function App() {
             </div>
           </section>
         </div>
+
+        <RepositoryIndexFlow authorityReady={authority.status === "ready"} />
 
         <div className="foundation-grid" aria-label="Foundation technologies">
           {foundations.map(([label, value], index) => (

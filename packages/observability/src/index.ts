@@ -12,7 +12,7 @@ export function createCorrelationId(): CorrelationId {
 }
 
 export function ok<T>(data: T, correlationId: CorrelationId): ApiResult<T> {
-  return { ok: true, data, meta: { correlationId, schema: "aiw.api/0.2" } };
+  return { ok: true, data, meta: { correlationId, schema: "aiw.api/0.3" } };
 }
 
 export function unavailable(
@@ -22,6 +22,6 @@ export function unavailable(
   return {
     ok: false,
     error: { code: "authority_unavailable", message, retryable: true },
-    meta: { correlationId, schema: "aiw.api/0.2" },
+    meta: { correlationId, schema: "aiw.api/0.3" },
   };
 }

@@ -88,6 +88,13 @@ export function loadLocalServerConfig(
       DEMO_OPERATION_MIN_MS,
       DEMO_OPERATION_MAX_MS,
     ),
+    repositoryMaxFiles: integerSetting(
+      environment,
+      "AIW_REPOSITORY_MAX_FILES",
+      LOCAL_SERVER_DEFAULTS.repositoryMaxFiles,
+      1,
+      10_000,
+    ),
   };
 }
 
@@ -100,5 +107,6 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
     host: config.host,
     port: config.port,
     demoOperationMaxMs: config.demoOperationMaxMs,
+    repositoryMaxFiles: config.repositoryMaxFiles,
   };
 }

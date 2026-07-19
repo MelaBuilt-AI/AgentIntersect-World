@@ -1352,9 +1352,47 @@ Status mapping is deterministic: queued waits at the phase board; working uses a
 - **Terminal drawer fallback:** read-only streamed/captured output by default; no implicit direct PTY.
 - **Collaboration bar:** presence, presenter follow, annotations, room privacy.
 
+### Accepted AgentIntersect visual-shell inheritance
+
+The user has explicitly approved a one-time reuse of the original AgentIntersect opening identity screen, dashboard composition, graphics, avatar artwork, hero harness selector, navigation bar, and menu-toggle interaction model. This is an intentional visual-product inheritance decision, not a continuing runtime or repository dependency.
+
+**Authorized source baseline:** original AgentIntersect commit `14c620271cd02e455d3244241de951e00ef77a4d`, limited during the Phase 5 extraction to `src/dashboard-ui.mjs`, `src/dashboard-assets/`, and the directly relevant dashboard visual-asset tests. World must not modify the source repository. Required assets are copied with a provenance manifest and SHA-256 hashes, then maintained as World-owned files without recurring checks against AgentIntersect.
+
+**Graphics and visual behavior to preserve:**
+
+- the full-screen terminal-style `identify_` opening transition;
+- the static dark-square header mark, animated AgentIntersect hero mark, avatar sheets, layered male/female puppet artwork, state artwork, orb/ring treatments, and the existing smooth avatar compositor where selected for the World shell;
+- the source logo artwork remains byte-identical; adjacent accessible text and the typed product title identify the product as **AgentIntersect World** rather than silently renaming or editing the source SVG;
+- the dark neon/terminal visual language, typewriter text, blinking cursors, hero composition, status pills, card surfaces, and responsive layout behavior;
+- the navigation interaction: cursor-led category buttons, first click opens the associated overlay panel, second click closes it, selected cursors remain inline, and opening a panel does not push or reposition the hero card;
+- the persistent visible output/status area so every action exposes current state, result, and next step.
+
+**World opening flow:**
+
+1. On first open, show the inherited identity presentation before the main dashboard.
+2. Let the operator build and preview a local avatar appearance from the inherited visual layers/presets rather than only choosing a hidden profile value. Persist the selected World avatar profile locally and provide an accessible non-animated/reduced-motion preview.
+3. Transition into the dashboard using the inherited visual effect and restore the saved profile on later opens; Settings can reopen the avatar builder.
+4. In the hero card, present the inherited harness choices—OpenClaw, Hermes, Claude Code, and Codex—as the origin/default harness for the operator's World agent or agents. Selection must be visible and durable. Phase 5 stores intent only; Phase 6 adds truthful connection/readiness projection and Phase 7 enables the first real bounded worker action.
+5. When multiple owned agents arrive, each roster entry may retain its own harness origin while the hero selection remains the default/current harness.
+
+**World navigation taxonomy:** reuse the original navigation bar and overlay/toggle functionality, but replace AgentIntersect's `connect`, `onboarding`, `design`, `control`, `workers`, and `records` menu bodies with World-owned categories:
+
+- **World** — repository island, viewport, minimap, and current selection;
+- **Repositories** — open/index/rescan, hierarchy, search, and index diagnostics;
+- **Agents** — harness selection, owned-agent roster, current work, and status;
+- **Activity** — operations, normalized timeline, progress, and run lifecycle;
+- **Evidence** — diffs, tests, telemetry, handoffs, and provenance;
+- **Settings** — avatar appearance, accessibility, local/LAN configuration, and diagnostics.
+
+The logo remains a home/reset action. Categories may initially expose truthful unavailable/coming-phase states, but they must never imply an unimplemented connection or command succeeded. Existing Phase 2/3 functional flows are migrated into the matching World panels when the Phase 5 shell lands; they are not discarded.
+
+**What is not reused:** the original AgentIntersect menu contents, control-plane route assumptions, Connect/OnBoarding/Design/Control/Workers/Records business logic, external configuration writes, worker authority, or monolithic server-rendered implementation. World ports the accepted visual and interaction design into typed React components backed only by World APIs.
+
+**Phase placement:** Phase 3 continues its frozen repository-index functionality without interruption. Phase 4 builds deterministic World identity/layout data. Phase 5 performs the one-time asset extraction and implements the opening avatar builder, inherited dashboard shell, World navigation taxonomy, hero harness selection state, accessibility equivalents, and first repository island. Phase 6 makes harness/AgentIntersect readiness observationally real; Phase 7 activates one bounded agent job.
+
 ### Onboarding
 
-The first-run wizard checks browser capabilities, opens a repo, explains local data boundaries, discovers/attests AgentIntersect, shows selected harness/onboarding readiness without modifying external config, builds the initial index, offers an optional room, and enters a guided camera/search tour. If AgentIntersect is absent, World opens in visualization-only mode and provides exact setup diagnostics; it does not auto-install or mutate AgentIntersect.
+The first-run experience begins with the inherited `identify_` avatar-appearance builder and then transitions into the World dashboard. The dashboard checks browser capabilities, opens a repo, explains local data boundaries, shows the selected harness and truthful readiness without modifying external config, builds the initial index, offers an optional room, and enters a guided camera/search tour. If AgentIntersect is absent, World opens in visualization-only mode and provides exact setup diagnostics; it does not auto-install or mutate AgentIntersect.
 
 ### Errors and recovery
 
@@ -1832,6 +1870,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 3 — Repository discovery and metadata index
 
+**Completion:** Completed on 2026-07-19. See `PHASE_3_REPORT.md` and `docs/PHASE_3_SCOPE.md`. The final slice includes deterministic Git/non-Git metadata, bounded hashing, progress/cancellation/last-good behavior, local APIs, a numbered browser flow, one audit, one targeted correction pass, and green parent retesting.
+
 **Objective:** Open a user-selected local repository and build a deterministic, cancellable metadata index of its directories, files, languages/kinds, package manifests, hashes, and Git status without executing repository content.
 
 **Rationale:** File-level hierarchy is the first useful repository-world input and the degradation floor for every language. A working discovery/index loop should exist before symbol parsing or spatial layout begins.
@@ -1878,29 +1918,29 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Risks:** Visual instability and identity collisions. Version seeds, use strong hashes/UUID mappings, and retain migration metadata.
 
-## Phase 5 — Accessible browser shell and first repository island
+## Phase 5 — Inherited identity/dashboard shell and first repository island
 
-**Objective:** Render one useful repo island while delivering a complete semantic 2D navigation path.
+**Objective:** Port the accepted AgentIntersect identity/avatar/dashboard visual baseline into World-owned React components and render one useful repo island with a complete semantic 2D navigation path.
 
-**Rationale:** The first visual proof must validate product value without sacrificing operability or accessibility.
+**Rationale:** The first serious visual proof should begin from the already accepted AgentIntersect opening and dashboard rather than inventing a second visual language. World-specific information architecture, accessibility, and repository-island behavior remain authoritative.
 
-**In scope:** React 19/Vite app, TanStack Query, Zustand, R3F scene, package/directory/file instancing, DOM tree/search/inspector/minimap, selection synchronization, WebGL failure fallback, keyboard/reduced-motion/high-contrast modes.
+**In scope:** One-time bounded source extraction with provenance/hashes; byte-identical copies of selected original dashboard graphics; `identify_` opening and local avatar-appearance builder; inherited transition, header, hero, output/status area, typewriter/cursor navigation and overlay toggle behavior; durable default/current harness selection for OpenClaw/Hermes/Claude Code/Codex; World/Repositories/Agents/Activity/Evidence/Settings panels; React 19/Vite app, TanStack Query, Zustand, R3F scene, package/directory/file instancing, DOM tree/search/inspector/minimap, selection synchronization, WebGL failure fallback, keyboard/reduced-motion/high-contrast modes.
 
-**Out of scope:** Agent avatar, worker run, symbols, multiplayer, fancy physics/XR.
+**Out of scope:** Copying original AgentIntersect menu bodies/backend authority, claiming a harness is connected, real worker runs, in-world autonomous agent locomotion, symbols, multiplayer, fancy physics/XR.
 
 **Dependencies:** Phase 4 snapshot/tile API.
 
-**Concrete tasks:** Build responsive shell; demand-rendered canvas; instanced geometry/picking; camera focus; semantic object list; search-to-focus; inspector metadata; performance overlay; deterministic visual fixture.
+**Concrete tasks:** Freeze the original dashboard source commit and asset manifest; copy selected graphics byte-for-byte; port the identity/avatar/hero/nav/output behaviors into scoped React components; persist avatar and harness selections locally; map existing Phase 2/3 flows into World panels; build responsive shell; demand-rendered canvas; instanced geometry/picking; camera focus; semantic object list; search-to-focus; inspector metadata; performance overlay; deterministic visual fixture.
 
-**Code/artifacts:** `apps/web`, `renderer-r3f`, `ui`; Storybook states; screenshot fixtures.
+**Code/artifacts:** `apps/web`, `renderer-r3f`, `ui`; World-owned dashboard assets and provenance manifest; avatar profile and harness-selection schemas; Storybook states; screenshot fixtures.
 
-**Tests/evidence:** Keyboard-only open/search/select/inspect; axe; WebGL disabled; reduced motion; screenshot regression; 10k instance frame measurements.
+**Tests/evidence:** Source/copy hash equality for selected graphics; first-open identify→avatar preview→dashboard transition; saved-profile restore and Settings reopen; hero harness persistence; double-action menu toggles; overlay geometry does not move the hero; selected cursor stays inline; World category mapping; keyboard-only open/search/select/inspect; axe; WebGL disabled; reduced motion; screenshot regression; 10k instance frame measurements.
 
-**Acceptance criteria:** Repo is understandable in both canvas and DOM; no required action depends on color/motion; scene meets reference floor; unsupported-language repo still works.
+**Acceptance criteria:** The accepted identity/dashboard look is recognizably preserved; the operator can build an avatar appearance, enter the dashboard, choose a default/current harness, and operate the World-specific menu shell; copied graphics match the authorized source bytes; repo is understandable in both canvas and DOM; no required action depends on color/motion; unsupported-language repos still work; no UI claims an unimplemented connector or worker action succeeded.
 
-**Exit gate:** UX/accessibility review with recorded workflow.
+**Exit gate:** Recorded first-open/avatar/harness/navigation/repository workflow, parent screenshot/video comparison against the accepted source, accessibility evidence, and one bounded UX/code audit.
 
-**Risks:** 3D novelty overwhelms precision. Keep shell persistent, selection linked, and animations absent at this phase.
+**Risks:** A monolithic copy could import obsolete control-plane assumptions, and 3D novelty could overwhelm precision. Copy graphics, port interactions into scoped React modules, keep data/authority World-owned, keep selection linked, and use restrained/reduced-motion equivalents.
 
 ## Phase 6 — AgentIntersect read integration and normalized replay
 
@@ -1908,7 +1948,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Rationale:** Read integration proves compatibility and recovery before command authority is enabled.
 
-**In scope:** Health/workspace attestation, `/v1/state`, dashboard `/api/snapshot`, `/api/events`, `/api/events/stream`, normalized event envelope, SQLite dedupe, JSONL ledger, replay cursor, backpressure/reset, phase board and roster projections.
+**In scope:** Health/workspace attestation, `/v1/state`, dashboard `/api/snapshot`, `/api/events`, `/api/events/stream`, normalized event envelope, SQLite dedupe, JSONL ledger, replay cursor, backpressure/reset, phase board and roster projections, and truthful readiness/connection state for the Phase 5 hero harness selection.
 
 **Out of scope:** Job enqueue, safe pause mutation, emergency stop, MCP resources.
 
@@ -1920,7 +1960,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Tests/evidence:** Duplicate frames, out-of-order cross-source events, SSE gaps/overflow/restart, fake health, workspace mismatch, redacted hostile telemetry, snapshot reconciliation.
 
-**Acceptance criteria:** Restart/replay yields identical final projection; no duplicate animation IDs; execution controls remain disabled; unsupported AgentIntersect contract fails closed with diagnostics.
+**Acceptance criteria:** Restart/replay yields identical final projection; no duplicate animation IDs; the selected hero harness displays real ready/offline/mismatch state without implying execution; execution controls remain disabled; unsupported AgentIntersect contract fails closed with diagnostics.
 
 **Exit gate:** High-risk contract/replay review.
 
@@ -1932,7 +1972,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Rationale:** This is the decisive “real agent” proof and the main security boundary.
 
-**In scope:** Host-only `worker.enqueue-phase`, phase/harness validation, expected revision, intent idempotency/reconciliation, daemon attestation immediately before mutation, `POST /v1/worker/jobs`, run mapping, current lifecycle observation.
+**In scope:** Host-only `worker.enqueue-phase`, Phase 5 default/current harness and per-agent harness-origin selection, phase/harness validation, expected revision, intent idempotency/reconciliation, daemon attestation immediately before mutation, `POST /v1/worker/jobs`, run mapping, current lifecycle observation.
 
 **Out of scope:** Browser or World launching harness commands, LAN workers, multiple simultaneous demo jobs, direct completion submission by World.
 
@@ -2217,7 +2257,7 @@ Future public consideration requires legal/license/security review, public docum
 
 ### ADR-004 — Web-native R3F client with DOM-equivalent shell
 
-**Status:** Proposed for approval. **Decision:** React 19/Vite/R3F plus a semantic 2D shell. **Rejected:** Unity, VR-first, canvas-only UI. **Consequence:** contributor-friendly and accessible, but requires explicit performance discipline.
+**Status:** Accepted. **Decision:** React 19/Vite/R3F plus a semantic 2D shell, using the approved AgentIntersect visual-shell inheritance in ADR-011. **Rejected:** Unity, VR-first, canvas-only UI. **Consequence:** contributor-friendly and accessible, but requires explicit performance discipline.
 
 ### ADR-005 — SQLite graph plus JSONL ledger
 
@@ -2243,6 +2283,10 @@ Future public consideration requires legal/license/security review, public docum
 
 **Status:** Proposed for approval. **Decision:** one independent High-risk review plus targeted blocker re-review, driven by tests/evidence. **Rejected:** infinite review loops or equal process for all changes.
 
+### ADR-011 — Inherit AgentIntersect identity/dashboard visuals, not its menus or authority
+
+**Status:** Accepted by the user on 2026-07-19. **Decision:** Phase 5 performs one bounded extraction of the original AgentIntersect identity screen, avatar/dashboard graphics, hero harness selector, navigation appearance, typewriter/cursor behavior, overlay toggles, and visible output pattern. Selected graphics remain byte-identical; interactions are ported into World-owned React components. Original menu bodies and control-plane authority are replaced by World/Repositories/Agents/Activity/Evidence/Settings and World APIs. **Rejected:** inventing a disconnected second visual language, wholesale copying the monolithic dashboard, retaining Connect/OnBoarding/Design/Control/Workers/Records business logic, or maintaining a live source dependency. **Consequence:** provenance/hashes and visual comparison are Phase 5 gates; later source sync is not.
+
 ## Open questions requiring user approval
 
 1. Approve this design and Phase 0 only, or request design revisions? No implementation begins without this choice.
@@ -2254,7 +2298,7 @@ Future public consideration requires legal/license/security review, public docum
 7. What default retention is approved for local World events, Yjs room snapshots, annotations, and diagnostics?
 8. Must the vertical slice support non-Git directories, or may that remain visualization-only/best effort?
 9. Is safe-pause/emergency-stop control required for v0.1 acceptance or a private-alpha gate? This design includes both before acceptance because they are high-risk lifecycle boundaries.
-10. Are agent profile-derived avatar traits allowed with explicit consent in v0.1, or should all v0.1 avatars be manually configured/default?
+10. Resolved: v0.1 avatar appearance is manually configured by the operator in the inherited `identify_` opening flow; no traits are inferred from private profiles.
 11. Which language Tier 2 languages, if any, are required beyond TypeScript/JavaScript for v0.1?
 12. May World retain a sanitized copy of current AgentIntersect dashboard fixtures in its private repo for contract tests?
 
@@ -2266,6 +2310,7 @@ v0.1 is done only when all statements are true and evidenced:
 - Fresh clone/install/build/doctor succeeds on the approved matrix with locked dependencies.
 - One arbitrary safe local repo opens; hierarchy/search/inspection works with deterministic stable IDs and clear parse coverage.
 - One repo island renders within budgets, with complete keyboard/DOM equivalent, reduced motion, and color-independent state.
+- First open presents the inherited `identify_` avatar builder, then the accepted dashboard shell; selected source graphics are byte-identical, World navigation categories are used, and avatar/default harness selections restore truthfully.
 - Health attestation confirms service/protocol/process/workspace; mismatches block mutation.
 - Current AgentIntersect contract tests pass against the pinned unchanged checkout, including exact daemon routes, dashboard snapshot/events/SSE candidates, worker semantics, MCP five tools/protocol/no resources, and lifecycle controls used.
 - A local host intent creates at most one real `phase_run`; World does not launch or stop the harness process directly.
@@ -2278,7 +2323,7 @@ v0.1 is done only when all statements are true and evidenced:
 - Safe pause distinguishes requested/reached; emergency stop delegates to AgentIntersect and shows per-process outcomes.
 - Large repo degradation, index cancellation, parser failure, DB/event/Yjs corruption, and WebGL absence have truthful recovery paths.
 - Zero open High-risk defects; Standard residuals are documented with owner/mitigation/trigger.
-- No npm publish, remote repo, public release, AgentIntersect source change, or shared-package extraction occurred without separate authorization.
+- No npm publish, public release, visibility change, AgentIntersect source modification, or shared-package extraction occurred without separate authorization; the approved private World remote and one-time Phase 5 visual-asset copy are the only relevant exceptions.
 
 ## Explicit post-v0.1 backlog
 

@@ -4,118 +4,136 @@ Updated: 2026-07-19
 
 ## Current milestone
 
-**Phase 2 — Functioning local authority server and configuration: COMPLETE**
+**Phase 3 — Repository discovery and deterministic metadata indexing: COMPLETE**
 
-- Evidence: `PHASE_2_REPORT.md`, `docs/PHASE_2_SCOPE.md`, and `docs/PHASE_2_ENGINEERING.md`
-- Baseline: Phase 1 commit `d1d926ce195ea4502bcc03a1d831b45e8bb76cf8`
+- Evidence: `PHASE_3_REPORT.md`, `docs/PHASE_3_SCOPE.md`, and `docs/PHASE_3_ENGINEERING.md`
+- Baseline: completed Phase 2 commit `4a75ca099ca3a5fb0d0c9638cc4eef680c1bdb03`
+- Version: `0.3.0-phase3`
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`
 - Workspace: 15 projects / 14 named app-package graph entries
 - Functional apps: Vite/React operator page plus Fastify local authority server
-- Final focused Phase 2 tests: 8 files / 37 tests
-- Final complete tests: 10 files / 40 tests
-- Final typecheck: 18/18 tasks
-- Final architecture regressions: 9/9
-- Final production build: 13/13 tasks
-- Final Playwright E2E: 2/2
-- Final fresh-copy verification: complete check passed for 123 project files
-- Live API: health/ready/config/doctor/OpenAPI plus operation create/replay/conflict/cancel/complete passed
-- Live browser: numbered Steps 1–3, blue actionable/grey disabled controls, Current succeeded / Previous cancelled, zero JavaScript errors, no visible overflow/clipping/overlap
-- Process lifecycle: real loopback/LAN listeners, SIGINT/SIGTERM, port collision, timer cleanup, and post-run port cleanup passed
-- Review cadence: one bounded audit, verdict PASS, zero blockers, no correction worker, no second broad review
-- Original AgentIntersect: not inspected or modified
+- Focused Phase 3 tests: 4 files / 22 tests
+- Complete tests: 13 files / 54 tests
+- Typecheck: 19/19 tasks
+- Architecture regressions: 9/9; checker reports no violations across 14 packages
+- Production build: 13/13 tasks
+- Playwright: 6/6
+- Fresh-copy verification: complete aggregate passed for 132 source files
+- Live API: 12 OpenAPI paths plus Git/non-Git create/replay/conflict/cancel/current proof
+- Browser: numbered repository flow, truthful loading/error/empty/success states, zero console errors, zero desktop/mobile horizontal overflow
+- Review cadence: one bounded audit, one targeted correction pass, parent targeted re-review, no second broad review
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`
-- Release/tag/publication/visibility change: none; repository remains private
+- Release/tag/package publication/public visibility change: none; repository remains private
 
-## Completed Phase 2 surface
+## Completed Phase 3 surface
 
-### Configuration
+### Repository metadata index
 
-- Browser-safe config root and separate Node environment-loader export
-- Validated loopback default and explicit trusted-LAN mode
-- Safe config projection without environment or secret dumps
+- Canonical `realpath` root validation for selected Git and non-Git directories
+- Fixed vendor/build/cache exclusions and root `.gitignore` support for non-Git roots
+- Symlink skipping without target traversal
+- Sorted relative directory/file/package metadata
+- Language, file-kind, binary, oversize, bounded hash, package, and Git status classification
+- Safe npm/Python/Cargo/Go/Maven package names; Maven accepts only one direct project artifact
+- Hardened argument-array Git branch/HEAD/status reads with no repository hooks/scripts/content execution
+- Deterministic SHA-256 generation fingerprints excluding IDs/timestamps/duration
+
+### Bounded work and lifecycle
+
+- Default 2,500 files; hard maximum 10,000
+- 2 MiB per-file and 64 MiB cumulative hash limits
+- Truthful bounded `prunedEntries` observation, not an exhaustive ignored-file count
+- Asynchronous progress and idempotent cancellation
+- Last-good preservation after failure/cancellation
+- 20 newest in-memory operation records
+- Active work aborted and awaited during server close
+- Manual rescan only; no watcher or restart persistence claim
 
 ### API
 
-- `GET /health`
-- `GET /ready`
-- `GET /config`
-- `GET /doctor`
-- `GET /openapi.json`
-- `POST /operations`
-- `GET /operations`
-- `GET /operations/:id`
-- `POST /operations/:id/cancel`
-
-### Operations
-
-- Bounded in-memory `demo-delay` records
-- Idempotent create/replay/conflict behavior
-- Completion and idempotent cancellation
-- Timer/resource cleanup on server close
-- No real worker, command, repository, shell, or PTY execution
+- `POST /repository-indexes`
+- `GET /repository-indexes`
+- `GET /repository-indexes/current`
+- `GET /repository-indexes/:id`
+- `POST /repository-indexes/:id/cancel`
 
 ### Operator flow
 
-1. Start demo operation.
-2. Cancel current operation.
-3. Review persistent Current and Previous results.
+1. Select and index a repository root.
+2. Cancel current indexing while preserving last good.
+3. Review distinct Current index and Last good generation results.
+
+The last-good card distinguishes loading, successful empty state, unavailable/invalid response, success, and recovery after a later successful index. Existing Phase 2 authority/demo operation behavior remains available.
+
+## Verification highlights
+
+- Disposable Git/non-Git fixtures only; no original-AgentIntersect repository indexing.
+- Unchanged rescan retained its fingerprint; relevant content changes changed it.
+- Package manifest remained byte-identical.
+- Package-script and Git-hook sentinels remained absent.
+- Git branch, HEAD, dirty state, tracked modification, and untracked status were correct.
+- Cancellation preserved the exact prior last-good generation.
+- Desktop 1,440 px and mobile 390 px layouts had no horizontal overflow or clipping.
+- Ports and disposable Phase 3 directories were clear after testing.
+
+## Sole audit disposition
+
+The one audit found three Moderate blockers, all corrected in the one permitted targeted pass:
+
+1. renamed misleading `ignoredFiles` to documented bounded `prunedEntries`;
+2. constrained Maven identity to one unambiguous direct `project/artifactId`;
+3. replaced false `None yet` presentation on last-good request failure with explicit loading/error state.
+
+Cumulative hash-budget coverage and smoke setup cleanup protection were also added. Parent focused/full/browser/fresh-copy retesting is green.
 
 ## Next milestone
 
-**Phase 3 — Repository discovery and deterministic metadata indexing**
-
-Phase 3 is explicitly authorized next but must begin only after the Phase 2 commit is verified and pushed to the private remote.
+**Phase 4 — World object model, deterministic identity, and layout**
 
 ### Functionality-first objective
 
-Open a user-selected local repository and build a deterministic, cancellable metadata index of its directories, files, languages/kinds, package manifests, hashes, and Git status without executing repository content.
+Transform the completed Phase 3 generation into versioned World objects with deterministic stable IDs and bounded deterministic layout data that can be consumed by both the future semantic 2D shell and repository island renderer.
 
-### Initial Phase 3 scope to freeze before implementation
+### Phase 4 boundaries
 
-- canonical repository-root selection and validation;
-- Git and non-Git repository discovery;
-- ignore/vendor/binary handling;
-- language and file-kind classification;
-- package-manifest discovery;
-- deterministic metadata hashing and generation identity;
-- progress, cancellation, and last-good generation behavior;
-- bounded file/watch/rescan behavior appropriate for current fixtures;
-- operator-visible open/index/cancel/progress/results flow;
-- local persistence only if required by the smallest working slice.
+- Consume Phase 3 outputs; do not rebuild repository traversal.
+- Preserve deterministic identity across unchanged rebuilds.
+- Define explicit rename/case/Unicode behavior.
+- Keep absolute paths out of shareable DTOs.
+- Produce bounded tiles/LOD and golden fixtures before broad semantics.
+- Do not add real workers, AgentIntersect mutation, PartyKit/Yjs, public ingress, or Phase 5 browser-shell work.
 
-### Continuing non-goals
+Phase 4 is the next design milestone, but implementation must be explicitly authorized and scoped before launch.
 
-- executing repository scripts, hooks, binaries, or arbitrary commands;
-- indexing or modifying the original `/home/mela_ai/AgentIntersect` checkout;
-- symbol parsing, call graphs, spatial layout/rendering, agents/worker mutation, PartyKit/Yjs, or Phase 4+ behavior;
-- unrelated users, public rooms, internet ingress, cloud multi-tenancy, or broad hardening;
-- release, tag, publication, public visibility, or package publication.
+## Accepted Phase 5 UX direction
 
-### Phase 3 delivery cadence
+The user approved reuse of the original AgentIntersect opening identity screen and dashboard visual language at the browser-shell milestone:
 
-1. Read `AGENTS.md`, this status file, `PHASE_2_REPORT.md`, and Phase 3 in the design.
-2. Preserve the completed Phase 2 baseline and private remote.
-3. Freeze the smallest observable Phase 3 package graph, dependency changes, fixtures, and acceptance commands.
-4. Implement vertical RED→GREEN slices with Codex `gpt-5.6-sol` / high.
-5. Parent-verify focused/full/fresh-copy plus real temporary-repository and browser behavior.
-6. Run one bounded audit.
-7. Fix confirmed defects once if needed, parent-retest, and stop.
+- `identify_` opening with a local avatar-appearance builder;
+- selected original graphics copied byte-for-byte with provenance and hashes;
+- inherited hero/nav/output interactions ported into World-owned React components;
+- hero choices OpenClaw, Hermes, Claude Code, and Codex;
+- World menus: **World, Repositories, Agents, Activity, Evidence, Settings**;
+- Phase 6 adds truthful harness readiness and Phase 7 the first bounded worker action.
+
+The original Connect/OnBoarding/Design/Control/Workers/Records menu bodies and authority are not copied. Original AgentIntersect remains unmodified and is not a routine verification dependency.
 
 ## Non-blocking backlog
 
+### Phase 3
+
+- Durable generation persistence and restart recovery
+- Complete nested `.gitignore` behavior for non-Git roots
+- Watcher/automatic rescan policy
+- Browser polling retry policy after a surfaced request error
+
 ### Phase 2
 
-- Improve generated OpenAPI fidelity for the required `idempotency-key` header and explicit create/replay/error response statuses.
-- Refresh or downgrade browser readiness if the server becomes unavailable after initial page load.
+- Improve generated OpenAPI response-schema fidelity where useful
+- Refresh or downgrade top-level authority readiness if the server disappears after initial load
 
 ### Phase 1 tooling
 
-- Add SIGINT/SIGTERM cleanup for externally interrupted `verify:fresh` runs.
-
-### Historical Phase 0 surface
-
-- Clear successful MCP response timeout handles.
-- Assemble dashboard SSE through complete frame terminators under timeout.
-- Broaden generic evidence-pattern coverage.
+- Add SIGINT/SIGTERM cleanup for externally interrupted `verify:fresh` runs
 
 Historical items should be revisited only when their affected surfaces are deliberately touched.

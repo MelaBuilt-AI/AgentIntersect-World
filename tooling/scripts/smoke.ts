@@ -1,6 +1,16 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFile, spawn, type ChildProcess } from "node:child_process";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { createServer } from "node:net";
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { promisify } from "node:util";
 
 import {
   ApiErrorSchema,
@@ -9,8 +19,11 @@ import {
   HealthResponseSchema,
   OperationRecordSchema,
   ReadyDataSchema,
+  RepositoryIndexOperationSchema,
   SafeConfigSchema,
 } from "@agentintersect-world/world-schema";
+
+const execFileAsync = promisify(execFile);
 
 async function disposablePort(): Promise<number> {
   return await new Promise((resolvePort, reject) => {
@@ -67,8 +80,43 @@ const serverPort = await disposablePort();
 let webPort = await disposablePort();
 while (webPort === serverPort) webPort = await disposablePort();
 const children: ChildProcess[] = [];
+const fixtureContainer = await mkdtemp(join(tmpdir(), "aiw-phase3-smoke-"));
+const nonGitRoot = join(fixtureContainer, "non-git");
+const gitRoot = join(fixtureContainer, "git");
 
 try {
+  await Promise.all([mkdir(nonGitRoot), mkdir(gitRoot)]);
+  const packageSource = JSON.stringify({
+    name: "phase3-smoke",
+    scripts: { postinstall: "touch SENTINEL_EXECUTED" },
+  });
+  await writeFile(join(nonGitRoot, "package.json"), packageSource);
+  await writeFile(join(nonGitRoot, "index.ts"), "export const smoke = true;\n");
+  const fixtureGit = async (...args: string[]) =>
+    await execFileAsync("git", [
+      "-c",
+      "core.hooksPath=/dev/null",
+      "-C",
+      gitRoot,
+      ...args,
+    ]);
+  await fixtureGit("init", "-b", "phase3-smoke");
+  await fixtureGit("config", "user.name", "Phase 3 Smoke");
+  await fixtureGit("config", "user.email", "smoke@example.invalid");
+  await writeFile(
+    join(gitRoot, "tracked.ts"),
+    "export const tracked = true;\n",
+  );
+  await fixtureGit("add", "tracked.ts");
+  await fixtureGit("commit", "-m", "fixture");
+  await mkdir(join(gitRoot, ".git", "hooks"), { recursive: true });
+  await writeFile(
+    join(gitRoot, ".git", "hooks", "post-index-change"),
+    "#!/bin/sh\ntouch HOOK_EXECUTED\n",
+    { mode: 0o755 },
+  );
+  await writeFile(join(gitRoot, "untracked.py"), "smoke = True\n");
+
   const server = spawn(
     process.execPath,
     [resolve("apps/local-server/dist/index.js")],
@@ -127,6 +175,65 @@ try {
   if (openapi.paths === undefined)
     throw new Error("OpenAPI paths are missing from generated document");
 
+  const createIndex = async (rootPath: string, key: string) => {
+    const response = await fetch(`${api}/repository-indexes`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": key,
+      },
+      body: JSON.stringify({ rootPath }),
+    });
+    return ApiResultSchema(RepositoryIndexOperationSchema).parse(
+      await response.json(),
+    ).data;
+  };
+  const settleIndex = async (operation: { id: string }) => {
+    for (let attempt = 0; attempt < 200; attempt += 1) {
+      const response = await fetch(`${api}/repository-indexes/${operation.id}`);
+      const current = ApiResultSchema(RepositoryIndexOperationSchema).parse(
+        await response.json(),
+      ).data;
+      if (current.status !== "running") return current;
+      await new Promise((resolveWait) => setTimeout(resolveWait, 10));
+    }
+    throw new Error("repository index smoke timed out");
+  };
+  const firstIndex = await settleIndex(
+    await createIndex(nonGitRoot, "smoke-index-1"),
+  );
+  if (firstIndex.status !== "succeeded" || !firstIndex.generation)
+    throw new Error("non-Git smoke index failed");
+  const rescan = await settleIndex(
+    await createIndex(nonGitRoot, "smoke-index-2"),
+  );
+  if (rescan.generation?.fingerprint !== firstIndex.generation.fingerprint)
+    throw new Error("unchanged rescan fingerprint changed");
+  const gitIndex = await settleIndex(
+    await createIndex(gitRoot, "smoke-index-git"),
+  );
+  if (
+    gitIndex.status !== "succeeded" ||
+    !gitIndex.generation?.git.present ||
+    gitIndex.generation.git.branch !== "phase3-smoke"
+  )
+    throw new Error("Git smoke metadata failed");
+  if (
+    (await readFile(join(nonGitRoot, "package.json"), "utf8")) !== packageSource
+  )
+    throw new Error("selected repository was mutated");
+  for (const sentinel of [
+    join(nonGitRoot, "SENTINEL_EXECUTED"),
+    join(gitRoot, "HOOK_EXECUTED"),
+  ]) {
+    try {
+      await access(sentinel);
+      throw new Error(`sentinel was executed: ${sentinel}`);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+  }
+
   const createOperation = async (key: string, durationMs: number) =>
     await fetch(`${api}/operations`, {
       method: "POST",
@@ -176,8 +283,9 @@ try {
     throw new Error("built web page identity is missing");
 
   process.stdout.write(
-    `Smoke passed: Phase 2 inspection/operation API and built web served on disposable ports ${serverPort}/${webPort}.\n`,
+    `Smoke passed: Phase 3 authority, deterministic Git/non-Git repository indexes, no-execution sentinels, demo operations, and built web on disposable ports ${serverPort}/${webPort}.\n`,
   );
 } finally {
   await Promise.all(children.reverse().map(stop));
+  await rm(fixtureContainer, { recursive: true, force: true });
 }

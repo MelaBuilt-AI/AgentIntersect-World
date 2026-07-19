@@ -7,6 +7,7 @@ import {
   toSafeConfig,
 } from "@agentintersect-world/config/node";
 import { createCorrelationId } from "@agentintersect-world/observability";
+import { indexRepository } from "@agentintersect-world/repo-indexer";
 import {
   ApiErrorSchema,
   ApiResultSchema,
@@ -17,6 +18,10 @@ import {
   OperationRecordSchema,
   OperationRequestSchema,
   ReadyDataSchema,
+  CurrentRepositoryGenerationDataSchema,
+  RepositoryIndexListDataSchema,
+  RepositoryIndexOperationSchema,
+  RepositoryIndexRequestSchema,
   SafeConfigSchema,
   type ApiError,
   type CorrelationId,
@@ -33,17 +38,23 @@ import Fastify, {
 } from "fastify";
 
 import { DemoOperationService, OperationServiceError } from "./operations.js";
+import {
+  RepositoryIndexService,
+  RepositoryIndexServiceError,
+} from "./repository-indexes.js";
 
 export type LocalServer = FastifyInstance & {
   readonly operationService: DemoOperationService;
+  readonly repositoryIndexService: RepositoryIndexService;
 };
 
 export type LocalServerOptions = {
   readonly config?: LocalServerConfig;
   readonly generateCorrelationId?: () => string;
+  readonly repositoryIndexer?: typeof indexRepository;
 };
 
-const metaSchema = "aiw.api/0.2" as const;
+const metaSchema = "aiw.api/0.3" as const;
 
 export function createLocalServer(
   options: LocalServerOptions = {},
@@ -55,8 +66,17 @@ export function createLocalServer(
     options.generateCorrelationId ?? createCorrelationId;
   const correlations = new WeakMap<FastifyRequest, CorrelationId>();
   const operationService = new DemoOperationService(config.demoOperationMaxMs);
+  const repositoryIndexService = new RepositoryIndexService(
+    config.repositoryMaxFiles,
+    20,
+    options.repositoryIndexer ?? indexRepository,
+  );
   server.decorate("operationService", operationService);
-  server.addHook("onClose", async () => operationService.close());
+  server.decorate("repositoryIndexService", repositoryIndexService);
+  server.addHook("onClose", async () => {
+    operationService.close();
+    await repositoryIndexService.close();
+  });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
     const correlationId = correlations.get(request);
@@ -180,6 +200,128 @@ export function createLocalServer(
       });
       return ApiResultSchema(DoctorDataSchema).parse(success(request, data));
     });
+
+    const repositoryIndexRouteSchema = {
+      tags: ["repository-indexes"],
+      params: {
+        type: "object",
+        required: ["id"],
+        properties: { id: { type: "string", format: "uuid" } },
+      },
+    } as const;
+
+    const repositoryIndexFailure = (
+      error: unknown,
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => {
+      if (!(error instanceof RepositoryIndexServiceError)) throw error;
+      const statusCode =
+        error.code === "validation"
+          ? 400
+          : error.code === "conflict"
+            ? 409
+            : 404;
+      return reply
+        .code(statusCode)
+        .send(failure(request, error.code, error.message));
+    };
+
+    server.post(
+      "/repository-indexes",
+      {
+        schema: {
+          tags: ["repository-indexes"],
+          headers: {
+            type: "object",
+            required: ["idempotency-key"],
+            properties: {
+              "idempotency-key": {
+                type: "string",
+                minLength: 1,
+                maxLength: 128,
+              },
+            },
+          },
+          body: {
+            type: "object",
+            required: ["rootPath"],
+            additionalProperties: false,
+            properties: {
+              rootPath: { type: "string", minLength: 1, maxLength: 4096 },
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        try {
+          const body = RepositoryIndexRequestSchema.parse(request.body);
+          const key = request.headers["idempotency-key"];
+          const created = repositoryIndexService.create(
+            typeof key === "string" ? key : undefined,
+            body,
+          );
+          if (created.replay) void reply.header("x-idempotent-replay", "true");
+          return reply
+            .code(created.replay ? 200 : 202)
+            .send(
+              ApiResultSchema(RepositoryIndexOperationSchema).parse(
+                success(request, created.operation),
+              ),
+            );
+        } catch (error) {
+          if (error instanceof RepositoryIndexServiceError)
+            return repositoryIndexFailure(error, request, reply);
+          return reply
+            .code(400)
+            .send(failure(request, "validation", "Request validation failed"));
+        }
+      },
+    );
+    server.get(
+      "/repository-indexes",
+      { schema: { tags: ["repository-indexes"] } },
+      async (request) =>
+        ApiResultSchema(RepositoryIndexListDataSchema).parse(
+          success(request, { operations: repositoryIndexService.list() }),
+        ),
+    );
+    server.get(
+      "/repository-indexes/current",
+      { schema: { tags: ["repository-indexes"] } },
+      async (request) =>
+        ApiResultSchema(CurrentRepositoryGenerationDataSchema).parse(
+          success(request, { generation: repositoryIndexService.current() }),
+        ),
+    );
+    server.get(
+      "/repository-indexes/:id",
+      { schema: repositoryIndexRouteSchema },
+      async (request, reply) => {
+        try {
+          const { id } = request.params as { id: string };
+          return ApiResultSchema(RepositoryIndexOperationSchema).parse(
+            success(request, repositoryIndexService.require(id)),
+          );
+        } catch (error) {
+          return repositoryIndexFailure(error, request, reply);
+        }
+      },
+    );
+    server.post(
+      "/repository-indexes/:id/cancel",
+      { schema: repositoryIndexRouteSchema },
+      async (request, reply) => {
+        try {
+          const { id } = request.params as { id: string };
+          return ApiResultSchema(RepositoryIndexOperationSchema).parse(
+            success(request, repositoryIndexService.cancel(id)),
+          );
+        } catch (error) {
+          return repositoryIndexFailure(error, request, reply);
+        }
+      },
+    );
 
     const operationRouteSchema = {
       tags: ["operations"],

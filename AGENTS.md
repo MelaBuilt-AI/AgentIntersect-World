@@ -9,6 +9,7 @@ These project-local rules govern Phase 1 and all later phases. They supersede ol
 - Do not repeatedly inspect, diff, hash, review, or verify the original AgentIntersect checkout during normal World phases.
 - Revisit the original AgentIntersect repository only when the user explicitly asks to modify it, refresh the baseline, or diagnose a live integration incompatibility that cannot be resolved from World-owned code and fixtures.
 - If AgentIntersect code is needed as a baseline, copy the required code into this repository, record its provenance once, and thereafter treat the copy as AgentIntersect World code. Do not create an ongoing synchronization or verification gate against the original repository.
+- The user explicitly authorized one bounded **Phase 5 visual-shell baseline extraction** from the original AgentIntersect dashboard. At that milestone only, read the dashboard identity/avatar/hero/navigation implementation and copy the required graphics/assets into World with a source commit, file manifest, and hashes. Preserve the source graphics byte-for-byte when used. Port the interaction model into World-owned React components; do not copy AgentIntersect's control-plane menus or backend authority. Do not modify the original repository, and after the extraction treat the copied assets/code as World-owned without recurring source checks.
 - Phase 0 compatibility evidence remains historical baseline evidence, not a recurring phase gate.
 
 ## 2. Functionality-first delivery

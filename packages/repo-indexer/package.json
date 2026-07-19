@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/repo-indexer",
-  "version": "0.2.0-phase2",
+  "version": "0.3.0-phase3",
   "private": true,
   "type": "module",
   "exports": {
@@ -12,5 +12,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agentintersect-world/world-schema": "workspace:*",
+    "ignore": "7.0.6"
   }
 }

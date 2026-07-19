@@ -1,7 +1,7 @@
 export const APP_METADATA = {
   name: "AgentIntersect World",
-  phase: "Phase 2",
-  version: "0.2.0-phase2",
+  phase: "Phase 3",
+  version: "0.3.0-phase3",
 } as const;
 
 export const LOCAL_SERVER_DEFAULTS = {
@@ -10,6 +10,7 @@ export const LOCAL_SERVER_DEFAULTS = {
   port: 3770,
   instanceName: "AgentIntersect World Local",
   demoOperationMaxMs: 5_000,
+  repositoryMaxFiles: 2_500,
   healthPath: "/health",
 } as const;
 
@@ -24,6 +25,7 @@ export type LocalServerConfig = {
   readonly port: number;
   readonly instanceName: string;
   readonly demoOperationMaxMs: number;
+  readonly repositoryMaxFiles: number;
 };
 
 export type SafeConfig = LocalServerConfig & {

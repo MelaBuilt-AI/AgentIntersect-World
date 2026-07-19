@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/local-server",
-  "version": "0.2.0-phase2",
+  "version": "0.3.0-phase3",
   "private": true,
   "type": "module",
   "exports": {
@@ -17,6 +17,7 @@
   "dependencies": {
     "@agentintersect-world/config": "workspace:*",
     "@agentintersect-world/observability": "workspace:*",
+    "@agentintersect-world/repo-indexer": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@fastify/swagger": "9.8.1",
     "fastify": "5.10.0"

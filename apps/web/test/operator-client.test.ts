@@ -12,7 +12,7 @@ const operation = {
   result: "Demo operation running",
 };
 
-describe("Phase 2 operator API client", () => {
+describe("Phase 3 operator API client", () => {
   it("loads validated readiness and safe configuration", async () => {
     const client = (await import("../src/health-client.js")) as Record<
       string,
@@ -28,19 +28,20 @@ describe("Phase 2 operator API client", () => {
           data: {
             service: "agentintersect-world-local-server",
             status: "ready",
-            version: "0.2.0-phase2",
+            version: "0.3.0-phase3",
             runtime: { name: "node", version: "v24.18.0" },
             config: {
-              phase: "Phase 2",
-              version: "0.2.0-phase2",
+              phase: "Phase 3",
+              version: "0.3.0-phase3",
               instanceName: "Browser Test",
               networkScope: "loopback",
               host: "127.0.0.1",
               port: 3770,
               demoOperationMaxMs: 5000,
+              repositoryMaxFiles: 2500,
             },
           },
-          meta: { correlationId, schema: "aiw.api/0.2" },
+          meta: { correlationId, schema: "aiw.api/0.3" },
         }),
         { status: 200 },
       ),
@@ -71,7 +72,7 @@ describe("Phase 2 operator API client", () => {
         JSON.stringify({
           ok: true,
           data: operation,
-          meta: { correlationId, schema: "aiw.api/0.2" },
+          meta: { correlationId, schema: "aiw.api/0.3" },
         }),
         { status: 202 },
       ),
@@ -121,7 +122,7 @@ describe("Phase 2 operator API client", () => {
             message: "Operation changed",
             retryable: false,
           },
-          meta: { correlationId, schema: "aiw.api/0.2" },
+          meta: { correlationId, schema: "aiw.api/0.3" },
         }),
         { status: 409 },
       ),

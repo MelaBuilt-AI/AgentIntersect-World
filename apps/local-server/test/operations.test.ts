@@ -8,6 +8,7 @@ const config = {
   port: 3770,
   instanceName: "Operation Test",
   demoOperationMaxMs: 500,
+  repositoryMaxFiles: 2_500,
 };
 
 describe("bounded demo-delay operations", () => {
@@ -51,7 +52,7 @@ describe("bounded demo-delay operations", () => {
     expect(conflict.json()).toMatchObject({
       ok: false,
       error: { code: "conflict", retryable: false },
-      meta: { correlationId: expect.any(String), schema: "aiw.api/0.2" },
+      meta: { correlationId: expect.any(String), schema: "aiw.api/0.3" },
     });
   });
 

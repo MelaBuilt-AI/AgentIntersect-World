@@ -46,7 +46,7 @@ describe("architecture checker fails closed", () => {
     );
   });
 
-  it("accepts the real Phase 2 graph", async () => {
+  it("accepts the real Phase 3 graph", async () => {
     await expect(inspectArchitecture(resolve("."))).resolves.toEqual([]);
   });
 });

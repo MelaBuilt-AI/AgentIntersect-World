@@ -50,7 +50,7 @@ export type LocalApiResult<T> =
   | { status: "error"; message: string }
   | { status: "unavailable"; message: "Local server unavailable" };
 
-async function apiRequest<T>(
+export async function apiRequest<T>(
   path: string,
   schema: Schema<T>,
   init: RequestInit,
