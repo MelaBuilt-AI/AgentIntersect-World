@@ -47,7 +47,7 @@ async function run(
 }
 
 const temporaryRoot = await mkdtemp(
-  resolve(tmpdir(), "agentintersect-world-phase4-"),
+  resolve(tmpdir(), "agentintersect-world-phase5-"),
 );
 const freshRoot = resolve(temporaryRoot, "repo");
 

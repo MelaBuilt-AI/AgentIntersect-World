@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">AgentIntersect Logo</title>
+  <desc id="desc">AgentIntersect static dark-square header icon, optimized for small dashboard display from the official dark-square asset.</desc>
+
+  <defs>
+    <style><![CDATA[
+      .ai-shape { vector-effect: none; }
+      .ai-crisp { shape-rendering: geometricPrecision; }
+      
+    ]]></style>
+
+    <radialGradient id="bgRadial" cx="50%" cy="48%" r="66%">
+      <stop offset="0%" stop-color="#0B2A65" stop-opacity="0.82"/>
+      <stop offset="44%" stop-color="#071226" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#02050B" stop-opacity="1"/>
+    </radialGradient>
+
+    <linearGradient id="xTL" x1="512" y1="512" x2="312" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="45%" stop-color="#008BFF"/>
+      <stop offset="76%" stop-color="#7B5CFF"/>
+      <stop offset="100%" stop-color="#FF2D9A"/>
+    </linearGradient>
+    <linearGradient id="xTR" x1="512" y1="512" x2="712" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00F2D0"/>
+      <stop offset="42%" stop-color="#00E5FF"/>
+      <stop offset="75%" stop-color="#008BFF"/>
+      <stop offset="100%" stop-color="#19D9FF"/>
+    </linearGradient>
+    <linearGradient id="xBL" x1="512" y1="512" x2="312" y2="788" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="45%" stop-color="#008BFF"/>
+      <stop offset="74%" stop-color="#7B5CFF"/>
+      <stop offset="100%" stop-color="#FF2D9A"/>
+    </linearGradient>
+    <linearGradient id="xBR" x1="512" y1="512" x2="712" y2="788" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="36%" stop-color="#008BFF"/>
+      <stop offset="70%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#00F2D0"/>
+    </linearGradient>
+
+    <linearGradient id="traceTL" x1="312" y1="236" x2="118" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7B5CFF"/>
+      <stop offset="42%" stop-color="#FF2D9A"/>
+      <stop offset="100%" stop-color="#FF2D2D"/>
+    </linearGradient>
+    <linearGradient id="traceTR" x1="712" y1="236" x2="906" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="46%" stop-color="#EEF8FF"/>
+      <stop offset="100%" stop-color="#FFD21A"/>
+    </linearGradient>
+    <linearGradient id="traceBL" x1="312" y1="788" x2="118" y2="906" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF2D9A"/>
+      <stop offset="56%" stop-color="#FF2D2D"/>
+      <stop offset="100%" stop-color="#FF8A00"/>
+    </linearGradient>
+    <linearGradient id="traceBR" x1="712" y1="788" x2="906" y2="906" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#008BFF"/>
+      <stop offset="55%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#00F2D0"/>
+    </linearGradient>
+
+    <radialGradient id="nodeRed" cx="42%" cy="35%" r="58%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.96"/>
+      <stop offset="20%" stop-color="#FF97A9"/>
+      <stop offset="56%" stop-color="#FF2D2D"/>
+      <stop offset="100%" stop-color="#A40028"/>
+    </radialGradient>
+    <radialGradient id="nodeGold" cx="42%" cy="35%" r="58%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="20%" stop-color="#FFF6A8"/>
+      <stop offset="58%" stop-color="#FFD21A"/>
+      <stop offset="100%" stop-color="#B66D00"/>
+    </radialGradient>
+    <radialGradient id="nodeOrange" cx="42%" cy="35%" r="58%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="22%" stop-color="#FFD295"/>
+      <stop offset="58%" stop-color="#FF8A00"/>
+      <stop offset="100%" stop-color="#B34000"/>
+    </radialGradient>
+    <radialGradient id="nodeTeal" cx="42%" cy="35%" r="58%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="22%" stop-color="#7DFFF4"/>
+      <stop offset="58%" stop-color="#00F2D0"/>
+      <stop offset="100%" stop-color="#007C89"/>
+    </radialGradient>
+
+    <filter id="glowCyan" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="7" result="coloredBlur"/>
+      <feColorMatrix in="coloredBlur" type="matrix" values="0 0 0 0 0  0 0 0 0 .82  0 0 0 0 1  0 0 0 .95 0" result="blueGlow"/>
+      <feMerge><feMergeNode in="blueGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowViolet" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feColorMatrix in="coloredBlur" type="matrix" values=".9 0 0 0 .24  0 .2 0 0 0  0 0 1 0 1  0 0 0 .95 0" result="violetGlow"/>
+      <feMerge><feMergeNode in="violetGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowRed" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 .9  0 .15 0 0 0  0 0 .16 0 .08  0 0 0 .95 0" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowGold" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 .75 0 0 .42  0 0 .12 0 0  0 0 0 .95 0" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowOrange" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 .42 0 0 .2  0 0 .08 0 0  0 0 0 .95 0" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowTeal" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 .9 0 0 .75  0 0 .85 0 .75  0 0 0 .95 0" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000814" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+<rect x="24" y="24" width="976" height="976" rx="144" fill="url(#bgRadial)"/>
+<g transform="translate(0 0) translate(512 512) scale(0.86) translate(-512 -512)">
+<g id="agentintersect-traces" class="ai-crisp">
+<path class="ai-shape" d="M312 236 L224 236 L188 200 L118 118" fill="none" stroke="url(#traceTL)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.98" filter="url(#glowRed)"/>
+<path d="M312 236 L224 236 L188 200 L118 118" fill="none" stroke="#FFFFFF" stroke-opacity="0.46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="ai-shape" d="M712 236 L800 236 L836 200 L906 118" fill="none" stroke="url(#traceTR)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.98" filter="url(#glowGold)"/>
+<path d="M712 236 L800 236 L836 200 L906 118" fill="none" stroke="#FFFFFF" stroke-opacity="0.46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="ai-shape" d="M312 788 L224 788 L188 824 L118 906" fill="none" stroke="url(#traceBL)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.98" filter="url(#glowOrange)"/>
+<path d="M312 788 L224 788 L188 824 L118 906" fill="none" stroke="#FFFFFF" stroke-opacity="0.46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="ai-shape" d="M712 788 L800 788 L836 824 L906 906" fill="none" stroke="url(#traceBR)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.98" filter="url(#glowTeal)"/>
+<path d="M712 788 L800 788 L836 824 L906 906" fill="none" stroke="#FFFFFF" stroke-opacity="0.46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g id="agentintersect-x" class="ai-crisp">
+<path d="M512 512 L312 236" fill="none" stroke="#020815" stroke-opacity="0.74" stroke-width="144" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path d="M512 512 L712 236" fill="none" stroke="#020815" stroke-opacity="0.74" stroke-width="144" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path d="M512 512 L312 788" fill="none" stroke="#020815" stroke-opacity="0.74" stroke-width="144" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path d="M512 512 L712 788" fill="none" stroke="#020815" stroke-opacity="0.74" stroke-width="144" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L312 236" fill="none" stroke="url(#xTL)" stroke-width="110" stroke-linecap="butt" stroke-linejoin="miter" filter="url(#glowViolet)"/>
+<path class="ai-shape" d="M512 512 L312 788" fill="none" stroke="url(#xBL)" stroke-width="110" stroke-linecap="butt" stroke-linejoin="miter" filter="url(#glowViolet)"/>
+<path class="ai-shape" d="M512 512 L712 236" fill="none" stroke="url(#xTR)" stroke-width="110" stroke-linecap="butt" stroke-linejoin="miter" filter="url(#glowCyan)"/>
+<path class="ai-shape" d="M512 512 L712 788" fill="none" stroke="url(#xBR)" stroke-width="110" stroke-linecap="butt" stroke-linejoin="miter" filter="url(#glowCyan)"/>
+<path class="ai-shape" d="M512 512 L312 236" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="54" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L312 236" fill="none" stroke="url(#xTL)" stroke-width="24" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L312 788" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="54" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L312 788" fill="none" stroke="url(#xBL)" stroke-width="24" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L712 236" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="54" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L712 236" fill="none" stroke="url(#xTR)" stroke-width="24" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L712 788" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="54" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path class="ai-shape" d="M512 512 L712 788" fill="none" stroke="url(#xBR)" stroke-width="24" stroke-linecap="butt" stroke-linejoin="miter"/>
+<path d="M512 512 L312 236" fill="none" stroke="#D7FBFF" stroke-width="7" stroke-opacity="0.42" stroke-linecap="round"/>
+<path d="M512 512 L712 236" fill="none" stroke="#D7FBFF" stroke-width="7" stroke-opacity="0.42" stroke-linecap="round"/>
+<path d="M512 512 L312 788" fill="none" stroke="#D7FBFF" stroke-width="7" stroke-opacity="0.42" stroke-linecap="round"/>
+<path d="M512 512 L712 788" fill="none" stroke="#D7FBFF" stroke-width="7" stroke-opacity="0.42" stroke-linecap="round"/>
+<circle cx="512" cy="512" r="48" fill="#00E5FF" opacity="0.18" filter="url(#glowCyan)"/>
+<circle cx="512" cy="512" r="14" fill="#FFFFFF" opacity="0.96" filter="url(#glowCyan)"/>
+</g>
+<g id="agentintersect-nodes">
+<circle cx="118" cy="118" r="56" fill="none" stroke="#FF2D2D" stroke-opacity="0.34" stroke-width="3" filter="url(#glowRed)"/>
+<circle cx="118" cy="118" r="34" fill="url(#nodeRed)" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="2" filter="url(#glowRed)"/>
+<circle cx="107" cy="105" r="10" fill="#FFFFFF" opacity="0.75"/>
+<circle cx="906" cy="118" r="56" fill="none" stroke="#FFD21A" stroke-opacity="0.34" stroke-width="3" filter="url(#glowGold)"/>
+<circle cx="906" cy="118" r="34" fill="url(#nodeGold)" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="2" filter="url(#glowGold)"/>
+<circle cx="895" cy="105" r="10" fill="#FFFFFF" opacity="0.75"/>
+<circle cx="118" cy="906" r="56" fill="none" stroke="#FF8A00" stroke-opacity="0.34" stroke-width="3" filter="url(#glowOrange)"/>
+<circle cx="118" cy="906" r="34" fill="url(#nodeOrange)" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="2" filter="url(#glowOrange)"/>
+<circle cx="107" cy="893" r="10" fill="#FFFFFF" opacity="0.75"/>
+<circle cx="906" cy="906" r="56" fill="none" stroke="#00F2D0" stroke-opacity="0.34" stroke-width="3" filter="url(#glowTeal)"/>
+<circle cx="906" cy="906" r="34" fill="url(#nodeTeal)" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="2" filter="url(#glowTeal)"/>
+<circle cx="895" cy="893" r="10" fill="#FFFFFF" opacity="0.75"/>
+</g>
+</g>
+</svg>

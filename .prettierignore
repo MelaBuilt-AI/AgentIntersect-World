@@ -6,3 +6,5 @@ test-results
 .turbo
 evidence
 packages/agentintersect-client
+apps/web/public/assets/dashboard
+apps/web/storybook-static

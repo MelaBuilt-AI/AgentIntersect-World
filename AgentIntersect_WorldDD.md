@@ -1922,6 +1922,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 5 — Inherited identity/dashboard shell and first repository island
 
+**Status:** COMPLETE on 2026-07-19. Evidence: `PHASE_5_REPORT.md`, `docs/PHASE_5_SCOPE.md`, and `docs/PHASE_5_ASSET_PROVENANCE.md`.
+
 **Direction frozen 2026-07-19:** Use the balanced vertical slice: inherited dashboard shell, inherited 2D avatar appearance, and one hybrid semantic-DOM + R3F repository island. Prove the complete identity-to-repository workflow before heavier avatar, Blender, environment-art, or renderer expansion.
 
 **Future avatar architecture frozen 2026-07-19:** Every embodied avatar uses one shared biped core rig and one reusable primary animation set. Humans and animal agents share the same locomotion/action skeleton; cats, dogs, and future animal forms vary through modular species parts and surfaces such as fur, tails, ears, muzzles, paw-shaped hands/feet, and optional claws. Optional tail/ear secondary joints or procedural motion must not create separate primary locomotion animation sets. Phase 5 uses the inherited 2D avatar artwork only; 3D modeling, rigging, animation production, and Blender work begin only after the functional avatar/dashboard/island interaction is proven.
@@ -1944,7 +1946,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** The accepted identity/dashboard look is recognizably preserved; the operator can build an avatar appearance, enter the dashboard, choose a default/current harness, and operate the World-specific menu shell; copied graphics match the authorized source bytes; repo is understandable in both canvas and DOM; no required action depends on color/motion; unsupported-language repos still work; no UI claims an unimplemented connector or worker action succeeded.
 
-**Exit gate:** Recorded first-open/avatar/harness/navigation/repository workflow, parent screenshot/video comparison against the accepted source, accessibility evidence, and one bounded UX/code audit.
+**Exit gate:** SATISFIED. The complete first-open/avatar/harness/navigation/repository-island workflow is recorded; 18 selected inherited assets match the authorized source bytes; five visual baselines, Storybook, axe, keyboard/reduced-motion/forced-colors/mobile/WebGL-fallback evidence, operation recovery, path redaction, and measured 10k proof are green. One bounded UX/code audit, one four-blocker correction pass, targeted 4/4 re-review, and parent aggregate/fresh-copy verification completed with no residual blocker.
 
 **Risks:** A monolithic copy could import obsolete control-plane assumptions, and 3D novelty could overwhelm precision. Copy graphics, port interactions into scoped React modules, keep data/authority World-owned, keep selection linked, and use restrained/reduced-motion equivalents.
 

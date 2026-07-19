@@ -4,5 +4,6 @@ dist/
 .turbo/
 playwright-report/
 test-results/
+storybook-static/
 *.log
 .DS_Store

@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 import { expect, test } from "@playwright/test";
 
+import { enterDashboard, openPanel } from "./helpers.js";
+
 let fixtureRoot = "";
 let largeRoot = "";
 
@@ -55,7 +57,8 @@ test("shows loading until a healthy null last-good response is known", async ({
     await new Promise((resolve) => setTimeout(resolve, 250));
     await route.fulfill({ json: nullGenerationResponse });
   });
-  await page.goto("/");
+  await enterDashboard(page);
+  await openPanel(page, "Repositories");
   const lastGood = page.getByTestId("last-good-index");
   await expect(lastGood).toContainText("Loading last good generation");
   await expect(lastGood).toContainText("None yet");
@@ -67,7 +70,8 @@ test("shows an unavailable last-good response without claiming none exists", asy
   await page.route("**/api/repository-indexes/current", (route) =>
     route.abort("connectionrefused"),
   );
-  await page.goto("/");
+  await enterDashboard(page);
+  await openPanel(page, "Repositories");
   const lastGood = page.getByTestId("last-good-index");
   await expect(lastGood.getByRole("alert")).toContainText(
     "Local server unavailable",
@@ -83,7 +87,8 @@ test("shows an invalid last-good response and replaces it after a successful ind
     (route) => route.fulfill({ json: {} }),
     { times: 1 },
   );
-  await page.goto("/");
+  await enterDashboard(page);
+  await openPanel(page, "Repositories");
   const lastGood = page.getByTestId("last-good-index");
   await expect(lastGood.getByRole("alert")).toContainText(
     "Invalid local server response",
@@ -104,7 +109,8 @@ test("indexes, deterministically rescans, cancels, and retains last good", async
     if (message.type() === "error") browserErrors.push(message.text());
   });
   page.on("pageerror", (error) => browserErrors.push(error.message));
-  await page.goto("/");
+  await enterDashboard(page);
+  await openPanel(page, "Repositories");
 
   const input = page.getByLabel("Repository root");
   const cancel = page.getByRole("button", { name: "Cancel current index" });
@@ -135,6 +141,10 @@ test("indexes, deterministically rescans, cancels, and retains last good", async
   await input.fill(largeRoot);
   await page.getByRole("button", { name: "Rescan" }).click();
   await expect(cancel).toBeEnabled({ timeout: 5_000 });
+  await page.getByRole("button", { name: "Agents", exact: true }).click();
+  await expect(page.getByTestId("current-index")).toHaveCount(0);
+  await openPanel(page, "Repositories");
+  await expect(page.getByTestId("current-index")).toContainText("running");
   await expect(cancel).toHaveCSS("background-color", "rgb(37, 99, 235)");
   await cancel.click();
   await expect(page.getByTestId("current-index")).toContainText("cancelled");

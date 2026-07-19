@@ -1,14 +1,19 @@
 import { expect, test } from "@playwright/test";
 
+import { enterDashboard, openPanel } from "./helpers.js";
+
 test("preserves the foundation identity and live local-server health", async ({
   page,
 }) => {
-  await page.goto("/");
+  await enterDashboard(page);
 
   await expect(
-    page.getByRole("heading", { name: "AgentIntersect World" }),
+    page.getByRole("heading", {
+      name: "One local operator. One living repository island.",
+    }),
   ).toBeVisible();
-  await expect(page.getByText("Phase 4 · Local authority")).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("Local server healthy");
-  await expect(page.getByRole("status")).toContainText("Node 24");
+  await openPanel(page, "World");
+  const authority = page.locator(".server-status");
+  await expect(authority).toContainText("Local server healthy");
+  await expect(authority).toContainText("Node 24");
 });

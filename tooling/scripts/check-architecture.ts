@@ -47,7 +47,9 @@ const allowedWorkspaceDependencies: Readonly<
   "@agentintersect-world/sync-yjs": [],
   "@agentintersect-world/ui": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/web": [
+    "@agentintersect-world/avatar-system",
     "@agentintersect-world/config",
+    "@agentintersect-world/renderer-r3f",
     "@agentintersect-world/ui",
     "@agentintersect-world/world-schema",
   ],

@@ -4,22 +4,23 @@ Updated: 2026-07-19
 
 ## Current milestone
 
-**Phase 4 — World object model, deterministic identity, and layout: COMPLETE**
+**Phase 5 — Inherited identity/dashboard shell and first repository island: COMPLETE**
 
-- Evidence: `PHASE_4_REPORT.md`, `docs/PHASE_4_SCOPE.md`, and `docs/PHASE_4_ENGINEERING.md`
-- Baseline: completed Phase 3/next-marker commit `6a37c94d6c9869401a35deb08e68d6a807dbc234`
-- Version: `0.4.0-phase4`
+- Evidence: `PHASE_5_REPORT.md`, `docs/PHASE_5_SCOPE.md`, and `docs/PHASE_5_ASSET_PROVENANCE.md`
+- Baseline: completed Phase 4 commit `82ff9af0ceec4734e9b8be54e44b49697acaccc0`
+- Version: `0.5.0-phase5`
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`
 - Workspace: 15 projects / 14 named app-package graph entries
-- Focused Phase 4 tests: 4 files / 31 tests
-- Complete tests: 17 files / 85 tests
-- Typecheck: 20/20 tasks
+- Focused corrected-surface tests: 7 files / 24 tests; focused Playwright 12/12
+- Complete tests: 24 files / 109 tests
+- Typecheck: 22/22 tasks
 - Architecture regressions: 9/9; checker reports no violations across 14 packages
-- Production build: 13/13 tasks
-- Playwright: 6/6
-- Fresh-copy verification: complete aggregate passed for 144 project source files
-- Live API: OpenAPI 3.0.3 with 14 paths; real snapshot/tile/privacy/shutdown proof passed
-- Review cadence: one bounded audit, one targeted correction pass, one targeted blocker re-review, no second broad audit
+- Production build: 13/13 tasks; Storybook production build green
+- Playwright: 13/13 with five visual baselines
+- Fresh-copy verification: complete aggregate passed for 202 project source files
+- Asset proof: 18/18 copied files match the authorized AgentIntersect source bytes
+- 10k proof: 10,000 instances, ≤160 semantic rows, 1.765 ms maximum preparation against a 250 ms threshold
+- Review cadence: one bounded audit, one four-blocker correction pass, one targeted 4/4 re-review, no second broad audit
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`
 - Release/tag/package publication/public visibility change: none; repository remains private
 
@@ -90,38 +91,35 @@ The one bounded audit confirmed five blockers, all fixed in the one permitted co
 
 The targeted five-blocker re-review returned PASS for all five and found no correction-introduced critical blocker. Parent focused, aggregate, real-HTTP, Playwright, and fresh-copy retesting is green. No second broad audit ran.
 
+## Phase 5 — COMPLETE
+
+**Inherited identity/dashboard shell and first repository island**
+
+Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `docs/PHASE_5_SCOPE.md`, and `docs/PHASE_5_ASSET_PROVENANCE.md`.
+
+- The first-open `identify_` flow now leads through a locally persisted inherited 2D avatar builder and bounded transition into the dashboard.
+- The World-owned shell preserves the approved hero/typewriter/cursor language, exact category taxonomy, persistent status/results area, and truthful default/current harness intent selection.
+- Existing Phase 2 authority and Phase 3 repository-index flows remain reachable and recover running/recent operations across panel close/reopen.
+- The Phase 4 snapshot/tile API powers one hybrid semantic-DOM/R3F repository island with instancing, synchronized selection, search, keyboard focus, inspector, overview/minimap, WebGL fallback, and absolute-path redaction.
+- Exactly 18 selected inherited graphics were copied byte-identically from the authorized AgentIntersect commit; the original repository remained clean.
+- Storybook states, five visual baselines, axe, reduced-motion, forced-colors, mobile-overflow, unsupported-language, context-loss, and measured 10k-instance evidence are green.
+- One bounded audit found four blockers; one targeted correction resolved all four, and the targeted re-review returned PASS with zero residual blockers. No second broad audit ran.
+- Workspace/runtime version is `0.5.0-phase5`; the repository remains private with no tag, release, deployment, package publication, or visibility change.
+
 ## Next milestone
 
-**Phase 5 — Inherited identity/dashboard shell and first repository island**
+**Phase 6 — AgentIntersect read integration and normalized replay**
 
-### Functionality-first objective
-
-Use the completed Phase 4 snapshot/tile API to deliver the first useful semantic browser World and one repository island while porting only the already approved AgentIntersect identity/dashboard visual baseline into World-owned React components.
-
-### Frozen direction
-
-- Selected scope: **balanced shell + inherited 2D avatar + one hybrid semantic-DOM/R3F repository island**.
-- Phase 5 proves the complete identify → avatar appearance → dashboard → harness intent → repository → island → inspect workflow.
-- Heavy avatar/environment production waits until this functional workflow is proven.
-- Future embodied avatars use one shared biped core rig and one reusable primary animation set.
-- Humans, cats, dogs, and future animal species vary through modular fur, tails, ears, muzzles, paws, claws, markings, palettes, clothing, and terminal accents.
-- Optional secondary tail/ear motion may exist later, but it must not require separate primary locomotion animation sets.
-- Phase 5 remains 2D for avatar appearance; no Blender, 3D rig, 3D avatar animation, or broad environment-art production is authorized in this phase.
-
-### Phase 5 entry requirements
-
-1. Read `AGENTS.md`, `PROJECT_STATUS.md`, `PHASE_4_REPORT.md`, `docs/PHASE_4_SCOPE.md`, and the canonical Phase 5 design.
-2. Freeze a bounded Phase 5 scope before implementation.
-3. Freeze the one-time original-AgentIntersect visual extraction source set, provenance manifest, and SHA-256 copy checks before copying assets.
-4. Preserve the frozen universal-biped avatar direction; do not begin Blender/modeling work during Phase 5.
-5. Preserve the semantic DOM-equivalent workflow, keyboard/reduced-motion/high-contrast behavior, and WebGL fallback.
-6. Keep Phase 6 readiness projection and Phase 7 worker execution out of Phase 5.
-7. Keep original AgentIntersect unmodified and avoid recurring source dependency after the authorized one-time extraction.
-8. Keep the repository private; no tag, release, package publication, deployment, or visibility change without explicit approval.
-
-**Phase 5 direction is recorded; implementation has not started.**
+Phase 6 may project real read-only AgentIntersect state and events into a durable, idempotent World timeline. It must preserve the existing execution boundary: harness readiness/connection claims require verified integration state, while worker/job mutation remains disabled until Phase 7. Freeze a bounded Phase 6 contract, compatibility matrix, replay fixtures, persistence limits, and redaction/truncation rules before implementation.
 
 ## Non-blocking backlog
+
+### Phase 5
+
+- Distinguish tile loading/unavailable states from a truthful zero-tile result.
+- Move WebGL capability probing out of React render and add explicit Three resource disposal before renderer remount/update frequency grows.
+- Add optional GPU-frame/readback instrumentation for the 10k browser fixture when renderer performance work begins.
+- Split the large web/Storybook chunks when production delivery, rather than local functional proof, becomes the active milestone.
 
 ### Phase 4
 

@@ -1,0 +1,280 @@
+import type { AvatarProfile } from "@agentintersect-world/avatar-system";
+import { useEffect, useState } from "react";
+
+import { useAuthorityState } from "../authority/use-authority.js";
+import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
+import { AvatarPreview } from "../avatar/AvatarPreview.js";
+import { AuthorityPanel } from "../panels/AuthorityPanel.js";
+import { RepositoryIndexPanel } from "../panels/RepositoryIndexPanel.js";
+import { RepositoryWorldPanel } from "../repository/RepositoryWorldPanel.js";
+import { useInvalidateWorld } from "../repository/use-invalidate-world.js";
+import { HARNESS_OPTIONS, type HarnessId } from "../state/harness-intent.js";
+import { useHarnessIntent } from "../state/use-harness-intent.js";
+import { WORLD_CATEGORIES, type Category } from "./categories.js";
+import { ProgressiveTypeLine } from "./ProgressiveTypeLine.js";
+
+export function DashboardShell({
+  profile,
+  onProfileSave,
+}: {
+  readonly profile: AvatarProfile;
+  readonly onProfileSave: (profile: AvatarProfile) => void;
+}) {
+  const authority = useAuthorityState();
+  const invalidateWorld = useInvalidateWorld();
+  const [activePanel, setActivePanel] = useState<Category | null>(null);
+  const [lastResult, setLastResult] = useState(
+    "World shell ready. Choose a category.",
+  );
+  const harness = useHarnessIntent();
+  const fixtureValue =
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("fixture");
+  const fixture =
+    fixtureValue === "phase5-10k"
+      ? "10k"
+      : fixtureValue === "phase5-paths"
+        ? "absolute-paths"
+        : fixtureValue === "phase5";
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActivePanel(null);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, []);
+  const togglePanel = (category: Category) => {
+    setActivePanel((current) => {
+      const next = current === category ? null : category;
+      setLastResult(
+        next === null
+          ? `${category} overlay closed.`
+          : `${category} overlay opened.`,
+      );
+      return next;
+    });
+  };
+  const setDefault = (id: HarnessId) => {
+    harness.setDefaultHarness(id);
+    setLastResult(
+      `${HARNESS_OPTIONS.find((item) => item.id === id)?.label} saved as default selection intent. No readiness claimed.`,
+    );
+  };
+  const setCurrent = (id: HarnessId) => {
+    harness.setCurrentHarness(id);
+    setLastResult(
+      `${HARNESS_OPTIONS.find((item) => item.id === id)?.label} saved as current selection intent. No connection or execution claimed.`,
+    );
+  };
+  return (
+    <main className="dashboard-shell">
+      <header className="dashboard-header">
+        <a
+          href="#world-hero"
+          className="dashboard-brand"
+          aria-label="AgentIntersect World home"
+        >
+          <img
+            src="/assets/dashboard/agentintersect_header_static_dark_square.svg"
+            alt=""
+            aria-hidden="true"
+          />
+          <span>
+            AgentIntersect <strong>World</strong>
+          </span>
+        </a>
+        <span className="phase-pill">local / trusted LAN</span>
+      </header>
+
+      <section className="world-hero" id="world-hero" data-testid="world-hero">
+        <div className="world-hero__identity">
+          <img
+            src="/assets/dashboard/agentintersect_animated.svg"
+            alt=""
+            aria-hidden="true"
+            className="world-hero__mark"
+          />
+          <AvatarPreview profile={profile} compact />
+        </div>
+        <div className="world-hero__console">
+          <span className="terminal-kicker">agentintersect_world_</span>
+          <h1>One local operator. One living repository island.</h1>
+          <ProgressiveTypeLine />
+          <div
+            className="harness-controls"
+            aria-label="Local harness selection intent"
+          >
+            <label>
+              Default harness intent
+              <select
+                value={harness.defaultHarness}
+                onChange={(event) =>
+                  setDefault(event.target.value as HarnessId)
+                }
+              >
+                {HARNESS_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Current harness intent
+              <select
+                value={harness.currentHarness}
+                onChange={(event) =>
+                  setCurrent(event.target.value as HarnessId)
+                }
+              >
+                {HARNESS_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="truthful-copy">
+            Selection only — readiness, authentication, connection, and
+            execution are not checked in Phase 5.
+          </p>
+        </div>
+      </section>
+
+      <nav className="terminal-nav" aria-label="World categories">
+        {WORLD_CATEGORIES.map((category) => (
+          <button
+            key={category}
+            type="button"
+            aria-expanded={activePanel === category}
+            aria-controls="world-overlay"
+            onClick={() => togglePanel(category)}
+          >
+            <span>{category}</span>
+            {activePanel === category && (
+              <span className="nav-cursor" aria-hidden="true" />
+            )}
+          </button>
+        ))}
+      </nav>
+
+      <section
+        className="persistent-output"
+        aria-label="Persistent World output and status"
+      >
+        <div>
+          <span>status_</span>
+          <strong>
+            {authority.status === "ready"
+              ? "local authority available"
+              : authority.status}
+          </strong>
+        </div>
+        <div>
+          <span>intent_</span>
+          <strong>{harness.currentHarness} selected only</strong>
+        </div>
+        <div
+          className="persistent-output__result"
+          role="status"
+          aria-live="polite"
+        >
+          <span>result_</span>
+          <strong>{lastResult}</strong>
+        </div>
+      </section>
+
+      {activePanel !== null && (
+        <section
+          className="world-overlay"
+          id="world-overlay"
+          aria-label={`${activePanel} panel`}
+        >
+          <header className="world-overlay__header">
+            <span>{activePanel.toLocaleLowerCase()}_</span>
+            <button
+              type="button"
+              onClick={() => togglePanel(activePanel)}
+              aria-label={`Close ${activePanel} panel`}
+            >
+              Close
+            </button>
+          </header>
+          {activePanel === "World" && (
+            <div className="stacked-panels">
+              <RepositoryWorldPanel fixture={fixture} />
+              <AuthorityPanel authority={authority} />
+            </div>
+          )}
+          {activePanel === "Repositories" && (
+            <RepositoryIndexPanel
+              authorityReady={authority.status === "ready"}
+              onIndexed={invalidateWorld}
+            />
+          )}
+          {activePanel === "Agents" && (
+            <InfoPanel
+              title="Owned agent harness intent"
+              copy="OpenClaw, Hermes, Claude Code, and Codex are durable local choices only. No agent readiness or connection is represented here."
+            />
+          )}
+          {activePanel === "Activity" && (
+            <InfoPanel
+              title="Activity projection arrives later"
+              copy="Phase 5 preserves a truthful empty state. Worker jobs, execution, and timelines remain disabled."
+              disabledAction="Start worker (Phase 7)"
+            />
+          )}
+          {activePanel === "Evidence" && (
+            <InfoPanel
+              title="Evidence is not fabricated"
+              copy="Repository metadata and current selection are visible now. Run evidence and diffs arrive only after real execution phases."
+              disabledAction="Export run evidence (Phase 8)"
+            />
+          )}
+          {activePanel === "Settings" && (
+            <AvatarBuilder
+              key={`${profile.body}-${profile.accent}-${String(profile.showHelmet)}`}
+              initialProfile={profile}
+              title="Edit avatar appearance"
+              onSave={(next) => {
+                onProfileSave(next);
+                setLastResult("Avatar appearance updated locally.");
+              }}
+            />
+          )}
+        </section>
+      )}
+
+      <footer className="dashboard-footer">
+        <span>Phase 5 balanced vertical slice</span>
+        <span>Relative, shareable World metadata only</span>
+      </footer>
+    </main>
+  );
+}
+
+function InfoPanel({
+  title,
+  copy,
+  disabledAction,
+}: {
+  readonly title: string;
+  readonly copy: string;
+  readonly disabledAction?: string;
+}) {
+  return (
+    <section className="info-panel">
+      <span className="terminal-kicker">selection_only_</span>
+      <h2>{title}</h2>
+      <p>{copy}</p>
+      {disabledAction !== undefined && (
+        <button type="button" disabled>
+          {disabledAction}
+        </button>
+      )}
+    </section>
+  );
+}

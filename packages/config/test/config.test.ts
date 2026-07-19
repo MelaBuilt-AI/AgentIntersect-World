@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-describe("Phase 4 local-server configuration", () => {
+describe("Phase 5 local-server configuration", () => {
   it("loads loopback defaults and exposes only the safe configuration view", async () => {
     const { loadLocalServerConfig, toSafeConfig } =
       await import("../src/node.js");
@@ -13,8 +13,8 @@ describe("Phase 4 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 4",
-      version: "0.4.0-phase4",
+      phase: "Phase 5",
+      version: "0.5.0-phase5",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",

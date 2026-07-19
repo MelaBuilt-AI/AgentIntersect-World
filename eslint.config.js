@@ -12,6 +12,7 @@ export default tseslint.config(
       "**/node_modules/**",
       "**/playwright-report/**",
       "**/test-results/**",
+      "**/storybook-static/**",
       "tooling/fixtures/**",
       "packages/agentintersect-client/**",
     ],
