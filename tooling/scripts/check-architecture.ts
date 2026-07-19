@@ -34,13 +34,16 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/config",
     "@agentintersect-world/observability",
     "@agentintersect-world/repo-indexer",
+    "@agentintersect-world/spatial-code-graph",
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/observability": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/persistence": [],
   "@agentintersect-world/renderer-r3f": [],
   "@agentintersect-world/repo-indexer": ["@agentintersect-world/world-schema"],
-  "@agentintersect-world/spatial-code-graph": [],
+  "@agentintersect-world/spatial-code-graph": [
+    "@agentintersect-world/world-schema",
+  ],
   "@agentintersect-world/sync-yjs": [],
   "@agentintersect-world/ui": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/web": [

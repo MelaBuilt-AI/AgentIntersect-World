@@ -9,6 +9,11 @@ import {
 import { createCorrelationId } from "@agentintersect-world/observability";
 import { indexRepository } from "@agentintersect-world/repo-indexer";
 import {
+  WorldProjectionError,
+  projectRepositoryGeneration,
+  queryWorldTiles,
+} from "@agentintersect-world/spatial-code-graph";
+import {
   ApiErrorSchema,
   ApiResultSchema,
   CorrelationIdSchema,
@@ -19,16 +24,20 @@ import {
   OperationRequestSchema,
   ReadyDataSchema,
   CurrentRepositoryGenerationDataSchema,
+  CurrentWorldSnapshotDataSchema,
   RepositoryIndexListDataSchema,
   RepositoryIndexOperationSchema,
   RepositoryIndexRequestSchema,
   SafeConfigSchema,
+  WorldTileQueryResponseSchema,
+  WorldTileQuerySchema,
   type ApiError,
   type CorrelationId,
   type DoctorData,
   type HealthResponse,
   type ReadyData,
   type SafeConfig,
+  type WorldSnapshot,
 } from "@agentintersect-world/world-schema";
 import swagger from "@fastify/swagger";
 import Fastify, {
@@ -66,10 +75,29 @@ export function createLocalServer(
     options.generateCorrelationId ?? createCorrelationId;
   const correlations = new WeakMap<FastifyRequest, CorrelationId>();
   const operationService = new DemoOperationService(config.demoOperationMaxMs);
+  let cachedWorldSnapshot: WorldSnapshot | undefined;
+  let cachedGenerationId: string | undefined;
+  let cachedProjectionError: unknown;
+  const projectSuccessfulGeneration = (
+    generation: NonNullable<ReturnType<RepositoryIndexService["current"]>>,
+  ) => {
+    try {
+      const snapshot = projectRepositoryGeneration(
+        generation,
+        cachedWorldSnapshot ? { previousSnapshot: cachedWorldSnapshot } : {},
+      );
+      cachedWorldSnapshot = snapshot;
+      cachedProjectionError = undefined;
+    } catch (error) {
+      cachedProjectionError = error;
+    }
+    cachedGenerationId = generation.id;
+  };
   const repositoryIndexService = new RepositoryIndexService(
     config.repositoryMaxFiles,
     20,
     options.repositoryIndexer ?? indexRepository,
+    projectSuccessfulGeneration,
   );
   server.decorate("operationService", operationService);
   server.decorate("repositoryIndexService", repositoryIndexService);
@@ -209,6 +237,175 @@ export function createLocalServer(
         properties: { id: { type: "string", format: "uuid" } },
       },
     } as const;
+
+    const openApiEnvelope = {
+      type: "object",
+      additionalProperties: true,
+    } as const;
+
+    const worldResponses = {
+      200: {
+        description: "Correlated strict Phase 4 World payload",
+        ...openApiEnvelope,
+      },
+      400: {
+        description: "Current generation cannot satisfy World projection",
+        ...openApiEnvelope,
+      },
+      404: {
+        description: "No successful repository generation is available",
+        ...openApiEnvelope,
+      },
+      409: {
+        description: "Current generation cannot be projected without collision",
+        ...openApiEnvelope,
+      },
+    } as const;
+
+    const currentWorldSnapshot = (): WorldSnapshot | null => {
+      const generation = repositoryIndexService.current();
+      if (generation === null) return null;
+      if (cachedGenerationId !== generation.id)
+        projectSuccessfulGeneration(generation);
+      if (cachedProjectionError !== undefined) throw cachedProjectionError;
+      if (!cachedWorldSnapshot)
+        throw new WorldProjectionError(
+          "invalid_generation",
+          "Current generation could not produce a World snapshot",
+        );
+      return cachedWorldSnapshot;
+    };
+
+    const worldProjectionFailure = (
+      error: unknown,
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => {
+      if (!(error instanceof WorldProjectionError)) throw error;
+      const validation = error.code !== "canonical_collision";
+      return reply
+        .code(validation ? 400 : 409)
+        .send(
+          failure(
+            request,
+            validation ? "validation" : "conflict",
+            error.message,
+          ),
+        );
+    };
+
+    server.get(
+      "/world/current",
+      {
+        schema: {
+          tags: ["world"],
+          summary: "Get the current deterministic World snapshot",
+          response: worldResponses,
+        },
+      },
+      async (request, reply) => {
+        try {
+          const snapshot = currentWorldSnapshot();
+          if (snapshot === null)
+            return reply
+              .code(404)
+              .send(
+                failure(
+                  request,
+                  "not_found",
+                  "No successful repository generation is available",
+                ),
+              );
+          return ApiResultSchema(CurrentWorldSnapshotDataSchema).parse(
+            success(request, { snapshot }),
+          );
+        } catch (error) {
+          return worldProjectionFailure(error, request, reply);
+        }
+      },
+    );
+
+    server.get(
+      "/world/tiles",
+      {
+        preValidation: async (request, reply) => {
+          const allowed = new Set([
+            "lod",
+            "minX",
+            "maxX",
+            "minZ",
+            "maxZ",
+            "limit",
+          ]);
+          const query = request.query as Record<string, unknown>;
+          if (Object.keys(query).some((key) => !allowed.has(key)))
+            return reply
+              .code(400)
+              .send(
+                failure(
+                  request,
+                  "validation",
+                  "Tile query is malformed or out of range",
+                ),
+              );
+        },
+        schema: {
+          tags: ["world"],
+          summary: "Query bounded deterministic World LOD tiles",
+          querystring: {
+            type: "object",
+            required: ["lod", "minX", "maxX", "minZ", "maxZ", "limit"],
+            additionalProperties: false,
+            properties: {
+              lod: { type: "integer", minimum: 0, maximum: 4 },
+              minX: { type: "integer", minimum: 0, maximum: 15 },
+              maxX: { type: "integer", minimum: 0, maximum: 15 },
+              minZ: { type: "integer", minimum: 0, maximum: 15 },
+              maxZ: { type: "integer", minimum: 0, maximum: 15 },
+              limit: { type: "integer", minimum: 1, maximum: 128 },
+            },
+          },
+          response: {
+            ...worldResponses,
+            400: {
+              description: "Malformed or out-of-range bounded tile query",
+              ...openApiEnvelope,
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        const parsedQuery = WorldTileQuerySchema.safeParse(request.query);
+        if (!parsedQuery.success)
+          return reply
+            .code(400)
+            .send(
+              failure(
+                request,
+                "validation",
+                "Tile query is malformed or out of range",
+              ),
+            );
+        try {
+          const snapshot = currentWorldSnapshot();
+          if (snapshot === null)
+            return reply
+              .code(404)
+              .send(
+                failure(
+                  request,
+                  "not_found",
+                  "No successful repository generation is available",
+                ),
+              );
+          return ApiResultSchema(WorldTileQueryResponseSchema).parse(
+            success(request, queryWorldTiles(snapshot, parsedQuery.data)),
+          );
+        } catch (error) {
+          return worldProjectionFailure(error, request, reply);
+        }
+      },
+    );
 
     const repositoryIndexFailure = (
       error: unknown,

@@ -1,0 +1,15 @@
+{
+  "normal": ["src/a.ts", "src/b.test.ts"],
+  "rename": { "before": "src/old.ts", "after": "src/new.ts" },
+  "caseOnlyRename": { "before": "src/Case.ts", "after": "src/case.ts" },
+  "unicodeEquivalent": ["src/café.ts", "src/café.ts"],
+  "separatorEquivalent": ["src/a.ts", "src\\a.ts"],
+  "ambiguous": {
+    "before": ["src/a.ts", "src/b.ts"],
+    "after": ["src/c.ts", "src/d.ts"]
+  },
+  "collisions": [
+    ["src/a.ts", "src\\a.ts"],
+    ["src/café.ts", "src/café.ts"]
+  ]
+}

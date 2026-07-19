@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/spatial-code-graph",
-  "version": "0.3.0-phase3",
+  "version": "0.4.0-phase4",
   "private": true,
   "type": "module",
   "exports": {
@@ -12,5 +12,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agentintersect-world/world-schema": "workspace:*"
   }
 }

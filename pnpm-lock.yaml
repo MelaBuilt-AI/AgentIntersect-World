@@ -79,6 +79,9 @@ importers:
       "@agentintersect-world/repo-indexer":
         specifier: workspace:*
         version: link:../../packages/repo-indexer
+      "@agentintersect-world/spatial-code-graph":
+        specifier: workspace:*
+        version: link:../../packages/spatial-code-graph
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:../../packages/world-schema
@@ -139,7 +142,11 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
 
-  packages/spatial-code-graph: {}
+  packages/spatial-code-graph:
+    dependencies:
+      "@agentintersect-world/world-schema":
+        specifier: workspace:*
+        version: link:../world-schema
 
   packages/sync-yjs: {}
 

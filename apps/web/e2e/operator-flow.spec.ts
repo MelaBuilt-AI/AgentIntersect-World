@@ -11,7 +11,7 @@ test("runs the visible numbered start, cancel, and review flow", async ({
 
   await page.goto("/");
 
-  await expect(page.getByText("Phase 3 · Local authority")).toBeVisible();
+  await expect(page.getByText("Phase 4 · Local authority")).toBeVisible();
   await expect(page.getByText("Network scope: loopback")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Step 1 — Start demo operation" }),

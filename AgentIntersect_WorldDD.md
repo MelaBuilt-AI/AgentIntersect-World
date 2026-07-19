@@ -1896,6 +1896,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 4 — World schema, identity, and deterministic layout
 
+**Status:** COMPLETE on 2026-07-19. Evidence: `PHASE_4_REPORT.md`, `docs/PHASE_4_SCOPE.md`, and `docs/PHASE_4_ENGINEERING.md`.
+
 **Objective:** Turn metadata into stable, versioned World objects with deterministic positions and LOD aggregates.
 
 **Rationale:** Multiplayer annotations and event animation require identities that survive refresh and a layout independent of rendering.
@@ -1914,7 +1916,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Same input/config/version produces stable IDs/positions; ambiguous rename behavior is explicit; snapshot remains bounded via tiles/LOD; absolute paths are absent from shareable DTOs.
 
-**Exit gate:** Schema/identity ADR approval and golden-fixture review.
+**Exit gate:** SATISFIED. Schema/identity ADRs are implemented in `aiw.world/0.4` / `aiw.identity/1`, golden fixtures were reviewed, one bounded audit and one correction pass completed, targeted re-review passed 5/5, and parent aggregate/live/fresh-copy evidence is green.
 
 **Risks:** Visual instability and identity collisions. Version seeds, use strong hashes/UUID mappings, and retain migration metadata.
 
@@ -2265,7 +2267,7 @@ Future public consideration requires legal/license/security review, public docum
 
 ### ADR-006 — Deterministic LOD before full semantics
 
-**Status:** Proposed for approval. **Decision:** file hierarchy and aggregation precede broad symbol graphs. **Rejected:** render every symbol/edge. **Consequence:** arbitrary repos degrade honestly.
+**Status:** Accepted and implemented in Phase 4. **Decision:** file hierarchy and aggregation precede broad symbol graphs. **Rejected:** render every symbol/edge. **Consequence:** arbitrary repos degrade honestly.
 
 ### ADR-007 — Current compatibility facade, not public SDK claim
 
@@ -2273,7 +2275,7 @@ Future public consideration requires legal/license/security review, public docum
 
 ### ADR-008 — World internal URIs and stable ID mapping
 
-**Status:** Proposed for approval. **Decision:** opaque stable IDs plus `aiw://` URIs, with local protected path mapping. **Rejected:** absolute paths as shared IDs. **Consequence:** rename/history machinery required.
+**Status:** Accepted and implemented in Phase 4. **Decision:** opaque stable IDs plus `aiw://` URIs, with local protected path mapping. **Rejected:** absolute paths as shared IDs. **Consequence:** rename/history machinery required.
 
 ### ADR-009 — No third-party plugins in v0.1
 
@@ -2281,7 +2283,7 @@ Future public consideration requires legal/license/security review, public docum
 
 ### ADR-010 — Bounded review by risk tier
 
-**Status:** Proposed for approval. **Decision:** one independent High-risk review plus targeted blocker re-review, driven by tests/evidence. **Rejected:** infinite review loops or equal process for all changes.
+**Status:** Accepted and exercised through Phases 1–4. **Decision:** one independent High-risk review plus targeted blocker re-review, driven by tests/evidence. **Rejected:** infinite review loops or equal process for all changes.
 
 ### ADR-011 — Inherit AgentIntersect identity/dashboard visuals, not its menus or authority
 

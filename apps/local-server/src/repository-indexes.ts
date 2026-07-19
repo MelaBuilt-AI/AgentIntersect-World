@@ -27,6 +27,7 @@ type Stored = {
   readonly idempotencyKey: string;
   readonly requestFingerprint: string;
 };
+type SuccessfulGenerationListener = (generation: RepositoryGeneration) => void;
 
 export class RepositoryIndexService {
   readonly #operations = new Map<string, Stored>();
@@ -39,6 +40,7 @@ export class RepositoryIndexService {
     readonly maxFiles: number,
     readonly maxRecords = 20,
     readonly runIndex: IndexFunction = indexRepository,
+    readonly onSuccessfulGeneration: SuccessfulGenerationListener = () => {},
   ) {}
 
   get activeCount(): number {
@@ -158,6 +160,11 @@ export class RepositoryIndexService {
         generation,
       });
       this.#lastGood = generation;
+      try {
+        this.onSuccessfulGeneration(generation);
+      } catch {
+        // Projection consumers must not change the successful Phase 3 result.
+      }
     } catch (error) {
       const stored = this.#operations.get(id);
       if (!stored || stored.record.status !== "running") return;

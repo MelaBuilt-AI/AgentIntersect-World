@@ -1,0 +1,53 @@
+{
+  "id": "88c22eef-64c8-493e-ad67-87ed41f64666",
+  "fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+  "rootPath": "fixture-private-root",
+  "repositoryName": "fixture",
+  "startedAt": "2026-07-19T12:00:00.000Z",
+  "completedAt": "2026-07-19T12:00:01.000Z",
+  "durationMs": 1000,
+  "git": {
+    "present": false,
+    "branch": null,
+    "head": null,
+    "dirty": false
+  },
+  "directories": [
+    { "path": "", "fileCount": 2 },
+    { "path": "src", "fileCount": 2 }
+  ],
+  "files": [
+    {
+      "path": "src/a.ts",
+      "size": 12,
+      "fileKind": "source",
+      "language": "TypeScript",
+      "binary": false,
+      "oversized": false,
+      "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "gitStatus": null
+    },
+    {
+      "path": "src/b.test.ts",
+      "size": 12,
+      "fileKind": "test",
+      "language": "TypeScript",
+      "binary": false,
+      "oversized": false,
+      "contentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "gitStatus": null
+    }
+  ],
+  "packages": [],
+  "coverage": {
+    "discoveredFiles": 2,
+    "indexedFiles": 2,
+    "prunedEntries": 0,
+    "skippedSymlinks": 0,
+    "directories": 2,
+    "packages": 0,
+    "binaryFiles": 0,
+    "oversizedFiles": 0,
+    "bytesHashed": 24
+  }
+}

@@ -76,8 +76,8 @@ export type ApiResult<T> = {
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 3"),
-    version: z.literal("0.3.0-phase3"),
+    phase: z.literal("Phase 4"),
+    version: z.literal("0.4.0-phase4"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -91,7 +91,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.3.0-phase3"),
+    version: z.literal("0.4.0-phase4"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })
@@ -151,7 +151,16 @@ export type OperationRecord = z.infer<typeof OperationRecordSchema>;
 export type OperationStatus = z.infer<typeof OperationStatusSchema>;
 
 export const RepositoryIndexRequestSchema = z
-  .object({ rootPath: z.string().trim().min(1).max(4096) })
+  .object({
+    rootPath: z
+      .string()
+      .trim()
+      .min(1)
+      .max(4096)
+      .refine((value) => !value.includes("\0"), {
+        message: "rootPath must not contain NUL",
+      }),
+  })
   .strict();
 
 export const RepositoryIndexStatusSchema = z.enum([
@@ -177,13 +186,44 @@ export const RepositoryIndexProgressSchema = z
   })
   .strict();
 
+export const WORLD_MAX_PATH_LENGTH = 4096 as const;
+export const WORLD_MAX_NAME_LENGTH = 512 as const;
+
+const repositoryPathSchema = (allowEmpty: boolean) =>
+  z
+    .string()
+    .min(allowEmpty ? 0 : 1)
+    .max(WORLD_MAX_PATH_LENGTH)
+    .superRefine((value, context) => {
+      const normalized = value.replaceAll("\\", "/").normalize("NFC");
+      if (normalized.includes("\0")) {
+        context.addIssue({
+          code: "custom",
+          message: "Repository paths must not contain NUL",
+        });
+      }
+      if (
+        normalized
+          .split("/")
+          .some((segment) => segment.length > WORLD_MAX_NAME_LENGTH)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: `Repository path segments must not exceed ${WORLD_MAX_NAME_LENGTH} characters`,
+        });
+      }
+    });
+
 export const RepositoryDirectorySchema = z
-  .object({ path: z.string(), fileCount: z.number().int().nonnegative() })
+  .object({
+    path: repositoryPathSchema(true),
+    fileCount: z.number().int().nonnegative(),
+  })
   .strict();
 
 export const RepositoryFileSchema = z
   .object({
-    path: z.string().min(1),
+    path: repositoryPathSchema(false),
     size: z.number().int().nonnegative(),
     fileKind: z.enum([
       "source",
@@ -209,7 +249,7 @@ export const RepositoryFileSchema = z
 
 export const RepositoryPackageSchema = z
   .object({
-    path: z.string().min(1),
+    path: repositoryPathSchema(false),
     kind: z.enum(["npm", "python", "cargo", "go", "maven"]),
     name: z.string().min(1).max(240).nullable(),
   })
@@ -245,8 +285,14 @@ export const RepositoryGenerationSchema = z
   .object({
     id: z.uuid(),
     fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
-    rootPath: z.string().min(1),
-    repositoryName: z.string().min(1),
+    rootPath: z
+      .string()
+      .min(1)
+      .max(WORLD_MAX_PATH_LENGTH)
+      .refine((value) => !value.includes("\0"), {
+        message: "rootPath must not contain NUL",
+      }),
+    repositoryName: z.string().min(1).max(WORLD_MAX_NAME_LENGTH),
     startedAt: z.iso.datetime(),
     completedAt: z.iso.datetime(),
     durationMs: z.number().int().nonnegative(),
@@ -261,7 +307,7 @@ export const RepositoryGenerationSchema = z
 export const RepositoryIndexOperationSchema = z
   .object({
     id: z.uuid(),
-    rootPath: z.string().min(1),
+    rootPath: z.string().min(1).max(WORLD_MAX_PATH_LENGTH),
     status: RepositoryIndexStatusSchema,
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -296,4 +342,228 @@ export type RepositoryIndexCoverage = z.infer<
 export type RepositoryGeneration = z.infer<typeof RepositoryGenerationSchema>;
 export type RepositoryIndexOperation = z.infer<
   typeof RepositoryIndexOperationSchema
+>;
+
+export const WORLD_SCHEMA_VERSION = "aiw.world/0.4" as const;
+export const WORLD_IDENTITY_VERSION = "aiw.identity/1" as const;
+export const WORLD_LAYOUT_VERSION = "aiw.layout/grid/1" as const;
+export const WORLD_FULL_DETAIL_FILE_LIMIT = 10_000 as const;
+export const WORLD_TILE_RESPONSE_LIMIT = 128 as const;
+export const WORLD_PATH_HISTORY_LIMIT = 8 as const;
+export const WORLD_TOMBSTONE_LIMIT = 256 as const;
+export const WORLD_MAX_LOD = 4 as const;
+export const WORLD_MAX_TILE_COORDINATE = 15 as const;
+
+export const WorldSchemaVersionSchema = z.literal(WORLD_SCHEMA_VERSION);
+export const WorldIdentityVersionSchema = z.literal(WORLD_IDENTITY_VERSION);
+export const WorldLayoutVersionSchema = z.literal(WORLD_LAYOUT_VERSION);
+
+export const WorldObjectIdSchema = z.string().regex(/^[0-9a-f]{32}$/);
+export const WorldObjectRefSchema = z
+  .string()
+  .regex(/^aiw:\/\/object\/[0-9a-f]{32}$/);
+export const WorldCanonicalRefSchema = z
+  .string()
+  .regex(/^aiw:\/\/path\/[0-9a-f]{32}$/);
+
+const FiniteCoordinateSchema = z.number().finite().int().nonnegative();
+
+export const WorldPositionSchema = z
+  .object({
+    x: FiniteCoordinateSchema,
+    y: FiniteCoordinateSchema,
+    z: FiniteCoordinateSchema,
+  })
+  .strict();
+
+export const WorldBoundsSchema = z
+  .object({
+    x: FiniteCoordinateSchema,
+    z: FiniteCoordinateSchema,
+    width: FiniteCoordinateSchema.positive(),
+    depth: FiniteCoordinateSchema.positive(),
+  })
+  .strict();
+
+export const WorldPathHistoryEntrySchema = z
+  .object({
+    path: z.string().min(1).max(WORLD_MAX_PATH_LENGTH),
+    canonicalRef: WorldCanonicalRefSchema,
+    confidence: z.literal("exact-content"),
+    caseOnly: z.boolean(),
+  })
+  .strict();
+
+const WorldObjectBaseShape = {
+  id: WorldObjectIdSchema,
+  ref: WorldObjectRefSchema,
+  name: z.string().min(1).max(WORLD_MAX_NAME_LENGTH),
+  parentRef: WorldObjectRefSchema.nullable(),
+  childRefs: z.array(WorldObjectRefSchema).max(40_512),
+  position: WorldPositionSchema,
+  bounds: WorldBoundsSchema,
+} as const;
+
+export const WorldWorkspaceObjectSchema = z
+  .object({ kind: z.literal("workspace"), ...WorldObjectBaseShape })
+  .strict();
+
+export const WorldRepositoryObjectSchema = z
+  .object({ kind: z.literal("repository"), ...WorldObjectBaseShape })
+  .strict();
+
+export const WorldDirectoryObjectSchema = z
+  .object({
+    kind: z.literal("directory"),
+    ...WorldObjectBaseShape,
+    path: z.string().max(WORLD_MAX_PATH_LENGTH),
+    fileCount: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export const WorldFileObjectSchema = z
+  .object({
+    kind: z.literal("file"),
+    ...WorldObjectBaseShape,
+    path: z.string().min(1).max(WORLD_MAX_PATH_LENGTH),
+    size: z.number().int().nonnegative(),
+    fileKind: RepositoryFileSchema.shape.fileKind,
+    language: z.string().min(1).nullable(),
+    contentHash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .nullable(),
+    pathHistory: z
+      .array(WorldPathHistoryEntrySchema)
+      .max(WORLD_PATH_HISTORY_LIMIT),
+  })
+  .strict();
+
+export const WorldPackageObjectSchema = z
+  .object({
+    kind: z.literal("package"),
+    ...WorldObjectBaseShape,
+    path: z.string().min(1).max(WORLD_MAX_PATH_LENGTH),
+    packageKind: RepositoryPackageSchema.shape.kind,
+    packageName: z.string().min(1).max(240).nullable(),
+  })
+  .strict();
+
+export const WorldTombstoneObjectSchema = z
+  .object({
+    kind: z.literal("tombstone"),
+    ...WorldObjectBaseShape,
+    originalKind: z.literal("file"),
+    lastKnownPath: z.string().min(1).max(WORLD_MAX_PATH_LENGTH),
+    contentHash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .nullable(),
+    pathHistory: z
+      .array(WorldPathHistoryEntrySchema)
+      .max(WORLD_PATH_HISTORY_LIMIT),
+  })
+  .strict();
+
+export const WorldObjectSchema = z.discriminatedUnion("kind", [
+  WorldWorkspaceObjectSchema,
+  WorldRepositoryObjectSchema,
+  WorldDirectoryObjectSchema,
+  WorldFileObjectSchema,
+  WorldPackageObjectSchema,
+  WorldTombstoneObjectSchema,
+]);
+
+export const WorldTileCountsSchema = z
+  .object({
+    total: z.number().int().nonnegative(),
+    byKind: z.record(z.string(), z.number().int().nonnegative()),
+    byLanguage: z.record(z.string(), z.number().int().nonnegative()),
+    byFileKind: z.record(z.string(), z.number().int().nonnegative()),
+  })
+  .strict();
+
+export const WorldTileSchema = z
+  .object({
+    lod: z.number().int().min(0).max(WORLD_MAX_LOD),
+    x: z.number().int().min(0).max(WORLD_MAX_TILE_COORDINATE),
+    z: z.number().int().min(0).max(WORLD_MAX_TILE_COORDINATE),
+    bounds: WorldBoundsSchema,
+    counts: WorldTileCountsSchema,
+  })
+  .strict();
+
+export const WorldSnapshotSchema = z
+  .object({
+    schema: WorldSchemaVersionSchema,
+    identityVersion: WorldIdentityVersionSchema,
+    layoutVersion: WorldLayoutVersionSchema,
+    snapshotId: WorldObjectIdSchema,
+    generationFingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+    workspaceRef: WorldObjectRefSchema,
+    repositoryRef: WorldObjectRefSchema,
+    objects: z.array(WorldObjectSchema).max(40_512),
+    tiles: z.array(WorldTileSchema).max(341),
+    limits: z
+      .object({
+        fullDetailFiles: z.literal(WORLD_FULL_DETAIL_FILE_LIMIT),
+        maxTileRecords: z.literal(WORLD_TILE_RESPONSE_LIMIT),
+        maxPathHistory: z.literal(WORLD_PATH_HISTORY_LIMIT),
+        maxTombstones: z.literal(WORLD_TOMBSTONE_LIMIT),
+      })
+      .strict(),
+  })
+  .strict();
+
+export const WorldTileQuerySchema = z
+  .object({
+    lod: z.number().int().min(0).max(WORLD_MAX_LOD),
+    minX: z.number().int().min(0).max(WORLD_MAX_TILE_COORDINATE),
+    maxX: z.number().int().min(0).max(WORLD_MAX_TILE_COORDINATE),
+    minZ: z.number().int().min(0).max(WORLD_MAX_TILE_COORDINATE),
+    maxZ: z.number().int().min(0).max(WORLD_MAX_TILE_COORDINATE),
+    limit: z.number().int().min(1).max(WORLD_TILE_RESPONSE_LIMIT),
+  })
+  .strict()
+  .refine((query) => query.minX <= query.maxX, {
+    message: "minX must be less than or equal to maxX",
+  })
+  .refine((query) => query.minZ <= query.maxZ, {
+    message: "minZ must be less than or equal to maxZ",
+  });
+
+export const WorldTileQueryResponseSchema = z
+  .object({
+    schema: WorldSchemaVersionSchema,
+    snapshotId: WorldObjectIdSchema,
+    query: WorldTileQuerySchema,
+    tiles: z.array(WorldTileSchema).max(WORLD_TILE_RESPONSE_LIMIT),
+  })
+  .strict();
+
+export const CurrentWorldSnapshotDataSchema = z
+  .object({ snapshot: WorldSnapshotSchema })
+  .strict();
+
+export type WorldObjectId = z.infer<typeof WorldObjectIdSchema>;
+export type WorldSchemaVersion = z.infer<typeof WorldSchemaVersionSchema>;
+export type WorldIdentityVersion = z.infer<typeof WorldIdentityVersionSchema>;
+export type WorldLayoutVersion = z.infer<typeof WorldLayoutVersionSchema>;
+export type WorldObjectRef = z.infer<typeof WorldObjectRefSchema>;
+export type WorldCanonicalRef = z.infer<typeof WorldCanonicalRefSchema>;
+export type WorldPosition = z.infer<typeof WorldPositionSchema>;
+export type WorldBounds = z.infer<typeof WorldBoundsSchema>;
+export type WorldPathHistoryEntry = z.infer<typeof WorldPathHistoryEntrySchema>;
+export type WorldWorkspaceObject = z.infer<typeof WorldWorkspaceObjectSchema>;
+export type WorldRepositoryObject = z.infer<typeof WorldRepositoryObjectSchema>;
+export type WorldDirectoryObject = z.infer<typeof WorldDirectoryObjectSchema>;
+export type WorldFileObject = z.infer<typeof WorldFileObjectSchema>;
+export type WorldPackageObject = z.infer<typeof WorldPackageObjectSchema>;
+export type WorldTombstoneObject = z.infer<typeof WorldTombstoneObjectSchema>;
+export type WorldObject = z.infer<typeof WorldObjectSchema>;
+export type WorldTile = z.infer<typeof WorldTileSchema>;
+export type WorldSnapshot = z.infer<typeof WorldSnapshotSchema>;
+export type WorldTileQuery = z.infer<typeof WorldTileQuerySchema>;
+export type WorldTileQueryResponse = z.infer<
+  typeof WorldTileQueryResponseSchema
 >;

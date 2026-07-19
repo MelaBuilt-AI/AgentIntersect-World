@@ -150,7 +150,7 @@ function RepositoryIndexFlow({
       aria-label="Repository index controls"
     >
       <div className="section-heading">
-        <span className="eyebrow">Phase 3 · Repository discovery</span>
+        <span className="eyebrow">Phase 4 · World identity and layout</span>
         <h2>Deterministic metadata index</h2>
         <p>
           Inspect a selected local Git or non-Git directory without executing
@@ -385,7 +385,7 @@ export function App() {
       </header>
 
       <section className="hero" id="authority">
-        <div className="eyebrow">Phase 3 · Local authority</div>
+        <div className="eyebrow">Phase 4 · Local authority</div>
         <h1>AgentIntersect World</h1>
         <p className="lede">
           Inspect the local authority, run one bounded demo operation, cancel

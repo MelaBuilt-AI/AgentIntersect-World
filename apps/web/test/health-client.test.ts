@@ -9,7 +9,7 @@ describe("loadHealth", () => {
         JSON.stringify({
           service: "agentintersect-world-local-server",
           status: "ok",
-          version: "0.3.0-phase3",
+          version: "0.4.0-phase4",
           runtime: { name: "node", version: "v24.18.0" },
           correlationId: "7dc2d8ec-7710-49aa-a3ee-517d68dc5ff1",
         }),

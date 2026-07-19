@@ -1,0 +1,282 @@
+{
+  "snapshot": {
+    "schema": "aiw.world/0.4",
+    "identityVersion": "aiw.identity/1",
+    "layoutVersion": "aiw.layout/grid/1",
+    "snapshotId": "24942fe914bb795714bbda9c71e6c813",
+    "generationFingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+    "workspaceRef": "aiw://object/db9061c769f9bbce1a9ce3033aecd542",
+    "repositoryRef": "aiw://object/f5d36b3fa27503d2d5886a9b90ef5a46",
+    "objects": [
+      {
+        "kind": "workspace",
+        "id": "db9061c769f9bbce1a9ce3033aecd542",
+        "ref": "aiw://object/db9061c769f9bbce1a9ce3033aecd542",
+        "name": "Local workspace",
+        "parentRef": null,
+        "childRefs": ["aiw://object/f5d36b3fa27503d2d5886a9b90ef5a46"],
+        "position": { "x": 6, "y": 0, "z": 5 },
+        "bounds": { "x": 0, "z": 0, "width": 13, "depth": 10 }
+      },
+      {
+        "kind": "repository",
+        "id": "f5d36b3fa27503d2d5886a9b90ef5a46",
+        "ref": "aiw://object/f5d36b3fa27503d2d5886a9b90ef5a46",
+        "name": "fixture",
+        "parentRef": "aiw://object/db9061c769f9bbce1a9ce3033aecd542",
+        "childRefs": ["aiw://object/609d34fbd5a174c8a40f4031bcbc7563"],
+        "position": { "x": 6, "y": 1, "z": 5 },
+        "bounds": { "x": 1, "z": 1, "width": 11, "depth": 8 }
+      },
+      {
+        "kind": "directory",
+        "id": "609d34fbd5a174c8a40f4031bcbc7563",
+        "ref": "aiw://object/609d34fbd5a174c8a40f4031bcbc7563",
+        "name": "fixture",
+        "parentRef": "aiw://object/f5d36b3fa27503d2d5886a9b90ef5a46",
+        "childRefs": ["aiw://object/39b5879e7bdcfd1d6b732f26ba3b7428"],
+        "position": { "x": 6, "y": 2, "z": 5 },
+        "bounds": { "x": 2, "z": 2, "width": 9, "depth": 6 },
+        "path": "",
+        "fileCount": 2
+      },
+      {
+        "kind": "directory",
+        "id": "39b5879e7bdcfd1d6b732f26ba3b7428",
+        "ref": "aiw://object/39b5879e7bdcfd1d6b732f26ba3b7428",
+        "name": "src",
+        "parentRef": "aiw://object/609d34fbd5a174c8a40f4031bcbc7563",
+        "childRefs": [
+          "aiw://object/ba1f0915cac6d5789560ce88f2ff84cf",
+          "aiw://object/c15ce829da969d8764a5e5852ae4a8ec"
+        ],
+        "position": { "x": 6, "y": 2, "z": 5 },
+        "bounds": { "x": 3, "z": 3, "width": 7, "depth": 4 },
+        "path": "src",
+        "fileCount": 2
+      },
+      {
+        "kind": "file",
+        "id": "ba1f0915cac6d5789560ce88f2ff84cf",
+        "ref": "aiw://object/ba1f0915cac6d5789560ce88f2ff84cf",
+        "name": "a.ts",
+        "parentRef": "aiw://object/39b5879e7bdcfd1d6b732f26ba3b7428",
+        "childRefs": [],
+        "position": { "x": 5, "y": 3, "z": 5 },
+        "bounds": { "x": 4, "z": 4, "width": 2, "depth": 2 },
+        "path": "src/a.ts",
+        "size": 12,
+        "fileKind": "source",
+        "language": "TypeScript",
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pathHistory": []
+      },
+      {
+        "kind": "file",
+        "id": "c15ce829da969d8764a5e5852ae4a8ec",
+        "ref": "aiw://object/c15ce829da969d8764a5e5852ae4a8ec",
+        "name": "b.test.ts",
+        "parentRef": "aiw://object/39b5879e7bdcfd1d6b732f26ba3b7428",
+        "childRefs": [],
+        "position": { "x": 8, "y": 3, "z": 5 },
+        "bounds": { "x": 7, "z": 4, "width": 2, "depth": 2 },
+        "path": "src/b.test.ts",
+        "size": 12,
+        "fileKind": "test",
+        "language": "TypeScript",
+        "contentHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "pathHistory": []
+      }
+    ],
+    "tiles": [
+      {
+        "lod": 0,
+        "x": 0,
+        "z": 0,
+        "bounds": { "x": 1, "z": 1, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 4,
+          "byKind": { "directory": 2, "file": 2 },
+          "byLanguage": { "TypeScript": 2 },
+          "byFileKind": { "source": 1, "test": 1 }
+        }
+      },
+      {
+        "lod": 1,
+        "x": 0,
+        "z": 1,
+        "bounds": { "x": 1, "z": 8, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 3,
+          "byKind": { "directory": 2, "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "source": 1 }
+        }
+      },
+      {
+        "lod": 1,
+        "x": 1,
+        "z": 1,
+        "bounds": { "x": 11, "z": 8, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "test": 1 }
+        }
+      },
+      {
+        "lod": 2,
+        "x": 1,
+        "z": 2,
+        "bounds": { "x": 4, "z": 5, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 3,
+          "byKind": { "directory": 2, "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "source": 1 }
+        }
+      },
+      {
+        "lod": 2,
+        "x": 2,
+        "z": 2,
+        "bounds": { "x": 7, "z": 5, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "test": 1 }
+        }
+      },
+      {
+        "lod": 3,
+        "x": 2,
+        "z": 4,
+        "bounds": { "x": 3, "z": 5, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "source": 1 }
+        }
+      },
+      {
+        "lod": 3,
+        "x": 3,
+        "z": 4,
+        "bounds": { "x": 5, "z": 5, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 2,
+          "byKind": { "directory": 2 },
+          "byLanguage": {},
+          "byFileKind": {}
+        }
+      },
+      {
+        "lod": 3,
+        "x": 5,
+        "z": 4,
+        "bounds": { "x": 8, "z": 5, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "test": 1 }
+        }
+      },
+      {
+        "lod": 4,
+        "x": 5,
+        "z": 8,
+        "bounds": { "x": 4, "z": 4, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "source": 1 }
+        }
+      },
+      {
+        "lod": 4,
+        "x": 7,
+        "z": 8,
+        "bounds": { "x": 5, "z": 4, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 2,
+          "byKind": { "directory": 2 },
+          "byLanguage": {},
+          "byFileKind": {}
+        }
+      },
+      {
+        "lod": 4,
+        "x": 10,
+        "z": 8,
+        "bounds": { "x": 7, "z": 4, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "test": 1 }
+        }
+      }
+    ],
+    "limits": {
+      "fullDetailFiles": 10000,
+      "maxTileRecords": 128,
+      "maxPathHistory": 8,
+      "maxTombstones": 256
+    }
+  },
+  "tiles": {
+    "schema": "aiw.world/0.4",
+    "snapshotId": "24942fe914bb795714bbda9c71e6c813",
+    "query": {
+      "lod": 4,
+      "minX": 0,
+      "maxX": 15,
+      "minZ": 0,
+      "maxZ": 15,
+      "limit": 16
+    },
+    "tiles": [
+      {
+        "lod": 4,
+        "x": 5,
+        "z": 8,
+        "bounds": { "x": 4, "z": 4, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "source": 1 }
+        }
+      },
+      {
+        "lod": 4,
+        "x": 7,
+        "z": 8,
+        "bounds": { "x": 5, "z": 4, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 2,
+          "byKind": { "directory": 2 },
+          "byLanguage": {},
+          "byFileKind": {}
+        }
+      },
+      {
+        "lod": 4,
+        "x": 10,
+        "z": 8,
+        "bounds": { "x": 7, "z": 4, "width": 1, "depth": 1 },
+        "counts": {
+          "total": 1,
+          "byKind": { "file": 1 },
+          "byLanguage": { "TypeScript": 1 },
+          "byFileKind": { "test": 1 }
+        }
+      }
+    ]
+  }
+}

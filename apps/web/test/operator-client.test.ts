@@ -28,11 +28,11 @@ describe("Phase 3 operator API client", () => {
           data: {
             service: "agentintersect-world-local-server",
             status: "ready",
-            version: "0.3.0-phase3",
+            version: "0.4.0-phase4",
             runtime: { name: "node", version: "v24.18.0" },
             config: {
-              phase: "Phase 3",
-              version: "0.3.0-phase3",
+              phase: "Phase 4",
+              version: "0.4.0-phase4",
               instanceName: "Browser Test",
               networkScope: "loopback",
               host: "127.0.0.1",
