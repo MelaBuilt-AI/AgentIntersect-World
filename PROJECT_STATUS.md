@@ -86,6 +86,12 @@ The one audit found three Moderate blockers, all corrected in the one permitted 
 
 Cumulative hash-budget coverage and smoke setup cleanup protection were also added. Parent focused/full/browser/fresh-copy retesting is green.
 
+## Next-session marker
+
+**Phase 4 is the approved focus for the next session. Phase 4 implementation was not started in this session.**
+
+A fresh session must begin by reading `AGENTS.md`, `PHASE_3_REPORT.md`, this tracker, and the canonical Phase 4 design; then freeze the smallest observable Phase 4 scope before launching any implementation worker.
+
 ## Next milestone
 
 **Phase 4 — World object model, deterministic identity, and layout**
@@ -103,7 +109,7 @@ Transform the completed Phase 3 generation into versioned World objects with det
 - Produce bounded tiles/LOD and golden fixtures before broad semantics.
 - Do not add real workers, AgentIntersect mutation, PartyKit/Yjs, public ingress, or Phase 5 browser-shell work.
 
-Phase 4 is the next design milestone, but implementation must be explicitly authorized and scoped before launch.
+Phase 4 is authorized as the next-session focus. No Phase 4 implementation was started during this closeout; the fresh session must freeze its bounded scope before coding.
 
 ## Accepted Phase 5 UX direction
 
