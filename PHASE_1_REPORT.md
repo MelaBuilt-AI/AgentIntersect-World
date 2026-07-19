@@ -123,14 +123,10 @@ These are not Phase 1 blockers and did not trigger another review cycle:
 
 ## Repository and publication state
 
-- Branch: local `main`
-- Worktree: Phase 1 changes are complete but uncommitted
-- Remote: none
-- Commit/push/tag/release/publication/visibility change: none
-- Original AgentIntersect access/change: none
+Phase 1 was subsequently committed as `d1d926ce195ea4502bcc03a1d831b45e8bb76cf8` and pushed to the private repository `https://github.com/MelaBuilt-AI/AgentIntersect-World`. No tag, release, publication, or public-visibility change occurred. Original AgentIntersect access/change remained none.
 
 ## Next milestone
 
-**Phase 2 — Functioning local authority server and configuration** is next, but was not started.
+Phase 2 was subsequently completed. See `PHASE_2_REPORT.md`; Phase 3 is next.
 
-Phase 2 must follow `AGENTS.md`: build its smallest working local/LAN vertical slice first, test it, perform one bounded audit, fix confirmed defects once, and retest. Broad hardening remains deferred until the product’s main functional path works.
+Phase 3 follows `AGENTS.md`: build its smallest working repository-discovery/indexing vertical slice first, test it, perform one bounded audit, fix confirmed defects once, and retest. Broad hardening remains deferred until the product’s main functional path works.

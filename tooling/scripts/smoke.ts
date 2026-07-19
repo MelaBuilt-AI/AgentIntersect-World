@@ -2,7 +2,15 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createServer } from "node:net";
 import { resolve } from "node:path";
 
-import { HealthResponseSchema } from "@agentintersect-world/world-schema";
+import {
+  ApiErrorSchema,
+  ApiResultSchema,
+  DoctorDataSchema,
+  HealthResponseSchema,
+  OperationRecordSchema,
+  ReadyDataSchema,
+  SafeConfigSchema,
+} from "@agentintersect-world/world-schema";
 
 async function disposablePort(): Promise<number> {
   return await new Promise((resolvePort, reject) => {
@@ -107,13 +115,68 @@ try {
   if (correlationHeader !== health.correlationId)
     throw new Error("health correlation header mismatch");
 
+  const api = `http://127.0.0.1:${serverPort}`;
+  const readyResponse = await fetch(`${api}/ready`);
+  ApiResultSchema(ReadyDataSchema).parse(await readyResponse.json());
+  const configResponse = await fetch(`${api}/config`);
+  ApiResultSchema(SafeConfigSchema).parse(await configResponse.json());
+  const doctorResponse = await fetch(`${api}/doctor`);
+  ApiResultSchema(DoctorDataSchema).parse(await doctorResponse.json());
+  const openapiResponse = await fetch(`${api}/openapi.json`);
+  const openapi = (await openapiResponse.json()) as { paths?: object };
+  if (openapi.paths === undefined)
+    throw new Error("OpenAPI paths are missing from generated document");
+
+  const createOperation = async (key: string, durationMs: number) =>
+    await fetch(`${api}/operations`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": key,
+      },
+      body: JSON.stringify({ kind: "demo-delay", durationMs, label: key }),
+    });
+  const firstResponse = await createOperation("smoke-cancel", 500);
+  const first = ApiResultSchema(OperationRecordSchema).parse(
+    await firstResponse.json(),
+  ).data;
+  const replayResponse = await createOperation("smoke-cancel", 500);
+  const replay = ApiResultSchema(OperationRecordSchema).parse(
+    await replayResponse.json(),
+  ).data;
+  if (replay.id !== first.id) throw new Error("idempotent replay changed ID");
+  const conflictResponse = await createOperation("smoke-cancel", 400);
+  const conflict = ApiErrorSchema.parse(await conflictResponse.json());
+  if (conflictResponse.status !== 409 || conflict.error.code !== "conflict")
+    throw new Error("operation conflict response is unstable");
+  const cancelResponse = await fetch(`${api}/operations/${first.id}/cancel`, {
+    method: "POST",
+  });
+  const cancelled = ApiResultSchema(OperationRecordSchema).parse(
+    await cancelResponse.json(),
+  ).data;
+  if (cancelled.status !== "cancelled")
+    throw new Error("smoke operation did not cancel");
+
+  const completingResponse = await createOperation("smoke-complete", 50);
+  const completing = ApiResultSchema(OperationRecordSchema).parse(
+    await completingResponse.json(),
+  ).data;
+  await new Promise((resolveWait) => setTimeout(resolveWait, 80));
+  const completedResponse = await fetch(`${api}/operations/${completing.id}`);
+  const completed = ApiResultSchema(OperationRecordSchema).parse(
+    await completedResponse.json(),
+  ).data;
+  if (completed.status !== "succeeded")
+    throw new Error("smoke operation did not complete");
+
   const webResponse = await waitFor(`http://127.0.0.1:${webPort}/`);
   const html = await webResponse.text();
   if (!html.includes("AgentIntersect World"))
     throw new Error("built web page identity is missing");
 
   process.stdout.write(
-    `Smoke passed: health schema valid and built web served on disposable ports ${serverPort}/${webPort}.\n`,
+    `Smoke passed: Phase 2 inspection/operation API and built web served on disposable ports ${serverPort}/${webPort}.\n`,
   );
 } finally {
   await Promise.all(children.reverse().map(stop));

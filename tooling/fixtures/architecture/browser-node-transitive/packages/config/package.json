@@ -1,0 +1,6 @@
+{
+  "name": "@agentintersect-world/config",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

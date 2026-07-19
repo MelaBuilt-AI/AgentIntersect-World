@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export type Schema<T> = z.ZodType<T>;
+
 export const CorrelationIdSchema = z.uuid();
 
 export const RuntimeInfoSchema = z
@@ -34,7 +36,7 @@ export const ApiErrorCodeSchema = z.enum([
 export const ApiMetaSchema = z
   .object({
     correlationId: CorrelationIdSchema,
-    schema: z.literal("aiw.api/0.1"),
+    schema: z.literal("aiw.api/0.2"),
     revision: z.number().int().nonnegative().optional(),
   })
   .strict();
@@ -71,3 +73,78 @@ export type ApiResult<T> = {
   data: T;
   meta: z.infer<typeof ApiMetaSchema>;
 };
+
+export const SafeConfigSchema = z
+  .object({
+    phase: z.literal("Phase 2"),
+    version: z.literal("0.2.0-phase2"),
+    instanceName: z.string().min(1).max(80),
+    networkScope: z.enum(["loopback", "lan"]),
+    host: z.string().min(1),
+    port: z.number().int().min(1).max(65_535),
+    demoOperationMaxMs: z.number().int().positive(),
+  })
+  .strict();
+
+export const ReadyDataSchema = z
+  .object({
+    service: z.literal("agentintersect-world-local-server"),
+    status: z.literal("ready"),
+    version: z.literal("0.2.0-phase2"),
+    runtime: RuntimeInfoSchema,
+    config: SafeConfigSchema,
+  })
+  .strict();
+
+export const DoctorCheckSchema = z
+  .object({
+    name: z.enum(["runtime", "configuration", "operation-service"]),
+    status: z.literal("pass"),
+    message: z.string().min(1),
+  })
+  .strict();
+
+export const DoctorDataSchema = z
+  .object({
+    status: z.literal("ready"),
+    checks: z.array(DoctorCheckSchema).length(3),
+  })
+  .strict();
+
+export const OperationRequestSchema = z
+  .object({
+    kind: z.literal("demo-delay"),
+    durationMs: z.number().int().positive(),
+    label: z.string().trim().min(1).max(80).optional(),
+  })
+  .strict();
+
+export const OperationStatusSchema = z.enum([
+  "running",
+  "succeeded",
+  "cancelled",
+]);
+
+export const OperationRecordSchema = z
+  .object({
+    id: z.uuid(),
+    kind: z.literal("demo-delay"),
+    durationMs: z.number().int().positive(),
+    label: z.string().min(1).max(80).optional(),
+    status: OperationStatusSchema,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    result: z.string().min(1).max(160),
+  })
+  .strict();
+
+export const OperationListDataSchema = z
+  .object({ operations: z.array(OperationRecordSchema).max(100) })
+  .strict();
+
+export type SafeConfig = z.infer<typeof SafeConfigSchema>;
+export type ReadyData = z.infer<typeof ReadyDataSchema>;
+export type DoctorData = z.infer<typeof DoctorDataSchema>;
+export type OperationRequest = z.infer<typeof OperationRequestSchema>;
+export type OperationRecord = z.infer<typeof OperationRecordSchema>;
+export type OperationStatus = z.infer<typeof OperationStatusSchema>;

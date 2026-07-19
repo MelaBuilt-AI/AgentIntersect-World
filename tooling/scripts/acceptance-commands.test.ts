@@ -19,7 +19,7 @@ function requireScript(manifest: RootManifest, name: string): string {
   return script;
 }
 
-describe("Phase 1 acceptance command graph", () => {
+describe("acceptance command graph", () => {
   it("bootstraps project-pinned Chromium before every root E2E path", async () => {
     const manifest = JSON.parse(
       await readProjectFile("package.json"),

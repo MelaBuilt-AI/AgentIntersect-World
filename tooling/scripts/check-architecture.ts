@@ -51,7 +51,7 @@ const allowedWorkspaceDependencies: Readonly<
   "@agentintersect-world/world-schema": [],
 };
 
-const browserPackages = new Set([
+const browserRoots = new Set([
   "@agentintersect-world/avatar-system",
   "@agentintersect-world/renderer-r3f",
   "@agentintersect-world/spatial-code-graph",
@@ -121,6 +121,17 @@ function workspaceDependencies(manifest: Manifest): string[] {
     ...manifest.devDependencies,
     ...manifest.peerDependencies,
   }).filter((name) => name.startsWith("@agentintersect-world/"));
+}
+
+function declaresSubpathExport(manifest: Manifest, subpath: string): boolean {
+  if (
+    manifest.exports === null ||
+    typeof manifest.exports !== "object" ||
+    Array.isArray(manifest.exports)
+  ) {
+    return false;
+  }
+  return Object.hasOwn(manifest.exports, `./${subpath}`);
 }
 
 function findCycles(graph: ReadonlyMap<string, readonly string[]>): string[][] {
@@ -204,6 +215,18 @@ export async function inspectArchitecture(
     });
   }
 
+  const browserReachable = new Set(browserRoots);
+  const pendingBrowserPackages = [...browserRoots];
+  while (pendingBrowserPackages.length > 0) {
+    const packageName = pendingBrowserPackages.pop();
+    if (packageName === undefined) break;
+    for (const dependency of graph.get(packageName) ?? []) {
+      if (browserReachable.has(dependency)) continue;
+      browserReachable.add(dependency);
+      pendingBrowserPackages.push(dependency);
+    }
+  }
+
   for (const [packageName, item] of packages) {
     for (const file of await sourceFiles(item.directory)) {
       const source = await readFile(file, "utf8");
@@ -212,16 +235,26 @@ export async function inspectArchitecture(
         if (!specifier) continue;
         const displayFile = relative(absoluteRoot, file).split(sep).join("/");
         const deepWorkspaceImport = specifier.match(
-          /^(@agentintersect-world\/[^/]+)\/.+/,
+          /^(@agentintersect-world\/[^/]+)\/(.+)/,
         );
-        if (deepWorkspaceImport) {
+        const importedPackage = deepWorkspaceImport?.[1];
+        const importedSubpath = deepWorkspaceImport?.[2];
+        const declaredSubpath =
+          importedPackage !== undefined && importedSubpath !== undefined
+            ? packages.get(importedPackage)
+            : undefined;
+        if (
+          deepWorkspaceImport &&
+          (declaredSubpath === undefined ||
+            !declaresSubpathExport(declaredSubpath.manifest, importedSubpath!))
+        ) {
           violations.push({
             code: "deep-workspace-import",
             file: displayFile,
             message: `deep workspace import is prohibited: ${specifier}`,
           });
         }
-        if (browserPackages.has(packageName) && nodeImports.has(specifier)) {
+        if (browserReachable.has(packageName) && nodeImports.has(specifier)) {
           violations.push({
             code: "browser-node-import",
             file: displayFile,
@@ -229,7 +262,7 @@ export async function inspectArchitecture(
           });
         }
         if (
-          browserPackages.has(packageName) &&
+          browserReachable.has(packageName) &&
           serverOnlyImports.has(specifier)
         ) {
           violations.push({

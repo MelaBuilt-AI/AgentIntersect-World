@@ -1806,6 +1806,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 2 — Local authority server and configuration
 
+**Completion:** COMPLETE on 2026-07-19. See `PHASE_2_REPORT.md`. The validated loopback/trusted-LAN configuration, health/readiness/configuration/doctor/OpenAPI surface, correlated errors, bounded idempotent/cancellable demo operations, graceful process lifecycle, numbered operator UI, 40-test suite, 9 architecture regressions, 2 Playwright flows, and 123-file fresh-copy verification are green. The single bounded audit returned PASS with no blockers; no correction worker or second broad review was required.
+
 **Objective:** Evolve the Phase 1 Fastify shell into a functioning local composition root with observable configuration, readiness, stable error envelopes, correlation, cancellable operations, graceful shutdown, and explicit loopback/trusted-LAN behavior.
 
 **Rationale:** Later product features need a dependable working local server before repository, spatial, and multi-agent functionality can build on it. The project-level functionality-first and bounded-review rules supersede the older security-first sequencing.
@@ -1830,25 +1832,25 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 3 — Repository discovery and metadata index
 
-**Objective:** Safely open arbitrary local repos and build a deterministic file/package/directory metadata index with progress and cancellation.
+**Objective:** Open a user-selected local repository and build a deterministic, cancellable metadata index of its directories, files, languages/kinds, package manifests, hashes, and Git status without executing repository content.
 
-**Rationale:** File-level hierarchy is the minimum valuable spatial world and the degradation floor for all languages.
+**Rationale:** File-level hierarchy is the first useful repository-world input and the degradation floor for every language. A working discovery/index loop should exist before symbol parsing or spatial layout begins.
 
-**In scope:** Canonical roots, Git/non-Git discovery, ignores, language/kind classification, package manifests, hashes, Git status, SQLite migrations/tables, generations, cancellation, watch/rescan.
+**In scope:** Canonical root selection, Git/non-Git discovery, ignores/vendor/binary handling, language/kind classification, package manifests, deterministic hashes and generation identity, Git status, progress/cancellation, last-good generation behavior, bounded watch/rescan, and an operator-visible open/index/cancel/progress/results flow. Local persistence is included only when required by the frozen smallest working slice.
 
-**Out of scope:** Symbol parsing, dependency call graphs, 3D rendering, executing repo scripts.
+**Out of scope:** Executing repository scripts/hooks/binaries, inspecting or modifying the original AgentIntersect checkout, symbol parsing, dependency/call graphs, 3D layout/rendering, worker/agent mutations, PartyKit/Yjs, public ingress, unrelated users, and Phase 4+ behavior.
 
 **Dependencies:** Phase 2 operation framework and persistence interfaces.
 
-**Concrete tasks:** Implement safe path and symlink policy; Git argument-array wrapper with hooks/pager disabled; discovery caps; SQLite v1 schema/migrator; transactional generation activation; progress events; file-watch debounce and overflow rescan; deterministic rebuild command.
+**Concrete tasks:** Freeze a representative temporary-repository fixture and bounded limits; implement canonical root validation, deterministic traversal/classification/hashing, package discovery, non-executing Git metadata reads, progress/cancellation, last-good generation activation, and a minimal browser/API flow. Add persistence/watch behavior only to support the accepted vertical slice.
 
 **Code/artifacts:** `repo-indexer` discovery pipeline, persistence repositories/migrations, 10k/100k synthetic fixtures, index coverage DTOs.
 
-**Tests/evidence:** Traversal/symlink/case tests; ignored/vendor/binary handling; cancel under 500 ms target; crash before generation activation; corrupt DB read-only path; Git and non-Git repos.
+**Tests/evidence:** Real temporary Git and non-Git repositories; ignored/vendor/binary handling; deterministic rebuild; cancellation; failed-generation preservation; symlink/path boundaries; package and Git status metadata; live API/browser progress/results; fresh-copy build.
 
-**Acceptance criteria:** No repository content executes; canceled/failed generations never replace last good data; hierarchy and search work for unsupported languages; index can be deleted and deterministically rebuilt.
+**Acceptance criteria:** The operator can select a valid local repository, start/cancel an index, inspect deterministic file/package/Git metadata and progress in the browser, and rebuild the same generation from unchanged input. No repository content executes, and canceled/failed generations never replace the last good result.
 
-**Exit gate:** Security boundary review plus large-fixture evidence.
+**Exit gate:** Working vertical slice plus focused/full/temporary-repository/browser/fresh-copy evidence, one bounded audit, one confirmed-defect correction pass if needed, and final parent verification.
 
 **Risks:** Filesystem races, huge directories, watcher gaps. Verify containment at access, cap work, and reconcile periodically.
 
