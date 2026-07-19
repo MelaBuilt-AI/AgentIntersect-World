@@ -1922,17 +1922,21 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 5 — Inherited identity/dashboard shell and first repository island
 
+**Direction frozen 2026-07-19:** Use the balanced vertical slice: inherited dashboard shell, inherited 2D avatar appearance, and one hybrid semantic-DOM + R3F repository island. Prove the complete identity-to-repository workflow before heavier avatar, Blender, environment-art, or renderer expansion.
+
+**Future avatar architecture frozen 2026-07-19:** Every embodied avatar uses one shared biped core rig and one reusable primary animation set. Humans and animal agents share the same locomotion/action skeleton; cats, dogs, and future animal forms vary through modular species parts and surfaces such as fur, tails, ears, muzzles, paw-shaped hands/feet, and optional claws. Optional tail/ear secondary joints or procedural motion must not create separate primary locomotion animation sets. Phase 5 uses the inherited 2D avatar artwork only; 3D modeling, rigging, animation production, and Blender work begin only after the functional avatar/dashboard/island interaction is proven.
+
 **Objective:** Port the accepted AgentIntersect identity/avatar/dashboard visual baseline into World-owned React components and render one useful repo island with a complete semantic 2D navigation path.
 
 **Rationale:** The first serious visual proof should begin from the already accepted AgentIntersect opening and dashboard rather than inventing a second visual language. World-specific information architecture, accessibility, and repository-island behavior remain authoritative.
 
-**In scope:** One-time bounded source extraction with provenance/hashes; byte-identical copies of selected original dashboard graphics; `identify_` opening and local avatar-appearance builder; inherited transition, header, hero, output/status area, typewriter/cursor navigation and overlay toggle behavior; durable default/current harness selection for OpenClaw/Hermes/Claude Code/Codex; World/Repositories/Agents/Activity/Evidence/Settings panels; React 19/Vite app, TanStack Query, Zustand, R3F scene, package/directory/file instancing, DOM tree/search/inspector/minimap, selection synchronization, WebGL failure fallback, keyboard/reduced-motion/high-contrast modes.
+**In scope:** One-time bounded source extraction with provenance/hashes; byte-identical copies of only the selected original dashboard graphics used by the slice; `identify_` opening and inherited 2D local avatar-appearance builder; inherited transition, header, hero, output/status area, typewriter/cursor navigation and overlay toggle behavior; durable default/current harness selection for OpenClaw/Hermes/Claude Code/Codex; World/Repositories/Agents/Activity/Evidence/Settings panels; React 19/Vite app, TanStack Query, Zustand, one R3F repository-island scene, package/directory/file instancing, DOM tree/search/inspector/minimap, shared canvas/DOM selection, WebGL failure fallback, and keyboard/reduced-motion/high-contrast modes.
 
-**Out of scope:** Copying original AgentIntersect menu bodies/backend authority, claiming a harness is connected, real worker runs, in-world autonomous agent locomotion, symbols, multiplayer, fancy physics/XR.
+**Out of scope:** Copying original AgentIntersect menu bodies/backend authority, claiming a harness is connected, real worker runs, 3D avatar models/rigs/animations, Blender production, broad environment-art production, in-world autonomous agent locomotion, symbols, multiplayer, fancy physics/XR.
 
 **Dependencies:** Phase 4 snapshot/tile API.
 
-**Concrete tasks:** Freeze the original dashboard source commit and asset manifest; copy selected graphics byte-for-byte; port the identity/avatar/hero/nav/output behaviors into scoped React components; persist avatar and harness selections locally; map existing Phase 2/3 flows into World panels; build responsive shell; demand-rendered canvas; instanced geometry/picking; camera focus; semantic object list; search-to-focus; inspector metadata; performance overlay; deterministic visual fixture.
+**Concrete tasks:** Freeze the minimal original dashboard source/asset manifest; copy selected graphics byte-for-byte; port the identity/2D-avatar/hero/nav/output behaviors into scoped React components; persist avatar appearance and harness intent locally; map existing Phase 2/3 flows into World panels; build the responsive shell; add one demand-rendered repository-island canvas with instanced geometry/picking and camera focus; synchronize semantic object list, search, inspector, minimap, and canvas selection; add a deterministic visual fixture and measured 10k-instance proof.
 
 **Code/artifacts:** `apps/web`, `renderer-r3f`, `ui`; World-owned dashboard assets and provenance manifest; avatar profile and harness-selection schemas; Storybook states; screenshot fixtures.
 
@@ -2070,13 +2074,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Rationale:** Embodiment is a differentiator only if it improves legibility and respects identity/privacy.
 
-**In scope:** Avatar schema, bundled parts/forms, defaults, opt-in AgentIntersect onboarding/profile-derived traits, roster, deterministic status animation, non-humanoid/text-only/reduced-motion options.
+**In scope:** One shared biped core rig and reusable primary animation set for every embodied avatar; modular human/cat/dog/future-species parts and surfaces including fur, tails, ears, muzzles, paws, claws, markings, palettes, clothing, and terminal accents; avatar schema, bundled parts/forms, defaults, opt-in AgentIntersect onboarding/profile-derived traits, roster, deterministic status animation, text-only/reduced-motion options.
 
-**Out of scope:** Raw memory ingestion, multiplayer memory replication, generative meshes, biometric inference, autonomous social behavior.
+**Out of scope:** Separate quadruped or per-species primary locomotion rigs/animation sets, raw memory ingestion, multiplayer memory replication, generative meshes, biometric inference, autonomous social behavior.
 
 **Dependencies:** Phase 6 status projection, Phase 9 awareness.
 
-**Concrete tasks:** Build consent flow/source disclosure; safe profile mapper; asset budget/license manifest; avatar LOD/instancing; status state machine; accessibility announcements; user preferences stored locally.
+**Concrete tasks:** Build consent flow/source disclosure; safe profile mapper; shared biped skeleton and animation contract; modular species-part attachment/surface system; optional secondary tail/ear motion that does not fork the primary animation set; asset budget/license manifest; avatar LOD/instancing; status state machine; accessibility announcements; user preferences stored locally.
 
 **Code/artifacts:** `avatar-system`, avatar editor/roster, asset manifest, motion tokens.
 

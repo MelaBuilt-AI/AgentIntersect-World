@@ -75,7 +75,7 @@ Updated: 2026-07-19
 - Real loopback HTTP proof indexed a disposable repository and returned a path-private `aiw.world/0.4` snapshot and tiles.
 - OpenAPI advertised exactly the statuses exercised by both World endpoints.
 - Listener refused requests after clean close.
-- Fresh-copy install and complete aggregate verification passed for 143 source files.
+- Fresh-copy install and complete aggregate verification passed for 144 source files.
 - Original AgentIntersect was not inspected or modified; no Blender/graphics work occurred.
 
 ## Sole audit disposition
@@ -98,18 +98,28 @@ The targeted five-blocker re-review returned PASS for all five and found no corr
 
 Use the completed Phase 4 snapshot/tile API to deliver the first useful semantic browser World and one repository island while porting only the already approved AgentIntersect identity/dashboard visual baseline into World-owned React components.
 
+### Frozen direction
+
+- Selected scope: **balanced shell + inherited 2D avatar + one hybrid semantic-DOM/R3F repository island**.
+- Phase 5 proves the complete identify → avatar appearance → dashboard → harness intent → repository → island → inspect workflow.
+- Heavy avatar/environment production waits until this functional workflow is proven.
+- Future embodied avatars use one shared biped core rig and one reusable primary animation set.
+- Humans, cats, dogs, and future animal species vary through modular fur, tails, ears, muzzles, paws, claws, markings, palettes, clothing, and terminal accents.
+- Optional secondary tail/ear motion may exist later, but it must not require separate primary locomotion animation sets.
+- Phase 5 remains 2D for avatar appearance; no Blender, 3D rig, 3D avatar animation, or broad environment-art production is authorized in this phase.
+
 ### Phase 5 entry requirements
 
 1. Read `AGENTS.md`, `PROJECT_STATUS.md`, `PHASE_4_REPORT.md`, `docs/PHASE_4_SCOPE.md`, and the canonical Phase 5 design.
 2. Freeze a bounded Phase 5 scope before implementation.
 3. Freeze the one-time original-AgentIntersect visual extraction source set, provenance manifest, and SHA-256 copy checks before copying assets.
-4. Discuss and decide avatar embodiment/rig options before Blender modeling or avatar asset production.
+4. Preserve the frozen universal-biped avatar direction; do not begin Blender/modeling work during Phase 5.
 5. Preserve the semantic DOM-equivalent workflow, keyboard/reduced-motion/high-contrast behavior, and WebGL fallback.
 6. Keep Phase 6 readiness projection and Phase 7 worker execution out of Phase 5.
 7. Keep original AgentIntersect unmodified and avoid recurring source dependency after the authorized one-time extraction.
 8. Keep the repository private; no tag, release, package publication, deployment, or visibility change without explicit approval.
 
-**Phase 5 has not started.**
+**Phase 5 direction is recorded; implementation has not started.**
 
 ## Non-blocking backlog
 
