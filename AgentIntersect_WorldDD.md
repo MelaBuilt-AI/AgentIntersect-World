@@ -2028,7 +2028,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 9 — Local multi-agent presence and presentation synchronization
 
-**Status:** LOCAL IMPLEMENTATION AND INDEPENDENT PARENT VERIFICATION COMPLETE / PRIVATE EXACT-SHA CI CLOSEOUT PENDING. The frozen local/self-hosted provider, strict presentation-only document, local snapshot/update durability, HTTP ticket/status/export/delete API, WebSocket synchronization, fresh-ticket reconnect, authoritative World/roster projection, accepted-shell presentation lane, and bounded two-context journey are implemented at `0.9.0-phase9`. Parent focused, aggregate, restart/reconnect, fresh-copy, and first-hand browser verification is recorded in `PHASE_9_REPORT.md`; release, publication, public ingress, visibility changes, and Phase 10 remain excluded.
+**Status:** COMPLETE. The frozen local/self-hosted provider, strict presentation-only document, local snapshot/update durability, HTTP ticket/status/export/delete API, WebSocket synchronization, fresh-ticket reconnect, authoritative World/roster projection, accepted-shell presentation lane, and bounded two-context journey are implemented at `0.9.0-phase9`. Independent parent focused/full/restart/reconnect/fresh-copy/browser proof and private exact-SHA GitHub Actions run `29758484323` are green. Verification is recorded in `PHASE_9_REPORT.md`; release, publication, public ingress, visibility changes, and Phase 10 implementation remain excluded.
 
 **Objective:** Enable the same human operator to see and coordinate one or more owned agents across local or trusted-LAN browser views.
 
@@ -2053,6 +2053,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 **Risks:** Provider API drift and document bloat. Pin versions, abstract provider, cap/compact updates, measure doc sizes.
 
 ## Phase 10 — Symbols, dependencies, LOD, and large-repo hardening
+
+**Status:** NEXT SESSION / NOT STARTED. `docs/PHASE_10_SCOPE.md` is a draft restart artifact only. A fresh session must verify the Phase 9 baseline, refresh jCodeMunch, and freeze the smallest observable Tier 1 symbol/dependency/LOD slice before coding. No Phase 10 implementation, grammar dependency, fixture, parser worker, or production symbol has started.
 
 **Objective:** Add language Tier 1 symbol/dependency structure and prove bounded performance/degradation.
 

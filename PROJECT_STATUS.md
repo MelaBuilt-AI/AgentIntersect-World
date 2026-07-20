@@ -136,20 +136,20 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - Authoritative Evidence panel, Storybook states, reduced-motion/WebGL fallback equivalence, and the complete World-owned disposable acceptance fixture are green in worker verification.
 - Independent parent proof is green: corrected no-NUL binary handling and authoritative rename refs, 203/203 Vitest, 25/25 typecheck, 9/9 architecture, 14/14 build, smoke, 21/21 Playwright, Storybook, zero-vulnerability production audit, 245-file fresh-copy verification, and first-hand browser selection/marker/console checks.
 
-## Phase 9 — LOCAL IMPLEMENTATION AND PARENT VERIFICATION COMPLETE / EXACT-SHA CI CLOSEOUT PENDING
+## Phase 9 — COMPLETE
 
 - One opaque `aiw.presentation/0.9` document is derived from authoritative World workspace/repository identity and contains only bounded presentation state.
 - The local server owns a checksum-protected snapshot/update tail, exact-origin single-use join tickets, and strictly separate presentation authority; browser views use Yjs awareness and opaque-ID IndexedDB persistence.
 - The Phase 9 shell lane exposes peers, owned-agent focus, presenter/follow, annotation/bookmark/layout/orphan state, reconnect truth, and local export/delete/cache controls without command authority.
 - One targeted parent correction fixed fresh-ticket automatic reconnect, graceful shutdown with live presentation peers, and production wiring to real authoritative World objects/Phase 6 roster instead of fake IDs.
 - Independent parent proof is green: focused 31/31, built-code abrupt-drop/restart/offline convergence and shutdown probe, 235/235 Vitest, 26/26 typecheck tasks, 10/10 architecture, 14/14 build, smoke, 22/22 Playwright, Storybook, zero-vulnerability production audit, 266-file fresh-copy verification, and first-hand browser state/action/console checks.
-- Private commit/push and exact-SHA CI are the remaining closeout steps; no release, tag, deployment, package publication, public ingress, or visibility change is authorized.
+- Phase 9 was committed and privately pushed; exact-SHA GitHub Actions run `29758484323` succeeded for the final Phase 9 implementation/test baseline. No release, tag, deployment, package publication, public ingress, or visibility change occurred.
 
 ## Next milestone
 
-**Phase 10 — NOT STARTED**
+**Phase 10 — NEXT SESSION / NOT STARTED**
 
-Phase 10 symbols, dependencies, generalized semantic editing, public ingress, accounts, release/publication, and visibility changes remain out of scope until separately authorized.
+The next fresh session must read `docs/PHASE_10_SCOPE.md`, verify the clean Phase 9 closeout, refresh jCodeMunch, and freeze the smallest functionality-first symbol/dependency/LOD slice before coding. No Phase 10 implementation, dependency, grammar, fixture, worker, or production symbol has started. Generalized semantic editing, public ingress, accounts, release/publication, and visibility changes remain out of scope until separately authorized.
 
 ## Non-blocking backlog
 
