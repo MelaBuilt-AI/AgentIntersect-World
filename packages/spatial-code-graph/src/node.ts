@@ -49,6 +49,7 @@ export const PHASE10_MAX_WORKERS = 2 as const;
 export const PHASE10_MAX_QUEUED_FILES = 128 as const;
 export const PHASE10_MAX_SOURCE_BYTES = 512 * 1024;
 export const PHASE10_FILE_TIMEOUT_MS = 500 as const;
+export const PHASE10_WORKER_STARTUP_TIMEOUT_MS = 10_000 as const;
 export const PHASE10_MAX_AST_DEPTH = 256 as const;
 export const PHASE10_EXTRACTOR_VERSION = "aiw.extractor/0.10.0" as const;
 export const PHASE10_CACHE_FORMAT = "aiw.code-graph-cache/0.10" as const;
@@ -662,10 +663,28 @@ type WorkerRequest = Omit<ParseFileRequest, "signal"> & {
   readonly taskId: number;
 };
 type WorkerResponse = {
+  readonly type: "result";
   readonly taskId: number;
   readonly result?: ParsedFileGraph;
   readonly error?: string;
 };
+
+type WorkerStartupFailureReason = "grammar_mismatch" | "grammar_unavailable";
+
+type WorkerControlResponse =
+  | { readonly type: "ready" }
+  | {
+      readonly type: "startup_failed";
+      readonly reason: WorkerStartupFailureReason;
+    };
+
+type WorkerFixture =
+  | "delayed_startup"
+  | "startup_timeout"
+  | "timeout"
+  | "crash"
+  | "malformed"
+  | "unavailable";
 
 type Task = {
   readonly id: number;
@@ -676,26 +695,30 @@ type Task = {
 
 type WorkerSlot = {
   worker: Worker;
+  ready: boolean;
   task: Task | null;
-  timer: ReturnType<typeof setTimeout> | null;
+  startupTimer: ReturnType<typeof setTimeout> | null;
+  fileTimer: ReturnType<typeof setTimeout> | null;
 };
 
 export class GraphParserPool {
   readonly #slots: WorkerSlot[] = [];
   readonly #queue: Task[] = [];
   readonly #admission: Array<() => void> = [];
+  readonly #terminations = new Set<Promise<number>>();
   readonly #workerCount: number;
-  readonly #workerFixture:
-    "timeout" | "crash" | "malformed" | "unavailable" | undefined;
+  readonly #workerFixture: WorkerFixture | undefined;
   #nextTaskId = 1;
+  #spawnOrdinal = 0;
+  #startupUnavailableReason: WorkerStartupFailureReason | null = null;
   #closing = false;
+  #closePromise: Promise<void> | null = null;
 
   constructor(
     options: {
       readonly workerCount?: number;
       /** Finite acceptance-fixture fault injection; selected repository input cannot set it. */
-      readonly workerFixture?:
-        "timeout" | "crash" | "malformed" | "unavailable";
+      readonly workerFixture?: WorkerFixture;
     } = {},
   ) {
     const available = Math.max(1, availableParallelism());
@@ -720,12 +743,21 @@ export class GraphParserPool {
       return fallback(request, "invalid_utf8");
     }
     if (request.signal?.aborted) return fallback(request, "cancelled");
+    if (this.#startupUnavailableReason)
+      return fallback(request, this.#startupUnavailableReason);
     this.#ensureWorkers();
-    while (this.#queue.length >= PHASE10_MAX_QUEUED_FILES && !this.#closing)
+    while (
+      this.#queue.length >= PHASE10_MAX_QUEUED_FILES &&
+      !this.#closing &&
+      !this.#startupUnavailableReason
+    )
       await new Promise<void>((resolveAdmission) =>
         this.#admission.push(resolveAdmission),
       );
     if (this.#closing) return fallback(request, "cancelled");
+    if (request.signal?.aborted) return fallback(request, "cancelled");
+    if (this.#startupUnavailableReason)
+      return fallback(request, this.#startupUnavailableReason);
     return new Promise<ParsedFileGraph>((resolveTask) => {
       const task: Task = {
         id: this.#nextTaskId++,
@@ -741,36 +773,57 @@ export class GraphParserPool {
     });
   }
 
-  async close(): Promise<void> {
+  close(): Promise<void> {
+    if (this.#closePromise) return this.#closePromise;
     this.#closing = true;
     for (const task of this.#queue.splice(0))
       this.#finish(task, fallback(task.request, "cancelled"));
     for (const release of this.#admission.splice(0)) release();
-    await Promise.all(
-      this.#slots.map(async (slot) => {
-        if (slot.timer) clearTimeout(slot.timer);
-        if (slot.task)
-          this.#finish(slot.task, fallback(slot.task.request, "cancelled"));
-        slot.task = null;
-        await slot.worker.terminate();
-      }),
-    );
+    const terminations = this.#slots.splice(0).map((slot) => {
+      if (slot.startupTimer) clearTimeout(slot.startupTimer);
+      if (slot.fileTimer) clearTimeout(slot.fileTimer);
+      slot.startupTimer = null;
+      slot.fileTimer = null;
+      if (slot.task)
+        this.#finish(slot.task, fallback(slot.task.request, "cancelled"));
+      slot.task = null;
+      return this.#terminate(slot.worker);
+    });
+    this.#closePromise = Promise.all([
+      ...terminations,
+      ...this.#terminations,
+    ]).then(() => undefined);
+    return this.#closePromise;
   }
 
   #spawn(): WorkerSlot {
+    const workerOrdinal = this.#spawnOrdinal++;
     const worker = new Worker(new URL("./node.js", import.meta.url), {
       workerData: {
         phase10ParserWorker: true,
         workerFixture: this.#workerFixture,
+        workerOrdinal,
       },
       resourceLimits: PHASE10_WORKER_RESOURCE_LIMITS,
     });
-    const slot: WorkerSlot = { worker, task: null, timer: null };
+    const slot: WorkerSlot = {
+      worker,
+      ready: false,
+      task: null,
+      startupTimer: null,
+      fileTimer: null,
+    };
     worker.on("message", (message: unknown) => this.#message(slot, message));
-    worker.on("error", () => this.#failed(slot, "worker_crash"));
-    worker.on("exit", (code) => {
-      if (!this.#closing && code !== 0) this.#failed(slot, "worker_crash");
+    worker.on("error", () => this.#workerFailed(slot));
+    worker.on("exit", () => {
+      if (!this.#closing) this.#workerFailed(slot);
     });
+    slot.startupTimer = setTimeout(
+      () => this.#startupFailed(slot, "grammar_unavailable"),
+      this.#workerFixture === "startup_timeout"
+        ? 100
+        : PHASE10_WORKER_STARTUP_TIMEOUT_MS,
+    );
     return slot;
   }
 
@@ -780,14 +833,14 @@ export class GraphParserPool {
   }
 
   #dispatch(): void {
-    if (this.#closing) return;
+    if (this.#closing || this.#startupUnavailableReason) return;
     for (const slot of this.#slots) {
-      if (slot.task !== null) continue;
+      if (!slot.ready || slot.task !== null) continue;
       const task = this.#queue.shift();
       if (!task) break;
       this.#admission.shift()?.();
       slot.task = task;
-      slot.timer = setTimeout(
+      slot.fileTimer = setTimeout(
         () => this.#failed(slot, "timeout"),
         PHASE10_FILE_TIMEOUT_MS,
       );
@@ -803,10 +856,40 @@ export class GraphParserPool {
   }
 
   #message(slot: WorkerSlot, message: unknown): void {
+    if (!this.#slots.includes(slot) || this.#closing) return;
+    const control = message as Partial<WorkerControlResponse>;
+    if (control.type === "ready") {
+      if (slot.ready || slot.task) {
+        this.#startupFailed(slot, "grammar_unavailable");
+        return;
+      }
+      if (slot.startupTimer) clearTimeout(slot.startupTimer);
+      slot.startupTimer = null;
+      slot.ready = true;
+      this.#dispatch();
+      return;
+    }
+    if (control.type === "startup_failed") {
+      this.#startupFailed(
+        slot,
+        control.reason === "grammar_mismatch"
+          ? "grammar_mismatch"
+          : "grammar_unavailable",
+      );
+      return;
+    }
+    if (!slot.ready) {
+      this.#startupFailed(slot, "grammar_unavailable");
+      return;
+    }
     const task = slot.task;
     if (!task) return;
     const candidate = message as Partial<WorkerResponse>;
-    if (candidate.taskId !== task.id || candidate.result === undefined) {
+    if (
+      candidate.type !== "result" ||
+      candidate.taskId !== task.id ||
+      candidate.result === undefined
+    ) {
       this.#failed(slot, "malformed_worker_response");
       return;
     }
@@ -824,8 +907,8 @@ export class GraphParserPool {
       this.#failed(slot, "malformed_worker_response");
       return;
     }
-    if (slot.timer) clearTimeout(slot.timer);
-    slot.timer = null;
+    if (slot.fileTimer) clearTimeout(slot.fileTimer);
+    slot.fileTimer = null;
     slot.task = null;
     this.#finish(task, candidate.result);
     this.#dispatch();
@@ -835,6 +918,7 @@ export class GraphParserPool {
     const queued = this.#queue.indexOf(task);
     if (queued >= 0) {
       this.#queue.splice(queued, 1);
+      this.#admission.shift()?.();
       this.#finish(task, fallback(task.request, "cancelled"));
       return;
     }
@@ -850,14 +934,62 @@ export class GraphParserPool {
     const index = this.#slots.indexOf(slot);
     if (index < 0) return;
     const task = slot.task;
-    if (slot.timer) clearTimeout(slot.timer);
-    slot.timer = null;
+    if (slot.startupTimer) clearTimeout(slot.startupTimer);
+    if (slot.fileTimer) clearTimeout(slot.fileTimer);
+    slot.startupTimer = null;
+    slot.fileTimer = null;
     slot.task = null;
-    void slot.worker.terminate();
+    void this.#terminate(slot.worker);
+    if (task) this.#finish(task, fallback(task.request, reason));
+    if (this.#closing || this.#startupUnavailableReason) {
+      this.#slots.splice(index, 1);
+      return;
+    }
     const replacement = this.#spawn();
     this.#slots[index] = replacement;
-    if (task) this.#finish(task, fallback(task.request, reason));
     this.#dispatch();
+  }
+
+  #workerFailed(slot: WorkerSlot): void {
+    if (!this.#slots.includes(slot)) return;
+    if (!slot.ready) {
+      this.#startupFailed(slot, "grammar_unavailable");
+      return;
+    }
+    this.#failed(slot, "worker_crash");
+  }
+
+  #startupFailed(slot: WorkerSlot, reason: WorkerStartupFailureReason): void {
+    if (
+      this.#closing ||
+      this.#startupUnavailableReason ||
+      !this.#slots.includes(slot)
+    )
+      return;
+    this.#startupUnavailableReason = reason;
+    for (const failedSlot of this.#slots.splice(0)) {
+      if (failedSlot.startupTimer) clearTimeout(failedSlot.startupTimer);
+      if (failedSlot.fileTimer) clearTimeout(failedSlot.fileTimer);
+      failedSlot.startupTimer = null;
+      failedSlot.fileTimer = null;
+      if (failedSlot.task)
+        this.#finish(
+          failedSlot.task,
+          fallback(failedSlot.task.request, reason),
+        );
+      failedSlot.task = null;
+      void this.#terminate(failedSlot.worker);
+    }
+    for (const task of this.#queue.splice(0))
+      this.#finish(task, fallback(task.request, reason));
+    for (const release of this.#admission.splice(0)) release();
+  }
+
+  #terminate(worker: Worker): Promise<number> {
+    const termination = worker.terminate().catch(() => -1);
+    this.#terminations.add(termination);
+    void termination.then(() => this.#terminations.delete(termination));
+    return termination;
   }
 
   #finish(task: Task, result: ParsedFileGraph): void {
@@ -1218,6 +1350,35 @@ let workerRuntimeInitialized = false;
 let workerArtifactsVerified = false;
 const workerLanguages = new Map<SymbolLanguage, unknown>();
 
+async function prepareWorkerParser(): Promise<void> {
+  if (!workerArtifactsVerified) {
+    await verifyParserArtifacts();
+    workerArtifactsVerified = true;
+  }
+  const artifactRoot = defaultArtifactRoot();
+  if (!workerRuntimeInitialized) {
+    await workerTreeSitter.Parser.init({
+      locateFile: () => resolve(artifactRoot, "tree-sitter.wasm"),
+    });
+    workerRuntimeInitialized = true;
+  }
+  const grammars = new Map<ArtifactName, unknown>();
+  for (const artifact of [
+    "tree-sitter-typescript.wasm",
+    "tree-sitter-tsx.wasm",
+    "tree-sitter-javascript.wasm",
+  ] as const) {
+    grammars.set(
+      artifact,
+      await workerTreeSitter.Language.load(resolve(artifactRoot, artifact)),
+    );
+  }
+  for (const [language, artifact] of Object.entries(
+    GRAMMAR_BY_LANGUAGE,
+  ) as Array<[SymbolLanguage, ArtifactName]>)
+    workerLanguages.set(language, grammars.get(artifact)!);
+}
+
 const DECLARATION_KIND: Readonly<Record<string, SymbolKind>> = {
   class_declaration: "class",
   abstract_class_declaration: "class",
@@ -1461,27 +1622,61 @@ async function parseInWorker(request: WorkerRequest): Promise<ParsedFileGraph> {
 async function workerMain(): Promise<void> {
   const port = parentPort;
   if (!port) return;
+  const fixtureData = workerData as {
+    workerFixture?: WorkerFixture;
+    workerOrdinal?: number;
+  };
+  const fixture = fixtureData.workerFixture;
+  const workerOrdinal = fixtureData.workerOrdinal ?? 0;
+  if (
+    fixture === "delayed_startup" ||
+    fixture === "startup_timeout" ||
+    (fixture === "timeout" && workerOrdinal > 0)
+  )
+    await new Promise<void>((resolveDelay) => setTimeout(resolveDelay, 650));
+  try {
+    await prepareWorkerParser();
+  } catch (error) {
+    const response: WorkerControlResponse = {
+      type: "startup_failed",
+      reason:
+        error instanceof Error && error.message.includes("hash mismatch")
+          ? "grammar_mismatch"
+          : "grammar_unavailable",
+    };
+    port.postMessage(response);
+    port.close();
+    return;
+  }
+  const ready: WorkerControlResponse = { type: "ready" };
+  port.postMessage(ready);
   port.on("message", (request: WorkerRequest) => {
-    const fixture = (
-      workerData as {
-        workerFixture?: "timeout" | "crash" | "malformed" | "unavailable";
-      }
-    ).workerFixture;
-    if (fixture === "timeout") return;
+    if (fixture === "timeout" && workerOrdinal === 0) return;
     if (fixture === "crash") process.exit(91);
     if (fixture === "malformed") {
-      port.postMessage({ taskId: request.taskId, result: {} });
+      const response: WorkerResponse = {
+        type: "result",
+        taskId: request.taskId,
+        result: {} as ParsedFileGraph,
+      };
+      port.postMessage(response);
       return;
     }
     if (fixture === "unavailable") {
-      port.postMessage({
+      const response: WorkerResponse = {
+        type: "result",
         taskId: request.taskId,
         result: fallback(request, "grammar_unavailable"),
-      });
+      };
+      port.postMessage(response);
       return;
     }
     void parseInWorker(request).then((result) => {
-      const response: WorkerResponse = { taskId: request.taskId, result };
+      const response: WorkerResponse = {
+        type: "result",
+        taskId: request.taskId,
+        result,
+      };
       port.postMessage(response);
     });
   });

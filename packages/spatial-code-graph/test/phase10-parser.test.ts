@@ -18,6 +18,49 @@ const repositoryId = "88888888888888888888888888888888";
 const fileRef = "aiw://object/11111111111111111111111111111111" as const;
 const roots: string[] = [];
 
+type TestWorkerFixture = "delayed_startup" | "startup_timeout" | "timeout";
+
+function fixturePool(workerFixture: TestWorkerFixture): GraphParserPool {
+  return new GraphParserPool({
+    workerCount: 1,
+    workerFixture,
+  });
+}
+
+function parseFixture(
+  pool: GraphParserPool,
+  path: string,
+  signal?: AbortSignal,
+) {
+  return pool.parse({
+    repositoryId,
+    fileRef,
+    path,
+    source: new TextEncoder().encode("export const complete = 1;"),
+    signal,
+  });
+}
+
+async function within<T>(
+  promise: Promise<T>,
+  milliseconds: number,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_resolve, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`operation exceeded ${milliseconds} ms`)),
+          milliseconds,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 afterEach(async () => {
   await Promise.all(
     roots.splice(0).map((root) => rm(root, { recursive: true })),
@@ -115,6 +158,101 @@ describe("Phase 10 worker-isolated extraction and fallback", () => {
       }
     },
   );
+
+  it("does not charge delayed successful startup to the 500 ms file budget", async () => {
+    const pool = fixturePool("delayed_startup");
+    const startedAt = performance.now();
+    try {
+      const parsed = await within(parseFixture(pool, "delayed.ts"), 3_000);
+      expect(performance.now() - startedAt).toBeGreaterThanOrEqual(550);
+      expect(parsed).toMatchObject({
+        coverage: { state: "parsed", fallbackReason: null },
+      });
+      expect(parsed.symbols.map((symbol) => symbol.name)).toEqual(["complete"]);
+    } finally {
+      await pool.close();
+    }
+  });
+
+  it("fails startup closed once and deterministically drains queued and admitted work", async () => {
+    const pool = fixturePool("startup_timeout");
+    try {
+      const pending = Array.from({ length: 130 }, (_, index) =>
+        parseFixture(pool, `startup-${index}.ts`),
+      );
+      const results = await within(Promise.all(pending), 3_000);
+      expect(results).toHaveLength(130);
+      expect(
+        results.every(
+          (result) =>
+            result.coverage.fallbackReason === "grammar_unavailable" &&
+            result.symbols.length === 0 &&
+            result.dependencies.length === 0,
+        ),
+      ).toBe(true);
+
+      const later = await within(parseFixture(pool, "later.ts"), 250);
+      expect(later).toMatchObject({
+        symbols: [],
+        dependencies: [],
+        coverage: {
+          state: "fallback",
+          fallbackReason: "grammar_unavailable",
+        },
+      });
+    } finally {
+      await pool.close();
+    }
+  });
+
+  it("keeps cancellation and close bounded while workers are starting", async () => {
+    const cancellingPool = fixturePool("delayed_startup");
+    const controller = new AbortController();
+    try {
+      const pending = parseFixture(
+        cancellingPool,
+        "startup-cancel.ts",
+        controller.signal,
+      );
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
+      controller.abort();
+      await expect(within(pending, 250)).resolves.toMatchObject({
+        symbols: [],
+        dependencies: [],
+        coverage: { state: "fallback", fallbackReason: "cancelled" },
+      });
+    } finally {
+      await cancellingPool.close();
+    }
+
+    const closingPool = fixturePool("delayed_startup");
+    const pending = parseFixture(closingPool, "startup-close.ts");
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
+    await within(closingPool.close(), 250);
+    await expect(within(pending, 250)).resolves.toMatchObject({
+      symbols: [],
+      dependencies: [],
+      coverage: { state: "fallback", fallbackReason: "cancelled" },
+    });
+  });
+
+  it("starts replacement file timing only after replacement readiness", async () => {
+    const pool = fixturePool("timeout");
+    try {
+      const timedOut = parseFixture(pool, "times-out.ts");
+      const queued = parseFixture(pool, "replacement.ts");
+      await expect(within(timedOut, 2_000)).resolves.toMatchObject({
+        symbols: [],
+        dependencies: [],
+        coverage: { state: "fallback", fallbackReason: "timeout" },
+      });
+      const parsed = await within(queued, 3_000);
+      expect(parsed.coverage.state).toBe("parsed");
+      expect(parsed.symbols.map((symbol) => symbol.name)).toEqual(["complete"]);
+    } finally {
+      await pool.close();
+    }
+  });
 
   it("falls back for syntax errors, no-NUL invalid UTF-8, oversized files, and unavailable artifacts", async () => {
     const pool = new GraphParserPool({ workerCount: 1 });
