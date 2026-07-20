@@ -704,6 +704,67 @@ p {
   overflow: auto;
   border-top: 1px solid var(--line);
 }
+
+.code-graph-status {
+  color: var(--color-cyan, #22d3ee);
+  font-family: var(--font-mono, monospace);
+}
+
+.dependency-summary {
+  margin-top: 0.75rem;
+  border: 1px solid rgb(34 211 238 / 35%);
+  padding: 0.65rem;
+}
+
+.dependency-summary h3,
+.dependency-summary p {
+  margin: 0 0 0.45rem;
+}
+
+.dependency-summary ul,
+.symbol-detail ul[aria-label="Focused file dependencies"] {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 12rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dependency-summary li,
+.symbol-detail ul[aria-label="Focused file dependencies"] li {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+  gap: 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.dependency-summary small,
+.symbol-detail ul[aria-label="Focused file dependencies"] small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.symbol-detail {
+  margin-top: 1rem;
+  border-top: 1px solid rgb(34 211 238 / 35%);
+  padding-top: 0.75rem;
+}
+
+.symbol-detail ul {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 18rem;
+  overflow: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.symbol-detail button {
+  width: 100%;
+  text-align: left;
+}
 .object-tree button {
   width: 100%;
   min-height: 2.15rem;

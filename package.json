@@ -1,6 +1,6 @@
 {
   "name": "agentintersect-world",
-  "version": "0.9.0-phase9",
+  "version": "0.10.0-phase10",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.15.0",
@@ -22,11 +22,14 @@
     "smoke": "corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts",
     "storybook:build": "corepack pnpm@11.15.0 build:packages && corepack pnpm@11.15.0 --filter @agentintersect-world/web build-storybook",
     "measure:phase5:10k": "corepack pnpm@11.15.0 --filter @agentintersect-world/renderer-r3f build && tsx tooling/scripts/measure-phase5-10k.ts",
+    "measure:phase10": "corepack pnpm@11.15.0 build:packages && tsx tooling/scripts/measure-phase10.ts",
     "verify:fresh": "tsx tooling/scripts/verify-fresh.ts",
     "check": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts && corepack pnpm@11.15.0 test:e2e"
   },
   "devDependencies": {
+    "@agentintersect-world/repo-indexer": "workspace:*",
     "@agentintersect-world/renderer-r3f": "workspace:*",
+    "@agentintersect-world/spatial-code-graph": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@axe-core/playwright": "4.12.1",
     "@eslint/js": "10.0.1",

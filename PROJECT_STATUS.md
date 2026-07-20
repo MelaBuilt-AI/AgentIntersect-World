@@ -4,17 +4,17 @@ Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 9 — Local presentation synchronization: LOCAL IMPLEMENTATION AND PARENT VERIFICATION COMPLETE / EXACT-SHA CI CLOSEOUT PENDING**
+**Phase 10 — Symbols, dependencies, LOD, and large-repository hardening: LOCAL IMPLEMENTATION AND PARENT VERIFICATION COMPLETE / EXACT-SHA CI CLOSEOUT PENDING**
 
-- Frozen scope: `docs/PHASE_9_SCOPE.md` and the canonical Phase 9 section in `AgentIntersect_WorldDD.md`.
-- Baseline: completed Phase 8 commit `fad850e9ebe706b36876e00f10192be452caffd6`; exact-SHA Actions run `29746885718` succeeded.
-- Version: `0.9.0-phase9`.
+- Frozen scope: `docs/PHASE_10_SCOPE.md` and the canonical Phase 10 section in `AgentIntersect_WorldDD.md`.
+- Baseline: completed Phase 9 commit `88e87e51a5edc217399fba1eb0508543b0b7ad66`; exact-SHA Actions run `29760049477` succeeded.
+- Version: `0.10.0-phase10`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`.
 - Workspace: 15 projects / 14 named app-package graph entries.
-- Local implementation includes strict presentation-only Yjs schemas, self-hosted loopback/trusted-LAN transport, awareness, bounded persistence/compaction, sanitized export/delete, orphan projection, an accepted-shell UI lane, and deterministic two-context browser coverage.
-- Independent parent proof is green: the three supported-workflow defects found after the worker pass were corrected once, then focused restart/reconnect and authoritative-object probes, repository-wide gates, first-hand browser inspection, and fresh-copy verification all passed. Exact results are recorded in `PHASE_9_REPORT.md`.
+- Local implementation includes pinned worker-isolated TypeScript/JavaScript WASM parsing, opaque symbol/dependency truth, exact static resolution, generation-coupled cache/recovery, bounded aggregate/focus-only APIs, semantic DOM/R3F dependency bridges, and enforcing deterministic 10k/100k fixtures.
+- Independent parent proof is green through disposable restart/resolution/hashless probes, 285/285 complete Vitest, 26/26 typecheck tasks, 11/11 architecture tests, 14/14 build tasks, smoke, 25/25 Playwright, Storybook, enforcing 10k/100k measurements, zero-vulnerability production audit, exact artifact verification, and desktop/mobile first-hand visual proof. Exact results are recorded in `PHASE_10_REPORT.md`.
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Phase 9 parent functional proof: complete. Private commit/push and exact-SHA CI evidence: pending.
+- Phase 10 parent functional proof and 295-file fresh-copy verification: complete. Private commit/push and exact-SHA CI evidence: pending.
 - Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -143,13 +143,22 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - The Phase 9 shell lane exposes peers, owned-agent focus, presenter/follow, annotation/bookmark/layout/orphan state, reconnect truth, and local export/delete/cache controls without command authority.
 - One targeted parent correction fixed fresh-ticket automatic reconnect, graceful shutdown with live presentation peers, and production wiring to real authoritative World objects/Phase 6 roster instead of fake IDs.
 - Independent parent proof is green: focused 31/31, built-code abrupt-drop/restart/offline convergence and shutdown probe, 235/235 Vitest, 26/26 typecheck tasks, 10/10 architecture, 14/14 build, smoke, 22/22 Playwright, Storybook, zero-vulnerability production audit, 266-file fresh-copy verification, and first-hand browser state/action/console checks.
-- Phase 9 was committed and privately pushed; exact-SHA GitHub Actions run `29758484323` succeeded for the final Phase 9 implementation/test baseline. No release, tag, deployment, package publication, public ingress, or visibility change occurred.
+- Phase 9 was committed and privately pushed; exact-SHA GitHub Actions run `29760049477` succeeded for the final Phase 9 implementation/test baseline. No release, tag, deployment, package publication, public ingress, or visibility change occurred.
+
+## Phase 10 — COMPLETE
+
+- Exact `@vscode/tree-sitter-wasm@0.3.1` runtime/grammar hashes gate TypeScript/TSX/JavaScript/JSX worker parsing; unsupported, unavailable, malformed, cancelled, timed-out, and over-budget files contribute no partial symbol truth.
+- `aiw.code-graph/0.10`, `aiw.symbol/0.10`, and `aiw.dependency/0.10` preserve opaque authoritative file identity, deterministic duplicates/cycles, exact/ambiguous/unresolved/external confidence, and path-private API responses.
+- Static dependency resolution reads indexed metadata only and never executes selected-repository code, package scripts, hooks, package managers, shells, LSPs, compilers, tests, binaries, or native addons.
+- Non-null content hashes gate incremental reuse; generation supersession/cancellation cannot commit partial truth; current plus previous checksum-verified graphs recover explicitly after restart/corruption.
+- LOD 0–2 aggregates and one-file LOD 3–4 detail feed bounded semantic DOM and R3F symbol/dependency lanes with explicit current/previous/degraded/truncated truth and no whole-repository symbol-detail route.
+- The enforcing 10k/100k suite, repository-wide gates, Storybook, supply-chain evidence, fresh-copy verification, and desktop/mobile browser proof are recorded in `PHASE_10_REPORT.md`, `docs/PHASE_10_PERFORMANCE.md`, and `docs/PHASE_10_PARSER_PROVENANCE.md`.
 
 ## Next milestone
 
-**Phase 10 — NEXT SESSION / NOT STARTED**
+**Phase 11 — NEXT SESSION / NOT STARTED**
 
-The next fresh session must read `docs/PHASE_10_SCOPE.md`, verify the clean Phase 9 closeout, refresh jCodeMunch, and freeze the smallest functionality-first symbol/dependency/LOD slice before coding. No Phase 10 implementation, dependency, grammar, fixture, worker, or production symbol has started. Generalized semantic editing, public ingress, accounts, release/publication, and visibility changes remain out of scope until separately authorized.
+Phase 11 requires a fresh scope/decision pass before implementation. Phase 10 completion does not authorize avatar/profile work, Blender/3D asset work, release/publication, public ingress, or repository visibility changes.
 
 ## Non-blocking backlog
 

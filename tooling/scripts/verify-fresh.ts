@@ -79,6 +79,7 @@ try {
     ["pnpm@11.15.0", "install", "--frozen-lockfile"],
     freshRoot,
   );
+  await run("corepack", ["pnpm@11.15.0", "measure:phase10"], freshRoot);
   await run("corepack", ["pnpm@11.15.0", "check"], freshRoot);
   process.stdout.write(
     `Fresh verification passed for ${copiedFiles} project source files.\n`,

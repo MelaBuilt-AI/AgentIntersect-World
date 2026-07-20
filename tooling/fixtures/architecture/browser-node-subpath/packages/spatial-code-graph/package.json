@@ -1,0 +1,7 @@
+{
+  "name": "@agentintersect-world/spatial-code-graph",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  }
+}

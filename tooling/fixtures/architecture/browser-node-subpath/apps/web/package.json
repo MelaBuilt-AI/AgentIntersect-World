@@ -1,0 +1,9 @@
+{
+  "name": "@agentintersect-world/web",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@agentintersect-world/spatial-code-graph": "workspace:*"
+  }
+}

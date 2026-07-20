@@ -189,7 +189,18 @@ describe("deterministic repository metadata index", () => {
     expect(result.packages).toEqual([
       { path: "Cargo.toml", kind: "cargo", name: "cargo-name" },
       { path: "go.mod", kind: "go", name: "example.test/go-name" },
-      { path: "package.json", kind: "npm", name: "npm-name" },
+      {
+        path: "package.json",
+        kind: "npm",
+        name: "npm-name",
+        npmResolution: {
+          exports: [],
+          imports: [],
+          main: null,
+          module: null,
+          types: null,
+        },
+      },
       { path: "pom.xml", kind: "maven", name: "maven-name" },
       { path: "pyproject.toml", kind: "python", name: "python-name" },
     ]);

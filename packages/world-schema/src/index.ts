@@ -76,8 +76,8 @@ export type ApiResult<T> = {
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 9"),
-    version: z.literal("0.9.0-phase9"),
+    phase: z.literal("Phase 10"),
+    version: z.literal("0.10.0-phase10"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -103,7 +103,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.9.0-phase9"),
+    version: z.literal("0.10.0-phase10"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })
@@ -259,11 +259,35 @@ export const RepositoryFileSchema = z
   })
   .strict();
 
+export const RepositoryNpmResolutionEntrySchema = z
+  .object({
+    specifier: z.string().min(1).max(512),
+    target: repositoryPathSchema(false).refine(
+      (value) => value.startsWith("./") && !value.split("/").includes(".."),
+      {
+        message:
+          "npm resolution targets must be bounded package-relative paths",
+      },
+    ),
+  })
+  .strict();
+
+export const RepositoryNpmResolutionSchema = z
+  .object({
+    exports: z.array(RepositoryNpmResolutionEntrySchema).max(128),
+    imports: z.array(RepositoryNpmResolutionEntrySchema).max(128),
+    main: RepositoryNpmResolutionEntrySchema.shape.target.nullable(),
+    module: RepositoryNpmResolutionEntrySchema.shape.target.nullable(),
+    types: RepositoryNpmResolutionEntrySchema.shape.target.nullable(),
+  })
+  .strict();
+
 export const RepositoryPackageSchema = z
   .object({
     path: repositoryPathSchema(false),
     kind: z.enum(["npm", "python", "cargo", "go", "maven"]),
     name: z.string().min(1).max(240).nullable(),
+    npmResolution: RepositoryNpmResolutionSchema.nullable().optional(),
   })
   .strict();
 
@@ -347,6 +371,9 @@ export type RepositoryIndexProgress = z.infer<
 export type RepositoryDirectory = z.infer<typeof RepositoryDirectorySchema>;
 export type RepositoryFile = z.infer<typeof RepositoryFileSchema>;
 export type RepositoryPackage = z.infer<typeof RepositoryPackageSchema>;
+export type RepositoryNpmResolution = z.infer<
+  typeof RepositoryNpmResolutionSchema
+>;
 export type RepositoryGitMetadata = z.infer<typeof RepositoryGitMetadataSchema>;
 export type RepositoryIndexCoverage = z.infer<
   typeof RepositoryIndexCoverageSchema
@@ -903,3 +930,314 @@ export type EvidenceTestTruth = z.infer<typeof EvidenceTestTruthSchema>;
 export type TestEvidenceArtifact = z.infer<typeof TestEvidenceArtifactSchema>;
 export type EvidenceRecord = z.infer<typeof EvidenceRecordSchema>;
 export type EvidenceLookupQuery = z.infer<typeof EvidenceLookupQuerySchema>;
+
+export const CODE_GRAPH_SCHEMA_VERSION = "aiw.code-graph/0.10" as const;
+export const SYMBOL_SCHEMA_VERSION = "aiw.symbol/0.10" as const;
+export const DEPENDENCY_SCHEMA_VERSION = "aiw.dependency/0.10" as const;
+export const CODE_GRAPH_MAX_SYMBOLS_PER_FILE = 2_000 as const;
+export const CODE_GRAPH_MAX_DEPENDENCIES_PER_FILE = 2_000 as const;
+export const CODE_GRAPH_MAX_DIAGNOSTICS_PER_FILE = 50 as const;
+export const CODE_GRAPH_MAX_AGGREGATE_EDGES = 1_024 as const;
+export const CODE_GRAPH_MAX_FOCUSED_SYMBOL_NODES = 512 as const;
+export const CODE_GRAPH_MAX_VISIBLE_OBJECTS = 2_000 as const;
+export const CODE_GRAPH_MAX_DOM_SYMBOL_ROWS = 200 as const;
+
+export const CodeGraphConfidenceSchema = z.enum([
+  "exact_file",
+  "exact_workspace_package",
+  "external",
+  "ambiguous",
+  "unresolved",
+  "unsupported",
+  "unavailable",
+]);
+
+const CodeGraphConfidenceListSchema = z
+  .array(CodeGraphConfidenceSchema)
+  .min(1)
+  .max(7)
+  .refine((values) => new Set(values).size === values.length, {
+    message: "confidence values must be unique",
+  });
+
+const CodeGraphSafeTextSchema = z
+  .string()
+  .min(1)
+  .max(WORLD_MAX_PATH_LENGTH)
+  .refine(
+    (value) =>
+      Array.from(value).every((character) => {
+        const codePoint = character.codePointAt(0) ?? 0;
+        return codePoint >= 32 && codePoint !== 127;
+      }) &&
+      !value.startsWith("/") &&
+      !value.startsWith("\\\\") &&
+      !/^[A-Za-z]:[\\/]/u.test(value),
+    { message: "value must be safe path-private text" },
+  );
+
+export const SymbolIdSchema = z.string().regex(/^[0-9a-f]{32}$/u);
+export const SymbolRefSchema = z
+  .string()
+  .regex(/^aiw:\/\/symbol\/[0-9a-f]{32}$/u);
+export const DependencyIdSchema = z.string().regex(/^[0-9a-f]{32}$/u);
+export const DependencyRefSchema = z
+  .string()
+  .regex(/^aiw:\/\/dependency\/[0-9a-f]{32}$/u);
+
+export const SymbolLanguageSchema = z.enum([
+  "typescript",
+  "tsx",
+  "javascript",
+  "jsx",
+]);
+
+export const SymbolKindSchema = z.enum([
+  "class",
+  "interface",
+  "type",
+  "enum",
+  "function",
+  "method",
+  "constructor",
+  "variable",
+  "namespace",
+]);
+
+export const SymbolPositionSchema = z
+  .object({
+    line: z.number().int().min(1).max(10_000_000),
+    column: z.number().int().min(0).max(10_000_000),
+  })
+  .strict();
+
+export const SymbolRecordSchema = z
+  .object({
+    schema: z.literal(SYMBOL_SCHEMA_VERSION),
+    id: SymbolIdSchema,
+    ref: SymbolRefSchema,
+    fileRef: WorldObjectRefSchema,
+    language: SymbolLanguageSchema,
+    kind: SymbolKindSchema,
+    name: CodeGraphSafeTextSchema.max(WORLD_MAX_NAME_LENGTH),
+    qualifiedName: CodeGraphSafeTextSchema,
+    duplicateOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(CODE_GRAPH_MAX_SYMBOLS_PER_FILE - 1),
+    duplicateGroupKey: SymbolIdSchema,
+    exported: z.boolean(),
+    range: z
+      .object({ start: SymbolPositionSchema, end: SymbolPositionSchema })
+      .strict(),
+    confidence: CodeGraphConfidenceListSchema,
+  })
+  .strict();
+
+export const DependencyKindSchema = z.enum([
+  "import",
+  "export",
+  "side_effect_import",
+  "dynamic_import",
+  "require",
+]);
+
+export const DependencyEdgeSchema = z
+  .object({
+    schema: z.literal(DEPENDENCY_SCHEMA_VERSION),
+    id: DependencyIdSchema,
+    ref: DependencyRefSchema,
+    sourceFileRef: WorldObjectRefSchema,
+    kind: DependencyKindSchema,
+    specifier: CodeGraphSafeTextSchema.max(512),
+    occurrenceOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(CODE_GRAPH_MAX_DEPENDENCIES_PER_FILE - 1),
+    candidateRefs: z.array(WorldObjectRefSchema).max(128),
+    confidence: CodeGraphConfidenceListSchema,
+    cycleGroupId: SymbolIdSchema.nullable(),
+  })
+  .strict();
+
+export const CodeGraphDiagnosticSchema = z
+  .object({
+    code: z.string().regex(/^[a-z][a-z0-9_]{0,63}$/u),
+    count: z.number().int().positive().max(1_000_000),
+  })
+  .strict();
+
+export const FileGraphCoverageSchema = z
+  .object({
+    fileRef: WorldObjectRefSchema,
+    language: SymbolLanguageSchema.nullable(),
+    state: z.enum(["parsed", "fallback"]),
+    confidence: CodeGraphConfidenceListSchema,
+    fallbackReason: z
+      .enum([
+        "unsupported_extension",
+        "grammar_unavailable",
+        "grammar_mismatch",
+        "source_unavailable",
+        "invalid_utf8",
+        "source_too_large",
+        "syntax_error",
+        "timeout",
+        "worker_crash",
+        "malformed_worker_response",
+        "cancelled",
+        "depth_exceeded",
+        "symbol_limit_exceeded",
+        "dependency_limit_exceeded",
+      ])
+      .nullable(),
+    symbolCount: z.number().int().min(0).max(CODE_GRAPH_MAX_SYMBOLS_PER_FILE),
+    dependencyCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(CODE_GRAPH_MAX_DEPENDENCIES_PER_FILE),
+    diagnostics: z
+      .array(CodeGraphDiagnosticSchema)
+      .max(CODE_GRAPH_MAX_DIAGNOSTICS_PER_FILE),
+  })
+  .strict()
+  .superRefine((coverage, context) => {
+    if (coverage.state === "parsed" && coverage.fallbackReason !== null)
+      context.addIssue({
+        code: "custom",
+        message: "parsed coverage cannot have fallback",
+      });
+    if (
+      coverage.state === "fallback" &&
+      (coverage.fallbackReason === null ||
+        coverage.symbolCount !== 0 ||
+        coverage.dependencyCount !== 0)
+    )
+      context.addIssue({
+        code: "custom",
+        message: "fallback coverage must be whole-file and explicit",
+      });
+  });
+
+export const CodeGraphCountsSchema = z
+  .object({
+    files: z.number().int().nonnegative().max(10_000),
+    parsedFiles: z.number().int().nonnegative().max(10_000),
+    symbols: z.number().int().nonnegative().max(20_000_000),
+    dependencies: z.number().int().nonnegative().max(20_000_000),
+  })
+  .strict();
+
+export const CodeGraphLimitsSchema = z
+  .object({
+    maxSymbolsPerFile: z.literal(CODE_GRAPH_MAX_SYMBOLS_PER_FILE),
+    maxDependenciesPerFile: z.literal(CODE_GRAPH_MAX_DEPENDENCIES_PER_FILE),
+    maxAggregateEdges: z.literal(CODE_GRAPH_MAX_AGGREGATE_EDGES),
+    maxFocusedSymbolNodes: z.literal(CODE_GRAPH_MAX_FOCUSED_SYMBOL_NODES),
+  })
+  .strict();
+
+export const CodeGraphSnapshotSchema = z
+  .object({
+    schema: z.literal(CODE_GRAPH_SCHEMA_VERSION),
+    repositoryRef: WorldObjectRefSchema,
+    generationId: z.uuid(),
+    state: z.enum(["current", "previous"]),
+    degraded: z.boolean(),
+    coverage: z.array(FileGraphCoverageSchema).max(10_000),
+    symbols: z.array(SymbolRecordSchema).max(20_000_000),
+    dependencies: z.array(DependencyEdgeSchema).max(20_000_000),
+    counts: CodeGraphCountsSchema,
+    limits: CodeGraphLimitsSchema,
+  })
+  .strict();
+
+export const FocusedFileGraphSchema = z
+  .object({
+    schema: z.literal(CODE_GRAPH_SCHEMA_VERSION),
+    generationId: z.uuid(),
+    state: z.enum(["current", "previous"]),
+    fileRef: WorldObjectRefSchema,
+    coverage: FileGraphCoverageSchema,
+    symbols: z.array(SymbolRecordSchema).max(CODE_GRAPH_MAX_SYMBOLS_PER_FILE),
+    dependencies: z
+      .array(DependencyEdgeSchema)
+      .max(CODE_GRAPH_MAX_DEPENDENCIES_PER_FILE),
+    visibleSymbolNodes: z
+      .array(SymbolRecordSchema)
+      .max(CODE_GRAPH_MAX_FOCUSED_SYMBOL_NODES),
+    truncated: z.boolean(),
+  })
+  .strict();
+
+export const CodeGraphStatusSchema = CodeGraphSnapshotSchema.omit({
+  symbols: true,
+  dependencies: true,
+});
+
+export const CodeGraphCurrentDataSchema = z
+  .object({
+    current: CodeGraphStatusSchema.nullable(),
+    previous: CodeGraphStatusSchema.nullable(),
+    buildingGenerationId: z.uuid().nullable(),
+    lastError: z
+      .enum(["cancelled", "generation_failed", "cache_rebuild_required"])
+      .nullable(),
+  })
+  .strict();
+
+export const CodeGraphAggregateQuerySchema = z
+  .object({
+    lod: z.number().int().min(0).max(2),
+    limit: z.number().int().min(1).max(CODE_GRAPH_MAX_AGGREGATE_EDGES),
+  })
+  .strict();
+
+export const CodeGraphAggregateEdgeSchema = z
+  .object({
+    key: SymbolIdSchema,
+    sourceRef: WorldObjectRefSchema,
+    targetRef: WorldObjectRefSchema.nullable(),
+    count: z.number().int().positive().max(20_000_000),
+    confidence: CodeGraphConfidenceListSchema,
+    cycleGroupId: SymbolIdSchema.nullable(),
+  })
+  .strict();
+
+export const CodeGraphAggregateDataSchema = z
+  .object({
+    schema: z.literal(CODE_GRAPH_SCHEMA_VERSION),
+    generationId: z.uuid(),
+    lod: z.number().int().min(0).max(2),
+    edges: z
+      .array(CodeGraphAggregateEdgeSchema)
+      .max(CODE_GRAPH_MAX_AGGREGATE_EDGES),
+    totalEdges: z.number().int().nonnegative().max(20_000_000),
+    truncated: z.boolean(),
+  })
+  .strict();
+
+export const FocusedFileGraphQuerySchema = z
+  .object({ lod: z.number().int().min(3).max(4) })
+  .strict();
+
+export type CodeGraphConfidence = z.infer<typeof CodeGraphConfidenceSchema>;
+export type SymbolLanguage = z.infer<typeof SymbolLanguageSchema>;
+export type SymbolKind = z.infer<typeof SymbolKindSchema>;
+export type SymbolRecord = z.infer<typeof SymbolRecordSchema>;
+export type DependencyKind = z.infer<typeof DependencyKindSchema>;
+export type DependencyEdge = z.infer<typeof DependencyEdgeSchema>;
+export type FileGraphCoverage = z.infer<typeof FileGraphCoverageSchema>;
+export type CodeGraphSnapshot = z.infer<typeof CodeGraphSnapshotSchema>;
+export type FocusedFileGraph = z.infer<typeof FocusedFileGraphSchema>;
+export type CodeGraphStatus = z.infer<typeof CodeGraphStatusSchema>;
+export type CodeGraphCurrentData = z.infer<typeof CodeGraphCurrentDataSchema>;
+export type CodeGraphAggregateQuery = z.infer<
+  typeof CodeGraphAggregateQuerySchema
+>;
+export type CodeGraphAggregateData = z.infer<
+  typeof CodeGraphAggregateDataSchema
+>;

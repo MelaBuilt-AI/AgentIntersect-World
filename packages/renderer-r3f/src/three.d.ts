@@ -16,6 +16,9 @@ declare module "three" {
   export class BoxGeometry {
     constructor(width?: number, height?: number, depth?: number);
   }
+  export class BufferGeometry {
+    setFromPoints(points: readonly Vector3[]): this;
+  }
   export class SphereGeometry {
     constructor(
       radius?: number,
@@ -34,6 +37,16 @@ declare module "three" {
   export class MeshBasicMaterial {
     color: Color;
     wireframe: boolean;
+  }
+  export class LineBasicMaterial {
+    constructor(parameters?: {
+      color?: ColorRepresentation;
+      transparent?: boolean;
+      opacity?: number;
+    });
+  }
+  export class LineSegments extends Object3D {
+    constructor(geometry?: unknown, material?: unknown);
   }
   export class Color {
     constructor(color?: ColorRepresentation);

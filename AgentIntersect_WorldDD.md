@@ -2054,7 +2054,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 10 — Symbols, dependencies, LOD, and large-repo hardening
 
-**Status:** NEXT SESSION / NOT STARTED. `docs/PHASE_10_SCOPE.md` is a draft restart artifact only. A fresh session must verify the Phase 9 baseline, refresh jCodeMunch, and freeze the smallest observable Tier 1 symbol/dependency/LOD slice before coding. No Phase 10 implementation, grammar dependency, fixture, parser worker, or production symbol has started.
+**Status:** LOCAL IMPLEMENTATION AND INDEPENDENT PARENT VERIFICATION COMPLETE; private commit/push and exact-SHA CI closeout pending. The frozen contract is `docs/PHASE_10_SCOPE.md`; measured evidence and parser provenance are recorded in `docs/PHASE_10_PERFORMANCE.md` and `docs/PHASE_10_PARSER_PROVENANCE.md`. The completed bounded slice supports pinned TypeScript/TSX/JavaScript/JSX WASM parsing, static dependency truth, generation-coupled recovery, aggregate/focus-only LOD, semantic DOM/R3F bridges, and enforced 10k/100k ceilings without executing selected-repository code.
 
 **Objective:** Add language Tier 1 symbol/dependency structure and prove bounded performance/degradation.
 
@@ -2079,6 +2079,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 **Risks:** Native/Wasm grammar vulnerabilities and graph clutter. Sandbox/cap parsing and aggressively aggregate low-confidence edges.
 
 ## Phase 11 — Avatar profiles and embodied status
+
+**Status:** NEXT SESSION / NOT STARTED. Phase 10 closeout does not authorize Phase 11 implementation.
 
 **Objective:** Introduce privacy-safe modular agent/user avatars driven by authoritative status.
 

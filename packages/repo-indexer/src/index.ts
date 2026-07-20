@@ -10,6 +10,7 @@ import type {
   RepositoryGeneration,
   RepositoryGitMetadata,
   RepositoryIndexProgress,
+  RepositoryNpmResolution,
   RepositoryPackage,
 } from "@agentintersect-world/world-schema";
 import createIgnore from "ignore";
@@ -604,13 +605,102 @@ async function packageRecord(
     return { path, kind, name: null };
   }
   let packageName: string | null;
+  let npmResolution: RepositoryNpmResolution | null | undefined;
   try {
     if (kind === "npm") {
-      const value = JSON.parse(content) as { name?: unknown };
+      const value = JSON.parse(content) as {
+        name?: unknown;
+        exports?: unknown;
+        imports?: unknown;
+        main?: unknown;
+        module?: unknown;
+        types?: unknown;
+      };
       packageName =
         typeof value.name === "string" && value.name.trim()
           ? value.name.trim().slice(0, 240)
           : null;
+      const target = (candidate: unknown): string | null => {
+        if (typeof candidate !== "string") return null;
+        const normalized = candidate.replaceAll("\\", "/").normalize("NFC");
+        if (
+          normalized.length === 0 ||
+          normalized.length > 4_096 ||
+          normalized.startsWith("/") ||
+          /^[a-z]:\//iu.test(normalized) ||
+          normalized.includes("\0") ||
+          normalized.split("/").includes("..")
+        )
+          return null;
+        return normalized.startsWith("./") ? normalized : `./${normalized}`;
+      };
+      const nestedTargets = (candidate: unknown): string[] => {
+        const results = new Set<string>();
+        const stack: Array<{ value: unknown; depth: number }> = [
+          { value: candidate, depth: 0 },
+        ];
+        while (stack.length > 0 && results.size < 128) {
+          const current = stack.pop()!;
+          if (current.depth > 8) continue;
+          const direct = target(current.value);
+          if (direct) {
+            results.add(direct);
+            continue;
+          }
+          if (
+            current.value === null ||
+            typeof current.value !== "object" ||
+            Array.isArray(current.value)
+          )
+            continue;
+          const entries = Object.entries(current.value).slice(0, 128);
+          for (let index = entries.length - 1; index >= 0; index -= 1)
+            stack.push({ value: entries[index]![1], depth: current.depth + 1 });
+        }
+        return [...results].sort();
+      };
+      const resolutionEntries = (
+        candidate: unknown,
+        prefix: "." | "#",
+      ): Array<{ specifier: string; target: string }> => {
+        if (
+          candidate === null ||
+          typeof candidate !== "object" ||
+          Array.isArray(candidate)
+        ) {
+          return prefix === "."
+            ? nestedTargets(candidate).map((resolved) => ({
+                specifier: ".",
+                target: resolved,
+              }))
+            : [];
+        }
+        const object = candidate as Record<string, unknown>;
+        const keys = Object.keys(object).filter((key) =>
+          key.startsWith(prefix),
+        );
+        if (prefix === "." && keys.length === 0)
+          return nestedTargets(candidate).map((resolved) => ({
+            specifier: ".",
+            target: resolved,
+          }));
+        return keys
+          .sort()
+          .flatMap((specifier) =>
+            nestedTargets(object[specifier]).map((resolved) => ({
+              specifier: specifier.slice(0, 512),
+              target: resolved,
+            })),
+          )
+          .slice(0, 128);
+      };
+      npmResolution = {
+        exports: resolutionEntries(value.exports, "."),
+        imports: resolutionEntries(value.imports, "#"),
+        main: target(value.main),
+        module: target(value.module),
+        types: target(value.types),
+      };
     } else if (kind === "go")
       packageName =
         content.match(/^module\s+([^\s]+)$/m)?.[1]?.slice(0, 240) ?? null;
@@ -628,8 +718,14 @@ async function packageRecord(
     }
   } catch {
     packageName = null;
+    if (kind === "npm") npmResolution = null;
   }
-  return { path, kind, name: packageName };
+  return {
+    path,
+    kind,
+    name: packageName,
+    ...(kind === "npm" ? { npmResolution: npmResolution ?? null } : {}),
+  };
 }
 
 function directoriesFor(

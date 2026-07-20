@@ -40,13 +40,19 @@ export function DashboardShell({
       ? null
       : new URLSearchParams(window.location.search).get("fixture");
   const fixture =
-    fixtureValue === "phase8-evidence"
-      ? "phase8"
-      : fixtureValue === "phase5-10k"
-        ? "10k"
-        : fixtureValue === "phase5-paths"
-          ? "absolute-paths"
-          : fixtureValue === "phase5";
+    fixtureValue === "phase10-100k"
+      ? "phase10-100k"
+      : fixtureValue === "phase10-10k"
+        ? "phase10-10k"
+        : fixtureValue === "phase10-graph"
+          ? "phase10"
+          : fixtureValue === "phase8-evidence"
+            ? "phase8"
+            : fixtureValue === "phase5-10k"
+              ? "10k"
+              : fixtureValue === "phase5-paths"
+                ? "absolute-paths"
+                : fixtureValue === "phase5";
   const phase7Fixture = fixtureValue === "phase7-job";
   const phase8Fixture = fixtureValue === "phase8-evidence";
   const commandsEnabled =

@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import net from "node:net";
+import { resolve } from "node:path";
 
 import {
   APP_METADATA,
@@ -21,6 +22,10 @@ import {
   projectRepositoryGeneration,
   queryWorldTiles,
 } from "@agentintersect-world/spatial-code-graph";
+import {
+  CodeGraphCacheStore,
+  CodeGraphGenerationEngine,
+} from "@agentintersect-world/spatial-code-graph/node";
 import {
   ApiErrorSchema,
   ApiResultSchema,
@@ -77,6 +82,8 @@ import {
 } from "./evidence-service.js";
 import { PresentationSyncService } from "./presentation-sync.js";
 import { PresentationWebSocketTransport } from "./presentation-websocket.js";
+import { CodeGraphService } from "./code-graph-service.js";
+import { registerCodeGraphRoutes } from "./code-graph-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -92,6 +99,7 @@ export type LocalServer = FastifyInstance & {
   readonly commandIntentService?: CommandIntentService;
   readonly evidenceService?: EvidenceReader;
   readonly presentationService: PresentationSyncService;
+  readonly codeGraphService: CodeGraphService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -105,6 +113,8 @@ export type LocalServerOptions = {
   readonly presentationStore?: PresentationSnapshotStore;
   readonly presentationIdentity?: () => PresentationIdentity | null;
   readonly presentationObjects?: () => ReadonlyMap<string, string>;
+  readonly codeGraphService?: CodeGraphService;
+  readonly codeGraphDataDir?: string;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -124,6 +134,16 @@ export function createLocalServer(
     new ReadIntegrationService({ enabled: false });
   const commandIntentService = options.commandIntentService;
   const evidenceService = options.evidenceService;
+  const codeGraphService =
+    options.codeGraphService ??
+    new CodeGraphService(
+      new CodeGraphGenerationEngine({
+        store: new CodeGraphCacheStore(
+          options.codeGraphDataDir ??
+            resolve(config.presentationSync.dataDir, "..", "code-graph"),
+        ),
+      }),
+    );
   let cachedWorldSnapshot: WorldSnapshot | undefined;
   let cachedGenerationId: string | undefined;
   let cachedProjectionError: unknown;
@@ -137,6 +157,7 @@ export function createLocalServer(
       );
       cachedWorldSnapshot = snapshot;
       cachedProjectionError = undefined;
+      void codeGraphService.indexGeneration(generation, snapshot);
     } catch (error) {
       cachedProjectionError = error;
     }
@@ -193,7 +214,11 @@ export function createLocalServer(
   server.decorate("commandIntentService", commandIntentService);
   server.decorate("evidenceService", evidenceService);
   server.decorate("presentationService", presentationService);
+  server.decorate("codeGraphService", codeGraphService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
+  server.addHook("onReady", async () => {
+    await codeGraphService.initialize();
+  });
   server.addHook("preClose", () => {
     presentationTransport?.close();
   });
@@ -202,6 +227,7 @@ export function createLocalServer(
     await repositoryIndexService.close();
     await integrationService.close();
     presentationService.close();
+    await codeGraphService.close();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -273,6 +299,8 @@ export function createLocalServer(
 
   server.after(() => {
     const runtime = { name: "node" as const, version: process.version };
+
+    registerCodeGraphRoutes(server, codeGraphService, { success, failure });
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
       const correlationId = correlationFor(request);

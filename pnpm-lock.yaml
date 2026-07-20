@@ -10,6 +10,12 @@ importers:
       "@agentintersect-world/renderer-r3f":
         specifier: workspace:*
         version: link:packages/renderer-r3f
+      "@agentintersect-world/repo-indexer":
+        specifier: workspace:*
+        version: link:packages/repo-indexer
+      "@agentintersect-world/spatial-code-graph":
+        specifier: workspace:*
+        version: link:packages/spatial-code-graph
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:packages/world-schema
@@ -219,6 +225,9 @@ importers:
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:../world-schema
+      "@vscode/tree-sitter-wasm":
+        specifier: 0.3.1
+        version: 0.3.1
 
   packages/sync-yjs:
     dependencies:
@@ -1916,6 +1925,12 @@ packages:
     resolution:
       {
         integrity: sha512-fy9am/HWxbaGt/Sawrp90vt6Y6jQwf1RX77cz3uwoJwJVMli/e1IEwRPnMNJ7vKfPTwo0diXifkpPvwH9v7nGA==,
+      }
+
+  "@vscode/tree-sitter-wasm@0.3.1":
+    resolution:
+      {
+        integrity: sha512-RJFoomET6FajjG511fmQxeBQfU6M24a0aFZPqpid+ttIxanWf1VGytBG0UmsGjt07qmIPJS8U31D+aecuCucsQ==,
       }
 
   "@webcontainer/env@1.1.1":
@@ -4915,6 +4930,8 @@ snapshots:
       "@vitest/pretty-format": 4.1.10
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
+
+  "@vscode/tree-sitter-wasm@0.3.1": {}
 
   "@webcontainer/env@1.1.1": {}
 

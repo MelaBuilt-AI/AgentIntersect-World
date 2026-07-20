@@ -283,12 +283,12 @@ export async function inspectArchitecture(
         if (
           browserReachable.has(packageName) &&
           !declaredNodeSubpathSource &&
-          nodeImports.has(specifier)
+          (nodeImports.has(specifier) || importedSubpath === "node")
         ) {
           violations.push({
             code: "browser-node-import",
             file: displayFile,
-            message: `browser source may not import Node built-in ${specifier}`,
+            message: `browser source may not import Node-only module ${specifier}`,
           });
         }
         if (
@@ -334,7 +334,7 @@ async function main() {
     return;
   }
   process.stdout.write(
-    "Architecture check passed: 14 workspace packages, no Phase 9 boundary violations.\n",
+    "Architecture check passed: 14 workspace packages, including browser-safe Phase 10 Node subpath boundaries.\n",
   );
 }
 

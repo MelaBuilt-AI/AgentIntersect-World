@@ -24,7 +24,7 @@ describe("GET /health", () => {
     expect(health).toMatchObject({
       service: "agentintersect-world-local-server",
       status: "ok",
-      version: "0.9.0-phase9",
+      version: "0.10.0-phase10",
       runtime: { name: "node" },
     });
   });

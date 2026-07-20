@@ -13,6 +13,7 @@ describe("architecture checker fails closed", () => {
     ["forbidden-direction", "forbidden-dependency"],
     ["browser-node", "browser-node-import"],
     ["browser-node-transitive", "browser-node-import"],
+    ["browser-node-subpath", "browser-node-import"],
     ["sync-authority", "sync-authority-import"],
     ["deep-import", "deep-workspace-import"],
   ])("rejects the %s fixture", async (name, expectedCode) => {
@@ -52,7 +53,7 @@ describe("architecture checker fails closed", () => {
     ).resolves.toEqual([]);
   });
 
-  it("accepts the real Phase 9 graph", async () => {
+  it("accepts the real Phase 10 graph", async () => {
     await expect(inspectArchitecture(resolve("."))).resolves.toEqual([]);
   });
 });

@@ -4,8 +4,12 @@ import {
   BoxGeometry,
   GridHelper,
   InstancedMesh,
+  BufferGeometry,
+  LineBasicMaterial,
+  LineSegments,
   Matrix4,
   MeshStandardMaterial,
+  Vector3,
 } from "three";
 
 import type {
@@ -13,11 +17,13 @@ import type {
   PreparedRepositoryInstances,
   RenderObjectKind,
 } from "./index.js";
+import { RENDER_OBJECT_KINDS } from "./index.js";
 
 const colors: Readonly<Record<RenderObjectKind, string>> = {
   package: "#8b5cf6",
   directory: "#38bdf8",
   file: "#2563eb",
+  symbol: "#22d3ee",
 };
 
 const evidenceColors = {
@@ -71,7 +77,7 @@ function selectedPosition(
   ref: string | null,
 ): readonly [number, number, number] | null {
   if (ref === null) return null;
-  for (const kind of ["package", "directory", "file"] as const) {
+  for (const kind of RENDER_OBJECT_KINDS) {
     const group = prepared.groups[kind];
     const index = group.refs.indexOf(ref);
     if (index >= 0) {
@@ -116,6 +122,23 @@ function SceneBridge({
       ),
     [prepared.overview.depth, prepared.overview.width],
   );
+  const dependencyLines = useMemo(() => {
+    const points = prepared.dependencyBridges.flatMap((bridge) => [
+      bridge.start,
+      bridge.end,
+    ]);
+    const geometry = new BufferGeometry().setFromPoints(
+      points.map(([x, y, z]) => new Vector3().set(x, y, z)),
+    );
+    return new LineSegments(
+      geometry,
+      new LineBasicMaterial({
+        color: "#22d3ee",
+        transparent: true,
+        opacity: 0.72,
+      }),
+    );
+  }, [prepared.dependencyBridges]);
   useEffect(() => {
     const handler = (event: globalThis.Event) => {
       event.preventDefault();
@@ -162,7 +185,10 @@ function SceneBridge({
       <ambientLight intensity={1.2} />
       <directionalLight position={[12, 20, 8]} intensity={2.1} />
       <primitive object={grid} />
-      {(["package", "directory", "file"] as const).map((kind) => (
+      {prepared.dependencyBridges.length > 0 && (
+        <primitive object={dependencyLines} name="dependency-bridges" />
+      )}
+      {RENDER_OBJECT_KINDS.map((kind) => (
         <InstanceGroup
           key={kind}
           kind={kind}

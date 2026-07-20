@@ -1,4 +1,4 @@
-export type RenderObjectKind = "package" | "directory" | "file";
+export type RenderObjectKind = "package" | "directory" | "file" | "symbol";
 export type RenderEvidenceOutcome =
   "created" | "modified" | "deleted" | "renamed" | "binary" | "reported";
 
@@ -35,13 +35,30 @@ export type PreparedRepositoryInstances = {
     readonly outcome: RenderEvidenceOutcome;
     readonly position: readonly [number, number, number];
   }[];
+  readonly dependencyBridges: readonly PreparedDependencyBridge[];
 };
 
-const renderKinds: readonly RenderObjectKind[] = [
+export type PreparedDependencyBridge = {
+  readonly ref: string;
+  readonly sourceRef: string;
+  readonly targetRef: string;
+  readonly start: readonly [number, number, number];
+  readonly end: readonly [number, number, number];
+};
+
+export type DependencyRelationship = {
+  readonly ref: string;
+  readonly sourceRef: string;
+  readonly targetRefs: readonly string[];
+  readonly confidence: readonly string[];
+};
+
+export const RENDER_OBJECT_KINDS = [
   "package",
   "directory",
   "file",
-];
+  "symbol",
+] as const satisfies readonly RenderObjectKind[];
 
 function matrixFor(
   object: RepositoryRenderObject,
@@ -49,7 +66,13 @@ function matrixFor(
   offset: number,
 ) {
   const height =
-    object.kind === "package" ? 2.4 : object.kind === "directory" ? 1.4 : 0.7;
+    object.kind === "package"
+      ? 2.4
+      : object.kind === "directory"
+        ? 1.4
+        : object.kind === "symbol"
+          ? 0.35
+          : 0.7;
   const width = Math.max(0.4, object.bounds.width * 0.82);
   const depth = Math.max(0.4, object.bounds.depth * 0.82);
   target.set(
@@ -82,6 +105,7 @@ export function prepareRepositoryInstances(
     package: 0,
     directory: 0,
     file: 0,
+    symbol: 0,
   };
   let width = 1;
   let depth = 1;
@@ -91,7 +115,7 @@ export function prepareRepositoryInstances(
     depth = Math.max(depth, object.bounds.z + object.bounds.depth);
   }
   const mutable = Object.fromEntries(
-    renderKinds.map((kind) => [
+    RENDER_OBJECT_KINDS.map((kind) => [
       kind,
       {
         refs: new Array<string>(counts[kind]),
@@ -126,6 +150,11 @@ export function prepareRepositoryInstances(
         refs: mutable.file.refs,
         matrices: mutable.file.matrices,
       },
+      symbol: {
+        count: counts.symbol,
+        refs: mutable.symbol.refs,
+        matrices: mutable.symbol.matrices,
+      },
     },
     total: objects.length,
     overview: { width, depth },
@@ -155,6 +184,7 @@ export function prepareRepositoryInstances(
           ] as const,
         };
       }),
+    dependencyBridges: [],
   };
 }
 
@@ -174,6 +204,155 @@ export function boundedSemanticObjects<T>(
   limit = 160,
 ): readonly T[] {
   return objects.slice(0, Math.max(0, Math.min(limit, 500)));
+}
+
+function retainSelection<T extends { readonly ref: string }>(
+  values: readonly T[],
+  limit: number,
+  selectedRef: string | null,
+): readonly T[] {
+  if (values.length <= limit) return values;
+  const selected = values.find((value) => value.ref === selectedRef);
+  if (!selected || limit < 1) return values.slice(0, limit);
+  const prefix = values.slice(0, limit);
+  if (prefix.some((value) => value.ref === selected.ref)) return prefix;
+  return [...values.slice(0, limit - 1), selected];
+}
+
+export function preparePhase10VisibleDetail(input: {
+  readonly baseObjects: readonly RepositoryRenderObject[];
+  readonly focusedFile: RepositoryRenderObject;
+  readonly symbols: readonly { readonly ref: string; readonly name: string }[];
+  readonly dependencies: readonly {
+    readonly ref: string;
+    readonly sourceFileRef: string;
+    readonly candidateRefs: readonly string[];
+    readonly confidence: readonly string[];
+  }[];
+  readonly selectedRef: string | null;
+}): {
+  readonly prepared: PreparedRepositoryInstances;
+  readonly semanticSymbols: readonly {
+    readonly ref: string;
+    readonly name: string;
+  }[];
+  readonly visibleDependencyRefs: readonly string[];
+  readonly dependencyBridges: readonly PreparedDependencyBridge[];
+  readonly selectedRef: string | null;
+  readonly symbolsTruncated: boolean;
+  readonly dependenciesTruncated: boolean;
+  readonly wholeRepositoryDetailMaterialized: false;
+} {
+  const visibleSymbols = retainSelection(input.symbols, 512, input.selectedRef);
+  const symbolObjects: RepositoryRenderObject[] = visibleSymbols.map(
+    (symbol, index) => {
+      const column = index % 32;
+      const row = Math.floor(index / 32);
+      return {
+        ref: symbol.ref,
+        kind: "symbol",
+        name: symbol.name,
+        position: {
+          x: input.focusedFile.position.x + column * 0.32,
+          y: input.focusedFile.position.y + 1,
+          z: input.focusedFile.position.z + row * 0.32,
+        },
+        bounds: {
+          x: input.focusedFile.bounds.x + column * 0.32,
+          z: input.focusedFile.bounds.z + row * 0.32,
+          width: 0.24,
+          depth: 0.24,
+        },
+      };
+    },
+  );
+  const baseLimit = Math.max(0, 2_000 - symbolObjects.length);
+  const base = retainSelection(
+    input.baseObjects,
+    baseLimit,
+    input.focusedFile.ref,
+  );
+  const prepared = prepareRepositoryInstances([...base, ...symbolObjects]);
+  const dependencyBridges = projectDependencyBridges(
+    [...base, ...symbolObjects],
+    input.dependencies.map((edge) => ({
+      ref: edge.ref,
+      sourceRef: edge.sourceFileRef,
+      targetRefs: edge.candidateRefs,
+      confidence: edge.confidence,
+    })),
+  );
+  const preparedWithBridges = { ...prepared, dependencyBridges };
+  return {
+    prepared: preparedWithBridges,
+    semanticSymbols: retainSelection(input.symbols, 200, input.selectedRef),
+    visibleDependencyRefs: input.dependencies
+      .slice(0, 1_024)
+      .map((edge) => edge.ref),
+    dependencyBridges,
+    selectedRef: input.selectedRef,
+    symbolsTruncated: input.symbols.length > 512,
+    dependenciesTruncated: input.dependencies.length > 1_024,
+    wholeRepositoryDetailMaterialized: false,
+  };
+}
+
+function projectDependencyBridges(
+  objects: readonly RepositoryRenderObject[],
+  dependencies: readonly DependencyRelationship[],
+): PreparedDependencyBridge[] {
+  const byRef = new Map(objects.map((object) => [object.ref, object]));
+  const bridges: PreparedDependencyBridge[] = [];
+  for (const dependency of dependencies) {
+    if (
+      !dependency.confidence.some(
+        (confidence) =>
+          confidence === "exact_file" ||
+          confidence === "exact_workspace_package",
+      )
+    )
+      continue;
+    const source = byRef.get(dependency.sourceRef);
+    if (!source) continue;
+    for (const targetRef of dependency.targetRefs) {
+      const target = byRef.get(targetRef);
+      if (!target) continue;
+      bridges.push({
+        ref: dependency.ref,
+        sourceRef: dependency.sourceRef,
+        targetRef,
+        start: [source.position.x, source.position.y + 1, source.position.z],
+        end: [target.position.x, target.position.y + 1, target.position.z],
+      });
+      if (bridges.length >= 1_024) return bridges;
+    }
+  }
+  return bridges;
+}
+
+export function preparePhase10AggregateView(
+  baseObjects: readonly RepositoryRenderObject[],
+  dependencies: readonly {
+    readonly key: string;
+    readonly sourceRef: string;
+    readonly targetRef: string | null;
+    readonly confidence: readonly string[];
+  }[],
+): PreparedRepositoryInstances {
+  const visibleObjects = baseObjects.slice(0, 2_000);
+  const prepared = prepareRepositoryInstances(visibleObjects);
+  return {
+    ...prepared,
+    dependencyBridges: projectDependencyBridges(
+      visibleObjects,
+      dependencies.slice(0, 1_024).map((edge) => ({
+        ref: edge.key,
+        sourceRef: edge.sourceRef,
+        targetRefs: edge.targetRef === null ? [] : [edge.targetRef],
+        confidence: edge.confidence,
+      })),
+    ),
+  };
 }
 
 export type WebGLFallbackReason =
