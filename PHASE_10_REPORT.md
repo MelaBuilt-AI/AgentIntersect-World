@@ -75,12 +75,12 @@ The final parent enforcing run on Node `v24.18.0`, Linux x64, AMD Ryzen 7 7800X3
 
 | Fixture |    Cold wall |                           Warm wall |   RSS delta | Sentinel |
 | ------- | -----------: | ----------------------------------: | ----------: | -------- |
-| 10k     |   577.319 ms |                          206.532 ms | 240.203 MiB | absent   |
-| 100k    | 4,040.260 ms | 2,699.933 ms (reported; no ceiling) | 650.848 MiB | absent   |
+| 10k     |   582.190 ms |                          196.682 ms | 237.102 MiB | absent   |
+| 100k    | 4,021.129 ms | 2,958.017 ms (reported; no ceiling) | 644.824 MiB | absent   |
 
 The 10k graph produced 501 coverage records, 498 parsed files, 7,953 symbols, 1,491 dependencies, and three truthful fallbacks. The 100k graph produced 5,001 coverage records, 5,000 parsed files, 80,000 symbols, 15,000 dependencies, and one manifest fallback.
 
-Fresh-copy Chromium measured the 10k aggregate view at 16.7 ms p95 with a 73 ms longest task and the 100k view at 16.8 ms p95 with a 77 ms longest task over 120 frames each, with zero whole-repository symbol rows.
+Fresh-copy Chromium measured the 10k aggregate view at 16.8 ms p95 with a 72 ms longest task and the 100k view at 16.7 ms p95 with an 80 ms longest task over 120 frames each, with zero whole-repository symbol rows. The p95 gate normalizes browser timestamp arithmetic to 0.001 ms before comparing with the one-decimal 33.3 ms contract, removing binary floating-point noise without accepting a real 33.301 ms breach.
 
 ## First-hand visual proof
 

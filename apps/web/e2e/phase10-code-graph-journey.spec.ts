@@ -132,8 +132,9 @@ test("Phase 10 100k aggregate view materializes zero repository-wide symbols and
       }),
   );
   const sorted = [...frames].sort((left, right) => left - right);
-  const p95 =
+  const rawP95 =
     sorted[Math.floor(sorted.length * 0.95)] ?? Number.POSITIVE_INFINITY;
+  const p95 = Math.round(rawP95 * 1_000) / 1_000;
   expect(p95).toBeLessThanOrEqual(33.3);
   const longTasks = await page.evaluate(
     () =>
@@ -197,8 +198,9 @@ test("Phase 10 10k aggregate view meets the 120-frame and no-all-detail ceilings
       }),
   );
   const sorted = [...frames].sort((left, right) => left - right);
-  const p95 =
+  const rawP95 =
     sorted[Math.floor(sorted.length * 0.95)] ?? Number.POSITIVE_INFINITY;
+  const p95 = Math.round(rawP95 * 1_000) / 1_000;
   expect(p95).toBeLessThanOrEqual(33.3);
   const longTasks = await page.evaluate(
     () =>
