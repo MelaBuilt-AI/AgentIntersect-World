@@ -1,5 +1,5 @@
 import type { AvatarProfile } from "@agentintersect-world/avatar-system";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { useAuthorityState } from "../authority/use-authority.js";
 import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
@@ -11,14 +11,22 @@ import { IntegrationPanel } from "../integration/IntegrationPanel.js";
 import { useIntegration } from "../integration/use-integration.js";
 import { AuthorityPanel } from "../panels/AuthorityPanel.js";
 import { RepositoryIndexPanel } from "../panels/RepositoryIndexPanel.js";
-import { PresentationPanelLoader } from "../presentation/PresentationPanelLoader.js";
-import { RepositoryWorldPanel } from "../repository/RepositoryWorldPanel.js";
 import { requestRepositorySelection } from "../repository/repository-selection.js";
 import { useInvalidateWorld } from "../repository/use-invalidate-world.js";
 import { HARNESS_OPTIONS, type HarnessId } from "../state/harness-intent.js";
 import { useHarnessIntent } from "../state/use-harness-intent.js";
 import { WORLD_CATEGORIES, type Category } from "./categories.js";
 import { ProgressiveTypeLine } from "./ProgressiveTypeLine.js";
+
+const PresentationPanelLoader = lazy(async () => {
+  const module = await import("../presentation/PresentationPanelLoader.js");
+  return { default: module.PresentationPanelLoader };
+});
+
+const RepositoryWorldPanel = lazy(async () => {
+  const module = await import("../repository/RepositoryWorldPanel.js");
+  return { default: module.RepositoryWorldPanel };
+});
 
 export function DashboardShell({
   profile,
@@ -27,6 +35,8 @@ export function DashboardShell({
   readonly profile: AvatarProfile;
   readonly onProfileSave: (profile: AvatarProfile) => void;
 }) {
+  const constrainedCosmetics =
+    typeof navigator !== "undefined" && navigator.hardwareConcurrency <= 2;
   const authority = useAuthorityState();
   const invalidateWorld = useInvalidateWorld();
   const [activePanel, setActivePanel] = useState<Category | null>(null);
@@ -90,7 +100,10 @@ export function DashboardShell({
     );
   };
   return (
-    <main className="dashboard-shell">
+    <main
+      className={`dashboard-shell${constrainedCosmetics ? " dashboard-shell--constrained-cosmetics" : ""}`}
+      data-cosmetic-quality={constrainedCosmetics ? "constrained" : "full"}
+    >
       <header className="dashboard-header">
         <a
           href="#world-hero"
@@ -112,7 +125,11 @@ export function DashboardShell({
       <section className="world-hero" id="world-hero" data-testid="world-hero">
         <div className="world-hero__identity">
           <img
-            src="/assets/dashboard/agentintersect_animated.svg"
+            src={
+              constrainedCosmetics
+                ? "/assets/dashboard/agentintersect_header_static_dark_square.svg"
+                : "/assets/dashboard/agentintersect_animated.svg"
+            }
             alt=""
             aria-hidden="true"
             className="world-hero__mark"
@@ -218,7 +235,15 @@ export function DashboardShell({
         </div>
       </section>
 
-      <PresentationPanelLoader />
+      <Suspense
+        fallback={
+          <section className="panel-state" role="status">
+            Loading local presentation synchronization…
+          </section>
+        }
+      >
+        <PresentationPanelLoader />
+      </Suspense>
 
       {activePanel !== null && (
         <section
@@ -248,7 +273,15 @@ export function DashboardShell({
                   Loading AgentIntersect read integration…
                 </section>
               )}
-              <RepositoryWorldPanel fixture={fixture} />
+              <Suspense
+                fallback={
+                  <section className="panel-state" role="status">
+                    Loading repository World…
+                  </section>
+                }
+              >
+                <RepositoryWorldPanel fixture={fixture} />
+              </Suspense>
               <AuthorityPanel authority={authority} />
             </div>
           )}

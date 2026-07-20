@@ -292,6 +292,11 @@ p {
 .avatar-preview--compact .avatar-preview__layer--halo {
   animation: halo-drift 8s linear infinite;
 }
+.dashboard-shell--constrained-cosmetics .avatar-preview__layer--halo,
+.dashboard-shell--constrained-cosmetics .terminal-cursor,
+.dashboard-shell--constrained-cosmetics .nav-cursor {
+  animation: none;
+}
 
 /* World-owned inherited dashboard shell */
 .dashboard-shell {
