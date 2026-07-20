@@ -4,23 +4,17 @@ Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 8 — File diff, test evidence, and construction projection: LOCAL COMPLETE / EXACT-SHA CI PENDING**
+**Phase 9 — Local presentation synchronization: LOCAL IMPLEMENTATION AND PARENT VERIFICATION COMPLETE / EXACT-SHA CI CLOSEOUT PENDING**
 
-- Evidence: `PHASE_8_REPORT.md`, `docs/PHASE_8_SCOPE.md`, and the World-owned disposable Phase 8 fixture.
-- Baseline: completed Phase 7 commit `5994ee8ff51fff049de0060d30a5e589651cdcd2`.
-- Version: `0.8.0-phase8`.
+- Frozen scope: `docs/PHASE_9_SCOPE.md` and the canonical Phase 9 section in `AgentIntersect_WorldDD.md`.
+- Baseline: completed Phase 8 commit `fad850e9ebe706b36876e00f10192be452caffd6`; exact-SHA Actions run `29746885718` succeeded.
+- Version: `0.9.0-phase9`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`.
 - Workspace: 15 projects / 14 named app-package graph entries.
-- Complete tests: 37 files / 203 tests.
-- Typecheck: 25/25 tasks.
-- Architecture: 9/9 tests; checker reports no violations across 14 packages.
-- Production build: 14/14 tasks; Storybook production build green.
-- Smoke and complete Playwright: green; 21/21 browser tests passed with one worker.
-- Fresh-copy verification: green for 245 project source files; production advisory audit found no known vulnerabilities.
-- Worker fixture proof: sealed-before-mutation Git/filesystem baseline; tracked/create/delete/unique-rename/binary/redacted-secret/unreported-ambiguous/reported-unverified outcomes; exact correlated verified test artifact; restart/finalize/reload/idempotency; strict identity API; reduced-motion/WebGL fallback selection; no overflow or console errors.
-- Independent parent probes corrected no-NUL binary embedding and authoritative rename-ref divergence, then passed the full gates and first-hand Evidence-to-World browser proof with zero JavaScript errors. No routine audit or re-audit ran.
+- Local implementation includes strict presentation-only Yjs schemas, self-hosted loopback/trusted-LAN transport, awareness, bounded persistence/compaction, sanitized export/delete, orphan projection, an accepted-shell UI lane, and deterministic two-context browser coverage.
+- Independent parent proof is green: the three supported-workflow defects found after the worker pass were corrected once, then focused restart/reconnect and authoritative-object probes, repository-wide gates, first-hand browser inspection, and fresh-copy verification all passed. Exact results are recorded in `PHASE_9_REPORT.md`.
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Phase 8 final private commit/push and exact-SHA CI evidence: pending closeout; the exact SHA/run is recorded externally after push to avoid a self-referential status commit.
+- Phase 9 parent functional proof: complete. Private commit/push and exact-SHA CI evidence: pending.
 - Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -132,7 +126,7 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - Parent/live corrections made the actual pinned state/snapshot payloads compatible, enforced dual-source phase/revision evidence, bounded raw responses/logs, restored results, and stopped no-op durable churn.
 - Full post-fix gates and unchanged-AgentIntersect loopback/LAN/real-job/restart/mobile proof are recorded in `PHASE_7_REPORT.md`.
 
-## Phase 8 — LOCAL COMPLETE / EXACT-SHA CI PENDING
+## Phase 8 — COMPLETE
 
 - Strict `aiw.evidence/0.8` baseline, change, test-truth, record, artifact, lookup, and current/previous schemas.
 - Checksum-protected atomic local evidence store with retained restart baselines, last-good recovery, immutable intent identity, exact-once durable finalization, and latest-20 retention.
@@ -142,11 +136,20 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - Authoritative Evidence panel, Storybook states, reduced-motion/WebGL fallback equivalence, and the complete World-owned disposable acceptance fixture are green in worker verification.
 - Independent parent proof is green: corrected no-NUL binary handling and authoritative rename refs, 203/203 Vitest, 25/25 typecheck, 9/9 architecture, 14/14 build, smoke, 21/21 Playwright, Storybook, zero-vulnerability production audit, 245-file fresh-copy verification, and first-hand browser selection/marker/console checks.
 
+## Phase 9 — LOCAL IMPLEMENTATION AND PARENT VERIFICATION COMPLETE / EXACT-SHA CI CLOSEOUT PENDING
+
+- One opaque `aiw.presentation/0.9` document is derived from authoritative World workspace/repository identity and contains only bounded presentation state.
+- The local server owns a checksum-protected snapshot/update tail, exact-origin single-use join tickets, and strictly separate presentation authority; browser views use Yjs awareness and opaque-ID IndexedDB persistence.
+- The Phase 9 shell lane exposes peers, owned-agent focus, presenter/follow, annotation/bookmark/layout/orphan state, reconnect truth, and local export/delete/cache controls without command authority.
+- One targeted parent correction fixed fresh-ticket automatic reconnect, graceful shutdown with live presentation peers, and production wiring to real authoritative World objects/Phase 6 roster instead of fake IDs.
+- Independent parent proof is green: focused 31/31, built-code abrupt-drop/restart/offline convergence and shutdown probe, 235/235 Vitest, 26/26 typecheck tasks, 10/10 architecture, 14/14 build, smoke, 22/22 Playwright, Storybook, zero-vulnerability production audit, 266-file fresh-copy verification, and first-hand browser state/action/console checks.
+- Private commit/push and exact-SHA CI are the remaining closeout steps; no release, tag, deployment, package publication, public ingress, or visibility change is authorized.
+
 ## Next milestone
 
-**Phase 9 — NOT STARTED**
+**Phase 10 — NOT STARTED**
 
-After private exact-SHA CI closeout for Phase 8, Phase 9 remains the next milestone. Phase 9 synchronization, file editing, rollback, generalized semantic diffs, exclusive authorship, evidence export, release/publication/public ingress, and visibility changes remain out of scope.
+Phase 10 symbols, dependencies, generalized semantic editing, public ingress, accounts, release/publication, and visibility changes remain out of scope until separately authorized.
 
 ## Non-blocking backlog
 

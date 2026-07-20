@@ -5,6 +5,8 @@ import {
   type NetworkScope,
   type SafeConfig,
 } from "./index.js";
+import { homedir } from "node:os";
+import { join } from "node:path";
 const INSTANCE_NAME_MAX_LENGTH = 80;
 const DEMO_OPERATION_MIN_MS = 50;
 const DEMO_OPERATION_MAX_MS = 60_000;
@@ -73,6 +75,7 @@ export function loadLocalServerConfig(
     );
   }
   const networkScope: NetworkScope = rawScope;
+  const port = integerSetting(environment, "AIW_PORT", 3770, 1, 65_535);
   const host = (
     environment.AIW_HOST ??
     (networkScope === "lan" ? "0.0.0.0" : LOCAL_SERVER_DEFAULTS.host)
@@ -173,10 +176,85 @@ export function loadLocalServerConfig(
     }
   }
 
+  const defaultOrigin = "http://127.0.0.1:5173";
+  const allowedOrigin = (
+    environment.AIW_PRESENTATION_ALLOWED_ORIGIN ??
+    (networkScope === "loopback" ? defaultOrigin : "")
+  ).trim();
+  const allowedHost = (
+    environment.AIW_PRESENTATION_ALLOWED_HOST ??
+    (networkScope === "loopback" ? "127.0.0.1:5173" : "")
+  ).trim();
+  const presentationToken = environment.AIW_PRESENTATION_TOKEN;
+  const presentationDataDir = (
+    environment.AIW_PRESENTATION_DATA_DIR ??
+    join(homedir(), ".local", "state", "agentintersect-world", "presentation")
+  ).trim();
+  let origin: URL;
+  try {
+    origin = new URL(allowedOrigin);
+  } catch {
+    throw new ConfigurationError(
+      "AIW_PRESENTATION_ALLOWED_ORIGIN must be one exact HTTP(S) origin",
+    );
+  }
+  if (
+    !["http:", "https:"].includes(origin.protocol) ||
+    origin.username ||
+    origin.password ||
+    origin.pathname !== "/" ||
+    origin.search ||
+    origin.hash ||
+    origin.origin !== allowedOrigin
+  ) {
+    throw new ConfigurationError(
+      "AIW_PRESENTATION_ALLOWED_ORIGIN must be one exact HTTP(S) origin",
+    );
+  }
+  if (
+    allowedHost.length === 0 ||
+    allowedHost.length > 300 ||
+    /[\s/@?#]/.test(allowedHost)
+  ) {
+    throw new ConfigurationError(
+      "AIW_PRESENTATION_ALLOWED_HOST must be one exact host and port",
+    );
+  }
+  if (!ABSOLUTE_PATH.test(presentationDataDir)) {
+    throw new ConfigurationError(
+      "AIW_PRESENTATION_DATA_DIR must be an absolute path",
+    );
+  }
+  if (
+    presentationToken !== undefined &&
+    (presentationToken.length === 0 ||
+      presentationToken.length > 256 ||
+      !VISIBLE_ASCII.test(presentationToken))
+  ) {
+    throw new ConfigurationError(
+      "AIW_PRESENTATION_TOKEN must contain 1..256 visible ASCII characters",
+    );
+  }
+  if (
+    networkScope === "lan" &&
+    (!environment.AIW_PRESENTATION_ALLOWED_ORIGIN ||
+      !environment.AIW_PRESENTATION_ALLOWED_HOST ||
+      !presentationToken)
+  ) {
+    throw new ConfigurationError(
+      "LAN presentation requires AIW_PRESENTATION_ALLOWED_ORIGIN, AIW_PRESENTATION_ALLOWED_HOST, and AIW_PRESENTATION_TOKEN",
+    );
+  }
+  if (presentationToken && commandToken && presentationToken === commandToken) {
+    throw new ConfigurationError(
+      "Presentation and command authority require separate bearer tokens",
+    );
+  }
+
   return {
     networkScope,
     host,
-    port: integerSetting(environment, "AIW_PORT", 3770, 1, 65_535),
+    port,
     instanceName,
     demoOperationMaxMs: integerSetting(
       environment,
@@ -233,6 +311,12 @@ export function loadLocalServerConfig(
           },
         }
       : {}),
+    presentationSync: {
+      dataDir: presentationDataDir,
+      allowedOrigin,
+      allowedHost,
+      ...(presentationToken ? { bearerToken: presentationToken } : {}),
+    },
   };
 }
 
@@ -250,5 +334,17 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
     agentIntersectCommandsEnabled:
       config.agentIntersectCommands !== undefined &&
       config.agentIntersectRead !== undefined,
+    presentationSync: {
+      enabled: true,
+      transport: config.presentationSync.allowedOrigin.startsWith("https:")
+        ? "wss/https"
+        : "ws/http",
+      encrypted: config.presentationSync.allowedOrigin.startsWith("https:"),
+      unencryptedLanWarning:
+        config.networkScope === "lan" &&
+        !config.presentationSync.allowedOrigin.startsWith("https:"),
+      allowedOrigin: config.presentationSync.allowedOrigin,
+      allowedHost: config.presentationSync.allowedHost,
+    },
   };
 }

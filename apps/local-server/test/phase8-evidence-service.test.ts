@@ -21,6 +21,11 @@ const serverConfig = {
   instanceName: "Phase 8 Evidence Test",
   demoOperationMaxMs: 500,
   repositoryMaxFiles: 100,
+  presentationSync: {
+    dataDir: "/tmp/aiw-evidence-presentation",
+    allowedOrigin: "http://127.0.0.1:5173",
+    allowedHost: "127.0.0.1:5173",
+  },
 };
 
 function write(root: string, relative: string, value: string | Buffer): void {

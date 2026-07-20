@@ -46,7 +46,13 @@ describe("architecture checker fails closed", () => {
     );
   });
 
-  it("accepts the real Phase 4 graph", async () => {
+  it("accepts a declared Node persistence subpath for presentation sync", async () => {
+    await expect(
+      inspectArchitecture(fixture("sync-node-persistence")),
+    ).resolves.toEqual([]);
+  });
+
+  it("accepts the real Phase 9 graph", async () => {
     await expect(inspectArchitecture(resolve("."))).resolves.toEqual([]);
   });
 });

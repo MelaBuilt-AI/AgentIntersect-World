@@ -2002,7 +2002,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 8 — File diff, test, evidence, and construction projection
 
-**Status:** LOCAL COMPLETE / EXACT-SHA CI PENDING. The frozen decisions, implementation, parent corrections, and independent local/browser verification are recorded in `docs/PHASE_8_SCOPE.md` and `PHASE_8_REPORT.md`. Phase 9 has not started.
+**Status:** LOCAL COMPLETE / EXACT-SHA CI PENDING. The frozen decisions, implementation, parent corrections, and independent local/browser verification are recorded in `docs/PHASE_8_SCOPE.md` and `PHASE_8_REPORT.md`. Phase 9 is locally implemented pending parent proof.
 
 **Objective:** Bind real run effects to repository objects and evidence-backed visual states.
 
@@ -2027,6 +2027,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 **Risks:** Misattribution under concurrent edits. Show observation windows/provenance and avoid exclusive authorship claims.
 
 ## Phase 9 — Local multi-agent presence and presentation synchronization
+
+**Status:** LOCAL IMPLEMENTATION AND INDEPENDENT PARENT VERIFICATION COMPLETE / PRIVATE EXACT-SHA CI CLOSEOUT PENDING. The frozen local/self-hosted provider, strict presentation-only document, local snapshot/update durability, HTTP ticket/status/export/delete API, WebSocket synchronization, fresh-ticket reconnect, authoritative World/roster projection, accepted-shell presentation lane, and bounded two-context journey are implemented at `0.9.0-phase9`. Parent focused, aggregate, restart/reconnect, fresh-copy, and first-hand browser verification is recorded in `PHASE_9_REPORT.md`; release, publication, public ingress, visibility changes, and Phase 10 remain excluded.
 
 **Objective:** Enable the same human operator to see and coordinate one or more owned agents across local or trusted-LAN browser views.
 

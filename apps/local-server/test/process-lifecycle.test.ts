@@ -92,6 +92,13 @@ describe("local-server process lifecycle", () => {
         AIW_NETWORK_SCOPE: networkScope,
         AIW_HOST: host,
         AIW_PORT: String(reservation.port),
+        ...(networkScope === "lan"
+          ? {
+              AIW_PRESENTATION_ALLOWED_ORIGIN: "http://192.168.1.20:45173",
+              AIW_PRESENTATION_ALLOWED_HOST: "192.168.1.20:45173",
+              AIW_PRESENTATION_TOKEN: "lifecycle-presentation-only",
+            }
+          : {}),
       });
       children.push(processResult.child);
       await waitFor(

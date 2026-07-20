@@ -76,8 +76,8 @@ export type ApiResult<T> = {
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 8"),
-    version: z.literal("0.8.0-phase8"),
+    phase: z.literal("Phase 9"),
+    version: z.literal("0.9.0-phase9"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -86,6 +86,16 @@ export const SafeConfigSchema = z
     repositoryMaxFiles: z.number().int().min(1).max(10_000),
     agentIntersectReadEnabled: z.boolean(),
     agentIntersectCommandsEnabled: z.boolean(),
+    presentationSync: z
+      .object({
+        enabled: z.literal(true),
+        transport: z.enum(["ws/http", "wss/https"]),
+        encrypted: z.boolean(),
+        unencryptedLanWarning: z.boolean(),
+        allowedOrigin: z.string().url(),
+        allowedHost: z.string().min(1).max(300),
+      })
+      .strict(),
   })
   .strict();
 
@@ -93,7 +103,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.8.0-phase8"),
+    version: z.literal("0.9.0-phase9"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })

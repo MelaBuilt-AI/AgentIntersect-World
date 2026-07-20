@@ -24,6 +24,11 @@ const config = {
   instanceName: "World API Test",
   demoOperationMaxMs: 500,
   repositoryMaxFiles: 2_500,
+  presentationSync: {
+    dataDir: "/tmp/aiw-world-presentation",
+    allowedOrigin: "http://127.0.0.1:5173",
+    allowedHost: "127.0.0.1:5173",
+  },
 };
 
 async function indexedServer() {

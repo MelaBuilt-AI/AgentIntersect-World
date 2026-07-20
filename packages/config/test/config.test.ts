@@ -13,8 +13,8 @@ describe("Phase 7 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 8",
-      version: "0.8.0-phase8",
+      phase: "Phase 9",
+      version: "0.9.0-phase9",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",
@@ -23,6 +23,14 @@ describe("Phase 7 local-server configuration", () => {
       repositoryMaxFiles: 2_500,
       agentIntersectReadEnabled: false,
       agentIntersectCommandsEnabled: false,
+      presentationSync: {
+        enabled: true,
+        transport: "ws/http",
+        encrypted: false,
+        unencryptedLanWarning: false,
+        allowedOrigin: "http://127.0.0.1:5173",
+        allowedHost: "127.0.0.1:5173",
+      },
     });
   });
 
@@ -85,10 +93,14 @@ describe("Phase 7 local-server configuration", () => {
   it("uses the LAN default host only after explicit LAN selection", async () => {
     const { loadLocalServerConfig } = await import("../src/node.js");
 
-    expect(loadLocalServerConfig({ AIW_NETWORK_SCOPE: "lan" })).toMatchObject({
-      networkScope: "lan",
-      host: "0.0.0.0",
-    });
+    const presentationLan = {
+      AIW_PRESENTATION_ALLOWED_ORIGIN: "http://192.168.1.20:45173",
+      AIW_PRESENTATION_ALLOWED_HOST: "192.168.1.20:4780",
+      AIW_PRESENTATION_TOKEN: "presentation-only",
+    };
+    expect(
+      loadLocalServerConfig({ AIW_NETWORK_SCOPE: "lan", ...presentationLan }),
+    ).toMatchObject({ networkScope: "lan", host: "0.0.0.0" });
     expect(
       loadLocalServerConfig({
         AIW_NETWORK_SCOPE: "lan",
@@ -96,6 +108,7 @@ describe("Phase 7 local-server configuration", () => {
         AIW_PORT: "4780",
         AIW_INSTANCE_NAME: "  Studio LAN  ",
         AIW_DEMO_OPERATION_MAX_MS: "8000",
+        ...presentationLan,
       }),
     ).toMatchObject({
       host: "192.168.1.20",

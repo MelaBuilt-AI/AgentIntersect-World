@@ -9,6 +9,11 @@ const config = {
   instanceName: "Operation Test",
   demoOperationMaxMs: 500,
   repositoryMaxFiles: 2_500,
+  presentationSync: {
+    dataDir: "/tmp/aiw-operations-presentation",
+    allowedOrigin: "http://127.0.0.1:5173",
+    allowedHost: "127.0.0.1:5173",
+  },
 };
 
 describe("bounded demo-delay operations", () => {

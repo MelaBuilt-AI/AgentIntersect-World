@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/web",
-  "version": "0.8.0-phase8",
+  "version": "0.9.0-phase9",
   "private": true,
   "type": "module",
   "exports": {
@@ -17,6 +17,7 @@
     "@agentintersect-world/avatar-system": "workspace:*",
     "@agentintersect-world/config": "workspace:*",
     "@agentintersect-world/renderer-r3f": "workspace:*",
+    "@agentintersect-world/sync-yjs": "workspace:*",
     "@agentintersect-world/ui": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@tanstack/react-query": "5.101.2",

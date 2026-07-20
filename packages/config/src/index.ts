@@ -1,7 +1,7 @@
 export const APP_METADATA = {
   name: "AgentIntersect World",
-  phase: "Phase 8",
-  version: "0.8.0-phase8",
+  phase: "Phase 9",
+  version: "0.9.0-phase9",
 } as const;
 
 export const LOCAL_SERVER_DEFAULTS = {
@@ -39,14 +39,28 @@ export type LocalServerConfig = {
     readonly expectedPhaseId: string;
     readonly expectedRevision: string;
   };
+  readonly presentationSync: {
+    readonly dataDir: string;
+    readonly allowedOrigin: string;
+    readonly allowedHost: string;
+    readonly bearerToken?: string;
+  };
 };
 
 export type SafeConfig = Omit<
   LocalServerConfig,
-  "agentIntersectRead" | "agentIntersectCommands"
+  "agentIntersectRead" | "agentIntersectCommands" | "presentationSync"
 > & {
   readonly phase: typeof APP_METADATA.phase;
   readonly version: typeof APP_METADATA.version;
   readonly agentIntersectReadEnabled: boolean;
   readonly agentIntersectCommandsEnabled: boolean;
+  readonly presentationSync: {
+    readonly enabled: true;
+    readonly transport: "ws/http" | "wss/https";
+    readonly encrypted: boolean;
+    readonly unencryptedLanWarning: boolean;
+    readonly allowedOrigin: string;
+    readonly allowedHost: string;
+  };
 };

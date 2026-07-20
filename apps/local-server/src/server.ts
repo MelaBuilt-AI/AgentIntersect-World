@@ -12,6 +12,11 @@ import {
 import { createCorrelationId } from "@agentintersect-world/observability";
 import { indexRepository } from "@agentintersect-world/repo-indexer";
 import {
+  PresentationValidationError,
+  type PresentationIdentity,
+} from "@agentintersect-world/sync-yjs";
+import { PresentationSnapshotStore } from "@agentintersect-world/sync-yjs/node";
+import {
   WorldProjectionError,
   projectRepositoryGeneration,
   queryWorldTiles,
@@ -70,6 +75,8 @@ import {
   EvidenceServiceError,
   type EvidenceService,
 } from "./evidence-service.js";
+import { PresentationSyncService } from "./presentation-sync.js";
+import { PresentationWebSocketTransport } from "./presentation-websocket.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -84,6 +91,7 @@ export type LocalServer = FastifyInstance & {
   readonly integrationService: ReadIntegrationService;
   readonly commandIntentService?: CommandIntentService;
   readonly evidenceService?: EvidenceReader;
+  readonly presentationService: PresentationSyncService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -94,6 +102,9 @@ export type LocalServerOptions = {
   readonly integrationService?: ReadIntegrationService;
   readonly commandIntentService?: CommandIntentService;
   readonly evidenceService?: EvidenceReader;
+  readonly presentationStore?: PresentationSnapshotStore;
+  readonly presentationIdentity?: () => PresentationIdentity | null;
+  readonly presentationObjects?: () => ReadonlyMap<string, string>;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -150,16 +161,47 @@ export function createLocalServer(
       );
     return { generation, snapshot: cachedWorldSnapshot };
   };
+  const presentationService = new PresentationSyncService({
+    store:
+      options.presentationStore ??
+      new PresentationSnapshotStore({
+        directory: config.presentationSync.dataDir,
+      }),
+    identity:
+      options.presentationIdentity ??
+      (() => {
+        const selection = currentRepositorySelection();
+        return selection
+          ? {
+              workspaceId: selection.snapshot.workspaceRef.slice(
+                "aiw://object/".length,
+              ),
+              repositoryId: selection.snapshot.repositoryRef.slice(
+                "aiw://object/".length,
+              ),
+            }
+          : null;
+      }),
+    ...(options.presentationObjects
+      ? { objects: options.presentationObjects }
+      : {}),
+  });
+  let presentationTransport: PresentationWebSocketTransport | undefined;
   server.decorate("operationService", operationService);
   server.decorate("repositoryIndexService", repositoryIndexService);
   server.decorate("integrationService", integrationService);
   server.decorate("commandIntentService", commandIntentService);
   server.decorate("evidenceService", evidenceService);
+  server.decorate("presentationService", presentationService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
+  server.addHook("preClose", () => {
+    presentationTransport?.close();
+  });
   server.addHook("onClose", async () => {
     operationService.close();
     await repositoryIndexService.close();
     await integrationService.close();
+    presentationService.close();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -420,6 +462,13 @@ export function createLocalServer(
           lower.startsWith("feb"))
       );
     };
+    presentationTransport ??= new PresentationWebSocketTransport({
+      server: server.server,
+      service: presentationService,
+      allowedOrigin: config.presentationSync.allowedOrigin,
+      allowedHost: config.presentationSync.allowedHost,
+      isAllowedAddress: isAllowedCommandAddress,
+    });
 
     const sameCommandToken = (supplied: string, expected: string): boolean => {
       const digest = (value: string) =>
@@ -467,6 +516,202 @@ export function createLocalServer(
             ),
           );
     };
+
+    const authorizePresentation = async (
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => {
+      if (!isAllowedCommandAddress(request.ip)) {
+        return reply
+          .code(403)
+          .send(
+            failure(
+              request,
+              "forbidden",
+              "Presentation client is outside the configured loopback/trusted-LAN scope",
+            ),
+          );
+      }
+      if (
+        request.headers.origin !== config.presentationSync.allowedOrigin ||
+        request.headers.host !== config.presentationSync.allowedHost
+      ) {
+        return reply
+          .code(403)
+          .send(
+            failure(
+              request,
+              "forbidden",
+              "Presentation Origin and Host must exactly match local configuration",
+            ),
+          );
+      }
+      if (config.networkScope === "lan") {
+        const header = request.headers.authorization;
+        const supplied =
+          typeof header === "string" && header.startsWith("Bearer ")
+            ? header.slice("Bearer ".length)
+            : "";
+        if (
+          !config.presentationSync.bearerToken ||
+          !sameCommandToken(supplied, config.presentationSync.bearerToken)
+        ) {
+          return reply
+            .code(401)
+            .send(
+              failure(
+                request,
+                "unauthorized",
+                "A valid dedicated presentation bearer token is required",
+              ),
+            );
+        }
+      }
+    };
+
+    const presentationFailure = (
+      error: unknown,
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => {
+      if (!(error instanceof PresentationValidationError)) throw error;
+      return reply
+        .code(400)
+        .send(failure(request, "validation", error.message));
+    };
+
+    const presentationRoute = {
+      onRequest: authorizePresentation,
+      schema: { tags: ["phase9-presentation-sync"] },
+    } as const;
+
+    server.get(
+      "/presentation/status",
+      {
+        ...presentationRoute,
+        schema: {
+          tags: ["phase9-presentation-sync"],
+          summary: "Get local presentation synchronization capability status",
+        },
+      },
+      async (request) =>
+        success(request, {
+          ...presentationService.capabilityStatus(config.networkScope),
+          transport: safeConfig.presentationSync.transport,
+          encrypted: safeConfig.presentationSync.encrypted,
+          unencryptedLanWarning:
+            safeConfig.presentationSync.unencryptedLanWarning,
+        }),
+    );
+
+    server.post(
+      "/presentation/tickets",
+      {
+        ...presentationRoute,
+        schema: {
+          tags: ["phase9-presentation-sync"],
+          summary: "Issue a short-lived single-use presentation join ticket",
+          body: {
+            type: "object",
+            additionalProperties: false,
+            required: ["documentId"],
+            properties: {
+              documentId: {
+                type: "string",
+                pattern: "^doc_[a-f0-9]{32}$",
+              },
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        try {
+          const { documentId } = request.body as { documentId: string };
+          return reply.code(201).send(
+            success(request, {
+              ...presentationService.issueTicket(documentId),
+              documentId,
+              websocketPath: "/presentation-sync",
+            }),
+          );
+        } catch (error) {
+          return presentationFailure(error, request, reply);
+        }
+      },
+    );
+
+    const presentationDocumentParams = {
+      type: "object",
+      additionalProperties: false,
+      required: ["documentId"],
+      properties: {
+        documentId: { type: "string", pattern: "^doc_[a-f0-9]{32}$" },
+      },
+    } as const;
+
+    server.get(
+      "/presentation/documents/:documentId/export",
+      {
+        ...presentationRoute,
+        schema: {
+          tags: ["phase9-presentation-sync"],
+          summary: "Export deterministic sanitized presentation JSON",
+          params: presentationDocumentParams,
+        },
+      },
+      async (request, reply) => {
+        try {
+          const { documentId } = request.params as { documentId: string };
+          return reply
+            .type("application/json; charset=utf-8")
+            .header(
+              "content-disposition",
+              `attachment; filename="${documentId}.presentation.json"`,
+            )
+            .send(await presentationService.export(documentId));
+        } catch (error) {
+          return presentationFailure(error, request, reply);
+        }
+      },
+    );
+
+    server.delete(
+      "/presentation/documents/:documentId",
+      {
+        ...presentationRoute,
+        schema: {
+          tags: ["phase9-presentation-sync"],
+          summary: "Delete exact local presentation document state",
+          params: presentationDocumentParams,
+          body: {
+            type: "object",
+            additionalProperties: false,
+            required: ["documentId", "confirmed"],
+            properties: {
+              documentId: {
+                type: "string",
+                pattern: "^doc_[a-f0-9]{32}$",
+              },
+              confirmed: { type: "boolean" },
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        try {
+          const { documentId } = request.params as { documentId: string };
+          const confirmation = request.body as {
+            documentId: string;
+            confirmed: boolean;
+          };
+          await presentationService.delete(documentId, confirmation);
+          presentationTransport?.deleteDocument(documentId);
+          return success(request, { documentId, deleted: true });
+        } catch (error) {
+          return presentationFailure(error, request, reply);
+        }
+      },
+    );
 
     server.post(
       "/commands/intents",

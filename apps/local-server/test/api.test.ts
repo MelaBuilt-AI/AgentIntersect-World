@@ -9,6 +9,11 @@ const config = {
   instanceName: "Test World",
   demoOperationMaxMs: 2_000,
   repositoryMaxFiles: 2_500,
+  presentationSync: {
+    dataDir: "/tmp/aiw-api-presentation",
+    allowedOrigin: "http://127.0.0.1:5173",
+    allowedHost: "127.0.0.1:5173",
+  },
 };
 const suppliedCorrelationId = "7dc2d8ec-7710-49aa-a3ee-517d68dc5ff1";
 const generatedCorrelationId = "d4b0469f-bfb8-4574-a933-d8a398459907";
@@ -57,8 +62,8 @@ describe("Phase 6 authority inspection API", () => {
       url: "/config",
     });
     expect(configResponse.json().data).toEqual({
-      phase: "Phase 8",
-      version: "0.8.0-phase8",
+      phase: "Phase 9",
+      version: "0.9.0-phase9",
       instanceName: "Test World",
       networkScope: "loopback",
       host: "127.0.0.1",
@@ -67,6 +72,14 @@ describe("Phase 6 authority inspection API", () => {
       repositoryMaxFiles: 2_500,
       agentIntersectReadEnabled: false,
       agentIntersectCommandsEnabled: false,
+      presentationSync: {
+        enabled: true,
+        transport: "ws/http",
+        encrypted: false,
+        unencryptedLanWarning: false,
+        allowedOrigin: "http://127.0.0.1:5173",
+        allowedHost: "127.0.0.1:5173",
+      },
     });
 
     const doctorResponse = await server().inject({
@@ -80,7 +93,7 @@ describe("Phase 6 authority inspection API", () => {
     ]);
   });
 
-  it("generates Phase 8 OpenAPI JSON with the operation routes", async () => {
+  it("generates Phase 9 OpenAPI JSON with the operation routes", async () => {
     const response = await server().inject({
       method: "GET",
       url: "/openapi.json",
@@ -88,7 +101,7 @@ describe("Phase 6 authority inspection API", () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
       openapi: "3.0.3",
-      info: { version: "0.8.0-phase8" },
+      info: { version: "0.9.0-phase9" },
       paths: {
         "/ready": expect.any(Object),
         "/operations": expect.any(Object),
@@ -130,7 +143,7 @@ describe("Phase 6 authority inspection API", () => {
     expect(response.headers["x-correlation-id"]).toBe(suppliedCorrelationId);
     expect(response.json()).toMatchObject({
       status: "ok",
-      version: "0.8.0-phase8",
+      version: "0.9.0-phase9",
       correlationId: suppliedCorrelationId,
     });
   });

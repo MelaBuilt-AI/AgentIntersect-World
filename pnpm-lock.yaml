@@ -94,6 +94,9 @@ importers:
       "@agentintersect-world/spatial-code-graph":
         specifier: workspace:*
         version: link:../../packages/spatial-code-graph
+      "@agentintersect-world/sync-yjs":
+        specifier: workspace:*
+        version: link:../../packages/sync-yjs
       "@agentintersect-world/world-event-protocol":
         specifier: workspace:*
         version: link:../../packages/world-event-protocol
@@ -106,6 +109,22 @@ importers:
       fastify:
         specifier: 5.10.0
         version: 5.10.0
+      lib0:
+        specifier: 0.2.117
+        version: 0.2.117
+      ws:
+        specifier: 8.21.1
+        version: 8.21.1
+      y-protocols:
+        specifier: 1.0.7
+        version: 1.0.7(yjs@13.6.31)
+      yjs:
+        specifier: 13.6.31
+        version: 13.6.31
+    devDependencies:
+      "@types/ws":
+        specifier: 8.18.1
+        version: 8.18.1
 
   apps/web:
     dependencies:
@@ -118,6 +137,9 @@ importers:
       "@agentintersect-world/renderer-r3f":
         specifier: workspace:*
         version: link:../../packages/renderer-r3f
+      "@agentintersect-world/sync-yjs":
+        specifier: workspace:*
+        version: link:../../packages/sync-yjs
       "@agentintersect-world/ui":
         specifier: workspace:*
         version: link:../../packages/ui
@@ -198,7 +220,20 @@ importers:
         specifier: workspace:*
         version: link:../world-schema
 
-  packages/sync-yjs: {}
+  packages/sync-yjs:
+    dependencies:
+      y-indexeddb:
+        specifier: 9.0.12
+        version: 9.0.12(yjs@13.6.31)
+      y-protocols:
+        specifier: 1.0.7
+        version: 1.0.7(yjs@13.6.31)
+      y-websocket:
+        specifier: 3.0.0
+        version: 3.0.0(yjs@13.6.31)
+      yjs:
+        specifier: 13.6.31
+        version: 13.6.31
 
   packages/ui:
     dependencies:
@@ -1698,6 +1733,12 @@ packages:
         integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==,
       }
 
+  "@types/ws@8.18.1":
+    resolution:
+      {
+        integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==,
+      }
+
   "@typescript-eslint/eslint-plugin@8.64.0":
     resolution:
       {
@@ -2665,6 +2706,12 @@ packages:
         integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==,
       }
 
+  isomorphic.js@0.2.5:
+    resolution:
+      {
+        integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==,
+      }
+
   its-fine@2.0.0:
     resolution:
       {
@@ -2750,6 +2797,14 @@ packages:
         integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==,
       }
     engines: { node: ">= 0.8.0" }
+
+  lib0@0.2.117:
+    resolution:
+      {
+        integrity: sha512-DeXj9X5xDCjgKLU/7RR+/HQEVzuuEUiwldwOGsHK/sfAfELGWEyTcf0x+uOvCvK3O2zPmZePXWL85vtia6GyZw==,
+      }
+    engines: { node: ">=16" }
+    hasBin: true
 
   light-my-request@6.6.0:
     resolution:
@@ -3817,6 +3872,33 @@ packages:
       }
     engines: { node: ">=18" }
 
+  y-indexeddb@9.0.12:
+    resolution:
+      {
+        integrity: sha512-9oCFRSPPzBK7/w5vOkJBaVCQZKHXB/v6SIT+WYhnJxlEC61juqG0hBrAf+y3gmSMLFLwICNH9nQ53uscuse6Hg==,
+      }
+    engines: { node: ">=16.0.0", npm: ">=8.0.0" }
+    peerDependencies:
+      yjs: ^13.0.0
+
+  y-protocols@1.0.7:
+    resolution:
+      {
+        integrity: sha512-YSVsLoXxO67J6eE/nV4AtFtT3QEotZf5sK5BHxFBXso7VDUT3Tx07IfA6hsu5Q5OmBdMkQVmFZ9QOA7fikWvnw==,
+      }
+    engines: { node: ">=16.0.0", npm: ">=8.0.0" }
+    peerDependencies:
+      yjs: ^13.0.0
+
+  y-websocket@3.0.0:
+    resolution:
+      {
+        integrity: sha512-mUHy7AzkOZ834T/7piqtlA8Yk6AchqKqcrCXjKW8J1w2lPtRDjz8W5/CvXz9higKAHgKRKqpI3T33YkRFLkPtg==,
+      }
+    engines: { node: ">=16.0.0", npm: ">=8.0.0" }
+    peerDependencies:
+      yjs: ^13.5.6
+
   y18n@5.0.8:
     resolution:
       {
@@ -3851,6 +3933,13 @@ packages:
         integrity: sha512-4UEqdc2RYGHZc7Doyqkrqiln3p9X2DZVxaGbwhn2pi7MrRagKaOcIKe8L3OxYcbhXLgLFUS3zAYuQjKBQgmuNg==,
       }
     engines: { node: ^20.19.0 || ^22.12.0 || >=23 }
+
+  yjs@13.6.31:
+    resolution:
+      {
+        integrity: sha512-Eq+5BRfbeGyqGVrTJL3bEcr8gKkxPuyuoHmAwpk52fDb8kOVMrfVSTRPd6yiGgX5Fskb96qCRjzjbRjrL4YEnw==,
+      }
+    engines: { node: ">=16.0.0", npm: ">=8.0.0" }
 
   yocto-queue@0.1.0:
     resolution:
@@ -4664,6 +4753,10 @@ snapshots:
 
   "@types/webxr@0.5.24": {}
 
+  "@types/ws@8.18.1":
+    dependencies:
+      "@types/node": 24.13.3
+
   "@typescript-eslint/eslint-plugin@8.64.0(@typescript-eslint/parser@8.64.0(eslint@10.7.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.7.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)":
     dependencies:
       "@eslint-community/regexpp": 4.12.2
@@ -5260,6 +5353,8 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  isomorphic.js@0.2.5: {}
+
   its-fine@2.0.0(@types/react@19.2.17)(react@19.2.7):
     dependencies:
       "@types/react-reconciler": 0.28.9(@types/react@19.2.17)
@@ -5303,6 +5398,10 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  lib0@0.2.117:
+    dependencies:
+      isomorphic.js: 0.2.5
 
   light-my-request@6.6.0:
     dependencies:
@@ -5893,6 +5992,22 @@ snapshots:
     dependencies:
       is-wsl: 3.1.1
 
+  y-indexeddb@9.0.12(yjs@13.6.31):
+    dependencies:
+      lib0: 0.2.117
+      yjs: 13.6.31
+
+  y-protocols@1.0.7(yjs@13.6.31):
+    dependencies:
+      lib0: 0.2.117
+      yjs: 13.6.31
+
+  y-websocket@3.0.0(yjs@13.6.31):
+    dependencies:
+      lib0: 0.2.117
+      y-protocols: 1.0.7(yjs@13.6.31)
+      yjs: 13.6.31
+
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
@@ -5909,6 +6024,10 @@ snapshots:
       string-width: 7.2.0
       y18n: 5.0.8
       yargs-parser: 22.0.0
+
+  yjs@13.6.31:
+    dependencies:
+      lib0: 0.2.117
 
   yocto-queue@0.1.0: {}
 

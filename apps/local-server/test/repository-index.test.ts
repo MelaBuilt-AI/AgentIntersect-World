@@ -16,6 +16,11 @@ const config = {
   instanceName: "Index Test",
   demoOperationMaxMs: 500,
   repositoryMaxFiles: 2500,
+  presentationSync: {
+    dataDir: "/tmp/aiw-index-presentation",
+    allowedOrigin: "http://127.0.0.1:5173",
+    allowedHost: "127.0.0.1:5173",
+  },
 };
 
 async function root() {

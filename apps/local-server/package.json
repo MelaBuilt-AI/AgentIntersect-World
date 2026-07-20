@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/local-server",
-  "version": "0.8.0-phase8",
+  "version": "0.9.0-phase9",
   "private": true,
   "type": "module",
   "exports": {
@@ -14,6 +14,9 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "devDependencies": {
+    "@types/ws": "8.18.1"
+  },
   "dependencies": {
     "@agentintersect-world/agentintersect-client": "workspace:*",
     "@agentintersect-world/config": "workspace:*",
@@ -21,9 +24,14 @@
     "@agentintersect-world/persistence": "workspace:*",
     "@agentintersect-world/repo-indexer": "workspace:*",
     "@agentintersect-world/spatial-code-graph": "workspace:*",
+    "@agentintersect-world/sync-yjs": "workspace:*",
     "@agentintersect-world/world-event-protocol": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@fastify/swagger": "9.8.1",
-    "fastify": "5.10.0"
+    "fastify": "5.10.0",
+    "lib0": "0.2.117",
+    "ws": "8.21.1",
+    "y-protocols": "1.0.7",
+    "yjs": "13.6.31"
   }
 }

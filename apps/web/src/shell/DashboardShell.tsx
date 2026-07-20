@@ -11,6 +11,7 @@ import { IntegrationPanel } from "../integration/IntegrationPanel.js";
 import { useIntegration } from "../integration/use-integration.js";
 import { AuthorityPanel } from "../panels/AuthorityPanel.js";
 import { RepositoryIndexPanel } from "../panels/RepositoryIndexPanel.js";
+import { PresentationPanelLoader } from "../presentation/PresentationPanelLoader.js";
 import { RepositoryWorldPanel } from "../repository/RepositoryWorldPanel.js";
 import { requestRepositorySelection } from "../repository/repository-selection.js";
 import { useInvalidateWorld } from "../repository/use-invalidate-world.js";
@@ -211,6 +212,8 @@ export function DashboardShell({
         </div>
       </section>
 
+      <PresentationPanelLoader />
+
       {activePanel !== null && (
         <section
           className="world-overlay"
@@ -309,7 +312,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 8 observed evidence and repository construction state</span>
+        <span>Phase 9 local presentation synchronization</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>

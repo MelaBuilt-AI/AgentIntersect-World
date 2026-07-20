@@ -597,6 +597,11 @@ describe("Phase 7 durable command intents", () => {
         expectedPhaseId: "phase_7",
         expectedRevision: revision,
       },
+      presentationSync: {
+        dataDir: temporaryRoot(),
+        allowedOrigin: "http://127.0.0.1:5173",
+        allowedHost: "127.0.0.1:5173",
+      },
     };
     const server = createLocalServer({
       config: baseConfig,

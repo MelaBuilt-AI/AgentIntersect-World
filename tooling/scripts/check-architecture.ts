@@ -37,6 +37,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/persistence",
     "@agentintersect-world/repo-indexer",
     "@agentintersect-world/spatial-code-graph",
+    "@agentintersect-world/sync-yjs",
     "@agentintersect-world/world-event-protocol",
     "@agentintersect-world/world-schema",
   ],
@@ -55,6 +56,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/avatar-system",
     "@agentintersect-world/config",
     "@agentintersect-world/renderer-r3f",
+    "@agentintersect-world/sync-yjs",
     "@agentintersect-world/ui",
     "@agentintersect-world/world-schema",
   ],
@@ -87,6 +89,13 @@ const importPattern =
 const nodeImports = new Set([
   ...builtinModules,
   ...builtinModules.map((name) => `node:${name}`),
+]);
+
+const presentationPersistenceNodeImports = new Set([
+  "node:crypto",
+  "node:fs",
+  "node:fs/promises",
+  "node:path",
 ]);
 
 async function existingDirectories(root: string): Promise<string[]> {
@@ -241,6 +250,12 @@ export async function inspectArchitecture(
   for (const [packageName, item] of packages) {
     for (const file of await sourceFiles(item.directory)) {
       const source = await readFile(file, "utf8");
+      const packageRelativeFile = relative(item.directory, file)
+        .split(sep)
+        .join("/");
+      const declaredNodeSubpathSource =
+        packageRelativeFile === "src/node.ts" &&
+        declaresSubpathExport(item.manifest, "node");
       for (const match of source.matchAll(importPattern)) {
         const specifier = match[1] ?? match[2] ?? match[3];
         if (!specifier) continue;
@@ -265,7 +280,11 @@ export async function inspectArchitecture(
             message: `deep workspace import is prohibited: ${specifier}`,
           });
         }
-        if (browserReachable.has(packageName) && nodeImports.has(specifier)) {
+        if (
+          browserReachable.has(packageName) &&
+          !declaredNodeSubpathSource &&
+          nodeImports.has(specifier)
+        ) {
           violations.push({
             code: "browser-node-import",
             file: displayFile,
@@ -284,7 +303,11 @@ export async function inspectArchitecture(
         }
         if (
           packageName === "@agentintersect-world/sync-yjs" &&
-          authorityPattern.test(specifier)
+          authorityPattern.test(specifier) &&
+          !(
+            declaredNodeSubpathSource &&
+            presentationPersistenceNodeImports.has(specifier)
+          )
         ) {
           violations.push({
             code: "sync-authority-import",
@@ -311,7 +334,7 @@ async function main() {
     return;
   }
   process.stdout.write(
-    "Architecture check passed: 14 workspace packages, no boundary violations.\n",
+    "Architecture check passed: 14 workspace packages, no Phase 9 boundary violations.\n",
   );
 }
 
