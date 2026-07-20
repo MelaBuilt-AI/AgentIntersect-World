@@ -97,7 +97,7 @@ const result = {
   },
 };
 
+process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 const failures = phase10MeasurementFailures(result);
 if (failures.length > 0)
   throw new Error(`Phase 10 measurement failed: ${failures.join("; ")}`);
-process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
