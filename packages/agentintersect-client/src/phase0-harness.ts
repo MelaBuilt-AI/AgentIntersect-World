@@ -5,17 +5,17 @@ import readline from "node:readline";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
 
-import { preflightCheckout } from "./checkout-preflight.ts";
+import { preflightCheckout } from "./checkout-preflight.js";
 import {
   createSafeTemporaryWorkspace,
   safeTemporaryEnvironment,
-} from "./safe-temporary-root.ts";
+} from "./safe-temporary-root.js";
 
 export {
   DAEMON_ROUTES,
   DASHBOARD_ROUTES,
   type CheckoutObservation,
-} from "./checkout-preflight.ts";
+} from "./checkout-preflight.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -810,7 +810,7 @@ export async function captureHttpSseContract(
     const health = (await healthResponse.json()) as Record<string, unknown>;
     const daemonPid = daemon.pid;
     if (!daemonPid) throw new Error("daemon process identity unavailable");
-    const { attestHealth } = await import("./index.ts");
+    const { attestHealth } = await import("./index.js");
     await attestHealth({
       workspace,
       status: healthResponse.status,

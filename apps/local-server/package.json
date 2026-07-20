@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/local-server",
-  "version": "0.5.0-phase5",
+  "version": "0.6.0-phase6",
   "private": true,
   "type": "module",
   "exports": {
@@ -15,10 +15,13 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@agentintersect-world/agentintersect-client": "workspace:*",
     "@agentintersect-world/config": "workspace:*",
     "@agentintersect-world/observability": "workspace:*",
+    "@agentintersect-world/persistence": "workspace:*",
     "@agentintersect-world/repo-indexer": "workspace:*",
     "@agentintersect-world/spatial-code-graph": "workspace:*",
+    "@agentintersect-world/world-event-protocol": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@fastify/swagger": "9.8.1",
     "fastify": "5.10.0"

@@ -21,11 +21,12 @@ For each phase:
 1. Define the smallest observable feature or working vertical slice.
 2. Build it until it functions in the supported local environment.
 3. Run focused tests while developing, then run the relevant integrated/full test and build commands once the slice works.
-4. Perform one bounded post-build review/audit focused on broken behavior, regressions, maintainability blockers, and requirements the implementation missed.
-5. Fix confirmed defects from that audit and rerun the affected tests plus the main suite/build.
-6. Stop. Do not start recursive broad reviews or three-to-four review cycles per phase.
+4. Have Mr Fluff independently inspect the real diff/artifact and perform functional parent proof rather than accepting a worker report as evidence.
+5. Move promptly to first-hand operator testing once parent proof is green.
+6. Run an audit only when first-hand testing exposes a concrete issue or the user explicitly requests one. Do not make a routine audit or targeted re-audit an automatic build-stage gate.
+7. Fix observed defects with focused regressions, rerun the affected functional proof, and stop when the supported slice works.
 
-A targeted re-check is warranted only for the actual fixes from the single audit. Additional broad reviews require the user’s approval.
+Speculative or theoretical hardening belongs in the backlog unless it blocks a supported local/LAN workflow, risks data loss or secret exposure, or the user explicitly expands scope.
 
 ## 3. Security posture during the build
 
@@ -61,7 +62,8 @@ Prefer the terms **multi-agent**, **multi-view**, or **local/LAN session** in ne
 
 ## 6. Review and approval boundaries
 
-- One implementation worker/report, parent verification of real artifacts, and one bounded post-build review/audit are the default maximum per phase.
-- Fix confirmed defects once, retest, and move forward when acceptance criteria pass.
+- One implementation worker/report followed by parent verification and first-hand testing is the default phase cadence.
+- A prior audit may supply concrete correction work, but its existence does not create a routine re-audit requirement after the correction. Audit again only for an observed issue or explicit user request.
+- Fix confirmed defects once, retest the affected behavior, and move forward when acceptance criteria pass.
 - Commit/push may proceed when the user has authorized it and the working feature plus tests/build are green.
 - Remote creation, publication, release, tags, public visibility, and changes to the original AgentIntersect repository remain explicit user approval gates.

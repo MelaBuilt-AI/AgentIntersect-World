@@ -1,0 +1,16 @@
+{
+  "type": "telemetry.hostile",
+  "timestamp": "2026-07-19T12:00:01.000Z",
+  "token": "fixture-secret-value",
+  "posixPath": "/home/operator/private/repository",
+  "windowsPath": "C:\\Users\\operator\\private\\repository",
+  "uncPath": "\\\\server\\share\\private",
+  "fileUri": "file:///home/operator/private/repository",
+  "embedded": "failed at /home/operator/private.txt with Authorization: Bearer fixture-token",
+  "expectedPersistentMarkers": [
+    "[REDACTED]",
+    "[REDACTED_PATH]",
+    "[TRUNCATED]",
+    "[TRUNCATED_DEPTH]"
+  ]
+}

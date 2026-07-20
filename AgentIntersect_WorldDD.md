@@ -35,12 +35,14 @@ No code, package, repository, release, or external configuration change is autho
 These rules supersede older phase text when there is a conflict:
 
 1. Build functional vertical slices first. Use focused tests during implementation and integrated/full tests once the slice works.
-2. Perform one bounded post-build review/audit, fix confirmed defects once, and retest. Do not run recursive broad review cycles by default.
-3. Defer broad security hardening, internet threat models, enterprise controls, supply-chain ceremony, and speculative abuse-case work until a dedicated hardening milestone after the product path functions.
-4. Retain only inexpensive baseline safeguards against accidental data loss, destructive mutation, secret leakage, and unintended exposure beyond the configured loopback/trusted-LAN boundary.
-5. “Multiplayer” means one human/operator using one or more agents owned by that human on the same computer or trusted LAN. Multiple browser views represent that same operator. Unrelated users, outside agents, public rooms, cloud multi-tenancy, and internet collaboration are out of scope.
-6. Do not recheck the original AgentIntersect repository unless the user explicitly requests a baseline refresh/original-project change or a concrete live compatibility failure requires diagnosis.
-7. `AGENTS.md` is the authoritative project-local workflow contract for implementation agents.
+2. Require one worker report, then independent Mr Fluff functional proof and prompt first-hand operator testing. Worker prose is not evidence.
+3. Audit only when first-hand testing exposes a concrete issue or the user explicitly requests one. Do not make routine audits or targeted re-audits automatic build-stage gates.
+4. Fix observed defects with focused regressions and rerun the affected proof; move speculative or theoretical hardening to backlog.
+5. Defer broad security hardening, internet threat models, enterprise controls, supply-chain ceremony, and speculative abuse-case work until a dedicated hardening milestone after the product path functions.
+6. Retain only inexpensive baseline safeguards against accidental data loss, destructive mutation, secret leakage, and unintended exposure beyond the configured loopback/trusted-LAN boundary.
+7. “Multiplayer” means one human/operator using one or more agents owned by that human on the same computer or trusted LAN. Multiple browser views represent that same operator. Unrelated users, outside agents, public rooms, cloud multi-tenancy, and internet collaboration are out of scope.
+8. Do not recheck the original AgentIntersect repository unless the user explicitly requests a baseline refresh/original-project change or a concrete live compatibility failure requires diagnosis.
+9. `AGENTS.md` is the authoritative project-local workflow contract for implementation agents.
 
 ### Source provenance
 
@@ -55,7 +57,7 @@ The authoritative concept inputs are the relocated Obsidian copies `AgentInterse
 | Browser-first spatial IDE/world    | AgentIntersect World v0.1 | React/R3F canvas with an accessible 2D operational shell                 |
 | Local/LAN-first runtime            | AgentIntersect World v0.1 | One trusted operator; loopback default and explicit trusted-LAN support  |
 | Presentation sync for one operator | AgentIntersect World v0.1 | Multi-view/multi-agent state, not unrelated-user collaboration           |
-| Functional vertical slices first   | AgentIntersect World v0.1 | Build → test → one audit → fix → retest                                  |
+| Functional vertical slices first   | AgentIntersect World v0.1 | Build → test → parent proof → first-hand testing; audit observed issues  |
 | Broad security hardening           | Future/Deferred           | Dedicated milestone after the main product path functions                |
 | XR, physics, cloud execution       | Future/Deferred           | Optional adapters; not v0.1 dependencies                                 |
 
@@ -1970,11 +1972,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Restart/replay yields identical final projection; no duplicate animation IDs; the selected hero harness displays real ready/offline/mismatch state without implying execution; execution controls remain disabled; unsupported AgentIntersect contract fails closed with diagnostics.
 
-**Exit gate:** High-risk contract/replay review.
+**Exit gate:** COMPLETE. The read facade, `aiw.event/0.6` normalization, SQLite dedupe/checkpoint state, JSONL accepted-event replay, fail-closed corrupt-tail recovery, startup/SSE reconciliation, strict GET-only APIs, and Phase 5 shell projections are implemented at `0.6.0-phase6`. Focused and complete tests, formatting, lint, typecheck, architecture, production build, smoke, Playwright, Storybook, production advisory, 222-file fresh-copy verification, live A→B→A/restart/reconnect/malformed/oversized/redaction/disabled-execution proof, and first-hand desktop/mobile browser checks are green. No routine re-audit was required. Exact final commit/CI evidence belongs in the external Phase 6 concept and handoff to avoid a self-referential design commit.
 
 **Risks:** Current dashboard routes are not separately versioned public APIs. Isolate all parsing and maintain pinned compatibility matrix.
 
 ## Phase 7 — Local command intent and real worker vertical core
+
+**Status:** NEXT / NOT STARTED. `docs/PHASE_7_SCOPE.md` prepares a fresh-session scope freeze; it does not authorize implementation in the Phase 6 closeout session.
 
 **Objective:** Enqueue one real bounded AgentIntersect `phase_run` job through a validated local intent and observe its lifecycle.
 

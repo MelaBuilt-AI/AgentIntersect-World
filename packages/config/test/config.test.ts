@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-describe("Phase 5 local-server configuration", () => {
+describe("Phase 6 local-server configuration", () => {
   it("loads loopback defaults and exposes only the safe configuration view", async () => {
     const { loadLocalServerConfig, toSafeConfig } =
       await import("../src/node.js");
@@ -13,15 +13,38 @@ describe("Phase 5 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 5",
-      version: "0.5.0-phase5",
+      phase: "Phase 6",
+      version: "0.6.0-phase6",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",
       port: 3770,
       demoOperationMaxMs: expect.any(Number),
       repositoryMaxFiles: 2_500,
+      agentIntersectReadEnabled: false,
     });
+  });
+
+  it("requires explicit paths and exposes only a boolean for read integration", async () => {
+    const { loadLocalServerConfig, toSafeConfig } =
+      await import("../src/node.js");
+    expect(() =>
+      loadLocalServerConfig({ AIW_AGENTINTERSECT_ENABLED: "true" }),
+    ).toThrow("EXPECTED_WORKSPACE");
+    const config = loadLocalServerConfig({
+      AIW_AGENTINTERSECT_ENABLED: "true",
+      AIW_AGENTINTERSECT_EXPECTED_WORKSPACE: "/tmp/aiw-workspace",
+      AIW_AGENTINTERSECT_DATA_DIR: "/tmp/aiw-data",
+    });
+    expect(config.agentIntersectRead).toMatchObject({
+      daemonUrl: "http://127.0.0.1:3761",
+      dashboardUrl: "http://127.0.0.1:3762",
+      maxQueuedFrames: 32,
+    });
+    expect(toSafeConfig(config)).toMatchObject({
+      agentIntersectReadEnabled: true,
+    });
+    expect(JSON.stringify(toSafeConfig(config))).not.toContain("aiw-workspace");
   });
 
   it("uses the LAN default host only after explicit LAN selection", async () => {

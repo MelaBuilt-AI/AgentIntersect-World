@@ -1,0 +1,52 @@
+{
+  "health": {
+    "ok": true,
+    "pid": 4242,
+    "processStartTime": "fixture-process-start",
+    "protocol": 1,
+    "service": "agentintersect-daemon/v1",
+    "workspaceIdentity": "sha256:fixture-workspace"
+  },
+  "state": {
+    "currentPhase": {
+      "id": "phase_6",
+      "status": "running",
+      "title": "Read integration"
+    },
+    "session": { "id": "session-1" },
+    "workerJobs": [
+      {
+        "id": "job-1",
+        "runId": "run-1",
+        "harness": "codex",
+        "status": "running",
+        "claimedBy": "agent-1"
+      }
+    ]
+  },
+  "snapshot": {
+    "currentPhase": {
+      "id": "phase_6",
+      "status": "running",
+      "title": "Read integration"
+    },
+    "phaseTimeline": [
+      { "id": "phase_5", "status": "complete", "title": "World shell" }
+    ],
+    "workerJobs": [],
+    "agents": []
+  },
+  "feed": {
+    "ok": true,
+    "events": [
+      {
+        "type": "worker.job.running",
+        "timestamp": "2026-07-19T12:00:01.000Z",
+        "phaseId": "phase_6",
+        "sessionId": "session-1",
+        "jobId": "job-1",
+        "runId": "run-1"
+      }
+    ]
+  }
+}

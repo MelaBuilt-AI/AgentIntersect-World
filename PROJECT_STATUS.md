@@ -4,24 +4,23 @@ Updated: 2026-07-19
 
 ## Current milestone
 
-**Phase 5 — Inherited identity/dashboard shell and first repository island: COMPLETE**
+**Phase 6 — AgentIntersect read integration and normalized replay: COMPLETE**
 
-- Evidence: `PHASE_5_REPORT.md`, `docs/PHASE_5_SCOPE.md`, and `docs/PHASE_5_ASSET_PROVENANCE.md`
-- Baseline: completed Phase 4 commit `82ff9af0ceec4734e9b8be54e44b49697acaccc0`
-- Version: `0.5.0-phase5`
+- Evidence: `PHASE_6_REPORT.md`, `docs/PHASE_6_SCOPE.md`, and World-owned Phase 0 compatibility fixtures
+- Baseline: completed Phase 5 commit `344e73d24bdc18f7dcc7e9dc22ec7952eb2960f2`
+- Version: `0.6.0-phase6`
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`
 - Workspace: 15 projects / 14 named app-package graph entries
-- Focused corrected-surface tests: 7 files / 24 tests; focused Playwright 12/12
-- Complete tests: 24 files / 109 tests
-- Typecheck: 22/22 tasks
+- Focused B1–B6 correction tests: 6 files / 64 tests passed serially
+- Complete tests: 30 files / 174 tests passed
+- Typecheck: 25/25 tasks
 - Architecture regressions: 9/9; checker reports no violations across 14 packages
-- Production build: 13/13 tasks; Storybook production build green
-- Playwright: 13/13 with five visual baselines
-- Fresh-copy verification: complete aggregate passed for 202 project source files
-- Asset proof: 18/18 copied files match the authorized AgentIntersect source bytes
-- 10k proof: 10,000 instances, ≤160 semantic rows, 1.765 ms maximum preparation against a 250 ms threshold
-- Review cadence: one bounded audit, one four-blocker correction pass, one targeted 4/4 re-review, no second broad audit
+- Production build: 14/14 tasks; Storybook production build green with five Phase 6 states
+- Smoke and complete Playwright: green; 19/19 browser tests passed with one worker
+- Fresh-copy verification: green for 222 project source files; production advisory audit found no known vulnerabilities
+- Review cadence: the historical bounded audit found B1–B6; one correction pass plus independent parent and first-hand proof are green. No routine targeted re-audit is required; audit only for a concrete observed issue or explicit user request
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`
+- Exact final commit/CI evidence: recorded in the Phase 6 Obsidian concept and latest handoff after private push, avoiding a self-referential status commit
 - Release/tag/package publication/public visibility change: none; repository remains private
 
 ## Completed Phase 4 surface
@@ -106,13 +105,35 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - One bounded audit found four blockers; one targeted correction resolved all four, and the targeted re-review returned PASS with zero residual blockers. No second broad audit ran.
 - Workspace/runtime version is `0.5.0-phase5`; the repository remains private with no tag, release, deployment, package publication, or visibility change.
 
+## Phase 6 — COMPLETE
+
+**Read-only AgentIntersect integration and normalized replay**
+
+- A narrow compatibility facade now attests the pinned health/workspace/process contract and reads daemon state, dashboard snapshot/feed, and dashboard SSE without exposing mutation authority.
+- `aiw.event/0.6` supplies stable source/fallback event IDs, stable animation IDs, deterministic cross-source order, bounded hostile-data redaction/truncation, identifier mapping, and phase-board/roster/timeline projection.
+- Node 24 SQLite owns transactional dedupe, source/checkpoint metadata, and reducer checkpoints; an append-oriented JSONL accepted-event ledger replays byte-identically and fails closed on a corrupt or partial tail while retaining the verified prefix.
+- Startup/reconnect reconciliation preserves last-good state across offline, stale, mismatch, SSE gap/reset/overflow, and bounded-backpressure conditions.
+- Strict GET-only local-server routes expose integration, phase-board, roster, timeline, replay/reconciliation, and selected-harness readiness projections. No Phase 6 mutation route exists.
+- The Phase 5 shell shows ready/offline/stale/mismatch/error truth, current versus previous/replayed labels, bounded diagnostics, disabled grey observation-only execution controls, and desktop/mobile-accessible projection views.
+- Local formatting, lint, typecheck, architecture, focused/aggregate tests, production build, smoke, browser, Storybook, advisory, and clean-copy gates are green.
+- The sole bounded audit's B1–B6 findings received the one authorized targeted correction: authoritative latest observations are separate from deduplicated timeline identity; replay/checkpoint/crash ordering is fail-closed; nested contracts and streamed caps are pinned; the expanded redaction matrix is enforced through replay/storage/API/display; periodic freshness and SSE recovery have a clean lifecycle; and the stale Phase 5 browser assertion is corrected.
+- Local correction verification and independent parent proof are green: focused 64/64, complete Vitest 174/174, typecheck 25/25, architecture 9/9, build 14/14, smoke, Playwright 19/19, Storybook, production advisory audit, 222-file fresh-copy verification, live A→B→A/restart/reconnect/malformed/oversized/redaction/disabled-execution proof, and desktop/mobile first-hand browser checks with zero console errors or horizontal overflow. No routine targeted re-audit was required.
+
 ## Next milestone
 
-**Phase 6 — AgentIntersect read integration and normalized replay**
+**Phase 7 — Local command intent and real worker vertical core: NEXT / NOT STARTED**
 
-Phase 6 may project real read-only AgentIntersect state and events into a durable, idempotent World timeline. It must preserve the existing execution boundary: harness readiness/connection claims require verified integration state, while worker/job mutation remains disabled until Phase 7. Freeze a bounded Phase 6 contract, compatibility matrix, replay fixtures, persistence limits, and redaction/truncation rules before implementation.
+Preparation lives in `docs/PHASE_7_SCOPE.md`. In a fresh session, freeze the exact intent schema, host-only mutation route, bounded real-job fixture, timeout/cost ceiling, and acceptance transcript before coding. The proposed vertical slice validates one durable idempotent `worker.enqueue-phase` intent, re-attests AgentIntersect immediately before `POST /v1/worker/jobs`, reconciles ambiguous creation without duplicate dispatch, and observes the exact queued/claimed/running/complete/failed lifecycle through the Phase 6 read path.
+
+Phase 7 implementation has not started. Browser/harness spawning, LAN workers, multiple simultaneous jobs, World-owned completion submission, lifecycle controls, Phase 8 diff/evidence work, and all release/publication/public-ingress actions remain out of scope.
 
 ## Non-blocking backlog
+
+### Phase 6
+
+- Split the large web/Storybook chunks when production delivery becomes active.
+- Add ledger segment rotation/checksums only when retention requirements exceed the bounded Phase 6 single-ledger slice.
+- Keep mutation authority, worker launch/claim/complete, and external configuration/authentication writes deferred to Phase 7 or later.
 
 ### Phase 5
 

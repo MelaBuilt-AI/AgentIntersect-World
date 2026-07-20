@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/persistence",
-  "version": "0.5.0-phase5",
+  "version": "0.6.0-phase6",
   "private": true,
   "type": "module",
   "exports": {
@@ -12,5 +12,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agentintersect-world/world-event-protocol": "workspace:*"
   }
 }

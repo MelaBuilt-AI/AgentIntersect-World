@@ -1,15 +1,23 @@
 {
   "name": "@agentintersect-world/agentintersect-client",
-  "version": "0.5.0-phase5",
+  "version": "0.6.0-phase6",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./read": {
+      "types": "./dist/read-facade.d.ts",
+      "import": "./dist/read-facade.js"
+    }
   }
 }

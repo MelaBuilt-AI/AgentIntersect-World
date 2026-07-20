@@ -76,18 +76,27 @@ importers:
 
   apps/local-server:
     dependencies:
+      "@agentintersect-world/agentintersect-client":
+        specifier: workspace:*
+        version: link:../../packages/agentintersect-client
       "@agentintersect-world/config":
         specifier: workspace:*
         version: link:../../packages/config
       "@agentintersect-world/observability":
         specifier: workspace:*
         version: link:../../packages/observability
+      "@agentintersect-world/persistence":
+        specifier: workspace:*
+        version: link:../../packages/persistence
       "@agentintersect-world/repo-indexer":
         specifier: workspace:*
         version: link:../../packages/repo-indexer
       "@agentintersect-world/spatial-code-graph":
         specifier: workspace:*
         version: link:../../packages/spatial-code-graph
+      "@agentintersect-world/world-event-protocol":
+        specifier: workspace:*
+        version: link:../../packages/world-event-protocol
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:../../packages/world-schema
@@ -156,7 +165,11 @@ importers:
         specifier: workspace:*
         version: link:../world-schema
 
-  packages/persistence: {}
+  packages/persistence:
+    dependencies:
+      "@agentintersect-world/world-event-protocol":
+        specifier: workspace:*
+        version: link:../world-event-protocol
 
   packages/renderer-r3f:
     dependencies:

@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 import {
   attestFixedTemporaryRoot,
   safeTemporaryEnvironment,
-} from "./safe-temporary-root.ts";
+} from "./safe-temporary-root.js";
 
 const execFileAsync = promisify(execFile);
 

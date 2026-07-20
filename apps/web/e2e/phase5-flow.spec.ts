@@ -87,7 +87,9 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
   ]);
   await page.getByLabel("Default harness intent").selectOption("openclaw");
   await page.getByLabel("Current harness intent").selectOption("hermes");
-  await expect(page.getByText("hermes selected only")).toBeVisible();
+  await expect(
+    page.getByText(/Selected harness read status: disabled/),
+  ).toBeVisible();
 
   const repositories = page.getByRole("button", {
     name: "Repositories",

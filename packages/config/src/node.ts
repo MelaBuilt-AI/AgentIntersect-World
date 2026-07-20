@@ -5,12 +5,35 @@ import {
   type NetworkScope,
   type SafeConfig,
 } from "./index.js";
-
 const INSTANCE_NAME_MAX_LENGTH = 80;
 const DEMO_OPERATION_MIN_MS = 50;
 const DEMO_OPERATION_MAX_MS = 60_000;
 const HOST_PATTERN = /^(?:[a-z0-9.-]+|\[[0-9a-f:]+\]|[0-9a-f:]+)$/i;
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
+const ABSOLUTE_PATH = /^(?:\/|[a-z]:[\\/]|\\\\)/i;
+
+function readUrl(
+  value: string | undefined,
+  fallback: string,
+  key: string,
+): string {
+  let url: URL;
+  try {
+    url = new URL(value ?? fallback);
+  } catch {
+    throw new ConfigurationError(`${key} must be a valid HTTP URL`);
+  }
+  if (
+    !(["http:", "https:"] as string[]).includes(url.protocol) ||
+    url.username ||
+    url.password
+  ) {
+    throw new ConfigurationError(
+      `${key} must be an HTTP URL without credentials`,
+    );
+  }
+  return url.href.replace(/\/$/, "");
+}
 
 export class ConfigurationError extends Error {
   override readonly name = "ConfigurationError";
@@ -76,6 +99,35 @@ export function loadLocalServerConfig(
     );
   }
 
+  const enabled = environment.AIW_AGENTINTERSECT_ENABLED === "true";
+  if (
+    environment.AIW_AGENTINTERSECT_ENABLED !== undefined &&
+    !["true", "false"].includes(environment.AIW_AGENTINTERSECT_ENABLED)
+  ) {
+    throw new ConfigurationError(
+      "AIW_AGENTINTERSECT_ENABLED must be true or false",
+    );
+  }
+  const workspace = environment.AIW_AGENTINTERSECT_EXPECTED_WORKSPACE?.trim();
+  const dataDir = environment.AIW_AGENTINTERSECT_DATA_DIR?.trim();
+  if (enabled && !workspace)
+    throw new ConfigurationError(
+      "AIW_AGENTINTERSECT_EXPECTED_WORKSPACE is required when read integration is enabled",
+    );
+  if (enabled && !dataDir)
+    throw new ConfigurationError(
+      "AIW_AGENTINTERSECT_DATA_DIR is required when read integration is enabled",
+    );
+  if (
+    enabled &&
+    (!ABSOLUTE_PATH.test(workspace as string) ||
+      !ABSOLUTE_PATH.test(dataDir as string))
+  ) {
+    throw new ConfigurationError(
+      "AIW_AGENTINTERSECT_EXPECTED_WORKSPACE and AIW_AGENTINTERSECT_DATA_DIR must be absolute paths",
+    );
+  }
+
   return {
     networkScope,
     host,
@@ -95,6 +147,38 @@ export function loadLocalServerConfig(
       1,
       10_000,
     ),
+    ...(enabled
+      ? {
+          agentIntersectRead: {
+            daemonUrl: readUrl(
+              environment.AIW_AGENTINTERSECT_DAEMON_URL,
+              "http://127.0.0.1:3761",
+              "AIW_AGENTINTERSECT_DAEMON_URL",
+            ),
+            dashboardUrl: readUrl(
+              environment.AIW_AGENTINTERSECT_DASHBOARD_URL,
+              "http://127.0.0.1:3762",
+              "AIW_AGENTINTERSECT_DASHBOARD_URL",
+            ),
+            expectedWorkspace: workspace as string,
+            dataDir: dataDir as string,
+            staleAfterMs: integerSetting(
+              environment,
+              "AIW_AGENTINTERSECT_STALE_AFTER_MS",
+              15_000,
+              1_000,
+              300_000,
+            ),
+            maxQueuedFrames: integerSetting(
+              environment,
+              "AIW_AGENTINTERSECT_MAX_QUEUED_FRAMES",
+              32,
+              1,
+              512,
+            ),
+          },
+        }
+      : {}),
   };
 }
 
@@ -108,5 +192,6 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
     port: config.port,
     demoOperationMaxMs: config.demoOperationMaxMs,
     repositoryMaxFiles: config.repositoryMaxFiles,
+    agentIntersectReadEnabled: config.agentIntersectRead !== undefined,
   };
 }

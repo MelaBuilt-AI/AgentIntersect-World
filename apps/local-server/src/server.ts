@@ -51,16 +51,19 @@ import {
   RepositoryIndexService,
   RepositoryIndexServiceError,
 } from "./repository-indexes.js";
+import { ReadIntegrationService } from "./agentintersect-integration.js";
 
 export type LocalServer = FastifyInstance & {
   readonly operationService: DemoOperationService;
   readonly repositoryIndexService: RepositoryIndexService;
+  readonly integrationService: ReadIntegrationService;
 };
 
 export type LocalServerOptions = {
   readonly config?: LocalServerConfig;
   readonly generateCorrelationId?: () => string;
   readonly repositoryIndexer?: typeof indexRepository;
+  readonly integrationService?: ReadIntegrationService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -75,6 +78,9 @@ export function createLocalServer(
     options.generateCorrelationId ?? createCorrelationId;
   const correlations = new WeakMap<FastifyRequest, CorrelationId>();
   const operationService = new DemoOperationService(config.demoOperationMaxMs);
+  const integrationService =
+    options.integrationService ??
+    new ReadIntegrationService({ enabled: false });
   let cachedWorldSnapshot: WorldSnapshot | undefined;
   let cachedGenerationId: string | undefined;
   let cachedProjectionError: unknown;
@@ -101,9 +107,11 @@ export function createLocalServer(
   );
   server.decorate("operationService", operationService);
   server.decorate("repositoryIndexService", repositoryIndexService);
+  server.decorate("integrationService", integrationService);
   server.addHook("onClose", async () => {
     operationService.close();
     await repositoryIndexService.close();
+    await integrationService.close();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -228,6 +236,81 @@ export function createLocalServer(
       });
       return ApiResultSchema(DoctorDataSchema).parse(success(request, data));
     });
+
+    const integrationRoute = {
+      schema: {
+        tags: ["agentintersect-read-integration"],
+        summary: "Read-only Phase 6 integration projection",
+      },
+    } as const;
+    server.get("/integration/state", integrationRoute, async (request) =>
+      success(request, integrationService.markStaleIfNeeded()),
+    );
+    server.get("/integration/phase-board", integrationRoute, async (request) =>
+      success(request, integrationService.snapshot().projection.phaseBoard),
+    );
+    server.get("/integration/roster", integrationRoute, async (request) =>
+      success(request, {
+        roster: integrationService.snapshot().projection.roster,
+      }),
+    );
+    server.get(
+      "/integration/timeline",
+      {
+        schema: {
+          tags: ["agentintersect-read-integration"],
+          querystring: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              limit: {
+                type: "integer",
+                minimum: 1,
+                maximum: 500,
+                default: 200,
+              },
+            },
+          },
+        },
+      },
+      async (request) => {
+        const query = request.query as { limit?: number };
+        const timeline = integrationService
+          .snapshot()
+          .projection.timeline.slice(-(query.limit ?? 200));
+        return success(request, { timeline });
+      },
+    );
+    server.get("/integration/replay", integrationRoute, async (request) => {
+      const snapshot = integrationService.snapshot();
+      return success(request, {
+        replay: snapshot.replay,
+        reconciliation: snapshot.reconciliation,
+      });
+    });
+    server.get(
+      "/integration/harness/:harness/readiness",
+      {
+        schema: {
+          tags: ["agentintersect-read-integration"],
+          params: {
+            type: "object",
+            required: ["harness"],
+            additionalProperties: false,
+            properties: {
+              harness: {
+                type: "string",
+                enum: ["openclaw", "hermes", "claude-code", "codex"],
+              },
+            },
+          },
+        },
+      },
+      async (request) => {
+        const { harness } = request.params as { harness: string };
+        return success(request, integrationService.harnessReadiness(harness));
+      },
+    );
 
     const repositoryIndexRouteSchema = {
       tags: ["repository-indexes"],

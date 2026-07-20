@@ -31,14 +31,19 @@ const allowedWorkspaceDependencies: Readonly<
   "@agentintersect-world/avatar-system": [],
   "@agentintersect-world/config": [],
   "@agentintersect-world/local-server": [
+    "@agentintersect-world/agentintersect-client",
     "@agentintersect-world/config",
     "@agentintersect-world/observability",
+    "@agentintersect-world/persistence",
     "@agentintersect-world/repo-indexer",
     "@agentintersect-world/spatial-code-graph",
+    "@agentintersect-world/world-event-protocol",
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/observability": ["@agentintersect-world/world-schema"],
-  "@agentintersect-world/persistence": [],
+  "@agentintersect-world/persistence": [
+    "@agentintersect-world/world-event-protocol",
+  ],
   "@agentintersect-world/renderer-r3f": [],
   "@agentintersect-world/repo-indexer": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/spatial-code-graph": [

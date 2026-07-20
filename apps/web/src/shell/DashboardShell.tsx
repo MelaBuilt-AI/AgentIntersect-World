@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useAuthorityState } from "../authority/use-authority.js";
 import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
 import { AvatarPreview } from "../avatar/AvatarPreview.js";
+import { IntegrationPanel } from "../integration/IntegrationPanel.js";
+import { useIntegration } from "../integration/use-integration.js";
 import { AuthorityPanel } from "../panels/AuthorityPanel.js";
 import { RepositoryIndexPanel } from "../panels/RepositoryIndexPanel.js";
 import { RepositoryWorldPanel } from "../repository/RepositoryWorldPanel.js";
@@ -27,6 +29,7 @@ export function DashboardShell({
     "World shell ready. Choose a category.",
   );
   const harness = useHarnessIntent();
+  const integration = useIntegration(harness.currentHarness);
   const fixtureValue =
     typeof window === "undefined"
       ? null
@@ -137,8 +140,14 @@ export function DashboardShell({
             </label>
           </div>
           <p className="truthful-copy">
-            Selection only — readiness, authentication, connection, and
-            execution are not checked in Phase 5.
+            Selected harness read status:{" "}
+            {integration.loading
+              ? "loading"
+              : (integration.readiness?.status ??
+                integration.state?.status ??
+                "offline")}
+            . Phase 6 observes only; authentication, commands, and execution
+            remain disabled.
           </p>
         </div>
       </section>
@@ -173,8 +182,12 @@ export function DashboardShell({
           </strong>
         </div>
         <div>
-          <span>intent_</span>
-          <strong>{harness.currentHarness} selected only</strong>
+          <span>integration_</span>
+          <strong>
+            {integration.loading
+              ? "loading"
+              : `${integration.state?.status ?? "offline"} · ${harness.currentHarness}`}
+          </strong>
         </div>
         <div
           className="persistent-output__result"
@@ -204,6 +217,16 @@ export function DashboardShell({
           </header>
           {activePanel === "World" && (
             <div className="stacked-panels">
+              {integration.state ? (
+                <IntegrationPanel
+                  state={integration.state}
+                  readiness={integration.readiness}
+                />
+              ) : (
+                <section className="panel-state" role="status">
+                  Loading AgentIntersect read integration…
+                </section>
+              )}
               <RepositoryWorldPanel fixture={fixture} />
               <AuthorityPanel authority={authority} />
             </div>
@@ -214,19 +237,28 @@ export function DashboardShell({
               onIndexed={invalidateWorld}
             />
           )}
-          {activePanel === "Agents" && (
-            <InfoPanel
-              title="Owned agent harness intent"
-              copy="OpenClaw, Hermes, Claude Code, and Codex are durable local choices only. No agent readiness or connection is represented here."
-            />
-          )}
-          {activePanel === "Activity" && (
-            <InfoPanel
-              title="Activity projection arrives later"
-              copy="Phase 5 preserves a truthful empty state. Worker jobs, execution, and timelines remain disabled."
-              disabledAction="Start worker (Phase 7)"
-            />
-          )}
+          {activePanel === "Agents" &&
+            (integration.state ? (
+              <IntegrationPanel
+                state={integration.state}
+                readiness={integration.readiness}
+              />
+            ) : (
+              <section className="panel-state" role="status">
+                Loading observed roster…
+              </section>
+            ))}
+          {activePanel === "Activity" &&
+            (integration.state ? (
+              <IntegrationPanel
+                state={integration.state}
+                readiness={integration.readiness}
+              />
+            ) : (
+              <section className="panel-state" role="status">
+                Loading normalized timeline…
+              </section>
+            ))}
           {activePanel === "Evidence" && (
             <InfoPanel
               title="Evidence is not fabricated"
@@ -249,7 +281,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 5 balanced vertical slice</span>
+        <span>Phase 6 read integration and normalized replay</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>

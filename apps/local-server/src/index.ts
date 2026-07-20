@@ -2,7 +2,10 @@ import {
   ConfigurationError,
   loadLocalServerConfig,
 } from "@agentintersect-world/config/node";
+import { AgentIntersectReadClient } from "@agentintersect-world/agentintersect-client/read";
+import { WorldEventStore } from "@agentintersect-world/persistence";
 
+import { ReadIntegrationService } from "./agentintersect-integration.js";
 import { createLocalServer } from "./server.js";
 
 const config = (() => {
@@ -20,7 +23,21 @@ const config = (() => {
 })();
 
 if (config !== undefined) {
-  const server = createLocalServer({ config });
+  const integrationService = config.agentIntersectRead
+    ? new ReadIntegrationService({
+        enabled: true,
+        client: new AgentIntersectReadClient({
+          daemonUrl: config.agentIntersectRead.daemonUrl,
+          dashboardUrl: config.agentIntersectRead.dashboardUrl,
+          expectedWorkspace: config.agentIntersectRead.expectedWorkspace,
+          protectedPids: [process.pid, process.ppid],
+        }),
+        store: new WorldEventStore(config.agentIntersectRead.dataDir),
+        staleAfterMs: config.agentIntersectRead.staleAfterMs,
+        maxQueuedFrames: config.agentIntersectRead.maxQueuedFrames,
+      })
+    : new ReadIntegrationService({ enabled: false });
+  const server = createLocalServer({ config, integrationService });
   let closePromise: Promise<void> | undefined;
 
   const closeOnce = (): Promise<void> => {
@@ -52,6 +69,7 @@ if (config !== undefined) {
       host: config.host,
       port: config.port,
     });
+    await integrationService.start();
     process.stdout.write(
       `AgentIntersect World local server ready at ${address} (bound at ${config.host}:${config.port}; network scope: ${config.networkScope})\n`,
     );

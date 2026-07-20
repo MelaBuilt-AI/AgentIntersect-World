@@ -11,15 +11,15 @@ import {
   type AgentIntersectCompatibilityObservation,
   type CheckoutObservation,
   type CompatibilityResult,
-} from "./checkout-preflight.ts";
-import type { McpCapture } from "./phase0-harness.ts";
+} from "./checkout-preflight.js";
+import type { McpCapture } from "./phase0-harness.js";
 
 export {
   sanitizeEvidence,
   scanCommittedEvidence,
   type EvidenceScan,
   type SanitizationContext,
-} from "./sanitization.ts";
+} from "./sanitization.js";
 
 export interface Phase0EvidenceObservation {
   checkout: CheckoutObservation;
@@ -278,7 +278,7 @@ export {
   type AgentIntersectCompatibilityObservation,
   type CheckoutObservation,
   type CompatibilityResult,
-} from "./checkout-preflight.ts";
+} from "./checkout-preflight.js";
 export {
   captureHttpSseContract,
   captureMcpContract,
@@ -288,4 +288,4 @@ export {
   type McpCapture,
   type LifecycleCapture,
   type EmergencyStopCapture,
-} from "./phase0-harness.ts";
+} from "./phase0-harness.js";

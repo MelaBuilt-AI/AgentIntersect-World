@@ -718,6 +718,100 @@ p {
   border-left: 3px solid #f87171;
   background: rgba(127, 29, 29, 0.14);
 }
+.integration-panel {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.6rem);
+  border: 1px solid var(--line);
+  background: rgba(3, 10, 20, 0.84);
+  overflow-wrap: anywhere;
+}
+.integration-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.integration-panel__header h2,
+.integration-panel h3 {
+  margin: 0.25rem 0 0.7rem;
+}
+.integration-status {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+.integration-status--ready {
+  color: var(--blue);
+}
+.integration-status--disabled,
+.integration-status--connecting,
+.integration-status--offline,
+.integration-status--stale {
+  color: #94a3b8;
+}
+.integration-status--mismatch,
+.integration-status--error {
+  color: #f87171;
+}
+.integration-diagnostics {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-left: 3px solid var(--blue);
+  background: rgba(15, 23, 42, 0.72);
+}
+.integration-diagnostics p {
+  margin: 0.25rem 0;
+}
+.integration-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.integration-grid > section,
+.integration-timeline {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+}
+.integration-grid dl,
+.integration-grid ul,
+.integration-timeline ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.integration-grid dd {
+  margin: 0.25rem 0 0;
+}
+.integration-timeline {
+  margin-top: 1rem;
+}
+.integration-timeline li {
+  display: grid;
+  grid-template-columns: minmax(10rem, auto) minmax(0, 1fr);
+  gap: 0.25rem 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.integration-timeline li span {
+  grid-column: 2;
+  color: var(--muted);
+}
+.observation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.observation-controls button:disabled {
+  color: #94a3b8;
+  border-color: #64748b;
+  background: #1e293b;
+}
 
 @keyframes cursor-blink {
   0%,
@@ -779,6 +873,9 @@ p {
   .world-browser__layout {
     grid-template-columns: 1fr;
   }
+  .integration-grid {
+    grid-template-columns: 1fr;
+  }
   .object-tree {
     max-height: 22rem;
   }
@@ -829,6 +926,15 @@ p {
   .canvas-fallback {
     height: 20rem;
     min-height: 20rem;
+  }
+  .integration-panel__header {
+    flex-direction: column;
+  }
+  .integration-timeline li {
+    grid-template-columns: 1fr;
+  }
+  .integration-timeline li span {
+    grid-column: 1;
   }
 }
 
