@@ -46,6 +46,19 @@ function optionalRecords(value: unknown, label: string): Record<string, unknown>
   return value.map((item, index) => record(item, `${label}[${index}]`));
 }
 
+function firstIdentifier(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+  label: string,
+): string | undefined {
+  for (const key of keys) {
+    const candidate = value[key];
+    if (candidate !== undefined && candidate !== null)
+      return identifier(candidate, `${label}.${key}`);
+  }
+  return undefined;
+}
+
 function identifier(value: unknown, label: string): string {
   if (
     typeof value !== "string" ||
@@ -92,6 +105,39 @@ function validateWorker(value: unknown, label: string): Record<string, unknown> 
   return worker;
 }
 
+function workerRecords(
+  value: unknown,
+  label: string,
+): Record<string, unknown>[] {
+  if (value === undefined || value === null) return [];
+  if (Array.isArray(value))
+    return optionalRecords(value, label).map((item, index) =>
+      validateWorker(item, `${label}[${index}]`),
+    );
+  const summary = record(value, label);
+  const candidates: Record<string, unknown>[] = [];
+  if (summary.latest !== undefined && summary.latest !== null)
+    candidates.push(record(summary.latest, `${label}.latest`));
+  for (const bucket of ["recent", "queued", "running", "complete", "failed"])
+    candidates.push(...optionalRecords(summary[bucket], `${label}.${bucket}`));
+  if (candidates.length > MAX_COLLECTION)
+    throw new ContractReadError(
+      `${label} contains too many worker records`,
+      "oversized",
+    );
+  const unique = new Map<string, Record<string, unknown>>();
+  for (const [index, candidate] of candidates.entries()) {
+    const worker = validateWorker(candidate, `${label}.items[${index}]`);
+    const id = firstIdentifier(
+      worker,
+      ["id", "jobId", "job_id", "workerId", "worker_id", "agentId", "agent_id"],
+      `${label}.items[${index}]`,
+    );
+    if (id && !unique.has(id)) unique.set(id, worker);
+  }
+  return [...unique.values()];
+}
+
 function validateEvent(value: unknown, label: string): Record<string, unknown> {
   const event = record(value, label);
   identifier(event.type, `${label}.type`);
@@ -130,22 +176,50 @@ export interface ParsedDaemonState extends Record<string, unknown> {
 export function parseDaemonState(value: unknown): ParsedDaemonState {
   bounded(value, "daemon state");
   const input = record(value, "daemon state");
+  const phases = optionalRecords(input.phases, "phases").map((item, index) =>
+    validatePhase(item, `phases[${index}]`),
+  );
+  const currentPhaseId = firstIdentifier(
+    input,
+    ["currentPhaseId", "current_phase_id"],
+    "daemon state",
+  );
+  let currentPhase =
+    input.currentPhase === undefined || input.currentPhase === null
+      ? phases.find(
+          (phase) =>
+            firstIdentifier(phase, ["id", "phaseId", "phase_id"], "phase") ===
+            currentPhaseId,
+        )
+      : validatePhase(input.currentPhase, "currentPhase");
+  const plan =
+    input.plan === undefined || input.plan === null
+      ? undefined
+      : record(input.plan, "plan");
+  const revision = plan
+    ? firstIdentifier(plan, ["sourceHash", "revision"], "plan")
+    : undefined;
+  if (currentPhase && revision && currentPhase.revision === undefined)
+    currentPhase = { ...currentPhase, revision };
+  const sessions = optionalRecords(input.sessions, "sessions").map((item, index) =>
+    validateSession(item, `sessions[${index}]`),
+  );
+  const session =
+    input.session === undefined || input.session === null
+      ? [...sessions]
+          .reverse()
+          .find(
+            (item) =>
+              firstIdentifier(item, ["phaseId", "phase_id"], "session") ===
+              currentPhaseId,
+          )
+      : validateSession(input.session, "session");
   return {
     ...input,
-    currentPhase:
-      input.currentPhase === undefined || input.currentPhase === null
-        ? undefined
-        : validatePhase(input.currentPhase, "currentPhase"),
-    session:
-      input.session === undefined || input.session === null
-        ? undefined
-        : validateSession(input.session, "session"),
-    workerJobs: optionalRecords(input.workerJobs, "workerJobs").map((item, index) =>
-      validateWorker(item, `workerJobs[${index}]`),
-    ),
-    phases: optionalRecords(input.phases, "phases").map((item, index) =>
-      validatePhase(item, `phases[${index}]`),
-    ),
+    currentPhase,
+    session,
+    workerJobs: workerRecords(input.workerJobs, "workerJobs"),
+    phases,
   };
 }
 
@@ -168,14 +242,14 @@ export function parseDashboardSnapshot(value: unknown): ParsedDashboardSnapshot 
         : validatePhase(input.currentPhase, "currentPhase"),
     session:
       input.session === undefined || input.session === null
-        ? undefined
+        ? input.latestSession === undefined || input.latestSession === null
+          ? undefined
+          : validateSession(input.latestSession, "latestSession")
         : validateSession(input.session, "session"),
     phaseTimeline: optionalRecords(input.phaseTimeline, "phaseTimeline").map(
       (item, index) => validatePhase(item, `phaseTimeline[${index}]`),
     ),
-    workerJobs: optionalRecords(input.workerJobs, "workerJobs").map((item, index) =>
-      validateWorker(item, `workerJobs[${index}]`),
-    ),
+    workerJobs: workerRecords(input.workerJobs, "workerJobs"),
     agents: optionalRecords(input.agents, "agents").map((item, index) =>
       validateWorker(item, `agents[${index}]`),
     ),
@@ -304,10 +378,47 @@ export class AgentIntersectReadClient {
     const state = await jsonRequest(this.daemonUrl, "/v1/state", this.timeoutMs, this.fetcher);
     const snapshot = await jsonRequest(this.dashboardUrl, "/api/snapshot", this.timeoutMs, this.fetcher);
     const feed = await jsonRequest(this.dashboardUrl, "/api/events", this.timeoutMs, this.fetcher);
+    const parsedState = parseDaemonState(state.payload);
+    let parsedSnapshot = parseDashboardSnapshot(snapshot.payload);
+    const statePhaseId = parsedState.currentPhase
+      ? firstIdentifier(
+          parsedState.currentPhase,
+          ["id", "phaseId", "phase_id"],
+          "state phase",
+        )
+      : undefined;
+    const snapshotPhaseId = parsedSnapshot.currentPhase
+      ? firstIdentifier(
+          parsedSnapshot.currentPhase,
+          ["id", "phaseId", "phase_id"],
+          "snapshot phase",
+        )
+      : undefined;
+    const stateRevision = parsedState.currentPhase
+      ? firstIdentifier(
+          parsedState.currentPhase,
+          ["revision", "expectedRevision"],
+          "state phase",
+        )
+      : undefined;
+    if (
+      parsedSnapshot.currentPhase &&
+      statePhaseId === snapshotPhaseId &&
+      stateRevision &&
+      parsedSnapshot.currentPhase.revision === undefined
+    ) {
+      parsedSnapshot = {
+        ...parsedSnapshot,
+        currentPhase: {
+          ...parsedSnapshot.currentPhase,
+          revision: stateRevision,
+        },
+      };
+    }
     return {
       health,
-      state: parseDaemonState(state.payload),
-      snapshot: parseDashboardSnapshot(snapshot.payload),
+      state: parsedState,
+      snapshot: parsedSnapshot,
       feed: parseDashboardFeed(feed.payload),
       observedAt: new Date().toISOString(),
     };

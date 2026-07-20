@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthorityState } from "../authority/use-authority.js";
 import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
 import { AvatarPreview } from "../avatar/AvatarPreview.js";
+import { CommandIntentPanel } from "../commands/CommandIntentPanel.js";
 import { IntegrationPanel } from "../integration/IntegrationPanel.js";
 import { useIntegration } from "../integration/use-integration.js";
 import { AuthorityPanel } from "../panels/AuthorityPanel.js";
@@ -40,6 +41,11 @@ export function DashboardShell({
       : fixtureValue === "phase5-paths"
         ? "absolute-paths"
         : fixtureValue === "phase5";
+  const phase7Fixture = fixtureValue === "phase7-job";
+  const commandsEnabled =
+    phase7Fixture ||
+    (authority.status === "ready" &&
+      authority.ready.config.agentIntersectCommandsEnabled);
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") setActivePanel(null);
@@ -146,8 +152,8 @@ export function DashboardShell({
               : (integration.readiness?.status ??
                 integration.state?.status ??
                 "offline")}
-            . Phase 6 observes only; authentication, commands, and execution
-            remain disabled.
+            . Phase 7 enables only the bounded command-intent action when its
+            dedicated authority is configured.
           </p>
         </div>
       </section>
@@ -250,10 +256,21 @@ export function DashboardShell({
             ))}
           {activePanel === "Activity" &&
             (integration.state ? (
-              <IntegrationPanel
-                state={integration.state}
-                readiness={integration.readiness}
-              />
+              <div className="stacked-panels">
+                <CommandIntentPanel
+                  harness={harness.currentHarness}
+                  readiness={integration.readiness}
+                  phaseId={
+                    integration.state.projection.phaseBoard.current?.id ?? null
+                  }
+                  commandsEnabled={commandsEnabled}
+                  fixtureMode={phase7Fixture}
+                />
+                <IntegrationPanel
+                  state={integration.state}
+                  readiness={integration.readiness}
+                />
+              </div>
             ) : (
               <section className="panel-state" role="status">
                 Loading normalized timeline…
@@ -281,7 +298,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 6 read integration and normalized replay</span>
+        <span>Phase 7 bounded command intent and normalized replay</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>

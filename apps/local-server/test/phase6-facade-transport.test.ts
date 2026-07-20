@@ -28,7 +28,9 @@ function fixture() {
   const processStartTime = processStat
     .slice(processStat.lastIndexOf(")") + 2)
     .split(" ")[19];
-  let mode: "ready" | "fake-health" | "malformed" | "offline" = "ready";
+  let mode:
+    "ready" | "pinned-real-shape" | "fake-health" | "malformed" | "offline" =
+    "ready";
   const fetcher = (async (input: string | URL | Request) => {
     if (mode === "offline") throw new TypeError("connection refused");
     const route = new URL(
@@ -65,12 +67,62 @@ function fixture() {
     }
     if (mode === "malformed")
       return new Response("{", { status: 200, headers });
+    if (route === "/v1/state" && mode === "pinned-real-shape")
+      return new Response(
+        JSON.stringify({
+          plan: { sourceHash: "design-revision-7" },
+          phases: [{ id: "phase_7", status: "running" }],
+          currentPhaseId: "phase_7",
+          sessions: [
+            {
+              id: "session-7",
+              phaseId: "phase_7",
+              status: "running",
+            },
+          ],
+        }),
+        { status: 200, headers },
+      );
     if (route === "/v1/state")
       return new Response(
         JSON.stringify({
           currentPhase: { id: "phase_6", status: "running" },
           workerJobs: [],
           phases: [],
+        }),
+        { status: 200, headers },
+      );
+    if (route === "/api/snapshot" && mode === "pinned-real-shape")
+      return new Response(
+        JSON.stringify({
+          currentPhase: { id: "phase_7", status: "running" },
+          latestSession: {
+            id: "session-7",
+            phaseId: "phase_7",
+            status: "running",
+          },
+          phaseTimeline: [],
+          workerJobs: {
+            total: 1,
+            latest: {
+              id: "job-7",
+              type: "phase_run",
+              harness: "codex",
+              status: "queued",
+            },
+            recent: [
+              {
+                id: "job-7",
+                type: "phase_run",
+                harness: "codex",
+                status: "queued",
+              },
+            ],
+            queued: [],
+            running: [],
+            complete: [],
+            failed: [],
+          },
         }),
         { status: 200, headers },
       );
@@ -117,6 +169,37 @@ describe("Phase 6 read compatibility facade transport", () => {
     expect(result.health.service).toBe("agentintersect-daemon/v1");
     expect(result.state.currentPhase?.id).toBe("phase_6");
     expect(result.feed.events).toEqual([]);
+  });
+
+  it("normalizes the actual pinned AgentIntersect state and dashboard shapes", async () => {
+    const transport = fixture();
+    transport.setMode("pinned-real-shape");
+    const client = new AgentIntersectReadClient({
+      daemonUrl: "http://127.0.0.1:3761",
+      dashboardUrl: "http://127.0.0.1:3762",
+      expectedWorkspace: transport.workspace,
+      expectedPid: process.pid,
+      fetcher: transport.fetcher,
+    });
+    const result = await client.readInitial();
+    expect(result.state.currentPhase).toMatchObject({
+      id: "phase_7",
+      status: "running",
+      revision: "design-revision-7",
+    });
+    expect(result.state.session?.id).toBe("session-7");
+    expect(result.snapshot.currentPhase).toMatchObject({
+      id: "phase_7",
+      status: "running",
+      revision: "design-revision-7",
+    });
+    expect(result.snapshot.session?.id).toBe("session-7");
+    expect(result.snapshot.workerJobs).toHaveLength(1);
+    expect(result.snapshot.workerJobs[0]).toMatchObject({
+      id: "job-7",
+      harness: "codex",
+      status: "queued",
+    });
   });
 
   it("parses only pinned events SSE frames without claiming source resume IDs", async () => {

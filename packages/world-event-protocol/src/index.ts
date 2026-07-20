@@ -119,6 +119,10 @@ function sanitize(value: unknown, depth = 0): unknown {
   return output;
 }
 
+export function sanitizeBoundedValue<T>(value: T): T {
+  return sanitize(value) as T;
+}
+
 function asIdentifier(value: unknown): string | undefined {
   if (typeof value !== "string" && typeof value !== "number") return undefined;
   const result = cleanString(String(value)).slice(0, MAX_IDENTIFIER);

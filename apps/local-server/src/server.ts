@@ -1,3 +1,6 @@
+import { createHash, timingSafeEqual } from "node:crypto";
+import net from "node:net";
+
 import {
   APP_METADATA,
   type LocalServerConfig,
@@ -16,6 +19,9 @@ import {
 import {
   ApiErrorSchema,
   ApiResultSchema,
+  CommandIntentListDataSchema,
+  CommandIntentRecordSchema,
+  CommandIntentRequestSchema,
   CorrelationIdSchema,
   DoctorDataSchema,
   HealthResponseSchema,
@@ -52,11 +58,16 @@ import {
   RepositoryIndexServiceError,
 } from "./repository-indexes.js";
 import { ReadIntegrationService } from "./agentintersect-integration.js";
+import {
+  CommandIntentError,
+  type CommandIntentService,
+} from "./command-intents.js";
 
 export type LocalServer = FastifyInstance & {
   readonly operationService: DemoOperationService;
   readonly repositoryIndexService: RepositoryIndexService;
   readonly integrationService: ReadIntegrationService;
+  readonly commandIntentService?: CommandIntentService;
 };
 
 export type LocalServerOptions = {
@@ -64,6 +75,7 @@ export type LocalServerOptions = {
   readonly generateCorrelationId?: () => string;
   readonly repositoryIndexer?: typeof indexRepository;
   readonly integrationService?: ReadIntegrationService;
+  readonly commandIntentService?: CommandIntentService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -81,6 +93,7 @@ export function createLocalServer(
   const integrationService =
     options.integrationService ??
     new ReadIntegrationService({ enabled: false });
+  const commandIntentService = options.commandIntentService;
   let cachedWorldSnapshot: WorldSnapshot | undefined;
   let cachedGenerationId: string | undefined;
   let cachedProjectionError: unknown;
@@ -108,6 +121,7 @@ export function createLocalServer(
   server.decorate("operationService", operationService);
   server.decorate("repositoryIndexService", repositoryIndexService);
   server.decorate("integrationService", integrationService);
+  server.decorate("commandIntentService", commandIntentService);
   server.addHook("onClose", async () => {
     operationService.close();
     await repositoryIndexService.close();
@@ -309,6 +323,248 @@ export function createLocalServer(
       async (request) => {
         const { harness } = request.params as { harness: string };
         return success(request, integrationService.harnessReadiness(harness));
+      },
+    );
+
+    const commandFailure = (
+      error: unknown,
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => {
+      if (!(error instanceof CommandIntentError)) throw error;
+      const statusCode =
+        error.code === "validation"
+          ? 400
+          : error.code === "conflict"
+            ? 409
+            : error.code === "not_found"
+              ? 404
+              : error.code === "authority_unavailable"
+                ? 503
+                : 502;
+      const apiCode =
+        error.code === "store_corrupt"
+          ? "authority_unavailable"
+          : error.code === "upstream"
+            ? "upstream"
+            : error.code;
+      return reply
+        .code(statusCode)
+        .send(failure(request, apiCode, error.message));
+    };
+
+    const isAllowedCommandAddress = (address: string): boolean => {
+      const normalized = address.startsWith("::ffff:")
+        ? address.slice("::ffff:".length)
+        : address;
+      if (
+        normalized === "127.0.0.1" ||
+        normalized === "::1" ||
+        normalized.startsWith("127.")
+      )
+        return true;
+      if (config.networkScope !== "lan") return false;
+      if (net.isIPv4(normalized)) {
+        const [first = 0, second = 0] = normalized
+          .split(".")
+          .map((part) => Number(part));
+        return (
+          first === 10 ||
+          (first === 172 && second >= 16 && second <= 31) ||
+          (first === 192 && second === 168) ||
+          (first === 169 && second === 254)
+        );
+      }
+      const lower = normalized.toLowerCase();
+      return (
+        net.isIPv6(lower) &&
+        (lower.startsWith("fc") ||
+          lower.startsWith("fd") ||
+          lower.startsWith("fe8") ||
+          lower.startsWith("fe9") ||
+          lower.startsWith("fea") ||
+          lower.startsWith("feb"))
+      );
+    };
+
+    const sameCommandToken = (supplied: string, expected: string): boolean => {
+      const digest = (value: string) =>
+        createHash("sha256").update(value).digest();
+      return timingSafeEqual(digest(supplied), digest(expected));
+    };
+
+    const authorizeCommand = async (
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => {
+      if (!config.agentIntersectCommands || !commandIntentService)
+        return reply
+          .code(503)
+          .send(
+            failure(
+              request,
+              "authority_unavailable",
+              "AgentIntersect command authority is disabled",
+            ),
+          );
+      if (!isAllowedCommandAddress(request.ip))
+        return reply
+          .code(403)
+          .send(
+            failure(
+              request,
+              "forbidden",
+              "Command client is outside the configured loopback/trusted-LAN scope",
+            ),
+          );
+      const header = request.headers.authorization;
+      const supplied =
+        typeof header === "string" && header.startsWith("Bearer ")
+          ? header.slice("Bearer ".length)
+          : "";
+      if (!sameCommandToken(supplied, config.agentIntersectCommands.token))
+        return reply
+          .code(401)
+          .send(
+            failure(
+              request,
+              "unauthorized",
+              "A valid dedicated command bearer token is required",
+            ),
+          );
+    };
+
+    server.post(
+      "/commands/intents",
+      {
+        onRequest: authorizeCommand,
+        schema: {
+          tags: ["phase7-command-intents"],
+          headers: {
+            type: "object",
+            required: ["idempotency-key"],
+            properties: {
+              "idempotency-key": {
+                type: "string",
+                minLength: 1,
+                maxLength: 128,
+                pattern: "^[ -~]+$",
+              },
+            },
+          },
+          body: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "schema",
+              "kind",
+              "phaseId",
+              "harness",
+              "expectedRevision",
+              "fixture",
+            ],
+            properties: {
+              schema: {
+                type: "string",
+                const: "aiw.command-intent.request/0.7",
+              },
+              kind: { type: "string", const: "worker.enqueue-phase" },
+              phaseId: { type: "string", minLength: 1, maxLength: 128 },
+              harness: {
+                type: "string",
+                enum: ["openclaw", "hermes", "claude-code", "codex"],
+              },
+              expectedRevision: {
+                type: "string",
+                minLength: 1,
+                maxLength: 128,
+              },
+              fixture: {
+                type: "string",
+                const: "phase7-disposable-artifact-v1",
+              },
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        try {
+          if (!commandIntentService)
+            throw new CommandIntentError(
+              "authority_unavailable",
+              "AgentIntersect command authority is disabled",
+            );
+          commandIntentService.reconcile(
+            integrationService.snapshot().projection,
+          );
+          const body = CommandIntentRequestSchema.parse(request.body);
+          const key = request.headers["idempotency-key"];
+          const submitted = await commandIntentService.submit(
+            typeof key === "string" ? key : "",
+            body,
+            correlationFor(request),
+          );
+          if (submitted.replay)
+            void reply.header("x-idempotent-replay", "true");
+          return reply
+            .code(submitted.replay ? 200 : 202)
+            .send(
+              ApiResultSchema(CommandIntentRecordSchema).parse(
+                success(request, submitted.intent),
+              ),
+            );
+        } catch (error) {
+          if (error instanceof CommandIntentError)
+            return commandFailure(error, request, reply);
+          return reply
+            .code(400)
+            .send(failure(request, "validation", "Command intent is invalid"));
+        }
+      },
+    );
+    server.get(
+      "/commands/intents",
+      { schema: { tags: ["phase7-command-intents"] } },
+      async (request) => {
+        const intents = commandIntentService
+          ? commandIntentService.reconcile(
+              integrationService.snapshot().projection,
+            )
+          : [];
+        return ApiResultSchema(CommandIntentListDataSchema).parse(
+          success(request, { intents }),
+        );
+      },
+    );
+    server.get(
+      "/commands/intents/:id",
+      {
+        schema: {
+          tags: ["phase7-command-intents"],
+          params: {
+            type: "object",
+            required: ["id"],
+            properties: { id: { type: "string", format: "uuid" } },
+          },
+        },
+      },
+      async (request, reply) => {
+        try {
+          if (!commandIntentService)
+            throw new CommandIntentError(
+              "not_found",
+              "Command intent not found",
+            );
+          commandIntentService.reconcile(
+            integrationService.snapshot().projection,
+          );
+          const { id } = request.params as { id: string };
+          return ApiResultSchema(CommandIntentRecordSchema).parse(
+            success(request, commandIntentService.require(id)),
+          );
+        } catch (error) {
+          return commandFailure(error, request, reply);
+        }
       },
     );
 

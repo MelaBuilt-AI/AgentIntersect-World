@@ -1,7 +1,7 @@
 export const APP_METADATA = {
   name: "AgentIntersect World",
-  phase: "Phase 6",
-  version: "0.6.0-phase6",
+  phase: "Phase 7",
+  version: "0.7.0-phase7",
 } as const;
 
 export const LOCAL_SERVER_DEFAULTS = {
@@ -34,10 +34,19 @@ export type LocalServerConfig = {
     readonly staleAfterMs: number;
     readonly maxQueuedFrames: number;
   };
+  readonly agentIntersectCommands?: {
+    readonly token: string;
+    readonly expectedPhaseId: string;
+    readonly expectedRevision: string;
+  };
 };
 
-export type SafeConfig = LocalServerConfig & {
+export type SafeConfig = Omit<
+  LocalServerConfig,
+  "agentIntersectRead" | "agentIntersectCommands"
+> & {
   readonly phase: typeof APP_METADATA.phase;
   readonly version: typeof APP_METADATA.version;
   readonly agentIntersectReadEnabled: boolean;
+  readonly agentIntersectCommandsEnabled: boolean;
 };

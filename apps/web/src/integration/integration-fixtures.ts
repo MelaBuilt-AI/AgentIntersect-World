@@ -1,6 +1,7 @@
 import type { IntegrationState } from "./types.js";
 
-type FixtureName = "ready" | "offline" | "mismatch" | "replayed" | "hostile";
+type FixtureName =
+  "ready" | "offline" | "mismatch" | "replayed" | "hostile" | "phase7-job";
 
 const event = {
   id: "aiw:event:fixture",
@@ -23,7 +24,11 @@ const event = {
 };
 
 export function integrationFixture(name: FixtureName): IntegrationState {
-  const ready = name === "ready" || name === "replayed" || name === "hostile";
+  const ready =
+    name === "ready" ||
+    name === "replayed" ||
+    name === "hostile" ||
+    name === "phase7-job";
   const status = ready ? "ready" : name;
   const hasData = ready || name === "mismatch";
   return {
@@ -52,7 +57,7 @@ export function integrationFixture(name: FixtureName): IntegrationState {
       phaseBoard: hasData
         ? {
             current: {
-              id: "phase_6",
+              id: name === "phase7-job" ? "phase_7" : "phase_6",
               status: "running",
               title: "Read integration",
             },
@@ -95,6 +100,7 @@ export function integrationFixture(name: FixtureName): IntegrationState {
 }
 
 export function fixtureFromQuery(value: string | null): FixtureName | null {
+  if (value === "phase7-job") return value;
   if (!value?.startsWith("phase6-")) return null;
   const name = value.slice("phase6-".length) as FixtureName;
   return ["ready", "offline", "mismatch", "replayed", "hostile"].includes(name)

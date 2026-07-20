@@ -4,8 +4,14 @@ import {
 } from "@agentintersect-world/config/node";
 import { AgentIntersectReadClient } from "@agentintersect-world/agentintersect-client/read";
 import { WorldEventStore } from "@agentintersect-world/persistence";
+import path from "node:path";
 
 import { ReadIntegrationService } from "./agentintersect-integration.js";
+import {
+  AgentIntersectCommandClient,
+  CommandIntentService,
+  CommandIntentStore,
+} from "./command-intents.js";
 import { createLocalServer } from "./server.js";
 
 const config = (() => {
@@ -23,21 +29,44 @@ const config = (() => {
 })();
 
 if (config !== undefined) {
+  const readClient = config.agentIntersectRead
+    ? new AgentIntersectReadClient({
+        daemonUrl: config.agentIntersectRead.daemonUrl,
+        dashboardUrl: config.agentIntersectRead.dashboardUrl,
+        expectedWorkspace: config.agentIntersectRead.expectedWorkspace,
+        protectedPids: [process.pid, process.ppid],
+      })
+    : undefined;
   const integrationService = config.agentIntersectRead
     ? new ReadIntegrationService({
         enabled: true,
-        client: new AgentIntersectReadClient({
-          daemonUrl: config.agentIntersectRead.daemonUrl,
-          dashboardUrl: config.agentIntersectRead.dashboardUrl,
-          expectedWorkspace: config.agentIntersectRead.expectedWorkspace,
-          protectedPids: [process.pid, process.ppid],
-        }),
+        client: readClient as AgentIntersectReadClient,
         store: new WorldEventStore(config.agentIntersectRead.dataDir),
         staleAfterMs: config.agentIntersectRead.staleAfterMs,
         maxQueuedFrames: config.agentIntersectRead.maxQueuedFrames,
       })
     : new ReadIntegrationService({ enabled: false });
-  const server = createLocalServer({ config, integrationService });
+  const commandIntentService =
+    config.agentIntersectCommands && config.agentIntersectRead && readClient
+      ? new CommandIntentService({
+          store: new CommandIntentStore(config.agentIntersectRead.dataDir),
+          client: new AgentIntersectCommandClient({
+            daemonUrl: config.agentIntersectRead.daemonUrl,
+            readClient,
+            rawLogDirectory: path.join(
+              config.agentIntersectRead.dataDir,
+              "raw-command-logs",
+            ),
+          }),
+          expectedPhaseId: config.agentIntersectCommands.expectedPhaseId,
+          expectedRevision: config.agentIntersectCommands.expectedRevision,
+        })
+      : undefined;
+  const server = createLocalServer({
+    config,
+    integrationService,
+    ...(commandIntentService ? { commandIntentService } : {}),
+  });
   let closePromise: Promise<void> | undefined;
 
   const closeOnce = (): Promise<void> => {

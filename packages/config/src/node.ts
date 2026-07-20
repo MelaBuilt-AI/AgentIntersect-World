@@ -11,6 +11,7 @@ const DEMO_OPERATION_MAX_MS = 60_000;
 const HOST_PATTERN = /^(?:[a-z0-9.-]+|\[[0-9a-f:]+\]|[0-9a-f:]+)$/i;
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 const ABSOLUTE_PATH = /^(?:\/|[a-z]:[\\/]|\\\\)/i;
+const VISIBLE_ASCII = /^[\x20-\x7e]+$/;
 
 function readUrl(
   value: string | undefined,
@@ -128,6 +129,50 @@ export function loadLocalServerConfig(
     );
   }
 
+  const commandsEnabled =
+    environment.AIW_AGENTINTERSECT_COMMANDS_ENABLED === "true";
+  if (
+    environment.AIW_AGENTINTERSECT_COMMANDS_ENABLED !== undefined &&
+    !["true", "false"].includes(environment.AIW_AGENTINTERSECT_COMMANDS_ENABLED)
+  ) {
+    throw new ConfigurationError(
+      "AIW_AGENTINTERSECT_COMMANDS_ENABLED must be true or false",
+    );
+  }
+  const commandToken = environment.AIW_AGENTINTERSECT_COMMAND_TOKEN;
+  const expectedPhaseId =
+    environment.AIW_AGENTINTERSECT_EXPECTED_PHASE_ID?.trim();
+  const expectedRevision =
+    environment.AIW_AGENTINTERSECT_EXPECTED_REVISION?.trim();
+  if (commandsEnabled && !enabled) {
+    throw new ConfigurationError(
+      "AgentIntersect commands require read integration to be enabled",
+    );
+  }
+  if (
+    commandsEnabled &&
+    (!commandToken ||
+      commandToken.length > 256 ||
+      !VISIBLE_ASCII.test(commandToken))
+  ) {
+    throw new ConfigurationError(
+      "AIW_AGENTINTERSECT_COMMAND_TOKEN must contain 1..256 visible ASCII characters",
+    );
+  }
+  for (const [key, value] of [
+    ["AIW_AGENTINTERSECT_EXPECTED_PHASE_ID", expectedPhaseId],
+    ["AIW_AGENTINTERSECT_EXPECTED_REVISION", expectedRevision],
+  ] as const) {
+    if (
+      commandsEnabled &&
+      (!value || value.length > 128 || !VISIBLE_ASCII.test(value))
+    ) {
+      throw new ConfigurationError(
+        `${key} must contain 1..128 visible ASCII characters`,
+      );
+    }
+  }
+
   return {
     networkScope,
     host,
@@ -179,6 +224,15 @@ export function loadLocalServerConfig(
           },
         }
       : {}),
+    ...(commandsEnabled
+      ? {
+          agentIntersectCommands: {
+            token: commandToken as string,
+            expectedPhaseId: expectedPhaseId as string,
+            expectedRevision: expectedRevision as string,
+          },
+        }
+      : {}),
   };
 }
 
@@ -193,5 +247,8 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
     demoOperationMaxMs: config.demoOperationMaxMs,
     repositoryMaxFiles: config.repositoryMaxFiles,
     agentIntersectReadEnabled: config.agentIntersectRead !== undefined,
+    agentIntersectCommandsEnabled:
+      config.agentIntersectCommands !== undefined &&
+      config.agentIntersectRead !== undefined,
   };
 }

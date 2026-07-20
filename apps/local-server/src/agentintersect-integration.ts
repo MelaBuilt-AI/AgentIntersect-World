@@ -422,7 +422,7 @@ export class ReadIntegrationService {
       executionEnabled: false,
       observationOnly: true,
       diagnostic:
-        "Fresh read integration supports this selected harness. Phase 6 remains observation-only.",
+        "Fresh read integration supports this selected harness. The read facade remains observation-only; Phase 7 command authority is separate.",
     };
   }
 

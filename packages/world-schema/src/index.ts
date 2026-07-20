@@ -76,8 +76,8 @@ export type ApiResult<T> = {
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 6"),
-    version: z.literal("0.6.0-phase6"),
+    phase: z.literal("Phase 7"),
+    version: z.literal("0.7.0-phase7"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -85,6 +85,7 @@ export const SafeConfigSchema = z
     demoOperationMaxMs: z.number().int().positive(),
     repositoryMaxFiles: z.number().int().min(1).max(10_000),
     agentIntersectReadEnabled: z.boolean(),
+    agentIntersectCommandsEnabled: z.boolean(),
   })
   .strict();
 
@@ -92,7 +93,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.6.0-phase6"),
+    version: z.literal("0.7.0-phase7"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })
@@ -568,3 +569,88 @@ export type WorldTileQuery = z.infer<typeof WorldTileQuerySchema>;
 export type WorldTileQueryResponse = z.infer<
   typeof WorldTileQueryResponseSchema
 >;
+
+const VisibleAscii128Schema = z
+  .string()
+  .min(1)
+  .max(128)
+  .regex(/^[\x20-\x7e]+$/);
+
+export const CommandIntentRequestSchema = z
+  .object({
+    schema: z.literal("aiw.command-intent.request/0.7"),
+    kind: z.literal("worker.enqueue-phase"),
+    phaseId: VisibleAscii128Schema,
+    harness: z.enum(["openclaw", "hermes", "claude-code", "codex"]),
+    expectedRevision: VisibleAscii128Schema,
+    fixture: z.literal("phase7-disposable-artifact-v1"),
+  })
+  .strict();
+
+export const CommandIntentStateSchema = z.enum([
+  "pending",
+  "confirmed",
+  "ambiguous",
+  "rejected",
+  "failed",
+]);
+
+export const WorkerLifecycleSchema = z.enum([
+  "queued",
+  "claimed",
+  "running",
+  "complete",
+  "failed",
+]);
+
+export const FixtureArtifactResultSchema = z
+  .object({
+    path: z.literal("phase7-result.json"),
+    before: z.null(),
+    after: z
+      .object({
+        message: z.literal("AgentIntersect World Phase 7 fixture complete"),
+        verified: z.literal(true),
+      })
+      .strict(),
+    verification: z.enum(["pending", "passed", "failed", "unavailable"]),
+  })
+  .strict();
+
+export const CommandIntentRecordSchema = z
+  .object({
+    schema: z.literal("aiw.command-intent/0.7"),
+    id: z.uuid(),
+    idempotencyKey: VisibleAscii128Schema,
+    requestFingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+    request: CommandIntentRequestSchema,
+    state: CommandIntentStateSchema,
+    correlationId: VisibleAscii128Schema,
+    phaseId: VisibleAscii128Schema,
+    sessionId: VisibleAscii128Schema.optional(),
+    jobId: VisibleAscii128Schema.optional(),
+    runId: VisibleAscii128Schema.optional(),
+    lifecycle: WorkerLifecycleSchema.optional(),
+    diagnostics: z.array(z.string().max(512)).max(20),
+    result: z.unknown().optional(),
+    artifact: FixtureArtifactResultSchema.optional(),
+    rawLogRef: z
+      .string()
+      .min(1)
+      .max(256)
+      .regex(/^(?![\\/])(?!.*\.\.)[\x20-\x7e]+$/)
+      .optional(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+  })
+  .strict();
+
+export const CommandIntentListDataSchema = z
+  .object({ intents: z.array(CommandIntentRecordSchema).max(100) })
+  .strict();
+
+export type CommandIntentRequest = z.infer<typeof CommandIntentRequestSchema>;
+export type CommandIntentState = z.infer<typeof CommandIntentStateSchema>;
+export type WorkerLifecycle = z.infer<typeof WorkerLifecycleSchema>;
+export type FixtureArtifactResult = z.infer<typeof FixtureArtifactResultSchema>;
+export type CommandIntentRecord = z.infer<typeof CommandIntentRecordSchema>;

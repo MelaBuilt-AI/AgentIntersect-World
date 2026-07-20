@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-describe("Phase 6 local-server configuration", () => {
+describe("Phase 7 local-server configuration", () => {
   it("loads loopback defaults and exposes only the safe configuration view", async () => {
     const { loadLocalServerConfig, toSafeConfig } =
       await import("../src/node.js");
@@ -13,8 +13,8 @@ describe("Phase 6 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 6",
-      version: "0.6.0-phase6",
+      phase: "Phase 7",
+      version: "0.7.0-phase7",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",
@@ -22,7 +22,42 @@ describe("Phase 6 local-server configuration", () => {
       demoOperationMaxMs: expect.any(Number),
       repositoryMaxFiles: 2_500,
       agentIntersectReadEnabled: false,
+      agentIntersectCommandsEnabled: false,
     });
+  });
+
+  it("keeps command authority disabled by default and never exposes its secret", async () => {
+    const { loadLocalServerConfig, toSafeConfig } =
+      await import("../src/node.js");
+    const base = {
+      AIW_AGENTINTERSECT_ENABLED: "true",
+      AIW_AGENTINTERSECT_EXPECTED_WORKSPACE: "/tmp/aiw-workspace",
+      AIW_AGENTINTERSECT_DATA_DIR: "/tmp/aiw-data",
+      AIW_AGENTINTERSECT_COMMANDS_ENABLED: "true",
+      AIW_AGENTINTERSECT_EXPECTED_PHASE_ID: "phase_7",
+      AIW_AGENTINTERSECT_EXPECTED_REVISION:
+        "ce8495fcd0963165a9c68b98414a203c4dc25ace",
+    };
+    expect(() => loadLocalServerConfig(base)).toThrow("COMMAND_TOKEN");
+    expect(() =>
+      loadLocalServerConfig({
+        ...base,
+        AIW_AGENTINTERSECT_ENABLED: "false",
+        AIW_AGENTINTERSECT_COMMAND_TOKEN: "dedicated-token",
+      }),
+    ).toThrow("require read integration");
+    const config = loadLocalServerConfig({
+      ...base,
+      AIW_AGENTINTERSECT_COMMAND_TOKEN: "dedicated-token",
+    });
+    expect(config.agentIntersectCommands).toMatchObject({
+      token: "dedicated-token",
+      expectedPhaseId: "phase_7",
+    });
+    const safe = toSafeConfig(config);
+    expect(safe.agentIntersectCommandsEnabled).toBe(true);
+    expect(JSON.stringify(safe)).not.toContain("dedicated-token");
+    expect(JSON.stringify(safe)).not.toContain("ce8495");
   });
 
   it("requires explicit paths and exposes only a boolean for read integration", async () => {

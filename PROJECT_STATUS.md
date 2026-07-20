@@ -1,27 +1,28 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-19
+Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 6 — AgentIntersect read integration and normalized replay: COMPLETE**
+**Phase 7 — Local command intent and real worker vertical core: COMPLETE**
 
-- Evidence: `PHASE_6_REPORT.md`, `docs/PHASE_6_SCOPE.md`, and World-owned Phase 0 compatibility fixtures
-- Baseline: completed Phase 5 commit `344e73d24bdc18f7dcc7e9dc22ec7952eb2960f2`
-- Version: `0.6.0-phase6`
-- Runtime: Node `v24.18.0`, pnpm `11.15.0`
-- Workspace: 15 projects / 14 named app-package graph entries
-- Focused B1–B6 correction tests: 6 files / 64 tests passed serially
-- Complete tests: 30 files / 174 tests passed
-- Typecheck: 25/25 tasks
-- Architecture regressions: 9/9; checker reports no violations across 14 packages
-- Production build: 14/14 tasks; Storybook production build green with five Phase 6 states
-- Smoke and complete Playwright: green; 19/19 browser tests passed with one worker
-- Fresh-copy verification: green for 222 project source files; production advisory audit found no known vulnerabilities
-- Review cadence: the historical bounded audit found B1–B6; one correction pass plus independent parent and first-hand proof are green. No routine targeted re-audit is required; audit only for a concrete observed issue or explicit user request
-- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`
-- Exact final commit/CI evidence: recorded in the Phase 6 Obsidian concept and latest handoff after private push, avoiding a self-referential status commit
-- Release/tag/package publication/public visibility change: none; repository remains private
+- Evidence: `PHASE_7_REPORT.md`, `docs/PHASE_7_SCOPE.md`, and pinned AgentIntersect compatibility fixtures.
+- Baseline: completed Phase 6 commit `ce8495fcd0963165a9c68b98414a203c4dc25ace`.
+- Version: `0.7.0-phase7`.
+- Runtime: Node `v24.18.0`, pnpm `11.15.0`.
+- Workspace: 15 projects / 14 named app-package graph entries.
+- Complete tests: 32 files / 187 tests.
+- Typecheck: 25/25 tasks.
+- Architecture: 9/9 tests; checker reports no violations across 14 packages.
+- Production build: 14/14 tasks; Storybook production build green.
+- Smoke and complete Playwright: green; 20/20 browser tests passed with one worker.
+- Fresh-copy verification: green for 230 project source files; production advisory audit found no known vulnerabilities.
+- First-hand proof: one unchanged-AgentIntersect job; loopback and explicit trusted-LAN authority; duplicate replay with one queue entry; queued-to-complete reconciliation; bounded local raw records; durable restart-stable fixture result; mobile browser with no console errors or horizontal overflow.
+- Concrete parent corrections: real pinned payload normalization, strict dual-source phase/revision attestation, bounded response/log capture, durable result restoration, and no-op reconciliation stability.
+- Review cadence: one bounded Codex implementation round, independent parent source/live proof, and observed-defect corrections are green. No routine broad or targeted re-audit ran.
+- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
+- Exact final commit/CI evidence: recorded in the Phase 7 Obsidian concept/latest handoff after private push, avoiding a self-referential status commit.
+- Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
 
@@ -119,15 +120,34 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - The sole bounded audit's B1–B6 findings received the one authorized targeted correction: authoritative latest observations are separate from deduplicated timeline identity; replay/checkpoint/crash ordering is fail-closed; nested contracts and streamed caps are pinned; the expanded redaction matrix is enforced through replay/storage/API/display; periodic freshness and SSE recovery have a clean lifecycle; and the stale Phase 5 browser assertion is corrected.
 - Local correction verification and independent parent proof are green: focused 64/64, complete Vitest 174/174, typecheck 25/25, architecture 9/9, build 14/14, smoke, Playwright 19/19, Storybook, production advisory audit, 222-file fresh-copy verification, live A→B→A/restart/reconnect/malformed/oversized/redaction/disabled-execution proof, and desktop/mobile first-hand browser checks with zero console errors or horizontal overflow. No routine targeted re-audit was required.
 
+## Phase 7 — COMPLETE
+
+**Local command intent and real worker vertical core**
+
+- A checksum-protected durable command-intent ledger persists immutable intent/request identity before one external mutation and represents explicit confirmed, ambiguous, rejected, and failed outcomes.
+- Loopback and explicit trusted-LAN command submission require a dedicated bearer token held only in component memory; wrong authority fails before store mutation.
+- World re-attests actual pinned AgentIntersect workspace/process, running phase, design revision, session, selected harness, readiness, and create-contract shape immediately before one `POST /v1/worker/jobs`.
+- Identical retries replay one logical intent/job. Because pinned AgentIntersect create has no proven idempotency key, uncertain responses remain ambiguous and are not resent.
+- The Phase 6 read path reconciles queued, claimed, running, complete, and failed evidence to the exact job/run while AgentIntersect alone owns claim, execution, and completion.
+- The Activity panel restores durable state after reload/restart and shows the fixture-only artifact/verification with current/previous labels and truthful unavailable actions.
+- Parent/live corrections made the actual pinned state/snapshot payloads compatible, enforced dual-source phase/revision evidence, bounded raw responses/logs, restored results, and stopped no-op durable churn.
+- Full post-fix gates and unchanged-AgentIntersect loopback/LAN/real-job/restart/mobile proof are recorded in `PHASE_7_REPORT.md`.
+
 ## Next milestone
 
-**Phase 7 — Local command intent and real worker vertical core: NEXT / NOT STARTED**
+**Phase 8 — File diff, test, evidence, and construction projection: NEXT / NOT STARTED**
 
-Preparation lives in `docs/PHASE_7_SCOPE.md`. In a fresh session, freeze the exact intent schema, host-only mutation route, bounded real-job fixture, timeout/cost ceiling, and acceptance transcript before coding. The proposed vertical slice validates one durable idempotent `worker.enqueue-phase` intent, re-attests AgentIntersect immediately before `POST /v1/worker/jobs`, reconciles ambiguous creation without duplicate dispatch, and observes the exact queued/claimed/running/complete/failed lifecycle through the Phase 6 read path.
+Preparation lives in `docs/PHASE_8_SCOPE.md`. In a future session, confirm the exact observation window, attribution/ambiguity policy, diff and secret bounds, test-evidence truth model, changed-object treatment, retention/restart behavior, and disposable acceptance transcript before implementation.
 
-Phase 7 implementation has not started. Browser/harness spawning, LAN workers, multiple simultaneous jobs, World-owned completion submission, lifecycle controls, Phase 8 diff/evidence work, and all release/publication/public-ingress actions remain out of scope.
+Phase 8 implementation has not started. File editing, auto-revert, generalized semantic diffs, exclusive authorship claims under ambiguity, Phase 9 synchronization, release/publication/public-ingress actions, and visibility changes remain out of scope.
 
 ## Non-blocking backlog
+
+### Phase 7
+
+- Coordinate the pinned AgentIntersect Codex output-schema contract with the configured contemporary Codex CLI before claiming a model-backed acceptance fixture; keep the original repository unchanged unless separately authorized.
+- Add create idempotency/resend only if a future pinned AgentIntersect contract proves a same-intent key.
+- Enforce token/cost ceilings only when the selected harness exposes a trustworthy enforceable contract.
 
 ### Phase 6
 

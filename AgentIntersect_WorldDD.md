@@ -1978,31 +1978,31 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 7 — Local command intent and real worker vertical core
 
-**Status:** NEXT / NOT STARTED. `docs/PHASE_7_SCOPE.md` prepares a fresh-session scope freeze; it does not authorize implementation in the Phase 6 closeout session.
+**Status:** COMPLETE. The frozen scope and full independent/live evidence are recorded in `docs/PHASE_7_SCOPE.md` and `PHASE_7_REPORT.md`.
 
 **Objective:** Enqueue one real bounded AgentIntersect `phase_run` job through a validated local intent and observe its lifecycle.
 
-**Rationale:** This is the decisive “real agent” proof and the main security boundary.
+**Rationale:** This is the decisive real-worker proof and the main mutation-authority boundary.
 
-**In scope:** Host-only `worker.enqueue-phase`, Phase 5 default/current harness and per-agent harness-origin selection, phase/harness validation, expected revision, intent idempotency/reconciliation, daemon attestation immediately before mutation, `POST /v1/worker/jobs`, run mapping, current lifecycle observation.
+**In scope:** Loopback plus explicitly authorized trusted-LAN `worker.enqueue-phase`; Phase 5 default/current harness selection; phase/harness/session/revision validation; durable intent identity, duplicate replay, and ambiguous-create reconciliation; daemon attestation immediately before mutation; `POST /v1/worker/jobs`; exact intent/correlation/phase/session/job/run mapping; current lifecycle observation; fixture-only artifact/result view.
 
-**Out of scope:** Browser or World launching harness commands, LAN workers, multiple simultaneous demo jobs, direct completion submission by World.
+**Out of scope:** Browser or World launching harness commands, LAN workers, multiple simultaneous demo jobs, direct completion submission by World, general repository diffs, and lifecycle controls.
 
 **Dependencies:** Phase 6 stable read projection and Phase 0 worker contract.
 
-**Concrete tasks:** Implement intent ledger/validator; preflight current phase/onboarding/design readiness; create job; reconcile ambiguous timeout; show queued/claimed/running/complete/failed; link correlation/job/phase/session IDs; disable actions when authority stale.
+**Implemented artifacts:** `aiw.command-intent/0.7`; checksum-protected durable ledger; host/LAN policy and dedicated token; `/commands/intents`; pinned worker-create adapter; read-path reconciliation; Activity run detail; bounded local raw records; disposable fixture.
 
-**Code/artifacts:** `/commands/intents`; policy module; run detail panel; disposable real-agent E2E fixture.
+**Verification:** Duplicate/retry/restart remains one dispatch/job; wrong token/revision/harness/phase/workspace/process/session/stale authority rejects before mutation; actual pinned AgentIntersect payloads normalize correctly; uncertain create remains ambiguous without resend; queued-to-complete lifecycle and fixture artifact survive restart; sanitized UI and bounded raw evidence are proven. Final gates are 187/187 Vitest, 20/20 Playwright, 25/25 typecheck, 9/9 architecture, 14/14 build, smoke, Storybook, 230-file fresh-copy verification, and a clean production advisory audit.
 
-**Tests/evidence:** Double-click/retry produces at most one dispatch; wrong revision/harness/phase/peer rejection; daemon restart between preflight and create; one real job transcript and AgentIntersect state evidence.
+**Acceptance criteria:** COMPLETE. Real unchanged AgentIntersect owned queue, claim, disposable offline execution, and completion; World did not spawn or complete the worker; ambiguous creation cannot silently retry; the exact job and fixture result are visible end to end on loopback and explicit trusted LAN.
 
-**Acceptance criteria:** Real unchanged AgentIntersect owns claim/execution/completion; World never spawns the harness; ambiguous creation cannot silently retry; exact job is visible end-to-end.
+**Exit gate:** COMPLETE after one bounded implementation round, independent parent source/live review, first-hand unchanged-AgentIntersect job/browser/restart/LAN proof, concrete defect corrections, and complete retest. No routine broad or targeted re-audit ran.
 
-**Exit gate:** Independent High-risk authority review and successful disposable real-job recording.
-
-**Risks:** Real agent nondeterminism and cost. Use a bounded fixture, explicit prompt, timeout, and acceptance test; do not weaken boundary to make the demo pass.
+**Risks/backlog:** The pinned create contract still lacks a proven idempotency key and enforceable model-token/cost ceiling. The pinned AgentIntersect Codex executor output schema is incompatible with the configured contemporary Codex CLI, so the acceptance job used AgentIntersect's disposable offline executor override; model-backed executor compatibility remains separate work and the original repository remains unchanged.
 
 ## Phase 8 — File diff, test, evidence, and construction projection
+
+**Status:** NEXT / NOT STARTED. Preparation only is recorded in `docs/PHASE_8_SCOPE.md`; implementation requires a fresh scope freeze and explicit authorization.
 
 **Objective:** Bind real run effects to repository objects and evidence-backed visual states.
 
