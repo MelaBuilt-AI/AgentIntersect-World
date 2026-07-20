@@ -24,6 +24,9 @@ import {
   CommandIntentRequestSchema,
   CorrelationIdSchema,
   DoctorDataSchema,
+  EvidenceCurrentDataSchema,
+  EvidenceLookupDataSchema,
+  EvidenceLookupQuerySchema,
   HealthResponseSchema,
   OperationListDataSchema,
   OperationRecordSchema,
@@ -42,6 +45,7 @@ import {
   type DoctorData,
   type HealthResponse,
   type ReadyData,
+  type RepositoryGeneration,
   type SafeConfig,
   type WorldSnapshot,
 } from "@agentintersect-world/world-schema";
@@ -62,12 +66,25 @@ import {
   CommandIntentError,
   type CommandIntentService,
 } from "./command-intents.js";
+import {
+  EvidenceServiceError,
+  type EvidenceService,
+} from "./evidence-service.js";
+
+type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
+
+export type CurrentRepositorySelection = {
+  generation: RepositoryGeneration;
+  snapshot: WorldSnapshot;
+};
 
 export type LocalServer = FastifyInstance & {
   readonly operationService: DemoOperationService;
   readonly repositoryIndexService: RepositoryIndexService;
   readonly integrationService: ReadIntegrationService;
   readonly commandIntentService?: CommandIntentService;
+  readonly evidenceService?: EvidenceReader;
+  readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
 export type LocalServerOptions = {
@@ -76,6 +93,7 @@ export type LocalServerOptions = {
   readonly repositoryIndexer?: typeof indexRepository;
   readonly integrationService?: ReadIntegrationService;
   readonly commandIntentService?: CommandIntentService;
+  readonly evidenceService?: EvidenceReader;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -94,6 +112,7 @@ export function createLocalServer(
     options.integrationService ??
     new ReadIntegrationService({ enabled: false });
   const commandIntentService = options.commandIntentService;
+  const evidenceService = options.evidenceService;
   let cachedWorldSnapshot: WorldSnapshot | undefined;
   let cachedGenerationId: string | undefined;
   let cachedProjectionError: unknown;
@@ -118,10 +137,25 @@ export function createLocalServer(
     options.repositoryIndexer ?? indexRepository,
     projectSuccessfulGeneration,
   );
+  const currentRepositorySelection = (): CurrentRepositorySelection | null => {
+    const generation = repositoryIndexService.current();
+    if (generation === null) return null;
+    if (cachedGenerationId !== generation.id)
+      projectSuccessfulGeneration(generation);
+    if (cachedProjectionError !== undefined) throw cachedProjectionError;
+    if (!cachedWorldSnapshot)
+      throw new WorldProjectionError(
+        "invalid_generation",
+        "Current generation could not produce a World snapshot",
+      );
+    return { generation, snapshot: cachedWorldSnapshot };
+  };
   server.decorate("operationService", operationService);
   server.decorate("repositoryIndexService", repositoryIndexService);
   server.decorate("integrationService", integrationService);
   server.decorate("commandIntentService", commandIntentService);
+  server.decorate("evidenceService", evidenceService);
+  server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onClose", async () => {
     operationService.close();
     await repositoryIndexService.close();
@@ -568,6 +602,139 @@ export function createLocalServer(
       },
     );
 
+    const evidenceResponses = {
+      200: {
+        description: "Correlated strict sanitized Phase 8 evidence payload",
+        type: "object",
+        additionalProperties: true,
+      },
+      400: {
+        description: "Evidence lookup identity is malformed or not exclusive",
+        type: "object",
+        additionalProperties: true,
+      },
+      404: {
+        description: "No evidence matches the exact identity",
+        type: "object",
+        additionalProperties: true,
+      },
+      503: {
+        description: "Local evidence storage is unavailable or corrupt",
+        type: "object",
+        additionalProperties: true,
+      },
+    } as const;
+
+    server.get(
+      "/evidence/current",
+      {
+        schema: {
+          tags: ["phase8-evidence"],
+          summary: "Get current and previous sanitized local evidence",
+          response: {
+            200: evidenceResponses[200],
+            503: evidenceResponses[503],
+          },
+        },
+      },
+      async (request) =>
+        ApiResultSchema(EvidenceCurrentDataSchema).parse(
+          success(
+            request,
+            evidenceService?.latest() ?? { current: null, previous: null },
+          ),
+        ),
+    );
+
+    server.get(
+      "/evidence",
+      {
+        onRequest: async (request, reply) => {
+          const search = new URL(request.raw.url ?? "/evidence", "http://local")
+            .searchParams;
+          if (
+            [...search.keys()].some(
+              (key) => !["intentId", "jobId", "runId"].includes(key),
+            )
+          )
+            return reply
+              .code(400)
+              .send(
+                failure(
+                  request,
+                  "validation",
+                  "Evidence lookup contains an unsupported parameter",
+                ),
+              );
+        },
+        schema: {
+          tags: ["phase8-evidence"],
+          summary: "Look up sanitized local evidence by one exact identity",
+          querystring: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              intentId: { type: "string", format: "uuid" },
+              jobId: {
+                type: "string",
+                minLength: 1,
+                maxLength: 128,
+                pattern: "^[ -~]+$",
+              },
+              runId: {
+                type: "string",
+                minLength: 1,
+                maxLength: 128,
+                pattern: "^[ -~]+$",
+              },
+            },
+          },
+          response: evidenceResponses,
+        },
+      },
+      async (request, reply) => {
+        const parsed = EvidenceLookupQuerySchema.safeParse(request.query);
+        if (!parsed.success)
+          return reply
+            .code(400)
+            .send(
+              failure(
+                request,
+                "validation",
+                "Exactly one valid intentId, jobId, or runId is required",
+              ),
+            );
+        if (!evidenceService)
+          return reply
+            .code(503)
+            .send(
+              failure(
+                request,
+                "authority_unavailable",
+                "Local evidence storage is unavailable",
+              ),
+            );
+        try {
+          return ApiResultSchema(EvidenceLookupDataSchema).parse(
+            success(request, evidenceService.lookup(parsed.data)),
+          );
+        } catch (error) {
+          if (!(error instanceof EvidenceServiceError)) throw error;
+          return reply
+            .code(error.code === "not_found" ? 404 : 503)
+            .send(
+              failure(
+                request,
+                error.code === "not_found"
+                  ? "not_found"
+                  : "authority_unavailable",
+                error.message,
+              ),
+            );
+        }
+      },
+    );
+
     const repositoryIndexRouteSchema = {
       tags: ["repository-indexes"],
       params: {
@@ -602,17 +769,7 @@ export function createLocalServer(
     } as const;
 
     const currentWorldSnapshot = (): WorldSnapshot | null => {
-      const generation = repositoryIndexService.current();
-      if (generation === null) return null;
-      if (cachedGenerationId !== generation.id)
-        projectSuccessfulGeneration(generation);
-      if (cachedProjectionError !== undefined) throw cachedProjectionError;
-      if (!cachedWorldSnapshot)
-        throw new WorldProjectionError(
-          "invalid_generation",
-          "Current generation could not produce a World snapshot",
-        );
-      return cachedWorldSnapshot;
+      return currentRepositorySelection()?.snapshot ?? null;
     };
 
     const worldProjectionFailure = (

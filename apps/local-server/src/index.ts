@@ -12,7 +12,11 @@ import {
   CommandIntentService,
   CommandIntentStore,
 } from "./command-intents.js";
-import { createLocalServer } from "./server.js";
+import {
+  createLocalServer,
+  type CurrentRepositorySelection,
+} from "./server.js";
+import { EvidenceService } from "./evidence-service.js";
 
 const config = (() => {
   try {
@@ -29,6 +33,7 @@ const config = (() => {
 })();
 
 if (config !== undefined) {
+  let selectedRepository: () => CurrentRepositorySelection | null = () => null;
   const readClient = config.agentIntersectRead
     ? new AgentIntersectReadClient({
         daemonUrl: config.agentIntersectRead.daemonUrl,
@@ -46,6 +51,12 @@ if (config !== undefined) {
         maxQueuedFrames: config.agentIntersectRead.maxQueuedFrames,
       })
     : new ReadIntegrationService({ enabled: false });
+  const evidenceService = config.agentIntersectRead
+    ? new EvidenceService({
+        root: config.agentIntersectRead.dataDir,
+        selectedRepository: () => selectedRepository(),
+      })
+    : undefined;
   const commandIntentService =
     config.agentIntersectCommands && config.agentIntersectRead && readClient
       ? new CommandIntentService({
@@ -60,13 +71,16 @@ if (config !== undefined) {
           }),
           expectedPhaseId: config.agentIntersectCommands.expectedPhaseId,
           expectedRevision: config.agentIntersectCommands.expectedRevision,
+          ...(evidenceService ? { evidenceService } : {}),
         })
       : undefined;
   const server = createLocalServer({
     config,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
+    ...(evidenceService ? { evidenceService } : {}),
   });
+  selectedRepository = () => server.currentRepositorySelection();
   let closePromise: Promise<void> | undefined;
 
   const closeOnce = (): Promise<void> => {

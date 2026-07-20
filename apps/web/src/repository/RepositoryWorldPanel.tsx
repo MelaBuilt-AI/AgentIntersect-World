@@ -8,6 +8,7 @@ import {
   type WebGLFallbackReason,
 } from "@agentintersect-world/renderer-r3f";
 import type {
+  EvidenceRecord,
   WorldObject,
   WorldSnapshot,
 } from "@agentintersect-world/world-schema";
@@ -22,15 +23,22 @@ import {
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
 import { getCurrentRepositoryIndex } from "../repository-index-client.js";
 import { getCurrentWorld, getWorldTiles } from "../world-client.js";
+import { getCurrentEvidence } from "../evidence/evidence-client.js";
+import { PHASE8_EVIDENCE_FIXTURE } from "../evidence/evidence-fixtures.js";
 import {
   createRepositoryBrowserModel,
   moveSelection,
   safeObjectPath,
   searchRepositoryObjects,
 } from "./repository-browser-model.js";
+import { currentRepositorySelection } from "./repository-selection.js";
 
 function rendererObjects(
   snapshot: WorldSnapshot,
+  evidenceByRef: ReadonlyMap<
+    string,
+    EvidenceRecord["changes"][number]["outcome"]
+  >,
 ): readonly RepositoryRenderObject[] {
   return snapshot.objects
     .filter(
@@ -44,13 +52,17 @@ function rendererObjects(
         object.kind === "directory" ||
         object.kind === "file",
     )
-    .map((object) => ({
-      ref: object.ref,
-      kind: object.kind,
-      name: object.name,
-      position: object.position,
-      bounds: object.bounds,
-    }));
+    .map((object) => {
+      const evidenceOutcome = evidenceByRef.get(object.ref);
+      return {
+        ref: object.ref,
+        kind: object.kind,
+        name: object.name,
+        position: object.position,
+        bounds: object.bounds,
+        ...(evidenceOutcome ? { evidenceOutcome } : {}),
+      };
+    });
 }
 
 class CanvasBoundary extends Component<
@@ -73,7 +85,7 @@ export function RepositoryWorldPanel({
   fixture = false,
   forcedFallback,
 }: {
-  readonly fixture?: boolean | "10k" | "absolute-paths";
+  readonly fixture?: boolean | "10k" | "absolute-paths" | "phase8";
   readonly forcedFallback?: WebGLFallbackReason;
 }) {
   const reducedMotion = useReducedMotion();
@@ -128,6 +140,17 @@ export function RepositoryWorldPanel({
     enabled: Boolean(fixture) || currentQuery.isSuccess,
     retry: false,
   });
+  const evidenceQuery = useQuery({
+    queryKey: ["phase8-evidence-world", fixture],
+    queryFn: async () => {
+      if (fixture === "phase8") return PHASE8_EVIDENCE_FIXTURE;
+      const result = await getCurrentEvidence();
+      if (result.status !== "ok") throw new Error(result.message);
+      return result.data;
+    },
+    enabled: currentQuery.isSuccess,
+    retry: false,
+  });
   if (currentQuery.isPending) {
     return (
       <p className="panel-state" role="status">
@@ -145,6 +168,7 @@ export function RepositoryWorldPanel({
       fallbackReason={fallbackReason}
       setFallbackReason={setFallbackReason}
       reducedMotion={reducedMotion}
+      evidence={evidenceQuery.data?.current ?? null}
     />
   );
 }
@@ -183,12 +207,14 @@ function RepositoryBrowser({
   fallbackReason,
   setFallbackReason,
   reducedMotion,
+  evidence,
 }: {
   readonly snapshot: WorldSnapshot;
   readonly tileCount: number;
   readonly fallbackReason: WebGLFallbackReason | null;
   readonly setFallbackReason: (reason: WebGLFallbackReason) => void;
   readonly reducedMotion: boolean;
+  readonly evidence: EvidenceRecord | null;
 }) {
   const model = useMemo(
     () => createRepositoryBrowserModel(snapshot.objects),
@@ -207,13 +233,28 @@ function RepositoryBrowser({
     [model, query, results],
   );
   const visible = boundedSemanticObjects(results, 160);
+  const requested = currentRepositorySelection();
+  const requestedRef =
+    requested && model.byRef.has(requested.ref) ? requested.ref : null;
   const [selectedRef, setSelectedRef] = useState<string | null>(
-    repository?.ref ?? null,
+    requestedRef ?? repository?.ref ?? null,
   );
-  const [focusRef, setFocusRef] = useState<string | null>(null);
+  const [focusRef, setFocusRef] = useState<string | null>(requestedRef);
   const selected =
     selectedRef === null ? null : (model.byRef.get(selectedRef) ?? null);
-  const renderObjects = useMemo(() => rendererObjects(snapshot), [snapshot]);
+  const evidenceByRef = useMemo(
+    () =>
+      new Map(
+        (evidence?.changes ?? []).flatMap((change) =>
+          change.objectRef ? [[change.objectRef, change.outcome] as const] : [],
+        ),
+      ),
+    [evidence],
+  );
+  const renderObjects = useMemo(
+    () => rendererObjects(snapshot, evidenceByRef),
+    [evidenceByRef, snapshot],
+  );
   const preparation = useMemo(
     () => measureRepositoryPreparation(renderObjects),
     [renderObjects],
@@ -288,31 +329,45 @@ function RepositoryBrowser({
             aria-label="Repository objects"
             onKeyDown={handleKeys}
           >
-            {visible.map((object) => (
-              <li key={object.ref} role="none">
-                <button
-                  type="button"
-                  role="treeitem"
-                  aria-selected={selectedRef === object.ref}
-                  tabIndex={selectedRef === object.ref ? 0 : -1}
-                  data-object-ref={object.ref}
-                  style={
-                    {
-                      "--tree-depth": model.depthByRef.get(object.ref) ?? 0,
-                    } as React.CSSProperties
-                  }
-                  onClick={() => select(object.ref)}
-                  onFocus={() => select(object.ref)}
+            {visible.map((object) => {
+              const evidenceOutcome = evidenceByRef.get(object.ref);
+              return (
+                <li
+                  key={object.ref}
+                  role="none"
+                  data-evidence-outcome={evidenceOutcome}
                 >
-                  <span
-                    className={`kind-icon kind-icon--${object.kind}`}
-                    aria-hidden="true"
-                  />
-                  <span>{object.name}</span>
-                  <small>{object.kind}</small>
-                </button>
-              </li>
-            ))}
+                  <button
+                    type="button"
+                    role="treeitem"
+                    aria-selected={selectedRef === object.ref}
+                    tabIndex={selectedRef === object.ref ? 0 : -1}
+                    data-object-ref={object.ref}
+                    style={
+                      {
+                        "--tree-depth": model.depthByRef.get(object.ref) ?? 0,
+                      } as React.CSSProperties
+                    }
+                    onClick={() => select(object.ref)}
+                    onFocus={() => select(object.ref)}
+                  >
+                    <span
+                      className={`kind-icon kind-icon--${object.kind}`}
+                      aria-hidden="true"
+                    />
+                    <span>{object.name}</span>
+                    <small>{object.kind}</small>
+                    {evidenceOutcome && (
+                      <span
+                        className={`object-evidence-badge object-evidence-badge--${evidenceOutcome}`}
+                      >
+                        {evidenceOutcome} · observed-in-window
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </section>
         <section
@@ -372,6 +427,7 @@ function RepositoryBrowser({
                     key={object.ref}
                     type="button"
                     className={selectedRef === object.ref ? "is-selected" : ""}
+                    data-evidence-outcome={evidenceByRef.get(object.ref)}
                     style={{ left: `${point.x}%`, top: `${point.y}%` }}
                     aria-label={`Select ${object.name} from overview`}
                     onClick={() => select(object.ref)}
@@ -428,6 +484,14 @@ function RepositoryBrowser({
                 <dt>Focus</dt>
                 <dd>{focusRef === selected.ref ? "Focused" : "Not focused"}</dd>
               </div>
+              {evidenceByRef.has(selected.ref) && (
+                <div>
+                  <dt>Observed change</dt>
+                  <dd>
+                    {evidenceByRef.get(selected.ref)} · observed-in-window
+                  </dd>
+                </div>
+              )}
             </dl>
           )}
         </aside>

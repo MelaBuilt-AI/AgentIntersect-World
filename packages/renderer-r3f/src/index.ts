@@ -1,4 +1,6 @@
 export type RenderObjectKind = "package" | "directory" | "file";
+export type RenderEvidenceOutcome =
+  "created" | "modified" | "deleted" | "renamed" | "binary" | "reported";
 
 export type RepositoryRenderObject = {
   readonly ref: string;
@@ -15,6 +17,7 @@ export type RepositoryRenderObject = {
     readonly width: number;
     readonly depth: number;
   };
+  readonly evidenceOutcome?: RenderEvidenceOutcome;
 };
 
 export type PreparedInstanceGroup = {
@@ -27,6 +30,11 @@ export type PreparedRepositoryInstances = {
   readonly groups: Readonly<Record<RenderObjectKind, PreparedInstanceGroup>>;
   readonly total: number;
   readonly overview: { readonly width: number; readonly depth: number };
+  readonly evidenceMarkers: readonly {
+    readonly ref: string;
+    readonly outcome: RenderEvidenceOutcome;
+    readonly position: readonly [number, number, number];
+  }[];
 };
 
 const renderKinds: readonly RenderObjectKind[] = [
@@ -121,6 +129,32 @@ export function prepareRepositoryInstances(
     },
     total: objects.length,
     overview: { width, depth },
+    evidenceMarkers: objects
+      .filter(
+        (
+          object,
+        ): object is RepositoryRenderObject & {
+          evidenceOutcome: RenderEvidenceOutcome;
+        } => object.evidenceOutcome !== undefined,
+      )
+      .slice(0, 256)
+      .map((object) => {
+        const height =
+          object.kind === "package"
+            ? 2.4
+            : object.kind === "directory"
+              ? 1.4
+              : 0.7;
+        return {
+          ref: object.ref,
+          outcome: object.evidenceOutcome,
+          position: [
+            object.position.x,
+            object.position.y + height / 2 + 1.55,
+            object.position.z,
+          ] as const,
+        };
+      }),
   };
 }
 

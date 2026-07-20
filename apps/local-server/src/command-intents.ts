@@ -5,6 +5,7 @@ import path from "node:path";
 import type { InitialReadObservation } from "@agentintersect-world/agentintersect-client/read";
 import { sanitizeBoundedValue } from "@agentintersect-world/world-event-protocol";
 import type { EventProjection } from "@agentintersect-world/world-event-protocol";
+import type { EvidenceService } from "./evidence-service.js";
 import {
   CommandIntentRecordSchema,
   CommandIntentRequestSchema,
@@ -591,6 +592,7 @@ interface CommandIntentServiceOptions {
   client: AgentIntersectCommandClient;
   expectedPhaseId: string;
   expectedRevision: string;
+  evidenceService?: Pick<EvidenceService, "prepare" | "abort" | "finalize">;
   now?: () => number;
 }
 
@@ -702,6 +704,22 @@ export class CommandIntentService {
         }),
       };
     }
+    if (this.options.evidenceService) {
+      try {
+        await this.options.evidenceService.prepare(pending.id);
+      } catch {
+        return {
+          replay: false,
+          intent: this.options.store.update(pending.id, {
+            state: "failed",
+            diagnostics: [
+              "Repository evidence baseline could not be sealed; external dispatch was not attempted.",
+            ],
+            updatedAt: new Date(this.now()).toISOString(),
+          }),
+        };
+      }
+    }
     try {
       const job = await this.options.client.create(request, pending.id);
       const artifact: FixtureArtifactResult = {
@@ -734,6 +752,8 @@ export class CommandIntentService {
       const sanitized = sanitizeBoundedValue({
         message: dispatchError.message,
       }).message;
+      if (dispatchError.outcome === "rejected")
+        this.options.evidenceService?.abort(pending.id);
       return {
         replay: false,
         intent: this.options.store.update(pending.id, {
@@ -776,12 +796,11 @@ export class CommandIntentService {
       ).find((item) => item === status);
       const result = event?.payload?.result;
       const final = lifecycle === "complete" || lifecycle === "failed";
+      const runId = worker?.runId ?? event?.mapping?.runId ?? intent.runId;
       this.options.store.update(intent.id, {
         state: intent.state === "ambiguous" ? "confirmed" : intent.state,
         jobId,
-        ...((worker?.runId ?? event?.mapping?.runId)
-          ? { runId: worker?.runId ?? event?.mapping?.runId }
-          : {}),
+        ...(runId ? { runId } : {}),
         ...(lifecycle ? { lifecycle } : {}),
         ...(result === undefined
           ? {}
@@ -804,6 +823,46 @@ export class CommandIntentService {
           : {}),
         updatedAt: new Date(this.now()).toISOString(),
       });
+      if (final && runId && this.options.evidenceService) {
+        const reportedPaths = Array.isArray(event?.payload?.reportedPaths)
+          ? event.payload.reportedPaths.filter(
+              (value): value is string => typeof value === "string",
+            )
+          : [];
+        const reportedTest = event?.payload?.testEvidence;
+        const reportedTestRecord =
+          reportedTest !== null &&
+          typeof reportedTest === "object" &&
+          !Array.isArray(reportedTest)
+            ? (reportedTest as Record<string, unknown>)
+            : null;
+        const testEvidence =
+          reportedTestRecord &&
+          typeof reportedTestRecord.path === "string" &&
+          typeof reportedTestRecord.hash === "string" &&
+          (reportedTestRecord.state === "passed" ||
+            reportedTestRecord.state === "failed" ||
+            reportedTestRecord.state === "not-run")
+            ? {
+                path: reportedTestRecord.path,
+                hash: reportedTestRecord.hash,
+                state: reportedTestRecord.state as
+                  "passed" | "failed" | "not-run",
+              }
+            : undefined;
+        try {
+          this.options.evidenceService.finalize({
+            intentId: intent.id,
+            jobId,
+            runId,
+            lifecycle,
+            reportedPaths,
+            ...(testEvidence ? { testEvidence } : {}),
+          });
+        } catch {
+          // The immutable pending baseline remains last-good for restart recovery.
+        }
+      }
     }
     return this.options.store.list();
   }

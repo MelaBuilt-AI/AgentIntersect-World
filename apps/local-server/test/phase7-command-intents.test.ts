@@ -73,6 +73,11 @@ function service(
   root: string,
   fetcher: typeof fetch,
   now: () => number = () => Date.parse("2026-07-20T12:00:00.000Z"),
+  evidenceService?: {
+    prepare: ReturnType<typeof vi.fn>;
+    abort: ReturnType<typeof vi.fn>;
+    finalize: ReturnType<typeof vi.fn>;
+  },
 ) {
   return new CommandIntentService({
     store: new CommandIntentStore(root),
@@ -85,6 +90,7 @@ function service(
     expectedPhaseId: "phase_7",
     expectedRevision: revision,
     now,
+    ...(evidenceService ? { evidenceService: evidenceService as never } : {}),
   });
 }
 
@@ -94,6 +100,43 @@ afterEach(() => {
 });
 
 describe("Phase 7 durable command intents", () => {
+  it("fails closed before external mutation when the Phase 8 baseline cannot be sealed", async () => {
+    const root = temporaryRoot();
+    const fetcher = vi.fn<typeof fetch>();
+    const evidenceService = {
+      prepare: vi.fn(() => {
+        throw new Error("baseline unavailable");
+      }),
+      abort: vi.fn(),
+      finalize: vi.fn(),
+    };
+    const commands = new CommandIntentService({
+      store: new CommandIntentStore(root),
+      client: new AgentIntersectCommandClient({
+        daemonUrl: "http://127.0.0.1:3761",
+        readClient: { readInitial: async () => observation() },
+        fetcher,
+        rawLogDirectory: path.join(root, "raw-command-logs"),
+      }),
+      expectedPhaseId: "phase_7",
+      expectedRevision: revision,
+      evidenceService,
+    });
+
+    const submitted = await commands.submit(
+      "evidence-fail-closed",
+      request,
+      "correlation-evidence",
+    );
+
+    expect(submitted.intent.state).toBe("failed");
+    expect(submitted.intent.diagnostics).toContain(
+      "Repository evidence baseline could not be sealed; external dispatch was not attempted.",
+    );
+    expect(evidenceService.prepare).toHaveBeenCalledWith(submitted.intent.id);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("dispatches one strict create and replays the same fingerprint without redispatch", async () => {
     const fetcher = vi.fn<typeof fetch>(async (url, init) => {
       expect(String(url)).toBe("http://127.0.0.1:3761/v1/worker/jobs");
@@ -380,12 +423,18 @@ describe("Phase 7 durable command intents", () => {
   it("reconciles ambiguous intent only from Phase 6 read evidence and keeps raw final data local", async () => {
     const root = temporaryRoot();
     let clock = Date.parse("2026-07-20T12:00:00.000Z");
+    const evidenceService = {
+      prepare: vi.fn(),
+      abort: vi.fn(),
+      finalize: vi.fn(),
+    };
     const commands = service(
       root,
       async () => {
         throw new TypeError("lost response");
       },
       () => (clock += 1_000),
+      evidenceService,
     );
     const ambiguous = await commands.submit(
       "read-only-reconcile",
@@ -399,6 +448,12 @@ describe("Phase 7 durable command intents", () => {
           payload: {
             worldIntentId: ambiguous.intent.id,
             status: "complete",
+            reportedPaths: ["src/main.ts"],
+            testEvidence: {
+              path: ".agentintersect-world/test-evidence.json",
+              hash: "f".repeat(64),
+              state: "passed",
+            },
             harnessLog: "raw harness log /home/operator/private/repo",
             result: {
               token: "raw-secret-value",
@@ -421,6 +476,19 @@ describe("Phase 7 durable command intents", () => {
     });
     expect(JSON.stringify(intent)).not.toContain("raw-secret-value");
     expect(JSON.stringify(intent)).not.toContain("/home/operator");
+    expect(evidenceService.prepare).toHaveBeenCalledWith(ambiguous.intent.id);
+    expect(evidenceService.finalize).toHaveBeenCalledWith({
+      intentId: ambiguous.intent.id,
+      jobId: "job-reconciled",
+      runId: "run-reconciled",
+      lifecycle: "complete",
+      reportedPaths: ["src/main.ts"],
+      testEvidence: {
+        path: ".agentintersect-world/test-evidence.json",
+        hash: "f".repeat(64),
+        state: "passed",
+      },
+    });
     const rawFinal = fs.readFileSync(
       path.join(
         root,

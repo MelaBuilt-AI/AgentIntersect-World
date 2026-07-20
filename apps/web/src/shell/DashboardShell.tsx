@@ -5,11 +5,14 @@ import { useAuthorityState } from "../authority/use-authority.js";
 import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
 import { AvatarPreview } from "../avatar/AvatarPreview.js";
 import { CommandIntentPanel } from "../commands/CommandIntentPanel.js";
+import { EvidencePanelLoader } from "../evidence/EvidencePanel.js";
+import { PHASE8_EVIDENCE_FIXTURE } from "../evidence/evidence-fixtures.js";
 import { IntegrationPanel } from "../integration/IntegrationPanel.js";
 import { useIntegration } from "../integration/use-integration.js";
 import { AuthorityPanel } from "../panels/AuthorityPanel.js";
 import { RepositoryIndexPanel } from "../panels/RepositoryIndexPanel.js";
 import { RepositoryWorldPanel } from "../repository/RepositoryWorldPanel.js";
+import { requestRepositorySelection } from "../repository/repository-selection.js";
 import { useInvalidateWorld } from "../repository/use-invalidate-world.js";
 import { HARNESS_OPTIONS, type HarnessId } from "../state/harness-intent.js";
 import { useHarnessIntent } from "../state/use-harness-intent.js";
@@ -36,12 +39,15 @@ export function DashboardShell({
       ? null
       : new URLSearchParams(window.location.search).get("fixture");
   const fixture =
-    fixtureValue === "phase5-10k"
-      ? "10k"
-      : fixtureValue === "phase5-paths"
-        ? "absolute-paths"
-        : fixtureValue === "phase5";
+    fixtureValue === "phase8-evidence"
+      ? "phase8"
+      : fixtureValue === "phase5-10k"
+        ? "10k"
+        : fixtureValue === "phase5-paths"
+          ? "absolute-paths"
+          : fixtureValue === "phase5";
   const phase7Fixture = fixtureValue === "phase7-job";
+  const phase8Fixture = fixtureValue === "phase8-evidence";
   const commandsEnabled =
     phase7Fixture ||
     (authority.status === "ready" &&
@@ -277,10 +283,15 @@ export function DashboardShell({
               </section>
             ))}
           {activePanel === "Evidence" && (
-            <InfoPanel
-              title="Evidence is not fabricated"
-              copy="Repository metadata and current selection are visible now. Run evidence and diffs arrive only after real execution phases."
-              disabledAction="Export run evidence (Phase 8)"
+            <EvidencePanelLoader
+              {...(phase8Fixture ? { fixture: PHASE8_EVIDENCE_FIXTURE } : {})}
+              onSelectObject={(ref, relativePath) => {
+                requestRepositorySelection(ref, relativePath);
+                setActivePanel("World");
+                setLastResult(
+                  `${relativePath} selected and focused through the repository browser.`,
+                );
+              }}
             />
           )}
           {activePanel === "Settings" && (
@@ -298,32 +309,9 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 7 bounded command intent and normalized replay</span>
+        <span>Phase 8 observed evidence and repository construction state</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>
-  );
-}
-
-function InfoPanel({
-  title,
-  copy,
-  disabledAction,
-}: {
-  readonly title: string;
-  readonly copy: string;
-  readonly disabledAction?: string;
-}) {
-  return (
-    <section className="info-panel">
-      <span className="terminal-kicker">selection_only_</span>
-      <h2>{title}</h2>
-      <p>{copy}</p>
-      {disabledAction !== undefined && (
-        <button type="button" disabled>
-          {disabledAction}
-        </button>
-      )}
-    </section>
   );
 }

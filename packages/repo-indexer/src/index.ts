@@ -68,6 +68,11 @@ const BINARY_EXTENSIONS = new Set([
   ".woff2",
   ".zip",
 ]);
+
+export function isKnownBinaryExtension(extension: string): boolean {
+  return BINARY_EXTENSIONS.has(extension.toLowerCase());
+}
+
 const ASSET_EXTENSIONS = new Set([
   ".bmp",
   ".eot",
@@ -457,7 +462,7 @@ async function gitMetadata(
 }
 
 async function binarySample(path: string, extension: string): Promise<boolean> {
-  if (BINARY_EXTENSIONS.has(extension)) return true;
+  if (isKnownBinaryExtension(extension)) return true;
   const handle = await open(path, "r");
   try {
     const buffer = Buffer.alloc(8 * 1024);

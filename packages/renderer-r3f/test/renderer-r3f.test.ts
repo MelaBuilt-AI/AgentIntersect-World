@@ -39,4 +39,31 @@ describe("repository renderer preparation", () => {
       reason: "creation-failed",
     });
   });
+
+  it("retains bounded persistent evidence markers independently of motion", () => {
+    const prepared = prepareRepositoryInstances([
+      {
+        ref: "aiw://object/00000000000000000000000000000001",
+        kind: "file",
+        name: "changed.ts",
+        position: { x: 4, y: 0, z: 6 },
+        bounds: { x: 3, z: 5, width: 2, depth: 2 },
+        evidenceOutcome: "modified",
+      },
+      {
+        ref: "aiw://object/00000000000000000000000000000002",
+        kind: "file",
+        name: "unchanged.ts",
+        position: { x: 8, y: 0, z: 6 },
+        bounds: { x: 7, z: 5, width: 2, depth: 2 },
+      },
+    ]);
+    expect(prepared.evidenceMarkers).toEqual([
+      {
+        ref: "aiw://object/00000000000000000000000000000001",
+        outcome: "modified",
+        position: [4, 1.9, 6],
+      },
+    ]);
+  });
 });

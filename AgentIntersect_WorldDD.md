@@ -2002,7 +2002,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 8 — File diff, test, evidence, and construction projection
 
-**Status:** NEXT / NOT STARTED. Preparation only is recorded in `docs/PHASE_8_SCOPE.md`; implementation requires a fresh scope freeze and explicit authorization.
+**Status:** LOCAL COMPLETE / EXACT-SHA CI PENDING. The frozen decisions, implementation, parent corrections, and independent local/browser verification are recorded in `docs/PHASE_8_SCOPE.md` and `PHASE_8_REPORT.md`. Phase 9 has not started.
 
 **Objective:** Bind real run effects to repository objects and evidence-backed visual states.
 
@@ -2022,7 +2022,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Every changed visual links to confirmed diff or is labeled candidate/reported; success never derives from green animation alone; secret fixtures are redacted from shareable/export views.
 
-**Exit gate:** Evidence-integrity and UX truthfulness review.
+**Exit gate:** Worker implementation, parent source/probe correction, full/fresh-copy gates, and first-hand operator-browser proof are complete. Private commit/push and exact-SHA CI remain pending; no routine audit or re-audit was run.
 
 **Risks:** Misattribution under concurrent edits. Show observation windows/provenance and avoid exclusive authorship claims.
 

@@ -20,6 +20,15 @@ const colors: Readonly<Record<RenderObjectKind, string>> = {
   file: "#2563eb",
 };
 
+const evidenceColors = {
+  created: "#22d3ee",
+  modified: "#f59e0b",
+  deleted: "#94a3b8",
+  renamed: "#a78bfa",
+  binary: "#fb7185",
+  reported: "#64748b",
+} as const;
+
 function InstanceGroup({
   kind,
   group,
@@ -167,6 +176,16 @@ function SceneBridge({
           <meshBasicMaterial color="#f8fafc" wireframe />
         </mesh>
       )}
+      {prepared.evidenceMarkers.map((marker) => (
+        <mesh
+          key={`${marker.ref}:${marker.outcome}`}
+          position={marker.position}
+          name={`evidence-${marker.outcome}`}
+        >
+          <boxGeometry args={[1.15, 1.15, 1.15]} />
+          <meshBasicMaterial color={evidenceColors[marker.outcome]} wireframe />
+        </mesh>
+      ))}
     </>
   );
 }

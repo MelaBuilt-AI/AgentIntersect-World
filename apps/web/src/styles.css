@@ -918,6 +918,136 @@ p {
   }
 }
 
+.evidence-panel,
+.evidence-record,
+.evidence-change {
+  min-width: 0;
+}
+.evidence-panel {
+  display: grid;
+  gap: 1rem;
+}
+.evidence-record {
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  padding: 1rem;
+}
+.evidence-record header h3 {
+  margin: 0.35rem 0 0;
+}
+.evidence-identities,
+.evidence-change__truth {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.evidence-identities div,
+.evidence-change__truth div {
+  min-width: 0;
+}
+.evidence-identities dd,
+.evidence-change__truth dd,
+.evidence-change strong,
+.evidence-change pre {
+  overflow-wrap: anywhere;
+}
+.evidence-identities dd,
+.evidence-change__truth dd {
+  margin: 0.15rem 0 0;
+}
+.evidence-changes {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.evidence-change {
+  border: 1px solid var(--line);
+  border-left: 4px solid #f59e0b;
+  padding: 0.8rem;
+}
+.evidence-change--created {
+  border-left-color: #22d3ee;
+}
+.evidence-change--deleted,
+.evidence-change--reported {
+  border-left-color: #64748b;
+}
+.evidence-change--renamed {
+  border-left-color: #a78bfa;
+}
+.evidence-change--binary {
+  border-left-color: #fb7185;
+}
+.evidence-change__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.evidence-badge,
+.object-evidence-badge {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.12rem 0.45rem;
+  color: #fbbf24;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+.evidence-badge--created,
+.object-evidence-badge--created {
+  color: #22d3ee;
+}
+.evidence-badge--deleted,
+.evidence-badge--reported,
+.object-evidence-badge--deleted,
+.object-evidence-badge--reported {
+  color: #94a3b8;
+}
+.evidence-badge--renamed,
+.object-evidence-badge--renamed {
+  color: #c4b5fd;
+}
+.evidence-badge--binary,
+.object-evidence-badge--binary {
+  color: #fda4af;
+}
+.evidence-select:not(:disabled) {
+  color: #bfdbfe;
+  border-color: #2563eb;
+}
+.evidence-select:disabled {
+  color: #94a3b8;
+  border-color: #64748b;
+}
+.evidence-change pre {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.object-tree li[data-evidence-outcome] > button {
+  outline: 2px solid #f59e0b;
+  outline-offset: -2px;
+}
+.object-tree li[data-evidence-outcome="created"] > button {
+  outline-color: #22d3ee;
+}
+.object-tree li[data-evidence-outcome="renamed"] > button {
+  outline-color: #a78bfa;
+}
+.object-tree li[data-evidence-outcome="binary"] > button {
+  outline-color: #fb7185;
+}
+.object-tree li[data-evidence-outcome="deleted"] > button,
+.object-tree li[data-evidence-outcome="reported"] > button {
+  outline-color: #94a3b8;
+}
+.minimap button[data-evidence-outcome] {
+  box-shadow: 0 0 0 2px #f59e0b;
+}
+
 @media (max-width: 950px) {
   .world-hero {
     grid-template-columns: 1fr;
@@ -943,6 +1073,10 @@ p {
     grid-template-columns: 1fr;
   }
   .command-flow {
+    grid-template-columns: 1fr;
+  }
+  .evidence-identities,
+  .evidence-change__truth {
     grid-template-columns: 1fr;
   }
   .object-tree {

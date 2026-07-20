@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/local-server",
-  "version": "0.7.0-phase7",
+  "version": "0.8.0-phase8",
   "private": true,
   "type": "module",
   "exports": {

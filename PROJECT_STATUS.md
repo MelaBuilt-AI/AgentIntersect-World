@@ -4,24 +4,23 @@ Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 7 — Local command intent and real worker vertical core: COMPLETE**
+**Phase 8 — File diff, test evidence, and construction projection: LOCAL COMPLETE / EXACT-SHA CI PENDING**
 
-- Evidence: `PHASE_7_REPORT.md`, `docs/PHASE_7_SCOPE.md`, and pinned AgentIntersect compatibility fixtures.
-- Baseline: completed Phase 6 commit `ce8495fcd0963165a9c68b98414a203c4dc25ace`.
-- Version: `0.7.0-phase7`.
+- Evidence: `PHASE_8_REPORT.md`, `docs/PHASE_8_SCOPE.md`, and the World-owned disposable Phase 8 fixture.
+- Baseline: completed Phase 7 commit `5994ee8ff51fff049de0060d30a5e589651cdcd2`.
+- Version: `0.8.0-phase8`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`.
 - Workspace: 15 projects / 14 named app-package graph entries.
-- Complete tests: 32 files / 187 tests.
+- Complete tests: 37 files / 203 tests.
 - Typecheck: 25/25 tasks.
 - Architecture: 9/9 tests; checker reports no violations across 14 packages.
 - Production build: 14/14 tasks; Storybook production build green.
-- Smoke and complete Playwright: green; 20/20 browser tests passed with one worker.
-- Fresh-copy verification: green for 230 project source files; production advisory audit found no known vulnerabilities.
-- First-hand proof: one unchanged-AgentIntersect job; loopback and explicit trusted-LAN authority; duplicate replay with one queue entry; queued-to-complete reconciliation; bounded local raw records; durable restart-stable fixture result; mobile browser with no console errors or horizontal overflow.
-- Concrete parent corrections: real pinned payload normalization, strict dual-source phase/revision attestation, bounded response/log capture, durable result restoration, and no-op reconciliation stability.
-- Review cadence: one bounded Codex implementation round, independent parent source/live proof, and observed-defect corrections are green. No routine broad or targeted re-audit ran.
+- Smoke and complete Playwright: green; 21/21 browser tests passed with one worker.
+- Fresh-copy verification: green for 245 project source files; production advisory audit found no known vulnerabilities.
+- Worker fixture proof: sealed-before-mutation Git/filesystem baseline; tracked/create/delete/unique-rename/binary/redacted-secret/unreported-ambiguous/reported-unverified outcomes; exact correlated verified test artifact; restart/finalize/reload/idempotency; strict identity API; reduced-motion/WebGL fallback selection; no overflow or console errors.
+- Independent parent probes corrected no-NUL binary embedding and authoritative rename-ref divergence, then passed the full gates and first-hand Evidence-to-World browser proof with zero JavaScript errors. No routine audit or re-audit ran.
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Exact final commit/CI evidence: recorded in the Phase 7 Obsidian concept/latest handoff after private push, avoiding a self-referential status commit.
+- Phase 8 final private commit/push and exact-SHA CI evidence: pending closeout; the exact SHA/run is recorded externally after push to avoid a self-referential status commit.
 - Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -133,13 +132,21 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - Parent/live corrections made the actual pinned state/snapshot payloads compatible, enforced dual-source phase/revision evidence, bounded raw responses/logs, restored results, and stopped no-op durable churn.
 - Full post-fix gates and unchanged-AgentIntersect loopback/LAN/real-job/restart/mobile proof are recorded in `PHASE_7_REPORT.md`.
 
+## Phase 8 — LOCAL COMPLETE / EXACT-SHA CI PENDING
+
+- Strict `aiw.evidence/0.8` baseline, change, test-truth, record, artifact, lookup, and current/previous schemas.
+- Checksum-protected atomic local evidence store with retained restart baselines, last-good recovery, immutable intent identity, exact-once durable finalization, and latest-20 retention.
+- Hardened read-only Git-plus-filesystem capture with 256-path, 1 MiB total, 128 KiB/file, binary metadata-only, secret-redaction, explicit truncation, and unique complete-hash rename behavior.
+- Phase 7 seal-before-create and exact terminal intent/job/run finalization; one strict identity lookup API plus current/previous UI read.
+- Phase 4 object/baseline/tombstone refs feed the Phase 5 repository selection/focus path and persistent DOM/R3F change markers without success-by-animation.
+- Authoritative Evidence panel, Storybook states, reduced-motion/WebGL fallback equivalence, and the complete World-owned disposable acceptance fixture are green in worker verification.
+- Independent parent proof is green: corrected no-NUL binary handling and authoritative rename refs, 203/203 Vitest, 25/25 typecheck, 9/9 architecture, 14/14 build, smoke, 21/21 Playwright, Storybook, zero-vulnerability production audit, 245-file fresh-copy verification, and first-hand browser selection/marker/console checks.
+
 ## Next milestone
 
-**Phase 8 — File diff, test, evidence, and construction projection: NEXT / NOT STARTED**
+**Phase 9 — NOT STARTED**
 
-Preparation lives in `docs/PHASE_8_SCOPE.md`. In a future session, confirm the exact observation window, attribution/ambiguity policy, diff and secret bounds, test-evidence truth model, changed-object treatment, retention/restart behavior, and disposable acceptance transcript before implementation.
-
-Phase 8 implementation has not started. File editing, auto-revert, generalized semantic diffs, exclusive authorship claims under ambiguity, Phase 9 synchronization, release/publication/public-ingress actions, and visibility changes remain out of scope.
+After private exact-SHA CI closeout for Phase 8, Phase 9 remains the next milestone. Phase 9 synchronization, file editing, rollback, generalized semantic diffs, exclusive authorship, evidence export, release/publication/public ingress, and visibility changes remain out of scope.
 
 ## Non-blocking backlog
 

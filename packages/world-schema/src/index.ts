@@ -76,8 +76,8 @@ export type ApiResult<T> = {
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 7"),
-    version: z.literal("0.7.0-phase7"),
+    phase: z.literal("Phase 8"),
+    version: z.literal("0.8.0-phase8"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -93,7 +93,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.7.0-phase7"),
+    version: z.literal("0.8.0-phase8"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })
@@ -654,3 +654,242 @@ export type CommandIntentState = z.infer<typeof CommandIntentStateSchema>;
 export type WorkerLifecycle = z.infer<typeof WorkerLifecycleSchema>;
 export type FixtureArtifactResult = z.infer<typeof FixtureArtifactResultSchema>;
 export type CommandIntentRecord = z.infer<typeof CommandIntentRecordSchema>;
+
+export const EVIDENCE_MAX_CHANGED_PATHS = 256 as const;
+export const EVIDENCE_MAX_TOTAL_DIFF_BYTES = 1024 * 1024;
+export const EVIDENCE_MAX_FILE_DIFF_BYTES = 128 * 1024;
+export const EVIDENCE_RETENTION_LIMIT = 20 as const;
+
+const EvidenceHashSchema = z.string().regex(/^[0-9a-f]{64}$/);
+const EvidenceGitHeadSchema = z.string().regex(/^[0-9a-f]{40,64}$/);
+
+function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (const character of value) {
+    const codePoint = character.codePointAt(0) ?? 0;
+    bytes +=
+      codePoint <= 0x7f
+        ? 1
+        : codePoint <= 0x7ff
+          ? 2
+          : codePoint <= 0xffff
+            ? 3
+            : 4;
+  }
+  return bytes;
+}
+
+export const EvidenceFileFingerprintSchema = z
+  .object({
+    path: repositoryPathSchema(false),
+    size: z.number().int().nonnegative(),
+    contentHash: EvidenceHashSchema.nullable(),
+    binary: z.boolean(),
+    oversized: z.boolean(),
+    sanitizedText: z.string().max(EVIDENCE_MAX_FILE_DIFF_BYTES).optional(),
+    redactions: z.number().int().nonnegative(),
+    gitStatus: z.string().min(1).max(4).nullable(),
+    objectRef: WorldObjectRefSchema.nullable(),
+  })
+  .strict()
+  .superRefine((file, context) => {
+    if (
+      file.sanitizedText !== undefined &&
+      utf8ByteLength(file.sanitizedText) > EVIDENCE_MAX_FILE_DIFF_BYTES
+    )
+      context.addIssue({
+        code: "custom",
+        message: "Sanitized baseline text exceeds the per-file byte bound",
+      });
+  });
+
+export const EvidenceBaselineSchema = z
+  .object({
+    schema: z.literal("aiw.evidence-baseline/0.8"),
+    intentId: z.uuid(),
+    generationId: z.uuid(),
+    generationFingerprint: EvidenceHashSchema,
+    repositoryRef: WorldObjectRefSchema,
+    git: z
+      .object({
+        present: z.boolean(),
+        head: EvidenceGitHeadSchema.nullable(),
+        dirty: z.boolean(),
+      })
+      .strict(),
+    sealedAt: z.iso.datetime(),
+    files: z.array(EvidenceFileFingerprintSchema).max(10_000),
+  })
+  .strict();
+
+export const EvidenceContentMetadataSchema = z
+  .object({
+    size: z.number().int().nonnegative(),
+    contentHash: EvidenceHashSchema.nullable(),
+  })
+  .strict();
+
+export const EvidenceChangeSchema = z
+  .object({
+    path: repositoryPathSchema(false),
+    previousPath: repositoryPathSchema(false).optional(),
+    outcome: z.enum([
+      "created",
+      "modified",
+      "deleted",
+      "renamed",
+      "binary",
+      "reported",
+    ]),
+    observationLabel: z.literal("observed-in-window"),
+    attribution: z.enum([
+      "reported-and-confirmed",
+      "ambiguous",
+      "reported-unverified",
+    ]),
+    reported: z.boolean(),
+    binary: z.boolean(),
+    before: EvidenceContentMetadataSchema.nullable(),
+    after: EvidenceContentMetadataSchema.nullable(),
+    diff: z.string().max(EVIDENCE_MAX_FILE_DIFF_BYTES).optional(),
+    diffBytes: z.number().int().min(0).max(EVIDENCE_MAX_FILE_DIFF_BYTES),
+    truncated: z.boolean(),
+    redactions: z.number().int().nonnegative(),
+    objectRef: WorldObjectRefSchema.nullable(),
+    objectState: z.enum(["live", "baseline", "tombstone", "unavailable"]),
+    diagnostics: z.array(z.string().min(1).max(512)).max(10),
+  })
+  .strict();
+
+export const EvidenceTestTruthSchema = z
+  .object({
+    state: z.enum(["passed", "failed", "not-run", "unavailable", "unverified"]),
+    verification: z.enum(["verified", "reported", "unverified", "none"]),
+    artifactPath: repositoryPathSchema(false).optional(),
+    artifactHash: EvidenceHashSchema.optional(),
+    reportedState: z.enum(["passed", "failed", "not-run"]).optional(),
+    diagnostic: z.string().min(1).max(512),
+  })
+  .strict();
+
+export const TestEvidenceArtifactSchema = z
+  .object({
+    schema: z.literal("aiw.test-evidence/0.8"),
+    intentId: z.uuid(),
+    jobId: VisibleAscii128Schema,
+    runId: VisibleAscii128Schema,
+    state: z.enum(["passed", "failed", "not-run"]),
+  })
+  .strict();
+
+export const EvidenceRecordSchema = z
+  .object({
+    schema: z.literal("aiw.evidence/0.8"),
+    intentId: z.uuid(),
+    jobId: VisibleAscii128Schema,
+    runId: VisibleAscii128Schema,
+    lifecycle: z.enum(["complete", "failed"]),
+    generationId: z.uuid(),
+    generationFingerprint: EvidenceHashSchema,
+    repositoryRef: WorldObjectRefSchema,
+    observationWindow: z
+      .object({
+        openedAt: z.iso.datetime(),
+        closedAt: z.iso.datetime(),
+      })
+      .strict(),
+    attributionLabel: z.literal("observed-in-window"),
+    changes: z.array(EvidenceChangeSchema).max(EVIDENCE_MAX_CHANGED_PATHS),
+    bounds: z
+      .object({
+        maxChangedPaths: z.literal(EVIDENCE_MAX_CHANGED_PATHS),
+        maxTotalDiffBytes: z.literal(EVIDENCE_MAX_TOTAL_DIFF_BYTES),
+        maxFileDiffBytes: z.literal(EVIDENCE_MAX_FILE_DIFF_BYTES),
+        changedPathsObserved: z.number().int().nonnegative(),
+        changedPathsReturned: z
+          .number()
+          .int()
+          .min(0)
+          .max(EVIDENCE_MAX_CHANGED_PATHS),
+        totalDiffBytes: z
+          .number()
+          .int()
+          .min(0)
+          .max(EVIDENCE_MAX_TOTAL_DIFF_BYTES),
+        pathsTruncated: z.boolean(),
+        diffTruncated: z.boolean(),
+        redactions: z.number().int().nonnegative(),
+      })
+      .strict(),
+    test: EvidenceTestTruthSchema,
+    diagnostics: z.array(z.string().min(1).max(512)).max(20),
+    completedAt: z.iso.datetime(),
+  })
+  .strict()
+  .superRefine((record, context) => {
+    const total = record.changes.reduce((bytes, change) => {
+      const actual = utf8ByteLength(change.diff ?? "");
+      if (actual !== change.diffBytes || actual > EVIDENCE_MAX_FILE_DIFF_BYTES)
+        context.addIssue({
+          code: "custom",
+          path: ["changes", record.changes.indexOf(change), "diffBytes"],
+          message:
+            "Evidence diff byte count is invalid or exceeds the per-file bound",
+        });
+      return bytes + actual;
+    }, 0);
+    if (
+      total > EVIDENCE_MAX_TOTAL_DIFF_BYTES ||
+      total !== record.bounds.totalDiffBytes
+    )
+      context.addIssue({
+        code: "custom",
+        message:
+          "Evidence text diff byte total is invalid or exceeds the record bound",
+      });
+    if (record.bounds.changedPathsReturned !== record.changes.length)
+      context.addIssue({
+        code: "custom",
+        message:
+          "Evidence changed-path count does not match the returned records",
+      });
+  });
+
+export const EvidenceLookupQuerySchema = z
+  .object({
+    intentId: z.uuid().optional(),
+    jobId: VisibleAscii128Schema.optional(),
+    runId: VisibleAscii128Schema.optional(),
+  })
+  .strict()
+  .refine(
+    (query) =>
+      [query.intentId, query.jobId, query.runId].filter(
+        (value) => value !== undefined,
+      ).length === 1,
+    { message: "Exactly one of intentId, jobId, or runId is required" },
+  );
+
+export const EvidenceLookupDataSchema = z
+  .object({
+    current: EvidenceRecordSchema,
+    previous: EvidenceRecordSchema.nullable(),
+  })
+  .strict();
+
+export const EvidenceCurrentDataSchema = z
+  .object({
+    current: EvidenceRecordSchema.nullable(),
+    previous: EvidenceRecordSchema.nullable(),
+  })
+  .strict();
+
+export type EvidenceFileFingerprint = z.infer<
+  typeof EvidenceFileFingerprintSchema
+>;
+export type EvidenceBaseline = z.infer<typeof EvidenceBaselineSchema>;
+export type EvidenceChange = z.infer<typeof EvidenceChangeSchema>;
+export type EvidenceTestTruth = z.infer<typeof EvidenceTestTruthSchema>;
+export type TestEvidenceArtifact = z.infer<typeof TestEvidenceArtifactSchema>;
+export type EvidenceRecord = z.infer<typeof EvidenceRecordSchema>;
+export type EvidenceLookupQuery = z.infer<typeof EvidenceLookupQuerySchema>;
