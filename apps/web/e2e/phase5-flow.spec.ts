@@ -130,6 +130,10 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
     page.getByText("Avatar appearance updated locally."),
   ).toBeVisible();
   await page.getByRole("button", { name: "Close Settings panel" }).click();
+  await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
+    "data-state",
+    "complete",
+  );
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(page).toHaveScreenshot("phase5-dashboard-desktop.png", {
     animations: "disabled",
