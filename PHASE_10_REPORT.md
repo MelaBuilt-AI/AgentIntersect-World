@@ -60,14 +60,14 @@ Parent retesting then found and directly corrected two small completion misses w
 - Formatting and ESLint: passed with zero errors.
 - Typecheck: 26/26 workspace tasks passed after 12 package-build tasks and root TypeScript validation.
 - Architecture: checker passed across 14 packages; 11/11 architecture tests passed, including browser-safe Node parser subpath boundaries.
-- Complete Vitest: 54 files / 285 tests passed.
+- Complete Vitest: 55 files / 289 tests passed.
 - Production build: 14/14 workspace tasks passed.
 - Smoke: passed against disposable server/web ports with no-execution sentinels absent.
 - Playwright: 25/25 passed with one worker; Phase 10 contributed focused/degraded/fallback truth plus deterministic 10k/100k aggregate journeys.
 - Storybook production build: passed with current/degraded, reduced-motion/WebGL-fallback, and aggregate/focused dependency states.
 - Production dependency audit: no known vulnerabilities.
 - Exact runtime artifact verification matched all four frozen parser/grammar SHA-256 values; npm reported the frozen MIT package, Microsoft repository, version, and integrity.
-- Fresh-copy verification: passed for 295 project source files, including enforcing 10k/100k measurements, format, lint, 26/26 typecheck tasks, 11/11 architecture tests, 285/285 Vitest, 14/14 production build tasks, smoke, and 25/25 Playwright.
+- Fresh-copy verification: passed for 297 project source files, including enforcing 10k/100k measurements, format, lint, 26/26 typecheck tasks, 11/11 architecture tests, 289/289 Vitest, 14/14 production build tasks, smoke, and 25/25 Playwright.
 
 ## Measured performance
 
@@ -75,12 +75,14 @@ The final parent enforcing run on Node `v24.18.0`, Linux x64, AMD Ryzen 7 7800X3
 
 | Fixture |    Cold wall |                           Warm wall |   RSS delta | Sentinel |
 | ------- | -----------: | ----------------------------------: | ----------: | -------- |
-| 10k     |   582.190 ms |                          196.682 ms | 237.102 MiB | absent   |
-| 100k    | 4,021.129 ms | 2,958.017 ms (reported; no ceiling) | 644.824 MiB | absent   |
+| 10k     |   581.501 ms |                          196.019 ms | 233.191 MiB | absent   |
+| 100k    | 4,141.159 ms | 2,957.537 ms (reported; no ceiling) | 651.148 MiB | absent   |
 
 The 10k graph produced 501 coverage records, 498 parsed files, 7,953 symbols, 1,491 dependencies, and three truthful fallbacks. The 100k graph produced 5,001 coverage records, 5,000 parsed files, 80,000 symbols, 15,000 dependencies, and one manifest fallback.
 
-Fresh-copy Chromium measured the 10k aggregate view at 16.8 ms p95 with a 72 ms longest task and the 100k view at 16.7 ms p95 with an 80 ms longest task over 120 frames each, with zero whole-repository symbol rows. The p95 gate normalizes browser timestamp arithmetic to 0.001 ms before comparing with the one-decimal 33.3 ms contract, removing binary floating-point noise without accepting a real 33.301 ms breach.
+Fresh-copy Chromium measured the 10k aggregate view at 16.7 ms p95 with a 61 ms longest task and the 100k view at 16.8 ms p95 with a 59 ms longest task over 120 frames each, with zero whole-repository symbol rows. Five repeated focused browser runs also passed with p95 16.7–16.8 ms and longest tasks 70–77 ms.
+
+The first two exact-SHA CI attempts exposed flaws in the benchmark path rather than threshold changes: zero-based `floor(N×0.95)` selected the 95.83rd percentile for 120 samples, and both large fixture payloads were deeply Zod-parsed at module import before either scale was selected. The final gate uses standard nearest-rank p95 with 0.001 ms timestamp normalization, lazily constructs only the requested type-safe fixture, validates both large fixtures in Vitest, and couples fixture aggregates/focused detail to the current generation. The frozen 33.3 ms and 100 ms ceilings were not changed.
 
 ## First-hand visual proof
 

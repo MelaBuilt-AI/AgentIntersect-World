@@ -35,11 +35,11 @@ import {
 import { getCurrentEvidence } from "../evidence/evidence-client.js";
 import { PHASE8_EVIDENCE_FIXTURE } from "../evidence/evidence-fixtures.js";
 import {
-  PHASE10_CODE_GRAPH_10K_STATUS,
-  PHASE10_CODE_GRAPH_AGGREGATE,
   PHASE10_CODE_GRAPH_STATUS,
-  PHASE10_CODE_GRAPH_100K_STATUS,
+  createPhase10AggregateFixture,
   createPhase10FocusedFixture,
+  getPhase10CodeGraph10KStatus,
+  getPhase10CodeGraph100KStatus,
 } from "../fixtures/phase10-code-graph.js";
 import {
   createRepositoryBrowserModel,
@@ -178,8 +178,8 @@ export function RepositoryWorldPanel({
     queryKey: ["phase10-code-graph", fixture],
     queryFn: async () => {
       if (fixture === "phase10") return PHASE10_CODE_GRAPH_STATUS;
-      if (fixture === "phase10-10k") return PHASE10_CODE_GRAPH_10K_STATUS;
-      if (fixture === "phase10-100k") return PHASE10_CODE_GRAPH_100K_STATUS;
+      if (fixture === "phase10-10k") return getPhase10CodeGraph10KStatus();
+      if (fixture === "phase10-100k") return getPhase10CodeGraph100KStatus();
       const result = await getCurrentCodeGraph();
       if (result.status !== "ok") throw new Error(result.message);
       return result.data;
@@ -205,7 +205,9 @@ export function RepositoryWorldPanel({
         fixture === "phase10-10k" ||
         fixture === "phase10-100k"
       )
-        return PHASE10_CODE_GRAPH_AGGREGATE;
+        return createPhase10AggregateFixture(
+          graphQuery.data?.current?.generationId,
+        );
       const result = await getCodeGraphAggregates(2, 1_024);
       if (result.status !== "ok") throw new Error(result.message);
       return result.data;
@@ -336,7 +338,11 @@ function RepositoryBrowser({
     ],
     queryFn: async () => {
       if (focusRef === null) throw new Error("No focused file");
-      if (phase10Fixture) return createPhase10FocusedFixture(focusRef);
+      if (phase10Fixture)
+        return createPhase10FocusedFixture(
+          focusRef,
+          graphStatus?.current?.generationId,
+        );
       const result = await getFocusedFileGraph(focusRef, 4);
       if (result.status !== "ok") throw new Error(result.message);
       return result.data;

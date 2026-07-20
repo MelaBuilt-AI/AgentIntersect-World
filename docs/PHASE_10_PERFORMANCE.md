@@ -1,6 +1,6 @@
 # Phase 10 measured performance
 
-Measured: 2026-07-20T18:57:00.812Z in the final fresh-copy verifier
+Measured: 2026-07-20T19:12:48.549Z in the final fresh-copy verifier
 
 Command: `corepack pnpm@11.15.0 measure:phase10`
 
@@ -10,16 +10,16 @@ Environment: Node `v24.18.0`, Linux x64, AMD Ryzen 7 7800X3D 8-Core Processor, 1
 
 | Metric                  | Frozen ceiling |                                  Measured | Result |
 | ----------------------- | -------------: | ----------------------------------------: | ------ |
-| 10k cold graph wall     |      30,000 ms |                                582.190 ms | passed |
-| 10k warm no-change wall |       8,000 ms |                                196.682 ms | passed |
-| 10k peak RSS delta      |        512 MiB |                               237.102 MiB | passed |
-| 100k cold graph wall    |      90,000 ms |                              4,021.129 ms | passed |
-| 100k peak RSS delta     |        768 MiB |                               644.824 MiB | passed |
+| 10k cold graph wall     |      30,000 ms |                                581.501 ms | passed |
+| 10k warm no-change wall |       8,000 ms |                                196.019 ms | passed |
+| 10k peak RSS delta      |        512 MiB |                               233.191 MiB | passed |
+| 100k cold graph wall    |      90,000 ms |                              4,141.159 ms | passed |
+| 100k peak RSS delta     |        768 MiB |                               651.148 MiB | passed |
 | Per-file hard timeout   |         500 ms | enforced constant plus timeout regression | passed |
 
-The 500-source-file fixture declared approximately 8,000 declarations and 1,500 dependency occurrences. Including its indexed package manifest, the graph reported 501 coverage records, 498 parsed files, 7,953 accepted symbols, 1,491 resolved/preserved dependency edges, and three truthful fallbacks (malformed, unsupported, and manifest). Cold generation parsed 498 files; warm generation reused all 501 entries. Event-loop-delay max/p99 were 99.942/99.942 ms. The execution sentinel remained absent.
+The 500-source-file fixture declared approximately 8,000 declarations and 1,500 dependency occurrences. Including its indexed package manifest, the graph reported 501 coverage records, 498 parsed files, 7,953 accepted symbols, 1,491 resolved/preserved dependency edges, and three truthful fallbacks (malformed, unsupported, and manifest). Cold generation parsed 498 files; warm generation reused all 501 entries. Event-loop-delay max/p99 were 86.508/76.677 ms. The execution sentinel remained absent.
 
-The 5,000-source-file fixture declared 80,000 declarations and 15,000 dependency occurrences. Including its indexed package manifest, the graph reported 5,001 coverage records, 5,000 parsed files, 80,000 accepted symbols, 15,000 dependency edges, and one manifest fallback. Cold generation parsed 5,000 files; warm generation reused all 5,001 entries and took 2,958.017 ms (no frozen 100k warm ceiling exists). Event-loop-delay max/p99 were 1,143.996/448.791 ms. These delay values are reported as measured and are not reclassified as browser main-thread results. The execution sentinel remained absent.
+The 5,000-source-file fixture declared 80,000 declarations and 15,000 dependency occurrences. Including its indexed package manifest, the graph reported 5,001 coverage records, 5,000 parsed files, 80,000 accepted symbols, 15,000 dependency edges, and one manifest fallback. Cold generation parsed 5,000 files; warm generation reused all 5,001 entries and took 2,957.537 ms (no frozen 100k warm ceiling exists). Event-loop-delay max/p99 were 1,200.620/449.315 ms. These delay values are reported as measured and are not reclassified as browser main-thread results. The execution sentinel remained absent.
 
 ## Browser metrics
 
@@ -27,10 +27,12 @@ The serialized Chromium command `corepack pnpm@11.15.0 exec playwright test apps
 
 | Aggregate view | Frames | Frame p95 ceiling | Measured frame p95 | Longest-task ceiling | Measured longest task | Result |
 | -------------- | -----: | ----------------: | -----------------: | -------------------: | --------------------: | ------ |
-| 10k            |    120 |           33.3 ms |            16.8 ms |               100 ms |                 72 ms | passed |
-| 100k           |    120 |           33.3 ms |            16.7 ms |               100 ms |                 80 ms | passed |
+| 10k            |    120 |           33.3 ms |            16.7 ms |               100 ms |                 61 ms | passed |
+| 100k           |    120 |           33.3 ms |            16.8 ms |               100 ms |                 59 ms | passed |
 
 The Long Tasks observer was available in this Chromium run, so neither longest-task value is inferred or marked passed from an unavailable metric. Both aggregate views materialized zero whole-repository symbol rows. The focused journey also passed aggregate/focused dependency confidence, cycle and drawable/non-drawable truth, renderer bridge count, DOM symbol-row cap, semantic/WebGL-fallback selection equivalence, degraded fallback truth, overflow, and zero-console-error assertions.
+
+The browser p95 calculation uses the standard nearest-rank index `ceil(N×0.95)-1` for 120 samples and normalizes timestamp arithmetic to 0.001 ms. Large 10k/100k fixture records are type-safe, schema-validated in Vitest, and constructed lazily only for the selected scale; they are no longer deeply parsed at application module import. Five repeated focused browser runs passed without changing the frozen ceilings.
 
 Independent parent first-hand proof used the production build with its Node 24 loopback API. At 1,440 px desktop width it rendered one live WebGL canvas, one exact dependency bridge, three focused symbol instances, and truthful external non-drawable dependency metadata with zero console/page errors and equal 1,440 px client/scroll widths. At 390 px mobile width with reduced motion and WebGL disabled, the complete semantic fallback remained reachable with equal 390 px client/scroll widths and zero errors.
 
