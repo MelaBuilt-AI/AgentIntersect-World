@@ -2080,7 +2080,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 11 — Avatar profiles and embodied status
 
-**Status:** NOT STARTED / NOT AUTHORIZED. Phase 10 closeout does not authorize Phase 11 implementation.
+**Status:** NEXT SESSION / NOT STARTED. The user selected Phase 11 as next, and `docs/PHASE_11_SCOPE.md` is the draft restart artifact. This marker does not authorize implementation during the current closeout: a fresh session must verify the Phase 10 baseline, refresh jCodeMunch, and freeze the smallest observable avatar/profile/status slice, consent mapper, embodiment medium, shared-rig contract, authoritative status mapping, asset/provenance/performance budgets, and acceptance transcript before production edits.
 
 **Objective:** Introduce privacy-safe modular agent/user avatars driven by authoritative status.
 

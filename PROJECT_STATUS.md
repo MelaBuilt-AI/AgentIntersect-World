@@ -159,9 +159,18 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 11 — NOT STARTED / NOT AUTHORIZED**
+**Phase 11 — NEXT SESSION / NOT STARTED**
 
-Phase 11 requires a fresh scope/decision pass before implementation. Phase 10 completion does not authorize avatar/profile work, Blender/3D asset work, release/publication, public ingress, or repository visibility changes.
+The user selected Phase 11 as the next session topic. `docs/PHASE_11_SCOPE.md` is a draft restart artifact, not a frozen production contract. No Phase 11 production code, dependency, asset work, Blender/3D work, or implementation worker has started.
+
+- **Objective:** introduce privacy-safe modular agent/user avatars driven by authoritative status.
+- **In scope after a fresh decision freeze:** one shared biped core and reusable primary animation set; modular human/cat/dog/future-species surfaces; explicit opt-in safe profile mapping; roster/status integration; local preferences; provenance/budgets; and text-only/reduced-motion/accessibility equivalents.
+- **Out of scope:** separate species locomotion rigs, raw-memory ingestion/replication, generative meshes, biometric/personality inference, autonomous social behavior, public multiplayer/cloud identity, release/publication, public ingress, visibility changes, and modification of original AgentIntersect.
+- **Fresh-session gates:** freeze the smallest observable slice, schema/identity, consent mapper, embodiment medium, shared-rig contract, authoritative status mapping, persistence/presentation boundary, UI/accessibility flow, asset provenance, performance budgets, fixtures, and versioned artifacts before production edits.
+- **Acceptance:** no raw private profile data; animation never outruns authoritative state; every form/state remains distinguishable without color; text/reduced-motion truth is equivalent; frozen asset/performance budgets pass; consent-off produces no profile-derived persistence/API/presentation/rendering data.
+- **Exit evidence:** focused plus integrated/full/browser/accessibility/visual/performance/provenance/fresh-copy proof, private commit/push, exact-SHA CI, and aligned repository/vault continuity.
+
+Marking Phase 11 as next does not authorize implementation in this closeout. A fresh session must read `AGENTS.md`, this tracker, the canonical Phase 11 design section, and `docs/PHASE_11_SCOPE.md`, refresh jCodeMunch, freeze decisions, and only then begin after explicit user authorization.
 
 ## Non-blocking backlog
 
