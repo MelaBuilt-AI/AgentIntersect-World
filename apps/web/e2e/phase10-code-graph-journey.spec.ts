@@ -117,10 +117,10 @@ test("Phase 10 100k aggregate view materializes zero repository-wide symbols and
   await expect(page.getByTestId("code-graph-status")).toContainText(
     "80000 symbols",
   );
-  expect(await page.locator("[data-symbol-ref]").count()).toBe(0);
-  expect(
-    await page.locator("[data-whole-repository-detail='true']").count(),
-  ).toBe(0);
+  await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
+    "data-state",
+    "complete",
+  );
   const frames = await page.evaluate(
     () =>
       new Promise<number[]>((resolve) => {
@@ -136,24 +136,33 @@ test("Phase 10 100k aggregate view materializes zero repository-wide symbols and
       }),
   );
   const p95 = normalizeBrowserDuration(nearestRankPercentile(frames, 0.95));
-  expect(p95).toBeLessThanOrEqual(33.3);
   const longTasks = await page.evaluate(
     () =>
       (globalThis as typeof globalThis & { __aiwLongTasks?: number[] })
         .__aiwLongTasks ?? [],
   );
-  if (longTasks.length > 0)
-    expect(Math.max(...longTasks)).toBeLessThanOrEqual(100);
+  const wholeRepositorySymbolRows = await page
+    .locator("[data-symbol-ref]")
+    .count();
+  const wholeRepositoryDetailRows = await page
+    .locator("[data-whole-repository-detail='true']")
+    .count();
+  const longestTask =
+    longTasks.length > 0 ? Math.max(...longTasks) : "unverified";
   process.stdout.write(
     `[phase10-browser-measure] ${JSON.stringify({
       scale: "100k",
       frameP95Ms: p95,
-      longestTaskMs:
-        longTasks.length > 0 ? Math.max(...longTasks) : "unverified",
+      longestTaskMs: longestTask,
       frames: frames.length,
-      wholeRepositorySymbolRows: 0,
+      wholeRepositorySymbolRows,
     })}\n`,
   );
+  expect(p95).toBeLessThanOrEqual(33.3);
+  if (typeof longestTask === "number")
+    expect(longestTask).toBeLessThanOrEqual(100);
+  expect(wholeRepositorySymbolRows).toBe(0);
+  expect(wholeRepositoryDetailRows).toBe(0);
 });
 
 test("Phase 10 10k aggregate view meets the 120-frame and no-all-detail ceilings", async ({
@@ -183,7 +192,10 @@ test("Phase 10 10k aggregate view meets the 120-frame and no-all-detail ceilings
   await expect(page.getByTestId("code-graph-status")).toContainText(
     "500/500 files parsed",
   );
-  expect(await page.locator("[data-symbol-ref]").count()).toBe(0);
+  await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
+    "data-state",
+    "complete",
+  );
   const frames = await page.evaluate(
     () =>
       new Promise<number[]>((resolve) => {
@@ -199,22 +211,27 @@ test("Phase 10 10k aggregate view meets the 120-frame and no-all-detail ceilings
       }),
   );
   const p95 = normalizeBrowserDuration(nearestRankPercentile(frames, 0.95));
-  expect(p95).toBeLessThanOrEqual(33.3);
   const longTasks = await page.evaluate(
     () =>
       (globalThis as typeof globalThis & { __aiwLongTasks?: number[] })
         .__aiwLongTasks ?? [],
   );
-  if (longTasks.length > 0)
-    expect(Math.max(...longTasks)).toBeLessThanOrEqual(100);
+  const wholeRepositorySymbolRows = await page
+    .locator("[data-symbol-ref]")
+    .count();
+  const longestTask =
+    longTasks.length > 0 ? Math.max(...longTasks) : "unverified";
   process.stdout.write(
     `[phase10-browser-measure] ${JSON.stringify({
       scale: "10k",
       frameP95Ms: p95,
-      longestTaskMs:
-        longTasks.length > 0 ? Math.max(...longTasks) : "unverified",
+      longestTaskMs: longestTask,
       frames: frames.length,
-      wholeRepositorySymbolRows: 0,
+      wholeRepositorySymbolRows,
     })}\n`,
   );
+  expect(p95).toBeLessThanOrEqual(33.3);
+  if (typeof longestTask === "number")
+    expect(longestTask).toBeLessThanOrEqual(100);
+  expect(wholeRepositorySymbolRows).toBe(0);
 });
