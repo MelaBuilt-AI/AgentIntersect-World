@@ -4,17 +4,17 @@ Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 10 — Symbols, dependencies, LOD, and large-repository hardening: LOCAL IMPLEMENTATION AND PARENT VERIFICATION COMPLETE / EXACT-SHA CI CLOSEOUT PENDING**
+**Phase 10 — Symbols, dependencies, LOD, and large-repository hardening: COMPLETE / EXACT-SHA CI GREEN**
 
 - Frozen scope: `docs/PHASE_10_SCOPE.md` and the canonical Phase 10 section in `AgentIntersect_WorldDD.md`.
 - Baseline: completed Phase 9 commit `88e87e51a5edc217399fba1eb0508543b0b7ad66`; exact-SHA Actions run `29760049477` succeeded.
 - Version: `0.10.0-phase10`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`.
 - Workspace: 15 projects / 14 named app-package graph entries.
-- Local implementation includes pinned worker-isolated TypeScript/JavaScript WASM parsing, opaque symbol/dependency truth, exact static resolution, generation-coupled cache/recovery, bounded aggregate/focus-only APIs, semantic DOM/R3F dependency bridges, and enforcing deterministic 10k/100k fixtures.
-- Independent parent proof is green through disposable restart/resolution/hashless probes, 289/289 complete Vitest, 26/26 typecheck tasks, 11/11 architecture tests, 14/14 build tasks, smoke, 25/25 Playwright, Storybook, enforcing 10k/100k measurements, zero-vulnerability production audit, exact artifact verification, and desktop/mobile first-hand visual proof. Exact results are recorded in `PHASE_10_REPORT.md`.
+- Local implementation includes pinned worker-isolated TypeScript/JavaScript WASM parsing, a separately bounded ready handshake before the unchanged 500 ms file budget begins, opaque symbol/dependency truth, exact static resolution, generation-coupled cache/recovery, bounded aggregate/focus-only APIs, semantic DOM/R3F dependency bridges, deterministic 10k/100k fixtures, and a code-split two-CPU browser startup path.
+- Independent parent proof is green through disposable restart/resolution/hashless/startup-state probes, strict two-CPU pressure repetitions, 294/294 complete Vitest, 26/26 typecheck tasks, 11/11 architecture tests, 14/14 build tasks, smoke, 25/25 Playwright, Storybook, enforcing 10k/100k measurements, zero-vulnerability production audit, exact artifact verification, and desktop/mobile first-hand visual proof. Exact results are recorded in `PHASE_10_REPORT.md`.
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Phase 10 parent functional proof and 297-file fresh-copy verification: complete. Private commit/push and exact-SHA CI evidence: pending.
+- Phase 10 parent functional proof and 298-file fresh-copy verification: complete. Private implementation SHA `5ccb0656798f27cec85512282422a5c058f992f2` passed exact-SHA Actions run `29780316891`.
 - Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -147,16 +147,19 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Phase 10 — COMPLETE
 
+- Worker slots now become usable only after checksummed runtime/grammar verification, WASM initialization, and grammar preload; startup has a separate bounded timeout, while the unchanged 500 ms per-file timer begins only after ready-task dispatch. Startup failure drains once to truthful whole-file unavailability instead of cold replacement thrash.
 - Exact `@vscode/tree-sitter-wasm@0.3.1` runtime/grammar hashes gate TypeScript/TSX/JavaScript/JSX worker parsing; unsupported, unavailable, malformed, cancelled, timed-out, and over-budget files contribute no partial symbol truth.
 - `aiw.code-graph/0.10`, `aiw.symbol/0.10`, and `aiw.dependency/0.10` preserve opaque authoritative file identity, deterministic duplicates/cycles, exact/ambiguous/unresolved/external confidence, and path-private API responses.
 - Static dependency resolution reads indexed metadata only and never executes selected-repository code, package scripts, hooks, package managers, shells, LSPs, compilers, tests, binaries, or native addons.
 - Non-null content hashes gate incremental reuse; generation supersession/cancellation cannot commit partial truth; current plus previous checksum-verified graphs recover explicitly after restart/corruption.
 - LOD 0–2 aggregates and one-file LOD 3–4 detail feed bounded semantic DOM and R3F symbol/dependency lanes with explicit current/previous/degraded/truncated truth and no whole-repository symbol-detail route.
-- The enforcing 10k/100k suite, repository-wide gates, Storybook, supply-chain evidence, fresh-copy verification, and desktop/mobile browser proof are recorded in `PHASE_10_REPORT.md`, `docs/PHASE_10_PERFORMANCE.md`, and `docs/PHASE_10_PARSER_PROVENANCE.md`.
+- The enforcing 10k/100k suite, strict two-CPU browser proof, repository-wide gates, Storybook, supply-chain evidence, fresh-copy verification, and desktop/mobile browser proof are recorded in `PHASE_10_REPORT.md`, `docs/PHASE_10_PERFORMANCE.md`, and `docs/PHASE_10_PARSER_PROVENANCE.md`.
+- The startup entry chunk was reduced from 1,383.34 kB to 359.48 kB by independently splitting presentation synchronization and repository/R3F loading; a manifest regression protects both boundaries and constrained hardware reduces cosmetics without changing semantic truth.
+- Private exact-SHA Actions run `29780316891` passed both `measure:phase10` and the complete `pnpm check` job on two reported CPUs.
 
 ## Next milestone
 
-**Phase 11 — NEXT SESSION / NOT STARTED**
+**Phase 11 — NOT STARTED / NOT AUTHORIZED**
 
 Phase 11 requires a fresh scope/decision pass before implementation. Phase 10 completion does not authorize avatar/profile work, Blender/3D asset work, release/publication, public ingress, or repository visibility changes.
 

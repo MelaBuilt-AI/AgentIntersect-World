@@ -1,7 +1,7 @@
-# AgentIntersect World — Phase 10 Implementation and Parent Verification Report
+# AgentIntersect World — Phase 10 Completion Report
 
 Date: 2026-07-20
-Status: **LOCAL IMPLEMENTATION AND INDEPENDENT PARENT VERIFICATION COMPLETE — private exact-SHA CI closeout pending**
+Status: **COMPLETE — private exact-SHA CI green**
 Runtime: Node `v24.18.0`, pnpm `11.15.0`
 Version: `0.10.0-phase10`
 Baseline: Phase 9 closeout `88e87e51a5edc217399fba1eb0508543b0b7ad66`
@@ -10,7 +10,7 @@ Baseline: Phase 9 closeout `88e87e51a5edc217399fba1eb0508543b0b7ad66`
 
 - Strict `aiw.code-graph/0.10`, `aiw.symbol/0.10`, and `aiw.dependency/0.10` schemas with opaque refs, bounded safe metadata, explicit confidence/fallback states, deterministic duplicate ordinals, and deterministic dependency-cycle groups.
 - Tier 1 TypeScript/TSX/JavaScript/JSX parsing from exact `@vscode/tree-sitter-wasm@0.3.1` runtime/grammar bytes. The worker verifies the four frozen SHA-256 values before load and never downloads, compiles, substitutes, or executes a parser at runtime.
-- A maximum-two-worker parser pool with 128 MiB old-generation, 32 MiB young-generation, 4 MiB stack, 128 queued-file, 512 KiB/file, 500 ms/file, 256-depth, 2,000-symbol, 2,000-dependency, and 50-diagnostic limits. Timeout/crash/malformed/cancelled/over-budget input degrades at whole-file granularity.
+- A maximum-two-worker parser pool with 128 MiB old-generation, 32 MiB young-generation, 4 MiB stack, 128 queued-file, 512 KiB/file, 500 ms/file, 256-depth, 2,000-symbol, 2,000-dependency, and 50-diagnostic limits. Worker startup is separately bounded and preloads checksummed WASM grammars before `ready`; the unchanged 500 ms file timer starts only after ready-task dispatch. Timeout/crash/malformed/cancelled/over-budget input degrades at whole-file granularity.
 - Read-only static ES import/export/dynamic-import and CommonJS literal-require extraction plus exact relative/workspace-package resolution, explicit ambiguity/unresolved/external truth, and no selected-repository package/script/hook/LSP/compiler/test/binary execution.
 - Generation-coupled checksum cache with exact non-null content-hash reuse, Phase 4 content-rename continuity, current plus previous last-good state, corruption recovery, explicit rebuild truth, cancellation/supersession, and atomic commits.
 - Strict current/aggregate/focused-file local APIs with path privacy, OpenAPI/status parity, 1,024-edge caps, one-file focus, and structural rejection of whole-repository symbol detail.
@@ -49,6 +49,15 @@ Source inspection also proved that performance failures did not fail the command
 
 Parent retesting then found and directly corrected two small completion misses without another broad audit: R3F prepared symbol groups were not mounted/selectable in the canvas, and focused-file query identity omitted the current graph generation. Shared renderer kinds now include symbols in preparation, mounting, and selection; focused results are generation-keyed and generation-checked.
 
+## Exact-SHA closeout corrections
+
+Exact-SHA CI exposed two load-bearing problems that local high-core verification did not hide or dismiss:
+
+1. **Parser startup consumed file budgets.** On a two-core runner the first worker had not finished checksum verification, WASM initialization, and grammar loading before the 500 ms per-file timer expired. Replacements were equally cold, producing 132/129 fallbacks instead of 3/1. Strict startup-delay/failure/cancellation/close RED tests led to a bounded ready handshake, grammar preload, one-time fail-closed startup drain, and post-ready replacement semantics. The 500 ms file timeout and all fixture wall/RSS ceilings remained unchanged.
+2. **The eager browser startup graph exceeded two-CPU budgets.** Browser diagnostics were reordered before assertions, steady-state sampling was anchored after the semantic typewriter-complete marker, and a deterministic two-pressure-loop parent harness reproduced CI. Source-map/module analysis found a 1,383.34 kB eager entry containing presentation synchronization and repository/R3F code. React lazy boundaries reduced the entry to 359.48 kB, retained immediate truthful Phase 9 synchronization, deferred repository/R3F until World opens, and added allowed two-CPU cosmetic scaling plus a production-manifest regression.
+
+The strict stressed parent harness then passed six aggregate samples at 16.7–16.8 ms p95 and 63–80 ms longest task with zero symbol rows. Private implementation SHA `5ccb0656798f27cec85512282422a5c058f992f2` passed exact-SHA Actions run `29780316891` on two reported CPUs.
+
 ## Independent parent verification
 
 - Parent disposable repro after correction:
@@ -60,14 +69,14 @@ Parent retesting then found and directly corrected two small completion misses w
 - Formatting and ESLint: passed with zero errors.
 - Typecheck: 26/26 workspace tasks passed after 12 package-build tasks and root TypeScript validation.
 - Architecture: checker passed across 14 packages; 11/11 architecture tests passed, including browser-safe Node parser subpath boundaries.
-- Complete Vitest: 55 files / 289 tests passed.
+- Complete Vitest: 56 files / 294 tests passed, including parser startup-state and production chunk-boundary regressions.
 - Production build: 14/14 workspace tasks passed.
 - Smoke: passed against disposable server/web ports with no-execution sentinels absent.
 - Playwright: 25/25 passed with one worker; Phase 10 contributed focused/degraded/fallback truth plus deterministic 10k/100k aggregate journeys.
 - Storybook production build: passed with current/degraded, reduced-motion/WebGL-fallback, and aggregate/focused dependency states.
 - Production dependency audit: no known vulnerabilities.
 - Exact runtime artifact verification matched all four frozen parser/grammar SHA-256 values; npm reported the frozen MIT package, Microsoft repository, version, and integrity.
-- Fresh-copy verification: passed for 297 project source files, including enforcing 10k/100k measurements, format, lint, 26/26 typecheck tasks, 11/11 architecture tests, 289/289 Vitest, 14/14 production build tasks, smoke, and 25/25 Playwright.
+- Fresh-copy verification: passed for 298 project source files, including enforcing 10k/100k measurements, format, lint, 26/26 typecheck tasks, 11/11 architecture tests, 294/294 Vitest, 14/14 production build tasks, smoke, and 25/25 Playwright.
 
 ## Measured performance
 
@@ -82,7 +91,7 @@ The 10k graph produced 501 coverage records, 498 parsed files, 7,953 symbols, 1,
 
 Fresh-copy Chromium measured the 10k aggregate view at 16.7 ms p95 with a 61 ms longest task and the 100k view at 16.8 ms p95 with a 59 ms longest task over 120 frames each, with zero whole-repository symbol rows. Five repeated focused browser runs also passed with p95 16.7–16.8 ms and longest tasks 70–77 ms.
 
-The first two exact-SHA CI attempts exposed flaws in the benchmark path rather than threshold changes: zero-based `floor(N×0.95)` selected the 95.83rd percentile for 120 samples, and both large fixture payloads were deeply Zod-parsed at module import before either scale was selected. The final gate uses standard nearest-rank p95 with 0.001 ms timestamp normalization, lazily constructs only the requested type-safe fixture, validates both large fixtures in Vitest, and couples fixture aggregates/focused detail to the current generation. The frozen 33.3 ms and 100 ms ceilings were not changed.
+Exact-SHA CI exposed benchmark-attribution and production-startup defects rather than justifying threshold changes: zero-based `floor(N×0.95)` selected the 95.83rd percentile, both large fixtures were deeply parsed at module import, steady sampling overlapped the unrelated typewriter, and a monolithic startup bundle overran a fully scheduled two-CPU browser. The final gate uses standard nearest-rank p95 with 0.001 ms timestamp normalization, lazy type-safe fixtures, a semantic steady-state marker while startup Long Tasks remain observed, and independent production chunks. Exact CI measured both scales at 16.7 ms p95, with 56/78 ms longest tasks. The frozen 33.3 ms and 100 ms ceilings were never changed.
 
 ## First-hand visual proof
 
@@ -103,9 +112,9 @@ Only the allowlisted runtime, JavaScript/JSX, TypeScript, and TSX WASM files loa
 - Original `/home/mela_ai/AgentIntersect` was not modified or used as a Phase 10 implementation surface.
 - Tier 1 remains deliberately limited to TypeScript/TSX/JavaScript/JSX. Unsupported/malformed/unavailable/over-budget files truthfully remain file-level World state.
 - The pinned third-party WASM parser can still contain defects; hash pinning, workers, resource limits, timeout/replacement, whole-file fallback, and manual-only upgrades bound that residual risk.
-- Existing Vite/Storybook large-chunk warnings remain non-blocking backlog. They do not alter Phase 10 caps or the measured local/browser results.
+- One lazy repository/R3F chunk remains above Vite's generic 500 kB warning. It no longer burdens initial shell startup, is loaded only when World opens, and remains bounded by the Phase 10 renderer/API caps.
 - Phase 11 did not start.
 
-Private commit/push and exact-SHA CI closeout occur after this pre-commit report. Exact immutable SHA/run evidence is maintained in the final user response and external handoff to avoid a self-referential documentation-commit loop.
+Private implementation commit/push and exact-SHA CI closeout are complete. The repository documentation closeout commit receives its own exact-SHA run; that final immutable SHA/run pair is recorded in the external handoff to avoid a self-referential documentation loop.
 
-Verdict: **LOCAL COMPLETE — private exact-SHA CI closeout pending**
+Verdict: **PHASE 10 COMPLETE — exact-SHA CI green; Phase 11 not started or authorized**

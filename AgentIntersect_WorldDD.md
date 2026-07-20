@@ -2054,7 +2054,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 10 — Symbols, dependencies, LOD, and large-repo hardening
 
-**Status:** LOCAL IMPLEMENTATION AND INDEPENDENT PARENT VERIFICATION COMPLETE; private commit/push and exact-SHA CI closeout pending. The frozen contract is `docs/PHASE_10_SCOPE.md`; measured evidence and parser provenance are recorded in `docs/PHASE_10_PERFORMANCE.md` and `docs/PHASE_10_PARSER_PROVENANCE.md`. The completed bounded slice supports pinned TypeScript/TSX/JavaScript/JSX WASM parsing, static dependency truth, generation-coupled recovery, aggregate/focus-only LOD, semantic DOM/R3F bridges, and enforced 10k/100k ceilings without executing selected-repository code.
+**Status:** COMPLETE; private implementation SHA `5ccb0656798f27cec85512282422a5c058f992f2` passed exact-SHA Actions run `29780316891`. The frozen contract is `docs/PHASE_10_SCOPE.md`; measured evidence and parser provenance are recorded in `docs/PHASE_10_PERFORMANCE.md` and `docs/PHASE_10_PARSER_PROVENANCE.md`. The completed bounded slice supports checksummed TypeScript/TSX/JavaScript/JSX WASM parser readiness before file-budget dispatch, static dependency truth, generation-coupled recovery, aggregate/focus-only LOD, semantic DOM/R3F bridges, a code-split two-CPU browser path, and enforced 10k/100k ceilings without executing selected-repository code.
 
 **Objective:** Add language Tier 1 symbol/dependency structure and prove bounded performance/degradation.
 
@@ -2080,7 +2080,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 11 — Avatar profiles and embodied status
 
-**Status:** NEXT SESSION / NOT STARTED. Phase 10 closeout does not authorize Phase 11 implementation.
+**Status:** NOT STARTED / NOT AUTHORIZED. Phase 10 closeout does not authorize Phase 11 implementation.
 
 **Objective:** Introduce privacy-safe modular agent/user avatars driven by authoritative status.
 

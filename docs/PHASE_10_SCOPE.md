@@ -1,10 +1,10 @@
 # AgentIntersect World — Phase 10 Frozen Scope
 
 Date frozen: 2026-07-20
-Status: **IMPLEMENTATION AND INDEPENDENT PARENT PROOF COMPLETE / PRIVATE EXACT-SHA CI CLOSEOUT PENDING**
+Status: **COMPLETE / PRIVATE EXACT-SHA CI GREEN**
 Dependency: completed Phase 3 indexing pipeline, Phase 4 layout/identity, Phase 5 renderer, and Phase 9 exact-SHA closeout at `88e87e51a5edc217399fba1eb0508543b0b7ad66`
 Runtime baseline: Node `v24.18.0`, pnpm `11.15.0`
-Delivery mode: functionality-first bounded phase; one `gpt-5.6-sol` / `high` Codex implementation report, independent Mr Fluff source/functional/browser proof, one focused correction pass only for observed defects, then private commit/push and exact-SHA CI. No routine broad code audit.
+Delivery mode: functionality-first bounded phase; `gpt-5.6-sol` / `high` Codex implementation and observed-defect corrections, independent Mr Fluff source/functional/browser proof, private commit/push, and exact-SHA CI. No routine broad code audit.
 
 ## Objective
 
@@ -122,6 +122,10 @@ Hard acceptance ceilings on the supported parent/CI environment:
 - the 100k fixture must prove zero whole-repository symbol-detail materialization in browser state, network payloads, DOM, and R3F instances.
 
 A threshold change requires explicit user approval; an environmental inability to collect a metric must be reported as unverified rather than silently passed.
+
+### Closeout evidence
+
+The unchanged acceptance ceilings passed on the supported two-CPU exact-SHA CI environment after two real closeout corrections: a separately bounded parser-worker ready handshake removed startup from the 500 ms file budget, and production code splitting reduced the eager browser entry chunk while preserving Phase 9 synchronization and all semantic truth. Private implementation SHA `5ccb0656798f27cec85512282422a5c058f992f2` passed Actions run `29780316891`; detailed measurements are in `docs/PHASE_10_PERFORMANCE.md`.
 
 ### 8. Acceptance transcript and bounded parser supply-chain gate
 

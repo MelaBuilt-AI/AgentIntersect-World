@@ -1,41 +1,74 @@
 # Phase 10 measured performance
 
-Measured: 2026-07-20T19:12:48.549Z in the final fresh-copy verifier
+Closed: 2026-07-20
 
-Command: `corepack pnpm@11.15.0 measure:phase10`
+Commands:
 
-Environment: Node `v24.18.0`, Linux x64, AMD Ryzen 7 7800X3D 8-Core Processor, 16 reported CPUs, 15,796 MiB reported host memory. The command ran serialized at the fixture level and used the production two-worker maximum.
+- `corepack pnpm@11.15.0 measure:phase10`
+- `corepack pnpm@11.15.0 check`
+- strict parent two-CPU pressure repetitions of the two aggregate Playwright journeys
+
+Final exact-SHA environment: Node `v24.18.0`, Linux x64, AMD EPYC 7763, 2 reported CPUs, and 7,938 MiB host memory in private Actions run `29780316891`. The Node measurements ran serialized at fixture level and used the production two-worker maximum.
 
 ## Node graph measurements
 
-| Metric                  | Frozen ceiling |                                  Measured | Result |
-| ----------------------- | -------------: | ----------------------------------------: | ------ |
-| 10k cold graph wall     |      30,000 ms |                                581.501 ms | passed |
-| 10k warm no-change wall |       8,000 ms |                                196.019 ms | passed |
-| 10k peak RSS delta      |        512 MiB |                               233.191 MiB | passed |
-| 100k cold graph wall    |      90,000 ms |                              4,141.159 ms | passed |
-| 100k peak RSS delta     |        768 MiB |                               651.148 MiB | passed |
-| Per-file hard timeout   |         500 ms | enforced constant plus timeout regression | passed |
+| Metric                  | Frozen ceiling |               Exact-SHA CI measured | Result |
+| ----------------------- | -------------: | ----------------------------------: | ------ |
+| 10k cold graph wall     |      30,000 ms |                        1,771.195 ms | passed |
+| 10k warm no-change wall |       8,000 ms |                          341.367 ms | passed |
+| 10k peak RSS delta      |        512 MiB |                         244.980 MiB | passed |
+| 100k cold graph wall    |      90,000 ms |                        8,690.970 ms | passed |
+| 100k peak RSS delta     |        768 MiB |                         458.133 MiB | passed |
+| Per-file hard timeout   |         500 ms | unchanged, post-ready dispatch only | passed |
 
-The 500-source-file fixture declared approximately 8,000 declarations and 1,500 dependency occurrences. Including its indexed package manifest, the graph reported 501 coverage records, 498 parsed files, 7,953 accepted symbols, 1,491 resolved/preserved dependency edges, and three truthful fallbacks (malformed, unsupported, and manifest). Cold generation parsed 498 files; warm generation reused all 501 entries. Event-loop-delay max/p99 were 86.508/76.677 ms. The execution sentinel remained absent.
+The 500-source-file fixture plus package manifest reported 501 coverage records, 498 parsed files, 7,953 accepted symbols, 1,491 dependencies, and three truthful fallbacks. Cold generation parsed 498 files; warm generation reused all 501 entries. Event-loop-delay max/p99 were 154.534/96.403 ms. The execution sentinel remained absent.
 
-The 5,000-source-file fixture declared 80,000 declarations and 15,000 dependency occurrences. Including its indexed package manifest, the graph reported 5,001 coverage records, 5,000 parsed files, 80,000 accepted symbols, 15,000 dependency edges, and one manifest fallback. Cold generation parsed 5,000 files; warm generation reused all 5,001 entries and took 2,957.537 ms (no frozen 100k warm ceiling exists). Event-loop-delay max/p99 were 1,200.620/449.315 ms. These delay values are reported as measured and are not reclassified as browser main-thread results. The execution sentinel remained absent.
+The 5,000-source-file fixture plus package manifest reported 5,001 coverage records, 5,000 parsed files, 80,000 symbols, 15,000 dependencies, and one manifest fallback. Cold generation parsed 5,000 files; warm generation reused all 5,001 entries in 3,872.476 ms (no frozen 100k warm ceiling exists). Event-loop-delay max/p99 were 1,863.320/17.220 ms. These delay values are reported as measured and are not reclassified as browser main-thread results. The execution sentinel remained absent.
+
+### Parser readiness correction
+
+The first exact-SHA parser run exposed cold-worker replacement thrash because the 500 ms file timer began before checksum verification, WASM initialization, and grammar loading completed. The final pool has a separate bounded startup timeout, preloads the three unique grammars before announcing `ready`, and starts the unchanged 500 ms timer only after a ready worker accepts a task. Startup failure marks parsing unavailable once and drains queued work to truthful whole-file fallback; genuine post-readiness file timeout still terminates and replaces the worker before queued work resumes. Exact CI restored the expected 498/3 and 5,000/1 parsed/fallback counts without warming outside the measured region.
 
 ## Browser metrics
 
-The serialized Chromium command `corepack pnpm@11.15.0 exec playwright test apps/web/e2e/phase10-code-graph-journey.spec.ts --workers=1` passed the three Phase 10 journeys and emitted these real measurements:
+Exact-SHA CI ran serialized Chromium through `pnpm check` and emitted:
 
-| Aggregate view | Frames | Frame p95 ceiling | Measured frame p95 | Longest-task ceiling | Measured longest task | Result |
-| -------------- | -----: | ----------------: | -----------------: | -------------------: | --------------------: | ------ |
-| 10k            |    120 |           33.3 ms |            16.7 ms |               100 ms |                 61 ms | passed |
-| 100k           |    120 |           33.3 ms |            16.8 ms |               100 ms |                 59 ms | passed |
+| Aggregate view | Frames | Frame p95 ceiling | Exact-CI frame p95 | Longest-task ceiling | Exact-CI longest task | Symbol rows | Result |
+| -------------- | -----: | ----------------: | -----------------: | -------------------: | --------------------: | ----------: | ------ |
+| 10k            |    120 |           33.3 ms |            16.7 ms |               100 ms |                 78 ms |           0 | passed |
+| 100k           |    120 |           33.3 ms |            16.7 ms |               100 ms |                 56 ms |           0 | passed |
 
-The Long Tasks observer was available in this Chromium run, so neither longest-task value is inferred or marked passed from an unavailable metric. Both aggregate views materialized zero whole-repository symbol rows. The focused journey also passed aggregate/focused dependency confidence, cycle and drawable/non-drawable truth, renderer bridge count, DOM symbol-row cap, semantic/WebGL-fallback selection equivalence, degraded fallback truth, overflow, and zero-console-error assertions.
+The Long Tasks observer was available, so neither exact-CI longest-task value was inferred. Diagnostics were printed before assertion enforcement. The p95 calculation remains standard nearest-rank `ceil(N×0.95)-1`, normalized only to 0.001 ms; the test still samples at least 120 real animation frames and does not use reduced motion, discard slow frames, take a best-of-N result, or weaken either ceiling.
 
-The browser p95 calculation uses the standard nearest-rank index `ceil(N×0.95)-1` for 120 samples and normalizes timestamp arithmetic to 0.001 ms. Large 10k/100k fixture records are type-safe, schema-validated in Vitest, and constructed lazily only for the selected scale; they are no longer deeply parsed at application module import. Five repeated focused browser runs passed without changing the frozen ceilings.
+The steady-state sample now begins after the existing semantic typewriter-complete marker, while the Long Tasks observer remains installed before navigation and still captures initialization/LOD projection. This prevents unrelated shell typing from contaminating a claim specifically named as steady aggregate-view frame time without moving startup work outside the 100 ms gate.
 
-Independent parent first-hand proof used the production build with its Node 24 loopback API. At 1,440 px desktop width it rendered one live WebGL canvas, one exact dependency bridge, three focused symbol instances, and truthful external non-drawable dependency metadata with zero console/page errors and equal 1,440 px client/scroll widths. At 390 px mobile width with reduced motion and WebGL disabled, the complete semantic fallback remained reachable with equal 390 px client/scroll widths and zero errors.
+## Strict two-CPU parent pressure proof
+
+Parent verification reproduced the prior CI failure by pinning browser/server children to CPUs 0–1 while one finite tracked pressure loop occupied each CPU. Before the production correction, the same harness measured 100k at 33.4 ms p95 / 124 ms longest task and 10k at 33.4 ms / 114 ms. After the correction, three serialized repetitions passed unchanged limits:
+
+| Repetition | 100k p95 | 100k longest | 10k p95 | 10k longest |
+| ---------: | -------: | -----------: | ------: | ----------: |
+|          1 |  16.7 ms |        80 ms | 16.7 ms |       70 ms |
+|          2 |  16.7 ms |        63 ms | 16.7 ms |       63 ms |
+|          3 |  16.7 ms |        78 ms | 16.8 ms |       67 ms |
+
+All six samples retained 120 frames and zero whole-repository symbol rows. Every pressure loop, Chromium process, Vite preview, local server, and relevant listener was stopped after proof.
+
+## Production startup boundary
+
+The original web build placed 1,383.34 kB (382.96 kB gzip) in one eager entry chunk. Phase 10 closeout now emits:
+
+- entry: 359.48 kB (106.40 kB gzip);
+- presentation synchronization: 113.24 kB (34.24 kB gzip), loaded through an immediate truthful Suspense lane so Phase 9 synchronization remains active;
+- repository/R3F: 911.96 kB (242.89 kB gzip), loaded when the World panel is opened;
+- shared world client: 0.34 kB (0.25 kB gzip).
+
+A production-manifest regression requires presentation and repository surfaces to remain independent dynamic imports. Hardware reporting at two CPUs also activates allowed cosmetic quality scaling—static hero mark and disabled decorative halo/cursor animations—without changing selection, coverage, fallback, counts, current/previous state, semantic DOM, or reduced-motion truth. The remaining lazy repository chunk warning is non-blocking because it no longer burdens initial shell startup and is loaded only for the selected World surface.
 
 ## Structural visible-detail bounds
 
-Focused renderer unit evidence passed the fixed caps: at most 2,000 total prepared repository objects, 512 symbol instances, 1,024 dependency edges, and 200 semantic symbol rows. Aggregate and focused exact candidate bridges are projected into the R3F lane, while unresolved/external relationships remain explicitly non-drawable in the semantic lane. The API retains the existing 128-tile maximum and exposes no whole-repository symbol-detail route; an `allDetail` aggregate query receives a controlled 400 response. The 100k browser fixture carries counts/coverage and bounded aggregates only until one authoritative file is focused.
+Focused renderer evidence retains the fixed caps: at most 2,000 total prepared repository objects, 512 symbol instances, 1,024 dependency edges, and 200 semantic symbol rows. Aggregate and focused exact candidate bridges enter the R3F lane; unresolved/external relationships remain explicitly non-drawable in the semantic lane. The API retains the 128-tile maximum and exposes no whole-repository symbol-detail route; an `allDetail` aggregate query receives a controlled 400 response.
+
+## Final verification
+
+The final implementation passed 294/294 Vitest, 26/26 typecheck tasks, 11/11 architecture tests, 14/14 build tasks, smoke, 25/25 Playwright, Storybook production build, a zero-vulnerability production audit, and 298-file fresh-copy verification. Private implementation SHA `5ccb0656798f27cec85512282422a5c058f992f2` passed exact-SHA Actions run `29780316891`.
