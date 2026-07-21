@@ -1,5 +1,5 @@
 {
-  "name": "@agentintersect-world/avatar-system",
+  "name": "@agentintersect-world/agent-session-protocol",
   "version": "0.12.0-phase12",
   "private": true,
   "type": "module",
@@ -12,5 +12,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
   }
 }

@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–11 are complete with private exact-SHA CI evidence. Revised Phase 12 is **next up for the next session**, remains unstarted, and begins with its separately frozen scope and adapter/permission decisions before implementation.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–11 are complete with private exact-SHA CI evidence. Revised Phase 12 has passed its local implementation, browser, live Hermes, restart, consent, and rollback acceptance gates under the frozen `docs/PHASE_12_SCOPE.md`; private commit/push, exact-SHA CI, and repository/vault closeout remain before it is marked complete. Phase 13 is not started or authorized.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -62,7 +62,7 @@ The re-baseline makes these decisions normative and supersedes narrower pre-Phas
 9. **Text proves the core loop before voice.** The first magic slice is one operator, one repository, one persistent Hermes agent, text chat, semantic navigation, visible tool use, one bounded code change, tests, and a local project preview. Voice and multiple agents follow only after that loop is reliable.
 10. **Completed Phases 0–11 remain accepted foundations.** This re-baseline does not reopen their implementation or weaken their evidence. It replaces the old Phases 12–15 roadmap with revised Phases 12–19.
 
-This design revision authorizes documentation only. It does not authorize Phase 12 implementation, modification of the original AgentIntersect repository, release, deployment, public ingress, package publication, or repository visibility changes.
+The 2026-07-21 Phase 12 authorization supersedes the earlier documentation-only gate only for the frozen Phase 12 scope. It does not authorize Phase 13, modification of the original AgentIntersect repository, release, deployment, public ingress, package publication, or repository visibility changes.
 
 ### Source provenance
 
@@ -2675,7 +2675,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration
 
-**Status:** NEXT UP FOR THE NEXT SESSION / NOT STARTED. The user approved the re-baselined product direction on 2026-07-20. Phase 11 is the accepted implementation baseline. Phase 12 begins next session with its blocking adapter/permission/retention/fixture decisions and a fresh frozen scope; no Phase 12 code has started in this session.
+**Status:** LOCAL IMPLEMENTATION + LIVE ACCEPTANCE COMPLETE / PRIVATE COMMIT AND EXACT-SHA CI PENDING. The user approved the re-baselined product direction on 2026-07-20, answered all eight Phase 12 choices on 2026-07-21, and authorized complete bounded implementation through Codex orchestration. Phase 11 is the accepted implementation baseline; `docs/PHASE_12_SCOPE.md` remains the controlling Phase 12 contract. Phase 13 is not started or authorized.
 
 **Objective:** Establish the persistent conversational runtime that turns an avatar into a real resumable agent session and proves free-form text collaboration without weakening Guided Build authority.
 
@@ -2717,7 +2717,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Code/artifacts:** `agent-session-protocol`, Hermes adapter, adapter manifest schema, session/event stores and migrations, chat/session UI, connector wizard, agent avatar proposal UI, OpenAPI routes, Storybook states, fixture Hermes adapter, first-hand runtime compatibility report, frozen Phase 12 scope/report.
 
-**Tests/evidence:** Schema/property tests; adapter contract fixtures; one actual persistent Hermes session across at least two turns; “find handoff” or equivalent skill-backed session continuity proof; browser reload and World restart resume; ordered delta/final/tool events; duplicate/gap/reset behavior; mode escalation/de-escalation; wrong workspace/session; approval/interrupt behavior; secret/persona redaction canaries; CRDT prompt injection creates no message; AgentIntersect Guided Build still passes existing job/lifecycle tests; desktop/mobile/keyboard/reduced-motion/WebGL-fallback chat/avatar evidence.
+**Tests/evidence:** Strict schema/adapter/recovery/redaction/consent fixtures; two actual persistent World-originated Hermes turns on the final discoverable Discord-backed session after expected compaction turnover; ordered unique deltas/tool/final events; duplicate-free Sessions API continuity; browser reload plus World and Hermes restart resume; mode escalation/de-escalation and wrong workspace/session cases; truthful unavailable approval/interrupt behavior; secret/persona canaries; Guided Build mutation-boundary proof; desktop/mobile/keyboard/reduced-motion/WebGL-fallback chat/avatar evidence; plugin conformance; 357/357 Vitest; 28/28 typecheck tasks; 15/15 builds; 32/32 Playwright; Storybook; zero-vulnerability production audit; and 344-file fresh-copy verification with the same 357 tests and 32 browser tests green again. Actual and isolated profile restore proofs both passed with no unrelated profile or service-unit drift.
 
 **Acceptance criteria:** One persistent Hermes session receives normal free-form World chat and resumes truthfully; the same session retains approved Hermes skills/project context; Explore cannot mutate; Collaborate uses declared adapter approvals; unsupported capabilities remain disabled; agent avatar derivation is previewed and revocable; no raw identity/memory/transcript/secret enters presentation state; Guided Build authority remains AgentIntersect-owned; no public ingress or original-project modification occurs.
 
@@ -3220,8 +3220,8 @@ The historical `/mnt/c/Users/Mela AI/OneDrive/Documents/Mela AI/AgentWorld Studi
 
 ## Design approval decision
 
-**Decision recorded 2026-07-21:** The user approved the embodied-session re-baseline as the forward product direction and marked revised Phase 12 as next up for the next session.
+**Decision recorded 2026-07-21:** The user approved the embodied-session re-baseline as the forward product direction, answered all eight blocking Phase 12 choices, and explicitly authorized complete bounded Phase 12 implementation through Codex orchestration.
 
-The next session begins with the documented Phase 12 scope decisions and `docs/PHASE_12_SCOPE.md` freeze, then may proceed with the approved bounded Phase 12 implementation flow. Completed Phases 0–11 remain accepted and are not reopened. No Phase 12 code was started during this design session.
+`docs/PHASE_12_SCOPE.md` now freezes those decisions and controls the active implementation. Completed Phases 0–11 remain accepted and are not reopened. Phase 13, original-AgentIntersect modification, release, deployment, public ingress, package publication, and visibility changes remain separately gated.
 
 This approval does not authorize modification of the original AgentIntersect project, public release, deployment, publication, package publishing, public ingress, repository visibility changes, or later phases. Every later phase retains its own exit gate.

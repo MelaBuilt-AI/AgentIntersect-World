@@ -79,9 +79,15 @@ importers:
       vitest:
         specifier: 4.1.10
         version: 4.1.10(@types/node@24.13.3)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0))
+      yaml:
+        specifier: 2.9.0
+        version: 2.9.0
 
   apps/local-server:
     dependencies:
+      "@agentintersect-world/agent-session-protocol":
+        specifier: workspace:*
+        version: link:../../packages/agent-session-protocol
       "@agentintersect-world/agentintersect-client":
         specifier: workspace:*
         version: link:../../packages/agentintersect-client
@@ -180,6 +186,12 @@ importers:
       vite:
         specifier: 8.1.5
         version: 8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/agent-session-protocol:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
 
   packages/agentintersect-client: {}
 

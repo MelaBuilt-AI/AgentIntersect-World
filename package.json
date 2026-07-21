@@ -1,6 +1,6 @@
 {
   "name": "agentintersect-world",
-  "version": "0.11.0-phase11",
+  "version": "0.12.0-phase12",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.15.0",
@@ -27,6 +27,9 @@
     "avatar:inspect": "/usr/local/bin/blender --background assets/avatar/aiw-avatar-kit.blend --python tooling/avatar/inspect_avatar_blend.py && prettier --write assets/avatar/aiw-avatar-blend-inspection.json",
     "avatar:verify": "python3 tooling/avatar/verify_avatar_assets.py",
     "measure:phase11": "corepack pnpm@11.15.0 build && playwright test apps/web/e2e/phase11-avatar-journey.spec.ts",
+    "hermes:profile": "tsx tooling/scripts/hermes-profile-change.ts",
+    "test:phase12:plugin": "python3 integrations/hermes/test_plugin_conformance.py -v",
+    "conformance:phase12": "python3 integrations/hermes/test_plugin_conformance.py -v && vitest run tooling/scripts/hermes-profile-change.test.ts apps/local-server/test/phase12-agent-sessions.test.ts apps/local-server/test/phase12-agent-session-api.test.ts --maxWorkers=1",
     "verify:fresh": "tsx tooling/scripts/verify-fresh.ts",
     "check": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts && corepack pnpm@11.15.0 test:e2e"
   },
@@ -54,6 +57,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.64.0",
     "vite": "8.1.5",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "yaml": "2.9.0"
   }
 }

@@ -28,11 +28,11 @@ describe("Phase 3 operator API client", () => {
           data: {
             service: "agentintersect-world-local-server",
             status: "ready",
-            version: "0.10.0-phase10",
+            version: "0.12.0-phase12",
             runtime: { name: "node", version: "v24.18.0" },
             config: {
-              phase: "Phase 10",
-              version: "0.10.0-phase10",
+              phase: "Phase 12",
+              version: "0.12.0-phase12",
               instanceName: "Browser Test",
               networkScope: "loopback",
               host: "127.0.0.1",
@@ -41,6 +41,7 @@ describe("Phase 3 operator API client", () => {
               repositoryMaxFiles: 2500,
               agentIntersectReadEnabled: false,
               agentIntersectCommandsEnabled: false,
+              agentSessionsEnabled: false,
               presentationSync: {
                 enabled: true,
                 transport: "ws/http",

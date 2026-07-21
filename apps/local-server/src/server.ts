@@ -84,6 +84,12 @@ import { PresentationSyncService } from "./presentation-sync.js";
 import { PresentationWebSocketTransport } from "./presentation-websocket.js";
 import { CodeGraphService } from "./code-graph-service.js";
 import { registerCodeGraphRoutes } from "./code-graph-routes.js";
+import {
+  type AdapterRegistry,
+  type AgentSessionGateway,
+} from "./agent-sessions.js";
+import { registerAgentSessionRoutes } from "./agent-session-routes.js";
+import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -100,6 +106,7 @@ export type LocalServer = FastifyInstance & {
   readonly evidenceService?: EvidenceReader;
   readonly presentationService: PresentationSyncService;
   readonly codeGraphService: CodeGraphService;
+  readonly agentSessionGateway?: AgentSessionGateway;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -115,6 +122,12 @@ export type LocalServerOptions = {
   readonly presentationObjects?: () => ReadonlyMap<string, string>;
   readonly codeGraphService?: CodeGraphService;
   readonly codeGraphDataDir?: string;
+  readonly agentSessionGateway?: AgentSessionGateway;
+  readonly agentAdapterRegistry?: AdapterRegistry;
+  readonly designRepositoryRoot?: string;
+  readonly avatarProposal?: (
+    sessionId: string,
+  ) => Promise<AgentAvatarProposal | null> | AgentAvatarProposal | null;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -215,6 +228,7 @@ export function createLocalServer(
   server.decorate("evidenceService", evidenceService);
   server.decorate("presentationService", presentationService);
   server.decorate("codeGraphService", codeGraphService);
+  server.decorate("agentSessionGateway", options.agentSessionGateway);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -301,6 +315,20 @@ export function createLocalServer(
     const runtime = { name: "node" as const, version: process.version };
 
     registerCodeGraphRoutes(server, codeGraphService, { success, failure });
+    if (options.agentSessionGateway)
+      registerAgentSessionRoutes(
+        server,
+        options.agentSessionGateway,
+        {
+          ...(options.designRepositoryRoot
+            ? { designRepositoryRoot: options.designRepositoryRoot }
+            : {}),
+          ...(options.avatarProposal
+            ? { avatarProposal: options.avatarProposal }
+            : {}),
+        },
+        { success, failure },
+      );
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
       const correlationId = correlationFor(request);

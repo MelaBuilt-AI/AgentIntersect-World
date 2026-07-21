@@ -251,6 +251,63 @@ export function loadLocalServerConfig(
     );
   }
 
+  const agentSessionsEnabled =
+    environment.AIW_AGENT_SESSIONS_ENABLED === "true";
+  if (
+    environment.AIW_AGENT_SESSIONS_ENABLED !== undefined &&
+    !["true", "false"].includes(environment.AIW_AGENT_SESSIONS_ENABLED)
+  )
+    throw new ConfigurationError(
+      "AIW_AGENT_SESSIONS_ENABLED must be true or false",
+    );
+  const hermesApiKey = environment.AIW_HERMES_API_KEY;
+  const hermesProfile = (environment.AIW_HERMES_PROFILE ?? "default").trim();
+  const agentSessionDataDir = (
+    environment.AIW_AGENT_SESSION_DATA_DIR ??
+    join(homedir(), ".local", "state", "agentintersect-world", "agent-sessions")
+  ).trim();
+  const pluginAvatarProposalPath =
+    environment.AIW_HERMES_PLUGIN_AVATAR_PROPOSAL_PATH?.trim();
+  const pluginCapabilityPath =
+    environment.AIW_HERMES_PLUGIN_CAPABILITY_PATH?.trim();
+  const designRepositoryRoot =
+    environment.AIW_GUIDED_BUILD_REPOSITORY_ROOT?.trim();
+  if (
+    agentSessionsEnabled &&
+    (!hermesApiKey ||
+      hermesApiKey.length > 256 ||
+      !VISIBLE_ASCII.test(hermesApiKey))
+  )
+    throw new ConfigurationError(
+      "AIW_HERMES_API_KEY must contain 1..256 visible ASCII characters",
+    );
+  if (
+    agentSessionsEnabled &&
+    (hermesProfile.length === 0 ||
+      hermesProfile.length > 64 ||
+      !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(hermesProfile))
+  )
+    throw new ConfigurationError("AIW_HERMES_PROFILE is invalid");
+  for (const [key, value] of [
+    ["AIW_AGENT_SESSION_DATA_DIR", agentSessionDataDir],
+    ["AIW_HERMES_PLUGIN_CAPABILITY_PATH", pluginCapabilityPath],
+    ["AIW_HERMES_PLUGIN_AVATAR_PROPOSAL_PATH", pluginAvatarProposalPath],
+    ["AIW_GUIDED_BUILD_REPOSITORY_ROOT", designRepositoryRoot],
+  ] as const) {
+    if (value && !ABSOLUTE_PATH.test(value))
+      throw new ConfigurationError(`${key} must be an absolute path`);
+  }
+  const hermesApiUrl = readUrl(
+    environment.AIW_HERMES_API_URL,
+    "http://127.0.0.1:8642",
+    "AIW_HERMES_API_URL",
+  );
+  if (agentSessionsEnabled) {
+    const url = new URL(hermesApiUrl);
+    if (url.protocol !== "http:" || !LOOPBACK_HOSTS.has(url.hostname))
+      throw new ConfigurationError("AIW_HERMES_API_URL must be loopback HTTP");
+  }
+
   return {
     networkScope,
     host,
@@ -311,6 +368,19 @@ export function loadLocalServerConfig(
           },
         }
       : {}),
+    ...(agentSessionsEnabled
+      ? {
+          agentSessions: {
+            hermesApiUrl,
+            hermesApiKey: hermesApiKey as string,
+            hermesProfile,
+            dataDir: agentSessionDataDir,
+            ...(pluginCapabilityPath ? { pluginCapabilityPath } : {}),
+            ...(pluginAvatarProposalPath ? { pluginAvatarProposalPath } : {}),
+            ...(designRepositoryRoot ? { designRepositoryRoot } : {}),
+          },
+        }
+      : {}),
     presentationSync: {
       dataDir: presentationDataDir,
       allowedOrigin,
@@ -334,6 +404,7 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
     agentIntersectCommandsEnabled:
       config.agentIntersectCommands !== undefined &&
       config.agentIntersectRead !== undefined,
+    agentSessionsEnabled: config.agentSessions !== undefined,
     presentationSync: {
       enabled: true,
       transport: config.presentationSync.allowedOrigin.startsWith("https:")

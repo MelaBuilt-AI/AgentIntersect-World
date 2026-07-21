@@ -27,10 +27,12 @@ export type ArchitectureViolation = {
 const allowedWorkspaceDependencies: Readonly<
   Record<string, readonly string[]>
 > = {
+  "@agentintersect-world/agent-session-protocol": [],
   "@agentintersect-world/agentintersect-client": [],
   "@agentintersect-world/avatar-system": [],
   "@agentintersect-world/config": [],
   "@agentintersect-world/local-server": [
+    "@agentintersect-world/agent-session-protocol",
     "@agentintersect-world/agentintersect-client",
     "@agentintersect-world/config",
     "@agentintersect-world/observability",
@@ -334,7 +336,7 @@ async function main() {
     return;
   }
   process.stdout.write(
-    "Architecture check passed: 14 workspace packages, including browser-safe Phase 10 Node subpath boundaries.\n",
+    "Architecture check passed: 15 workspace packages, including browser-safe Phase 12 authority boundaries.\n",
   );
 }
 

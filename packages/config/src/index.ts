@@ -1,7 +1,7 @@
 export const APP_METADATA = {
   name: "AgentIntersect World",
-  phase: "Phase 10",
-  version: "0.10.0-phase10",
+  phase: "Phase 12",
+  version: "0.12.0-phase12",
 } as const;
 
 export const LOCAL_SERVER_DEFAULTS = {
@@ -39,6 +39,15 @@ export type LocalServerConfig = {
     readonly expectedPhaseId: string;
     readonly expectedRevision: string;
   };
+  readonly agentSessions?: {
+    readonly hermesApiUrl: string;
+    readonly hermesApiKey: string;
+    readonly hermesProfile: string;
+    readonly dataDir: string;
+    readonly pluginCapabilityPath?: string;
+    readonly pluginAvatarProposalPath?: string;
+    readonly designRepositoryRoot?: string;
+  };
   readonly presentationSync: {
     readonly dataDir: string;
     readonly allowedOrigin: string;
@@ -49,12 +58,16 @@ export type LocalServerConfig = {
 
 export type SafeConfig = Omit<
   LocalServerConfig,
-  "agentIntersectRead" | "agentIntersectCommands" | "presentationSync"
+  | "agentIntersectRead"
+  | "agentIntersectCommands"
+  | "agentSessions"
+  | "presentationSync"
 > & {
   readonly phase: typeof APP_METADATA.phase;
   readonly version: typeof APP_METADATA.version;
   readonly agentIntersectReadEnabled: boolean;
   readonly agentIntersectCommandsEnabled: boolean;
+  readonly agentSessionsEnabled: boolean;
   readonly presentationSync: {
     readonly enabled: true;
     readonly transport: "ws/http" | "wss/https";

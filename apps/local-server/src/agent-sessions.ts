@@ -1,0 +1,1347 @@
+import { createHash, randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+
+import {
+  AgentCapabilityManifestSchema,
+  AgentAvatarProposalSchema,
+  AgentSessionSchema,
+  AgentSessionEventSchema,
+  assertTurnBinding,
+  capabilitySnapshotHash,
+  sanitizeDisplayText,
+  type AgentCapabilityManifest,
+  type AgentAvatarProposal,
+  type AgentSession,
+  type AgentSessionEvent,
+  type SessionMode,
+} from "@agentintersect-world/agent-session-protocol";
+
+export type AdapterSessionSummary = {
+  readonly id: string;
+  readonly source: string;
+  readonly title: string;
+  readonly messageCount?: number;
+  readonly updatedAt?: number;
+};
+
+export type AdapterTurnResult = {
+  readonly finalText: string;
+  readonly deltas: readonly string[];
+  readonly runId?: string;
+};
+
+export type AdapterTurnEvent = {
+  readonly type:
+    "assistant.delta" | "tool.started" | "tool.completed" | "tool.failed";
+  readonly text?: string;
+  readonly toolName?: string;
+  readonly redaction: { readonly applied: boolean; readonly count: number };
+};
+
+export type AdapterTurnContext = {
+  readonly mode: SessionMode;
+  readonly onEvent?: (event: AdapterTurnEvent) => Promise<void> | void;
+  readonly signal?: AbortSignal;
+};
+
+export interface AgentAdapter {
+  readonly id: string;
+  attest(): Promise<AgentCapabilityManifest>;
+  listSessions(): Promise<readonly AdapterSessionSummary[]>;
+  attach(sessionRef: string): Promise<AdapterSessionSummary>;
+  sendText(
+    sessionRef: string,
+    text: string,
+    context?: AdapterTurnContext,
+  ): Promise<AdapterTurnResult>;
+  interrupt?(runId: string): Promise<void>;
+  resolveApproval?(
+    runId: string,
+    approvalId: string,
+    decision: string,
+  ): Promise<void>;
+}
+
+export class GatewayError extends Error {
+  constructor(
+    readonly code:
+      | "validation"
+      | "not_found"
+      | "conflict"
+      | "offline"
+      | "unsupported"
+      | "store_corrupt"
+      | "upstream",
+    message: string,
+  ) {
+    super(message);
+    this.name = "GatewayError";
+  }
+}
+
+export class AdapterRegistry {
+  readonly #adapters = new Map<string, AgentAdapter>();
+
+  constructor(adapters: readonly AgentAdapter[]) {
+    for (const adapter of adapters) {
+      if (this.#adapters.has(adapter.id))
+        throw new GatewayError("conflict", `Duplicate adapter ${adapter.id}`);
+      this.#adapters.set(adapter.id, adapter);
+    }
+  }
+
+  require(id: string): AgentAdapter {
+    const adapter = this.#adapters.get(id);
+    if (!adapter)
+      throw new GatewayError("not_found", `Adapter ${id} not found`);
+    return adapter;
+  }
+
+  async capabilities(): Promise<readonly AgentCapabilityManifest[]> {
+    const manifests = await Promise.all(
+      [...this.#adapters.values()].map((adapter) => adapter.attest()),
+    );
+    return manifests.map((manifest) =>
+      AgentCapabilityManifestSchema.parse(manifest),
+    );
+  }
+
+  async listSessions(id: string): Promise<readonly AdapterSessionSummary[]> {
+    return this.require(id).listSessions();
+  }
+}
+
+type StoredMessage = {
+  readonly id: string;
+  readonly sessionId: string;
+  readonly role: "user" | "assistant";
+  readonly text: string;
+  readonly createdAt: string;
+};
+
+type StorePayload = {
+  readonly schema: "aiw.agent-session-store/0.12";
+  readonly sessions: readonly AgentSession[];
+  readonly messages: readonly StoredMessage[];
+  readonly avatarConsents: readonly AvatarConsentRecord[];
+  readonly events: readonly AgentSessionEvent[];
+};
+
+export type AvatarConsentRecord = {
+  readonly sessionId: string;
+  readonly state: "accepted" | "declined" | "revoked";
+  readonly current: AgentAvatarProposal | null;
+  readonly previous: AgentAvatarProposal | null;
+  readonly updatedAt: string;
+};
+
+type StoreEnvelope = {
+  readonly schema: "aiw.agent-session-store-envelope/0.12";
+  readonly checksum: string;
+  readonly payload: StorePayload;
+};
+
+const EMPTY_STORE: StorePayload = {
+  schema: "aiw.agent-session-store/0.12",
+  sessions: [],
+  messages: [],
+  avatarConsents: [],
+  events: [],
+};
+
+function checksum(payload: StorePayload): string {
+  return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+}
+
+function parseStore(raw: string): StorePayload {
+  const envelope = JSON.parse(raw) as Partial<StoreEnvelope>;
+  if (
+    envelope.schema !== "aiw.agent-session-store-envelope/0.12" ||
+    !envelope.payload ||
+    envelope.checksum !== checksum(envelope.payload)
+  )
+    throw new Error("checksum mismatch");
+  const sessions = envelope.payload.sessions.map((value) =>
+    AgentSessionSchema.parse(value),
+  );
+  const messages = envelope.payload.messages;
+  if (!Array.isArray(messages) || messages.length > 2_000)
+    throw new Error("invalid message projection");
+  const avatarConsents = Array.isArray(envelope.payload.avatarConsents)
+    ? envelope.payload.avatarConsents.slice(0, 100)
+    : [];
+  const events = Array.isArray(envelope.payload.events)
+    ? envelope.payload.events
+        .slice(-4_000)
+        .map((event) => AgentSessionEventSchema.parse(event))
+    : [];
+  return { ...envelope.payload, sessions, messages, avatarConsents, events };
+}
+
+export class AgentSessionStore {
+  readonly #currentPath: string;
+  readonly #previousPath: string;
+  #payload: StorePayload;
+  #recovery: "empty" | "current" | "previous-recovered";
+
+  constructor(directory: string) {
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    this.#currentPath = path.join(directory, "agent-sessions.current.json");
+    this.#previousPath = path.join(directory, "agent-sessions.previous.json");
+    const loaded = this.#readInitial();
+    this.#payload =
+      loaded.recovery === "previous-recovered"
+        ? {
+            ...loaded.payload,
+            sessions: loaded.payload.sessions.map((session) =>
+              AgentSessionSchema.parse({
+                ...session,
+                continuity: "previous-recovered",
+              }),
+            ),
+          }
+        : loaded.payload;
+    this.#recovery = loaded.recovery;
+  }
+
+  #readInitial(): {
+    payload: StorePayload;
+    recovery: "empty" | "current" | "previous-recovered";
+  } {
+    if (fs.existsSync(this.#currentPath)) {
+      try {
+        return {
+          payload: parseStore(fs.readFileSync(this.#currentPath, "utf8")),
+          recovery: "current",
+        };
+      } catch {
+        // The last-good copy below is authoritative when current is corrupt.
+      }
+    }
+    if (fs.existsSync(this.#previousPath)) {
+      try {
+        return {
+          payload: parseStore(fs.readFileSync(this.#previousPath, "utf8")),
+          recovery: "previous-recovered",
+        };
+      } catch {
+        throw new GatewayError(
+          "store_corrupt",
+          "Agent session current and previous metadata are corrupt",
+        );
+      }
+    }
+    return { payload: EMPTY_STORE, recovery: "empty" };
+  }
+
+  #write(next: StorePayload): void {
+    const envelope: StoreEnvelope = {
+      schema: "aiw.agent-session-store-envelope/0.12",
+      checksum: checksum(next),
+      payload: next,
+    };
+    const serialized = `${JSON.stringify(envelope, null, 2)}\n`;
+    const temporary = `${this.#currentPath}.${process.pid}.tmp`;
+    fs.writeFileSync(temporary, serialized, { mode: 0o600 });
+    if (fs.existsSync(this.#currentPath))
+      fs.copyFileSync(this.#currentPath, this.#previousPath);
+    fs.renameSync(temporary, this.#currentPath);
+    fs.chmodSync(this.#currentPath, 0o600);
+    if (fs.existsSync(this.#previousPath))
+      fs.chmodSync(this.#previousPath, 0o600);
+    this.#payload = next;
+    this.#recovery = "current";
+  }
+
+  load(): {
+    readonly recovery: "empty" | "current" | "previous-recovered";
+    readonly current: AgentSession | null;
+    readonly sessions: readonly AgentSession[];
+    readonly messages: readonly StoredMessage[];
+  } {
+    return {
+      recovery: this.#recovery,
+      current: this.#payload.sessions.at(-1) ?? null,
+      sessions: this.#payload.sessions,
+      messages: this.#payload.messages,
+    };
+  }
+
+  requireSession(id: string): AgentSession {
+    const session = this.#payload.sessions.find(
+      (item) => item.sessionId === id,
+    );
+    if (!session)
+      throw new GatewayError("not_found", "World session not found");
+    return session;
+  }
+
+  findSessionBinding(input: {
+    readonly adapterId: string;
+    readonly adapterSessionRef: string;
+    readonly profile: string;
+    readonly workspaceId: string;
+    readonly repositoryRef: string;
+    readonly mode: SessionMode;
+  }): AgentSession | null {
+    return (
+      [...this.#payload.sessions]
+        .reverse()
+        .find(
+          (session) =>
+            session.adapterId === input.adapterId &&
+            session.adapterSessionRef === input.adapterSessionRef &&
+            session.profile === input.profile &&
+            session.workspaceId === input.workspaceId &&
+            session.repositoryRef === input.repositoryRef &&
+            session.mode === input.mode,
+        ) ?? null
+    );
+  }
+
+  saveSession(input: AgentSession): AgentSession {
+    const session = AgentSessionSchema.parse(input);
+    const sessions = this.#payload.sessions.filter(
+      (item) => item.sessionId !== session.sessionId,
+    );
+    this.#write({ ...this.#payload, sessions: [...sessions, session] });
+    return session;
+  }
+
+  appendMessage(
+    sessionId: string,
+    role: StoredMessage["role"],
+    input: string,
+  ): StoredMessage {
+    this.requireSession(sessionId);
+    const sanitized = sanitizeDisplayText(input, 16_384);
+    const message: StoredMessage = {
+      id: randomUUID(),
+      sessionId,
+      role,
+      text: sanitized.text,
+      createdAt: new Date().toISOString(),
+    };
+    const messages = [...this.#payload.messages, message].slice(-2_000);
+    this.#write({ ...this.#payload, messages });
+    return message;
+  }
+
+  history(sessionId: string): readonly StoredMessage[] {
+    this.requireSession(sessionId);
+    return this.#payload.messages.filter(
+      (message) => message.sessionId === sessionId,
+    );
+  }
+
+  events(sessionId: string): readonly AgentSessionEvent[] {
+    this.requireSession(sessionId);
+    return this.#payload.events.filter(
+      (event) => event.sessionId === sessionId,
+    );
+  }
+
+  appendEvent(input: unknown): "accepted" | "duplicate" {
+    const event = AgentSessionEventSchema.parse(input);
+    const session = this.requireSession(event.sessionId);
+    if (
+      this.#payload.events.some(
+        (existing) => existing.eventId === event.eventId,
+      )
+    )
+      return "duplicate";
+    const expected = session.lastEventSequence + 1;
+    if (event.sequence !== expected) {
+      const sessions = this.#payload.sessions.map((item) =>
+        item.sessionId === session.sessionId
+          ? AgentSessionSchema.parse({
+              ...item,
+              continuity: "reset-required",
+              status: "error",
+              updatedAt: new Date().toISOString(),
+            })
+          : item,
+      );
+      this.#write({ ...this.#payload, sessions });
+      throw new GatewayError(
+        "conflict",
+        `Agent event sequence gap: expected ${expected}, received ${event.sequence}`,
+      );
+    }
+    const sessions = this.#payload.sessions.map((item) =>
+      item.sessionId === session.sessionId
+        ? AgentSessionSchema.parse({
+            ...item,
+            lastEventSequence: event.sequence,
+            updatedAt: event.occurredAt,
+          })
+        : item,
+    );
+    this.#write({
+      ...this.#payload,
+      sessions,
+      events: [...this.#payload.events, event].slice(-4_000),
+    });
+    return "accepted";
+  }
+
+  avatarConsent(sessionId: string): AvatarConsentRecord | null {
+    this.requireSession(sessionId);
+    return (
+      this.#payload.avatarConsents.find(
+        (record) => record.sessionId === sessionId,
+      ) ?? null
+    );
+  }
+
+  saveAvatarConsent(
+    sessionId: string,
+    proposalInput: unknown,
+    decision: "accepted" | "declined",
+  ): AvatarConsentRecord {
+    this.requireSession(sessionId);
+    const proposal = AgentAvatarProposalSchema.parse(proposalInput);
+    if (proposal.sessionId !== sessionId)
+      throw new GatewayError(
+        "conflict",
+        "Avatar proposal session identity does not match",
+      );
+    const prior = this.avatarConsent(sessionId);
+    const record: AvatarConsentRecord = {
+      sessionId,
+      state: decision,
+      current: decision === "accepted" ? proposal : null,
+      previous: prior?.current ?? prior?.previous ?? null,
+      updatedAt: new Date().toISOString(),
+    };
+    this.#write({
+      ...this.#payload,
+      avatarConsents: [
+        ...this.#payload.avatarConsents.filter(
+          (item) => item.sessionId !== sessionId,
+        ),
+        record,
+      ],
+    });
+    return record;
+  }
+
+  revokeAvatarConsent(sessionId: string): AvatarConsentRecord {
+    const prior = this.avatarConsent(sessionId);
+    const record: AvatarConsentRecord = {
+      sessionId,
+      state: "revoked",
+      current: null,
+      previous: prior?.current ?? prior?.previous ?? null,
+      updatedAt: new Date().toISOString(),
+    };
+    this.#write({
+      ...this.#payload,
+      avatarConsents: [
+        ...this.#payload.avatarConsents.filter(
+          (item) => item.sessionId !== sessionId,
+        ),
+        record,
+      ],
+    });
+    return record;
+  }
+}
+
+type HermesAdapterOptions = {
+  readonly baseUrl: string;
+  readonly apiKey: string;
+  readonly profile: string;
+  readonly pluginCapabilityPath?: string;
+  readonly fetch?: typeof globalThis.fetch;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+const HERMES_STREAM_MAX_BYTES = 1_048_576;
+const HERMES_STREAM_MAX_EVENTS = 1_024;
+const HERMES_STREAM_MAX_EVENT_BYTES = 32_768;
+const HERMES_STREAM_MAX_DELTA_BYTES = 65_536;
+
+async function consumeSse(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal | undefined,
+  onEvent: (event: string, data: unknown) => Promise<void>,
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let buffer = "";
+  let eventName = "";
+  let dataLines: string[] = [];
+  let frameBytes = 0;
+  let totalBytes = 0;
+  let eventCount = 0;
+
+  const fail = (message: string): never => {
+    throw new GatewayError("upstream", message);
+  };
+  const dispatch = async () => {
+    if (!eventName && dataLines.length === 0) {
+      frameBytes = 0;
+      return;
+    }
+    eventCount += 1;
+    if (eventCount > HERMES_STREAM_MAX_EVENTS)
+      fail("Hermes turn stream exceeds the bounded event limit");
+    if (!eventName || dataLines.length === 0)
+      fail("Hermes turn stream contains a malformed event");
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(dataLines.join("\n"));
+    } catch {
+      fail("Hermes turn stream contains malformed JSON");
+    }
+    await onEvent(eventName, parsed);
+    eventName = "";
+    dataLines = [];
+    frameBytes = 0;
+  };
+  const line = async (raw: string) => {
+    const value = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+    frameBytes += Buffer.byteLength(value, "utf8") + 1;
+    if (frameBytes > HERMES_STREAM_MAX_EVENT_BYTES)
+      fail("Hermes turn stream event exceeds the bounded response limit");
+    if (value === "") {
+      await dispatch();
+      return;
+    }
+    if (value.startsWith(":")) return;
+    const separator = value.indexOf(":");
+    const field = separator === -1 ? value : value.slice(0, separator);
+    let fieldValue = separator === -1 ? "" : value.slice(separator + 1);
+    if (fieldValue.startsWith(" ")) fieldValue = fieldValue.slice(1);
+    if (field === "event") eventName = fieldValue;
+    else if (field === "data") dataLines.push(fieldValue);
+    else if (field !== "id" && field !== "retry")
+      fail("Hermes turn stream contains an unsupported SSE field");
+  };
+
+  try {
+    while (true) {
+      if (signal?.aborted)
+        fail("Hermes session turn was cancelled before completion");
+      const next = await reader.read();
+      if (next.done) break;
+      totalBytes += next.value.byteLength;
+      if (totalBytes > HERMES_STREAM_MAX_BYTES)
+        fail("Hermes turn stream exceeds the bounded response limit");
+      try {
+        buffer += decoder.decode(next.value, { stream: true });
+      } catch {
+        fail("Hermes turn stream is not valid UTF-8");
+      }
+      let newline = buffer.indexOf("\n");
+      while (newline !== -1) {
+        const current = buffer.slice(0, newline);
+        buffer = buffer.slice(newline + 1);
+        await line(current);
+        newline = buffer.indexOf("\n");
+      }
+      if (Buffer.byteLength(buffer, "utf8") > HERMES_STREAM_MAX_EVENT_BYTES)
+        fail("Hermes turn stream event exceeds the bounded response limit");
+    }
+    try {
+      buffer += decoder.decode();
+    } catch {
+      fail("Hermes turn stream is not valid UTF-8");
+    }
+    if (buffer) await line(buffer);
+    if (eventName || dataLines.length > 0)
+      fail("Hermes turn stream ended with an incomplete event");
+  } catch (error) {
+    await reader.cancel().catch(() => undefined);
+    throw error;
+  }
+}
+
+function boundedToolName(value: unknown): {
+  readonly name: string;
+  readonly changed: boolean;
+} {
+  const raw = typeof value === "string" ? value : "";
+  const name = [...raw]
+    .filter((character) => /[A-Za-z0-9._-]/.test(character))
+    .join("")
+    .slice(0, 64);
+  return { name: name || "unknown", changed: !name || name !== raw };
+}
+
+export class HermesSessionAdapter implements AgentAdapter {
+  readonly id = "hermes";
+  readonly #baseUrl: string;
+  readonly #apiKey: string;
+  readonly #pluginCapabilityPath: string | undefined;
+  readonly #fetch: typeof globalThis.fetch;
+
+  constructor(options: HermesAdapterOptions) {
+    const url = new URL(options.baseUrl);
+    if (
+      url.protocol !== "http:" ||
+      !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)
+    )
+      throw new GatewayError("validation", "Hermes API must use loopback HTTP");
+    if (!options.apiKey)
+      throw new GatewayError("validation", "Hermes API key is required");
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(options.profile))
+      throw new GatewayError(
+        "validation",
+        "Hermes profile identity is invalid",
+      );
+    this.#baseUrl = url.origin;
+    this.#apiKey = options.apiKey;
+    if (
+      options.pluginCapabilityPath &&
+      !path.isAbsolute(options.pluginCapabilityPath)
+    )
+      throw new GatewayError(
+        "validation",
+        "Hermes plugin capability path must be absolute",
+      );
+    this.#pluginCapabilityPath = options.pluginCapabilityPath;
+    this.#fetch = options.fetch ?? globalThis.fetch;
+  }
+
+  #sameSessionArbiterAttested(): boolean {
+    if (!this.#pluginCapabilityPath) return false;
+    try {
+      const stat = fs.lstatSync(this.#pluginCapabilityPath);
+      if (
+        !stat.isFile() ||
+        stat.isSymbolicLink() ||
+        stat.size > 4_096 ||
+        (stat.mode & 0o077) !== 0
+      )
+        return false;
+      const value: unknown = JSON.parse(
+        fs.readFileSync(this.#pluginCapabilityPath, "utf8"),
+      );
+      if (!isRecord(value)) return false;
+      const keys = Object.keys(value).sort();
+      return (
+        JSON.stringify(keys) ===
+          JSON.stringify(
+            ["plugin", "sameSessionArbiter", "schema", "version"].sort(),
+          ) &&
+        value.schema === "aiw.hermes-plugin-capabilities/0.12" &&
+        value.plugin === "agentintersect-world" &&
+        value.version === "0.12.0" &&
+        value.sameSessionArbiter === "fcntl-turn-lock-v1"
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  async #request(pathname: string, init?: RequestInit): Promise<Response> {
+    let response: Response;
+    const connectTimeout = new AbortController();
+    const connectTimer = setTimeout(() => connectTimeout.abort(), 30_000);
+    connectTimer.unref?.();
+    try {
+      const callerSignal =
+        init?.signal instanceof AbortSignal ? init.signal : undefined;
+      response = await this.#fetch(`${this.#baseUrl}${pathname}`, {
+        ...init,
+        headers: {
+          authorization: `Bearer ${this.#apiKey}`,
+          "content-type": "application/json",
+          ...init?.headers,
+        },
+        signal: AbortSignal.any(
+          [callerSignal, connectTimeout.signal].filter(
+            (value): value is AbortSignal => value !== undefined,
+          ),
+        ),
+      });
+    } catch {
+      if (init?.signal?.aborted)
+        throw new GatewayError("upstream", "Hermes session turn was cancelled");
+      throw new GatewayError("offline", "Hermes loopback API is offline");
+    } finally {
+      clearTimeout(connectTimer);
+    }
+    return response;
+  }
+
+  async attest(): Promise<AgentCapabilityManifest> {
+    const response = await this.#request("/v1/capabilities");
+    if (!response.ok)
+      throw new GatewayError("offline", "Hermes capability attestation failed");
+    const body: unknown = await response.json();
+    const features =
+      isRecord(body) && isRecord(body.features) ? body.features : {};
+    const attach =
+      features.session_resources === true &&
+      features.session_chat_streaming === true;
+    const sameSessionSafe = this.#sameSessionArbiterAttested();
+    const text = attach && sameSessionSafe;
+    return AgentCapabilityManifestSchema.parse({
+      schema: "aiw.agent-capabilities/0.12",
+      adapterId: "hermes",
+      adapterVersion: "0.18.2-f7c9feb3",
+      transport: "loopback-http-sse",
+      origin: "local",
+      auth: "server-bearer",
+      supportedModes: ["explore", "collaborate"],
+      ordering: "per-session-strict",
+      resume: attach ? "session-api" : "unavailable",
+      shutdownOwner: "hermes",
+      maxInputBytes: 16_384,
+      maxEventBytes: 32_768,
+      capabilities: {
+        attach,
+        sendText: text,
+        streamDeltas: text,
+        toolStatus: text,
+        approvals: false,
+        interrupt: false,
+        avatarProposal: true,
+        skillsDisclosure: true,
+      },
+      unavailable: {
+        ...(!attach
+          ? {
+              attach: "Hermes Sessions API is unavailable.",
+              sendText: "Hermes session chat streaming is unavailable.",
+              streamDeltas: "Hermes session chat streaming is unavailable.",
+              toolStatus: "Hermes session chat streaming is unavailable.",
+            }
+          : {}),
+        ...(attach && !sameSessionSafe
+          ? {
+              sendText:
+                "The agentintersect-world same-session arbiter is not attested; World dispatch fails closed.",
+              streamDeltas:
+                "Text streaming is disabled until the same-session arbiter is attested.",
+              toolStatus:
+                "Tool status is disabled until the same-session arbiter is attested.",
+            }
+          : {}),
+        approvals:
+          "The exact-session transport does not prove native approval round-trip; approvals remain in Hermes.",
+        interrupt:
+          "The exact-session transport does not expose an exact World-owned run ID for stop.",
+      },
+    });
+  }
+
+  async listSessions(): Promise<readonly AdapterSessionSummary[]> {
+    const response = await this.#request("/api/sessions?limit=100&offset=0");
+    if (!response.ok)
+      throw new GatewayError("upstream", "Hermes sessions are unavailable");
+    const body: unknown = await response.json();
+    if (!isRecord(body) || !Array.isArray(body.data))
+      throw new GatewayError("upstream", "Hermes sessions response is invalid");
+    return body.data.slice(0, 100).flatMap((value) => {
+      if (!isRecord(value) || typeof value.id !== "string") return [];
+      return [
+        {
+          id: value.id.slice(0, 256),
+          source:
+            typeof value.source === "string"
+              ? value.source.slice(0, 64)
+              : "unknown",
+          title:
+            typeof value.title === "string"
+              ? value.title.slice(0, 160)
+              : "Untitled session",
+          ...(typeof value.message_count === "number"
+            ? { messageCount: value.message_count }
+            : {}),
+          ...(typeof value.updated_at === "number"
+            ? { updatedAt: value.updated_at }
+            : {}),
+        },
+      ];
+    });
+  }
+
+  async attach(sessionRef: string): Promise<AdapterSessionSummary> {
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/.test(sessionRef))
+      throw new GatewayError(
+        "validation",
+        "Hermes session identity is invalid",
+      );
+    const response = await this.#request(
+      `/api/sessions/${encodeURIComponent(sessionRef)}`,
+    );
+    if (response.status === 404)
+      throw new GatewayError("not_found", "Hermes session is missing");
+    if (!response.ok)
+      throw new GatewayError("upstream", "Hermes session attach failed");
+    const body: unknown = await response.json();
+    const value =
+      isRecord(body) && isRecord(body.session) ? body.session : undefined;
+    if (!value || value.id !== sessionRef)
+      throw new GatewayError(
+        "upstream",
+        "Hermes returned a different session identity",
+      );
+    return {
+      id: sessionRef,
+      source:
+        typeof value.source === "string"
+          ? value.source.slice(0, 64)
+          : "unknown",
+      title:
+        typeof value.title === "string"
+          ? value.title.slice(0, 160)
+          : "Untitled session",
+      ...(typeof value.message_count === "number"
+        ? { messageCount: value.message_count }
+        : {}),
+    };
+  }
+
+  async sendText(
+    sessionRef: string,
+    text: string,
+    context?: AdapterTurnContext,
+  ): Promise<AdapterTurnResult> {
+    if (!this.#sameSessionArbiterAttested())
+      throw new GatewayError(
+        "unsupported",
+        "Hermes same-session arbiter is not attested; dispatch fails closed",
+      );
+    if (Buffer.byteLength(text, "utf8") > 16_384 || text.trim().length === 0)
+      throw new GatewayError(
+        "validation",
+        "Message must be 1-16384 UTF-8 bytes",
+      );
+    const response = await this.#request(
+      `/api/sessions/${encodeURIComponent(sessionRef)}/chat/stream`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          message: text,
+          ...(context?.mode === "explore"
+            ? {
+                system_message:
+                  "AgentIntersect World Explore mode is read-only. Do not invoke tools that create, edit, delete, execute, install, approve, submit, signal, or otherwise mutate state. Explain or inspect using read-only capabilities only; if mutation is required, say it is unavailable in Explore mode.",
+              }
+            : {}),
+        }),
+        ...(context?.signal ? { signal: context.signal } : {}),
+      },
+    );
+    if (response.status === 404)
+      throw new GatewayError("not_found", "Hermes session is missing");
+    if (!response.ok || !response.body)
+      throw new GatewayError("upstream", "Hermes session turn failed");
+    const deltas: string[] = [];
+    let finalText = "";
+    let deltaBytes = 0;
+    let expectedSequence = 1;
+    let assistantCompleted = false;
+    let runCompleted = false;
+    let done = false;
+    let upstreamError = false;
+    const emit = async (event: AdapterTurnEvent) => {
+      await context?.onEvent?.(event);
+    };
+    await consumeSse(response.body, context?.signal, async (event, data) => {
+      if (!isRecord(data))
+        throw new GatewayError("upstream", "Hermes turn event is invalid");
+      if (data.session_id !== sessionRef)
+        throw new GatewayError(
+          "upstream",
+          "Hermes turn event session identity does not match",
+        );
+      if (data.seq !== expectedSequence)
+        throw new GatewayError(
+          "upstream",
+          "Hermes turn event sequence is invalid",
+        );
+      expectedSequence += 1;
+      if (event === "run.started" || event === "message.started") return;
+      if (event === "assistant.delta") {
+        if (typeof data.delta !== "string")
+          throw new GatewayError(
+            "upstream",
+            "Hermes assistant delta is invalid",
+          );
+        const currentDeltaBytes = Buffer.byteLength(data.delta, "utf8");
+        if (currentDeltaBytes > 2_048)
+          throw new GatewayError(
+            "upstream",
+            "Hermes assistant delta exceeds the bounded event limit",
+          );
+        deltaBytes += currentDeltaBytes;
+        if (deltaBytes > HERMES_STREAM_MAX_DELTA_BYTES)
+          throw new GatewayError(
+            "upstream",
+            "Hermes assistant deltas exceed the bounded response limit",
+          );
+        const safe = sanitizeDisplayText(data.delta, 2_048);
+        deltas.push(safe.text);
+        await emit({
+          type: "assistant.delta",
+          text: safe.text,
+          redaction: safe.redaction,
+        });
+        return;
+      }
+      if (
+        event === "tool.started" ||
+        event === "tool.completed" ||
+        event === "tool.failed"
+      ) {
+        const tool = boundedToolName(data.tool_name);
+        const count =
+          Number(data.preview !== undefined) +
+          Number(data.args !== undefined) +
+          Number(tool.changed);
+        await emit({
+          type: event,
+          toolName: tool.name,
+          redaction: { applied: count > 0, count },
+        });
+        return;
+      }
+      if (event === "tool.progress") return;
+      if (event === "assistant.completed") {
+        if (assistantCompleted || typeof data.content !== "string")
+          throw new GatewayError(
+            "upstream",
+            "Hermes assistant completion is invalid",
+          );
+        if (Buffer.byteLength(data.content, "utf8") > 16_384)
+          throw new GatewayError(
+            "upstream",
+            "Hermes assistant completion exceeds the bounded response limit",
+          );
+        assistantCompleted = true;
+        finalText = sanitizeDisplayText(data.content, 16_384).text;
+        return;
+      }
+      if (event === "run.completed") {
+        if (
+          runCompleted ||
+          !Array.isArray(data.messages) ||
+          !isRecord(data.usage)
+        )
+          throw new GatewayError(
+            "upstream",
+            "Hermes run completion is invalid",
+          );
+        runCompleted = true;
+        return;
+      }
+      if (event === "error") {
+        upstreamError = true;
+        return;
+      }
+      if (event === "done") {
+        if (done)
+          throw new GatewayError("upstream", "Hermes done event is duplicated");
+        done = true;
+        return;
+      }
+      throw new GatewayError(
+        "upstream",
+        "Hermes turn stream contains an unsupported event",
+      );
+    });
+    if (upstreamError)
+      throw new GatewayError("upstream", "Hermes session turn failed");
+    if (!assistantCompleted || !runCompleted || !done)
+      throw new GatewayError(
+        "upstream",
+        "Hermes turn ended without its terminal events",
+      );
+    if (!finalText)
+      throw new GatewayError(
+        "upstream",
+        "Hermes turn ended without a final response",
+      );
+    return { finalText, deltas };
+  }
+}
+
+type GatewayAttachRequest = {
+  readonly adapterId: string;
+  readonly adapterSessionRef: string;
+  readonly profile: string;
+  readonly workspaceId: string;
+  readonly repositoryRef: string;
+  readonly mode: SessionMode;
+  readonly modeConfirmed?: boolean;
+};
+
+export class AgentSessionGateway {
+  readonly #registry: AdapterRegistry;
+  readonly #store: AgentSessionStore;
+  readonly #busy = new Set<string>();
+
+  constructor(options: {
+    readonly registry: AdapterRegistry;
+    readonly store: AgentSessionStore;
+  }) {
+    this.#registry = options.registry;
+    this.#store = options.store;
+  }
+
+  get store(): AgentSessionStore {
+    return this.#store;
+  }
+
+  capabilities(): Promise<readonly AgentCapabilityManifest[]> {
+    return this.#registry.capabilities();
+  }
+
+  listNativeSessions(
+    adapterId: string,
+  ): Promise<readonly AdapterSessionSummary[]> {
+    return this.#registry.listSessions(adapterId);
+  }
+
+  status(sessionId: string): AgentSession {
+    return this.#store.requireSession(sessionId);
+  }
+
+  history(sessionId: string): readonly StoredMessage[] {
+    return this.#store.history(sessionId);
+  }
+
+  events(sessionId: string): readonly AgentSessionEvent[] {
+    return this.#store.events(sessionId);
+  }
+
+  async attach(request: GatewayAttachRequest): Promise<AgentSession> {
+    if (request.mode === "autonomous" || request.mode === "guided-build")
+      throw new GatewayError(
+        "unsupported",
+        "Selected mode is not attachable in Phase 12",
+      );
+    if (request.mode === "collaborate" && request.modeConfirmed !== true)
+      throw new GatewayError(
+        "conflict",
+        "Collaborate requires explicit confirmation of the more-permissive native policy",
+      );
+    const existing = this.#store.findSessionBinding(request);
+    const adapter = this.#registry.require(request.adapterId);
+    let manifest: AgentCapabilityManifest;
+    try {
+      manifest = await adapter.attest();
+      if (!manifest.capabilities.attach)
+        throw new GatewayError(
+          "unsupported",
+          "Adapter attach capability is unavailable",
+        );
+      await adapter.attach(request.adapterSessionRef);
+    } catch (error) {
+      if (
+        existing &&
+        error instanceof GatewayError &&
+        (error.code === "not_found" || error.code === "offline")
+      )
+        this.#store.saveSession({
+          ...existing,
+          status: error.code === "offline" ? "offline" : "error",
+          continuity: error.code === "offline" ? "offline" : "missing",
+          updatedAt: new Date().toISOString(),
+        });
+      throw error;
+    }
+    const now = new Date().toISOString();
+    const snapshotHash = capabilitySnapshotHash(manifest);
+    if (existing)
+      return this.#store.saveSession(
+        AgentSessionSchema.parse({
+          ...existing,
+          capabilitySnapshotHash: snapshotHash,
+          permissionRevision:
+            existing.capabilitySnapshotHash === snapshotHash
+              ? existing.permissionRevision
+              : existing.permissionRevision + 1,
+          continuity: "current",
+          status: "ready",
+          updatedAt: now,
+        }),
+      );
+    return this.#store.saveSession(
+      AgentSessionSchema.parse({
+        schema: "aiw.agent-session/0.12",
+        sessionId: randomUUID(),
+        adapterId: request.adapterId,
+        adapterSessionRef: request.adapterSessionRef,
+        profile: request.profile,
+        workspaceId: request.workspaceId,
+        repositoryRef: request.repositoryRef,
+        worktreeRef: null,
+        mode: request.mode,
+        permissionRevision: 0,
+        capabilitySnapshotHash: snapshotHash,
+        avatarProfileRef: null,
+        status: "ready",
+        continuity: "current",
+        currentFocusObjectIds: [],
+        currentTaskRef: null,
+        activeRunId: null,
+        lastEventSequence: 0,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
+  }
+
+  async sendText(
+    sessionId: string,
+    request: { readonly text: string; readonly binding: AgentSession },
+    options: {
+      readonly onEvent?: (event: AgentSessionEvent) => Promise<void> | void;
+      readonly signal?: AbortSignal;
+    } = {},
+  ): Promise<AdapterTurnResult> {
+    const persisted = this.#store.requireSession(sessionId);
+    assertTurnBinding(persisted, request.binding);
+    if (this.#busy.has(sessionId))
+      throw new GatewayError(
+        "conflict",
+        "This exact session already has an active World turn",
+      );
+    this.#busy.add(sessionId);
+    try {
+      const adapter = this.#registry.require(persisted.adapterId);
+      const manifest = await adapter.attest();
+      if (capabilitySnapshotHash(manifest) !== persisted.capabilitySnapshotHash)
+        throw new GatewayError(
+          "conflict",
+          "Adapter capabilities changed; reconnect before sending",
+        );
+      const correlationId = randomUUID();
+      const appendNormalizedEvent = async (
+        type: AgentSessionEvent["type"],
+        payload: Record<string, unknown>,
+        redaction = { applied: false, count: 0 },
+      ) => {
+        const latest = this.#store.requireSession(sessionId);
+        const event = AgentSessionEventSchema.parse({
+          schema: "aiw.agent-event/0.12",
+          eventId: randomUUID(),
+          sessionId,
+          sequence: latest.lastEventSequence + 1,
+          occurredAt: new Date().toISOString(),
+          correlationId,
+          type,
+          payload,
+          redaction,
+        });
+        this.#store.appendEvent(event);
+        await options.onEvent?.(event);
+      };
+      const userText = sanitizeDisplayText(request.text, 16_384);
+      this.#store.appendMessage(sessionId, "user", userText.text);
+      await appendNormalizedEvent(
+        "message.user-accepted",
+        { text: userText.text },
+        userText.redaction,
+      );
+      const result = await adapter.sendText(
+        persisted.adapterSessionRef,
+        request.text,
+        {
+          mode: persisted.mode,
+          ...(options.signal ? { signal: options.signal } : {}),
+          onEvent: async (event) => {
+            if (event.type === "assistant.delta")
+              await appendNormalizedEvent(
+                "message.assistant-delta",
+                { text: event.text ?? "" },
+                event.redaction,
+              );
+            else
+              await appendNormalizedEvent(
+                event.type,
+                { toolName: event.toolName ?? "unknown" },
+                event.redaction,
+              );
+          },
+        },
+      );
+      this.#store.appendMessage(sessionId, "assistant", result.finalText);
+      const safeFinal = sanitizeDisplayText(result.finalText, 16_384);
+      await appendNormalizedEvent(
+        "message.assistant-final",
+        { text: safeFinal.text },
+        safeFinal.redaction,
+      );
+      const latest = this.#store.requireSession(sessionId);
+      this.#store.saveSession({
+        ...latest,
+        activeRunId: result.runId ?? null,
+        updatedAt: new Date().toISOString(),
+      });
+      return result;
+    } finally {
+      this.#busy.delete(sessionId);
+    }
+  }
+
+  async interrupt(sessionId: string, runId: string): Promise<void> {
+    const session = this.#store.requireSession(sessionId);
+    if (!session.activeRunId || session.activeRunId !== runId)
+      throw new GatewayError(
+        "conflict",
+        "Interrupt run identity does not match",
+      );
+    const adapter = this.#registry.require(session.adapterId);
+    const manifest = await adapter.attest();
+    if (!manifest.capabilities.interrupt || !adapter.interrupt)
+      throw new GatewayError(
+        "unsupported",
+        "Exact-run interrupt is unavailable",
+      );
+    await adapter.interrupt(runId);
+  }
+
+  async resolveApproval(
+    sessionId: string,
+    runId: string,
+    approvalId: string,
+    decision: "approve" | "deny",
+  ): Promise<void> {
+    const session = this.#store.requireSession(sessionId);
+    if (!session.activeRunId || session.activeRunId !== runId)
+      throw new GatewayError(
+        "conflict",
+        "Approval run identity does not match",
+      );
+    const adapter = this.#registry.require(session.adapterId);
+    const manifest = await adapter.attest();
+    if (!manifest.capabilities.approvals || !adapter.resolveApproval)
+      throw new GatewayError(
+        "unsupported",
+        "Native approval forwarding is unavailable for this exact-session transport",
+      );
+    await adapter.resolveApproval(runId, approvalId, decision);
+  }
+}
+
+export type DesignPreview = {
+  readonly relativePath: string;
+  readonly name: string;
+  readonly validation: string;
+  readonly phaseHeadings: readonly string[];
+  readonly acceptanceHeadings: readonly string[];
+};
+
+export function discoverDesignPreviews(
+  repositoryRoot: string,
+): DesignPreview[] {
+  const root = fs.realpathSync(repositoryRoot);
+  const candidates = ["docs", "design", "designs"];
+  const files: string[] = [];
+  for (const directory of candidates) {
+    const absolute = path.join(root, directory);
+    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isDirectory())
+      continue;
+    for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
+      if (!entry.isFile() || !/\.(?:md|markdown)$/i.test(entry.name)) continue;
+      files.push(path.join(absolute, entry.name));
+    }
+  }
+  return files
+    .sort()
+    .slice(0, 32)
+    .flatMap((absolute): DesignPreview[] => {
+      const stat = fs.lstatSync(absolute);
+      if (stat.isSymbolicLink() || stat.size > 262_144) return [];
+      const real = fs.realpathSync(absolute);
+      if (!real.startsWith(`${root}${path.sep}`)) return [];
+      const content = fs.readFileSync(real, "utf8");
+      const headings = [...content.matchAll(/^(#{1,4})\s+(.+)$/gm)].map(
+        (match) => ({
+          level: match[1]?.length ?? 0,
+          text: match[2]?.trim() ?? "",
+        }),
+      );
+      const name = headings.find((heading) => heading.level === 1)?.text;
+      if (!name) return [];
+      const validationMatch = content.match(
+        /^#{2,4}\s+Validation\s*$\r?\n+([^#\r\n][^\r\n]*)/im,
+      );
+      return [
+        {
+          relativePath: path.relative(root, real).split(path.sep).join("/"),
+          name: sanitizeDisplayText(name, 160).text,
+          validation: sanitizeDisplayText(
+            validationMatch?.[1]?.trim() ?? "Not declared",
+            240,
+          ).text,
+          phaseHeadings: headings
+            .filter((heading) => /^phase\b/i.test(heading.text))
+            .map((heading) => sanitizeDisplayText(heading.text, 160).text)
+            .slice(0, 32),
+          acceptanceHeadings: headings
+            .filter((heading) => /acceptance/i.test(heading.text))
+            .map((heading) => sanitizeDisplayText(heading.text, 160).text)
+            .slice(0, 32),
+        },
+      ];
+    });
+}
+
+export function readPluginAvatarProposal(
+  proposalPath: string,
+  sessionId: string,
+  adapterSessionRef: string,
+): AgentAvatarProposal | null {
+  if (!fs.existsSync(proposalPath)) return null;
+  const stat = fs.lstatSync(proposalPath);
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 16_384)
+    throw new GatewayError(
+      "validation",
+      "Plugin avatar proposal file is not bounded",
+    );
+  if ((stat.mode & 0o077) !== 0)
+    throw new GatewayError(
+      "validation",
+      "Plugin avatar proposal file must use mode 0600",
+    );
+  const source: unknown = JSON.parse(fs.readFileSync(proposalPath, "utf8"));
+  if (!isRecord(source) || source.schema !== "aiw.hermes-avatar-source/0.12")
+    throw new GatewayError(
+      "validation",
+      "Plugin avatar proposal schema is invalid",
+    );
+  const expectedNativeHash = createHash("sha256")
+    .update(adapterSessionRef)
+    .digest("hex");
+  if (source.native_session_hash !== expectedNativeHash)
+    throw new GatewayError(
+      "conflict",
+      "Plugin avatar proposal native session does not match",
+    );
+  const digest = createHash("sha256")
+    .update(`${sessionId}:${JSON.stringify(source)}`)
+    .digest("hex");
+  const proposalId = `${digest.slice(0, 8)}-${digest.slice(8, 12)}-4${digest.slice(13, 16)}-8${digest.slice(17, 20)}-${digest.slice(20, 32)}`;
+  return AgentAvatarProposalSchema.parse({
+    schema: "aiw.avatar-proposal/0.12",
+    proposalId,
+    sessionId,
+    displayName: source.displayName,
+    species: source.species,
+    head: source.head,
+    hands: source.hands,
+    feet: source.feet,
+    fur: source.fur,
+    tail: source.tail,
+    markings: source.markings,
+    bodyColor: source.bodyColor,
+    shirt: source.shirt,
+    movementStyle: source.movementStyle,
+    sourceDisclosure: source.sourceDisclosure,
+    rationale: source.rationale,
+    createdAt: source.createdAt,
+  });
+}

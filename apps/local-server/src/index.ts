@@ -17,6 +17,13 @@ import {
   type CurrentRepositorySelection,
 } from "./server.js";
 import { EvidenceService } from "./evidence-service.js";
+import {
+  AdapterRegistry,
+  AgentSessionGateway,
+  AgentSessionStore,
+  HermesSessionAdapter,
+  readPluginAvatarProposal,
+} from "./agent-sessions.js";
 
 const config = (() => {
   try {
@@ -74,11 +81,53 @@ if (config !== undefined) {
           ...(evidenceService ? { evidenceService } : {}),
         })
       : undefined;
+  const hermesAdapter = config.agentSessions
+    ? new HermesSessionAdapter({
+        baseUrl: config.agentSessions.hermesApiUrl,
+        apiKey: config.agentSessions.hermesApiKey,
+        profile: config.agentSessions.hermesProfile,
+        ...(config.agentSessions.pluginCapabilityPath
+          ? {
+              pluginCapabilityPath: config.agentSessions.pluginCapabilityPath,
+            }
+          : {}),
+      })
+    : undefined;
+  const agentAdapterRegistry = new AdapterRegistry(
+    hermesAdapter ? [hermesAdapter] : [],
+  );
+  const agentSessionGateway = config.agentSessions
+    ? new AgentSessionGateway({
+        registry: agentAdapterRegistry,
+        store: new AgentSessionStore(config.agentSessions.dataDir),
+      })
+    : undefined;
   const server = createLocalServer({
     config,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
     ...(evidenceService ? { evidenceService } : {}),
+    ...(agentSessionGateway
+      ? {
+          agentSessionGateway,
+          agentAdapterRegistry,
+          ...(config.agentSessions?.designRepositoryRoot
+            ? {
+                designRepositoryRoot: config.agentSessions.designRepositoryRoot,
+              }
+            : {}),
+          ...(config.agentSessions?.pluginAvatarProposalPath
+            ? {
+                avatarProposal: (sessionId: string) =>
+                  readPluginAvatarProposal(
+                    config.agentSessions?.pluginAvatarProposalPath as string,
+                    sessionId,
+                    agentSessionGateway.status(sessionId).adapterSessionRef,
+                  ),
+              }
+            : {}),
+        }
+      : {}),
   });
   selectedRepository = () => server.currentRepositorySelection();
   let closePromise: Promise<void> | undefined;

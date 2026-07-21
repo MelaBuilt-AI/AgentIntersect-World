@@ -1,21 +1,21 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-20
+Updated: 2026-07-21
 
 ## Current milestone
 
-**Phase 11 — Avatar profiles and embodied status: COMPLETE / PRIVATE EXACT-SHA CI GREEN**
+**Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration: LOCAL IMPLEMENTATION + LIVE ACCEPTANCE COMPLETE / PRIVATE COMMIT AND EXACT-SHA CI PENDING**
 
-- Frozen scope: `docs/PHASE_11_SCOPE.md` and the canonical Phase 11 section in `AgentIntersect_WorldDD.md`.
-- Baseline: completed Phase 10 marker `aeda8978a78e6f58b8f4d270b12779e6982a77ef`; exact-SHA Actions run `29782716484` succeeded.
-- Version: `0.11.0-phase11`.
-- Runtime: Node `v24.18.0`, pnpm `11.15.0`.
-- Workspace: 15 projects / 14 named app-package graph entries.
-- Local implementation includes a strict privacy-safe `aiw.avatar/0.11` profile, one shared Blender biped rig/body/action set, 12 human/dog/cat heads, modular hands/paws/claws/feet/fur/tails/markings, 12 colors, four branded tees, mandatory above-head names, authoritative status animation, local current/previous recovery, lazy GLB rendering, roster integration, and equivalent semantic/text/reduced-motion/forced-color/WebGL-fallback flows.
-- Independent parent proof is green through two-process Blender regeneration, source/GLB structural inspection, final appearance/motion boards, 22/22 focused tests, 311/311 complete Vitest, 28/28 Playwright, build/smoke, Storybook, Phase 10/11 measurements, zero-vulnerability production audit, 320-file fresh-copy verification, and first-hand Chromium editor/save/World proof. The two-CPU fallback disables avatar WebGL cosmetics and GLB loading while retaining all identity/action summaries and 64 roster rows; hard-quota proof measured 16.7–16.8 ms p95. The final CI correction makes the true-3D journey wait for selected-model first-frame readiness and makes historical full-cosmetic screenshots independent of ambient runner CPU count without changing the 0.04 pixel allowance or performance ceilings.
-- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Private implementation SHA: `caaf79021b9611c7a632462ee48e0e464fc98394`; constrained-hardware correction SHA: `94ded384d4a5d265b8b47699d7c254e6fc374f5c`; final visual-CI correction SHA: `933fdd0725bc2631821ad0a5e5c3dd7506f34d0e`. Exact-SHA Actions run `29795954168` and job `88527213458` succeeded with Phase 10 measurement, avatar verification, Phase 11 measurement, and complete `pnpm check` green.
-- Release/tag/package publication/public visibility change: none; repository remains private.
+- Frozen scope: `docs/PHASE_12_SCOPE.md` and the canonical Phase 12 section in `AgentIntersect_WorldDD.md`.
+- Baseline: completed Phase 11 marker `c60bef65cd3ae7df0829c2a5181ee705f3257352`; local `HEAD` and `origin/main` remain on that baseline until the verified Phase 12 change set is privately committed.
+- Version: `0.12.0-phase12`.
+- Runtime: Node `v24.18.0`, pnpm `11.15.0`, Hermes Agent `v0.18.2` (`2026.7.7.2`, upstream `f7c9feb3`).
+- Workspace: 16 projects / 15 named app-package graph entries.
+- The local implementation adds strict agent-session/event contracts, a capability-declared Hermes adapter, exact-session serialized SSE turns, bounded durable World projections, truthful recovery/offline/reset state, consentful avatar proposals, accessible persistent chat, and a read-only Guided Build discovery/validation front door.
+- Parent live acceptance passed on the final discoverable Discord-backed Hermes session after expected Hermes compaction turnover: two ordered World-originated turns, tool events, authoritative finals, duplicate-free Sessions API continuity, World restart, Hermes restart, avatar accept/revoke, truthful unsupported approval/interrupt `409` responses, isolated restore, and actual byte-identical default-profile rollback. The plugin/runtime paths are absent after proof, original config/environment hashes match, the gateway is healthy, and the systemd unit hash is unchanged.
+- Final unrestricted verification is green: plugin conformance, formatting, lint, architecture, 28/28 typecheck tasks, 357/357 Vitest, 15/15 builds, smoke, 32/32 Playwright, Storybook, zero-vulnerability production audit, and 344-file fresh-copy verification with the same 357 tests and 32 browser tests passing again.
+- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; no Phase 12 commit or push exists yet.
+- Release/tag/package publication/deployment/public ingress/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
 
@@ -159,9 +159,7 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 12 — SESSION MODES, AGENT SESSION GATEWAY, AND PERSISTENT HERMES TEXT COLLABORATION / NEXT UP / NOT STARTED**
-
-The user approved the canonical re-baselined direction on 2026-07-21 and named revised Phase 12 as the next session’s milestone. Phase 12 remains unstarted in this session. The next session must first resolve the Hermes adapter seam, acceptance profile/session, permission behavior, retention, Guided Build front-door cutline, and magic-slice fixture, then freeze `docs/PHASE_12_SCOPE.md` before implementation. No Hermes or AgentIntersect modification, agent launch, release, publication, deployment, public ingress, or visibility change is implied by this transition.
+**Phase 13 remains NOT STARTED / UNAUTHORIZED.** Phase 12 has passed local, browser, live Hermes, restart, consent, and rollback acceptance; only private commit/push, exact-SHA CI, and repository/vault closeout remain before the Phase 12 exit gate can be marked complete. No Phase 13 implementation may begin automatically.
 
 ## Non-blocking backlog
 

@@ -13,8 +13,8 @@ describe("Phase 7 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 10",
-      version: "0.10.0-phase10",
+      phase: "Phase 12",
+      version: "0.12.0-phase12",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",
@@ -23,6 +23,7 @@ describe("Phase 7 local-server configuration", () => {
       repositoryMaxFiles: 2_500,
       agentIntersectReadEnabled: false,
       agentIntersectCommandsEnabled: false,
+      agentSessionsEnabled: false,
       presentationSync: {
         enabled: true,
         transport: "ws/http",
@@ -32,6 +33,34 @@ describe("Phase 7 local-server configuration", () => {
         allowedHost: "127.0.0.1:5173",
       },
     });
+  });
+
+  it("keeps the Hermes bearer server-only and requires loopback API configuration", async () => {
+    const { loadLocalServerConfig, toSafeConfig } =
+      await import("../src/node.js");
+    expect(() =>
+      loadLocalServerConfig({ AIW_AGENT_SESSIONS_ENABLED: "true" }),
+    ).toThrow("AIW_HERMES_API_KEY");
+    expect(() =>
+      loadLocalServerConfig({
+        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_HERMES_API_KEY: "fixture-secret",
+        AIW_HERMES_API_URL: "http://192.168.1.2:8642",
+      }),
+    ).toThrow(/loopback/i);
+    const config = loadLocalServerConfig({
+      AIW_AGENT_SESSIONS_ENABLED: "true",
+      AIW_HERMES_API_KEY: "fixture-secret",
+      AIW_AGENT_SESSION_DATA_DIR: "/tmp/aiw-agent-sessions",
+    });
+    expect(config.agentSessions).toMatchObject({
+      hermesApiUrl: "http://127.0.0.1:8642",
+      hermesProfile: "default",
+    });
+    expect(toSafeConfig(config).agentSessionsEnabled).toBe(true);
+    expect(JSON.stringify(toSafeConfig(config))).not.toMatch(
+      /fixture-secret|8642/,
+    );
   });
 
   it("keeps command authority disabled by default and never exposes its secret", async () => {

@@ -20,6 +20,11 @@ import { AuthorityPanel } from "../panels/AuthorityPanel.js";
 import { RepositoryIndexPanel } from "../panels/RepositoryIndexPanel.js";
 import { requestRepositorySelection } from "../repository/repository-selection.js";
 import { useInvalidateWorld } from "../repository/use-invalidate-world.js";
+import { AgentSessionPanel } from "../sessions/AgentSessionPanel.js";
+import {
+  PHASE12_OFFLINE_SESSION_FIXTURE,
+  PHASE12_SESSION_FIXTURE,
+} from "../sessions/session-fixtures.js";
 import { HARNESS_OPTIONS, type HarnessId } from "../state/harness-intent.js";
 import { useHarnessIntent } from "../state/use-harness-intent.js";
 import { WORLD_CATEGORIES, type Category } from "./categories.js";
@@ -80,6 +85,11 @@ export function DashboardShell({
     phase7Fixture ||
     (authority.status === "ready" &&
       authority.ready.config.agentIntersectCommandsEnabled);
+  const agentSessionsEnabled =
+    fixtureValue === "phase12-session" ||
+    fixtureValue === "phase12-api" ||
+    (authority.status === "ready" &&
+      authority.ready.config.agentSessionsEnabled);
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") setActivePanel(null);
@@ -306,32 +316,43 @@ export function DashboardShell({
               onIndexed={invalidateWorld}
             />
           )}
-          {activePanel === "Agents" &&
-            (integration.state ? (
-              <div className="stacked-panels">
-                {fixtureValue === "phase11-performance" && (
-                  <AvatarPerformanceFixture
+          {activePanel === "Agents" && (
+            <div className="stacked-panels">
+              <AgentSessionPanel
+                enabled={agentSessionsEnabled}
+                {...(fixtureValue === "phase12-session"
+                  ? { fixtureState: PHASE12_SESSION_FIXTURE }
+                  : fixtureValue === "phase12-offline"
+                    ? { fixtureState: PHASE12_OFFLINE_SESSION_FIXTURE }
+                    : {})}
+              />
+              {integration.state ? (
+                <>
+                  {fixtureValue === "phase11-performance" && (
+                    <AvatarPerformanceFixture
+                      profile={profile}
+                      constrained={constrainedCosmetics}
+                    />
+                  )}
+                  <AvatarRoster
+                    roster={integration.state.projection.roster}
+                    integrationStatus={integration.state.status}
                     profile={profile}
+                    onProfileSave={onProfileSave}
                     constrained={constrainedCosmetics}
                   />
-                )}
-                <AvatarRoster
-                  roster={integration.state.projection.roster}
-                  integrationStatus={integration.state.status}
-                  profile={profile}
-                  onProfileSave={onProfileSave}
-                  constrained={constrainedCosmetics}
-                />
-                <IntegrationPanel
-                  state={integration.state}
-                  readiness={integration.readiness}
-                />
-              </div>
-            ) : (
-              <section className="panel-state" role="status">
-                Loading observed roster…
-              </section>
-            ))}
+                  <IntegrationPanel
+                    state={integration.state}
+                    readiness={integration.readiness}
+                  />
+                </>
+              ) : (
+                <section className="panel-state" role="status">
+                  Loading observed roster…
+                </section>
+              )}
+            </div>
+          )}
           {activePanel === "Activity" &&
             (integration.state ? (
               <div className="stacked-panels">
@@ -387,7 +408,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 11 modular avatar / Phase 9 local presentation</span>
+        <span>Phase 12 persistent Hermes text / Phase 11 modular avatar</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>
