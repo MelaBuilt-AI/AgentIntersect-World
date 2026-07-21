@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AnimationMixer,
   type AnimationAction,
@@ -135,6 +135,22 @@ function AvatarModel({
   return <primitive object={scene} position={position} />;
 }
 
+function AvatarRenderReady({
+  selectionKey,
+  onReady,
+}: {
+  readonly selectionKey: string;
+  readonly onReady: (selectionKey: string) => void;
+}) {
+  const announcedSelection = useRef<string | null>(null);
+  useFrame(() => {
+    if (announcedSelection.current === selectionKey) return;
+    announcedSelection.current = selectionKey;
+    onReady(selectionKey);
+  });
+  return null;
+}
+
 export function AvatarKitRosterCanvas({
   asset,
   avatars,
@@ -190,11 +206,28 @@ export function AvatarKitCanvas({
   readonly animate: boolean;
 }) {
   const gltf = useLoader(GLTFLoader, asset);
+  const selectionKey = [
+    selection.species,
+    selection.head,
+    selection.hands,
+    selection.feet,
+    selection.fur,
+    selection.tail,
+    selection.markings,
+    selection.bodyColor,
+    selection.shirt,
+  ].join(":");
+  const [readySelection, setReadySelection] = useState<string | null>(null);
   return (
     <div
       className="avatar-kit-canvas"
       data-avatar-action={action}
       data-avatar-asset={asset}
+      data-avatar-species={selection.species}
+      data-avatar-shirt={selection.shirt}
+      data-avatar-render-ready={
+        readySelection === selectionKey ? "true" : "false"
+      }
     >
       <Canvas
         frameloop={animate ? "always" : "demand"}
@@ -208,6 +241,10 @@ export function AvatarKitCanvas({
           selection={selection}
           action={action}
           animate={animate}
+        />
+        <AvatarRenderReady
+          selectionKey={selectionKey}
+          onReady={setReadySelection}
         />
       </Canvas>
     </div>

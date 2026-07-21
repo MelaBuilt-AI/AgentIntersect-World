@@ -1,5 +1,17 @@
 import type { Page } from "@playwright/test";
 
+export async function selectAvatarCosmeticQuality(
+  page: Page,
+  quality: "full" | "constrained",
+) {
+  await page.addInitScript((selectedQuality) => {
+    Object.defineProperty(navigator, "hardwareConcurrency", {
+      configurable: true,
+      value: selectedQuality === "full" ? 8 : 2,
+    });
+  }, quality);
+}
+
 export async function enterDashboard(page: Page, path = "/") {
   await page.goto(path);
   const identify = page.getByTestId("identify-opening");

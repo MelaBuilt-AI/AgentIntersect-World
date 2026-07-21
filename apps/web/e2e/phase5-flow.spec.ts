@@ -1,7 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { openPanel, seedConfiguredAvatar } from "./helpers.js";
+import {
+  openPanel,
+  seedConfiguredAvatar,
+  selectAvatarCosmeticQuality,
+} from "./helpers.js";
 
 // The approved pixels remain authoritative. This bounded allowance covers
 // Linux CI versus WSL glyph/PNG rasterization without accepting layout drift.
@@ -24,6 +28,7 @@ async function expectNoSeriousAxeViolations(page: Page) {
 test("first-open identify/avatar, durable harness, stable shell, Settings edit, and desktop evidence", async ({
   page,
 }) => {
+  await selectAvatarCosmeticQuality(page, "full");
   await page.goto("/");
   await expect(page.getByTestId("identify-opening")).toBeVisible();
   await expect(page.getByText("identify_", { exact: false })).toBeVisible();
@@ -113,6 +118,10 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
   await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
     "data-state",
     "complete",
+  );
+  await expect(page.locator(".dashboard-shell")).toHaveAttribute(
+    "data-cosmetic-quality",
+    "full",
   );
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(page).toHaveScreenshot("phase5-dashboard-desktop.png", {
