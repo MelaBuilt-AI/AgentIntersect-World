@@ -408,3 +408,4 @@ export const RENDERER_CAPABILITY = {
 } as const;
 
 export { RepositoryIslandCanvas } from "./repository-island-canvas.js";
+export { AvatarKitCanvas, AvatarKitRosterCanvas } from "./avatar-kit-canvas.js";

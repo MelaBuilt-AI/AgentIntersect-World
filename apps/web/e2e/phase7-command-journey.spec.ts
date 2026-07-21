@@ -1,17 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { openPanel } from "./helpers.js";
-
-const profile = {
-  version: 1,
-  body: "female",
-  accent: "cyan",
-  showHalo: true,
-  showHelmet: true,
-  showFace: true,
-  showEyes: true,
-  showGlow: true,
-};
+import { openPanel, seedConfiguredAvatar } from "./helpers.js";
 
 const request = {
   schema: "aiw.command-intent.request/0.7",
@@ -46,11 +35,7 @@ test("authorized Phase 7 real-job journey stays one-dispatch and shows fixture r
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.addInitScript(
-    (value) =>
-      localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
-    profile,
-  );
+  await seedConfiguredAvatar(page);
   let createCalls = 0;
   let reads = 0;
   await page.route("**/api/commands/intents", async (route) => {

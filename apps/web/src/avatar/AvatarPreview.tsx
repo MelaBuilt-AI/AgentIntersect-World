@@ -1,42 +1,70 @@
 import {
-  avatarFallbackSheet,
-  avatarLayersFor,
-  type AvatarProfile,
+  AVATAR_CONTACT_SHEET,
+  avatarProfileSummary,
+  type AvatarDraft,
+  type AvatarAction,
 } from "@agentintersect-world/avatar-system";
+import { lazy, Suspense } from "react";
+const AvatarScene = lazy(async () => {
+  const module = await import("./AvatarScene.js");
+  return { default: module.AvatarScene };
+});
 
 export function AvatarPreview({
   profile,
   compact = false,
+  textOnly = false,
+  action = "Idle",
+  animate = true,
 }: {
-  readonly profile: AvatarProfile;
+  readonly profile: AvatarDraft;
   readonly compact?: boolean;
+  readonly textOnly?: boolean;
+  readonly action?: AvatarAction;
+  readonly animate?: boolean;
 }) {
-  const layers = avatarLayersFor(profile);
+  const forcedFallback =
+    typeof window !== "undefined" &&
+    (["off", "text"].includes(
+      new URLSearchParams(window.location.search).get("avatar3d") ?? "",
+    ) ||
+      !window.WebGLRenderingContext);
   return (
     <figure
-      className={`avatar-preview avatar-preview--${profile.accent}${compact ? " avatar-preview--compact" : ""}`}
-      aria-label={`${profile.body} 2D avatar appearance preview`}
+      className={`avatar-preview avatar-preview--3d${compact ? " avatar-preview--compact" : ""}`}
+      aria-label={`${profile.agentName || "Unnamed agent"} ${profile.species} avatar preview`}
       data-testid="avatar-preview"
     >
-      <img
-        className="avatar-preview__fallback"
-        src={avatarFallbackSheet(profile)}
-        alt=""
-        aria-hidden="true"
-      />
-      {layers.map((layer) => (
-        <img
-          key={layer.id}
-          className={`avatar-preview__layer avatar-preview__layer--${layer.id}`}
-          src={layer.src}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-        />
-      ))}
-      <figcaption className="sr-only">
-        Live inherited 2D avatar compositor preview. No personal traits are
-        inferred.
+      <div className="avatar-nameplate" data-anchor="ATTACH_NAMEPLATE">
+        {profile.agentName || "Name required"}
+      </div>
+      {textOnly || forcedFallback ? (
+        <div className="avatar-static-fallback">
+          <img
+            src={AVATAR_CONTACT_SHEET}
+            alt="Rendered contact sheet fallback for the modular avatar kit"
+          />
+          <strong>
+            {forcedFallback ? "WebGL unavailable" : "Text-only mode"}
+          </strong>
+        </div>
+      ) : (
+        <Suspense
+          fallback={
+            <div className="avatar-static-fallback" role="status">
+              Loading optional 3D preview…
+            </div>
+          }
+        >
+          <AvatarScene profile={profile} action={action} animate={animate} />
+        </Suspense>
+      )}
+      <figcaption>
+        <span className="sr-only">
+          Agent name: {profile.agentName || "not configured"}.{" "}
+        </span>
+        {avatarProfileSummary(profile)}. Animation: {action}
+        {animate ? "" : " (static pose)"}.
       </figcaption>
     </figure>
   );

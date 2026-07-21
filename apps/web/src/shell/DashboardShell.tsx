@@ -1,9 +1,16 @@
-import type { AvatarProfile } from "@agentintersect-world/avatar-system";
+import type {
+  AvatarDraft,
+  AvatarProfile,
+} from "@agentintersect-world/avatar-system";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import { useAuthorityState } from "../authority/use-authority.js";
 import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
 import { AvatarPreview } from "../avatar/AvatarPreview.js";
+import {
+  AvatarPerformanceFixture,
+  AvatarRoster,
+} from "../avatar/AvatarRoster.js";
 import { CommandIntentPanel } from "../commands/CommandIntentPanel.js";
 import { EvidencePanelLoader } from "../evidence/EvidencePanel.js";
 import { PHASE8_EVIDENCE_FIXTURE } from "../evidence/evidence-fixtures.js";
@@ -30,10 +37,14 @@ const RepositoryWorldPanel = lazy(async () => {
 
 export function DashboardShell({
   profile,
+  previousProfile,
   onProfileSave,
+  onProfileDelete,
 }: {
   readonly profile: AvatarProfile;
-  readonly onProfileSave: (profile: AvatarProfile) => void;
+  readonly previousProfile: AvatarProfile | null;
+  readonly onProfileSave: (profile: AvatarDraft) => AvatarProfile | void;
+  readonly onProfileDelete: () => void;
 }) {
   const constrainedCosmetics =
     typeof navigator !== "undefined" && navigator.hardwareConcurrency <= 2;
@@ -293,10 +304,21 @@ export function DashboardShell({
           )}
           {activePanel === "Agents" &&
             (integration.state ? (
-              <IntegrationPanel
-                state={integration.state}
-                readiness={integration.readiness}
-              />
+              <div className="stacked-panels">
+                {fixtureValue === "phase11-performance" && (
+                  <AvatarPerformanceFixture profile={profile} />
+                )}
+                <AvatarRoster
+                  roster={integration.state.projection.roster}
+                  integrationStatus={integration.state.status}
+                  profile={profile}
+                  onProfileSave={onProfileSave}
+                />
+                <IntegrationPanel
+                  state={integration.state}
+                  readiness={integration.readiness}
+                />
+              </div>
             ) : (
               <section className="panel-state" role="status">
                 Loading observed roster…
@@ -338,12 +360,18 @@ export function DashboardShell({
           )}
           {activePanel === "Settings" && (
             <AvatarBuilder
-              key={`${profile.body}-${profile.accent}-${String(profile.showHelmet)}`}
+              key={`${profile.profileId}-${profile.updatedAt}`}
               initialProfile={profile}
+              currentProfile={profile}
+              previousProfile={previousProfile}
+              storageStatus="saved"
               title="Edit avatar appearance"
+              onDelete={onProfileDelete}
               onSave={(next) => {
                 onProfileSave(next);
-                setLastResult("Avatar appearance updated locally.");
+                setLastResult(
+                  "Avatar profile updated locally; current and previous retained.",
+                );
               }}
             />
           )}
@@ -351,7 +379,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 9 local presentation synchronization</span>
+        <span>Phase 11 modular avatar / Phase 9 local presentation</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>

@@ -1,0 +1,94 @@
+{
+  "actions": ["Idle", "Walk", "Run", "Work", "Celebrate", "Error", "Offline"],
+  "armatures": ["AIW_Biped_Rig"],
+  "attachments": [
+    "ATTACH_HEAD",
+    "ATTACH_HAND_L",
+    "ATTACH_HAND_R",
+    "ATTACH_FOOT_L",
+    "ATTACH_FOOT_R",
+    "ATTACH_TAIL",
+    "ATTACH_SHIRT",
+    "ATTACH_NAMEPLATE"
+  ],
+  "blender": "5.2.0 LTS",
+  "bodyColors": [
+    "porcelain",
+    "warm-light",
+    "golden",
+    "bronze",
+    "umber",
+    "deep",
+    "fur-cream",
+    "fur-gold",
+    "fur-brown",
+    "fur-charcoal",
+    "fantasy-blue",
+    "fantasy-violet"
+  ],
+  "coreObjects": [
+    "CORE_MIDSECTION",
+    "CORE_CHEST",
+    "CORE_ARM_L",
+    "CORE_ARM_R",
+    "CORE_LEG_L",
+    "CORE_LEG_R"
+  ],
+  "evidenceBoards": [
+    "apps/web/public/assets/avatar/aiw-avatar-contact-sheet.png",
+    "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png"
+  ],
+  "feet": ["feet", "paws", "clawed-paws"],
+  "files": {
+    "apps/web/public/assets/avatar/aiw-avatar-contact-sheet.png": {
+      "bytes": 2036272,
+      "sha256": "920ac65093ca2c9d7266c6a6ff2673c3c18bf47b8b2531a21262274fd5ea0045"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-kit.glb": {
+      "bytes": 1727424,
+      "sha256": "aa7bf4ae80447bc892fe6ae150309f62178bab5289a4010d5bb7457f988c7692"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png": {
+      "bytes": 1094533,
+      "sha256": "ec8d24e66a6f45e527a5a4903a90c5d755de75657e34c5ee0a5af3d293915f91"
+    },
+    "assets/avatar/aiw-avatar-kit.blend": {
+      "bytes": 314939,
+      "sha256": "585d49ae806511727464331d639422cb3c4b643b5ef6c0e8ff03c260ad966371"
+    }
+  },
+  "fur": ["none", "short", "long"],
+  "generator": "tooling/avatar/build_avatar_kit.py",
+  "hands": ["hands", "paws", "clawed-paws"],
+  "heads": {
+    "cat": ["shorthair", "siamese", "maine-coon", "bengal"],
+    "dog": ["labrador", "shepherd", "husky", "beagle"],
+    "human": ["round", "angular", "soft", "square"]
+  },
+  "license": "Project-owned / self-authored",
+  "markings": ["solid", "muzzle", "mask", "socks"],
+  "schema": "aiw.avatar-assets/0.11",
+  "shirts": [
+    {
+      "color": "#2563EB",
+      "label": "Codex",
+      "name": "Codex"
+    },
+    {
+      "color": "#EA580C",
+      "label": "Claude",
+      "name": "Claude"
+    },
+    {
+      "color": "#FACC15",
+      "label": "Hermes",
+      "name": "Hermes"
+    },
+    {
+      "color": "#DC2626",
+      "label": "OpenClaw",
+      "name": "OpenClaw"
+    }
+  ],
+  "tails": ["none", "cat-straight", "cat-curled", "dog-straight", "dog-curled"]
+}

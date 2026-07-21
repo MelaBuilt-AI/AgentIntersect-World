@@ -1,0 +1,90 @@
+{
+  "animationSignatures": {
+    "Celebrate": "78ff0d302dd8348c0ae880abe613a3243465c6e7db5768431ffc2ef24a662ed7",
+    "Error": "d48760dc4c012911c74bf3f32300035a982b292d4b60fca0a3e5da71abf9fffc",
+    "Idle": "3c6a8aa14f85c94bf06c1097d88f8162f8506ee48320117357962b1724e0e235",
+    "Offline": "5a3546089fdc27485728ada3320efcce5463c0a2a151b44e12853c259f8de169",
+    "Run": "3a09d482e5de7cfb7de500fa97c2c11d085e31a177631541d9e61be1213f7f36",
+    "Walk": "8967e15471db6cca4734abefd0146bd589c6d3f2dabdadbcded49c8e203219a6",
+    "Work": "08847328eace1926515b13dc2731e3ac76c1a56e8082fdda6d925eeabb38dc4a"
+  },
+  "animationTargetCounts": {
+    "Celebrate": 5,
+    "Error": 4,
+    "Idle": 3,
+    "Offline": 6,
+    "Run": 7,
+    "Walk": 5,
+    "Work": 5
+  },
+  "checks": {
+    "blendBudget": true,
+    "blendInspection": true,
+    "evidenceBoards": true,
+    "glbActions": true,
+    "glbAttachments": true,
+    "glbBudget": true,
+    "glbCore": true,
+    "glbDistinctActions": true,
+    "glbDistinctModules": true,
+    "glbFaceMaterials": true,
+    "glbHeads": true,
+    "glbMultiBoneActions": true,
+    "glbRig": true,
+    "glbShirts": true,
+    "hashes": true,
+    "sheetBudget": true,
+    "structuralGeometryEvidence": true
+  },
+  "counts": {
+    "animations": 7,
+    "materials": 23,
+    "meshes": 62,
+    "nodes": 92,
+    "skins": 1
+  },
+  "hashes": {
+    "blend": "585d49ae806511727464331d639422cb3c4b643b5ef6c0e8ff03c260ad966371",
+    "contactSheet": "920ac65093ca2c9d7266c6a6ff2673c3c18bf47b8b2531a21262274fd5ea0045",
+    "glb": "aa7bf4ae80447bc892fe6ae150309f62178bab5289a4010d5bb7457f988c7692",
+    "motionSheet": "ec8d24e66a6f45e527a5a4903a90c5d755de75657e34c5ee0a5af3d293915f91"
+  },
+  "moduleSignatures": {
+    "feet": {
+      "FOOT_clawed-paws_L": "8cabfd0ccc04a6978ad47d5f0c726b59fc4bc4cf8c7273eb9e423d148a47afba",
+      "FOOT_feet_L": "6bb2f902de1c6956f5e6c4a1ec8564e96162250820b5301d17fa5c7c89dd5781",
+      "FOOT_paws_L": "36cfc0b271c8a7357d8949e9e69ebe7636bb04323ccc6e4fb5acdc272b9917ff"
+    },
+    "fur": {
+      "FUR_long": "0abd4855bea43d21c5ae85f3ce38e60bfa66257260f8e518bd85baa18bd8eec2",
+      "FUR_none": "1cc3bf07c9c14c5e86dc468d93a84db91d8141de8fd00d64b95a0de7f1ddab1e",
+      "FUR_short": "25b974b119188baf0910d6328e2cee403ba2a80bdabf7331642beae438ac32d3"
+    },
+    "hands": {
+      "HAND_clawed-paws_L": "23b7a96e17e6002abd3786235fa1f597cf7e4e04cbd4b43df361d9aae69223ae",
+      "HAND_hands_L": "06bd6a8636c43bf133dd3c24c8660e37d5328e7b4d97d88ffe3219a8fdfad097",
+      "HAND_paws_L": "b23963ef5ee2699173958af4ab928ab3855049b81c6058e61c51bf52b5d40931"
+    },
+    "markings": {
+      "MARKING_mask": "474f47ac5ad8f9a174d81423ab1b1bfc24a1d23173bed67c82b439e393b59fbf",
+      "MARKING_muzzle": "0630293de61618ab86c2852705543fb821cdd3af0a9146e8ee1f8737eccf4bfa",
+      "MARKING_socks": "8160aa5103e92eabf8618d58a1f8c207f82c49bac5edeecf422ef8366978ccf2",
+      "MARKING_solid": "b85ac74b6c2b5956efd35d02b3b4c868262555be094d7fee9056f1a8aeed4d1f"
+    },
+    "tails": {
+      "TAIL_cat-curled": "93c785a6920bcaf67ebeb8070178966f1d5d7aaa9d32546e8b946b8dda97d0d8",
+      "TAIL_cat-straight": "a94a0174ff24d0fd4e229a108ac8ca68a026d275f4948be44fc720be88fc1ea5",
+      "TAIL_dog-curled": "239a4ee2db216ddcdf981af507900bf4c78272a446b59c0e74219fa2b57eb359",
+      "TAIL_dog-straight": "8bfb0c0f28ea39b1610f3f857143e60845e295e6186cd633f1296f26e88533d0",
+      "TAIL_none": "66bb4e40b9b588e6a7bf30bb04baf2891da1a718ebb05ce01fed0084a9b033cb"
+    }
+  },
+  "passed": true,
+  "schema": "aiw.avatar-runtime-inspection/0.11",
+  "sizes": {
+    "blend": 314939,
+    "contactSheet": 2036272,
+    "glb": 1727424,
+    "motionSheet": 1094533
+  }
+}

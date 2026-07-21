@@ -1,4 +1,7 @@
-import { DEFAULT_AVATAR_PROFILE } from "@agentintersect-world/avatar-system";
+import {
+  createAvatarProfile,
+  DEFAULT_AVATAR_DRAFT,
+} from "@agentintersect-world/avatar-system";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
@@ -14,6 +17,12 @@ import { DashboardShell } from "./shell/DashboardShell.js";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
+const STORY_PROFILE = createAvatarProfile(
+  { ...DEFAULT_AVATAR_DRAFT, agentName: "Codex" },
+  null,
+  "2026-07-20T12:00:00.000Z",
+  "avatar_0123456789abcdef0123456789abcdef",
+);
 
 const meta = {
   title: "Phase 5/Balanced vertical slice",
@@ -32,7 +41,9 @@ type Story = StoryObj<typeof meta>;
 export const FirstOpenIdentify: Story = {
   render: () => (
     <IdentifyExperience
-      initialProfile={DEFAULT_AVATAR_PROFILE}
+      initialProfile={DEFAULT_AVATAR_DRAFT}
+      previousProfile={null}
+      storageStatus="unconfigured"
       onComplete={() => undefined}
     />
   ),
@@ -42,7 +53,7 @@ export const AvatarAppearanceBuilder: Story = {
   render: () => (
     <main className="identify-shell identify-shell--builder">
       <AvatarBuilder
-        initialProfile={DEFAULT_AVATAR_PROFILE}
+        initialProfile={DEFAULT_AVATAR_DRAFT}
         onSave={() => undefined}
       />
     </main>
@@ -52,7 +63,9 @@ export const AvatarAppearanceBuilder: Story = {
 export const DashboardShellState: Story = {
   render: () => (
     <DashboardShell
-      profile={DEFAULT_AVATAR_PROFILE}
+      profile={STORY_PROFILE}
+      previousProfile={null}
+      onProfileDelete={() => undefined}
       onProfileSave={() => undefined}
     />
   ),

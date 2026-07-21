@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { access, cp, mkdir, mkdtemp, rm } from "node:fs/promises";
+import { access, cp, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 
@@ -47,9 +47,12 @@ async function run(
 }
 
 const temporaryRoot = await mkdtemp(
-  resolve(tmpdir(), "agentintersect-world-phase5-"),
+  resolve(tmpdir(), "agentintersect-world-phase11-"),
 );
 const freshRoot = resolve(temporaryRoot, "repo");
+const expectedAvatarManifest = JSON.parse(
+  await readFile("assets/avatar/aiw-avatar-kit.manifest.json", "utf8"),
+);
 
 try {
   await mkdir(freshRoot);
@@ -80,6 +83,37 @@ try {
     freshRoot,
   );
   await run("corepack", ["pnpm@11.15.0", "measure:phase10"], freshRoot);
+  let blenderAvailable = true;
+  try {
+    await access("/usr/local/bin/blender");
+  } catch {
+    blenderAvailable = false;
+  }
+  if (blenderAvailable) {
+    await run("corepack", ["pnpm@11.15.0", "avatar:build"], freshRoot);
+    await run("corepack", ["pnpm@11.15.0", "avatar:inspect"], freshRoot);
+  }
+  await run("corepack", ["pnpm@11.15.0", "avatar:verify"], freshRoot);
+  if (blenderAvailable) {
+    const regeneratedManifest = JSON.parse(
+      await readFile(
+        resolve(freshRoot, "assets/avatar/aiw-avatar-kit.manifest.json"),
+        "utf8",
+      ),
+    );
+    for (const file of [
+      "apps/web/public/assets/avatar/aiw-avatar-kit.glb",
+      "apps/web/public/assets/avatar/aiw-avatar-contact-sheet.png",
+      "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png",
+    ]) {
+      if (
+        regeneratedManifest.files[file].sha256 !==
+        expectedAvatarManifest.files[file].sha256
+      )
+        throw new Error(`Fresh avatar regeneration differed for ${file}`);
+    }
+  }
+  await run("corepack", ["pnpm@11.15.0", "measure:phase11"], freshRoot);
   await run("corepack", ["pnpm@11.15.0", "check"], freshRoot);
   process.stdout.write(
     `Fresh verification passed for ${copiedFiles} project source files.\n`,

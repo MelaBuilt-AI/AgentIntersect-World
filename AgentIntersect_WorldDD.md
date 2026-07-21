@@ -2080,13 +2080,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 11 — Avatar profiles and embodied status
 
-**Status:** NEXT SESSION / NOT STARTED. The user selected Phase 11 as next, and `docs/PHASE_11_SCOPE.md` is the draft restart artifact. This marker does not authorize implementation during the current closeout: a fresh session must verify the Phase 10 baseline, refresh jCodeMunch, and freeze the smallest observable avatar/profile/status slice, consent mapper, embodiment medium, shared-rig contract, authoritative status mapping, asset/provenance/performance budgets, and acceptance transcript before production edits.
+**Status:** LOCAL ACCEPTANCE COMPLETE; private commit/push and exact-SHA CI are pending. The frozen contract is `docs/PHASE_11_SCOPE.md`; implementation, Blender provenance, performance, and independent parent evidence are recorded in `PHASE_11_REPORT.md`, `docs/PHASE_11_ASSET_PROVENANCE.md`, and `docs/PHASE_11_PERFORMANCE.md`.
 
 **Objective:** Introduce privacy-safe modular agent/user avatars driven by authoritative status.
 
 **Rationale:** Embodiment is a differentiator only if it improves legibility and respects identity/privacy.
 
-**In scope:** One shared biped core rig and reusable primary animation set for every embodied avatar; modular human/cat/dog/future-species parts and surfaces including fur, tails, ears, muzzles, paws, claws, markings, palettes, clothing, and terminal accents; avatar schema, bundled parts/forms, defaults, opt-in AgentIntersect onboarding/profile-derived traits, roster, deterministic status animation, text-only/reduced-motion options.
+**Delivered:** Strict local `aiw.avatar/0.11` profiles; one shared Blender biped rig, six core body objects, eight attachment anchors, and seven reusable multi-bone actions; four human, four dog, and four cat heads; modular hands/paws/claws/feet/fur/tails/markings; 12 body colors; fitted Codex/Claude/Hermes/OpenClaw tees; required above-head names; explicit safe roster opt-in/revocation; local current/previous recovery; deterministic authoritative status animation; lazy GLB roster/editor rendering; and equivalent semantic DOM, text-only, reduced-motion, forced-color, keyboard, mobile, and WebGL-fallback behavior.
 
 **Out of scope:** Separate quadruped or per-species primary locomotion rigs/animation sets, raw memory ingestion, multiplayer memory replication, generative meshes, biometric inference, autonomous social behavior.
 
@@ -2094,13 +2094,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Concrete tasks:** Build consent flow/source disclosure; safe profile mapper; shared biped skeleton and animation contract; modular species-part attachment/surface system; optional secondary tail/ear motion that does not fork the primary animation set; asset budget/license manifest; avatar LOD/instancing; status state machine; accessibility announcements; user preferences stored locally.
 
-**Code/artifacts:** `avatar-system`, avatar editor/roster, asset manifest, motion tokens.
+**Code/artifacts:** `avatar-system`, numbered avatar editor/roster, skeleton-safe R3F renderer, deterministic Blender build/inspection/verification scripts, `.blend`, GLB, manifest, appearance board, motion board, Storybook states, and browser fixtures.
 
-**Tests/evidence:** Consent off/on, raw-memory canaries absent from traffic, every lifecycle state, reduced motion, non-humanoid/text-only, visual/accessibility snapshots.
+**Tests/evidence:** Two-process byte-identical GLB/render/structural regeneration; 22/22 focused tests; 311/311 complete Vitest; 28/28 Playwright; build/smoke; Storybook; zero-vulnerability production audit; 323-file fresh-copy verification; 12-avatar/64-row 16.8 ms p95 and 0 ms longest-task measurement; and first-hand Chromium visual/operator proof.
 
 **Acceptance criteria:** Avatar exposes no raw private profile data; status never outruns authoritative run state; all forms remain distinguishable without color; asset/performance budgets hold.
 
-**Exit gate:** Privacy/accessibility review.
+**Exit gate:** Local privacy/accessibility/visual/performance/fresh-copy gates are green. Complete only after private commit/push, exact-SHA CI, and repository/vault continuity; do not begin Phase 12 automatically.
 
 **Risks:** Anthropomorphic overclaiming or identity leakage. Use explicit provenance, neutral defaults, and no inferred personality claims.
 

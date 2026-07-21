@@ -40,6 +40,8 @@ describe("acceptance command graph", () => {
     expect(aggregate).not.toMatch(/(?:^|&&)\s*playwright test/);
     expect(freshVerification).toContain('["pnpm@11.15.0", "check"]');
     expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase10"]');
+    expect(freshVerification).toContain('["pnpm@11.15.0", "avatar:verify"]');
+    expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase11"]');
   });
 
   it("installs pinned pnpm before the frozen CI acceptance sequence", async () => {
@@ -54,6 +56,8 @@ describe("acceptance command graph", () => {
       "pnpm install --frozen-lockfile",
       "pnpm exec playwright install --with-deps chromium",
       "pnpm measure:phase10",
+      "pnpm avatar:verify",
+      "pnpm measure:phase11",
       "pnpm check",
     ];
     const positions = requiredSequence.map((command) =>

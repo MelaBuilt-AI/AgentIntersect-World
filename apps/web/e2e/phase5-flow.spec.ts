@@ -1,27 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { openPanel } from "./helpers.js";
-
-const savedAvatar = {
-  version: 1,
-  body: "female",
-  accent: "cyan",
-  showHalo: true,
-  showHelmet: true,
-  showFace: true,
-  showEyes: true,
-  showGlow: true,
-};
+import { openPanel, seedConfiguredAvatar } from "./helpers.js";
 
 // The approved pixels remain authoritative. This bounded allowance covers
 // Linux CI versus WSL glyph/PNG rasterization without accepting layout drift.
 const CROSS_RUN_VISUAL_DIFF_RATIO = 0.04;
 
 async function seedAvatar(page: Page) {
-  await page.addInitScript((profile) => {
-    localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(profile));
-  }, savedAvatar);
+  await seedConfiguredAvatar(page);
 }
 
 async function expectNoSeriousAxeViolations(page: Page) {
@@ -52,14 +39,11 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
     animations: "disabled",
     maxDiffPixelRatio: CROSS_RUN_VISUAL_DIFF_RATIO,
   });
-  await page.getByRole("radio", { name: "male", exact: true }).check();
-  await page.getByRole("radio", { name: "violet", exact: true }).check();
-  await page.getByLabel("Hair / helmet").uncheck();
-  await expect(
-    page.getByTestId("avatar-preview").locator(".avatar-preview__layer--head"),
-  ).toHaveAttribute("src", /avatar-puppet-male-head\.png$/);
+  await page.getByLabel("Required agent name").fill("Codex");
+  await page.getByText("Dog", { exact: true }).click();
+  await page.getByText("Husky", { exact: true }).click();
   await page
-    .getByRole("button", { name: "Save appearance and enter World" })
+    .getByRole("button", { name: "Save avatar and enter World" })
     .click();
   await expect(page.getByTestId("world-entry-transition")).toBeVisible();
 
@@ -122,13 +106,9 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
   await expect(
     page.getByRole("heading", { name: "Edit avatar appearance" }),
   ).toBeVisible();
-  await page.getByRole("radio", { name: "female", exact: true }).check();
-  await page
-    .getByRole("button", { name: "Save appearance and enter World" })
-    .click();
-  await expect(
-    page.getByText("Avatar appearance updated locally."),
-  ).toBeVisible();
+  await page.getByText("Human", { exact: true }).click();
+  await page.getByRole("button", { name: "Save avatar changes" }).click();
+  await expect(page.getByText(/Avatar profile updated locally/)).toBeVisible();
   await page.getByRole("button", { name: "Close Settings panel" }).click();
   await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
     "data-state",
@@ -167,7 +147,7 @@ test("repository island shares semantic selection/focus and survives context los
     maxDiffPixelRatio: CROSS_RUN_VISUAL_DIFF_RATIO,
   });
 
-  const canvas = page.locator("canvas");
+  const canvas = page.getByTestId("repository-canvas").locator("canvas");
   const canvasBox = await canvas.boundingBox();
   expect(canvasBox).not.toBeNull();
   await canvas.click({
@@ -215,8 +195,9 @@ test("reduced motion skips transitions and completes typewriter immediately", as
   await page.getByRole("button", { name: "Begin identification" }).click();
   await expect(page.getByTestId("identify-transition")).toHaveCount(0);
   await expect(page.getByTestId("avatar-preview")).toBeVisible();
+  await page.getByLabel("Required agent name").fill("Codex");
   await page
-    .getByRole("button", { name: "Save appearance and enter World" })
+    .getByRole("button", { name: "Save avatar and enter World" })
     .click();
   await expect(page.getByTestId("world-entry-transition")).toHaveCount(0);
   await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
@@ -249,17 +230,15 @@ test("keyboard-only navigation searches, selects, focuses, closes, and edits Set
   const settings = page.getByRole("button", { name: "Settings", exact: true });
   await settings.focus();
   await page.keyboard.press("Enter");
-  const male = page.getByRole("radio", { name: "male", exact: true });
-  await male.focus();
+  const dog = page.getByRole("radio", { name: "Dog", exact: true });
+  await dog.focus();
   await page.keyboard.press("Space");
   const save = page.getByRole("button", {
-    name: "Save appearance and enter World",
+    name: "Save avatar changes",
   });
   await save.focus();
   await page.keyboard.press("Enter");
-  await expect(
-    page.getByText("Avatar appearance updated locally."),
-  ).toBeVisible();
+  await expect(page.getByText(/Avatar profile updated locally/)).toBeVisible();
 });
 
 test("disabled/creation-failed fallback, reduced motion, high contrast, and mobile overflow remain complete", async ({

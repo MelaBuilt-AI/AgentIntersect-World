@@ -9,9 +9,16 @@ declare module "three" {
   export class Object3D {
     position: Vector3;
     name: string;
+    visible: boolean;
+    clone(recursive?: boolean): this;
+    traverse(callback: (object: Object3D) => void): void;
+    getObjectByName(name: string): Object3D | undefined;
   }
+  export class Group extends Object3D {}
+  export class Material {}
   export class Mesh extends Object3D {
     constructor(geometry?: unknown, material?: unknown);
+    material: Material | Material[];
   }
   export class BoxGeometry {
     constructor(width?: number, height?: number, depth?: number);
@@ -75,4 +82,43 @@ declare module "three" {
     readonly instanceMatrix: { needsUpdate: boolean };
     setMatrixAt(index: number, matrix: Matrix4): void;
   }
+  export class AnimationClip {
+    name: string;
+  }
+  export class AnimationAction {
+    time: number;
+    paused: boolean;
+    reset(): this;
+    play(): this;
+    stop(): this;
+    fadeIn(duration: number): this;
+    fadeOut(duration: number): this;
+    setEffectiveWeight(weight: number): this;
+  }
+  export class AnimationMixer {
+    constructor(root: Object3D);
+    clipAction(clip: AnimationClip): AnimationAction;
+    update(delta: number): void;
+  }
+}
+
+declare module "three/examples/jsm/loaders/GLTFLoader.js" {
+  import type { AnimationClip, Group } from "three";
+  export interface GLTF {
+    scene: Group;
+    animations: AnimationClip[];
+  }
+  export class GLTFLoader {
+    load(
+      url: string,
+      onLoad: (gltf: GLTF) => void,
+      onProgress?: (event: ProgressEvent) => void,
+      onError?: (error: unknown) => void,
+    ): void;
+  }
+}
+
+declare module "three/examples/jsm/utils/SkeletonUtils.js" {
+  import type { Group } from "three";
+  export function clone<T extends Group>(source: T): T;
 }

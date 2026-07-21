@@ -4,17 +4,17 @@ Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 10 — Symbols, dependencies, LOD, and large-repository hardening: COMPLETE / EXACT-SHA CI GREEN**
+**Phase 11 — Avatar profiles and embodied status: LOCAL ACCEPTANCE COMPLETE / PRIVATE COMMIT AND EXACT-SHA CI PENDING**
 
-- Frozen scope: `docs/PHASE_10_SCOPE.md` and the canonical Phase 10 section in `AgentIntersect_WorldDD.md`.
-- Baseline: completed Phase 9 commit `88e87e51a5edc217399fba1eb0508543b0b7ad66`; exact-SHA Actions run `29760049477` succeeded.
-- Version: `0.10.0-phase10`.
+- Frozen scope: `docs/PHASE_11_SCOPE.md` and the canonical Phase 11 section in `AgentIntersect_WorldDD.md`.
+- Baseline: completed Phase 10 marker `aeda8978a78e6f58b8f4d270b12779e6982a77ef`; exact-SHA Actions run `29782716484` succeeded.
+- Version: `0.11.0-phase11`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`.
 - Workspace: 15 projects / 14 named app-package graph entries.
-- Local implementation includes pinned worker-isolated TypeScript/JavaScript WASM parsing, a separately bounded ready handshake before the unchanged 500 ms file budget begins, opaque symbol/dependency truth, exact static resolution, generation-coupled cache/recovery, bounded aggregate/focus-only APIs, semantic DOM/R3F dependency bridges, deterministic 10k/100k fixtures, and a code-split two-CPU browser startup path.
-- Independent parent proof is green through disposable restart/resolution/hashless/startup-state probes, strict two-CPU pressure repetitions, 294/294 complete Vitest, 26/26 typecheck tasks, 11/11 architecture tests, 14/14 build tasks, smoke, 25/25 Playwright, Storybook, enforcing 10k/100k measurements, zero-vulnerability production audit, exact artifact verification, and desktop/mobile first-hand visual proof. Exact results are recorded in `PHASE_10_REPORT.md`.
+- Local implementation includes a strict privacy-safe `aiw.avatar/0.11` profile, one shared Blender biped rig/body/action set, 12 human/dog/cat heads, modular hands/paws/claws/feet/fur/tails/markings, 12 colors, four branded tees, mandatory above-head names, authoritative status animation, local current/previous recovery, lazy GLB rendering, roster integration, and equivalent semantic/text/reduced-motion/forced-color/WebGL-fallback flows.
+- Independent parent proof is green through two-process Blender regeneration, source/GLB structural inspection, final appearance/motion boards, 22/22 focused tests, 311/311 complete Vitest, 28/28 Playwright, build/smoke, Storybook, Phase 10/11 measurements, zero-vulnerability production audit, 323-file fresh-copy verification, and first-hand Chromium editor/save/World proof. Exact results are recorded in `PHASE_11_REPORT.md`.
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Phase 10 parent functional proof and 298-file fresh-copy verification: complete. Private implementation SHA `5ccb0656798f27cec85512282422a5c058f992f2` passed exact-SHA Actions run `29780316891`.
+- Private Phase 11 implementation SHA and exact-SHA Actions run: pending this closeout.
 - Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -159,18 +159,9 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 11 — NEXT SESSION / NOT STARTED**
+**Phase 12 — SAFE PAUSE, EMERGENCY STOP, AND RECOVERY UX / NOT STARTED**
 
-The user selected Phase 11 as the next session topic. `docs/PHASE_11_SCOPE.md` is a draft restart artifact, not a frozen production contract. No Phase 11 production code, dependency, asset work, Blender/3D work, or implementation worker has started.
-
-- **Objective:** introduce privacy-safe modular agent/user avatars driven by authoritative status.
-- **In scope after a fresh decision freeze:** one shared biped core and reusable primary animation set; modular human/cat/dog/future-species surfaces; explicit opt-in safe profile mapping; roster/status integration; local preferences; provenance/budgets; and text-only/reduced-motion/accessibility equivalents.
-- **Out of scope:** separate species locomotion rigs, raw-memory ingestion/replication, generative meshes, biometric/personality inference, autonomous social behavior, public multiplayer/cloud identity, release/publication, public ingress, visibility changes, and modification of original AgentIntersect.
-- **Fresh-session gates:** freeze the smallest observable slice, schema/identity, consent mapper, embodiment medium, shared-rig contract, authoritative status mapping, persistence/presentation boundary, UI/accessibility flow, asset provenance, performance budgets, fixtures, and versioned artifacts before production edits.
-- **Acceptance:** no raw private profile data; animation never outruns authoritative state; every form/state remains distinguishable without color; text/reduced-motion truth is equivalent; frozen asset/performance budgets pass; consent-off produces no profile-derived persistence/API/presentation/rendering data.
-- **Exit evidence:** focused plus integrated/full/browser/accessibility/visual/performance/provenance/fresh-copy proof, private commit/push, exact-SHA CI, and aligned repository/vault continuity.
-
-Marking Phase 11 as next does not authorize implementation in this closeout. A fresh session must read `AGENTS.md`, this tracker, the canonical Phase 11 design section, and `docs/PHASE_11_SCOPE.md`, refresh jCodeMunch, freeze decisions, and only then begin after explicit user authorization.
+Phase 11 local acceptance is complete. Phase 12 remains unstarted and unauthorized by this closeout. Beginning it requires a fresh scope decision and explicit user authorization; no Phase 12 lifecycle-control code, AgentIntersect mutation, release, publication, or deployment is implied by Phase 11 completion.
 
 ## Non-blocking backlog
 

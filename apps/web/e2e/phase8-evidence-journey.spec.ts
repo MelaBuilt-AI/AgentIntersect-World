@@ -1,28 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { openPanel } from "./helpers.js";
-
-const profile = {
-  version: 1,
-  body: "female",
-  accent: "cyan",
-  showHalo: true,
-  showHelmet: true,
-  showFace: true,
-  showEyes: true,
-  showGlow: true,
-};
+import { openPanel, seedConfiguredAvatar } from "./helpers.js";
 
 test("Phase 8 evidence remains authoritative in reduced-motion DOM fallback and selects the repository object", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(
-    (value) =>
-      localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
-    profile,
-  );
+  await seedConfiguredAvatar(page);
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());

@@ -1,25 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { openPanel } from "./helpers.js";
-
-const profile = {
-  version: 1,
-  body: "female",
-  accent: "cyan",
-  showHalo: true,
-  showHelmet: true,
-  showFace: true,
-  showEyes: true,
-  showGlow: true,
-};
+import { openPanel, seedConfiguredAvatar } from "./helpers.js";
 
 async function seed(page: Page) {
-  await page.addInitScript(
-    (value) =>
-      localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
-    profile,
-  );
+  await seedConfiguredAvatar(page);
 }
 
 test("ready integration drives selected harness while execution stays disabled", async ({

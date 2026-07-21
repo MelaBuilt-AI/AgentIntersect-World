@@ -1,32 +1,19 @@
 import { expect, test } from "@playwright/test";
 
-import { openPanel } from "./helpers.js";
+import { openPanel, seedConfiguredAvatar } from "./helpers.js";
 import {
   nearestRankPercentile,
   normalizeBrowserDuration,
 } from "./performance-metrics.js";
 
-const profile = {
-  version: 1,
-  body: "male",
-  accent: "cyan",
-  showHalo: true,
-  showHelmet: true,
-  showFace: true,
-  showEyes: true,
-  showGlow: true,
-};
+const profile = "Codex";
 
 test("Phase 10 focuses one file, preserves semantic fallback selection, and surfaces degraded coverage", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(
-    (value) =>
-      localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
-    profile,
-  );
+  await seedConfiguredAvatar(page, profile);
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
@@ -104,11 +91,7 @@ test("Phase 10 100k aggregate view materializes zero repository-wide symbols and
       // Chromium without Long Tasks support is reported as unverified below.
     }
   });
-  await page.addInitScript(
-    (value) =>
-      localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
-    profile,
-  );
+  await seedConfiguredAvatar(page, profile);
   await page.goto("/?fixture=phase10-100k&webgl=off");
   await openPanel(page, "World");
   await expect(page.getByTestId("code-graph-status")).toContainText(
@@ -182,11 +165,7 @@ test("Phase 10 10k aggregate view meets the 120-frame and no-all-detail ceilings
       // Unsupported collection remains explicitly unverified.
     }
   });
-  await page.addInitScript(
-    (value) =>
-      localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
-    profile,
-  );
+  await seedConfiguredAvatar(page, profile);
   await page.goto("/?fixture=phase10-10k&webgl=off");
   await openPanel(page, "World");
   await expect(page.getByTestId("code-graph-status")).toContainText(

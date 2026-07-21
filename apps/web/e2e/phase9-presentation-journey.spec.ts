@@ -5,14 +5,27 @@ import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 
 const profile = {
-  version: 1,
-  body: "female",
-  accent: "cyan",
-  showHalo: true,
-  showHelmet: true,
-  showFace: true,
-  showEyes: true,
-  showGlow: true,
+  schema: "aiw.avatar-store/0.11",
+  current: {
+    schema: "aiw.avatar/0.11",
+    profileId: "avatar_0123456789abcdef0123456789abcdef",
+    agentRef: null,
+    agentName: "Codex",
+    species: "human",
+    head: "round",
+    hands: "hands",
+    feet: "feet",
+    fur: "none",
+    tail: "none",
+    markings: "solid",
+    bodyColor: "warm-light",
+    shirt: "Codex",
+    mappingConsent: false,
+    sourceDisclosure: "manual-local-input",
+    createdAt: "2026-07-20T12:00:00.000Z",
+    updatedAt: "2026-07-20T12:00:00.000Z",
+  },
+  previous: null,
 };
 
 let fixtureRoot = "";
@@ -71,7 +84,7 @@ test("two browser contexts converge durable and ephemeral presentation state", a
   for (const context of [leftContext, rightContext]) {
     await context.addInitScript(
       (value) =>
-        localStorage.setItem("aiw.avatar-appearance.v1", JSON.stringify(value)),
+        localStorage.setItem("aiw.avatar.profile.0.11", JSON.stringify(value)),
       profile,
     );
   }

@@ -1,7 +1,13 @@
 import type { IntegrationState } from "./types.js";
 
 type FixtureName =
-  "ready" | "offline" | "mismatch" | "replayed" | "hostile" | "phase7-job";
+  | "ready"
+  | "offline"
+  | "mismatch"
+  | "replayed"
+  | "hostile"
+  | "phase7-job"
+  | "phase11-performance";
 
 const event = {
   id: "aiw:event:fixture",
@@ -28,6 +34,7 @@ export function integrationFixture(name: FixtureName): IntegrationState {
     name === "ready" ||
     name === "replayed" ||
     name === "hostile" ||
+    name === "phase11-performance" ||
     name === "phase7-job";
   const status = ready ? "ready" : name;
   const hasData = ready || name === "mismatch";
@@ -66,17 +73,33 @@ export function integrationFixture(name: FixtureName): IntegrationState {
             ],
           }
         : { current: null, previous: [] },
-      roster: hasData
-        ? [
-            {
-              id: "agent-1",
-              harness: "codex",
-              status: "running",
-              jobId: "job-1",
-              runId: "run-1",
-            },
-          ]
-        : [],
+      roster:
+        name === "phase11-performance"
+          ? Array.from({ length: 64 }, (_, index) => ({
+              id: `agent-${index + 1}`,
+              harness: ["codex", "claude", "hermes", "openclaw"][index % 4]!,
+              status: [
+                "queued",
+                "claimed",
+                "running",
+                "complete",
+                "failed",
+                "offline",
+              ][index % 6]!,
+              jobId: `job-${index + 1}`,
+              runId: `run-${index + 1}`,
+            }))
+          : hasData
+            ? [
+                {
+                  id: "agent-1",
+                  harness: "codex",
+                  status: "running",
+                  jobId: "job-1",
+                  runId: "run-1",
+                },
+              ]
+            : [],
       timeline: hasData ? [event] : [],
       animationIds: hasData ? [event.animationId] : [],
     },
@@ -101,6 +124,7 @@ export function integrationFixture(name: FixtureName): IntegrationState {
 
 export function fixtureFromQuery(value: string | null): FixtureName | null {
   if (value === "phase7-job") return value;
+  if (value === "phase11-performance") return value;
   if (!value?.startsWith("phase6-")) return null;
   const name = value.slice("phase6-".length) as FixtureName;
   return ["ready", "offline", "mismatch", "replayed", "hostile"].includes(name)

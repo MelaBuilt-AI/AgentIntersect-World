@@ -18,4 +18,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm measure:phase10
+      - run: pnpm avatar:verify
+      - run: pnpm measure:phase11
       - run: pnpm check

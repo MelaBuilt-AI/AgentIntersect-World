@@ -1,0 +1,464 @@
+{
+  "actionDetails": {
+    "Celebrate": {
+      "bones": [
+        "chest",
+        "lower_arm.L",
+        "lower_arm.R",
+        "upper_arm.L",
+        "upper_arm.R"
+      ],
+      "frameRange": [1.0, 20.0],
+      "signature": "ec0e3445f5f6ecf23e678214d994c10834b3cc6eb164511f537383bfe9a52218",
+      "trackCount": 15
+    },
+    "Error": {
+      "bones": ["chest", "head", "upper_arm.L", "upper_arm.R"],
+      "frameRange": [1.0, 32.0],
+      "signature": "31e5b4e5242274215b3bd760dbf16fd15add5cf17ec17e3aeda128ee8c62036c",
+      "trackCount": 12
+    },
+    "Idle": {
+      "bones": ["chest", "upper_arm.L", "upper_arm.R"],
+      "frameRange": [1.0, 32.0],
+      "signature": "06e0c26de1e200cc4747a85ba8af8c5a377061b456199013b26785745003db08",
+      "trackCount": 9
+    },
+    "Offline": {
+      "bones": [
+        "chest",
+        "head",
+        "upper_arm.L",
+        "upper_arm.R",
+        "upper_leg.L",
+        "upper_leg.R"
+      ],
+      "frameRange": [1.0, 32.0],
+      "signature": "0e16452b348d50f8c4f00b2b224725b84b98ee678a973fae2ff887a3b0a54d52",
+      "trackCount": 18
+    },
+    "Run": {
+      "bones": [
+        "chest",
+        "lower_arm.L",
+        "lower_arm.R",
+        "upper_arm.L",
+        "upper_arm.R",
+        "upper_leg.L",
+        "upper_leg.R"
+      ],
+      "frameRange": [1.0, 15.0],
+      "signature": "a18e46f62edb032b5aef59d5a984d9f971c474f6aa5dac5fa414c1d04da431be",
+      "trackCount": 21
+    },
+    "Walk": {
+      "bones": [
+        "chest",
+        "upper_arm.L",
+        "upper_arm.R",
+        "upper_leg.L",
+        "upper_leg.R"
+      ],
+      "frameRange": [1.0, 25.0],
+      "signature": "ab0ff4bb47cfaad558295e3c0edba9ddf8f68c2c4cfad89be1d82bd94664e198",
+      "trackCount": 15
+    },
+    "Work": {
+      "bones": [
+        "head",
+        "lower_arm.L",
+        "lower_arm.R",
+        "upper_arm.L",
+        "upper_arm.R"
+      ],
+      "frameRange": [1.0, 24.0],
+      "signature": "dc18c208eefe0d8cc3b0317aa916b3aa66ad17b0639afadee016a77fedd8c06d",
+      "trackCount": 15
+    }
+  },
+  "actions": ["Celebrate", "Error", "Idle", "Offline", "Run", "Walk", "Work"],
+  "attachments": [
+    "ATTACH_HEAD",
+    "ATTACH_HAND_L",
+    "ATTACH_HAND_R",
+    "ATTACH_FOOT_L",
+    "ATTACH_FOOT_R",
+    "ATTACH_TAIL",
+    "ATTACH_SHIRT",
+    "ATTACH_NAMEPLATE"
+  ],
+  "checks": {
+    "actions": true,
+    "attachments": true,
+    "bodyColors": true,
+    "connectedStandingBiped": true,
+    "curvedTailGeometry": true,
+    "distinctActionSignatures": true,
+    "distinctModuleGeometry": true,
+    "evidenceBoardMetadata": true,
+    "facialFeatureInventory": true,
+    "feet": true,
+    "fur": true,
+    "hands": true,
+    "heads": true,
+    "markings": true,
+    "multiBoneActions": true,
+    "oneArmature": true,
+    "poseEvidenceMetadata": true,
+    "primaryBones": true,
+    "shirtLabels": true,
+    "shirtLabelsInsideFront": true,
+    "shirts": true,
+    "sixSharedCoreObjects": true,
+    "skeletonBoundMeshes": true,
+    "tails": true
+  },
+  "connectionGaps": {
+    "armHandL": 0.0,
+    "armHandR": 0.0,
+    "chestArmL": 0.0,
+    "chestArmR": 0.0,
+    "chestHead": 0.0,
+    "legFootL": 0.0,
+    "legFootR": 0.0,
+    "midsectionChest": 0.0,
+    "midsectionLegL": 0.0,
+    "midsectionLegR": 0.0
+  },
+  "coreObjects": [
+    "CORE_MIDSECTION",
+    "CORE_CHEST",
+    "CORE_ARM_L",
+    "CORE_ARM_R",
+    "CORE_LEG_L",
+    "CORE_LEG_R"
+  ],
+  "counts": {
+    "actions": 7,
+    "armatures": 1,
+    "bones": 21,
+    "materials": 24,
+    "meshes": 62,
+    "objects": 71
+  },
+  "curvedTailSpans": {
+    "TAIL_cat-curled": [0.53574, 0.59525, 0.88023],
+    "TAIL_dog-curled": [0.54528, 0.46098, 0.705]
+  },
+  "geometry": {
+    "feet": {
+      "FOOT_clawed-paws_L": {
+        "bounds": {
+          "max": [0.38524, 0.11323, -0.59],
+          "min": [0.01476, -0.55, -0.85]
+        },
+        "hash": "539444f58779773a34eb92e7f9a95adcbe07a373fabe2c635b625901dcb92939",
+        "vertices": 206
+      },
+      "FOOT_feet_L": {
+        "bounds": {
+          "max": [0.37, 0.1, -0.615],
+          "min": [0.03, -0.44, -0.855]
+        },
+        "hash": "9b6c756c8b079d4e74e8d0808e422f7f8e71f14942e94b91f402fccbcc0d1d61",
+        "vertices": 112
+      },
+      "FOOT_paws_L": {
+        "bounds": {
+          "max": [0.38524, 0.11323, -0.59],
+          "min": [0.01476, -0.47364, -0.85]
+        },
+        "hash": "bf573a43eafb8aba085e88dbee718b5471e4c68e126ab24440c777931ff65056",
+        "vertices": 176
+      }
+    },
+    "fur": {
+      "FUR_long": {
+        "bounds": {
+          "max": [0.615, 0.105, 1.555],
+          "min": [-0.615, -0.345, 0.655]
+        },
+        "hash": "eacce45915f9ce116d48c1e4621f744ab8173fce005cde1c78d6f0540425e377",
+        "vertices": 96
+      },
+      "FUR_none": {
+        "bounds": {
+          "max": [0.018, 0.098, 0.898],
+          "min": [-0.018, 0.062, 0.862]
+        },
+        "hash": "6a481d1913962cf449d1b60ad8717047ce27916dc44dccdcbed5f828e2764306",
+        "vertices": 8
+      },
+      "FUR_short": {
+        "bounds": {
+          "max": [0.555, 0.07, 1.495],
+          "min": [-0.555, -0.31, 0.95938]
+        },
+        "hash": "dbc09abc66490a29f793b105cda95c0718a2473606bf662318d49aa73f5532ef",
+        "vertices": 60
+      }
+    },
+    "hands": {
+      "HAND_clawed-paws_L": {
+        "bounds": {
+          "max": [0.72574, 0.12624, 0.58],
+          "min": [0.39426, -0.29, 0.3]
+        },
+        "hash": "6854a3b940543eeaa1c10e195b580ce85dc9234ed1133a5374fe63f5f94b0516",
+        "vertices": 206
+      },
+      "HAND_hands_L": {
+        "bounds": {
+          "max": [0.695, 0.095, 0.6],
+          "min": [0.425, -0.155, 0.28]
+        },
+        "hash": "ea0e1ae013bc43adc261350e3b28a424c7bfe78f44c6b554ffcb510044efd7dc",
+        "vertices": 224
+      },
+      "HAND_paws_L": {
+        "bounds": {
+          "max": [0.72574, 0.12624, 0.58],
+          "min": [0.39426, -0.22511, 0.3]
+        },
+        "hash": "590977c39129decb0f59f20a8742462bdcb3d66dbcb163fc75ad910692728d62",
+        "vertices": 176
+      }
+    },
+    "markings": {
+      "MARKING_mask": {
+        "bounds": {
+          "max": [0.29217, -0.264, 1.98],
+          "min": [-0.29217, -0.32, 1.76]
+        },
+        "hash": "d120f24427f5ec75dabce658d96978f94e1bb0bc18fca1f038ac398c0255e1c2",
+        "vertices": 160
+      },
+      "MARKING_muzzle": {
+        "bounds": {
+          "max": [0.1807, -0.25, 1.85],
+          "min": [-0.1807, -0.32, 1.61]
+        },
+        "hash": "7f96584f764720209401d35465ef17001bba6feac957f22b1e51a9aff1e3f2de",
+        "vertices": 52
+      },
+      "MARKING_socks": {
+        "bounds": {
+          "max": [0.368, 0.18, -0.37],
+          "min": [-0.368, -0.19, -0.73]
+        },
+        "hash": "80de1b5eac19627ee6fcb56f98360638ebf6b325ccbe1ca1f743d726f246b001",
+        "vertices": 112
+      },
+      "MARKING_solid": {
+        "bounds": {
+          "max": [0.016, 0.116, 1.016],
+          "min": [-0.016, 0.084, 0.984]
+        },
+        "hash": "426302f27bd76d1a03b0498ffebabd4874d7542667f99f8bf49b531225df41bc",
+        "vertices": 8
+      }
+    },
+    "tails": {
+      "TAIL_cat-curled": {
+        "bounds": {
+          "max": [0.48356, 0.75293, 1.35482],
+          "min": [-0.05218, 0.15768, 0.47459]
+        },
+        "hash": "3062bb20d0f910aee590e498c77bc4519ce7144a0ec79b3391acee1f5929aa9b",
+        "vertices": 36
+      },
+      "TAIL_cat-straight": {
+        "bounds": {
+          "max": [0.055, 1.10451, 0.87084],
+          "min": [-0.055, 0.17661, 0.47249]
+        },
+        "hash": "35e2c04823054a219d15c46d829c3cd2155e2a7e2bab6c93085891b0bcb0bf4e",
+        "vertices": 24
+      },
+      "TAIL_dog-curled": {
+        "bounds": {
+          "max": [0.07032, 0.59367, 1.16649],
+          "min": [-0.47496, 0.13269, 0.46149]
+        },
+        "hash": "a37ec73b5a6467504db140487ff8af556267a7187719054e19de19e7f7ae0367",
+        "vertices": 30
+      },
+      "TAIL_dog-straight": {
+        "bounds": {
+          "max": [0.075, 0.91254, 0.88621],
+          "min": [-0.075, 0.1602, 0.45814]
+        },
+        "hash": "4a5fbe9329afba585069f595894b035189d2161fde208ebb0f220a52720a12e1",
+        "vertices": 24
+      },
+      "TAIL_none": {
+        "bounds": {
+          "max": [0.018, 0.198, 0.498],
+          "min": [-0.018, 0.162, 0.462]
+        },
+        "hash": "6a481d1913962cf449d1b60ad8717047ce27916dc44dccdcbed5f828e2764306",
+        "vertices": 8
+      }
+    }
+  },
+  "headFaceInventory": {
+    "HEAD_cat_bengal": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 8
+      }
+    },
+    "HEAD_cat_maine-coon": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 8
+      }
+    },
+    "HEAD_cat_shorthair": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 8
+      }
+    },
+    "HEAD_cat_siamese": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 8
+      }
+    },
+    "HEAD_dog_beagle": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 34
+      }
+    },
+    "HEAD_dog_husky": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 34
+      }
+    },
+    "HEAD_dog_labrador": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 34
+      }
+    },
+    "HEAD_dog_shepherd": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 34
+      }
+    },
+    "HEAD_human_angular": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 10
+      }
+    },
+    "HEAD_human_round": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 10
+      }
+    },
+    "HEAD_human_soft": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 10
+      }
+    },
+    "HEAD_human_square": {
+      "faceMaterials": ["MAT_FACE_EYE", "MAT_FACE_MOUTH", "MAT_FACE_NOSE"],
+      "groups": {
+        "FACE_EYE_L": 34,
+        "FACE_EYE_R": 34,
+        "FACE_MOUTH": 56,
+        "FACE_NOSE": 10
+      }
+    }
+  },
+  "passed": true,
+  "poseEvidence": {
+    "Celebrate": {
+      "frame": 10,
+      "label": "Celebrate"
+    },
+    "Error": {
+      "frame": 16,
+      "label": "Error"
+    },
+    "Idle": {
+      "frame": 16,
+      "label": "Idle"
+    },
+    "Offline": {
+      "frame": 1,
+      "label": "Offline"
+    },
+    "Run": {
+      "frame": 1,
+      "label": "Run"
+    },
+    "Walk": {
+      "frame": 1,
+      "label": "Walk"
+    },
+    "Work": {
+      "frame": 12,
+      "label": "Work"
+    }
+  },
+  "schema": "aiw.avatar-blend-inspection/0.11",
+  "shirtLabelBounds": {
+    "Claude": {
+      "max": [0.2777, -0.268, 1.2382],
+      "min": [-0.2747, -0.268, 1.0982]
+    },
+    "Codex": {
+      "max": [0.2749, -0.268, 1.2382],
+      "min": [-0.2653, -0.268, 1.0982]
+    },
+    "Hermes": {
+      "max": [0.3159, -0.268, 1.2364],
+      "min": [-0.3089, -0.268, 1.0982]
+    },
+    "OpenClaw": {
+      "max": [0.34353, -0.268, 1.2214],
+      "min": [-0.33647, -0.268, 1.07677]
+    }
+  }
+}

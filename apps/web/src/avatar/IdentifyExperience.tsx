@@ -1,23 +1,28 @@
-import type { AvatarProfile } from "@agentintersect-world/avatar-system";
+import type {
+  AvatarDraft,
+  AvatarLoadResult,
+  AvatarProfile,
+} from "@agentintersect-world/avatar-system";
 import { useEffect, useState } from "react";
-
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
 import { AvatarBuilder } from "./AvatarBuilder.js";
 
 const IDENTIFY_TRANSITION_MS = 360;
-
 export function IdentifyExperience({
   initialProfile,
+  previousProfile,
+  storageStatus,
   onComplete,
 }: {
-  readonly initialProfile: AvatarProfile;
-  readonly onComplete: (profile: AvatarProfile) => void;
+  readonly initialProfile: AvatarDraft;
+  readonly previousProfile: AvatarProfile | null;
+  readonly storageStatus: AvatarLoadResult["status"];
+  readonly onComplete: (profile: AvatarDraft) => void;
 }) {
   const reducedMotion = useReducedMotion();
   const [stage, setStage] = useState<"opening" | "transition" | "appearance">(
     "opening",
   );
-
   useEffect(() => {
     if (stage !== "transition") return;
     const timer = window.setTimeout(
@@ -26,15 +31,19 @@ export function IdentifyExperience({
     );
     return () => window.clearTimeout(timer);
   }, [reducedMotion, stage]);
-
-  if (stage === "appearance") {
+  if (stage === "appearance")
     return (
       <main className="identify-shell identify-shell--builder">
-        <AvatarBuilder initialProfile={initialProfile} onSave={onComplete} />
+        <AvatarBuilder
+          initialProfile={initialProfile}
+          currentProfile={null}
+          previousProfile={previousProfile}
+          storageStatus={storageStatus}
+          onSave={onComplete}
+        />
       </main>
     );
-  }
-  if (stage === "transition") {
+  if (stage === "transition")
     return (
       <main
         className="identify-shell identify-shell--transition"
@@ -43,12 +52,11 @@ export function IdentifyExperience({
         <section className="phase-transition" role="status" aria-live="polite">
           <span className="terminal-kicker">identity_signal_</span>
           <h1>Identity channel accepted</h1>
-          <p>Opening the local appearance builder…</p>
+          <p>Opening the local 3D avatar builder…</p>
           <span className="phase-transition__scan" aria-hidden="true" />
         </section>
       </main>
     );
-  }
   return (
     <main className="identify-shell" data-testid="identify-opening">
       <div className="identify-grid" aria-hidden="true" />
@@ -64,7 +72,7 @@ export function IdentifyExperience({
           <span className="terminal-cursor" aria-hidden="true" />
         </p>
         <p>
-          Establish a local visual identity before entering AgentIntersect
+          Establish a local, privacy-safe avatar before entering AgentIntersect
           World.
         </p>
         <button

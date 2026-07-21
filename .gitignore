@@ -5,5 +5,7 @@ dist/
 playwright-report/
 test-results/
 storybook-static/
+__pycache__/
+*.py[cod]
 *.log
 .DS_Store
