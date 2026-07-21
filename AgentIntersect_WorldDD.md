@@ -1,22 +1,23 @@
 ---
 title: AgentIntersect World — Canonical Product and Implementation Design
 created: 2026-07-19
-updated: 2026-07-19
+updated: 2026-07-21
 type: concept
-tags: [project, coding, ai-agent, decision, needs-review]
+tags:
+  [project, coding, ai-agent, decision, embodied-agents, spatial-development]
 sources:
   - _inbox/AgentIntersect World/AgentIntersect World.docx
   - _inbox/AgentIntersect World/AIW tech stack.docx
 status: active-implementation
 product: AgentIntersect World
-version: 0.1-design
+version: 0.2-design-rebaseline
 ---
 
 # AgentIntersect World — Canonical Product and Implementation Design
 
 ## Document status
 
-**Status:** Canonical active design. Phase 0 is complete; Phase 1 is next and follows the project-local rules in `AGENTS.md`.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–11 are complete with private exact-SHA CI evidence. Revised Phase 12 is **next up for the next session**, remains unstarted, and begins with its separately frozen scope and adapter/permission decisions before implementation.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -44,40 +45,67 @@ These rules supersede older phase text when there is a conflict:
 8. Do not recheck the original AgentIntersect repository unless the user explicitly requests a baseline refresh/original-project change or a concrete live compatibility failure requires diagnosis.
 9. `AGENTS.md` is the authoritative project-local workflow contract for implementation agents.
 
+### Embodied-session product re-baseline — 2026-07-20
+
+The user approved a product-direction re-baseline after Phase 11. The original v0.1 plan proved the repository world, evidence model, multi-view projection, code graph, and embodied avatar foundation, but its remaining roadmap was too narrowly centered on reproducing AgentIntersect dashboard lifecycle controls. The product is now explicitly an **embodied spatial development environment** in which one human and one or more persistent AI agents can inhabit, discuss, inspect, modify, test, and demonstrate a real codebase.
+
+The re-baseline makes these decisions normative and supersedes narrower pre-Phase-11 language when there is a conflict:
+
+1. **Free-form collaboration is a first-class primary experience.** A session may be conversational and open-ended; a design document is optional.
+2. **Guided Build remains supported.** A session may instead begin with a design document, phases, acceptance criteria, handoffs, and explicit or automatic advancement.
+3. **Session mode is explicit.** Explore, Collaborate, Autonomous, and Guided Build modes determine mutation authority, approvals, persistence, and lifecycle controls.
+4. **Persistent agent sessions replace one-shot prompt dispatch as the conversational unit.** Messages such as “find handoff,” “show how these systems connect,” and “complete the next feature” enter the same resumable harness session with its approved skills, identity, tools, memory, and project context.
+5. **World integrates agents through a normalized Agent Session Gateway.** Hermes is the first deep adapter; AgentIntersect Guided Build, Codex, Claude Code, OpenClaw, and future agents map onto the same versioned protocol without making raw PTY scraping the primary contract.
+6. **Agents act spatially through semantic World Actions.** Models select repository objects and high-level intents such as navigate, focus, trace, compare, annotate, and present; deterministic browser systems perform pathfinding, camera movement, animation, and rendering.
+7. **Visible activity is evidence-backed.** Tool events, file changes, tests, previews, and lifecycle state drive movement and effects. World never exposes hidden chain-of-thought or fabricates emotional/cognitive state.
+8. **Agent identity is proposed, not inferred as fact.** An agent may propose an avatar from allowlisted local identity/persona fields, including a sanitized self-description derived locally from `SOUL.md` when supported, but the operator previews and approves the bounded avatar profile. Raw identity, memory, transcripts, and private files do not enter presentation synchronization.
+9. **Text proves the core loop before voice.** The first magic slice is one operator, one repository, one persistent Hermes agent, text chat, semantic navigation, visible tool use, one bounded code change, tests, and a local project preview. Voice and multiple agents follow only after that loop is reliable.
+10. **Completed Phases 0–11 remain accepted foundations.** This re-baseline does not reopen their implementation or weaken their evidence. It replaces the old Phases 12–15 roadmap with revised Phases 12–19.
+
+This design revision authorizes documentation only. It does not authorize Phase 12 implementation, modification of the original AgentIntersect repository, release, deployment, public ingress, package publication, or repository visibility changes.
+
 ### Source provenance
 
 The authoritative concept inputs are the relocated Obsidian copies `AgentIntersect World.docx` and `AIW tech stack.docx`, read together with [[agentintersect-agentworld-studio-base-evaluation|the AgentIntersect World base evaluation]] and current private AgentIntersect source. The Word filenames and opening titles are semantically reversed: `AgentIntersect World.docx` contains the longer v0.1 tech-stack proposal, while `AIW tech stack.docx` contains the concept/opportunity proposal. This is provenance only, not a blocker. The historical OneDrive document and relocated `AgentIntersect World.docx` were verified byte-for-byte identical; the Obsidian copy is canonical.
 
 ## Decision summary
 
-| Decision                           | Maturity                  | Consequence                                                              |
-| ---------------------------------- | ------------------------- | ------------------------------------------------------------------------ |
-| Independent World repository       | AgentIntersect World v0.1 | Original AgentIntersect remains untouched and is not a recurring gate    |
-| World-owned baseline reuse         | AgentIntersect World v0.1 | Needed copied code is owned and evolved here after one provenance record |
-| Browser-first spatial IDE/world    | AgentIntersect World v0.1 | React/R3F canvas with an accessible 2D operational shell                 |
-| Local/LAN-first runtime            | AgentIntersect World v0.1 | One trusted operator; loopback default and explicit trusted-LAN support  |
-| Presentation sync for one operator | AgentIntersect World v0.1 | Multi-view/multi-agent state, not unrelated-user collaboration           |
-| Functional vertical slices first   | AgentIntersect World v0.1 | Build → test → parent proof → first-hand testing; audit observed issues  |
-| Broad security hardening           | Future/Deferred           | Dedicated milestone after the main product path functions                |
-| XR, physics, cloud execution       | Future/Deferred           | Optional adapters; not v0.1 dependencies                                 |
+| Decision                             | Maturity                  | Consequence                                                              |
+| ------------------------------------ | ------------------------- | ------------------------------------------------------------------------ |
+| Independent World repository         | AgentIntersect World v0.1 | Original AgentIntersect remains untouched and is not a recurring gate    |
+| World-owned baseline reuse           | AgentIntersect World v0.1 | Needed copied code is owned and evolved here after one provenance record |
+| Browser-first spatial IDE/world      | AgentIntersect World v0.1 | React/R3F canvas with an accessible 2D operational shell                 |
+| Local/LAN-first runtime              | AgentIntersect World v0.1 | One trusted operator; loopback default and explicit trusted-LAN support  |
+| Presentation sync for one operator   | AgentIntersect World v0.1 | Multi-view/multi-agent state, not unrelated-user collaboration           |
+| Functional vertical slices first     | AgentIntersect World v0.1 | Build → test → parent proof → first-hand testing; audit observed issues  |
+| Free-form collaboration primary      | 2026-07-20 re-baseline    | Open conversation is first-class; design plans are optional              |
+| Guided Build as an explicit mode     | 2026-07-20 re-baseline    | AgentIntersect retains plan/phase/job/process authority                  |
+| Persistent Agent Session Gateway     | 2026-07-20 re-baseline    | Hermes first; other adapters normalize behind a versioned contract       |
+| Semantic World Actions               | 2026-07-20 re-baseline    | Agents choose objects/intents; deterministic clients navigate/render     |
+| Structured, evidence-backed activity | 2026-07-20 re-baseline    | Tool/file/test/preview events drive effects; no hidden-thought theater   |
+| Consentful avatar/voice proposals    | 2026-07-20 re-baseline    | Bounded local proposal, operator preview/edit/accept/revoke              |
+| Text magic slice before expansion    | 2026-07-20 re-baseline    | One agent/repo/edit/test/preview precedes voice and multi-agent editing  |
+| Worktree-isolated parallel agents    | 2026-07-20 re-baseline    | Simultaneous editors do not silently share one mutable checkout          |
+| Broad security hardening             | Future/Deferred           | Dedicated milestone after the main product path functions                |
+| XR, physics, cloud execution         | Future/Deferred           | Optional adapters; not v0.1 dependencies                                 |
 
 ## Executive summary
 
-**One-sentence pitch:** AgentIntersect World lets people enter a live spatial model of a repository and watch real AI agents build software as visible, evidence-backed collaborators.
+**One-sentence pitch:** AgentIntersect World lets a developer enter a live spatial model of a codebase and collaborate with persistent embodied AI agents through text, voice, navigation, visible tool use, evidence-backed changes, and live project previews.
 
-AgentIntersect World is a spatial embodied AI development world, not a decorative code city. A browser turns packages, directories, files, symbols, tests, dependencies, issues, phases, and runs into a navigable Spatial Code Graph. A local World server indexes the repository and coordinates one human operator with one or more of that operator’s local/LAN agents. World may reuse a copied AgentIntersect baseline and compatible local control-plane surfaces while remaining independently developed. Presentation synchronization is for the same trusted operator’s browser views and agents, not unrelated internet users.
+AgentIntersect World is a browser-first spatial agentic development environment, not a decorative code city and not merely the original AgentIntersect dashboard rendered in 3D. Packages, directories, files, symbols, tests, dependencies, issues, sessions, tools, previews, phases, and runs become addressable World objects. The human navigates through mouse/keyboard or an equivalent semantic shell. Persistent agents inhabit approved avatars, converse through resumable chat, move to the code objects they are attending to, use real tools through their harness, and present work through exact diffs, tests, evidence, and local previews.
 
-The v0.1 proof is deliberately narrow: open one repository, render one island, open one or more views for the same local operator, run one or more of that operator’s agents, observe real edits and test results, animate affected objects, and expose the diff, telemetry, evidence, and lifecycle outcome. If this path is reliable, the system can widen language support, graph semantics, avatar modules, and local multi-agent coordination.
+The first re-baselined proof is deliberately narrow: open one repository, enter as the user avatar, attach one persistent Hermes session, approve an agent-proposed avatar, exchange free-form text, ask the agent to visually explain a code relationship, request one bounded change, observe real tool events and affected objects, run tests, open a verified local preview, and resume the same session after reload. Voice and simultaneous multi-agent editing follow after this magic slice is stable. Guided Build remains available for design-document phases through AgentIntersect.
 
 ## Product thesis, category, and value
 
 ### Thesis
 
-Modern coding agents are operationally capable but perceptually thin. Their work is flattened into chat, terminal streams, file lists, and diffs. Code-graph tools make structure visible but usually omit live agency, phase ownership, evidence, and shared presence. AgentIntersect World combines these into a persistent spatial interaction substrate while retaining a conventional 2D shell for precision and accessibility.
+Modern coding agents are operationally capable but perceptually thin. Their work is flattened into chat, terminal streams, file lists, and diffs. Code-graph tools make structure visible but usually omit live agency, conversational continuity, tool use, evidence, and spatial attention. AgentIntersect World combines a real persistent agent session, a deterministic spatial model of real code, structured/redacted tool events, and high-level World Actions into an embodied collaboration substrate while retaining a conventional 2D shell for precision, accessibility, and recovery.
 
 ### Category
 
-The product category is **spatial agentic development**: a repo-first development environment in which humans and agents share a live world model tied to real repository state and a verifiable execution ledger. It is adjacent to agentic IDEs, code visualization, multiplayer development, and embodied-agent interfaces, but it is not a full IDE replacement, a generic metaverse, a game engine, or an agent safety approval product.
+The product category is **embodied spatial agentic development**: a repo-first environment in which one trusted human and their owned agents share a live World model tied to real sessions, repository state, tools, and evidence. It is adjacent to agentic IDEs, game-like code visualization, voice assistants, collaborative development, and digital-twin interfaces. It is not a generic metaverse, a replacement for Git/source editors, a hidden chain-of-thought visualizer, or an unrestricted cloud agent host.
 
 ### Differentiators
 
@@ -87,6 +115,10 @@ The product category is **spatial agentic development**: a repo-first developmen
 4. **Shared operator context:** one human can coordinate multiple owned agents and browser views around the same repo model.
 5. **Baseline reuse without coupling:** useful AgentIntersect behavior may seed World, but World evolves independently without recurring original-repository checks.
 6. **Arbitrary-repo opening with bounded detail:** any safe local repository can degrade to searchable hierarchy and summary geometry even when full symbol rendering is impossible.
+7. **Persistent embodied sessions:** an avatar represents a resumable harness session with identity, context, permissions, and activity—not a disposable animation.
+8. **Free-form and guided operation:** conversation-driven work and phase-driven design execution coexist through explicit session modes.
+9. **Visual explanations:** an answer can include synchronized object focus, dependency traces, comparisons, annotations, and camera tours.
+10. **Local preview:** an agent can demonstrate finished work in a health-checked browser or in-world display without automatic public exposure.
 
 ### Personas
 
@@ -106,10 +138,19 @@ The product category is **spatial agentic development**: a repo-first developmen
 - When using multiple agents or views, synchronize focus and annotations for the same trusted local/LAN operator.
 - When a run fails or reconnects, reconstruct what happened from durable events and current AgentIntersect state.
 - When motion or 3D is unsuitable, preserve the full workflow through a 2D operational shell.
+- When I connect an agent, resume its approved identity, skills, memory, tools, and session rather than starting an amnesiac one-shot prompt.
+- When I ask a question, let the agent answer in chat and optionally show the answer by navigating, highlighting, tracing, comparing, or presenting code objects.
+- When I ask for work, show real tool activity and affected code without exposing secrets, private chain-of-thought, or fabricated progress.
+- When work is done, let the agent run the project locally and connect the preview to exact diff/test/evidence.
+- When I choose Guided Build, preserve phases and lifecycle gates without forcing them onto open collaboration.
 
-### Primary demo
+### Primary magic-slice demo
 
-“I walked into my repo and watched my AI agent build a real feature.” The demo opens a small repository, renders its `src` district, displays one agent avatar, enqueues a real bounded job through AgentIntersect, highlights touched file buildings, runs a real test, shows red/yellow/green test beacons with text and icons, reveals the exact diff and evidence, and mirrors presence in a second browser.
+“I entered my repository and worked beside my AI agent.” The user creates a local avatar, opens one repository, attaches an existing Hermes profile/session, reviews the agent’s proposed avatar, and enters the World with it. The user asks, “Show me how the last feature connects to the previous implementation.” The agent replies in chat, walks to the relevant objects, highlights a bounded dependency/call path, and presents associated diff and tests. The user then requests one next feature. Real tool events move the avatar between affected objects, edits create evidence-backed construction state, tests activate beacons, and completion opens a health-checked local preview. Reloading World resumes the same conversation, avatar, permissions, focus, and evidence.
+
+### Secondary Guided Build demo
+
+The operator selects a design document, sees compiled phases and acceptance criteria, assigns an approved harness, and starts the current phase. AgentIntersect owns phase/job/process truth. World presents progress, affected objects, chat, evidence, handoff, safe pause, emergency results, and explicit or automatic advancement.
 
 ## Goals, non-goals, and scope
 
@@ -120,6 +161,12 @@ The product category is **spatial agentic development**: a repo-first developmen
 - Reuse the Phase 0 baseline through World-owned code/fixtures and compatible local interfaces without repeatedly verifying the original repository.
 - Normalize AgentIntersect snapshot, event, telemetry, worker, phase, handoff, and evidence signals into a versioned World protocol.
 - Submit bounded `phase_run` command intents only after local authority validation.
+- Add explicit Explore, Collaborate, Autonomous, and Guided Build session modes.
+- Attach one persistent Hermes session through a versioned Agent Session Gateway before expanding adapters.
+- Stream bounded assistant text, tool lifecycle, approvals, artifacts, status, and interruption as structured events.
+- Add a versioned World Action Protocol using opaque repository object IDs.
+- Add semantic user and agent navigation, visual code explanations, text chat, tool visualization, and local project previews.
+- Add voice and simultaneous multi-agent work only after the one-agent text magic slice is reliable.
 - Show real changes, tests, evidence, safe pause, and emergency-stop state.
 - Provide same-operator multi-view presence and durable annotations locally or on the trusted LAN.
 - Provide an accessible 2D shell equivalent for every required operation.
@@ -128,37 +175,48 @@ The product category is **spatial agentic development**: a repo-first developmen
 ### Non-goals
 
 - Replacing AgentIntersect, changing its source, or treating it as a public SDK.
-- Directly launching Codex, Claude Code, Hermes, or OpenClaw from generic World PTYs for AgentIntersect-managed work.
+- Treating raw PTY scraping as the stable agent protocol or directly launching AgentIntersect-managed work outside AgentIntersect. Explicit session adapters may connect to Hermes, Codex, Claude Code, OpenClaw, or future agents under declared capabilities and local authority.
 - Letting CRDT peers execute commands, enqueue jobs, change files, approve lifecycle gates, or stop processes.
 - Full IDE/editor replacement, arbitrary binary editing, perfect semantic parsing, or full-repo high-detail rendering.
 - A long-lived AgentIntersect branch, shared-package extraction, public publishing, or repository release.
-- VR-first UX, full physics, AI-generated meshes, cloud-hosted arbitrary execution, or enterprise administration.
+- VR-first UX, full physics, AI-generated meshes, cloud-hosted arbitrary execution, unrelated-user collaboration, or enterprise administration.
+- Claiming model consciousness/emotion, exposing private chain-of-thought, or sending raw `SOUL.md`, memory, prompts, transcripts, secrets, or unrestricted tool arguments into shared presentation state.
+- Letting an LLM emit per-frame movement; agent navigation is high-level and deterministic.
+- Running multiple editing agents in one mutable checkout without explicit isolation/coordination.
+- Automatically exposing previews through public tunnels, deployment, publication, or release.
 - Recreating AgentClutch’s pre-action Action Card/approval boundary.
 
 ### v0.1 cutline
 
-The cutline contains one workspace, one active repo, hierarchy plus language Tier 1 symbol parsing, World-owned baseline integration, working local agent execution, same-operator multi-view presence, annotations, diff/evidence inspection, run replay, safe pause, emergency-stop projection, and deterministic recovery. Multiple repo continents, public/internet collaboration, unrelated-user access, XR, physics, plugin execution, and cloud sync are deferred. Trusted-LAN operation for the same human’s machines and agents is allowed when explicitly configured.
+The next cutline is the one-agent magic slice: one operator, one repository, one persistent Hermes session, text chat, approved agent-avatar proposal, semantic user/agent navigation, visual code explanation, structured tool events, one bounded edit and test, one local preview, interruption/safe control, and reload/restart recovery. Guided Build remains operational through AgentIntersect. Voice, simultaneous multi-agent editing, broader agent adapters, multiple repo continents, public collaboration, XR, physics, and cloud sync are later phases or deferred.
 
 ### Relationship to AgentIntersect and AgentClutch
 
 **Phase 0 AgentIntersect baseline** documented the lifecycle/execution behavior from which World begins. The original repository remains untouched and is no longer a routine verification dependency. World may consume compatible running surfaces or own copied baseline code inside this repository.
 
-**AgentIntersect World v0.1** owns repository indexing, spatial layout, world-object identity, normalized events, browser UI, same-operator multi-agent/multi-view presence, annotations, and its local/LAN execution integration.
+**AgentIntersect World** owns repository indexing, spatial layout, world-object identity, normalized events, browser/voice interaction, session-mode policy, local authority, World Actions, presentation projection, tool/evidence visualization, preview lifecycle, and same-operator multi-view/multi-agent UX.
+
+**Hermes** is the first deep free-form adapter because it already provides persistent sessions, skills, memory, profiles, voice capabilities, tools, browser automation, worktrees, and project context. World integrates through a versioned adapter/API seam rather than assuming private internals. Codex, Claude Code, OpenClaw, and future agents map to the same capability-declared protocol.
 
 **AgentClutch** remains a separate product lane centered on the pre-action consequential-control boundary. World may display an external approval state in the future, but it does not clone or bypass AgentClutch controls.
 
 ## Design principles
 
-1. **Repo-first:** geometry is subordinate to the real repository and Git state.
-2. **Local/LAN-first:** code, paths, events, and evidence remain on the operator’s computer or trusted LAN.
-3. **Browser-first:** one URL, desktop browser, progressive enhancement; XR is optional later.
-4. **Real execution:** World depicts AgentIntersect-managed work; it does not simulate success.
-5. **Visible evidence:** every status links to durable, inspectable evidence or says that evidence is unavailable.
-6. **One-human multi-agent operation:** all agents and views belong to the same trusted operator.
-7. **LOD-first:** every graph feature declares aggregation and degradation behavior before detailed rendering.
-8. **Independent evolution:** copied baseline code becomes World-owned code; do not couple phase progress to the original checkout.
-9. **Accessible dual representation:** every spatial object and state has a semantic 2D representation.
-10. **Functionality before hardening:** keep cheap data-loss/exposure safeguards, then defer broad hardening until the working product path exists.
+1. **Repository truth first:** geometry, narration, and animation remain subordinate to real repository, Git, test, and lifecycle state.
+2. **Persistent session identity:** an avatar maps to a durable adapter/session record, not merely a harness logo or transient socket.
+3. **Free-form by default, structure by choice:** open collaboration is first-class; Guided Build adds design phases when the operator chooses it.
+4. **Explicit authority modes:** Explore, Collaborate, Autonomous, and Guided Build have visible permissions and escalation rules.
+5. **Local/LAN first:** code, sessions, voice, paths, events, and evidence stay on the operator’s machine or trusted LAN unless a provider is specifically approved.
+6. **Semantic action over simulated control:** models choose stable objects and high-level actions; deterministic systems handle movement, cameras, animation, and rendering.
+7. **Structured events over terminal theater:** display real assistant, tool, file, test, preview, and lifecycle events; never invent hidden thoughts or progress.
+8. **Evidence always reachable:** construction, completion, success, and failure link to inspectable evidence or explicitly say evidence is unavailable.
+9. **Consentful embodiment:** appearance, voice, labels, and identity-derived traits are previewed, editable, revocable, and bounded.
+10. **One-human multi-agent ownership:** every connected agent, browser view, worktree, and preview belongs to the same trusted operator in this design.
+11. **Isolation before parallelism:** simultaneous editing agents receive separate worktrees or a comparably explicit ownership boundary.
+12. **LOD and accessibility first:** every graph/embodiment feature declares degradation and a semantic DOM equivalent before visual scale-up.
+13. **Adapter capability honesty:** unsupported resume, tool telemetry, approvals, voice, memory, or World Actions stay visibly unavailable.
+14. **Independent evolution:** completed World code and fixtures are owned here; original projects are consulted or modified only with explicit authorization.
+15. **Functionality before broad hardening:** preserve inexpensive safety boundaries, prove the experience, then perform bounded hardening where supported workflows create concrete risk.
 
 ## Current AgentIntersect capability inventory
 
@@ -228,101 +286,136 @@ Key current behavior is anchored in `package.json`; `src/daemon.mjs`; `src/mcp-s
 
 ## System context
 
+### Product-level topology
+
 ```mermaid
 flowchart LR
-  Human[Human developer] --> Browser[World browser client]
-  Peer[Collaborator browser] --> Party[PartyKit and Yjs room]
-  Browser <--> Party
-  Browser <--> WorldServer[World local server]
-  WorldServer --> Index[(World SQLite index)]
-  WorldServer --> Repo[(Local Git repository)]
-  WorldServer <--> AIHTTP[AgentIntersect daemon 3761]
-  WorldServer <--> AIDash[AgentIntersect dashboard and SSE 3762]
-  AIHTTP --> Worker[AgentIntersect harness worker]
-  Worker --> Repo
-  AIHTTP --> AIState[(AgentIntersect state events evidence audit)]
-  AIDash --> AIState
+  Human[Human operator and avatar] --> Browser[World browser: FPS, shell, chat, voice]
+  Browser <--> WorldServer[World local authority server]
+  Browser <--> Presentation[Yjs same-operator presentation]
+  WorldServer --> RepoModel[(Repository and Spatial Code Graph)]
+  WorldServer --> SessionStore[(Session, chat, event, evidence stores)]
+  WorldServer --> SessionGateway[Agent Session Gateway]
+  WorldServer --> ActionService[World Action validator/projector]
+  WorldServer --> Preview[Local Preview Manager]
+  SessionGateway <--> Hermes[Hermes persistent session adapter]
+  SessionGateway <--> Guided[AgentIntersect Guided Build adapter]
+  SessionGateway <--> Other[Codex / Claude Code / OpenClaw adapters]
+  Hermes --> Tools[Agent tools and approvals]
+  Guided --> Workers[AgentIntersect jobs and owned processes]
+  Other --> Tools
+  Tools --> Worktrees[(Repository or isolated worktrees)]
+  Workers --> Worktrees
+  ActionService --> RepoModel
+  Preview --> Worktrees
+  Preview --> BrowserPreview[Browser or in-world display]
+  Voice[Approved STT/TTS provider] <--> WorldServer
 ```
+
+### Component topology
 
 ```mermaid
 flowchart TB
-  subgraph BrowserContainer[Browser container]
-    Shell[Accessible 2D shell]
-    Scene[React Three Fiber scene]
-    ClientState[Zustand plus Query cache]
+  subgraph BrowserContainer[World browser]
+    Shell[Accessible semantic shell]
+    Scene[React Three Fiber world]
+    Chat[Persistent chat and captions]
+    VoiceUI[Push-to-talk and voice controls]
+    Navigation[User controls and deterministic agent navigation]
+    ClientState[Zustand and Query projection]
     YProvider[Yjs provider]
   end
   subgraph LocalContainer[World local server]
-    API[Fastify REST SSE WebSocket]
-    Authority[Authority and intent validator]
-    Adapter[AgentIntersect compatibility facade]
-    Normalizer[World event normalizer]
-    RepoIndexer[Repository indexer]
-    WorldDB[(SQLite and JSONL)]
+    API[Fastify REST, SSE, WebSocket]
+    Authority[Session-mode authority and approval validator]
+    SessionGateway[Agent Session Gateway]
+    AdapterRegistry[Capability-declared agent adapters]
+    ActionValidator[World Action validator]
+    ToolNormalizer[Tool and artifact event normalizer]
+    PreviewManager[Preview process, health, and port manager]
+    RepoIndexer[Repository indexer and code graph]
+    Persistence[(SQLite, JSONL, session and preview state)]
   end
-  subgraph ControlPlane[Unchanged AgentIntersect]
-    Daemon[HTTP daemon]
-    Dashboard[Dashboard snapshot and SSE]
-    MCP[MCP stdio tools]
-    Lifecycle[Worker lifecycle evidence audit]
+  subgraph AgentRuntimes[Connected agent runtimes]
+    HermesRuntime[Hermes session/profile]
+    AgentIntersectRuntime[AgentIntersect Guided Build]
+    OtherRuntime[Other approved adapters]
   end
   Shell <--> ClientState
   Scene <--> ClientState
+  Chat <--> ClientState
+  VoiceUI <--> ClientState
+  Navigation <--> ClientState
   YProvider <--> ClientState
   ClientState <--> API
   API --> Authority
-  Authority --> Adapter
-  Adapter <--> Daemon
-  Adapter <--> Dashboard
-  Adapter -. optional context calls .-> MCP
-  Daemon --> Lifecycle
-  Dashboard --> Lifecycle
-  RepoIndexer --> WorldDB
-  Normalizer --> WorldDB
-  API --> RepoIndexer
-  Adapter --> Normalizer
+  Authority --> SessionGateway
+  SessionGateway --> AdapterRegistry
+  AdapterRegistry <--> HermesRuntime
+  AdapterRegistry <--> AgentIntersectRuntime
+  AdapterRegistry <--> OtherRuntime
+  SessionGateway --> ToolNormalizer
+  SessionGateway --> ActionValidator
+  ToolNormalizer --> Persistence
+  ActionValidator --> RepoIndexer
+  PreviewManager --> Persistence
+  RepoIndexer --> Persistence
 ```
 
-## Authority and trust split
+### Authority and trust split
 
-| Component          | Authoritative for                                                              | Must never be authoritative for                      |
-| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Browser            | Local input focus, ephemeral camera, rendering                                 | Execution, files, lifecycle, durable audit           |
-| World local server | Repo-index cache, World API auth, intent validation, projection ledger         | AgentIntersect phase truth or process ownership      |
-| PartyKit/Yjs       | Shared layout, annotations, durable room presentation                          | Commands, files, secrets, raw memory, evidence truth |
-| AgentIntersect     | Jobs, claims, lifecycle, telemetry, handoffs, evidence, audit, owned processes | Spatial layout or multiplayer presence               |
-| Harness workers    | Execution under an AgentIntersect claim                                        | Global lifecycle truth or room authority             |
-| Filesystem/Git     | File bytes and repository history/status                                       | Phase completion by itself                           |
-| Future cloud       | Opt-in relay/account services                                                  | Implicit access to local code or command authority   |
+| Component              | Authoritative for                                                                                   | Must never be authoritative for                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Browser                | Local input focus, camera, ephemeral controls, rendering, draft message                             | Files, durable audit, process ownership, claimed tool success        |
+| World local server     | Session-mode policy, local auth, adapter permissions, World Actions, projections, preview lifecycle | Fabricated agent output, hidden reasoning, external process identity |
+| Agent Session Gateway  | Session/adaptor identity mapping, normalized message/tool/action stream                             | Capabilities the adapter did not declare or prove                    |
+| Hermes adapter         | Hermes session IDs, assistant messages, Hermes tool/approval events it can attest                   | AgentIntersect phase/process truth                                   |
+| AgentIntersect adapter | Guided Build phase/job/lifecycle/handoff/evidence and owned-process control                         | Free-form Hermes memory or spatial presentation                      |
+| Other agent adapter    | Its declared session, message, tool, artifact, and interrupt contract                               | Unsupported memory/resume/tool semantics                             |
+| World Action service   | Validation and deterministic execution of spatial actions                                           | Repository mutation or model intent beyond the signed action         |
+| Preview Manager        | World-owned local preview process, readiness, port, teardown, evidence                              | Deployment, public ingress, or AgentIntersect-owned process control  |
+| Yjs/presentation       | Shared camera/layout/annotation/presence for the same operator                                      | Prompts, commands, tools, files, secrets, session authority          |
+| Filesystem/Git         | Repository bytes and history/status                                                                 | Agent/session/task completion by itself                              |
+| Agent runtime/worktree | Tool execution under its approved session/worktree authority                                        | Global World truth or other agents’ worktrees                        |
 
-The browser sends a `CommandIntent`; the local server authenticates the local session, verifies workspace and AgentIntersect attestation, checks CSRF/origin, validates phase/harness/operation allowlists, binds a correlation/idempotency key, and only then calls AgentIntersect. PartyKit may relay a visual “request” to the host, but the host must convert it into a separately confirmed local intent. CRDT updates never enter the command dispatch function.
+An incoming chat message is user intent, not automatic unrestricted authority. The local server binds it to one session, repository, mode, permission revision, and adapter. Explore rejects mutations. Collaborate uses normal adapter approvals. Autonomous permits only the explicitly granted capability envelope. Guided Build routes phase and lifecycle authority through AgentIntersect. Presentation peers may propose visual focus or annotations but cannot send agent prompts or tool approvals unless the same local host converts the request into a separately authenticated action.
 
 ## Repository and package architecture
+
+The completed Phase 11 workspace remains valid. The following additions describe the intended Phase 12+ seams; exact package creation is phase-scoped and not authorized by this document alone.
 
 ```text
 agentintersect-world/
 ├─ apps/
-│  ├─ web/                       # Vite React 19 browser application
-│  ├─ local-server/              # Fastify local authority and integration facade
-│  └─ party-server/              # PartyKit/Yjs presentation rooms
+│  ├─ web/                         # Vite React browser: world, shell, chat, voice
+│  ├─ local-server/                # local authority, session gateway, composition root
+│  └─ party-server/                # same-operator Yjs presentation rooms
 ├─ packages/
-│  ├─ world-schema/              # canonical Zod schemas and generated JSON Schema
-│  ├─ agentintersect-client/      # current compatibility facade; no copied runtime
-│  ├─ world-event-protocol/       # normalization, cursor, dedupe, replay
-│  ├─ repo-indexer/               # filesystem/Git/parser pipeline
-│  ├─ spatial-code-graph/         # hierarchy, layout, LOD-independent graph
-│  ├─ renderer-r3f/               # rendering and visual effects only
-│  ├─ sync-yjs/                   # Y.Doc layout, awareness, room protocol
-│  ├─ avatar-system/              # schema-first modular avatars
-│  ├─ persistence/                # SQLite migrations, repositories, JSONL ledger
-│  ├─ config/                     # config and environment validation
-│  ├─ observability/              # logs, metrics, correlation, diagnostic bundle
-│  └─ ui/                         # accessible DOM components and design tokens
+│  ├─ world-schema/                # canonical schemas and generated JSON Schema
+│  ├─ agent-session-protocol/      # session/message/tool/action/approval envelopes
+│  ├─ agent-adapters/              # Hermes first; AgentIntersect and later adapters
+│  ├─ world-action-protocol/       # semantic spatial actions and validation
+│  ├─ agentintersect-client/       # current Guided Build compatibility facade
+│  ├─ world-event-protocol/        # normalization, cursor, dedupe, replay
+│  ├─ repo-indexer/                # filesystem/Git/parser pipeline
+│  ├─ spatial-code-graph/          # hierarchy, layout, LOD, object addressing
+│  ├─ navigation/                  # user collision/camera and deterministic agent paths
+│  ├─ renderer-r3f/                # scene rendering and visual effects only
+│  ├─ sync-yjs/                    # presentation documents and awareness
+│  ├─ avatar-system/               # approved modular avatars and activity mapping
+│  ├─ preview-manager/             # local process, readiness, port, teardown contracts
+│  ├─ voice/                       # optional STT/TTS adapters and caption contracts
+│  ├─ persistence/                 # SQLite migrations, repositories, JSONL ledgers
+│  ├─ config/                      # configuration and environment validation
+│  ├─ observability/               # logs, metrics, correlation, diagnostics
+│  └─ ui/                          # accessible DOM components and design tokens
 ├─ examples/
-│  ├─ vertical-slice-repo/
+│  ├─ embodied-magic-slice/        # one agent, explanation, edit, test, preview
+│  ├─ guided-build-repo/           # design-document/phase fixture
 │  └─ large-repo-fixture/
 ├─ tooling/
-│  ├─ contract-fixtures/
+│  ├─ adapter-contract-fixtures/
+│  ├─ voice-fixtures/
 │  └─ scripts/
 ├─ docs/
 ├─ pnpm-workspace.yaml
@@ -332,59 +425,80 @@ agentintersect-world/
 
 ### Ownership and dependency direction
 
-- `world-schema` and `config` are leaf contracts and import no app or renderer package.
-- `agentintersect-client` depends only on schemas, transport primitives, and Zod; never on UI or indexer.
-- `repo-indexer` produces graph records but never imports Three.js, Yjs, Fastify routes, or AgentIntersect internals.
-- `spatial-code-graph` consumes index DTOs and emits deterministic layout DTOs; renderer-specific objects remain in `renderer-r3f`.
-- `sync-yjs` imports shareable presentation schemas only. It cannot import command dispatch or filesystem adapters; enforce with ESLint dependency rules and package exports.
-- `local-server` is the composition root for authority, repository, persistence, and AgentIntersect clients.
-- `web` is the browser composition root. It cannot import Node-only modules.
-- `party-server` validates room messages and stores presentation documents; it has no network route to the AgentIntersect daemon.
-- No deep imports across packages; public `exports` define all seams. Cycles fail CI.
+- `world-schema`, `agent-session-protocol`, `world-action-protocol`, and `config` are leaf contracts; they import no app, adapter implementation, renderer, or process code.
+- `agent-adapters` implement versioned capability manifests behind the session protocol. Adapter-specific payloads are normalized at the boundary and never leak directly into React state, Yjs, or the code graph.
+- `agentintersect-client` remains the narrow Guided Build compatibility facade and does not become the generic free-form agent runtime.
+- `repo-indexer` and `spatial-code-graph` never import agent adapters, voice providers, Three.js, or process launchers.
+- `navigation` consumes world bounds/object targets and emits deterministic poses/paths. It never dispatches prompts, tools, or file mutations.
+- `renderer-r3f` consumes projections and effects only. It cannot infer completion, execute World Actions, or parse agent prose for authority.
+- `preview-manager` is Node-only, launches only approved World-owned preview commands inside the assigned workspace/worktree, and has no dependency on browser UI.
+- `voice` exposes bounded audio/transcript contracts. Provider implementations receive only the audio/text explicitly approved for that turn.
+- `sync-yjs` imports presentation schemas only and cannot import session prompts, command dispatch, tool approval, filesystem, preview, or adapter modules.
+- `local-server` is the composition root for authority, sessions, adapters, persistence, previews, repository state, and AgentIntersect compatibility.
+- `web` is the browser composition root and imports browser-safe protocol/schema entry points only.
+- Dependency cycles, browser-to-Node leaks, adapter-to-renderer coupling, and presentation-to-authority imports fail architecture checks.
 
 ## Technology decisions and tradeoffs
 
-| Layer             | Decision                                                              | Rationale and constraint                                                      | Alternative                                                                                      |
-| ----------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Workspace         | pnpm + Turborepo                                                      | Strict workspace linking, task graph, cacheable builds                        | npm workspaces; less strict                                                                      |
-| Web               | Vite, React 19, TypeScript strict                                     | Fast browser loop and R3F ecosystem                                           | Next.js adds server assumptions not needed locally                                               |
-| 3D                | Three.js, React Three Fiber, drei                                     | Web-native scene components beside DOM UI                                     | Babylon.js fuller engine; Unity harms browser/contributor fit                                    |
-| Effects           | postprocessing, maath                                                 | Selective outline/glow and stable interpolation                               | Custom shaders later only if measured                                                            |
-| Client state      | Zustand + TanStack Query                                              | Ephemeral UI versus remote server state separation                            | Redux unnecessary for v0.1                                                                       |
-| Optional motion   | Rapier                                                                | Only if collision/navigation proves necessary                                 | Simple raycast/nav plane preferred initially                                                     |
-| Optional XR       | `@react-three/xr`                                                     | Progressive enhancement                                                       | Deferred until desktop UX meets targets                                                          |
-| Local server      | Node 24 + Fastify                                                     | Matches supported runtime generation; typed plugins and schemas               | Native HTTP is lower dependency but more plumbing                                                |
-| Live transport    | SSE for ordered projections; WebSocket for local interactive channels | SSE mirrors current AgentIntersect; WS reserved for bidirectional World needs | Polling fallback supported                                                                       |
-| Processes         | AgentIntersect worker/process surfaces                                | Avoid duplicate authority                                                     | `execa`/`node-pty` only for a World-owned, non-AgentIntersect PTY feature explicitly added later |
-| Collaboration     | Yjs + PartyKit/Y-PartyKit                                             | CRDT presentation, awareness, offline merge                                   | y-websocket self-host later; provider is abstracted                                              |
-| Local persistence | SQLite + JSONL                                                        | Queryable graph plus inspectable append-only projection ledger                | Postgres is wrong for local v0.1                                                                 |
-| Repo tools        | Git, ripgrep, tree-sitter                                             | Cheap hierarchy/search plus incremental symbols                               | LSP integration deferred                                                                         |
-| Validation        | Zod + generated JSON Schema                                           | Runtime boundary checks and TS inference                                      | Hand-written guards are drift-prone                                                              |
-| Tests             | Vitest, Node test/undici, Playwright, axe, Storybook/visual snapshots | Contracts through two-browser E2E                                             | Keep runners bounded and purpose-specific                                                        |
+| Layer             | Decision                                                              | Rationale and constraint                                                      | Alternative                                                   |
+| ----------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Workspace         | pnpm + Turborepo                                                      | Strict workspace linking, task graph, cacheable builds                        | npm workspaces; less strict                                   |
+| Web               | Vite, React 19, TypeScript strict                                     | Fast browser loop and R3F ecosystem                                           | Next.js adds server assumptions not needed locally            |
+| 3D                | Three.js, React Three Fiber, drei                                     | Web-native scene components beside DOM UI                                     | Babylon.js fuller engine; Unity harms browser/contributor fit |
+| Effects           | postprocessing, maath                                                 | Selective outline/glow and stable interpolation                               | Custom shaders later only if measured                         |
+| Client state      | Zustand + TanStack Query                                              | Ephemeral UI versus remote server state separation                            | Redux unnecessary for v0.1                                    |
+| Optional motion   | Rapier                                                                | Only if collision/navigation proves necessary                                 | Simple raycast/nav plane preferred initially                  |
+| Optional XR       | `@react-three/xr`                                                     | Progressive enhancement                                                       | Deferred until desktop UX meets targets                       |
+| Local server      | Node 24 + Fastify                                                     | Matches supported runtime generation; typed plugins and schemas               | Native HTTP is lower dependency but more plumbing             |
+| Live transport    | SSE for ordered projections; WebSocket for local interactive channels | SSE mirrors current AgentIntersect; WS reserved for bidirectional World needs | Polling fallback supported                                    |
+| Agent sessions    | Versioned adapters behind Agent Session Gateway                       | Persistent chat/tool/action streams with capability honesty                   | Raw PTY scraping is labeled fallback only                     |
+| Guided processes  | AgentIntersect worker/process surfaces                                | Preserve phase/job/owned-process authority                                    | World never impersonates AgentIntersect execution             |
+| Preview processes | World-owned bounded Preview Manager                                   | Health-checked local demonstration in assigned repo/worktree                  | No deployment or public tunnel by default                     |
+| Collaboration     | Yjs + PartyKit/Y-PartyKit                                             | CRDT presentation, awareness, offline merge                                   | y-websocket self-host later; provider is abstracted           |
+| Local persistence | SQLite + JSONL                                                        | Queryable graph plus inspectable append-only projection ledger                | Postgres is wrong for local v0.1                              |
+| Repo tools        | Git, ripgrep, tree-sitter                                             | Cheap hierarchy/search plus incremental symbols                               | LSP integration deferred                                      |
+| Validation        | Zod + generated JSON Schema                                           | Runtime boundary checks and TS inference                                      | Hand-written guards are drift-prone                           |
+| Tests             | Vitest, Node test/undici, Playwright, axe, Storybook/visual snapshots | Contracts through two-browser E2E                                             | Keep runners bounded and purpose-specific                     |
 
-### Process ownership rule
+### Process and session ownership rule
 
-World does not launch AgentIntersect-managed harness processes via `execa` or `node-pty`. It creates jobs through AgentIntersect and observes their lifecycle. If a future direct World terminal is approved, it must be explicitly separate, visibly labeled “World-owned terminal,” confined to a user-opened PTY, covered by its own manifest/termination design, and prohibited from impersonating AgentIntersect job execution.
+World does not launch or terminate AgentIntersect-managed harness processes through generic `execa`, `node-pty`, browser PIDs, or raw kill calls. Guided Build creates and controls work only through AgentIntersect and observes its authoritative lifecycle.
+
+Free-form agents connect through explicit adapters. An adapter may attach to an existing runtime, start an approved local session process, or use a documented API/platform seam only when its capability manifest declares ownership, resume, interrupt, tool, approval, and shutdown behavior. Raw PTY capture is compatibility-only, visibly labeled, bounded, and never treated as structured evidence unless independently confirmed.
+
+The Preview Manager owns only the preview processes it started for a specific session/worktree. It records command identity, PID/start identity, port, health signal, and teardown result; it never stops an AgentIntersect worker or unrelated process.
 
 ## Spatial Code Graph domain
 
 ### Hierarchy and metaphors
 
-| Domain object         | Spatial form               | Source                       |
-| --------------------- | -------------------------- | ---------------------------- |
-| Workspace world       | Scene and coordinate frame | World configuration          |
-| Repo continent/island | Top-level landmass         | Git worktree                 |
-| Package district      | Cluster/plate              | Workspace manifests          |
-| Directory block       | Nested parcel              | Filesystem hierarchy         |
-| File building         | Instanced building         | File record                  |
-| Symbol room           | Interior/overlay           | Parser symbol                |
-| Function machine      | Focus-only object          | Function/method symbol       |
-| Test beacon           | Lamp plus icon/text        | Test discovery/result        |
-| Dependency bridge     | Aggregated edge            | import/call/package edge     |
-| Issue marker          | Pin/placard                | Optional issue adapter       |
-| Phase zone            | Overlay/work area          | AgentIntersect phase mapping |
+| Domain object         | Spatial form                     | Source                             |
+| --------------------- | -------------------------------- | ---------------------------------- |
+| Workspace world       | Scene and coordinate frame       | World configuration                |
+| Repo continent/island | Top-level landmass               | Git worktree                       |
+| Package district      | Cluster/plate                    | Workspace manifests                |
+| Directory block       | Nested parcel                    | Filesystem hierarchy               |
+| File building         | Instanced building               | File record                        |
+| Symbol room           | Interior/overlay                 | Parser symbol                      |
+| Function machine      | Focus-only object                | Function/method symbol             |
+| Test beacon           | Lamp plus icon/text              | Test discovery/result              |
+| Dependency bridge     | Aggregated edge                  | import/call/package edge           |
+| Issue marker          | Pin/placard                      | Optional issue adapter             |
+| Phase zone            | Overlay/work area                | AgentIntersect phase mapping       |
+| User avatar           | First-person/third-person body   | Approved local user profile        |
+| Agent avatar          | Persistent embodied collaborator | Agent session plus approved avatar |
+| Chat bubble/indicator | Bounded world-space UI           | Assistant/message state            |
+| Tool effect           | Contextual motion/effect         | Structured tool event              |
+| Task marker           | Placard/waypoint                 | Session task or Guided phase       |
+| Preview portal/screen | Local live artifact surface      | Preview Manager                    |
 
 The world is a projection. Moving a file building changes presentation coordinates only; it never renames a file. Any future refactor interaction must produce a reviewed command intent through an authoritative service.
+
+### Navigation semantics
+
+The user may navigate through pointer-lock mouse look, configurable WASD/keyboard controls, click-to-move, minimap focus, search-to-focus, follow-agent, or the semantic tree. Camera comfort settings include motion reduction, turn sensitivity, field-of-view limits, optional head-bob disablement, collision bypass for accessibility, and an immediate return-to-shell command.
+
+Agents never emit frame-by-frame movement. They request a stable target object plus a high-level action. The navigation subsystem resolves the current world bounds, computes a deterministic path or teleport/focus fallback, drives the shared skeleton locomotion, and reports reached/blocked/stale-target truth. An agent may roam only within its current session/repository scope; idle wandering is optional presentation and never changes its semantic focus.
 
 ## Stable identity and URI strategy
 
@@ -982,7 +1096,377 @@ World may use the current stdio tools for explicit context/evidence workflows wh
 
 Timeouts are classified as discovery, attestation, transport, validation, conflict, lifecycle, or unknown errors. Retry only idempotent reads automatically. A create-job timeout enters `reconciling`, queries current worker jobs/snapshot, and requires operator confirmation if it cannot establish whether a job was created. World never retries a mutation blindly. Circuit breaking opens after bounded consecutive transport failures and continues offline visualization with a prominent “execution control unavailable” state.
 
+## Embodied agent session architecture
+
+### Session modes
+
+Every session declares one mode at creation. The mode, permission revision, repository/worktree, adapter, and user identity are persisted and shown in the chat header, agent inspector, and world-space status. A more permissive transition requires explicit local confirmation; a less permissive transition is immediate and cancels or pauses newly forbidden operations according to adapter capability.
+
+| Mode         | Intended experience                            | Repository mutation                                         | Tool approval                                 | Lifecycle authority                                              |
+| ------------ | ---------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
+| Explore      | Read, search, explain, navigate, annotate      | Denied                                                      | Read-only tools only                          | World may interrupt/close its session                            |
+| Collaborate  | Free-form pair development                     | Allowed through adapter policy                              | Normal adapter/manual or smart approvals      | Adapter owns tools; World mediates user intent                   |
+| Autonomous   | Bounded objective with reduced routine prompts | Allowed only inside granted repo/worktree/capability budget | Pre-approved envelope; scope expansion pauses | Adapter owns execution; World enforces envelope and interruption |
+| Guided Build | Design document, phases, handoffs, advancement | Through AgentIntersect phase jobs                           | AgentIntersect/harness policy                 | AgentIntersect owns phase/job/process lifecycle                  |
+
+A session may carry a standing goal, but World does not silently convert ordinary conversation into an autonomous goal. Voice and text use the same mode. Presentation peers cannot elevate mode, grant tools, approve dangerous commands, or start work.
+
+### Persistent session record
+
+```ts
+export const AgentSessionSchema = z
+  .object({
+    schema: z.literal("aiw.agent-session/0.12"),
+    sessionId: z.string().uuid(),
+    adapterId: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/),
+    adapterSessionRef: z.string().min(1).max(256),
+    workspaceId: Id,
+    repositoryRef: z.string().max(256),
+    worktreeRef: z.string().max(256).nullable(),
+    mode: z.enum(["explore", "collaborate", "autonomous", "guided-build"]),
+    permissionRevision: z.number().int().nonnegative(),
+    capabilitySnapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
+    avatarProfileRef: z.string().max(256).nullable(),
+    status: z.enum([
+      "connecting",
+      "ready",
+      "thinking",
+      "using-tool",
+      "waiting-approval",
+      "speaking",
+      "paused",
+      "offline",
+      "error",
+      "closed",
+    ]),
+    currentFocusObjectIds: z.array(Id).max(16),
+    currentTaskRef: z.string().max(256).nullable(),
+    lastEventSequence: z.number().int().nonnegative(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+```
+
+The adapter session reference is protected local data and never enters Yjs. Display state uses an opaque World session ID. The session ledger stores message/event metadata and approved content; adapter-native transcripts remain owned by the adapter unless the user explicitly exports them.
+
+### Agent Session Protocol
+
+All adapters normalize into one ordered, versioned event envelope:
+
+```ts
+export const AgentSessionEventSchema = z
+  .object({
+    schema: z.literal("aiw.agent-event/0.12"),
+    eventId: z.string().uuid(),
+    sessionId: z.string().uuid(),
+    sequence: z.number().int().nonnegative(),
+    occurredAt: z.string().datetime(),
+    correlationId: z.string().uuid(),
+    type: z.enum([
+      "session.connected",
+      "session.capabilities",
+      "session.status",
+      "message.user-accepted",
+      "message.assistant-delta",
+      "message.assistant-final",
+      "tool.requested",
+      "tool.started",
+      "tool.progress",
+      "tool.completed",
+      "tool.failed",
+      "approval.requested",
+      "approval.resolved",
+      "artifact.created",
+      "world-actions.proposed",
+      "preview.requested",
+      "preview.ready",
+      "preview.stopped",
+      "session.interrupted",
+      "session.closed",
+      "session.error",
+    ]),
+    payload: z.record(z.string(), z.unknown()),
+    redaction: z.object({
+      applied: z.boolean(),
+      count: z.number().int().nonnegative(),
+    }),
+  })
+  .strict();
+```
+
+Ordering is per session. Reconnect supplies the last accepted sequence; the adapter resumes where supported or emits an explicit reset/snapshot when not. Duplicate event IDs are ignored. Sequence gaps suspend animation and tool completion claims until reconciled. Assistant deltas are ephemeral display data; the bounded final message is the durable conversational unit.
+
+No event type conveys hidden chain-of-thought. A model may explicitly publish a plan or concise status as user-visible text, but World never derives or displays private reasoning traces.
+
+### Adapter capability contract
+
+Each adapter must declare and prove capabilities before the UI enables them:
+
+- create session;
+- attach/resume existing session;
+- send text and attachments;
+- stream assistant deltas/final responses;
+- structured tool events;
+- structured approvals;
+- interrupt/steer/pause/close;
+- worktree awareness;
+- artifact and preview references;
+- model/provider identity disclosure;
+- memory/skills/persona availability disclosure;
+- voice input/output support;
+- World Action support or text-only degradation.
+
+The manifest includes version, transport, local/remote origin, auth state without secrets, supported modes, maximum payloads, event ordering guarantee, resume guarantee, and shutdown ownership. A contract fixture proves every advertised capability. Missing support remains disabled with an explanation; World does not infer a tool call from terminal color or prose.
+
+**Hermes first adapter:** connect through a supported Hermes platform/API/plugin seam or a purpose-built local adapter. Preserve the same profile, session store, skills, memory, project context, tools, approvals, and resumability that the user would receive in Hermes CLI, desktop, or gateway surfaces. `SOUL.md` remains identity-only input inside Hermes; World receives only a user-approved avatar proposal or bounded self-description. Commands such as “find handoff” must enter the same Hermes session rather than a new one-shot process.
+
+**AgentIntersect Guided Build adapter:** maps design readiness, phase state, worker jobs, telemetry, handoffs, evidence, safe pause, auto-advance, and emergency results. It remains authoritative for its owned processes. Conversational text may be relayed only through a tested AgentIntersect/harness surface; World does not pretend that phase telemetry is a free-form chat stream.
+
+**Other adapters:** Codex, Claude Code, OpenClaw, and future agents implement the same protocol. A raw PTY bridge may provide text-only compatibility but is labeled non-structured, cannot claim reliable resume/tool telemetry unless separately attested, and cannot be the acceptance adapter for the magic slice.
+
+### Text chat and turn handling
+
+The primary chat surface includes session/mode/adapter/worktree identity, message history, attachments, model status, approvals, interrupt/steer controls, and a persistent results area. Sending a message performs:
+
+1. local session and permission revision validation;
+2. attachment size/type/path-scope validation;
+3. explicit voice-transcript preview when applicable;
+4. durable local intent/message metadata write;
+5. adapter send with correlation ID;
+6. ordered response/tool/event streaming;
+7. final message persistence and world-space bubble projection.
+
+Overhead bubbles are bounded previews, not the canonical transcript. They show typing/speaking state, a short final excerpt, emoji/activity icons from explicit safe presentation tags, and a control to open the full accessible chat. Long code, tool output, secrets, paths, and Markdown HTML never render above an avatar.
+
+Busy-session input supports explicit queue, steer-after-current-tool, or interrupt semantics according to adapter capability. World never silently decides whether a new message interrupts active work.
+
+### Voice pipeline
+
+Voice is optional and disabled until configured. The first implementation is push-to-talk:
+
+```mermaid
+sequenceDiagram
+  actor U as User
+  participant B as Browser
+  participant W as World server
+  participant STT as Approved STT
+  participant A as Agent adapter
+  participant TTS as Approved TTS
+  U->>B: Hold push-to-talk and speak
+  B->>W: bounded audio stream plus session ID
+  W->>STT: approved audio only
+  STT-->>W: partial/final transcript
+  W-->>B: caption preview
+  U->>B: send/cancel transcript
+  B->>W: normal session message
+  W->>A: send text with same permissions as typing
+  A-->>W: assistant text/events
+  W-->>B: chat/captions
+  opt voice response enabled
+    W->>TTS: approved assistant text only
+    TTS-->>B: bounded audio
+  end
+```
+
+Provider choice may be local or external. The UI discloses where audio/text goes, retention, latency, and cost. Voice does not bypass approvals. Interruption stops playback immediately and requests adapter interruption separately. Captions remain available even when TTS fails. Per-agent voices are user-selected or agent-proposed and require preview/approval.
+
+### World Action Protocol
+
+Agent messages may include a separate structured action proposal. Prose is never parsed for authority.
+
+```ts
+export const WorldActionSchema = z
+  .object({
+    schema: z.literal("aiw.world-action/0.13"),
+    actionId: z.string().uuid(),
+    sessionId: z.string().uuid(),
+    sequence: z.number().int().nonnegative(),
+    kind: z.enum([
+      "navigate",
+      "focus",
+      "inspect",
+      "highlight",
+      "trace",
+      "compare",
+      "annotate-temporary",
+      "point-at",
+      "follow",
+      "present-evidence",
+      "present-preview",
+      "clear-presentation",
+    ]),
+    targetObjectIds: z.array(Id).max(64),
+    edgeIds: z.array(Id).max(256).default([]),
+    label: z.string().max(160).optional(),
+    durationMs: z.number().int().min(0).max(120_000).optional(),
+    expectedWorldRevision: z.number().int().nonnegative(),
+  })
+  .strict();
+```
+
+The local server validates session scope, target existence, repository identity, object/edge limits, action rate, and revision. The browser receives only accepted actions. Stale or missing objects produce a visible degraded result and may trigger a bounded refocus query; they never cause fuzzy movement to an unrelated object.
+
+Action behavior:
+
+- `navigate` moves the agent to a reachable interaction point near one object;
+- `focus` frames selected objects without moving code or changing files;
+- `trace` illuminates a bounded path supplied by the code-graph service;
+- `compare` arranges a temporary visual/semantic comparison without changing durable layout;
+- `annotate-temporary` creates session-local callouts that expire or can be pinned by the user;
+- `present-evidence` opens exact diff/test/handoff/artifact references;
+- `present-preview` opens an already-ready local preview; it cannot launch or deploy by itself.
+
+### User and agent navigation
+
+The user can use pointer-lock mouse look, configurable WASD, click-to-move, search-to-focus, minimap travel, follow-agent, or the semantic tree. Collision, camera speed, FOV, head bob, motion reduction, teleport fallback, and immediate escape to the shell are configurable.
+
+Agents choose semantic destinations, never frame-by-frame movement. Deterministic navigation resolves interaction points and pathfinding, drives the shared locomotion clips, and reports reached, blocked, stale-target, or teleported-for-accessibility truth. Current semantic focus may update before locomotion finishes, but the UI distinguishes “attending to” from “arrived at.” Optional idle wandering does not change semantic focus or imply tool activity.
+
+### Tool and activity visualization
+
+Tool events map through a versioned, user-configurable presentation table:
+
+| Authoritative event        | Default spatial presentation          | Required semantic truth                  |
+| -------------------------- | ------------------------------------- | ---------------------------------------- |
+| Search/query               | scanning pulse over bounded scope     | query category and result count          |
+| Read/inspect file          | agent navigates/focuses file building | exact safe object reference              |
+| Trace callers/dependencies | bounded illuminated graph path        | edge kinds/confidence/truncation         |
+| Edit/patch                 | scaffold/construction state           | actual filesystem/Git confirmation       |
+| Run tests                  | test beacon active                    | command class, running/result evidence   |
+| Build                      | district/worktree activity beacon     | process status and artifact reference    |
+| Browser/preview            | agent presents local portal/screen    | health-checked preview identity          |
+| Approval requested         | avatar waits; visible approval marker | exact bounded approval request           |
+| Success                    | subtle celebration                    | authoritative successful result/evidence |
+| Failure                    | distinct error pose/marker            | exact failure and recovery action        |
+
+Animation never proves an operation occurred. If an adapter lacks structured tool events, World shows conversational status only. Tool names, arguments, output, and artifacts are redacted/bounded before display; raw secrets and hidden reasoning never enter the scene.
+
+### Agent-proposed identity and avatar flow
+
+1. Connect or resume the agent session without publishing identity data.
+2. Ask the adapter whether it supports a bounded self-description/avatar proposal.
+3. The adapter may derive a proposal locally from its explicit persona, name, harness identity, and allowlisted fields. Hermes may use its own loaded `SOUL.md`, but returns only the proposal—not the file.
+4. Validate the strict avatar schema and show form, parts, palette, clothing, voice, movement style, source disclosure, and short rationale.
+5. The operator accepts, edits, randomizes, selects neutral default, or declines identity derivation.
+6. Persist the approved profile locally with current/previous recovery and a revocation action.
+7. Share only explicitly allowed display fields with same-operator presentation views.
+
+An agent may later propose a change, but cannot silently mutate its durable appearance. User avatars are never inferred from private identity content.
+
+### Preview Manager
+
+A preview request is separate from a World Action. The local Preview Manager:
+
+1. resolves the assigned repository/worktree and verifies it matches the session;
+2. presents or validates an approved start command and environment profile;
+3. refuses public host binding unless separately approved;
+4. starts a World-owned process with PID/start identity and bounded logs;
+5. detects the selected loopback port and performs explicit readiness/health checks;
+6. records source revision, command hash, port, health result, owner session, and timestamps;
+7. opens a normal browser tab or returns an embeddable local URL for an in-world screen;
+8. allows screenshot/browser evidence to be linked to the session result;
+9. tears down only the process identity it owns and reports partial cleanup honestly.
+
+An in-world preview is an optional presentation surface, never a replacement for normal browser review. Cross-origin restrictions, authentication, unsupported embedding, WebGL load, or accessibility may force open-in-browser mode. No automatic cloud deployment, tunnel, DNS, release, or publication is permitted.
+
+### Multi-agent coordination and worktrees
+
+Each editing agent receives an isolated Git worktree by default. The session record exposes branch/worktree identity locally and a safe label in the UI. World visualizes object interest, active modifications, task ownership, pending integration, and conflicts without merging automatically.
+
+A coordination layer may assign bounded tasks, dependencies, and handoffs. It cannot hide that two agents touched the same symbol/file. Shared-write mode requires a separately approved policy and is not the default. Agent-to-agent messages are explicit, attributable, bounded, and visible to the operator; one model’s message cannot silently become another model’s system instruction.
+
+Suggested spatial conventions:
+
+- avatar outline/marker identifies worktree, not personality rank;
+- overlapping object interest shows a neutral contention indicator;
+- uncommitted changes remain attached to the owning agent/worktree;
+- merge candidates appear at an integration area with exact diff/tests;
+- conflicts create explicit blocked state and require operator or approved coordinator resolution.
+
+### Session recovery
+
+On browser reload, World restores local session records, avatar profiles, chat metadata, accepted World Actions, current focus, and presentation state, then reattaches to each adapter. The adapter must report resumed, reset-required, unavailable, or closed. World never fabricates continuity when the underlying session is missing.
+
+On World-server restart, recover SQLite/JSONL state, revalidate worktree and process identities, reconcile previews, reconnect adapters, and replay only idempotent projection events. In-flight tools become reconciling until the adapter confirms their result. Orphaned preview processes are never adopted solely by PID. Guided Build additionally reconciles AgentIntersect phase/job truth.
+
 ## End-to-end data and control flows
+
+### Enter a free-form embodied session
+
+```mermaid
+sequenceDiagram
+  actor U as Local operator
+  participant B as World browser
+  participant W as World authority/session gateway
+  participant R as Repository/code graph
+  participant H as Hermes adapter/session
+  U->>B: Create avatar and select repository
+  B->>W: Open/index repository
+  W->>R: Build/reuse deterministic World projection
+  U->>B: Connect Hermes profile/session in Collaborate mode
+  B->>W: Create/attach session with permission revision
+  W->>H: Capability handshake and resume
+  H-->>W: Session identity, readiness, capabilities
+  W-->>B: Agent roster entry and proposed avatar availability
+  U->>B: Review/approve agent avatar
+  B->>W: Persist approved bounded profile
+  B->>B: Spawn user and agent avatars in World
+  U->>B: Type free-form message
+  B->>W: Send message to exact session
+  W->>H: Same persistent session turn
+  H-->>W: Assistant/tool/action event stream
+  W-->>B: Chat, bubble, status, accepted World Actions
+```
+
+### Ask for a visual code explanation
+
+```mermaid
+sequenceDiagram
+  actor U as User
+  participant B as Browser
+  participant W as Session and World Action services
+  participant A as Agent session
+  participant G as Code graph
+  U->>B: “Show how the last feature connects to the previous code.”
+  B->>W: Session message
+  W->>A: Message plus bounded object/search context
+  A->>W: Tool query for changed symbols/relations
+  W->>G: Resolve exact objects and bounded graph path
+  G-->>A: Object IDs, edges, confidence, truncation
+  A-->>W: Final explanation plus World Action proposal
+  W->>W: Validate session, objects, revision, action limits
+  W-->>B: Chat response and accepted focus/trace/compare actions
+  B->>B: Navigate agent, frame objects, illuminate path
+  U->>B: Inspect exact source/diff/test evidence through semantic shell
+```
+
+### Request work, observe tools, and present a preview
+
+```mermaid
+sequenceDiagram
+  actor U as User
+  participant B as Browser
+  participant W as World server
+  participant A as Agent adapter
+  participant T as Agent tools/worktree
+  participant P as Preview Manager
+  U->>B: “Complete the next bounded feature.”
+  B->>W: Collaborate-mode session message
+  W->>A: Message under current permissions
+  A-->>W: tool.started search/read
+  W-->>B: scanning/focus activity
+  A->>T: read/edit/test through adapter tools
+  T-->>W: structured tool events and filesystem evidence
+  W-->>B: agent movement, construction, test beacons, exact status
+  A-->>W: preview.requested with approved profile
+  W->>P: Start preview in assigned worktree
+  P->>P: verify PID/start identity, port, health
+  P-->>W: preview.ready plus evidence reference
+  W-->>B: browser/in-world preview available
+  A-->>W: assistant final with diff/test/preview references
+  W-->>B: chat, subtle completion animation, evidence panel
+```
 
 ### Open, index, and join
 
@@ -1284,73 +1768,95 @@ Primary mitigations are architectural: no command fields in Yjs; local host/CSRF
 - **Path safety:** reject NUL/control characters, absolute child paths, `..`, Windows device paths, unsafe URL decoding, and overlong paths. Verify lexical containment, `lstat` components, canonical realpath, root device where policy requires, and no symlink traversal for writes. World v0.1 indexing is read-only to arbitrary repo content.
 - **Arbitrary repository safety:** parsers run without executing repository scripts, configs, hooks, postinstall, language build tools, or editor extensions. Git commands disable hooks/pagers and use argument arrays. Binary/huge/decompression-bomb-like content is capped. Tree-sitter grammars are pinned and parsers time/memory bounded.
 - **CRDT peers:** schema, rate, size, namespace, token, and room-retention limits; peers cannot introduce executable URLs/HTML; annotations render escaped/plain text; URLs follow an allowlist and confirmation flow.
-- **Prompt/event safety:** repository text, prompts, tool output, and telemetry are untrusted data. They cannot alter system policy, route names, UI HTML, or command arguments. Render with escaping and explicit “untrusted content” provenance.
+- **Prompt/event safety:** repository text, prompts, assistant messages, tool output, World Action proposals, voice transcripts, preview pages, and telemetry are untrusted data. They cannot alter system policy, adapter capabilities, session mode, route names, UI HTML, or command arguments. Validate structured actions separately from prose and render with escaping plus explicit provenance.
 - **Secrets/redaction:** redact configured keys, token formats, home/absolute paths where exported, and entropy-like candidates before logs/rooms/diagnostics. Preserve local evidence only under policy. Redaction failures fail closed for export, not for local source truth.
-- **Process ownership:** World submits jobs and requests control through AgentIntersect. It never trusts a browser PID, enumerates arbitrary processes for stopping, or duplicates PID/start-time logic.
+- **Process/session ownership:** Guided Build submits jobs and control through AgentIntersect. Free-form sessions use explicit capability-declared adapters. Preview processes are World-owned and identity-bound. World never trusts a browser PID, enumerates arbitrary processes for stopping, adopts an orphan by PID alone, or confuses one ownership domain with another.
 - **Emergency stop:** recent local reauthentication, prominent scope, single-use intent ID, AgentIntersect CSRF compatibility, per-process result display, immutable audit entry. It cannot promise rollback of file edits.
 - **Supply chain:** exact lockfile, provenance/SBOM, dependency review, no install scripts unless approved, pinned PartyKit/tree-sitter packages, vulnerability policy, reproducible fresh-clone test.
 - **Plugins/adapters:** v0.1 has no third-party in-process plugins. Future adapters are capability manifests, isolated processes/workers, deny-by-default filesystem/network permissions, signed/approved installation, and audited command intents.
 - **Privacy/retention:** local by default; explicit room-sharing preview; no raw repository graph or paths sent to PartyKit beyond opaque IDs/labels needed for presentation; configurable annotation retention; delete/export flows; diagnostics opt-in.
+- **Agent sessions:** adapter session refs, auth material, transcript locations, memory, and persona files remain protected local data. Capability manifests are pinned per connection and a reconnect cannot silently gain permissions.
+- **World Actions:** schema/revision/object-scope/rate limits; accepted actions affect presentation only and never become file or tool commands.
+- **Voice:** explicit provider disclosure, push-to-talk, transcript preview/cancel, bounded audio, no hot-mic default, and the same permission checks as text.
+- **Preview:** loopback default, approved command/environment, assigned worktree, process identity, health check, bounded logs, and no automatic public tunnel/deployment.
+- **Multi-agent:** isolated worktrees by default, visible task/file contention, explicit handoffs, and no hidden cross-agent prompt injection.
 
 ### Security invariants
 
-1. **CRDT changes never directly execute commands or mutate files.**
-2. Only an attested local AgentIntersect workspace may receive a World execution intent.
-3. Only AgentIntersect terminates AgentIntersect-owned workers.
-4. A visual success state requires an authoritative lifecycle result and evidence reference, not merely client state.
-5. Arbitrary repository content is parsed as data and never executed by indexing.
+1. **CRDT changes never directly send agent prompts, approve tools, execute commands, or mutate files.**
+2. Session mode and permission revision are validated locally before every message/action that may produce side effects.
+3. Only an attested AgentIntersect workspace receives Guided Build intents; only AgentIntersect terminates its owned workers.
+4. Free-form adapters may use only capabilities they declared and proved during the current connection.
+5. World Actions affect navigation/presentation only and cannot mutate repository or process state.
+6. A visual success state requires an authoritative tool/lifecycle result and evidence reference, not client animation.
+7. Arbitrary repository, chat, persona, tool, voice, and preview content is untrusted data.
+8. Preview Manager stops only the process identity it created and never creates public ingress by default.
+9. Simultaneous editing agents are isolated by worktree or an explicitly approved equivalent boundary.
+10. Raw `SOUL.md`, memory, transcripts, secrets, chain-of-thought, and unrestricted tool output never enter shared presentation state.
 
 ## Avatar and profile system
 
-Avatars are schema-first assemblies from bundled, accessible parts. v0.1 does not generate arbitrary meshes. Inputs may include the current AgentIntersect onboarding/profile summary, selected harness, user-selected palette/silhouette/tools, and consented derived traits. Raw `SOUL.md`, `MEMORY.md`, second-brain content, transcript history, prompts, or private memory are never replicated to Yjs or PartyKit.
+Phase 11 delivered strict local `aiw.avatar/0.11` profiles, one shared Blender biped rig, six core body objects, eight attachment anchors, seven reusable actions, twelve human/dog/cat heads, modular hands/paws/claws/feet/fur/tails/markings, twelve colors, four branded tees, required above-head names, local current/previous recovery, and semantic/reduced-motion/WebGL-fallback equivalence. That accepted system is the base for embodied sessions.
+
+### User avatar
+
+The user creates or restores a local avatar before entering the World. Appearance never determines permissions. The profile can be reopened, exported, reset, or deleted. First-person view may hide or partially render the local body for comfort while third-person/photo views use the same approved profile.
+
+### Agent avatar proposal
+
+An agent may propose an avatar only through the bounded proposal flow:
 
 ```ts
-export const AvatarProfileSchema = z
+export const AgentAvatarProposalSchema = z
   .object({
-    schema: z.literal("aiw.avatar/0.1"),
-    avatarId: Id,
-    agentRef: z.string().max(128),
-    displayName: z.string().max(64),
-    form: z.enum(["humanoid", "orb", "drone", "abstract", "text-only"]),
-    silhouette: z.enum([
-      "builder",
-      "analyst",
-      "navigator",
-      "guardian",
-      "neutral",
+    schema: z.literal("aiw.avatar-proposal/0.15"),
+    sessionId: z.string().uuid(),
+    displayName: z.string().min(1).max(64),
+    profile: AvatarProfileSchema,
+    rationale: z.string().max(280),
+    sourceDisclosure: z.enum([
+      "harness-default",
+      "explicit-persona",
+      "agent-self-description",
+      "neutral-default",
     ]),
-    palette: z.tuple([z.string(), z.string()]),
-    accessories: z
-      .array(z.enum(["terminal-orb", "wrench", "map", "beacon", "none"]))
-      .max(4),
-    statusMotion: z.record(
-      z.enum(["idle", "queued", "working", "waiting", "blocked", "done"]),
-      z.string(),
-    ),
-    consent: z.object({
-      derivedFromProfile: z.boolean(),
-      shareDisplayName: z.boolean(),
-      shareDerivedTraits: z.boolean(),
-    }),
-    sourceDisclosure: z.enum(["default", "user-configured", "profile-derived"]),
+    voiceProposal: z
+      .object({
+        providerVoiceId: z.string().max(128),
+        label: z.string().max(64),
+      })
+      .nullable(),
   })
   .strict();
 ```
 
-Status mapping is deterministic: queued waits at the phase board; working uses a tool animation near confirmed/candidate affected objects; waiting becomes a calm idle with a textual badge; blocked uses a distinct shape/icon, not color alone; done celebrates only after authoritative completion. Reduced-motion mode replaces locomotion/construction with cross-fades and focus rings. Non-humanoid and text-only modes are first-class, not fallbacks.
+For Hermes, its own session may use `SOUL.md`, configured persona, profile name, skills, and harness identity to produce a short safe proposal. World never reads or publishes the raw file as avatar data. Other adapters expose only their supported allowlisted identity fields. The operator previews and accepts, edits, randomizes, uses neutral defaults, or declines. An agent cannot silently change its durable profile later.
+
+No appearance is presented as objective personality, consciousness, protected trait, competency rank, or emotional truth. Expression and emoji are playful communication derived from explicit message tags or authoritative activity states.
+
+### Activity and expression mapping
+
+The shared skeleton maps authoritative session/tool state to bounded motion: idle, walk, run/urgent navigation, inspect/read, work/edit, wait-for-approval, speak, celebrate, error, and offline. Optional ear/tail secondary motion remains cosmetic and does not create separate primary locomotion rigs. Reduced motion uses pose changes, focus rings, text, and icons. Speaking indicators follow actual output/playback state; thinking indicators mean only that the adapter reports an active response turn.
+
+Above-head UI shows the required name, concise status, typing/speaking indicator, and bounded bubble excerpt. It does not show secrets, raw code, long logs, hidden reasoning, cost/token details unless the user opens the semantic inspector.
 
 ## UX and information architecture
 
 ### Primary layout
 
-- **World viewport:** spatial map, focus navigation, agent/object presence, selection.
+- **World viewport:** spatial map, pointer-lock/click/semantic navigation, user/agent presence, selection, follow and presentation actions.
+- **Persistent chat:** exact session/mode/adapter/worktree identity, text/attachments, queue/steer/interrupt, approvals, captions, and durable results.
+- **Voice controls:** push-to-talk, transcript preview, provider disclosure, captions, playback/interrupt, per-agent approved voice.
+- **Session mode bar:** Explore/Collaborate/Autonomous/Guided Build, permission revision, capability gaps, and escalation controls.
 - **Command/inspection shell:** semantic repo tree, search, command palette, current status; fully usable without canvas.
 - **Minimap:** districts, collaborators, active run locus, viewport frustum.
 - **Object inspector:** path/URI, metrics, dependencies, Git/test state, source provenance.
 - **Diff/evidence panel:** exact diff, commands/tests, handoff/evidence links, redaction state.
 - **Run timeline:** queued→claimed→working→changed→tested→handoff→completed/failed with correlation IDs.
 - **Phase board:** AgentIntersect phases, acceptance criteria, telemetry, safe pause/auto-advance state.
-- **Agent roster:** harness/profile-safe display, current run/status, privacy disclosure.
+- **Agent roster:** adapter/session/worktree-safe display, approved avatar/voice, current task/focus/status, capability and privacy disclosure.
+- **World explanation layer:** bounded traces, comparisons, annotations, camera tours, object/edge confidence and truncation truth.
+- **Preview panel/portal:** health-checked local project previews, open-in-browser fallback, evidence capture, and teardown.
 - **Terminal drawer fallback:** read-only streamed/captured output by default; no implicit direct PTY.
 - **Collaboration bar:** presence, presenter follow, annotations, room privacy.
 
@@ -1390,11 +1896,11 @@ The logo remains a home/reset action. Categories may initially expose truthful u
 
 **What is not reused:** the original AgentIntersect menu contents, control-plane route assumptions, Connect/OnBoarding/Design/Control/Workers/Records business logic, external configuration writes, worker authority, or monolithic server-rendered implementation. World ports the accepted visual and interaction design into typed React components backed only by World APIs.
 
-**Phase placement:** Phase 3 continues its frozen repository-index functionality without interruption. Phase 4 builds deterministic World identity/layout data. Phase 5 performs the one-time asset extraction and implements the opening avatar builder, inherited dashboard shell, World navigation taxonomy, hero harness selection state, accessibility equivalents, and first repository island. Phase 6 makes harness/AgentIntersect readiness observationally real; Phase 7 activates one bounded agent job.
+**Phase placement:** Phases 3–11 remain accepted foundations. Revised Phase 12 adds modes, session gateway, Hermes text chat, permissions, and lifecycle controls. Phase 13 adds embodied user/agent navigation and World Actions. Phase 14 adds visual explanations, structured tool activity, bounded edits/tests, and previews. Phase 15 adds voice and expressive presence. Phase 16 adds isolated multi-agent coordination.
 
 ### Onboarding
 
-The first-run experience begins with the inherited `identify_` avatar-appearance builder and then transitions into the World dashboard. The dashboard checks browser capabilities, opens a repo, explains local data boundaries, shows the selected harness and truthful readiness without modifying external config, builds the initial index, offers an optional room, and enters a guided camera/search tour. If AgentIntersect is absent, World opens in visualization-only mode and provides exact setup diagnostics; it does not auto-install or mutate AgentIntersect.
+The first-run experience begins with the inherited `identify_` avatar builder, transitions into the dashboard, checks capabilities, selects/indexes one repository, explains local/session/voice boundaries, and enters a short camera/search tour. The operator then chooses a session mode and connects or resumes an agent. The first deep connector is Hermes; the wizard detects readiness, names the exact profile/session boundary, shows capabilities without secrets, and never rewrites external agent configuration without explicit approval. The agent may propose an avatar after connection. If no agent is available, World remains fully usable in repository Explore mode. AgentIntersect is required only for Guided Build features that depend on it.
 
 ### Errors and recovery
 
@@ -1527,28 +2033,42 @@ type ApiError = {
 
 ### Route catalog
 
-| Method/path                                  | Purpose                                                                           |
-| -------------------------------------------- | --------------------------------------------------------------------------------- |
-| `GET /health`                                | Liveness, version, no sensitive workspace data                                    |
-| `GET /ready`                                 | DB/index/AgentIntersect readiness by capability                                   |
-| `POST /session/exchange`                     | One-time boot-token exchange                                                      |
-| `POST /workspaces/open`                      | Canonicalize and start/reuse indexing operation                                   |
-| `GET /operations/:id`                        | Index/control operation status                                                    |
-| `POST /operations/:id/cancel`                | Cooperative cancel                                                                |
-| `GET /world/snapshot`                        | Current graph/layout projection, tile/LOD query                                   |
-| `GET /world/events`                          | Cursor-based bounded replay                                                       |
-| `GET /world/events/stream`                   | SSE normalized event stream                                                       |
-| `GET /objects/:objectId`                     | Object metadata and safe references                                               |
-| `GET /objects/:objectId/diff`                | Bounded real Git/worktree diff                                                    |
-| `GET /runs` / `GET /runs/:runId`             | Run projection and evidence refs                                                  |
-| `POST /commands/intents`                     | Local authority command validation/dispatch                                       |
-| `GET /integration/agentintersect`            | Attestation/compatibility state                                                   |
-| `POST /integration/agentintersect/reconcile` | Read-only re-attest/snapshot reconcile                                            |
-| `POST /rooms`                                | Create scoped room/token preview                                                  |
-| `POST /rooms/:roomId/token`                  | Host issues expiring collaborator token                                           |
-| `GET /diagnostics/summary`                   | Privacy-safe doctor data                                                          |
-| `POST /diagnostics/export`                   | Explicit redacted bundle creation                                                 |
-| `WS /interactive`                            | Optional low-volume local selection/control acknowledgements; no terminal in v0.1 |
+| Method/path                                  | Purpose                                                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `GET /health`                                | Liveness, version, no sensitive workspace data                                                        |
+| `GET /ready`                                 | DB/index/AgentIntersect readiness by capability                                                       |
+| `POST /session/exchange`                     | One-time boot-token exchange                                                                          |
+| `POST /workspaces/open`                      | Canonicalize and start/reuse indexing operation                                                       |
+| `GET /operations/:id`                        | Index/control operation status                                                                        |
+| `POST /operations/:id/cancel`                | Cooperative cancel                                                                                    |
+| `GET /world/snapshot`                        | Current graph/layout projection, tile/LOD query                                                       |
+| `GET /world/events`                          | Cursor-based bounded replay                                                                           |
+| `GET /world/events/stream`                   | SSE normalized event stream                                                                           |
+| `GET /objects/:objectId`                     | Object metadata and safe references                                                                   |
+| `GET /objects/:objectId/diff`                | Bounded real Git/worktree diff                                                                        |
+| `GET /runs` / `GET /runs/:runId`             | Run projection and evidence refs                                                                      |
+| `POST /commands/intents`                     | Local authority command validation/dispatch                                                           |
+| `GET /integration/agentintersect`            | Attestation/compatibility state                                                                       |
+| `POST /integration/agentintersect/reconcile` | Read-only re-attest/snapshot reconcile                                                                |
+| `GET /agent-adapters`                        | Capability-declared adapter readiness without secrets                                                 |
+| `POST /agent-sessions`                       | Create/attach a session with mode and permission revision                                             |
+| `GET /agent-sessions/:id`                    | Durable session, status, focus, capability snapshot                                                   |
+| `POST /agent-sessions/:id/messages`          | Send bounded text/attachment message to exact session                                                 |
+| `GET /agent-sessions/:id/events`             | Cursor-based session event replay                                                                     |
+| `GET /agent-sessions/:id/events/stream`      | Ordered assistant/tool/action/approval SSE                                                            |
+| `POST /agent-sessions/:id/control`           | Queue, steer, interrupt, pause, close, or mode-deescalate                                             |
+| `POST /agent-sessions/:id/approvals/:aid`    | Resolve one adapter approval under current permission revision                                        |
+| `POST /world-actions/validate`               | Validate bounded action proposal against current World revision                                       |
+| `POST /previews`                             | Start approved loopback preview in assigned repo/worktree                                             |
+| `GET /previews/:id`                          | Preview health, owner, port-safe URL, and evidence                                                    |
+| `POST /previews/:id/stop`                    | Stop exact World-owned preview process identity                                                       |
+| `POST /voice/transcribe`                     | Optional bounded push-to-talk transcription                                                           |
+| `POST /voice/synthesize`                     | Optional bounded approved assistant speech                                                            |
+| `POST /rooms`                                | Create scoped room/token preview                                                                      |
+| `POST /rooms/:roomId/token`                  | Host issues expiring collaborator token                                                               |
+| `GET /diagnostics/summary`                   | Privacy-safe doctor data                                                                              |
+| `POST /diagnostics/export`                   | Explicit redacted bundle creation                                                                     |
+| `WS /interactive`                            | Low-volume local chat/action acknowledgements and optional audio signaling; no raw terminal authority |
 
 ### Examples
 
@@ -1625,19 +2145,21 @@ app.get("/api/v1/world/events/stream", worldSseHandler);
 
 ## Persistence ownership and recovery
 
-| Store                     | Owns                                                                 | Not source of truth for              | Retention/recovery                                                |
-| ------------------------- | -------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------- |
-| SQLite                    | Graph/index, layout projection, run mappings, dedupe, local settings | File bytes, AgentIntersect lifecycle | WAL/checkpoint; backup before migration; rebuild derivable tables |
-| JSONL                     | Append-only normalized event/run ledger and audit trail              | Current snapshot alone               | Rotate by size/day; checksum segments; retention policy           |
-| Yjs snapshots/update tail | Annotations and presentation layout                                  | Execution/files/evidence             | Compact; encrypted provider storage; export/delete room           |
-| Git/filesystem            | Repository bytes/status/history                                      | Phase completion                     | Normal Git recovery; World never auto-reverts                     |
-| AgentIntersect state      | Jobs/phases/sessions/handoff/evidence/audit                          | Spatial layout                       | Reconcile via current API and retained events                     |
+| Store                     | Owns                                                                                                                | Not source of truth for                                   | Retention/recovery                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------- |
+| SQLite                    | Graph/index, layout, session metadata, mode/permissions, adapter refs, preview/run mappings, dedupe, local settings | File bytes, adapter-native transcript, external lifecycle | WAL/checkpoint; backup before migration; rebuild derivable tables |
+| JSONL                     | Append-only World/session/tool/action/preview/run projection ledgers and audit trail                                | Current adapter/session snapshot alone                    | Rotate by size/day; checksum segments; retention policy           |
+| Yjs snapshots/update tail | Annotations and presentation layout                                                                                 | Execution/files/evidence                                  | Compact; encrypted provider storage; export/delete room           |
+| Git/filesystem            | Repository bytes/status/history                                                                                     | Phase completion                                          | Normal Git recovery; World never auto-reverts                     |
+| Agent adapter state       | Native session transcript, model/tools, approvals, runtime continuity                                               | Spatial layout or World permissions                       | Reattach/resume/reset explicitly per capability                   |
+| AgentIntersect state      | Guided jobs/phases/sessions/handoff/evidence/audit                                                                  | Free-form session or spatial layout                       | Reconcile via current API and retained events                     |
+| Preview registry          | World-owned preview PID/start/command/port/health/owner evidence                                                    | Deployment or unrelated processes                         | Identity-bound probe and teardown; no PID adoption                |
 
 Writes use temp/atomic rename where applicable and SQLite transactions. On unclean shutdown, integrity-check SQLite, recover WAL, validate last JSONL segment checksum, and replay events idempotently. If SQLite is corrupt, preserve a copy, start read-only diagnostics, and offer deterministic graph rebuild plus run-map reconstruction. Yjs corruption restores last valid snapshot and update prefix; report lost update range. Backups exclude secrets by default and include a manifest/schema/checksum.
 
 ## Observability and evidence
 
-Structured logs contain timestamp, level, service, event, correlation ID, workspace pseudonym, run/job/phase IDs, duration, outcome, and redaction counts. They exclude file contents, prompts, raw terminal output, tokens, raw paths in export mode, and CRDT update bodies. Metrics include index throughput/errors/cancel latency, parse coverage, DB latency, scene object/edge counts, SSE lag/reconnects/overflows, event dedupe ratio, AgentIntersect attestation failures, intent outcomes, room peers/update rates, and redaction counts. OpenTelemetry traces are optional local export and propagate correlation IDs through World calls; current AgentIntersect may not preserve them, so mapping records the upstream job/event IDs.
+Structured logs contain timestamp, level, service, event, correlation ID, workspace pseudonym, run/job/phase IDs, duration, outcome, and redaction counts. They exclude file contents, prompts, raw terminal output, tokens, raw paths in export mode, and CRDT update bodies. Metrics include index throughput/errors/cancel latency, parse coverage, DB latency, scene object/edge counts, render/navigation budgets, session attach/resume/reset, message latency, tool duration/outcomes, approval wait, action acceptance/rejection, preview startup/health/teardown, voice latency/failure, worktree contention, SSE lag/reconnect/overflow, event dedupe, AgentIntersect attestation, room peers/update rates, and redaction counts. OpenTelemetry traces are optional local export and propagate correlation IDs through World calls; current AgentIntersect may not preserve them, so mapping records the upstream job/event IDs.
 
 The run ledger links:
 
@@ -1707,14 +2229,17 @@ The canvas is marked presentation-only because the synchronized DOM tree provide
 
 - **Unit (Routine):** IDs, path normalization, LOD, clustering, schema transforms, redaction, dedupe, reducers.
 - **Schema/property (Standard):** Zod/JSON Schema round trips, forward-compatible optional fields, fuzzed hostile payloads, migration fixtures.
-- **AgentIntersect contract (High-risk):** pinned unchanged checkout; exact health, daemon routes, dashboard snapshot/events/SSE, five MCP tools/protocol/no resources, worker claim/completion conflicts, safe pause, emergency stop results.
+- **Agent adapter contracts (High-risk at authority boundaries):** Hermes first adapter plus later adapters; exact capability manifest, create/attach/resume, ordered message/tool/approval events, interrupt/close, payload bounds, and honest unsupported features.
+- **AgentIntersect contract (High-risk):** pinned compatibility fixtures for Guided Build health, daemon routes, dashboard snapshot/events/SSE, MCP tools, worker claim/completion conflicts, safe pause, and emergency results.
 - **Integration (Standard/High-risk by boundary):** temporary World DB + disposable repo + fake and real AgentIntersect modes; reconnect, overflow, corruption, cancellation.
 - **Collaboration (High-risk):** two browser contexts, concurrent annotations/layout, offline updates, awareness expiry, hostile message rejection, proof that Yjs cannot reach dispatch.
-- **E2E vertical slice (High-risk):** disposable repo, one real AgentIntersect job and agent, one real edit/test, exact diff/evidence, second browser presence.
-- **Visual regression (Routine):** deterministic camera/seed, LOD states, reduced motion, high contrast, WebGL fallback.
+- **Embodied magic-slice E2E:** one repo, one persistent Hermes session, approved agent avatar, text chat, visual explanation, structured tool activity, one bounded edit/test, local preview, reload/resume.
+- **Guided Build E2E (High-risk):** disposable repo, one real AgentIntersect phase job, one real edit/test, exact diff/evidence, safe lifecycle.
+- **Multi-agent E2E:** isolated worktrees, two sessions/avatars, task ownership, overlap/conflict truth, explicit handoff and merge candidate.
+- **Visual regression (Routine):** deterministic camera/seed, first/third-person navigation, chat/bubbles, tool effects, avatars/voice state, previews, LOD, reduced motion, high contrast, WebGL fallback.
 - **Accessibility (Standard):** axe plus keyboard, screen-reader smoke, 200% zoom, contrast, no-color state.
 - **Load/large repo (Standard):** synthetic 10k/100k files, parser timeout, watch overflow, 10k instances, slow SSE client.
-- **Security/boundary (High-risk):** traversal/symlink races, origin/CSRF, fake health, workspace mismatch, token replay, CRDT command injection, HTML payloads, secret export.
+- **Security/boundary (High-risk where applicable):** traversal/symlink races, origin/CSRF, fake health, workspace mismatch, adapter capability/permission replay, CRDT prompt/tool injection, World Action confusion, voice/provider leakage, preview process/port ownership, cross-worktree writes, HTML payloads, and secret export.
 - **Packaging/fresh clone (Standard):** locked install, build, doctor, demo fixture, no hidden global dependencies.
 
 ### Example tests
@@ -1783,6 +2308,50 @@ High-risk changes require written threat-model invariants, focused abuse/boundar
 Targets are engineering budgets, not public uptime promises. Reference hardware, repo fixtures, and measurement procedure must be committed before claims are made.
 
 ## Implementation plan
+
+### Re-baselined roadmap map
+
+Completed Phases 0–11 are the accepted foundation and are not reopened by this design:
+
+| Foundation  | Completed capabilities                                                            |
+| ----------- | --------------------------------------------------------------------------------- |
+| Phases 0–2  | Compatibility baseline, monorepo, local authority/configuration                   |
+| Phases 3–4  | Repository discovery/index, stable World identity, deterministic layout/LOD       |
+| Phases 5–6  | Inherited shell/repository island, AgentIntersect read integration/replay         |
+| Phases 7–8  | Real bounded phase intent, durable diff/test/evidence and construction projection |
+| Phases 9–10 | Same-operator presentation sync, symbols/dependencies/large-repo hardening        |
+| Phase 11    | Privacy-safe modular Blender avatars and authoritative embodied status            |
+
+The revised remaining path is:
+
+| Phase | Product question answered                                              | Primary deliverable                                                        |
+| ----- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 12    | Can World hold a real persistent free-form agent conversation safely?  | Session modes, Agent Session Gateway, one deep Hermes text adapter         |
+| 13    | Can the human and agent inhabit and point through the same code world? | FPS/semantic navigation, deterministic agent movement, World Actions       |
+| 14    | Can visible collaboration produce real code and demonstrate it?        | Tool visualization, visual explanations, edit/test evidence, local preview |
+| 15    | Can conversation feel natural without compromising authority/privacy?  | Push-to-talk STT, captions/TTS, expressive presence, consentful identity   |
+| 16    | Can multiple agents collaborate without invisible collisions?          | Isolated worktrees, tasks, contention, handoffs, merge/conflict truth      |
+| 17    | Can the expanded system recover and explain failure?                   | Observability, diagnostics, retention, corruption/restart drills           |
+| 18    | Does the complete experience work as one product?                      | Open, multi-agent, Guided Build, voice, preview, recovery acceptance       |
+| 19    | Is a reversible private-alpha candidate technically ready?             | Local staged artifact, docs, SBOM, compatibility, backup/delete/rollback   |
+
+```mermaid
+flowchart LR
+  P11[Phase 11: avatar foundation] --> P12[12: persistent sessions and text]
+  P12 --> P13[13: embodied navigation and actions]
+  P13 --> P14[14: tools, explanations, preview]
+  P14 --> Magic[One-agent magic slice approved]
+  Magic --> P15[15: voice and expression]
+  Magic --> P16[16: multi-agent worktrees]
+  P15 --> P17[17: diagnostics and recovery]
+  P16 --> P17
+  P17 --> P18[18: integrated acceptance]
+  P18 --> P19[19: private-alpha readiness]
+  Guided[AgentIntersect Guided Build] --> P12
+  Guided --> P18
+```
+
+Delivery rule: each phase freezes a scope, implements one observable slice, runs focused/full proof, receives independent Mr Fluff artifact and first-hand user verification, commits privately with exact-SHA CI when authorized, and stops. No phase auto-authorizes the next.
 
 Every phase is a bounded approval unit. Phase numbering is ordered, but measured research tasks may overlap only when their dependencies and write scopes are explicit. “Exit gate” means evidence exists and the next phase may be proposed; it is not release authorization.
 
@@ -2104,127 +2673,300 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Risks:** Anthropomorphic overclaiming or identity leakage. Use explicit provenance, neutral defaults, and no inferred personality claims.
 
-## Phase 12 — Safe pause, emergency stop, and recovery UX
+## Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration
 
-**Objective:** Expose lifecycle controls through the local authority while preserving exact AgentIntersect semantics.
+**Status:** NEXT UP FOR THE NEXT SESSION / NOT STARTED. The user approved the re-baselined product direction on 2026-07-20. Phase 11 is the accepted implementation baseline. Phase 12 begins next session with its blocking adapter/permission/retention/fixture decisions and a fresh frozen scope; no Phase 12 code has started in this session.
 
-**Rationale:** Long-running real work needs a normal safe boundary and an exceptional owned-process stop with truthful recovery.
+**Objective:** Establish the persistent conversational runtime that turns an avatar into a real resumable agent session and proves free-form text collaboration without weakening Guided Build authority.
 
-**In scope:** Current dashboard compatibility for safe pause/cancel, phase controls needed by demo, emergency stop with recent reauthentication, per-process results, reconnect/reconcile UI, cleanup-required state, recovery guidance.
+**User-visible outcome:** The operator opens one repository, selects Explore or Collaborate mode, connects or resumes one Hermes profile/session, reviews capabilities and permissions, approves the agent’s bounded avatar proposal, enters the World with the agent, exchanges normal free-form text, sees ordered replies/tool status in chat and overhead indicators, interrupts or steers supported work, reloads the browser/server, and truthfully resumes or sees an explicit reset/unavailable state.
 
-**Out of scope:** World PID signaling, auto-rollback, remote peer controls, broad dashboard API adoption.
+**In scope:**
 
-**Dependencies:** Phase 0 control fixtures, Phase 7 validator, Phase 8 evidence UI.
+- `aiw.agent-session/0.12` and `aiw.agent-event/0.12` schemas;
+- Explore, Collaborate, Autonomous, and Guided Build mode model, but Autonomous remains disabled until a later scope explicitly enables its execution envelope;
+- session-mode and permission-revision UI;
+- Agent Session Gateway and adapter registry;
+- one deep Hermes adapter through a supported local API/platform/plugin seam;
+- create, attach, resume, send text, stream final/delta response, tool status, approval, interrupt/steer/close where supported;
+- persistent accessible chat with exact adapter/session/repository identity;
+- bounded overhead chat/typing/speaking indicators;
+- agent avatar proposal from bounded self-description with preview/approval/current-previous recovery;
+- current AgentIntersect Guided Build readiness preserved behind its own adapter;
+- Guided Build front door for selecting/resuming an AgentIntersect-managed design, displaying phases and acceptance criteria, and routing bounded start/approve/advance controls without duplicating phase authority; new design import/authoring remains capability- and scope-dependent;
+- safe pause/cancel/recovery controls needed for active sessions; AgentIntersect emergency stop remains delegated and identity-bound;
+- restart/reconnect reconciliation, ordered event cursor, dedupe, gap/reset behavior;
+- adapter capability fixture and honest unavailable states.
 
-**Concrete tasks:** Implement compatibility calls including dashboard CSRF/token handling established by tests; single-use intents; distinguish requested vs reached; expose auto-advance interaction; emergency confirmation and immutable ledger entry; rebuild projection after restart.
+**Out of scope:** Voice/audio, FPS locomotion, agent pathfinding, rich World Actions, live project preview, simultaneous editing agents, arbitrary PTY automation, modifying Hermes or AgentIntersect without separate authorization, public/remote agent hosting.
 
-**Code/artifacts:** Lifecycle control service and dialogs; recovery state machine; failure-injection fixtures.
+**Dependencies:** Completed Phase 6 read projection, Phase 7 command authority, Phase 9 presentation boundary, Phase 11 avatars; supported Hermes adapter seam verified from current Hermes docs/runtime; existing local authority and persistence.
 
-**Tests/evidence:** Safe pause during atomic action, cancel, reached/handoff, auto-advance gate, emergency stop owned process, PID reuse/protected process, partial termination, daemon/dashboard loss, duplicate intent.
+**Concrete tasks:**
 
-**Acceptance criteria:** World never reports “paused safely” at request time; only AgentIntersect-owned processes are targeted; remote peers cannot invoke controls; partial failure and cleanup needs are explicit.
+1. Freeze the adapter/session/mode/permission contracts and migration strategy.
+2. Implement capability-declared adapter registry with strict payload/event bounds.
+3. Implement Hermes attach/resume/text stream using one persistent session rather than one-shot CLI calls.
+4. Build durable session/message metadata and append-only event projection; keep adapter-native transcript ownership explicit.
+5. Build numbered connector flow: detect → choose profile/session → inspect capabilities → select mode → review permissions → connect → test message → enter World.
+6. Build persistent chat, status, queue/steer/interrupt controls, approvals, current/previous session truth, and accessible live regions.
+7. Implement agent avatar proposal/approval without transmitting raw `SOUL.md`, memory, or transcript content.
+8. Add AgentIntersect adapter identity and a bounded Guided Build front door so design/phase state remains AgentIntersect-owned while visible and operable from World.
+9. Implement reconnect/restart, sequence-gap, adapter-reset, offline, and session-missing paths.
+10. Add safe control compatibility and explicit cleanup-required outcomes without direct PID signaling.
 
-**Exit gate:** High-risk lifecycle/security review.
+**Code/artifacts:** `agent-session-protocol`, Hermes adapter, adapter manifest schema, session/event stores and migrations, chat/session UI, connector wizard, agent avatar proposal UI, OpenAPI routes, Storybook states, fixture Hermes adapter, first-hand runtime compatibility report, frozen Phase 12 scope/report.
 
-**Risks:** Dashboard routes are current but unversioned. Keep the adapter narrow and disable control on fixture mismatch.
+**Tests/evidence:** Schema/property tests; adapter contract fixtures; one actual persistent Hermes session across at least two turns; “find handoff” or equivalent skill-backed session continuity proof; browser reload and World restart resume; ordered delta/final/tool events; duplicate/gap/reset behavior; mode escalation/de-escalation; wrong workspace/session; approval/interrupt behavior; secret/persona redaction canaries; CRDT prompt injection creates no message; AgentIntersect Guided Build still passes existing job/lifecycle tests; desktop/mobile/keyboard/reduced-motion/WebGL-fallback chat/avatar evidence.
 
-## Phase 13 — Observability, diagnostics, and deterministic recovery
+**Acceptance criteria:** One persistent Hermes session receives normal free-form World chat and resumes truthfully; the same session retains approved Hermes skills/project context; Explore cannot mutate; Collaborate uses declared adapter approvals; unsupported capabilities remain disabled; agent avatar derivation is previewed and revocable; no raw identity/memory/transcript/secret enters presentation state; Guided Build authority remains AgentIntersect-owned; no public ingress or original-project modification occurs.
 
-**Objective:** Make the vertical slice supportable and privacy-safe under failures.
+**Exit gate:** User reviews the first real text conversation and session continuity evidence before Phase 13. Exact-SHA private CI and repository/vault continuity are green. Phase 13 does not begin automatically.
 
-**Rationale:** Alpha users need actionable evidence without sending source/secrets, and developers need replayable bugs.
+**Risks:** Hermes/platform APIs may not expose every rich event needed. Prefer a first-class adapter/plugin seam; degrade to honest text/status rather than scrape/fabricate. Session identity confusion could direct messages to the wrong repo; bind every turn to session/workspace/permission revision and show them visibly.
 
-**In scope:** Structured logs/metrics/local traces, readiness matrix, run ledger, JSONL checksums/rotation, DB backup/migration verification, diagnostic preview/export, crash recovery, corruption drills.
+## Phase 13 — Embodied user navigation and World Action Protocol
 
-**Out of scope:** Mandatory cloud telemetry, production SaaS monitoring, unlimited retention.
+**Objective:** Make the codebase inhabitable and let agents show spatial intent through deterministic semantic actions rather than decorative wandering.
 
-**Dependencies:** All prior data/event sources.
+**User-visible outcome:** The user navigates the repository with mouse/keyboard like an accessible FPS or through click/search/semantic controls. The connected agent can independently walk to files/symbols/tests, point at objects, focus the camera, trace relationships, compare areas, and lead/follow tours while chat remains available.
 
-**Concrete tasks:** Standardize event/log keys; metrics endpoint/local UI; correlation propagation; privacy-safe bundle; retention scheduler; startup integrity/replay; rebuild command; Yjs snapshot recovery; documented incident playbooks.
+**In scope:**
 
-**Code/artifacts:** `observability`, diagnostic manifest/schema, recovery CLI, support runbook.
+- `aiw.world-action/0.13` schema and validation service;
+- `navigate`, `focus`, `inspect`, `highlight`, `trace`, `compare`, `point-at`, `follow`, temporary annotation, present-evidence, and clear actions;
+- pointer-lock mouse look, configurable WASD, click-to-move, minimap travel, search-to-focus, follow-agent, and immediate shell escape;
+- deterministic agent target resolution/pathfinding/locomotion using stable World object IDs;
+- interaction points, collision policy, blocked/stale target truth, and teleport/focus fallback;
+- first-person, optional third-person/photo, reduced-motion, camera-comfort, and semantic DOM equivalents;
+- current semantic attention versus physical arrival distinction;
+- bounded chat bubbles and status indicators anchored to avatars;
+- code-graph edge/path validation with confidence/truncation labels;
+- presentation-only action replay and reset.
 
-**Tests/evidence:** Kill -9 at transaction stages, corrupt last JSONL/SQLite/Yjs update, disk full/read-only, clock skew, secret canaries, bundle reproducibility and deletion.
+**Out of scope:** Repository mutation from World Actions, model-generated per-frame controls, full physics, combat/game mechanics, procedural world generation, arbitrary durable layout mutation by agents, voice, multi-agent editing.
 
-**Acceptance criteria:** Derivable state rebuilds; preserved data loss range is explicit; exports pass redaction scan; readiness identifies precise degraded capability.
+**Dependencies:** Phase 12 persistent session/actions proposal channel, completed Phase 4/10 stable objects and graph, Phase 11 shared skeleton/animations, existing semantic shell.
 
-**Exit gate:** Recovery drill report and privacy review.
+**Concrete tasks:** Define object interaction points and navigation bounds; implement user control abstraction; implement deterministic path planner and agent movement state machine; validate/replay World Actions; add adapter tool/helper for proposing actions; integrate code-graph traces; build camera tour/follow behavior; add semantic action timeline and cancel/clear controls; enforce LOD/culling budgets; add accessibility preferences and motion sickness controls.
 
-**Risks:** Diagnostics themselves become an exfiltration channel. Default to summaries, require preview, and fail closed on redaction error.
+**Code/artifacts:** `world-action-protocol`, `navigation`, browser control/camera systems, agent locomotion controller, trace/highlight layer, semantic action log, World Action adapter tool/contract, Storybook and Playwright navigation fixtures, Phase 13 performance/accessibility report.
 
-## Phase 14 — Vertical-slice acceptance and bounded hardening
+**Tests/evidence:** Object-scope/revision/rate validation; stale/deleted/renamed targets; deterministic paths and blocked fallback; pointer-lock entry/escape; configurable controls; follow/interrupt; trace limits/confidence; no action mutates files or dispatches tools; 10k/100k LOD performance; two-CPU fallback; reduced motion/keyboard/screen reader/mobile; first-hand tour where agent shows two connected code areas.
 
-**Objective:** Execute the canonical end-to-end scenario and close only evidenced High-risk/Standard gaps.
+**Acceptance criteria:** The user can traverse and recover from the World without getting trapped; the agent can truthfully navigate and present existing objects through validated high-level actions; action prose is never treated as authority; movement remains performant and has complete semantic alternatives; repository state is unchanged by navigation/presentation.
 
-**Rationale:** The product decision is validated by a real integrated experience, not component completion.
+**Exit gate:** First-hand operator approval of navigation comfort and one agent-led code tour. Exact-SHA CI green; Phase 14 remains separately authorized.
 
-**In scope:** Fresh disposable repo; unchanged pinned AgentIntersect; one real job/edit/test; file construction/diff/evidence; two browsers; reconnect; safe pause and emergency-stop drills; accessibility/performance/security gates.
+**Risks:** Game-like movement may become disorienting or decorative. Default to useful search/focus/follow shortcuts, retain the exact shell, and make movement reflect semantic attention rather than simulated thought.
 
-**Out of scope:** New features, extra agent adapters, visual polish unrelated to acceptance, public release.
+## Phase 14 — Structured tool visualization, visual code explanations, and local project preview
 
-**Dependencies:** Phases 0–13 required paths green.
+**Objective:** Complete the one-agent magic slice by connecting real tool use, code changes, tests, explanations, and a health-checked preview to embodied World presentation.
 
-**Concrete tasks:** Script reproducible demo setup; record expected and failure paths; run full risk-tier matrix; triage findings into must-fix/defer; perform one bounded independent review and targeted re-review; produce readiness scorecard.
+**User-visible outcome:** The user asks how code relates and receives a synchronized explanation plus highlighted objects/edges. The user asks for one bounded feature or fix; the agent reads, edits, tests, and builds through its real harness while its avatar and the code world show evidence-backed activity. When ready, the agent opens the project in a normal browser or an in-world preview surface.
 
-**Code/artifacts:** Vertical-slice Playwright spec, demo fixture, evidence bundle, acceptance report, residual-risk register.
+**In scope:**
 
-**Tests/evidence:** The complete scenario below; clean clone; offline/reconnect; hostile CRDT; workspace mismatch; large repo degradation; keyboard-only workflow.
+- normalized tool requested/started/progress/completed/failed events;
+- mapping search/read/trace/edit/test/build/browser/approval events to bounded spatial and semantic presentation;
+- exact object/evidence correlation and candidate-versus-confirmed affected areas;
+- visual explanation response contract combining text, object refs, graph paths, actions, evidence, confidence, and truncation;
+- temporary/pinnable annotations and guided camera tours;
+- one bounded Collaborate-mode mutation path through Hermes adapter approvals;
+- bounded Autonomous-mode envelope with explicit local enablement, repository/worktree scope, allowed tools, process/network/time/token-or-cost limits where enforceable, stop conditions, and immediate de-escalation;
+- existing Phase 8 diff/test/evidence integration for free-form sessions;
+- Preview Manager: approved command profile, worktree binding, loopback host, PID/start identity, port selection, readiness/health, logs, open-in-browser/in-world display, screenshot evidence, teardown;
+- project-preview status/result panel and current/previous truth;
+- first complete magic-slice E2E.
 
-**Acceptance criteria:** All v0.1 definition-of-done items are evidenced; no High-risk open defect; Standard deferrals have owner/mitigation; acceptance recording shows real AgentIntersect IDs, real diff/test/evidence, and second-browser presence.
+**Out of scope:** Public deployment/tunnels, production hosting, hidden chain-of-thought, arbitrary command reconstruction from prose, unsupported tool-event fabrication, simultaneous editing agents, voice.
 
-**Exit gate:** User reviews the acceptance report and explicitly decides whether private alpha preparation may begin.
+**Dependencies:** Phase 12 structured session events, Phase 13 World Actions/navigation, Phase 8 evidence, Phase 10 graph, existing browser/visual testing infrastructure.
 
-**Risks:** Demo-only shortcuts. Tests must use production boundaries, and any fixture-only path is labeled/non-shipping.
+**Concrete tasks:** Pin Hermes tool-event and approval contracts; normalize/redact tool metadata; correlate file/symbol targets; implement activity presentation table; implement explanation bundle and graph query helper; connect free-form edits to evidence store; implement preview command profiles and process registry; add readiness strategies and browser/in-world fallback; capture preview evidence; build complete request→tools→edit→test→preview→final response journey.
 
-## Phase 15 — Private alpha readiness (no release authorization)
+**Code/artifacts:** Tool event schemas/normalizer, activity mapper, explanation service, code-tour UI, preview-manager package, preview registry/migrations, browser portal/screen, fixture project, magic-slice Playwright spec, evidence bundle, Phase 14 report.
 
-**Objective:** Prepare a reversible private-alpha candidate without publishing or releasing it.
+**Tests/evidence:** Structured and text-only adapter degradation; secret/path/tool-argument redaction; actual search/read/edit/test correlation; candidate never displayed as confirmed change; failing and passing tests; command approval denial; Autonomous enable/limit/de-escalate/stop behavior with unsupported hard limits disabled rather than claimed; preview startup failure, wrong port, timeout, process crash, stale PID, unsupported iframe, teardown failure; browser screenshot evidence; reload/reconcile after tools/preview; full local and exact-SHA CI proof.
 
-**Rationale:** Operational packaging, documentation, privacy, and compatibility need validation before any users beyond the core team.
+**Acceptance criteria:** A real persistent Hermes session can explain a bounded code relationship visually, perform one approved real edit/test, and present a verified local preview; a separately enabled Autonomous envelope enforces or truthfully declines every configured hard limit and can be immediately de-escalated/stopped; every effect links to real tool/repository/test/preview evidence; no hidden reasoning or secret is exposed; preview remains loopback and identity-bound; failures remain explicit and recoverable.
 
-**In scope:** Version proposal, changelog draft, install/uninstall/upgrade docs, compatibility declaration, signed artifact/reproducibility plan, SBOM/licenses, data deletion/export, feedback template, rollback instructions, limited tester criteria.
+**Exit gate:** User personally completes and approves the full text magic slice. No Phase 15 work begins automatically.
 
-**Out of scope:** npm publish, GitHub release, public repository, deployment, marketing, telemetry enablement, user invitations.
+**Risks:** Adapter telemetry may be incomplete and preview commands vary by repo. Capability-degrade honestly, require explicit preview profiles/approval, and keep open-in-browser as the universal fallback.
 
-**Dependencies:** Phase 14 approval to prepare; all gates green.
+## Phase 15 — Voice, expressive presence, and consentful agent identity
 
-**Concrete tasks:** Build candidate locally; test fresh install/upgrade/uninstall and data backup; document known risks; prepare opt-in consent and issue template; verify no private AgentIntersect source/artifacts are bundled; draft go/no-go checklist.
+**Objective:** Add natural voice conversation and richer expressive presence without changing authority, leaking identity, or pretending presentation equals emotion.
 
-**Code/artifacts:** Candidate artifact in approved local staging, SBOM/license report, install docs, release checklist draft, rollback drill evidence.
+**User-visible outcome:** The user can push to talk, inspect/cancel the transcript, send it into the same agent session, receive captions and optional spoken replies, interrupt playback, and see synchronized speaking/typing/activity indicators and subtle shared-skeleton expressions. Agents can propose an avatar/voice based on bounded self-description and the user can approve or change it.
 
-**Tests/evidence:** Reproducible build, checksum, malware/dependency scan, fresh machine/container smoke, private-source leakage scan, retention/deletion test.
+**In scope:** Local and explicitly approved external STT/TTS adapters; push-to-talk; bounded audio; partial/final captions; transcript preview/send/cancel; per-agent approved voice; streaming or chunked playback; barge-in/playback stop; voice/device/provider/privacy settings; proposal source disclosure; speaking/listening animations; emoji/activity tags; accessibility captions and text-only equivalence; voice latency/failure metrics.
 
-**Acceptance criteria:** Candidate is technically ready for a separate release decision; nothing is published; AgentIntersect remains private/unchanged/independently versioned.
+**Out of scope:** Always-on hot microphone, emotion detection, biometric identification, voice cloning without explicit licensed consent, sending raw identity/memory to providers, voice authority bypass, spatial audio worlds, unrelated-user calls.
 
-**Exit gate:** Explicit user authorization is required for any actual private alpha distribution or later public-readiness work.
+**Dependencies:** Phase 12 session messaging/permissions, Phase 11 avatar rig, Phase 14 stable chat/tool loop.
 
-**Risks:** Accidental publication or source leakage. Keep all external actions out of automation and require explicit separate authorization.
+**Concrete tasks:** Define voice provider interface; implement local-first STT option and one TTS baseline; implement Web Audio capture/playback; bind transcript to exact session/mode; build device/provider disclosure and consent; extend avatar proposal/voice preview; map speaking/listening safely; add interruption and network/provider failure paths; measure latency and resource use.
+
+**Code/artifacts:** `voice` package, provider manifests, audio/transcript schemas, voice settings and consent UI, caption/bubble integration, voice/avatar proposal boards, deterministic audio fixtures, Phase 15 privacy/performance report.
+
+**Tests/evidence:** Permission denied/no device; local/external provider disclosure; audio size/time limits; transcript correction/cancel; same permissions as typed message; TTS failure with captions retained; interruption; secret canary; no raw persona export; reduced motion/forced colors/screen reader; first-hand text↔voice session continuity.
+
+**Acceptance criteria:** Voice is optional, consentful, interruptible, captioned, and routes through the same persistent session and authority as text; external provider exposure is explicit; no voice/persona data enters presentation sync beyond approved fields; activity expression remains truthful and color-independent.
+
+**Exit gate:** User approves one complete push-to-talk conversation and provider/privacy disclosure. Phase 16 requires separate authorization.
+
+**Risks:** Latency can make presence feel worse and providers may retain data. Prefer push-to-talk/local STT, display latency/provider truth, keep text canonical, and never block the core product on voice.
+
+## Phase 16 — Multi-agent coordination, isolated worktrees, and embodied handoffs
+
+**Objective:** Let one operator collaborate with multiple persistent agents without invisible file collisions, ambiguous ownership, or untraceable cross-agent instructions.
+
+**User-visible outcome:** Two or more agents enter with distinct approved avatars, sessions, tasks, worktrees, focus, and tool streams. The operator assigns work, follows either agent, sees overlapping code interest, receives explicit handoffs, reviews merge candidates, and resolves conflicts with exact diffs/tests.
+
+**In scope:** Multiple adapter sessions; one worktree per editing agent by default; task/dependency/ownership model; optional coordinator; agent-to-agent messages visible and attributable; object-interest and contention indicators; worktree/branch-safe labels; handoff artifacts; merge candidate and conflict visualization; agent roster/follow; per-agent voice/chat channels; bounded concurrency/resource controls; same-operator Yjs projection.
+
+**Out of scope:** Unrelated users/agents, shared unisolated writes by default, automatic conflict resolution without evidence, invisible agent-to-agent system prompts, cloud agent marketplace, organizational RBAC.
+
+**Dependencies:** Stable Phase 12 session model, Phase 13 navigation, Phase 14 evidence/preview, optional Phase 15 voice; Git worktree support and agent adapter isolation.
+
+**Concrete tasks:** Define task/worktree/session schemas; implement worktree creation/validation/cleanup under approval; bind tools/previews to worktree; build task assignment/dependency UI; implement explicit agent messages/handoffs; detect overlapping object/file interest; visualize branch/merge/conflict state; add coordinator policy with no hidden authority; enforce CPU/memory/process budgets; test independent and integrated previews.
+
+**Code/artifacts:** Multi-agent coordinator, task/worktree registry, conflict/merge projection, agent-to-agent event schema, worktree lifecycle UI, two-agent fixture, Phase 16 coordination report.
+
+**Tests/evidence:** Two simultaneous agents on separate worktrees; same-file contention; conflicting edits; explicit handoff; merge candidate with tests; stale/deleted worktree; resource limits; wrong-session/worktree write refusal; agent message prompt-injection attribution; restart recovery; first-hand operator proof following both agents.
+
+**Acceptance criteria:** Each editing agent’s session, task, worktree, tools, evidence, and avatar are unambiguous; no silent cross-worktree mutation occurs; contention/conflict is visible before integration; agent-to-agent communication is attributable and reviewable; one operator retains authority.
+
+**Exit gate:** User approves a bounded two-agent collaboration and integration demonstration. Phase 17 begins only after explicit authorization.
+
+**Risks:** Coordination complexity can overwhelm the World and Git. Start with two agents, strict worktree ownership, visible tasks, and manual merge approval; avoid autonomous swarms.
+
+## Phase 17 — Observability, diagnostics, and deterministic recovery
+
+**Objective:** Make embodied sessions, tools, navigation, voice, previews, multi-agent worktrees, and Guided Build supportable and privacy-safe under failure.
+
+**User-visible outcome:** Readiness identifies exactly which capability is degraded; sessions and World state recover deterministically where possible; data-loss ranges and orphaned work are explicit; the operator can preview/export a redacted diagnostic bundle and follow tested recovery playbooks.
+
+**In scope:** Structured logs/metrics/local traces; adapter/session/tool/action/voice/preview/worktree readiness; checksummed ledgers and rotation; SQLite backup/migration; adapter reconnect/reset; preview/process reconciliation; worktree integrity; Yjs recovery; diagnostic preview/export/delete; corruption/crash/disk drills; recovery CLI and runbooks.
+
+**Out of scope:** Mandatory cloud telemetry, unlimited retention, silent transcript/persona export, automatic destructive recovery, production SaaS monitoring.
+
+**Dependencies:** All prior event/data/process owners; completed Phase 13 navigation through Phase 16 coordination.
+
+**Concrete tasks:** Standardize correlation keys; add capability readiness matrix; instrument session/tool/action/preview/voice/worktree flows; implement retention; add startup integrity and replay; build safe rebuild command; verify backups/migrations; implement adapter reset and orphan classification; produce privacy-safe diagnostic manifest and incident playbooks.
+
+**Code/artifacts:** `observability`, diagnostic schema/manifest, recovery CLI, support runbook, retention scheduler, corruption fixtures, Phase 17 recovery drill report.
+
+**Tests/evidence:** Kill -9 during message/tool/edit/test/preview/worktree stages; corrupt last JSONL/SQLite/Yjs segment; disk full/read-only; clock skew; adapter session missing/reset; preview orphan/stale PID; voice provider outage; worktree missing/conflict; secret/persona canaries; reproducible bundle and deletion.
+
+**Acceptance criteria:** Derivable state rebuilds; non-derivable loss range is explicit; no tool/preview/session completion is fabricated; exports pass redaction/privacy scans; readiness names precise degraded capabilities; recovery preserves repository/worktree safety.
+
+**Exit gate:** Recovery drill and privacy review focused on implemented boundaries. Exact-SHA CI and fresh-copy recovery proof green.
+
+**Risks:** Diagnostics can become an exfiltration channel and recovery can damage work. Default to summaries, require preview, fail closed on export redaction errors, preserve corrupt data before repair, and never auto-delete worktrees.
+
+## Phase 18 — Embodied vertical-slice acceptance and bounded hardening
+
+**Objective:** Validate the complete re-baselined product through real open-collaboration, Guided Build, voice, multi-agent, recovery, accessibility, performance, and authority scenarios without adding features.
+
+**User-visible outcome:** A recorded acceptance journey proves the World is useful as an embodied development environment—not merely a collection of subsystems—and produces a readiness scorecard and residual-risk register for the user’s decision.
+
+**In scope:** Fresh clone and disposable repos; one persistent Hermes magic slice; visual explanation; real edit/test/preview; voice path; two-agent worktree scenario; Guided Build design/phase run through unchanged pinned AgentIntersect; safe pause/emergency drill; reconnect/restart/corruption; keyboard/DOM equivalence; large-repo degradation; one bounded review only where warranted by observed or explicitly requested risk.
+
+**Out of scope:** New features/adapters, unrelated visual polish, public release, marketing, tester distribution, broad speculative hardening.
+
+**Dependencies:** Revised Phases 12–17 required paths green; completed Phases 0–11 remain accepted.
+
+**Concrete tasks:** Script reproducible setup; record expected/failure paths; run the complete acceptance matrix; measure responsiveness/latency; verify privacy/authority invariants; triage must-fix versus defer; perform bounded correction; produce acceptance report, evidence bundle, scorecard, and residual register.
+
+**Code/artifacts:** Open-collaboration and Guided Build Playwright specs, voice/multi-agent/recovery fixtures, recorded evidence, acceptance report, residual-risk register, private-alpha recommendation.
+
+**Tests/evidence:** Complete scenario below; clean clone; session resume; offline/reconnect; adapter reset; hostile CRDT/World Action; workspace mismatch; large repo; keyboard-only; reduced motion; no WebGL; preview failure; worktree conflict; safe pause/emergency results; secret/persona leakage scan.
+
+**Acceptance criteria:** Every re-baselined definition-of-done item is evidenced; the one-agent magic slice is compelling and reliable; multi-agent and voice degrade safely; Guided Build remains truthful; no open High-risk defect in supported flows; Standard deferrals have owner/mitigation; acceptance recording shows real sessions, object refs, tools, diff/tests, previews, and recovery.
+
+**Exit gate:** User reviews the acceptance report and explicitly decides whether private-alpha preparation may begin.
+
+**Risks:** Demo-only shortcuts and visual theater. Tests must use production boundaries; fixture-only paths are labeled/non-shipping; every claimed outcome resolves to real evidence.
+
+## Phase 19 — Private alpha readiness (no release authorization)
+
+**Objective:** Prepare a reversible private-alpha candidate for the embodied-session product without publishing, releasing, deploying, or inviting testers.
+
+**User-visible outcome:** A locally staged candidate can be installed, upgraded, used, backed up, recovered, uninstalled, and rolled back with documented adapter/voice/preview/worktree compatibility and no private-source leakage.
+
+**In scope:** Version proposal; changelog draft; install/uninstall/upgrade docs; Hermes/AgentIntersect/adapter compatibility declaration; optional voice-provider matrix; preview/worktree requirements; signed artifact/reproducibility plan; SBOM/licenses; data/session/avatar/voice deletion/export; feedback template; rollback instructions; limited tester criteria; go/no-go checklist.
+
+**Out of scope:** npm publish, GitHub release, public repository, deployment, marketing, telemetry enablement, public tunnels, tester invitations, private-alpha distribution.
+
+**Dependencies:** Phase 18 approval to prepare; all required gates green.
+
+**Concrete tasks:** Build candidate locally; test fresh install/upgrade/uninstall; test session/avatar/chat/evidence backup and deletion; verify adapters and local preview; document known risks; prepare opt-in consent and issue template; scan for private AgentIntersect/Hermes source, raw personas, credentials, transcripts, paths, and artifacts; draft distribution decision checklist.
+
+**Code/artifacts:** Candidate in approved local staging, checksums, SBOM/license report, compatibility matrix, install/data/rollback docs, release checklist draft, rollback drill evidence.
+
+**Tests/evidence:** Reproducible build, checksum, dependency/malware scan, fresh machine/container smoke, private-source/persona/secret leakage scan, retention/deletion, adapter absence/degradation, voice disabled path, preview loopback proof, rollback.
+
+**Acceptance criteria:** Candidate is technically ready for a separate private-alpha distribution decision; nothing is published or distributed; external agents remain independently versioned; user data/session identity is controllable and removable; rollback is proven.
+
+**Exit gate:** Explicit user authorization is required for any actual private-alpha distribution or later public-readiness work.
+
+**Risks:** Accidental publication, source/persona/session leakage, or bundling external runtimes. Keep all external actions out of automation, stage locally, scan manifests/artifacts, and require a separate explicit decision.
 
 ## Vertical-slice acceptance scenario
 
-The canonical acceptance scenario is normative for v0.1:
+The canonical acceptance scenario is normative for the re-baselined embodied-session candidate. It has two connected paths: open collaboration proves the primary experience; Guided Build proves the deterministic design/phase workflow remains intact.
 
-1. From a fresh clone of World and a pinned unchanged private AgentIntersect checkout, run locked setup and `pnpm aiw doctor` against a disposable small repository.
-2. Start AgentIntersect on its current defaults (`127.0.0.1:3761` daemon and `127.0.0.1:3762` dashboard), with verified onboarding/design/phase prerequisites.
-3. Run `pnpm aiw dev`, open the repository, and see one repo island with package/directory/file hierarchy. Search and inspect work through keyboard/DOM and canvas.
-4. The World server attests `agentintersect-daemon/v1`, protocol 1, process identity, and exact workspace identity. The UI shows a fresh control connection.
-5. Open a second browser context, join a scoped room, see both users’ presence, add an annotation, and confirm no absolute path, file content, raw memory, or command authority entered the room.
-6. As the local host, submit one `worker.enqueue-phase` intent for a real approved harness. One and only one current AgentIntersect `phase_run` job is created.
-7. The AgentIntersect worker claims and runs the job. World projects queued/started status and an avatar near the affected district without launching the harness itself.
-8. The real agent makes at least one real repository edit and runs a real bounded test command. Filesystem/Git observation confirms the diff.
-9. The affected building shows construction state; the test beacon shows running then pass/fail with text/icon; selecting the building reveals the exact bounded diff and provenance.
-10. AgentIntersect receives completion telemetry and, as policy requires, lifecycle/handoff/evidence. World links job, phase, session, diff, test, handoff integrity, and evidence in the run ledger.
-11. The second browser sees allowed world activity/presence but cannot view unshared sensitive content or invoke execution. A synthetic command-shaped Yjs update creates no job.
-12. Disconnect/reconnect one browser and restart the World server. Event dedupe/replay restores the same final state without duplicate job or construction animation.
-13. Exercise safe pause in a separate run: requested and reached are distinct. Exercise emergency stop against a disposable AgentIntersect-owned process and display per-process result without World signaling a PID directly.
+### Path A — Open embodied collaboration
 
-**Pass statement:** one repo island, one unchanged-AgentIntersect real agent job, one real edit and test result, visible evidence-backed construction/diff, and two-browser Yjs presence—all across the specified authority boundary.
+1. From a fresh World clone, run locked setup/doctor against a disposable repository. No external agent is modified by setup.
+2. Open World at loopback, complete or restore the user avatar, select the repository, and see deterministic package/directory/file/symbol/dependency objects with semantic DOM equivalence.
+3. Choose Collaborate mode and connect a supported Hermes profile. World shows the exact profile/session/repository boundary, capability manifest, permission revision, and unavailable features without secrets.
+4. Attach or resume one persistent Hermes session. Send a continuity request such as “find handoff”; prove the response comes from the same profile/session with its approved skills/project context.
+5. Ask Hermes for a bounded self-description/avatar proposal. Preview, edit if desired, approve, and spawn the agent avatar. Verify raw `SOUL.md`, memory, transcripts, and secrets never enter World/Yjs payloads.
+6. Enter the World through mouse/keyboard controls; also complete the same selection/focus/chat operations through the semantic shell.
+7. Ask, “Show me how the last feature connects to the previous implementation.” Hermes uses repository/code-graph tools, replies in chat, navigates to exact objects, highlights a bounded path with edge confidence/truncation, and opens related diff/test evidence.
+8. Verify the avatar’s attention/location, chat bubble, status icon, and animations correspond only to accepted World Actions and structured events. No hidden reasoning is shown.
+9. Ask Hermes to implement one approved bounded feature. Observe actual search/read/edit/test/build events as accessible status and spatial activity. Deny one approval and confirm no action/effect falsely claims it ran; approve the intended path afterward.
+10. Confirm real Git/filesystem changes produce exact Phase 8 evidence and affected objects; candidate areas remain visually distinct until confirmed.
+11. Have Hermes start a local project preview through Preview Manager. Verify assigned worktree, loopback binding, process identity, selected port, readiness, open-in-browser or in-world display, screenshot/evidence, and clean teardown.
+12. Use push-to-talk to ask one follow-up. Preview the transcript, send it into the same session, receive captions and optional TTS, interrupt playback, and verify text remains canonical when voice fails.
+13. Reload the browser and restart the World server. Reattach to the same Hermes session, recover avatar/chat metadata/focus/evidence, reconcile tool/preview state, and show explicit reset/unavailable truth if any native state cannot resume.
+
+### Path B — Multi-agent coordination
+
+14. Connect a second supported agent in a separate session and isolated Git worktree. Give each a distinct approved avatar and task.
+15. Ask both agents to inspect overlapping code. World shows interest/contention without claiming a file conflict before edits exist.
+16. Let each make bounded edits in its own worktree. Verify no cross-worktree write, process, preview, or evidence attribution occurs.
+17. Produce an explicit handoff and merge candidate. Show exact diffs/tests, identify any conflict, and require operator-approved integration.
+18. Restart during active coordination and recover or truthfully classify each session, worktree, task, preview, and handoff.
+
+### Path C — Guided Build compatibility
+
+19. Start an unchanged pinned AgentIntersect instance with verified onboarding/design/phase prerequisites and an approved disposable phase task.
+20. Create a Guided Build World session. Display the design phases/acceptance criteria and AgentIntersect readiness; World does not duplicate phase/process authority.
+21. Submit one `worker.enqueue-phase` intent for a real approved harness. One and only one matching AgentIntersect job is created.
+22. The worker claims/runs the job, makes a real edit, runs a real test, and publishes lifecycle/handoff/evidence. World projects status, avatar activity, affected objects, exact diff/test/evidence, and current/previous truth.
+23. In a separate run, exercise safe pause and prove requested versus reached are distinct. Exercise emergency stop against a disposable AgentIntersect-owned process and display per-process outcomes without World signaling a PID directly.
+24. Disconnect/reconnect a browser and restart World. Event dedupe/replay restores the same final projection without duplicate job, tool completion, construction effect, or preview.
+
+### Cross-cutting acceptance
+
+25. Repeat required flows with keyboard-only/reduced-motion/high-contrast/no-WebGL configurations and verify no horizontal overflow or unreachable status/results.
+26. Run bounded large-repository/two-CPU measurements and verify LOD, semantic truth, chat, navigation, avatars, and tool status degrade within frozen budgets.
+27. Inspect presentation traffic and diagnostic export for secret/persona/transcript/path/tool-output leakage. Synthetic CRDT prompt/tool and stale World Action updates create no session turn or mutation.
+28. Verify the repository remains private and no release, package publication, deployment, public tunnel, visibility change, or unauthorized original-project modification occurred.
+
+**Pass statement:** one operator and persistent Hermes agent can converse, explain code spatially, perform one real approved edit/test, and present a verified local preview; two isolated agents can coordinate without hidden collision; Guided Build can execute one real AgentIntersect phase with truthful lifecycle controls; every visible result is evidence-backed and recoverable across supported restarts.
 
 ## Release and readiness plan
 
 ### Private alpha
 
-Entry requires the Phase 14 scenario, zero open High-risk issues, documented Standard risks, pinned AgentIntersect compatibility, signed local candidate, privacy/retention documentation, and a rollback/data-delete drill. Alpha remains opt-in, small, and private. Collection of feedback/diagnostics is explicit and redacted.
+Entry requires the Phase 18 scenario, zero open High-risk issues, documented Standard risks, pinned AgentIntersect compatibility, signed local candidate, privacy/retention documentation, and a rollback/data-delete drill. Alpha remains opt-in, small, and private. Collection of feedback/diagnostics is explicit and redacted.
 
 ### Private beta
 
@@ -2236,28 +2978,38 @@ Future public consideration requires legal/license/security review, public docum
 
 ## Risk register
 
-| ID  | Risk                                           | Probability | Impact   | Mitigation                                                  | Trigger                         | Owner role          |
-| --- | ---------------------------------------------- | ----------- | -------- | ----------------------------------------------------------- | ------------------------------- | ------------------- |
-| R1  | Current AgentIntersect surface changes         | Medium      | High     | Pinned contract fixtures, compatibility facade, fail closed | Contract CI diff                | Integration owner   |
-| R2  | World duplicates execution authority           | Low         | Critical | Import rules, architecture tests, no harness PTY            | New process dependency/path     | Security owner      |
-| R3  | CRDT peer causes execution                     | Low         | Critical | Separate networks/types, no command root, boundary tests    | Dispatch call from sync package | Security owner      |
-| R4  | Repo path/symlink escape                       | Medium      | Critical | lstat/realpath containment, no index writes, race tests     | Containment mismatch            | Indexer owner       |
-| R5  | Fake/mismatched daemon                         | Medium      | High     | Health/service/protocol/workspace/PID-start attestation     | PID/workspace change            | Integration owner   |
-| R6  | Visual status misrepresents truth              | Medium      | High     | Evidence links, candidate labels, authoritative reducer     | Animation lacks evidence        | Product owner       |
-| R7  | Large repo freezes browser/server              | High        | High     | LOD, caps, worker parsing, aggregation, cancellation        | Budget breach                   | Performance owner   |
-| R8  | Tree-sitter/dependency compromise              | Medium      | High     | Pinning, SBOM, sandbox/caps, no repo code execution         | Advisory/grammar crash          | Supply-chain owner  |
-| R9  | Secrets leak to room/export/log                | Medium      | Critical | Minimal projection, redaction twice, canary tests, preview  | Canary detected                 | Privacy owner       |
-| R10 | Event gaps/duplicates corrupt projection       | Medium      | High     | Cursor, snapshot reconcile, transactional dedupe            | Reset/duplicate rate            | Protocol owner      |
-| R11 | Mutation timeout creates duplicate job         | Medium      | High     | World idempotency ledger, reconcile, no blind retry         | Ambiguous response              | Authority owner     |
-| R12 | Yjs document grows without bound               | Medium      | Medium   | Limits, compaction, retention, metrics                      | Size/update threshold           | Collaboration owner |
-| R13 | 3D excludes keyboard/screen-reader users       | Medium      | High     | Equivalent DOM workflow, gates, manual testing              | Accessibility finding           | UX owner            |
-| R14 | Agent/avatar privacy overreach                 | Medium      | High     | Explicit consent, derived safe fields, no raw memory        | Sensitive field on wire         | Avatar owner        |
-| R15 | Emergency stop harms unrelated process         | Low         | Critical | Delegate entirely to AgentIntersect identity manifests      | Browser PID/kill code appears   | Security owner      |
-| R16 | SQLite/Yjs corruption loses annotations/ledger | Low         | High     | WAL/checksums/snapshots/backups/recovery drills             | Integrity failure               | Persistence owner   |
-| R17 | PartyKit lock-in/API drift                     | Medium      | Medium   | Provider abstraction, pinned proof, exportable Yjs docs     | Breaking update                 | Collaboration owner |
-| R18 | Scope expands before slice proves value        | High        | High     | Phase gates, explicit non-goals/backlog                     | New subsystem before Phase 14   | Product owner       |
-| R19 | Private AgentIntersect source ships publicly   | Low         | Critical | Separate repo, bundle scan, license/release gate            | Artifact contains source/path   | Release owner       |
-| R20 | Real-agent E2E is flaky/costly                 | High        | Medium   | Bounded fixture, deterministic acceptance, recorded IDs     | Repeated nondeterminism         | QA owner            |
+| ID  | Risk                                           | Probability | Impact   | Mitigation                                                   | Trigger                         | Owner role           |
+| --- | ---------------------------------------------- | ----------- | -------- | ------------------------------------------------------------ | ------------------------------- | -------------------- |
+| R1  | Current AgentIntersect surface changes         | Medium      | High     | Pinned contract fixtures, compatibility facade, fail closed  | Contract CI diff                | Integration owner    |
+| R2  | World duplicates execution authority           | Low         | Critical | Import rules, architecture tests, no harness PTY             | New process dependency/path     | Security owner       |
+| R3  | CRDT peer causes execution                     | Low         | Critical | Separate networks/types, no command root, boundary tests     | Dispatch call from sync package | Security owner       |
+| R4  | Repo path/symlink escape                       | Medium      | Critical | lstat/realpath containment, no index writes, race tests      | Containment mismatch            | Indexer owner        |
+| R5  | Fake/mismatched daemon                         | Medium      | High     | Health/service/protocol/workspace/PID-start attestation      | PID/workspace change            | Integration owner    |
+| R6  | Visual status misrepresents truth              | Medium      | High     | Evidence links, candidate labels, authoritative reducer      | Animation lacks evidence        | Product owner        |
+| R7  | Large repo freezes browser/server              | High        | High     | LOD, caps, worker parsing, aggregation, cancellation         | Budget breach                   | Performance owner    |
+| R8  | Tree-sitter/dependency compromise              | Medium      | High     | Pinning, SBOM, sandbox/caps, no repo code execution          | Advisory/grammar crash          | Supply-chain owner   |
+| R9  | Secrets leak to room/export/log                | Medium      | Critical | Minimal projection, redaction twice, canary tests, preview   | Canary detected                 | Privacy owner        |
+| R10 | Event gaps/duplicates corrupt projection       | Medium      | High     | Cursor, snapshot reconcile, transactional dedupe             | Reset/duplicate rate            | Protocol owner       |
+| R11 | Mutation timeout creates duplicate job         | Medium      | High     | World idempotency ledger, reconcile, no blind retry          | Ambiguous response              | Authority owner      |
+| R12 | Yjs document grows without bound               | Medium      | Medium   | Limits, compaction, retention, metrics                       | Size/update threshold           | Collaboration owner  |
+| R13 | 3D excludes keyboard/screen-reader users       | Medium      | High     | Equivalent DOM workflow, gates, manual testing               | Accessibility finding           | UX owner             |
+| R14 | Agent/avatar privacy overreach                 | Medium      | High     | Explicit consent, derived safe fields, no raw memory         | Sensitive field on wire         | Avatar owner         |
+| R15 | Emergency stop harms unrelated process         | Low         | Critical | Delegate entirely to AgentIntersect identity manifests       | Browser PID/kill code appears   | Security owner       |
+| R16 | SQLite/Yjs corruption loses annotations/ledger | Low         | High     | WAL/checksums/snapshots/backups/recovery drills              | Integrity failure               | Persistence owner    |
+| R17 | PartyKit lock-in/API drift                     | Medium      | Medium   | Provider abstraction, pinned proof, exportable Yjs docs      | Breaking update                 | Collaboration owner  |
+| R18 | Scope expands before slice proves value        | High        | High     | Phase gates, one-agent text magic slice first                | Voice/multi-agent before slice  | Product owner        |
+| R19 | Private AgentIntersect source ships publicly   | Low         | Critical | Separate repo, bundle scan, license/release gate             | Artifact contains source/path   | Release owner        |
+| R20 | Real-agent E2E is flaky/costly                 | High        | Medium   | Bounded fixture, deterministic acceptance, recorded IDs      | Repeated nondeterminism         | QA owner             |
+| R21 | Message routed to wrong session/repo           | Low         | Critical | Visible binding, permission revision, adapter/session checks | Session/workspace mismatch      | Session owner        |
+| R22 | Agent/prose forges World Action                | Medium      | High     | Separate schema, stable IDs, revision/scope/rate validation  | Unvalidated scene action        | World-action owner   |
+| R23 | Tool visualization overstates real activity    | Medium      | High     | Structured events plus filesystem/test evidence              | Effect without event/evidence   | Evidence owner       |
+| R24 | Voice leaks private audio/transcript           | Medium      | High     | Push-to-talk, provider disclosure, local option, no hot mic  | Unexpected provider payload     | Voice/privacy owner  |
+| R25 | Preview stops/exposes unrelated process        | Low         | Critical | Worktree binding, PID/start identity, loopback, no tunnels   | Identity/host mismatch          | Preview owner        |
+| R26 | Multi-agent edits collide or overwrite work    | Medium      | Critical | Isolated worktrees, ownership/contention/conflict UI         | Cross-worktree mutation         | Coordination owner   |
+| R27 | Adapter capability/API drift breaks continuity | High        | High     | Capability fixtures, versioned manifests, honest degradation | Contract mismatch/reset         | Adapter owner        |
+| R28 | Avatar/persona proposal overreaches identity   | Medium      | High     | Local derivation, bounded proposal, preview/consent/revoke   | Raw persona/private field       | Avatar/privacy owner |
+| R29 | Spatial UX becomes decorative or disorienting  | Medium      | High     | Semantic tasks, focus shortcuts, comfort controls, 2D parity | User cannot find/verify work    | UX owner             |
+| R30 | Raw terminal scraping becomes false evidence   | Medium      | High     | Compatibility label, no structured claims without proof      | Parsed ANSI/prose as tool event | Adapter owner        |
 
 ## Architecture decision records
 
@@ -2265,9 +3017,9 @@ Future public consideration requires legal/license/security review, public docum
 
 **Status:** Accepted product decision. **Decision:** AgentIntersect World is separate; AgentIntersect stays private and unchanged. **Why:** Different UI/runtime/dependency/release models and security surfaces. **Rejected:** long-lived AgentIntersect branch. **Revisit:** never for v0.1; shared packages only after measured stable seams.
 
-### ADR-002 — AgentIntersect is execution authority
+### ADR-002 — AgentIntersect is Guided Build execution authority
 
-**Status:** Accepted invariant. **Decision:** World enqueues and observes; AgentIntersect owns workers/processes/lifecycle. **Rejected:** generic World CLI adapters for managed work. **Consequence:** integration outage disables mutation but not visualization.
+**Status:** Accepted invariant for Guided Build. **Decision:** World submits bounded phase intents and observes; AgentIntersect owns its workers, managed processes, phase lifecycle, handoffs, and emergency controls. Free-form adapters own their native sessions/tools under the Agent Session Gateway and the selected World mode; World still does not become a generic shell or claim unsupported execution authority. **Rejected:** World duplicating AgentIntersect lifecycle/process identity, browser-owned PTYs, or treating one authority domain as another. **Consequence:** an AgentIntersect outage disables Guided Build mutation but not repository visualization or independently supported free-form sessions.
 
 ### ADR-003 — Presentation-only CRDT
 
@@ -2305,64 +3057,115 @@ Future public consideration requires legal/license/security review, public docum
 
 **Status:** Accepted by the user on 2026-07-19. **Decision:** Phase 5 performs one bounded extraction of the original AgentIntersect identity screen, avatar/dashboard graphics, hero harness selector, navigation appearance, typewriter/cursor behavior, overlay toggles, and visible output pattern. Selected graphics remain byte-identical; interactions are ported into World-owned React components. Original menu bodies and control-plane authority are replaced by World/Repositories/Agents/Activity/Evidence/Settings and World APIs. **Rejected:** inventing a disconnected second visual language, wholesale copying the monolithic dashboard, retaining Connect/OnBoarding/Design/Control/Workers/Records business logic, or maintaining a live source dependency. **Consequence:** provenance/hashes and visual comparison are Phase 5 gates; later source sync is not.
 
+### ADR-012 — Free-form embodied collaboration is primary, Guided Build is a mode
+
+**Status:** Accepted by the user on 2026-07-20. **Decision:** World supports open conversational sessions and optional design-document phases in one product. Explore, Collaborate, Autonomous, and Guided Build make authority explicit. **Rejected:** forcing every World session into a rigid phase plan; building a separate free-form product. **Consequence:** session mode is durable, visible, tested, and permission-relevant.
+
+### ADR-013 — Versioned Agent Session Gateway
+
+**Status:** Accepted design direction. **Decision:** persistent agents connect through capability-declared adapters normalized into session/message/tool/approval/artifact/action events. **Rejected:** browser-to-PTY coupling, one-shot prompts as the primary session, or agent-specific payloads throughout UI state. **Consequence:** adapter fixtures and honest degradation are phase gates.
+
+### ADR-014 — Hermes is the first deep free-form adapter
+
+**Status:** Proposed for Phase 12 freeze. **Decision:** prove one persistent Hermes profile/session with skills, memory, project context, tools, approvals, and resume before broad adapter expansion. **Rejected:** shallow simultaneous implementations of every harness. **Consequence:** current Hermes docs/runtime define the initial fixture; no Hermes source modification without separate approval.
+
+### ADR-015 — Semantic World Actions, not model-driven frame controls
+
+**Status:** Accepted design direction. **Decision:** agents reference stable World objects and request bounded high-level actions; deterministic navigation/rendering executes them. **Rejected:** parsing prose for object intent or spending model turns on joystick input. **Consequence:** actions are presentation-only, revision-scoped, replayable, and accessible.
+
+### ADR-016 — Structured activity, never private chain-of-thought theater
+
+**Status:** Accepted invariant. **Decision:** visualize explicit assistant messages, concise published status, tool events, approvals, repository evidence, tests, previews, and lifecycle. **Rejected:** exposing or fabricating hidden reasoning/emotions. **Consequence:** text-only adapters degrade to text/status and effects never exceed evidence.
+
+### ADR-017 — Consentful agent avatar and voice proposals
+
+**Status:** Accepted design direction. **Decision:** agents may propose bounded appearance/voice from allowlisted local self-description; the operator previews, edits, accepts, or declines. Raw persona/memory does not leave the adapter. **Rejected:** silent inference, biometric/personality claims, or raw `SOUL.md` replication. **Consequence:** proposal source disclosure, current/previous recovery, and revocation are required.
+
+### ADR-018 — Preview Manager owns only local bounded previews
+
+**Status:** Accepted design direction. **Decision:** previews use approved commands, assigned worktrees, loopback ports, PID/start identity, readiness checks, and exact teardown. **Rejected:** generic process manager, automatic public tunnel/deploy, or adopting unknown listeners. **Consequence:** browser open is universal fallback; embedding is optional.
+
+### ADR-019 — Worktree isolation before multi-agent editing
+
+**Status:** Accepted design direction. **Decision:** each simultaneous editing agent receives a separate Git worktree by default, with visible task/interest/merge/conflict state. **Rejected:** agents silently sharing one mutable checkout. **Consequence:** worktree lifecycle and integration evidence are required before multi-agent acceptance.
+
+### ADR-020 — Text magic slice before voice and broad multi-agent scope
+
+**Status:** Accepted delivery order. **Decision:** prove one persistent agent, text chat, visual explanation, real edit/test, and local preview before adding voice or simultaneous agents. **Rejected:** expanding every futuristic surface before the central loop is compelling. **Consequence:** Phases 12–14 form the first experience gate; Phase 15/16 are separate approvals.
+
 ## Open questions requiring user approval
 
-1. Approve this design and Phase 0 only, or request design revisions? No implementation begins without this choice.
-2. Which exact AgentIntersect commit becomes the initial pinned compatibility baseline?
-3. Which harness and disposable demo task are approved for the one real-job acceptance test (Codex is the design default, not an authorization)?
-4. Is PartyKit acceptable for the first multiplayer proof, and may its hosted service receive opaque room presentation data, or must the proof be entirely local/self-hosted?
-5. What OS/browser/reference-hardware matrix is required for v0.1 acceptance?
-6. Should repo labels (not paths/content) be shared by default in an explicitly created room, or require per-room opt-in?
-7. What default retention is approved for local World events, Yjs room snapshots, annotations, and diagnostics?
-8. Must the vertical slice support non-Git directories, or may that remain visualization-only/best effort?
-9. Is safe-pause/emergency-stop control required for v0.1 acceptance or a private-alpha gate? This design includes both before acceptance because they are high-risk lifecycle boundaries.
-10. Resolved: v0.1 avatar appearance is manually configured by the operator in the inherited `identify_` opening flow; no traits are inferred from private profiles.
-11. Which language Tier 2 languages, if any, are required beyond TypeScript/JavaScript for v0.1?
-12. May World retain a sanitized copy of current AgentIntersect dashboard fixtures in its private repo for contract tests?
+The re-baseline establishes direction but intentionally leaves implementation choices for Phase 12+ scope freezes:
 
-## Definition of done for v0.1
+1. Which supported Hermes seam should the first adapter use: existing API/platform plugin, a new local plugin, ACP, or another documented interface?
+2. May Phase 12 add a World-specific plugin/adapter to Hermes’s local profile, provided the change is explicit, reversible, private, and separately approved?
+3. Which Hermes profile/session should be the first acceptance identity, and may its `SOUL.md` produce a local bounded avatar proposal?
+4. Should Collaborate mode use the agent’s normal approval settings unchanged, or may World add a stricter per-session cap?
+5. What exact capability envelope may Autonomous mode eventually receive: paths, tools, process count, duration, token/cost, network, and preview?
+6. Which voice providers are acceptable for the first proof, and must STT be entirely local by default?
+7. Should TTS use one neutral default voice until the avatar proposal flow is proven, or allow agent-proposed provider voices in Phase 15?
+8. What pointer-lock/WASD bindings and camera comfort defaults should be the reference controls?
+9. Which repository fixture and bounded feature best demonstrate the first magic slice without depending on unrelated private work?
+10. Which start/readiness profile should Preview Manager support first: Vite, a user-entered command, package-script selection, or manifest detection?
+11. Is two-agent Phase 16 limited to Hermes plus one other adapter, or should the first proof use two Hermes profiles/worktrees?
+12. May agents send explicit messages to one another, or should the operator/coordinator relay every handoff in the first version?
+13. What retention is approved for World chat metadata, tool/action ledgers, audio, transcripts, preview logs, and worktree records?
+14. Should same-operator trusted-LAN clients be permitted to send agent chat, or remain presentation-only until after private alpha?
+15. Which OS/browser/reference hardware matrix is required for embodied navigation, voice, and preview acceptance?
+16. Which language Tier 2 semantics are required for the visual explanation acceptance fixture?
+17. When should a temporary agent annotation become durable: explicit user pin only, or agent request plus user confirmation?
+18. Should Guided Build import/select design documents entirely through World in revised Phase 12, or initially expose only the current AgentIntersect-managed plan and add authoring later?
 
-v0.1 is done only when all statements are true and evidenced:
+Resolved decisions: the repository remains private; completed Phases 0–11 remain accepted; free-form collaboration is primary; Guided Build remains; one Hermes text magic slice precedes voice/multi-agent; raw persona/memory/chain-of-thought is not shared; no implementation/release/public action is authorized by this design revision.
 
-- Product/repo is AgentIntersect World, separate from unchanged private AgentIntersect.
+## Definition of done for the re-baselined private-alpha candidate
+
+The candidate is done only when all statements are true and evidenced:
+
+- AgentIntersect World remains a separate private project; no unauthorized release, publication, deployment, public tunnel, visibility change, or external-project modification occurred.
 - Fresh clone/install/build/doctor succeeds on the approved matrix with locked dependencies.
-- One arbitrary safe local repo opens; hierarchy/search/inspection works with deterministic stable IDs and clear parse coverage.
-- One repo island renders within budgets, with complete keyboard/DOM equivalent, reduced motion, and color-independent state.
-- First open presents the inherited `identify_` avatar builder, then the accepted dashboard shell; selected source graphics are byte-identical, World navigation categories are used, and avatar/default harness selections restore truthfully.
-- Health attestation confirms service/protocol/process/workspace; mismatches block mutation.
-- Current AgentIntersect contract tests pass against the pinned unchanged checkout, including exact daemon routes, dashboard snapshot/events/SSE candidates, worker semantics, MCP five tools/protocol/no resources, and lifecycle controls used.
-- A local host intent creates at most one real `phase_run`; World does not launch or stop the harness process directly.
-- One real edit and test outcome appear as confirmed diff/evidence-backed spatial and DOM states.
-- Run ledger links World correlation/run IDs to AgentIntersect job/phase/session, events, telemetry, handoff/evidence/audit references.
-- SSE reconnect/replay/dedupe and World restart recover identical final projection without duplicate effects or mutation.
-- Two browsers share presence and durable annotations through Yjs; offline/reconnect converges.
-- Captured multiplayer traffic contains no file content, raw memory, tokens, absolute paths, terminal output, or executable intent.
-- CRDT command injection, CSRF/origin bypass, traversal/symlink, fake health/workspace mismatch, secret export, and PID-boundary tests pass.
-- Safe pause distinguishes requested/reached; emergency stop delegates to AgentIntersect and shows per-process outcomes.
-- Large repo degradation, index cancellation, parser failure, DB/event/Yjs corruption, and WebGL absence have truthful recovery paths.
-- Zero open High-risk defects; Standard residuals are documented with owner/mitigation/trigger.
-- No npm publish, public release, visibility change, AgentIntersect source modification, or shared-package extraction occurred without separate authorization; the approved private World remote and one-time Phase 5 visual-asset copy are the only relevant exceptions.
+- One safe local repository opens with deterministic IDs, hierarchy, search, symbols/dependencies, bounded LOD, and clear parse/coverage truth.
+- The World is navigable through reference mouse/keyboard controls and through a complete semantic shell with reduced-motion/no-WebGL equivalents.
+- The user avatar restores locally; one Hermes session connects/resumes with visible session/mode/repository/capability/permission identity.
+- The agent proposes a bounded avatar; the user can approve/edit/decline/revoke; raw `SOUL.md`, memory, transcript, and secrets remain outside presentation state.
+- Explore mode cannot mutate; Collaborate uses adapter approvals; Autonomous is bounded by an explicit envelope when enabled; Guided Build routes phase/process authority through AgentIntersect.
+- Text chat supports persistent history metadata, streaming/final response, tool/approval status, queue/steer/interrupt where declared, overhead bounded indicators, and restart recovery.
+- One visual explanation uses exact object/edge IDs, bounded graph paths, confidence/truncation, chat, navigation, and accessible evidence.
+- World Actions are revision/scope/rate validated, presentation-only, replayable, and never parsed from prose for authority.
+- One approved real edit and test from the persistent Hermes session appears as confirmed diff/evidence-backed spatial and DOM state; candidate and confirmed activity remain distinct.
+- Preview Manager launches one approved loopback project preview in the assigned worktree, verifies readiness, opens browser/in-world presentation, records evidence, and tears down only its owned process.
+- Push-to-talk voice is optional, disclosed, captioned, previewable/cancelable, interruptible, and authority-equivalent to text; text remains canonical when unavailable.
+- Two editing agents operate in isolated worktrees with visible sessions/tasks/focus/tools/contention; handoff/merge/conflict evidence is attributable and operator-controlled.
+- Guided Build creates at most one real AgentIntersect phase job, projects exact lifecycle/evidence, distinguishes safe-pause requested/reached, and delegates emergency stop to AgentIntersect with per-process outcomes.
+- Browser reload, World restart, adapter reset/offline, ledger/DB/Yjs corruption, preview crash, and worktree failure recover deterministically or expose exact loss/reset/cleanup truth.
+- Same-operator presentation traffic contains no executable prompt/tool authority, file content, raw memory/persona, tokens, absolute paths, raw terminal output, or unrestricted transcript/audio.
+- Large-repo/two-CPU performance, navigation comfort, avatar, chat, tool effects, voice, preview, accessibility, and fresh-copy budgets pass or have explicitly approved revisions.
+- Every visible success/completion/action resolves to assistant/tool/repository/test/preview/lifecycle evidence; no hidden reasoning or fabricated emotion/progress is presented.
+- No open High-risk defect remains in supported flows; Standard residuals have owner, mitigation, trigger, and user-visible limitation.
+- A locally staged candidate passes reproducibility, SBOM/license, leakage, install/upgrade/uninstall, backup/delete, and rollback proof; distribution still requires a separate user decision.
 
-## Explicit post-v0.1 backlog
+## Explicit post-candidate backlog
 
-**Future/Deferred:** multi-repo continents; more languages/LSP-derived semantics; multiple simultaneous agents; richer phase choreography; issue/PR integrations; optional WebXR; limited Rapier navigation; spatial audio; review/refactor command intents; World MCP read-only resources; capability-isolated plugins; self-hosted PartyServer option; end-to-end encrypted room payloads with key UX; enterprise roles; remote/LAN authority with TLS; cloud accounts/sync; team analytics; replay scrubbing; semantic hotspots; AI-assisted layout; avatar asset marketplace; public package/CLI; shared AgentIntersect packages only if the vertical slice proves stable common seams.
+**Future/Deferred:** multiple repository continents; unrelated-user/team collaboration; public rooms; cloud arbitrary agents; broader agent marketplace; more languages and LSP-derived semantics; plugin marketplace; advanced issue/PR integrations; optional WebXR; richer physics; spatial audio beyond per-agent voice; replay scrubbing; semantic hotspots; AI-assisted durable layout; avatar asset marketplace; end-to-end encrypted room payloads with key UX; enterprise roles; remote authority with TLS; cloud accounts/sync; team analytics; public package/CLI; shared external-agent packages only after stable seams are independently justified.
 
-None of these may bypass the core authority invariants. In particular, multiplayer execution, cloud arbitrary agents, raw-memory avatars, and CRDT file editing require new threat models and ADRs.
+None may bypass the core authority invariants. In particular, unrelated-user execution, cloud agents, raw-memory avatars, CRDT prompt/tool authority, shared unisolated editing, biometric identity, voice cloning, public preview tunnels, and generative meshes require separate scope, threat models, and ADRs.
 
 ## Quick-start implementation brief for the next approved session
 
-**Stop condition now:** design approval. Do not scaffold, install, initialize packages, modify AgentIntersect, or run a real worker job during this design task.
+**Stop condition now:** design review and Phase 12 scope decisions. Do not implement, install, modify Hermes/AgentIntersect, start a new agent process, publish, deploy, or change visibility during this design revision.
 
-If the user explicitly approves implementation, the next bounded session should perform **Phase 0 only**:
+If the user explicitly authorizes Phase 12 planning/implementation, the next bounded session should:
 
-1. Confirm frozen scope: contract/protocol proof, no UI/indexer, no AgentIntersect edits.
-2. Record the approved pinned AgentIntersect commit and verify its worktree is unchanged.
-3. Create the minimal World monorepo test location only as needed for contract fixtures, using Node 24 and the explicitly approved package strategy.
-4. Capture sanitized exact fixtures for `/health`, daemon state/instructions/resume/worker behavior, dashboard snapshot/events/SSE, and MCP initialization/tool list.
-5. Exercise mutations only in a disposable workspace with an approved harness/mock/real boundary specified by the user.
-6. Implement health/workspace/process attestation tests and worker claim-owner conflict tests.
-7. Produce a short Phase 0 report: files changed, commands/results, fixture hashes, current compatibility matrix, residual risks, and proposed Phase 1 scope.
-8. Stop for Phase 0 review; do not proceed automatically.
+1. Verify clean private Phase 11 baseline, exact-SHA CI, runtime, and current design hash.
+2. Resolve the blocking Phase 12 questions: Hermes seam, acceptance profile/session, permission behavior, adapter modification authorization, retention, and magic-slice fixture.
+3. Inspect current Hermes documentation/runtime read-only and capture a capability matrix without exposing credentials or persona content.
+4. Freeze `docs/PHASE_12_SCOPE.md` with the one-agent text cutline, explicit non-goals, schemas, first-hand acceptance journey, and no Phase 13 leakage.
+5. Define `aiw.agent-session/0.12`, `aiw.agent-event/0.12`, adapter capability manifest, mode/permission transition table, and persistence migration.
+6. Plan one deep Hermes adapter and contract fixture before any second adapter.
+7. Implement through functionality-first slices: connect/resume → text turn → events/status → avatar proposal → reload/restart → safe controls.
+8. Independently prove the same persistent Hermes session, skills/project context, mode boundaries, redaction, and no CRDT authority.
+9. Prompt first-hand user conversation and visual review before private commit/push and exact-SHA CI.
+10. Close Phase 12 and stop; do not begin navigation/World Actions automatically.
 
 ## Source references and AgentIntersect anchors
 
@@ -2415,12 +3218,10 @@ The historical `/mnt/c/Users/Mela AI/OneDrive/Documents/Mela AI/AgentWorld Studi
 - [[Aintersectv2]] — separate design-only continuity concept; not part of AgentIntersect World
 - [[pragmatic-secure-delivery]]
 
-## Final design approval gate
+## Design approval decision
 
-This document intentionally stops at design. Approval should state one of:
+**Decision recorded 2026-07-21:** The user approved the embodied-session re-baseline as the forward product direction and marked revised Phase 12 as next up for the next session.
 
-- **Approve Phase 0 only** with answers to the blocking open questions needed for contract proof;
-- **Approve the design with revisions** and list the revisions; or
-- **Do not approve** and identify the product/authority decision to reconsider.
+The next session begins with the documented Phase 12 scope decisions and `docs/PHASE_12_SCOPE.md` freeze, then may proceed with the approved bounded Phase 12 implementation flow. Completed Phases 0–11 remain accepted and are not reopened. No Phase 12 code was started during this design session.
 
-No implementation, dependency installation, repository publication, AgentIntersect modification, or real execution is authorized by the existence of this document.
+This approval does not authorize modification of the original AgentIntersect project, public release, deployment, publication, package publishing, public ingress, repository visibility changes, or later phases. Every later phase retains its own exit gate.

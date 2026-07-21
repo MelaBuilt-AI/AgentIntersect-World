@@ -159,9 +159,9 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 12 — SAFE PAUSE, EMERGENCY STOP, AND RECOVERY UX / NOT STARTED**
+**Phase 12 — SESSION MODES, AGENT SESSION GATEWAY, AND PERSISTENT HERMES TEXT COLLABORATION / NEXT UP / NOT STARTED**
 
-Phase 11 local acceptance is complete. Phase 12 remains unstarted and unauthorized by this closeout. Beginning it requires a fresh scope decision and explicit user authorization; no Phase 12 lifecycle-control code, AgentIntersect mutation, release, publication, or deployment is implied by Phase 11 completion.
+The user approved the canonical re-baselined direction on 2026-07-21 and named revised Phase 12 as the next session’s milestone. Phase 12 remains unstarted in this session. The next session must first resolve the Hermes adapter seam, acceptance profile/session, permission behavior, retention, Guided Build front-door cutline, and magic-slice fixture, then freeze `docs/PHASE_12_SCOPE.md` before implementation. No Hermes or AgentIntersect modification, agent launch, release, publication, deployment, public ingress, or visibility change is implied by this transition.
 
 ## Non-blocking backlog
 
