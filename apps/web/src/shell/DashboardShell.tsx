@@ -145,7 +145,11 @@ export function DashboardShell({
             aria-hidden="true"
             className="world-hero__mark"
           />
-          <AvatarPreview profile={profile} compact />
+          <AvatarPreview
+            profile={profile}
+            compact
+            textOnly={constrainedCosmetics}
+          />
         </div>
         <div className="world-hero__console">
           <span className="terminal-kicker">agentintersect_world_</span>
@@ -306,13 +310,17 @@ export function DashboardShell({
             (integration.state ? (
               <div className="stacked-panels">
                 {fixtureValue === "phase11-performance" && (
-                  <AvatarPerformanceFixture profile={profile} />
+                  <AvatarPerformanceFixture
+                    profile={profile}
+                    constrained={constrainedCosmetics}
+                  />
                 )}
                 <AvatarRoster
                   roster={integration.state.projection.roster}
                   integrationStatus={integration.state.status}
                   profile={profile}
                   onProfileSave={onProfileSave}
+                  constrained={constrainedCosmetics}
                 />
                 <IntegrationPanel
                   state={integration.state}

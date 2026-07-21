@@ -21,11 +21,13 @@ export function AvatarRoster({
   integrationStatus,
   profile,
   onProfileSave,
+  constrained = false,
 }: {
   readonly roster: Roster;
   readonly integrationStatus: IntegrationState["status"];
   readonly profile: AvatarProfile;
   readonly onProfileSave: (profile: AvatarProfile) => unknown;
+  readonly constrained?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const [refs, setRefs] = useState<Record<string, string>>({});
@@ -106,8 +108,11 @@ export function AvatarRoster({
           Configured avatars and truthful roster
         </h2>
         <p>
-          Up to 12 visible 3D avatars; all {Math.min(roster.length, 64)} bounded
-          rows remain semantic. Status text is authoritative.
+          {constrained
+            ? "3D cosmetics are disabled on constrained hardware; "
+            : "Up to 12 visible 3D avatars; "}
+          all {Math.min(roster.length, 64)} bounded rows remain semantic. Status
+          text is authoritative.
         </p>
       </header>
       <ul>
@@ -161,6 +166,7 @@ export function AvatarRoster({
                 <AvatarPreview
                   profile={profile}
                   compact
+                  textOnly={constrained}
                   action={projection.action}
                   animate={projection.animate}
                 />
@@ -190,8 +196,10 @@ export function AvatarRoster({
 
 export function AvatarPerformanceFixture({
   profile,
+  constrained = false,
 }: {
   readonly profile: AvatarProfile;
+  readonly constrained?: boolean;
 }) {
   const [settled, setSettled] = useState(false);
   useEffect(() => {
@@ -232,16 +240,32 @@ export function AvatarPerformanceFixture({
       animate: false,
     };
   });
+  const visibleAvatars = constrained ? [] : avatars;
   return (
     <section
       className="avatar-performance-fixture"
       data-testid="avatar-performance-fixture"
-      aria-label="Fixture-only 12 visible avatar renderer"
+      data-visible-avatar-limit={visibleAvatars.length}
+      aria-label={`Fixture-only ${visibleAvatars.length} visible avatar renderer`}
     >
-      <h3>Fixture-only renderer capacity: 12 visible avatars</h3>
-      <Suspense fallback={<p>Loading one shared avatar kit…</p>}>
-        <AvatarRosterScene avatars={avatars} />
-      </Suspense>
+      <h3>
+        Fixture-only renderer capacity: {visibleAvatars.length} visible avatars
+        {constrained ? " on constrained hardware" : ""}
+      </h3>
+      {constrained ? (
+        <div
+          className="avatar-kit-roster-static"
+          data-avatar-count="0"
+          role="status"
+        >
+          3D cosmetics disabled on constrained hardware. All avatar identities
+          and lifecycle actions remain in the semantic summaries below.
+        </div>
+      ) : (
+        <Suspense fallback={<p>Loading one shared avatar kit…</p>}>
+          <AvatarRosterScene avatars={visibleAvatars} />
+        </Suspense>
+      )}
       <ol>
         {avatars.map((avatar, index) => (
           <li key={index}>

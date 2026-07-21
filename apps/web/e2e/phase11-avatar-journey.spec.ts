@@ -71,9 +71,16 @@ test("Phase 11 name-gated text-only editor saves, reopens, exports, and deletes 
   await expect(page.getByTestId("identify-opening")).toBeVisible();
 });
 
-test("Phase 11 keeps GLB lazy, renders 12 fixture avatars with 64 semantic rows, and measures 120 frames", async ({
+test("Phase 11 keeps GLB lazy, degrades 3D count on two CPUs, retains 64 semantic rows, and measures 120 frames", async ({
   page,
 }) => {
+  if (process.env.AIW_PHASE11_FORCE_CONSTRAINED === "1")
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "hardwareConcurrency", {
+        configurable: true,
+        value: 2,
+      });
+    });
   const glb: string[] = [];
   page.on("request", (request) => {
     if (request.url().includes("aiw-avatar-kit.glb")) glb.push(request.url());
@@ -88,8 +95,24 @@ test("Phase 11 keeps GLB lazy, renders 12 fixture avatars with 64 semantic rows,
   await openPanel(page, "Agents");
   await expect(page.getByTestId("avatar-performance-fixture")).toBeVisible();
   await expect(page.locator(".avatar-roster > ul > li")).toHaveCount(64);
-  await expect.poll(() => glb.length).toBeGreaterThan(0);
-  await expect(page.locator(".avatar-kit-roster-canvas")).toBeVisible();
+  const hardwareConcurrency = await page.evaluate(
+    () => navigator.hardwareConcurrency,
+  );
+  const expectedVisibleAvatars = hardwareConcurrency <= 2 ? 0 : 12;
+  if (expectedVisibleAvatars === 0) {
+    await page.waitForTimeout(500);
+    expect(glb).toEqual([]);
+  } else {
+    await expect.poll(() => glb.length).toBeGreaterThan(0);
+  }
+  const rosterSurface = page.locator(
+    ".avatar-kit-roster-canvas, .avatar-kit-roster-static",
+  );
+  await expect(rosterSurface).toBeVisible();
+  await expect(rosterSurface).toHaveAttribute(
+    "data-avatar-count",
+    String(expectedVisibleAvatars),
+  );
   await page.evaluate(
     () =>
       new Promise<void>((resolve) =>
@@ -139,7 +162,8 @@ test("Phase 11 keeps GLB lazy, renders 12 fixture avatars with 64 semantic rows,
   console.info(
     "[phase11-browser-measure]",
     JSON.stringify({
-      visibleAvatars: 12,
+      hardwareConcurrency,
+      visibleAvatars: expectedVisibleAvatars,
       semanticRows: 64,
       frames: 120,
       frameP95Ms: Number(metric.p95.toFixed(1)),

@@ -11,7 +11,7 @@ Phase 11 adds the strict `aiw.avatar/0.11` local profile, current/previous recov
 - Distinct hands, rounded paws, clawed paws, human/paw/clawed feet, none/short/long fur, straight/curled cat and dog tails, and solid/muzzle/mask/socks markings.
 - Twelve body colors and four fitted tees: blue Codex, orange Claude, yellow Hermes, and red OpenClaw.
 - Required NFC-normalized agent name displayed above the rendered head and repeated in authoritative semantic text.
-- Skeleton-safe Three.js cloning, shared GLB geometry/material loading, deterministic status-to-animation projection, and a 12-avatar visible cap with 64 semantic roster rows.
+- Skeleton-safe Three.js cloning, shared GLB geometry/material loading, deterministic status-to-animation projection, and a 12-avatar visible cap with 64 semantic roster rows. On browsers reporting two or fewer CPUs, avatar WebGL cosmetics are disabled in the World hero, roster, and performance fixture while every identity/action row remains semantic and the static appearance evidence remains available.
 
 ## Privacy and accessibility
 
@@ -38,10 +38,11 @@ All verification used Node `v24.18.0`, pnpm `11.15.0`, and Blender `5.2.0 LTS`.
 - Focused avatar/startup/acceptance tests: **22/22 passed**.
 - Full `pnpm check`: formatting, lint, typecheck, architecture, **311/311 Vitest**, production build, smoke, and **28/28 Playwright** passed.
 - Phase 11 measurement: 12 visible avatars, 64 semantic rows, 120 frames, **16.8 ms p95**, **0 ms longest observed task**.
+- Forced two-CPU proof (`CPUQuota=200%` plus browser `hardwareConcurrency=2`): zero WebGL avatar cosmetics, no GLB fetch, all 12 fixture summaries and 64 roster rows retained, 120 frames at **16.7 ms p95**, **0 ms longest observed task**.
 - Phase 10 measurement remained within its frozen cold/warm/RSS ceilings.
 - Storybook production build: passed with Phase 11 states.
 - Production dependency audit: **no known vulnerabilities**.
-- Disposable `verify:fresh`: passed for **323 project source files**, including Blender regeneration/inspection, complete tests/build/smoke, and all browser journeys.
+- Disposable `verify:fresh`: passed for **320 project source files**, including Blender regeneration/inspection, complete tests/build/smoke, and all browser journeys.
 - First-hand Chromium walkthrough: configured `Scout` as Dog/Husky with paws, clawed paw feet, long fur, curled dog tail, muzzle marking, warm-light body, and red OpenClaw tee; semantic summary matched, the live avatar/nameplate rendered cleanly, save entered World, and captured console/page errors were empty.
 - Visual inspection accepted the final appearance and motion boards: all 12 heads, all modular families, four tees, and seven labeled poses are readable and unclipped.
 
