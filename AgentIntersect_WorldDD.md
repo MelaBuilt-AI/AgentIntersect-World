@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–11 are complete with private exact-SHA CI evidence. Revised Phase 12 has passed its local implementation, browser, live Hermes, restart, consent, and rollback acceptance gates under the frozen `docs/PHASE_12_SCOPE.md`; private commit/push, exact-SHA CI, and repository/vault closeout remain before it is marked complete. Phase 13 is not started or authorized.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 12 implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed Actions run `29858950696`; Phase 13 is not started or authorized.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2675,7 +2675,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration
 
-**Status:** LOCAL IMPLEMENTATION + LIVE ACCEPTANCE COMPLETE / PRIVATE COMMIT AND EXACT-SHA CI PENDING. The user approved the re-baselined product direction on 2026-07-20, answered all eight Phase 12 choices on 2026-07-21, and authorized complete bounded implementation through Codex orchestration. Phase 11 is the accepted implementation baseline; `docs/PHASE_12_SCOPE.md` remains the controlling Phase 12 contract. Phase 13 is not started or authorized.
+**Status:** COMPLETE / PRIVATE EXACT-SHA CI GREEN. The user approved the re-baselined product direction on 2026-07-20, answered all eight Phase 12 choices on 2026-07-21, and authorized complete bounded implementation through Codex orchestration. Phase 11 is the accepted implementation baseline; `docs/PHASE_12_SCOPE.md` remains the controlling Phase 12 contract. Private implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed exact-SHA Actions run `29858950696` and job `88730418114`. Phase 13 is not started or authorized.
 
 **Objective:** Establish the persistent conversational runtime that turns an avatar into a real resumable agent session and proves free-form text collaboration without weakening Guided Build authority.
 

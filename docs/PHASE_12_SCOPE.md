@@ -134,7 +134,7 @@ Stop rather than reinterpret scope when:
 
 Parent live acceptance passed on 2026-07-21. Hermes context compaction retired earlier native session IDs during the long closeout, so each attempt failed closed rather than silently rebinding; the final gate froze the then-current discoverable Discord-backed session and proved two World-originated turns, ordered tool/final streaming, duplicate-free Sessions API continuity, World and Hermes restart recovery, bounded avatar accept/revoke, truthful unsupported controls, isolated restore, and actual default-profile rollback. The parent selected the safer post-proof state: no active plugin/runtime installation retained, original profile hashes restored, gateway healthy, and service unit unchanged.
 
-All unrestricted local/fresh/browser gates are green. Private commit/push and exact-SHA CI remain pending; Phase 13 remains not started and unauthorized.
+All unrestricted local/fresh/browser gates are green. Private implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed exact-SHA Actions run `29858950696` and job `88730418114`; the Phase 12 exit gate is complete. Phase 13 remains not started and unauthorized.
 
 ## Exit gate
 

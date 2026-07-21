@@ -87,4 +87,4 @@ Parent acceptance is green:
 - isolated restore and actual default-profile uninstall/restore both passed; original config/environment hashes and the systemd unit hash remained identical, plugin/runtime paths were removed, and the gateway returned healthy;
 - final unrestricted gates passed: plugin conformance, formatting, lint, architecture, 28/28 typecheck tasks, 357/357 Vitest, 15/15 builds, smoke, 32/32 Playwright, Storybook, zero-vulnerability production audit, and 344-file fresh-copy verification with the same 357 tests and 32 browser tests green again.
 
-Phase 12 still awaits its private commit/push and exact-SHA CI result before the exit gate can be marked complete. Phase 13 remains not started and unauthorized.
+Phase 12 private implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed exact-SHA Actions run `29858950696` and job `88730418114`; the exit gate is complete. Phase 13 remains not started and unauthorized.

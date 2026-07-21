@@ -4,17 +4,18 @@ Updated: 2026-07-21
 
 ## Current milestone
 
-**Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration: LOCAL IMPLEMENTATION + LIVE ACCEPTANCE COMPLETE / PRIVATE COMMIT AND EXACT-SHA CI PENDING**
+**Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration: COMPLETE / PRIVATE EXACT-SHA CI GREEN**
 
 - Frozen scope: `docs/PHASE_12_SCOPE.md` and the canonical Phase 12 section in `AgentIntersect_WorldDD.md`.
-- Baseline: completed Phase 11 marker `c60bef65cd3ae7df0829c2a5181ee705f3257352`; local `HEAD` and `origin/main` remain on that baseline until the verified Phase 12 change set is privately committed.
+- Baseline: completed Phase 11 marker `c60bef65cd3ae7df0829c2a5181ee705f3257352`.
+- Private implementation SHA: `a1ffdc36715d35c78693a49e797fa984ec5c3086`; exact-SHA Actions run `29858950696` and job `88730418114` succeeded with Phase 10 measurement, avatar verification, Phase 11 measurement, and complete `pnpm check` green.
 - Version: `0.12.0-phase12`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`, Hermes Agent `v0.18.2` (`2026.7.7.2`, upstream `f7c9feb3`).
 - Workspace: 16 projects / 15 named app-package graph entries.
 - The local implementation adds strict agent-session/event contracts, a capability-declared Hermes adapter, exact-session serialized SSE turns, bounded durable World projections, truthful recovery/offline/reset state, consentful avatar proposals, accessible persistent chat, and a read-only Guided Build discovery/validation front door.
 - Parent live acceptance passed on the final discoverable Discord-backed Hermes session after expected Hermes compaction turnover: two ordered World-originated turns, tool events, authoritative finals, duplicate-free Sessions API continuity, World restart, Hermes restart, avatar accept/revoke, truthful unsupported approval/interrupt `409` responses, isolated restore, and actual byte-identical default-profile rollback. The plugin/runtime paths are absent after proof, original config/environment hashes match, the gateway is healthy, and the systemd unit hash is unchanged.
 - Final unrestricted verification is green: plugin conformance, formatting, lint, architecture, 28/28 typecheck tasks, 357/357 Vitest, 15/15 builds, smoke, 32/32 Playwright, Storybook, zero-vulnerability production audit, and 344-file fresh-copy verification with the same 357 tests and 32 browser tests passing again.
-- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; no Phase 12 commit or push exists yet.
+- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; implementation commit and exact-SHA CI are green.
 - Release/tag/package publication/deployment/public ingress/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -159,9 +160,13 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 13 remains NOT STARTED / UNAUTHORIZED.** Phase 12 has passed local, browser, live Hermes, restart, consent, and rollback acceptance; only private commit/push, exact-SHA CI, and repository/vault closeout remain before the Phase 12 exit gate can be marked complete. No Phase 13 implementation may begin automatically.
+**Phase 13 remains NOT STARTED / UNAUTHORIZED.** Phase 12 is complete with local, browser, live Hermes, restart, consent, rollback, private commit/push, and exact-SHA CI evidence green. No Phase 13 implementation may begin automatically.
 
 ## Non-blocking backlog
+
+### CI
+
+- Upgrade `actions/checkout@v4` and `actions/setup-node@v4` to current Node-24-native majors before GitHub removes the temporary forced-Node-24 compatibility path; Phase 12 exact-SHA CI passed despite the deprecation annotation.
 
 ### Phase 7
 
