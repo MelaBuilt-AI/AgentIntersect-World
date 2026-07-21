@@ -1,6 +1,6 @@
 # Phase 11 implementation report
 
-Status: **LOCAL ACCEPTANCE COMPLETE / PRIVATE COMMIT, PUSH, AND EXACT-SHA CI PENDING**
+Status: **COMPLETE / PRIVATE EXACT-SHA CI GREEN**
 
 Phase 11 adds the strict `aiw.avatar/0.11` local profile, current/previous recovery, Phase 5 migration, explicit roster opt-in/revocation, deterministic authoritative animation mapping, the numbered semantic editor, truthful roster, lazy Blender-backed preview, text/reduced-motion/WebGL equivalents, and the complete project-owned avatar asset kit.
 
@@ -46,8 +46,16 @@ All verification used Node `v24.18.0`, pnpm `11.15.0`, and Blender `5.2.0 LTS`.
 - First-hand Chromium walkthrough: configured `Scout` as Dog/Husky with paws, clawed paw feet, long fur, curled dog tail, muzzle marking, warm-light body, and red OpenClaw tee; semantic summary matched, the live avatar/nameplate rendered cleanly, save entered World, and captured console/page errors were empty.
 - Visual inspection accepted the final appearance and motion boards: all 12 heads, all modular families, four tees, and seven labeled poses are readable and unclipped.
 
+## Exact-SHA CI closeout
+
+The implementation was privately committed as `caaf79021b9611c7a632462ee48e0e464fc98394`. Exact-SHA CI then exposed a real two-CPU performance failure, corrected in `94ded384d4a5d265b8b47699d7c254e6fc374f5c` by disabling optional avatar WebGL cosmetics on browsers reporting two or fewer CPUs while retaining every semantic identity/action row and the static appearance evidence.
+
+That correction made the dedicated performance stage green but exposed two downstream browser-contract mismatches: the true-3D visual journey exhausted its default 30-second timeout while waiting through fixed screenshot sleeps, and the inherited Phase 5 full-cosmetic screenshot silently followed ambient runner CPU count. Final correction `933fdd0725bc2631821ad0a5e5c3dd7506f34d0e` replaced fixed sleeps with selected-model first-frame readiness, kept the only true WebGL human/dog/cat journey under a bounded 60-second timeout, and explicitly selects full or constrained cosmetics before navigation. No snapshot baseline, 0.04 cross-run pixel allowance, 33.3 ms frame ceiling, or 100 ms Long Task ceiling changed.
+
+Exact-SHA Actions run `29795954168` and job `88527213458` succeeded in 4m26s. The two-CPU runner passed Phase 10 measurement, `avatar:verify`, Phase 11 measurement at 16.7 ms p95 with zero WebGL cosmetics, 64 semantic rows, 120 frames, and 0 ms longest task, plus the complete `pnpm check` with 311/311 Vitest and 28/28 Playwright.
+
 The generic Vite warning for the pre-existing shared Three/R3F vendor chunk remains non-blocking: it is lazy, outside the capped initial entry, shared with earlier renderer phases, and covered by independent startup-boundary tests.
 
 ## Closeout boundary
 
-No original-AgentIntersect access or modification, release, tag, package publication, deployment, public ingress, visibility change, or Phase 12 work occurred. This report will be finalized with the private implementation SHA and exact-SHA Actions run after the commit/push gate succeeds.
+No original-AgentIntersect access or modification, release, tag, package publication, deployment, public ingress, visibility change, or Phase 12 work occurred. Phase 11 is complete at the private exact-SHA CI gate; Phase 12 remains a separate explicit authorization and fresh-scope decision.

@@ -2080,7 +2080,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 11 — Avatar profiles and embodied status
 
-**Status:** LOCAL ACCEPTANCE COMPLETE; private commit/push and exact-SHA CI are pending. The frozen contract is `docs/PHASE_11_SCOPE.md`; implementation, Blender provenance, performance, and independent parent evidence are recorded in `PHASE_11_REPORT.md`, `docs/PHASE_11_ASSET_PROVENANCE.md`, and `docs/PHASE_11_PERFORMANCE.md`.
+**Status:** COMPLETE; private exact-SHA CI is green. The frozen contract is `docs/PHASE_11_SCOPE.md`; implementation, Blender provenance, performance, and independent parent evidence are recorded in `PHASE_11_REPORT.md`, `docs/PHASE_11_ASSET_PROVENANCE.md`, and `docs/PHASE_11_PERFORMANCE.md`.
 
 **Objective:** Introduce privacy-safe modular agent/user avatars driven by authoritative status.
 
@@ -2096,11 +2096,11 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Code/artifacts:** `avatar-system`, numbered avatar editor/roster, skeleton-safe R3F renderer, deterministic Blender build/inspection/verification scripts, `.blend`, GLB, manifest, appearance board, motion board, Storybook states, and browser fixtures.
 
-**Tests/evidence:** Two-process byte-identical GLB/render/structural regeneration; 22/22 focused tests; 311/311 complete Vitest; 28/28 Playwright; build/smoke; Storybook; zero-vulnerability production audit; 323-file fresh-copy verification; 12-avatar/64-row 16.8 ms p95 and 0 ms longest-task measurement; and first-hand Chromium visual/operator proof.
+**Tests/evidence:** Two-process byte-identical GLB/render/structural regeneration; 22/22 focused tests; 311/311 complete Vitest; 28/28 Playwright; build/smoke; Storybook; zero-vulnerability production audit; 320-file fresh-copy verification; full-hardware 12-avatar/64-row 16.8 ms p95 proof; two-CPU zero-WebGL/64-row 16.7–16.8 ms p95 and 0 ms longest-task proof; first-hand Chromium visual/operator proof; and successful exact-SHA Actions run `29795954168` for correction `933fdd0725bc2631821ad0a5e5c3dd7506f34d0e`.
 
 **Acceptance criteria:** Avatar exposes no raw private profile data; status never outruns authoritative run state; all forms remain distinguishable without color; asset/performance budgets hold.
 
-**Exit gate:** Local privacy/accessibility/visual/performance/fresh-copy gates are green. Complete only after private commit/push, exact-SHA CI, and repository/vault continuity; do not begin Phase 12 automatically.
+**Exit gate:** Local privacy/accessibility/visual/performance/fresh-copy gates, private commit/push, and exact-SHA CI are green. Repository/vault continuity is synchronized during closeout; do not begin Phase 12 automatically.
 
 **Risks:** Anthropomorphic overclaiming or identity leakage. Use explicit provenance, neutral defaults, and no inferred personality claims.
 

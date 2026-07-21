@@ -4,7 +4,7 @@ Updated: 2026-07-20
 
 ## Current milestone
 
-**Phase 11 — Avatar profiles and embodied status: LOCAL ACCEPTANCE COMPLETE / PRIVATE COMMIT AND EXACT-SHA CI PENDING**
+**Phase 11 — Avatar profiles and embodied status: COMPLETE / PRIVATE EXACT-SHA CI GREEN**
 
 - Frozen scope: `docs/PHASE_11_SCOPE.md` and the canonical Phase 11 section in `AgentIntersect_WorldDD.md`.
 - Baseline: completed Phase 10 marker `aeda8978a78e6f58b8f4d270b12779e6982a77ef`; exact-SHA Actions run `29782716484` succeeded.
@@ -12,9 +12,9 @@ Updated: 2026-07-20
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`.
 - Workspace: 15 projects / 14 named app-package graph entries.
 - Local implementation includes a strict privacy-safe `aiw.avatar/0.11` profile, one shared Blender biped rig/body/action set, 12 human/dog/cat heads, modular hands/paws/claws/feet/fur/tails/markings, 12 colors, four branded tees, mandatory above-head names, authoritative status animation, local current/previous recovery, lazy GLB rendering, roster integration, and equivalent semantic/text/reduced-motion/forced-color/WebGL-fallback flows.
-- Independent parent proof is green through two-process Blender regeneration, source/GLB structural inspection, final appearance/motion boards, 22/22 focused tests, 311/311 complete Vitest, 28/28 Playwright, build/smoke, Storybook, Phase 10/11 measurements, zero-vulnerability production audit, 320-file fresh-copy verification, and first-hand Chromium editor/save/World proof. The two-CPU fallback disables avatar WebGL cosmetics and GLB loading while retaining all identity/action summaries and 64 roster rows; hard-quota proof measured 16.7 ms p95. Exact results are recorded in `PHASE_11_REPORT.md`.
+- Independent parent proof is green through two-process Blender regeneration, source/GLB structural inspection, final appearance/motion boards, 22/22 focused tests, 311/311 complete Vitest, 28/28 Playwright, build/smoke, Storybook, Phase 10/11 measurements, zero-vulnerability production audit, 320-file fresh-copy verification, and first-hand Chromium editor/save/World proof. The two-CPU fallback disables avatar WebGL cosmetics and GLB loading while retaining all identity/action summaries and 64 roster rows; hard-quota proof measured 16.7–16.8 ms p95. The final CI correction makes the true-3D journey wait for selected-model first-frame readiness and makes historical full-cosmetic screenshots independent of ambient runner CPU count without changing the 0.04 pixel allowance or performance ceilings.
 - Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`.
-- Private Phase 11 implementation SHA and exact-SHA Actions run: pending this closeout.
+- Private implementation SHA: `caaf79021b9611c7a632462ee48e0e464fc98394`; constrained-hardware correction SHA: `94ded384d4a5d265b8b47699d7c254e6fc374f5c`; final visual-CI correction SHA: `933fdd0725bc2631821ad0a5e5c3dd7506f34d0e`. Exact-SHA Actions run `29795954168` and job `88527213458` succeeded with Phase 10 measurement, avatar verification, Phase 11 measurement, and complete `pnpm check` green.
 - Release/tag/package publication/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
