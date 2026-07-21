@@ -160,7 +160,13 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 13 remains NOT STARTED / UNAUTHORIZED.** Phase 12 is complete with local, browser, live Hermes, restart, consent, rollback, private commit/push, and exact-SHA CI evidence green. No Phase 13 implementation may begin automatically.
+**Phase 13 — Embodied user navigation and World Action Protocol: NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE**
+
+The user selected Phase 13 as the next-session topic on 2026-07-21. `docs/PHASE_13_SCOPE.md` is the draft restart artifact; a fresh session must review and freeze its control, action-transport/schema, deterministic movement, camera-comfort, persistence, performance, and first-hand tour decisions before production edits.
+
+Phase 13's objective is to make the codebase inhabitable and let connected agents show spatial intent through validated high-level actions rather than decorative wandering. The bounded slice covers accessible user traversal, stable-object target resolution, deterministic agent movement, presentation-only `navigate`/`focus`/`inspect`/`highlight`/`trace`/`compare`/`point-at`/`follow` actions, truthful blocked/stale-target handling, camera comfort, semantic alternatives, and one agent-led code tour.
+
+**Implementation has not started.** No Phase 13 production source, dependency, protocol package, navigation/pathfinding system, browser control, World Action adapter/tool, asset generation, worker, server, release, or public action was created. Phase 14 edit/test/preview execution, Phase 15 voice, and Phase 16 multi-agent editing remain separate future authorization gates.
 
 ## Non-blocking backlog
 

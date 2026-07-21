@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 12 implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed Actions run `29858950696`; Phase 13 is not started or authorized.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 12 implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed Actions run `29858950696`. The user selected Phase 13 as the next-session planning topic on 2026-07-21; `docs/PHASE_13_SCOPE.md` is a draft restart artifact, and implementation has not started.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2726,6 +2726,8 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 **Risks:** Hermes/platform APIs may not expose every rich event needed. Prefer a first-class adapter/plugin seam; degrade to honest text/status rather than scrape/fabricate. Session identity confusion could direct messages to the wrong repo; bind every turn to session/workspace/permission revision and show them visibly.
 
 ## Phase 13 — Embodied user navigation and World Action Protocol
+
+**Status:** NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE. The user selected Phase 13 as the next-session topic on 2026-07-21. `docs/PHASE_13_SCOPE.md` is the draft restart artifact; selection authorizes fresh-session planning and decision freeze only, not production implementation.
 
 **Objective:** Make the codebase inhabitable and let agents show spatial intent through deterministic semantic actions rather than decorative wandering.
 
