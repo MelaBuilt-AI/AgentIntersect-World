@@ -2,7 +2,9 @@
 
 **Status:** FROZEN / APPROVED / IMPLEMENTATION AUTHORIZED
 
-**Implementation result:** COMPLETE / INDEPENDENT PARENT PROOF PASS / PRIVATE EXACT-SHA CI PENDING
+**Implementation result:** COMPLETE / INDEPENDENT PARENT PROOF PASS / PRIVATE EXACT-SHA CI GREEN
+
+**Closeout:** implementation/correction commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`; exact-SHA GitHub Actions run `29963116363` green
 
 **Frozen:** 2026-07-22
 
