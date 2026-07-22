@@ -4,7 +4,13 @@ Updated: 2026-07-22
 
 ## Current milestone
 
-**Phase 14 — Structured tool visualization, revision-bound explanation, approved edit/test, and local preview: COMPLETE / PRIVATE EXACT-SHA CI GREEN**
+**Phase 15 — Voice, expressive presence, and consentful agent identity: SELECTED NEXT / DRAFT SCOPE / NOT STARTED**
+
+- Draft decision sheet: `docs/PHASE_15_SCOPE.md`. Its ten decision classes and all implementation authorization remain pending explicit user approval; it is not a frozen implementation contract.
+- CI maintenance completed on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`: exact-SHA GitHub Actions run `29966798446`, job `89079968383`, succeeded with zero annotations after the official Node-24-native `actions/checkout@v7` and `actions/setup-node@v7` upgrades.
+- Phase 14 remains the complete accepted implementation baseline with all existing evidence below. The failed Phase 13 Discord → World continuity path remains separately deferred under waiver and is excluded from Phase 15.
+
+## Accepted Phase 14 baseline
 
 - Frozen contract: `docs/PHASE_14_SCOPE.md`; completion evidence: `PHASE_14_REPORT.md`, `docs/PHASE_14_PERFORMANCE.md`, and `artifacts/phase14/`.
 - Baseline: `c49042793e45921501bfd9c3003f857fd25647de`; baseline exact-SHA GitHub Actions run `29956534885` was green.
@@ -159,13 +165,15 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 14 exit gate — SEALED / PRIVATE EXACT-SHA CI GREEN**
+**Phase 15 decision-freeze gate — SELECTED NEXT / DECISIONS PENDING / IMPLEMENTATION NOT AUTHORIZED**
 
-The user froze and explicitly authorized the complete bounded Phase 14 implementation on 2026-07-22. `docs/PHASE_14_SCOPE.md` is the controlling contract. The complete slice, independent parent proof, retained evidence, cleanup, private push, and exact-SHA GitHub Actions run `29963116363` are green.
+`docs/PHASE_15_SCOPE.md` is a draft decision sheet with ten conservative recommendations. One later explicit user approval may freeze those decisions after any requested revisions. No Phase 15 implementation may begin before that approval.
 
-No next implementation phase is selected. Release, deployment, public ingress, publication, visibility change, Hermes-core/profile changes, original-AgentIntersect changes, and Phase 15+ remain prohibited. Phase 15 requires separate user authorization.
+Phase 14 remains sealed and accepted: the user froze and explicitly authorized its bounded implementation on 2026-07-22, and `docs/PHASE_14_SCOPE.md` remains its controlling contract. The complete slice, independent parent proof, retained evidence, cleanup, private push, and exact-SHA GitHub Actions run `29963116363` are green.
 
-The deferred Phase 13 exact-root Discord → World continuation remains a separate backlog item. Phase 14 must not silently absorb or claim that live gate; revisit it only under an explicit later-milestone authorization.
+The deferred Phase 13 exact-root Discord → World continuation remains a separate backlog item. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
+
+Release, deployment, public ingress, publication, visibility change, Hermes-core/profile changes, original-AgentIntersect changes, Phase 15 implementation, and Phase 16+ remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 
@@ -174,10 +182,6 @@ The Phase 13 hybrid performance contract remains inherited: main-thread render-w
 ### Phase 13 deferred live continuity
 
 - Revisit exact-root Discord → World continuation only in a separately authorized integration milestone. The final Phase 13 attempt proved exact root-to-effective compression resolution and persisted assistant deltas, then rejected `run.completed` because no current-turn assistant message was present. Required future proof remains ordered World assistant finals, exactly one strict `focus → trace → navigate → inspect` tour, truthful movement/arrival, and a final World chat turn. Do not treat the failed attempt or Phase 13 waiver as a green live gate.
-
-### CI
-
-- Upgrade `actions/checkout@v4` and `actions/setup-node@v4` to current Node-24-native majors before GitHub removes the temporary forced-Node-24 compatibility path; Phase 12 exact-SHA CI passed despite the deprecation annotation.
 
 ### Phase 7
 

@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains explicitly deferred rather than green. Phase 14 is complete with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains explicitly deferred rather than green. Phase 14 is complete with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is selected next for decision review only; its draft recommendations remain pending approval, it is not started, and implementation is not authorized.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2806,11 +2806,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 15 — Voice, expressive presence, and consentful agent identity
 
+**Selection status:** SELECTED NEXT / DRAFT SCOPE / DECISIONS PENDING / NOT STARTED. The decision sheet is `docs/PHASE_15_SCOPE.md`. Its conservative recommendations are pending explicit user approval; it is not frozen implementation authority, and Phase 15 implementation is not authorized.
+
 **Objective:** Add natural voice conversation and richer expressive presence without changing authority, leaking identity, or pretending presentation equals emotion.
 
 **User-visible outcome:** The user can push to talk, inspect/cancel the transcript, send it into the same agent session, receive captions and optional spoken replies, interrupt playback, and see synchronized speaking/typing/activity indicators and subtle shared-skeleton expressions. Agents can propose an avatar/voice based on bounded self-description and the user can approve or change it.
 
-**In scope:** Local and explicitly approved external STT/TTS adapters; push-to-talk; bounded audio; partial/final captions; transcript preview/send/cancel; per-agent approved voice; streaming or chunked playback; barge-in/playback stop; voice/device/provider/privacy settings; proposal source disclosure; speaking/listening animations; emoji/activity tags; accessibility captions and text-only equivalence; voice latency/failure metrics.
+**In scope:** A local/loopback-only STT baseline and optional truthfully disclosed browser/system TTS for the initial slice; strict adapter boundaries for future separately approved external STT/TTS providers; push-to-talk; bounded audio; partial/final captions; transcript preview/send/cancel; per-agent approved voice; streaming or chunked playback; barge-in/playback stop; voice/device/provider/privacy settings; proposal source disclosure; speaking/listening animations; emoji/activity tags; accessibility captions and text-only equivalence; voice latency/failure metrics.
 
 **Out of scope:** Always-on hot microphone, emotion detection, biometric identification, voice cloning without explicit licensed consent, sending raw identity/memory to providers, voice authority bypass, spatial audio worlds, unrelated-user calls.
 
