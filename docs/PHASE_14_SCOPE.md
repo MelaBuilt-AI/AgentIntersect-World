@@ -1,8 +1,9 @@
 # Phase 14 — Draft Scope
 
-**Status:** NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE
+**Status:** SELECTED NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE
 **Prepared:** 2026-07-22
-**Baseline:** Phase 13 closeout commit (to be recorded after private push and exact-SHA CI)
+**Selected:** 2026-07-22 by the user as the next fresh-session topic
+**Baseline:** Phase 13 exact-SHA-green closeout `0d2ee8ac0724183ddc01c0a77773f0fd522a57af` (GitHub Actions run `29955237642`)
 **Runtime baseline:** Node `v24.18.0`, pnpm `11.15.0`
 **Authority:** This document authorizes next-session orientation, review, and decision freeze only. It does not authorize Phase 14 production code, dependency installation, generated fixtures, tool execution, preview processes, worker launch, commit/push for Phase 14, release, tag, publication, deployment, public ingress, visibility change, Hermes-core modification, or original-AgentIntersect modification.
 

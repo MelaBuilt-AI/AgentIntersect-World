@@ -4,18 +4,20 @@ Updated: 2026-07-22
 
 ## Current milestone
 
-**Phase 13 — Embodied user navigation and World Action Protocol: COMPLETE UNDER USER WAIVER / PRIVATE EXACT-SHA CI REQUIRED**
+**Phase 13 — Embodied user navigation and World Action Protocol: COMPLETE UNDER USER WAIVER / PRIVATE EXACT-SHA CI GREEN**
 
 - Frozen scope and waiver: `docs/PHASE_13_SCOPE.md`; closeout evidence: `PHASE_13_REPORT.md` and `docs/PHASE_13_PERFORMANCE.md`.
-- Baseline: completed Phase 13 planning marker `172afa5b9563f9d3dcecdf25018a94ddcd6ade39`.
+- Planning baseline: `172afa5b9563f9d3dcecdf25018a94ddcd6ade39`.
+- Final implementation: `b561c326413d3de71287c65a1cabab34cf807d6c`; final pointer-lock/performance routing correction: `0d2ee8ac0724183ddc01c0a77773f0fd522a57af`.
+- Exact-SHA GitHub Actions run `29955237642` succeeded for `0d2ee8ac0724183ddc01c0a77773f0fd522a57af`.
 - Version: `0.13.0-phase13`.
 - Runtime: Node `v24.18.0`, pnpm `11.15.0`, Hermes Agent `v0.19.0` (`2026.7.20`, upstream `8208fc52`).
 - Workspace: 18 projects / 17 named app-package graph entries.
 - The local implementation adds a strict presentation-only World Action protocol/helper/service, exact target/revision binding, deterministic navmesh/path replay, truthful attention/movement/arrival/interruption, bounded trace/timeline persistence, an in-island agent marker, comfort controls, and complete semantic fallback behavior.
-- The final live retry for exact Discord root `20260722_091729_13e06549` failed after root-to-effective compression resolution and assistant deltas but before a current-turn assistant final. No World Action proposal, movement/arrival, or final World chat turn occurred. The live feature is **deferred, not green**, and Phase 13 closes only under the user's explicit final-attempt waiver.
+- The final live retry for exact Discord root `20260722_091729_13e06549` failed after root-to-effective compression resolution and assistant deltas but before a current-turn assistant final. No World Action proposal, movement/arrival, or final World chat turn occurred. The live feature is **deferred, not green**, and Phase 13 closed only under the user's explicit final-attempt waiver.
 - Final non-live verification is green: formatting, lint, 32/32 typecheck tasks, 11/11 architecture tests, 438/438 Vitest, 17/17 builds, smoke, 38/38 Playwright, Storybook, zero-vulnerability production audit, 383-file fresh-copy verification, and Phase 13 10k/100k browser/navigation measurements. Exactly the two real `@pointer-lock` tests run in headed Chromium under Xvfb while strict performance and all ordinary journeys remain headless; 5/5 exact repeats and 5/5 fresh Playwright processes remained below 0.851 GiB with zero swap/OOM inside the fixed 6 GiB/1 GiB boundary.
 - Default Hermes profile hashes were restored byte-identically; the temporary plugin/runtime paths are absent, the gateway is healthy, and no relevant runner/listener/cron remains.
-- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; closeout push and exact-SHA CI are the final authorized external gates.
+- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; Phase 13 is privately pushed and exact-SHA CI green. The later docs-only Phase 14 transition SHA/run belongs in the external handoff to avoid self-reference.
 - Release/tag/package publication/deployment/public ingress/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -160,9 +162,9 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 14 — Structured tool visualization, visual code explanations, and local project preview: NEXT SESSION / NOT STARTED**
+**Phase 14 — Structured tool visualization, visual code explanations, and local project preview: SELECTED NEXT SESSION / NOT STARTED**
 
-Phase 14 is prepared only as `docs/PHASE_14_SCOPE.md`. Its objective is to connect real structured tool events, visual explanations, one approved edit/test path, and a health-checked loopback preview to exact evidence. No Phase 14 production code has started.
+The user selected Phase 14 as the next fresh-session topic on 2026-07-22. It is prepared only as `docs/PHASE_14_SCOPE.md`; its objective is to connect real structured tool events, visual explanations, one approved edit/test path, and a health-checked loopback preview to exact evidence. No Phase 14 production code has started.
 
 The Phase 14 draft authorizes next-session orientation, review, and decision freeze only. Production edits, dependency installation, tool/preview execution, worker launch, commit/push for Phase 14, release, deployment, public ingress, publication, visibility change, Hermes-core changes, and original-AgentIntersect changes require a new explicit user authorization after the draft decisions are frozen.
 
