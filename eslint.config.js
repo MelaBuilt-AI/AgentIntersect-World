@@ -27,6 +27,13 @@ export default tseslint.config(
     },
   },
   {
+    files: ["examples/phase14-magic-slice/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: 2024,
+      globals: { ...globals.node },
+    },
+  },
+  {
     files: ["apps/web/**/*.{ts,tsx}", "packages/ui/**/*.{ts,tsx}"],
     plugins: {
       "react-hooks": reactHooks,

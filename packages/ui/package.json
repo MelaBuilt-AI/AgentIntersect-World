@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/ui",
-  "version": "0.13.0-phase13",
+  "version": "0.14.0-phase14",
   "private": true,
   "type": "module",
   "exports": {

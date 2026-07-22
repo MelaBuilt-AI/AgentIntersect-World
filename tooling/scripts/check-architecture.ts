@@ -41,6 +41,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/repo-indexer",
     "@agentintersect-world/spatial-code-graph",
     "@agentintersect-world/sync-yjs",
+    "@agentintersect-world/tool-protocol",
     "@agentintersect-world/world-event-protocol",
     "@agentintersect-world/world-action-protocol",
     "@agentintersect-world/world-schema",
@@ -56,6 +57,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/sync-yjs": [],
+  "@agentintersect-world/tool-protocol": [],
   "@agentintersect-world/ui": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/web": [
     "@agentintersect-world/avatar-system",

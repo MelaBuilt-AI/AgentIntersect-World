@@ -1,0 +1,42 @@
+{
+  "schema": "aiw.phase14-fixture/1",
+  "revision": "phase14-magic-slice/1",
+  "repositoryId": "aiw://object/repository-phase14-magic-slice",
+  "provenance": {
+    "owner": "AgentIntersect World",
+    "kind": "world-owned",
+    "created": "2026-07-22",
+    "externalDependencies": false
+  },
+  "files": [
+    {
+      "path": "src/greeting.mjs",
+      "sha256": "8e0f2eb25ca3adc106342180eb5c2b4f8dbffc480bb712e8e707b048d1ff5983"
+    },
+    {
+      "path": "test/greeting.test.mjs",
+      "sha256": "a9d1f6a96164aabe02e9905bdea02c303406525fc69f7293ece48e2c50b2138e"
+    },
+    {
+      "path": "preview.mjs",
+      "sha256": "3bf3f563d547dfbdda71b9c634ff6de8ad7203982a4d4e9a81f244310c382df2"
+    }
+  ],
+  "target": {
+    "path": "src/greeting.mjs",
+    "symbol": "greeting",
+    "initialSource": "export const greeting = \"Hello from the Phase 14 fixture.\";\n",
+    "initialSha256": "8e0f2eb25ca3adc106342180eb5c2b4f8dbffc480bb712e8e707b048d1ff5983",
+    "replacementSource": "export const greeting = \"Hello from the approved Phase 14 edit.\";\n",
+    "replacementSha256": "afe616897ef3399a68fb99dcd2afde13cdd90ca4739f37c1fff1346856245407",
+    "patchDigest": "38cadc14adce37df979a90e349c9e6b8ac88c71485531ae419df4bb6a0f8caac"
+  },
+  "commands": {
+    "test": ["$NODE", "--test", "test/greeting.test.mjs"],
+    "preview": ["$NODE", "preview.mjs", "--host", "127.0.0.1", "--port", "0"]
+  },
+  "health": {
+    "path": "/health",
+    "expected": { "ok": true, "schema": "aiw.phase14-preview/1" }
+  }
+}

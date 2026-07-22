@@ -13,8 +13,8 @@ describe("Phase 7 local-server configuration", () => {
       instanceName: "AgentIntersect World Local",
     });
     expect(toSafeConfig(config)).toEqual({
-      phase: "Phase 13",
-      version: "0.13.0-phase13",
+      phase: "Phase 14",
+      version: "0.14.0-phase14",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",

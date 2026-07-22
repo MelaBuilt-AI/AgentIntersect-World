@@ -96,6 +96,8 @@ import {
   type WorldActionProposalResult,
 } from "./world-actions.js";
 import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
+import { registerPhase14Routes } from "./phase14-routes.js";
+import type { Phase14Service } from "./phase14-service.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -114,6 +116,7 @@ export type LocalServer = FastifyInstance & {
   readonly codeGraphService: CodeGraphService;
   readonly agentSessionGateway?: AgentSessionGateway;
   readonly worldActionService?: WorldActionService;
+  readonly phase14Service?: Phase14Service;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -145,6 +148,7 @@ export type LocalServerOptions = {
   ) =>
     | Promise<readonly WorldActionProposalResult[]>
     | readonly WorldActionProposalResult[];
+  readonly phase14Service?: Phase14Service;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -247,6 +251,7 @@ export function createLocalServer(
   server.decorate("codeGraphService", codeGraphService);
   server.decorate("agentSessionGateway", options.agentSessionGateway);
   server.decorate("worldActionService", options.worldActionService);
+  server.decorate("phase14Service", options.phase14Service);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -260,6 +265,7 @@ export function createLocalServer(
     await integrationService.close();
     presentationService.close();
     await codeGraphService.close();
+    await options.phase14Service?.dispose();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -354,6 +360,8 @@ export function createLocalServer(
         options.worldActionContext,
         options.worldActionImport,
       );
+    if (options.phase14Service)
+      registerPhase14Routes(server, options.phase14Service);
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
       const correlationId = correlationFor(request);

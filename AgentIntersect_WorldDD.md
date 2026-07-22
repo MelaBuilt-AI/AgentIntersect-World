@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains explicitly deferred rather than green. The user selected Phase 14 as the next fresh-session topic for scope review and decision freeze only; it is not started or authorized for implementation.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains explicitly deferred rather than green. The bounded Phase 14 implementation and independent local parent proof are complete with retained evidence; private commit/push and exact-SHA CI closeout remain pending.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2727,7 +2727,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 13 — Embodied user navigation and World Action Protocol
 
-**Status:** COMPLETE UNDER USER WAIVER / LIVE DISCORD → WORLD CONTINUITY DEFERRED. The bounded local navigation/World Action implementation and all non-live closeout gates are accepted. Instrumented control runs isolated the intermittent memory runaway to headless Chromium's native pointer-lock path rather than World/R3F behavior, so exactly the two real `@pointer-lock` tests run in headed Chromium under Xvfb while strict performance and the remaining browser suite stay headless; repeated and fresh-process runs pass inside the unchanged 6 GiB RAM / 1 GiB swap boundary. The final exact-root retry resolved the Discord root through its effective compression continuation and persisted assistant deltas, then failed before a current-turn assistant final; no structured action tour, truthful arrival, or final World chat occurred. Per the user's final-attempt rule, that live feature was not retried and is pinned for a later milestone. The implementation and routing correction were privately pushed, and exact-SHA Actions run `29955237642` succeeded for `0d2ee8ac0724183ddc01c0a77773f0fd522a57af`; release/tag/publication/deployment/public-ingress/visibility changes, original-AgentIntersect edits, and Phase 14 implementation remain prohibited.
+**Status:** COMPLETE UNDER USER WAIVER / LIVE DISCORD → WORLD CONTINUITY DEFERRED. The bounded local navigation/World Action implementation and all non-live closeout gates are accepted. Instrumented control runs isolated the intermittent memory runaway to headless Chromium's native pointer-lock path rather than World/R3F behavior, so exactly the two real `@pointer-lock` tests run in headed Chromium under Xvfb while strict performance and the remaining browser suite stay headless; repeated and fresh-process runs pass inside the unchanged 6 GiB RAM / 1 GiB swap boundary. The final exact-root retry resolved the Discord root through its effective compression continuation and persisted assistant deltas, then failed before a current-turn assistant final; no structured action tour, truthful arrival, or final World chat occurred. Per the user's final-attempt rule, that live feature was not retried and is pinned for a later milestone. The implementation and routing correction were privately pushed, and exact-SHA Actions run `29955237642` succeeded for `0d2ee8ac0724183ddc01c0a77773f0fd522a57af`. At Phase 13 closeout, release/tag/publication/deployment/public-ingress/visibility changes, original-AgentIntersect edits, and Phase 14 implementation still required separate authorization; Phase 14 was subsequently authorized under its own frozen contract.
 
 **Objective:** Make the codebase inhabitable and let agents show spatial intent through deterministic semantic actions rather than decorative wandering.
 
@@ -2760,7 +2760,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** The user can traverse and recover from the World without getting trapped; the agent can truthfully navigate and present existing objects through validated high-level actions; action prose is never treated as authority; movement remains performant and has complete semantic alternatives; repository state is unchanged by navigation/presentation.
 
-**Exit gate:** Phase 13 closed under the explicit 2026-07-22 waiver after the local product, browser, performance, fresh-copy, cleanup, private-push, and exact-SHA CI gates passed. The failed one-way Discord-root-to-World assistant-final/action-tour criterion remains deferred and must never be described as passed. Phase 14 requires separate implementation authorization after its draft decisions are frozen.
+**Exit gate:** Phase 13 closed under the explicit 2026-07-22 waiver after the local product, browser, performance, fresh-copy, cleanup, private-push, and exact-SHA CI gates passed. The failed one-way Discord-root-to-World assistant-final/action-tour criterion remains deferred and must never be described as passed. Phase 14 later received separate frozen-scope implementation authorization.
 
 **Frozen implementation profile:** Use bounded 1–8 action batches, continuity-aware fail-closed target resolution, a deterministic versioned navigation mesh, explicit attention/path/movement/arrival/interruption state, third-person default with opt-in first-person pointer lock, a 256-object/512-edge/24-hop rich graph ceiling, seven-day/200-action replay with 32 pins and no automatic restart resume, a hybrid desktop budget of 16.7 ms main-thread render-work p95 plus 16.8 ms raw `requestAnimationFrame` cadence p95 with every sample retained, a 33.3 ms mobile/two-CPU cadence budget, and full clean-profile proof before private commit/push and exact-SHA CI. Release, deployment, publication, public ingress, visibility change, and Phase 14+ remain separate approval gates.
 
@@ -2768,39 +2768,39 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 14 — Structured tool visualization, visual code explanations, and local project preview
 
-**Status:** SELECTED NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE. The user selected Phase 14 as the next fresh-session topic on 2026-07-22. `docs/PHASE_14_SCOPE.md` authorizes orientation, review, and scope freeze only. No Phase 14 production code, dependencies, worker, tool execution, preview process, commit/push, or release action is authorized until the user explicitly approves the frozen draft.
+**Status:** LOCAL IMPLEMENTATION COMPLETE / INDEPENDENT PARENT PROOF PASS; PRIVATE EXACT-SHA CI PENDING. On 2026-07-22 the user approved the exact disposable-fixture journey and `docs/PHASE_14_SCOPE.md` became controlling. The implemented slice supplies the strict protocols, approval/edit boundary, focused-test and loopback-preview profiles, bounded persistence/recovery, accessible presentation, performance evidence, screenshots, and trace required by that contract. Parent proof corrected the stale Phase 13 runtime metadata through RED→GREEN TDD and reran the real-process/browser/full/fresh-copy gates. No release, deployment, publication, visibility change, Hermes edit, original-AgentIntersect inspection/modification, deferred-continuity retry, or Phase 15+ work occurred.
 
 **Objective:** Complete the one-agent magic slice by connecting real tool use, code changes, tests, explanations, and a health-checked preview to embodied World presentation.
 
-**User-visible outcome:** The user asks how code relates and receives a synchronized explanation plus highlighted objects/edges. The user asks for one bounded feature or fix; the agent reads, edits, tests, and builds through its real harness while its avatar and the code world show evidence-backed activity. When ready, the agent opens the project in a normal browser or an in-world preview surface.
+**User-visible outcome:** The Activity lane presents the exact ten-step fixture journey in semantic order: attach the deterministic existing fixture session, read/search and explain `greeting`, preview and approve one exact replacement, apply it atomically in a disposable copy, show current/previous truth, run the focused Node test, verify the loopback preview, stop it, and correlate evidence. Phase 12 chat remains independently usable and presentation/motion has no execution authority.
 
-**In scope:**
+**Frozen in scope:**
 
-- normalized tool requested/started/progress/completed/failed events;
+- strict World-owned `aiw.tool-event/0.14` read/search/edit/test/preview events with requested/accepted/running/succeeded/failed/cancelled/superseded lifecycle;
 - mapping search/read/trace/edit/test/build/browser/approval events to bounded spatial and semantic presentation;
 - exact object/evidence correlation and candidate-versus-confirmed affected areas;
 - visual explanation response contract combining text, object refs, graph paths, actions, evidence, confidence, and truncation;
 - temporary/pinnable annotations and guided camera tours;
-- one bounded Collaborate-mode mutation path through Hermes adapter approvals;
-- bounded Autonomous-mode envelope with explicit local enablement, repository/worktree scope, allowed tools, process/network/time/token-or-cost limits where enforceable, stop conditions, and immediate de-escalation;
+- one deterministic existing Hermes-compatible fixture session, without invoking the deferred current Discord session;
+- one exact-text replacement of `src/greeting.mjs` in an attested disposable copy under `/tmp/agentintersect-world-phase14/`, gated by explicit single-use approval;
 - existing Phase 8 diff/test/evidence integration for free-form sessions;
-- Preview Manager: approved command profile, worktree binding, loopback host, PID/start identity, port selection, readiness/health, logs, open-in-browser/in-world display, screenshot evidence, teardown;
+- one exact `node --test test/greeting.test.mjs` adapter and one exact `node preview.mjs` loopback Preview Manager profile with owned-process cleanup;
 - project-preview status/result panel and current/previous truth;
 - first complete magic-slice E2E.
 
-**Out of scope:** Public deployment/tunnels, production hosting, hidden chain-of-thought, arbitrary command reconstruction from prose, unsupported tool-event fabrication, simultaneous editing agents, voice.
+**Out of scope:** Public or trusted-LAN preview, deployment/tunnels, production hosting, hidden chain-of-thought, arbitrary command reconstruction from prose, general/multi-file patching, Autonomous-mode execution, unsupported tool-event fabrication, simultaneous editing agents, voice, the deferred Phase 13 Discord → World continuity retry, and Phase 15+.
 
 **Dependencies:** Phase 12 structured session events, Phase 13 World Actions/navigation, Phase 8 evidence, Phase 10 graph, existing browser/visual testing infrastructure.
 
 **Concrete tasks:** Pin Hermes tool-event and approval contracts; normalize/redact tool metadata; correlate file/symbol targets; implement activity presentation table; implement explanation bundle and graph query helper; connect free-form edits to evidence store; implement preview command profiles and process registry; add readiness strategies and browser/in-world fallback; capture preview evidence; build complete request→tools→edit→test→preview→final response journey.
 
-**Code/artifacts:** Tool event schemas/normalizer, activity mapper, explanation service, code-tour UI, preview-manager package, preview registry/migrations, browser portal/screen, fixture project, magic-slice Playwright spec, evidence bundle, Phase 14 report.
+**Code/artifacts:** Browser-safe `tool-protocol`; cohesive local `phase14-service` and strict routes; narrow web client and semantic journey panel; Storybook states; tracked `examples/phase14-magic-slice`; real-process service/API/browser tests; `artifacts/phase14/` metrics/screenshots/trace; performance document; and Phase 14 worker report.
 
-**Tests/evidence:** Structured and text-only adapter degradation; secret/path/tool-argument redaction; actual search/read/edit/test correlation; candidate never displayed as confirmed change; failing and passing tests; command approval denial; Autonomous enable/limit/de-escalate/stop behavior with unsupported hard limits disabled rather than claimed; preview startup failure, wrong port, timeout, process crash, stale PID, unsupported iframe, teardown failure; browser screenshot evidence; reload/reconcile after tools/preview; full local and exact-SHA CI proof.
+**Tests/evidence:** Strict unknown-field/schema/size/expiry/replay behavior; session/repository/revision/hash binding; redaction; approval expiry/revoke/single-use; stale/dirty/path/symlink/binary/NUL rejection; atomic edit; actual test success/failure/timeout/cancel/output truncation; preview ready/unhealthy/timeout/cancel/cleanup; checksum last-good recovery, duplicate replay, retention; current/previous truth; desktop/mobile/keyboard/touch/reduced-motion/forced-colors/no-WebGL browser proof; 120-sample performance artifacts; screenshot and trace; 35/35 focused conformance; 23/23 metadata-correction regression; complete repository gates with 473/473 Vitest and 40/40 Playwright; Storybook; zero-vulnerability audit; and a clean 412-file fresh-copy rerun. Private exact-SHA CI proof remains pending.
 
-**Acceptance criteria:** A real persistent Hermes session can explain a bounded code relationship visually, perform one approved real edit/test, and present a verified local preview; a separately enabled Autonomous envelope enforces or truthfully declines every configured hard limit and can be immediately de-escalated/stopped; every effect links to real tool/repository/test/preview evidence; no hidden reasoning or secret is exposed; preview remains loopback and identity-bound; failures remain explicit and recoverable.
+**Acceptance criteria:** The exact ten-step disposable fixture journey attaches the deterministic Hermes-compatible fixture session, performs real World-owned read/search, produces a revision-bound explanation, previews and applies one explicitly approved atomic replacement, runs the real focused Node test, starts and health-checks the real loopback preview, stops it with port-closure proof, and correlates bounded evidence. Cancellation/recovery, accessible semantic operation, performance ceilings, and tracked-fixture/worktree non-mutation are proven. Every effect links to authoritative tool/repository/test/preview evidence; no hidden reasoning or secret is exposed.
 
-**Exit gate:** User personally completes and approves the full text magic slice. No Phase 15 work begins automatically.
+**Exit gate:** Local implementation, artifact inspection, parent functional proof, cleanup, and fresh-copy acceptance are green. Private commit/push and exact-SHA CI closeout remain before the phase is fully sealed. No Phase 15 work begins automatically.
 
 **Risks:** Adapter telemetry may be incomplete and preview commands vary by repo. Capability-degrade honestly, require explicit preview profiles/approval, and keep open-in-browser as the universal fallback.
 

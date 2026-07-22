@@ -112,6 +112,9 @@ importers:
       "@agentintersect-world/sync-yjs":
         specifier: workspace:*
         version: link:../../packages/sync-yjs
+      "@agentintersect-world/tool-protocol":
+        specifier: workspace:*
+        version: link:../../packages/tool-protocol
       "@agentintersect-world/world-action-protocol":
         specifier: workspace:*
         version: link:../../packages/world-action-protocol
@@ -263,6 +266,12 @@ importers:
       yjs:
         specifier: 13.6.31
         version: 13.6.31
+
+  packages/tool-protocol:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
 
   packages/ui:
     dependencies:

@@ -8,6 +8,7 @@ import { capabilitySnapshotHash } from "@agentintersect-world/agent-session-prot
 import { buildNavigationMesh } from "@agentintersect-world/navigation";
 import { readdir, unlink } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { ReadIntegrationService } from "./agentintersect-integration.js";
 import {
@@ -34,6 +35,7 @@ import {
   type WorldActionContext,
   type WorldActionProposalResult,
 } from "./world-actions.js";
+import { Phase14Service } from "./phase14-service.js";
 
 const config = (() => {
   try {
@@ -117,11 +119,23 @@ if (config !== undefined) {
         path.join(config.agentSessions.dataDir, "world-actions"),
       )
     : undefined;
+  const phase14Service = new Phase14Service({
+    fixtureRoot: fileURLToPath(
+      new URL("../../../examples/phase14-magic-slice", import.meta.url),
+    ),
+    storePath: path.join(
+      config.presentationSync.dataDir,
+      "..",
+      "phase14",
+      "operations.json",
+    ),
+  });
   const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
     ...(evidenceService ? { evidenceService } : {}),
+    phase14Service,
     ...(agentSessionGateway
       ? {
           agentSessionGateway,

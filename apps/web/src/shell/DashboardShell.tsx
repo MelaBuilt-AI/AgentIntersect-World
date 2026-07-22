@@ -40,6 +40,11 @@ const RepositoryWorldPanel = lazy(async () => {
   return { default: module.RepositoryWorldPanel };
 });
 
+const Phase14JourneyPanel = lazy(async () => {
+  const module = await import("../phase14/Phase14JourneyPanel.js");
+  return { default: module.Phase14JourneyPanel };
+});
+
 export function DashboardShell({
   profile,
   previousProfile,
@@ -357,28 +362,41 @@ export function DashboardShell({
               )}
             </div>
           )}
-          {activePanel === "Activity" &&
-            (integration.state ? (
-              <div className="stacked-panels">
-                <CommandIntentPanel
-                  harness={harness.currentHarness}
-                  readiness={integration.readiness}
-                  phaseId={
-                    integration.state.projection.phaseBoard.current?.id ?? null
-                  }
-                  commandsEnabled={commandsEnabled}
-                  fixtureMode={phase7Fixture}
-                />
-                <IntegrationPanel
-                  state={integration.state}
-                  readiness={integration.readiness}
-                />
-              </div>
-            ) : (
-              <section className="panel-state" role="status">
-                Loading normalized timeline…
-              </section>
-            ))}
+          {activePanel === "Activity" && (
+            <div className="stacked-panels">
+              <Suspense
+                fallback={
+                  <section className="panel-state" role="status">
+                    Loading Phase 14 developer journey…
+                  </section>
+                }
+              >
+                <Phase14JourneyPanel />
+              </Suspense>
+              {integration.state ? (
+                <>
+                  <CommandIntentPanel
+                    harness={harness.currentHarness}
+                    readiness={integration.readiness}
+                    phaseId={
+                      integration.state.projection.phaseBoard.current?.id ??
+                      null
+                    }
+                    commandsEnabled={commandsEnabled}
+                    fixtureMode={phase7Fixture}
+                  />
+                  <IntegrationPanel
+                    state={integration.state}
+                    readiness={integration.readiness}
+                  />
+                </>
+              ) : (
+                <section className="panel-state" role="status">
+                  Loading normalized timeline…
+                </section>
+              )}
+            </div>
+          )}
           {activePanel === "Evidence" && (
             <EvidencePanelLoader
               {...(phase8Fixture ? { fixture: PHASE8_EVIDENCE_FIXTURE } : {})}
@@ -412,7 +430,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 12 persistent Hermes text / Phase 11 modular avatar</span>
+        <span>Phase 14 approved edit, test, and loopback preview</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>
