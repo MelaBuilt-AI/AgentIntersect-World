@@ -54,7 +54,7 @@ Node `v24.18.0` and pnpm `11.15.0` final verification passed:
   Playwright journeys;
 - Storybook production build;
 - zero known production dependency vulnerabilities;
-- fresh-copy install and aggregate verification across 388 copied source files;
+- fresh-copy install and aggregate verification across 383 copied source files;
 - Phase 13 measurement/browser suite, 6/6;
 - pointer-lock journey stability: 5/5 exact repeats, 5/5 fresh Playwright/Xvfb
   processes, and zero swap/OOM under the fixed 6 GiB RAM / 1 GiB swap boundary;
@@ -63,18 +63,19 @@ Node `v24.18.0` and pnpm `11.15.0` final verification passed:
 Machine-readable evidence retains 120 raw render-work and 120 raw cadence
 samples per browser profile. Desktop 10k measured 0.20000000298023224 ms
 render-work p95, 16.700000000000728 ms cadence p95, 0 ms longest task, and
-2.0244522094726562 MiB incremental heap. Mobile/two-CPU 100k measured
-0.8999999985098839 ms, 16.700000000000273 ms, 0 ms, and
-4.91937255859375 MiB. Ready-navmesh p95 was 0.551 ms at 10k and 0.283 ms at
-100k.
+2.0203323364257812 MiB incremental heap. Mobile/two-CPU 100k measured 1 ms,
+16.800000000000182 ms, 0 ms, and 4.919158935546875 MiB. Ready-navmesh p95 was
+0.551 ms at 10k and 0.283 ms at 100k.
 
 Instrumented controls isolated the intermittent native renderer-memory runaway
-to headless Chromium while real pointer lock was held. The Phase 13 journey
-therefore runs in headed Chromium under Xvfb while every ordinary Playwright
-journey remains headless. Product pointer-lock behavior and acceptance criteria
-are unchanged. The exact journey passed 5/5 repeats and five fresh processes
-below 0.851 GiB; the complete Phase 13 suite passed 6/6 below 1.023 GiB. All
-parent runs remained inside 6 GiB RAM / 1 GiB swap with zero swap and no OOM.
+to headless Chromium while real pointer lock was held. Exactly the two
+`@pointer-lock` Phase 13 tests run in headed Chromium under Xvfb; the four
+remaining Phase 13 tests, including strict performance measurement, and every
+ordinary Playwright journey remain headless. Product pointer-lock behavior and
+acceptance criteria are unchanged. The exact journey passed 5/5 repeats and
+five fresh processes below 0.851 GiB; the complete Phase 13 suite passed 6/6
+below 1.023 GiB. All parent runs remained inside 6 GiB RAM / 1 GiB swap with
+zero swap and no OOM.
 
 The retained screenshot was inspected first-hand: controls remain reachable,
 active controls are blue, the disabled tour is grey and explicitly labeled,

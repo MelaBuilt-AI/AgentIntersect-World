@@ -55,13 +55,18 @@ describe("acceptance command graph", () => {
   it("routes only the real Phase 13 pointer-lock journey through headed Chromium", async () => {
     const { default: config } = await import("../../playwright.config.js");
     const pointerLockSpec = "**/phase13-world-action-journey.spec.ts";
+    const pointerLockTag = /@pointer-lock/;
+    const phase13Spec = await readProjectFile(
+      "apps/web/e2e/phase13-world-action-journey.spec.ts",
+    );
     const projects = config.projects ?? [];
 
+    expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
     expect(projects).toHaveLength(2);
     expect(projects[0]?.name ?? "").toBe("");
     expect(projects).toEqual([
       expect.objectContaining({
-        testIgnore: pointerLockSpec,
+        grepInvert: pointerLockTag,
         use: expect.objectContaining({
           browserName: "chromium",
           headless: true,
@@ -70,6 +75,7 @@ describe("acceptance command graph", () => {
       expect.objectContaining({
         name: "headed-pointer-lock",
         testMatch: pointerLockSpec,
+        grep: pointerLockTag,
         use: expect.objectContaining({
           browserName: "chromium",
           headless: false,

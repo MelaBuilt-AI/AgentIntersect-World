@@ -16,13 +16,13 @@ alternating style-width mutation followed by a synchronous layout read; it is
 measured directly and is never derived by subtracting cadence. Render-work p95
 was 0.20000000298023224 ms against 16.7 ms, raw cadence p95 was
 16.700000000000728 ms against 16.8 ms, the longest task was 0 ms, and
-incremental heap was 2.0244522094726562 MiB. Every integrity and threshold
+incremental heap was 2.0203323364257812 MiB. Every integrity and threshold
 check in the written artifact passed.
 
 The constrained mobile/two-CPU 100k fixture also retained both raw 120-sample
-series. Render-work p95 was 0.8999999985098839 ms, raw cadence p95 was
-16.700000000000273 ms, the longest task was 0 ms, incremental heap was
-4.91937255859375 MiB, and whole-repository semantic/detail rows remained zero.
+series. Render-work p95 was 1 ms, raw cadence p95 was 16.800000000000182 ms,
+the longest task was 0 ms, incremental heap was 4.919158935546875 MiB, and
+whole-repository semantic/detail rows remained zero.
 Its existing 33.3 ms cadence, 100 ms Long Task, and 96 MiB heap gates remain
 unchanged and passed.
 
@@ -42,11 +42,12 @@ approximately 445 MiB, with a 458.1 MiB observed peak. This evidence ruled out
 the repository graph, R3F scene, camera transition, and keyboard fan-out as the
 owner of the runaway.
 
-The Playwright harness therefore keeps every ordinary journey in the canonical
-unnamed headless Chromium project and isolates only
-`phase13-world-action-journey.spec.ts` in a headed Chromium project executed
-under Xvfb. Product pointer-lock behavior, keyboard targeting, assertions,
-acceptance thresholds, and the 6 GiB RAM / 1 GiB swap boundary remain unchanged.
+The Playwright harness therefore keeps every ordinary journey and the four
+non-pointer-lock Phase 13 tests in the canonical unnamed headless Chromium
+project. Exactly the two Phase 13 tests tagged `@pointer-lock` run in the named
+headed Chromium project under Xvfb. Product pointer-lock behavior, keyboard
+targeting, assertions, acceptance thresholds, and the 6 GiB RAM / 1 GiB swap
+boundary remain unchanged.
 
 Parent-owned bounded verification passed:
 

@@ -98,7 +98,7 @@ async function measureHybridFrameSeries(page: Page) {
   );
 }
 
-test("Phase 13 defaults to third person, enters first person explicitly, and Escape/operator movement interrupt", async ({
+test("Phase 13 defaults to third person, enters first person explicitly, and Escape/operator movement interrupt @pointer-lock", async ({
   page,
 }) => {
   await seedConfiguredAvatar(page);
@@ -151,7 +151,7 @@ test("Phase 13 defaults to third person, enters first person explicitly, and Esc
   await expect(actions).toContainText("Teleport fallback");
 });
 
-test("Phase 13 manual controls change the rendered camera and actor state", async ({
+test("Phase 13 manual controls change the rendered camera and actor state @pointer-lock", async ({
   page,
 }) => {
   test.setTimeout(120_000);
