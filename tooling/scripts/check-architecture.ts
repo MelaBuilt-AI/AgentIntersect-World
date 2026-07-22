@@ -36,14 +36,17 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/agentintersect-client",
     "@agentintersect-world/config",
     "@agentintersect-world/observability",
+    "@agentintersect-world/navigation",
     "@agentintersect-world/persistence",
     "@agentintersect-world/repo-indexer",
     "@agentintersect-world/spatial-code-graph",
     "@agentintersect-world/sync-yjs",
     "@agentintersect-world/world-event-protocol",
+    "@agentintersect-world/world-action-protocol",
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/observability": ["@agentintersect-world/world-schema"],
+  "@agentintersect-world/navigation": [],
   "@agentintersect-world/persistence": [
     "@agentintersect-world/world-event-protocol",
   ],
@@ -63,6 +66,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/world-event-protocol": [],
+  "@agentintersect-world/world-action-protocol": [],
   "@agentintersect-world/world-schema": [],
 };
 

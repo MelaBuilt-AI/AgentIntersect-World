@@ -4,6 +4,9 @@ import {
 } from "@agentintersect-world/config/node";
 import { AgentIntersectReadClient } from "@agentintersect-world/agentintersect-client/read";
 import { WorldEventStore } from "@agentintersect-world/persistence";
+import { capabilitySnapshotHash } from "@agentintersect-world/agent-session-protocol";
+import { buildNavigationMesh } from "@agentintersect-world/navigation";
+import { readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 
 import { ReadIntegrationService } from "./agentintersect-integration.js";
@@ -23,7 +26,14 @@ import {
   AgentSessionStore,
   HermesSessionAdapter,
   readPluginAvatarProposal,
+  readPluginWorldActionProposal,
 } from "./agent-sessions.js";
+import {
+  importWorldActionProposal,
+  WorldActionService,
+  type WorldActionContext,
+  type WorldActionProposalResult,
+} from "./world-actions.js";
 
 const config = (() => {
   try {
@@ -102,7 +112,12 @@ if (config !== undefined) {
         store: new AgentSessionStore(config.agentSessions.dataDir),
       })
     : undefined;
-  const server = createLocalServer({
+  const worldActionService = config.agentSessions
+    ? new WorldActionService(
+        path.join(config.agentSessions.dataDir, "world-actions"),
+      )
+    : undefined;
+  const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
@@ -124,6 +139,220 @@ if (config !== undefined) {
                     sessionId,
                     agentSessionGateway.status(sessionId).adapterSessionRef,
                   ),
+              }
+            : {}),
+          ...(worldActionService
+            ? {
+                worldActionService,
+                worldActionContext: async (sessionId: string) => {
+                  const session = agentSessionGateway.status(sessionId);
+                  const selection = server.currentRepositorySelection();
+                  if (
+                    !selection ||
+                    session.repositoryRef !== selection.snapshot.repositoryRef
+                  )
+                    return null;
+                  const manifest = (
+                    await agentAdapterRegistry.capabilities()
+                  ).find(({ adapterId }) => adapterId === session.adapterId);
+                  if (!manifest) return null;
+                  const worldActionsEnabled =
+                    manifest.capabilities.worldActions &&
+                    capabilitySnapshotHash(manifest) ===
+                      session.capabilitySnapshotHash;
+                  const objects = selection.snapshot.objects;
+                  const minimumX = Math.min(
+                    ...objects.map(({ bounds }) => bounds.x),
+                  );
+                  const minimumZ = Math.min(
+                    ...objects.map(({ bounds }) => bounds.z),
+                  );
+                  const maximumX = Math.max(
+                    ...objects.map(({ bounds }) => bounds.x + bounds.width),
+                  );
+                  const maximumZ = Math.max(
+                    ...objects.map(({ bounds }) => bounds.z + bounds.depth),
+                  );
+                  const worldGeneration = selection.generation.id;
+                  const layoutGeneration = `layout-${selection.snapshot.generationFingerprint}`;
+                  const graphGeneration =
+                    server.codeGraphService.status().current?.generationId ??
+                    null;
+                  const relationships = (() => {
+                    if (!graphGeneration) return [];
+                    try {
+                      return server.codeGraphService
+                        .aggregate(1, 1_024)
+                        .edges.flatMap((edge) =>
+                          edge.targetRef
+                            ? [
+                                {
+                                  ref: edge.key,
+                                  sourceRef: edge.sourceRef,
+                                  targetRef: edge.targetRef,
+                                  confidence:
+                                    edge.confidence.find(
+                                      (value) =>
+                                        value === "exact_file" ||
+                                        value === "exact_workspace_package",
+                                    ) ??
+                                    edge.confidence[0] ??
+                                    "unavailable",
+                                  evidenceRef: edge.key,
+                                },
+                              ]
+                            : [],
+                        );
+                    } catch {
+                      return [];
+                    }
+                  })();
+                  const positions = new Map(
+                    objects.map((object) => [
+                      object.ref,
+                      {
+                        x: object.bounds.x + object.bounds.width / 2,
+                        z: object.bounds.z - 0.75,
+                        interactionRadius: 0.75,
+                      },
+                    ]),
+                  );
+                  const firstTourObject = objects.find(
+                    (object) =>
+                      "path" in object &&
+                      object.path === "packages/spatial-code-graph",
+                  );
+                  return {
+                    binding: {
+                      sessionId,
+                      adapterSessionRef: session.adapterSessionRef,
+                      repositoryRef: selection.snapshot.repositoryRef,
+                      worldGeneration,
+                      layoutGeneration,
+                      graphGeneration,
+                      capabilitySnapshotHash: session.capabilitySnapshotHash,
+                    },
+                    worldActionsEnabled,
+                    targets: objects.map((object) => ({
+                      objectRef: object.ref,
+                      repositoryRef: selection.snapshot.repositoryRef,
+                      state:
+                        object.kind === "tombstone"
+                          ? ("tombstone" as const)
+                          : ("current" as const),
+                      ...(object.kind === "tombstone"
+                        ? { path: object.lastKnownPath }
+                        : "path" in object
+                          ? { path: object.path }
+                          : {}),
+                      ...("pathHistory" in object
+                        ? {
+                            previousPaths: object.pathHistory.map(
+                              ({ path: previousPath }) => previousPath,
+                            ),
+                            continuity: "authoritative" as const,
+                          }
+                        : {}),
+                    })),
+                    navigationMesh: buildNavigationMesh({
+                      worldGeneration,
+                      layoutGeneration,
+                      navigationBounds: {
+                        x: minimumX - 2,
+                        z: minimumZ - 2,
+                        width: Math.max(4, maximumX - minimumX + 4),
+                        depth: Math.max(4, maximumZ - minimumZ + 4),
+                      },
+                      avatarRadius: 0.35,
+                      clearance: 0.15,
+                      obstacles: objects.flatMap((object) =>
+                        object.kind === "package"
+                          ? [{ ref: object.ref, bounds: object.bounds }]
+                          : [],
+                      ),
+                    }),
+                    positions,
+                    relationships,
+                    ...(firstTourObject
+                      ? {
+                          actorPosition: {
+                            x:
+                              firstTourObject.bounds.x +
+                              firstTourObject.bounds.width / 2,
+                            z: firstTourObject.bounds.z - 0.75,
+                          },
+                        }
+                      : {}),
+                  };
+                },
+                worldActionImport: async (
+                  sessionId: string,
+                  context: WorldActionContext,
+                ) => {
+                  const capabilityPath =
+                    config.agentSessions?.pluginCapabilityPath;
+                  if (!capabilityPath) return [];
+                  const directory = path.join(
+                    path.dirname(capabilityPath),
+                    "world-action-proposals",
+                  );
+                  let names: string[];
+                  try {
+                    names = (await readdir(directory))
+                      .filter((name) =>
+                        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.json$/i.test(
+                          name,
+                        ),
+                      )
+                      .slice(0, 32);
+                  } catch {
+                    return [];
+                  }
+                  const nativeSession = agentSessionGateway.status(sessionId);
+                  const proposalOwners = [
+                    nativeSession.adapterSessionRef,
+                    ...(nativeSession.adapterPreviousSessionRef
+                      ? [nativeSession.adapterPreviousSessionRef]
+                      : []),
+                  ];
+                  const proposals = names.flatMap((name) => {
+                    const file = path.join(directory, name);
+                    const proposal = readPluginWorldActionProposal(
+                      file,
+                      proposalOwners,
+                    );
+                    return proposal ? [{ file, ...proposal }] : [];
+                  });
+                  proposals.sort(
+                    (left, right) =>
+                      Date.parse(left.createdAt) -
+                        Date.parse(right.createdAt) ||
+                      left.sourceStreamId.localeCompare(right.sourceStreamId) ||
+                      left.sequence - right.sequence ||
+                      left.proposalId.localeCompare(right.proposalId),
+                  );
+                  const executions: WorldActionProposalResult[] = [];
+                  for (const proposal of proposals) {
+                    const imported = await importWorldActionProposal(
+                      worldActionService,
+                      sessionId,
+                      proposal,
+                      context,
+                    );
+                    if (imported.consume)
+                      await unlink(proposal.file).catch(() => undefined);
+                    if (imported.result.accepted)
+                      executions.push(imported.result);
+                  }
+                  return executions.filter(
+                    (execution) =>
+                      execution.accepted &&
+                      worldActionService.isBatchExecutable(
+                        sessionId,
+                        execution.envelope.batchId,
+                      ),
+                  );
+                },
               }
             : {}),
         }

@@ -1,5 +1,10 @@
-import { Canvas, type ThreeEvent, useThree } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
+import {
+  Canvas,
+  type ThreeEvent,
+  useFrame,
+  useThree,
+} from "@react-three/fiber";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   BoxGeometry,
   GridHelper,
@@ -16,8 +21,16 @@ import type {
   PreparedInstanceGroup,
   PreparedRepositoryInstances,
   RenderObjectKind,
+  RepositoryCameraMode,
+  RepositoryCameraState,
+  RepositoryCameraTransitionState,
 } from "./index.js";
-import { RENDER_OBJECT_KINDS } from "./index.js";
+import {
+  advanceRepositoryCameraTransition,
+  RENDER_OBJECT_KINDS,
+  repositoryCameraPose,
+  retargetRepositoryCameraTransition,
+} from "./index.js";
 
 const colors: Readonly<Record<RenderObjectKind, string>> = {
   package: "#8b5cf6",
@@ -96,16 +109,36 @@ function SceneBridge({
   prepared,
   selectedRef,
   focusRef,
+  agentPosition,
+  cameraMode,
+  cameraState,
+  fieldOfView,
+  cameraEasing,
   onSelect,
   onContextLost,
 }: {
   readonly prepared: PreparedRepositoryInstances;
   readonly selectedRef: string | null;
   readonly focusRef: string | null;
+  readonly agentPosition: { readonly x: number; readonly z: number } | null;
+  readonly cameraMode: RepositoryCameraMode;
+  readonly cameraState: RepositoryCameraState;
+  readonly fieldOfView: number;
+  readonly cameraEasing: number;
   readonly onSelect: (ref: string) => void;
   readonly onContextLost: () => void;
 }) {
-  const { camera, gl, invalidate } = useThree();
+  const { camera, gl, invalidate, scene } = useThree();
+  const desiredPosition = useRef(camera.position.clone());
+  const desiredTarget = useRef(new Vector3());
+  const renderedTarget = useRef(new Vector3());
+  const desiredFov = useRef(fieldOfView);
+  const easingRef = useRef(0);
+  const transitionState = useRef<RepositoryCameraTransitionState | null>(null);
+  const hasCameraPose = useRef(false);
+  const requestRender = useCallback(() => {
+    invalidate();
+  }, [invalidate]);
   const selected = useMemo(
     () => selectedPosition(prepared, selectedRef),
     [prepared, selectedRef],
@@ -114,14 +147,12 @@ function SceneBridge({
     () => selectedPosition(prepared, focusRef),
     [focusRef, prepared],
   );
-  const grid = useMemo(
-    () =>
-      new GridHelper(
-        Math.max(40, prepared.overview.width, prepared.overview.depth),
-        20,
-      ),
-    [prepared.overview.depth, prepared.overview.width],
-  );
+  const grid = useMemo(() => {
+    return new GridHelper(
+      Math.max(40, prepared.overview.width, prepared.overview.depth),
+      20,
+    );
+  }, [prepared.overview.depth, prepared.overview.width]);
   const dependencyLines = useMemo(() => {
     const points = prepared.dependencyBridges.flatMap((bridge) => [
       bridge.start,
@@ -153,32 +184,170 @@ function SceneBridge({
       0,
       prepared.overview.depth / 2,
     ];
-    const distance =
-      focused === null
-        ? Math.max(
-            18,
-            Math.min(
-              120,
-              Math.max(prepared.overview.width, prepared.overview.depth) * 0.8,
-            ),
-          )
-        : 12;
-    camera.position.set(
-      target[0] + distance * 0.65,
-      distance,
-      target[2] + distance,
+    const pose = repositoryCameraPose({
+      mode: cameraMode,
+      camera: cameraState,
+      target: { x: target[0], y: target[1], z: target[2] },
+      actorPosition: agentPosition,
+    });
+    const nextTransition = retargetRepositoryCameraTransition(
+      transitionState.current,
+      { ...pose, fov: fieldOfView },
     );
-    camera.lookAt(target[0], 0, target[2]);
-    camera.updateProjectionMatrix();
-    invalidate();
+    const desiredChanged = nextTransition !== transitionState.current;
+    transitionState.current = nextTransition;
+    if (desiredChanged) {
+      desiredPosition.current.set(...nextTransition.desired.position);
+      desiredTarget.current.set(...nextTransition.desired.target);
+      desiredFov.current = nextTransition.desired.fov;
+    }
+    const previousEasing = easingRef.current;
+    easingRef.current = Math.max(0, Math.min(1, cameraEasing));
+    gl.domElement.dataset.cameraEasing = String(easingRef.current);
+    gl.domElement.dataset.agentPosition = agentPosition
+      ? `${agentPosition.x},${agentPosition.z}`
+      : "none";
+    if (!hasCameraPose.current || easingRef.current === 0) {
+      camera.position.copy(desiredPosition.current);
+      renderedTarget.current.set(
+        desiredTarget.current.x,
+        desiredTarget.current.y,
+        desiredTarget.current.z,
+      );
+      camera.lookAt(renderedTarget.current);
+      if ("fov" in camera && typeof camera.fov === "number")
+        camera.fov = desiredFov.current;
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+      gl.domElement.dataset.cameraTransform = [
+        camera.position.x,
+        camera.position.y,
+        camera.position.z,
+        renderedTarget.current.x,
+        renderedTarget.current.y,
+        renderedTarget.current.z,
+      ].join(",");
+      gl.domElement.dataset.cameraFov = String(desiredFov.current);
+    }
+    hasCameraPose.current = true;
+    if (desiredChanged || easingRef.current !== previousEasing) requestRender();
   }, [
+    agentPosition,
     camera,
+    cameraEasing,
+    cameraMode,
+    cameraState,
+    fieldOfView,
     focused,
-    invalidate,
+    gl,
+    requestRender,
     prepared.overview.depth,
     prepared.overview.width,
   ]);
-  useEffect(() => invalidate(), [invalidate, prepared, selectedRef]);
+  useFrame((_, delta) => {
+    if (
+      !hasCameraPose.current ||
+      easingRef.current === 0 ||
+      transitionState.current === null
+    )
+      return;
+    const response = 18 - easingRef.current * 14;
+    const alpha = 1 - Math.exp(-response * Math.min(delta, 0.1));
+    camera.position.lerp(desiredPosition.current, alpha);
+    renderedTarget.current.set(
+      renderedTarget.current.x +
+        (desiredTarget.current.x - renderedTarget.current.x) * alpha,
+      renderedTarget.current.y +
+        (desiredTarget.current.y - renderedTarget.current.y) * alpha,
+      renderedTarget.current.z +
+        (desiredTarget.current.z - renderedTarget.current.z) * alpha,
+    );
+    if ("fov" in camera && typeof camera.fov === "number")
+      camera.fov += (desiredFov.current - camera.fov) * alpha;
+    const targetDelta = {
+      x: renderedTarget.current.x - desiredTarget.current.x,
+      y: renderedTarget.current.y - desiredTarget.current.y,
+      z: renderedTarget.current.z - desiredTarget.current.z,
+    };
+    const settled =
+      camera.position.distanceToSquared(desiredPosition.current) < 0.000001 &&
+      targetDelta.x * targetDelta.x +
+        targetDelta.y * targetDelta.y +
+        targetDelta.z * targetDelta.z <
+        0.000001 &&
+      (!("fov" in camera) ||
+        typeof camera.fov !== "number" ||
+        Math.abs(camera.fov - desiredFov.current) < 0.001);
+    const fovDelta =
+      "fov" in camera && typeof camera.fov === "number"
+        ? camera.fov - desiredFov.current
+        : 0;
+    const remainingError =
+      camera.position.distanceToSquared(desiredPosition.current) +
+      targetDelta.x * targetDelta.x +
+      targetDelta.y * targetDelta.y +
+      targetDelta.z * targetDelta.z +
+      fovDelta * fovDelta;
+    const transition = advanceRepositoryCameraTransition(
+      transitionState.current,
+      remainingError,
+      settled,
+    );
+    transitionState.current = transition.state;
+    if (transition.snap) {
+      camera.position.copy(desiredPosition.current);
+      renderedTarget.current.set(
+        desiredTarget.current.x,
+        desiredTarget.current.y,
+        desiredTarget.current.z,
+      );
+      if ("fov" in camera && typeof camera.fov === "number")
+        camera.fov = desiredFov.current;
+    }
+    camera.lookAt(renderedTarget.current);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    gl.domElement.dataset.cameraTransform = [
+      camera.position.x,
+      camera.position.y,
+      camera.position.z,
+      renderedTarget.current.x,
+      renderedTarget.current.y,
+      renderedTarget.current.z,
+    ].join(",");
+    gl.domElement.dataset.cameraFov = String(
+      "fov" in camera && typeof camera.fov === "number"
+        ? camera.fov
+        : desiredFov.current,
+    );
+    if (transition.continueRendering) requestRender();
+  });
+  useEffect(() => {
+    const canvas = gl.domElement;
+    canvas.dataset.phase13RenderReady = "true";
+    const measure = (event: globalThis.Event) => {
+      const requestId = (event as CustomEvent).detail?.requestId;
+      if (!Number.isInteger(requestId)) return;
+      const started = performance.now();
+      gl.render(scene, camera);
+      gl.getContext().finish();
+      const durationMs = performance.now() - started;
+      canvas.dispatchEvent(
+        new CustomEvent("aiw:render-sample", {
+          detail: { requestId, durationMs },
+        }),
+      );
+    };
+    canvas.addEventListener("aiw:measure-render", measure);
+    return () => {
+      canvas.removeEventListener("aiw:measure-render", measure);
+      delete canvas.dataset.phase13RenderReady;
+    };
+  }, [camera, gl, scene]);
+  useEffect(
+    () => requestRender(),
+    [agentPosition, prepared, requestRender, selectedRef],
+  );
   return (
     <>
       <color attach="background" args={["#050816"]} />
@@ -196,11 +365,26 @@ function SceneBridge({
           onSelect={onSelect}
         />
       ))}
-      {selected !== null && (
+      {cameraMode !== "photo" && selected !== null && (
         <mesh position={selected} name="selected-object-marker">
           <sphereGeometry args={[0.55, 12, 12]} />
           <meshBasicMaterial color="#f8fafc" wireframe />
         </mesh>
+      )}
+      {cameraMode !== "photo" && agentPosition !== null && (
+        <group
+          position={[agentPosition.x, 0.8, agentPosition.z]}
+          name="agent-world-action-marker"
+        >
+          <mesh>
+            <boxGeometry args={[0.7, 1.3, 0.5]} />
+            <meshStandardMaterial color="#f59e0b" roughness={0.6} />
+          </mesh>
+          <mesh position={[0, 0.8, 0]}>
+            <sphereGeometry args={[0.42, 12, 12]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.55} />
+          </mesh>
+        </group>
       )}
       {prepared.evidenceMarkers.map((marker) => (
         <mesh
@@ -220,6 +404,11 @@ export function RepositoryIslandCanvas({
   prepared,
   selectedRef,
   focusRef,
+  agentPosition,
+  cameraMode,
+  cameraState,
+  fieldOfView,
+  cameraEasing,
   onSelect,
   onContextLost,
   reducedMotion,
@@ -227,6 +416,11 @@ export function RepositoryIslandCanvas({
   readonly prepared: PreparedRepositoryInstances;
   readonly selectedRef: string | null;
   readonly focusRef: string | null;
+  readonly agentPosition: { readonly x: number; readonly z: number } | null;
+  readonly cameraMode: RepositoryCameraMode;
+  readonly cameraState: RepositoryCameraState;
+  readonly fieldOfView: number;
+  readonly cameraEasing: number;
   readonly onSelect: (ref: string) => void;
   readonly onContextLost: () => void;
   readonly reducedMotion: boolean;
@@ -244,6 +438,11 @@ export function RepositoryIslandCanvas({
         prepared={prepared}
         selectedRef={selectedRef}
         focusRef={focusRef}
+        agentPosition={agentPosition}
+        cameraMode={cameraMode}
+        cameraState={cameraState}
+        fieldOfView={fieldOfView}
+        cameraEasing={cameraEasing}
         onSelect={onSelect}
         onContextLost={onContextLost}
       />

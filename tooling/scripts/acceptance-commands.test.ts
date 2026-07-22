@@ -29,12 +29,20 @@ describe("acceptance command graph", () => {
     );
     const browserInstall = requireScript(manifest, "test:e2e:install");
     const endToEnd = requireScript(manifest, "test:e2e");
+    const phase13Measurement = requireScript(manifest, "measure:phase13");
     const aggregate = requireScript(manifest, "check");
 
     expect(browserInstall).toBe("playwright install chromium");
     expect(endToEnd).toContain("corepack pnpm@11.15.0 test:e2e:install");
+    expect(endToEnd).toContain("xvfb-run -a playwright test");
     expect(endToEnd.indexOf("test:e2e:install")).toBeLessThan(
-      endToEnd.indexOf("playwright test"),
+      endToEnd.indexOf("xvfb-run -a playwright test"),
+    );
+    expect(endToEnd.indexOf("corepack pnpm@11.15.0 build")).toBeLessThan(
+      endToEnd.indexOf("xvfb-run -a playwright test"),
+    );
+    expect(phase13Measurement).toContain(
+      "xvfb-run -a playwright test apps/web/e2e/phase13-world-action-journey.spec.ts --workers=1",
     );
     expect(aggregate).toContain("corepack pnpm@11.15.0 test:e2e");
     expect(aggregate).not.toMatch(/(?:^|&&)\s*playwright test/);
@@ -42,6 +50,37 @@ describe("acceptance command graph", () => {
     expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase10"]');
     expect(freshVerification).toContain('["pnpm@11.15.0", "avatar:verify"]');
     expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase11"]');
+  });
+
+  it("routes only the real Phase 13 pointer-lock journey through headed Chromium", async () => {
+    const { default: config } = await import("../../playwright.config.js");
+    const pointerLockSpec = "**/phase13-world-action-journey.spec.ts";
+    const projects = config.projects ?? [];
+
+    expect(projects).toHaveLength(2);
+    expect(projects[0]?.name ?? "").toBe("");
+    expect(projects).toEqual([
+      expect.objectContaining({
+        testIgnore: pointerLockSpec,
+        use: expect.objectContaining({
+          browserName: "chromium",
+          headless: true,
+        }),
+      }),
+      expect.objectContaining({
+        name: "headed-pointer-lock",
+        testMatch: pointerLockSpec,
+        use: expect.objectContaining({
+          browserName: "chromium",
+          headless: false,
+        }),
+      }),
+    ]);
+    expect(config.use).toMatchObject({
+      baseURL: "http://127.0.0.1:45173",
+      trace: "retain-on-failure",
+    });
+    expect(config.webServer).toHaveLength(2);
   });
 
   it("installs pinned pnpm before the frozen CI acceptance sequence", async () => {

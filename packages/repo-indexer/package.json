@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/repo-indexer",
-  "version": "0.12.0-phase12",
+  "version": "0.13.0-phase13",
   "private": true,
   "type": "module",
   "exports": {

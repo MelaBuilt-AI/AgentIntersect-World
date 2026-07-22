@@ -16,6 +16,17 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${webPort}`,
     trace: "retain-on-failure",
   },
+  projects: [
+    {
+      testIgnore: "**/phase13-world-action-journey.spec.ts",
+      use: { browserName: "chromium", headless: true },
+    },
+    {
+      name: "headed-pointer-lock",
+      testMatch: "**/phase13-world-action-journey.spec.ts",
+      use: { browserName: "chromium", headless: false },
+    },
+  ],
   webServer: [
     {
       command: "node apps/local-server/dist/index.js",

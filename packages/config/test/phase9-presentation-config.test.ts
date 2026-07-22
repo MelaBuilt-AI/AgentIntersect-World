@@ -11,8 +11,8 @@ describe("Phase 9 presentation transport configuration", () => {
     });
     expect(config.presentationSync.bearerToken).toBeUndefined();
     expect(toSafeConfig(config)).toMatchObject({
-      phase: "Phase 12",
-      version: "0.12.0-phase12",
+      phase: "Phase 13",
+      version: "0.13.0-phase13",
       presentationSync: {
         enabled: true,
         transport: "ws/http",

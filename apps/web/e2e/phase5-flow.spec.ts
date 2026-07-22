@@ -151,6 +151,11 @@ test("repository island shares semantic selection/focus and survives context los
   await expect(inspector).toContainText("Focused");
   await expect(page.locator("body")).not.toContainText("/home/");
   await expectNoSeriousAxeViolations(page);
+  await page
+    .getByRole("heading", { name: "phase5-fixture island" })
+    .evaluate((element) =>
+      element.parentElement?.scrollIntoView({ block: "start" }),
+    );
   await expect(page).toHaveScreenshot("phase5-island-desktop.png", {
     animations: "disabled",
     maxDiffPixelRatio: CROSS_RUN_VISUAL_DIFF_RATIO,
@@ -161,8 +166,8 @@ test("repository island shares semantic selection/focus and survives context los
   expect(canvasBox).not.toBeNull();
   await canvas.click({
     position: {
-      x: (canvasBox?.width ?? 1) * 0.24,
-      y: (canvasBox?.height ?? 1) * 0.24,
+      x: (canvasBox?.width ?? 1) * 0.42,
+      y: (canvasBox?.height ?? 1) * 0.46,
     },
   });
   await expect(inspector).not.toContainText("signals.xyzzy");

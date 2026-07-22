@@ -92,7 +92,11 @@ export function DashboardShell({
       authority.ready.config.agentSessionsEnabled);
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setActivePanel(null);
+      if (event.key !== "Escape") return;
+      const worldOwnsEscape = document.querySelector(
+        '[aria-label="World Action keyboard navigation"][data-camera-mode="first-person"]',
+      );
+      if (!worldOwnsEscape) setActivePanel(null);
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);

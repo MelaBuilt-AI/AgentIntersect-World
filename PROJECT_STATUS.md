@@ -1,21 +1,21 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-21
+Updated: 2026-07-22
 
 ## Current milestone
 
-**Phase 12 — Session modes, Agent Session Gateway, and persistent Hermes text collaboration: COMPLETE / PRIVATE EXACT-SHA CI GREEN**
+**Phase 13 — Embodied user navigation and World Action Protocol: COMPLETE UNDER USER WAIVER / PRIVATE EXACT-SHA CI REQUIRED**
 
-- Frozen scope: `docs/PHASE_12_SCOPE.md` and the canonical Phase 12 section in `AgentIntersect_WorldDD.md`.
-- Baseline: completed Phase 11 marker `c60bef65cd3ae7df0829c2a5181ee705f3257352`.
-- Private implementation SHA: `a1ffdc36715d35c78693a49e797fa984ec5c3086`; exact-SHA Actions run `29858950696` and job `88730418114` succeeded with Phase 10 measurement, avatar verification, Phase 11 measurement, and complete `pnpm check` green.
-- Version: `0.12.0-phase12`.
-- Runtime: Node `v24.18.0`, pnpm `11.15.0`, Hermes Agent `v0.18.2` (`2026.7.7.2`, upstream `f7c9feb3`).
-- Workspace: 16 projects / 15 named app-package graph entries.
-- The local implementation adds strict agent-session/event contracts, a capability-declared Hermes adapter, exact-session serialized SSE turns, bounded durable World projections, truthful recovery/offline/reset state, consentful avatar proposals, accessible persistent chat, and a read-only Guided Build discovery/validation front door.
-- Parent live acceptance passed on the final discoverable Discord-backed Hermes session after expected Hermes compaction turnover: two ordered World-originated turns, tool events, authoritative finals, duplicate-free Sessions API continuity, World restart, Hermes restart, avatar accept/revoke, truthful unsupported approval/interrupt `409` responses, isolated restore, and actual byte-identical default-profile rollback. The plugin/runtime paths are absent after proof, original config/environment hashes match, the gateway is healthy, and the systemd unit hash is unchanged.
-- Final unrestricted verification is green: plugin conformance, formatting, lint, architecture, 28/28 typecheck tasks, 357/357 Vitest, 15/15 builds, smoke, 32/32 Playwright, Storybook, zero-vulnerability production audit, and 344-file fresh-copy verification with the same 357 tests and 32 browser tests passing again.
-- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; implementation commit and exact-SHA CI are green.
+- Frozen scope and waiver: `docs/PHASE_13_SCOPE.md`; closeout evidence: `PHASE_13_REPORT.md` and `docs/PHASE_13_PERFORMANCE.md`.
+- Baseline: completed Phase 13 planning marker `172afa5b9563f9d3dcecdf25018a94ddcd6ade39`.
+- Version: `0.13.0-phase13`.
+- Runtime: Node `v24.18.0`, pnpm `11.15.0`, Hermes Agent `v0.19.0` (`2026.7.20`, upstream `8208fc52`).
+- Workspace: 18 projects / 17 named app-package graph entries.
+- The local implementation adds a strict presentation-only World Action protocol/helper/service, exact target/revision binding, deterministic navmesh/path replay, truthful attention/movement/arrival/interruption, bounded trace/timeline persistence, an in-island agent marker, comfort controls, and complete semantic fallback behavior.
+- The final live retry for exact Discord root `20260722_091729_13e06549` failed after root-to-effective compression resolution and assistant deltas but before a current-turn assistant final. No World Action proposal, movement/arrival, or final World chat turn occurred. The live feature is **deferred, not green**, and Phase 13 closes only under the user's explicit final-attempt waiver.
+- Final non-live verification is green: formatting, lint, 32/32 typecheck tasks, 11/11 architecture tests, 438/438 Vitest, 17/17 builds, smoke, 38/38 Playwright, Storybook, zero-vulnerability production audit, 388-file fresh-copy verification, and Phase 13 10k/100k browser/navigation measurements. The real pointer-lock journey is isolated to headed Chromium under Xvfb; 5/5 exact repeats and 5/5 fresh Playwright processes remained below 0.851 GiB with zero swap/OOM inside the fixed 6 GiB/1 GiB boundary.
+- Default Hermes profile hashes were restored byte-identically; the temporary plugin/runtime paths are absent, the gateway is healthy, and no relevant runner/listener/cron remains.
+- Private remote: `https://github.com/MelaBuilt-AI/AgentIntersect-World`; closeout push and exact-SHA CI are the final authorized external gates.
 - Release/tag/package publication/deployment/public ingress/public visibility change: none; repository remains private.
 
 ## Completed Phase 4 surface
@@ -160,15 +160,21 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 13 — Embodied user navigation and World Action Protocol: NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE**
+**Phase 14 — Structured tool visualization, visual code explanations, and local project preview: NEXT SESSION / NOT STARTED**
 
-The user selected Phase 13 as the next-session topic on 2026-07-21. `docs/PHASE_13_SCOPE.md` is the draft restart artifact; a fresh session must review and freeze its control, action-transport/schema, deterministic movement, camera-comfort, persistence, performance, and first-hand tour decisions before production edits.
+Phase 14 is prepared only as `docs/PHASE_14_SCOPE.md`. Its objective is to connect real structured tool events, visual explanations, one approved edit/test path, and a health-checked loopback preview to exact evidence. No Phase 14 production code has started.
 
-Phase 13's objective is to make the codebase inhabitable and let connected agents show spatial intent through validated high-level actions rather than decorative wandering. The bounded slice covers accessible user traversal, stable-object target resolution, deterministic agent movement, presentation-only `navigate`/`focus`/`inspect`/`highlight`/`trace`/`compare`/`point-at`/`follow` actions, truthful blocked/stale-target handling, camera comfort, semantic alternatives, and one agent-led code tour.
+The Phase 14 draft authorizes next-session orientation, review, and decision freeze only. Production edits, dependency installation, tool/preview execution, worker launch, commit/push for Phase 14, release, deployment, public ingress, publication, visibility change, Hermes-core changes, and original-AgentIntersect changes require a new explicit user authorization after the draft decisions are frozen.
 
-**Implementation has not started.** No Phase 13 production source, dependency, protocol package, navigation/pathfinding system, browser control, World Action adapter/tool, asset generation, worker, server, release, or public action was created. Phase 14 edit/test/preview execution, Phase 15 voice, and Phase 16 multi-agent editing remain separate future authorization gates.
+The deferred Phase 13 exact-root Discord → World continuation remains a separate backlog item. Phase 14 must not silently absorb or claim that live gate; revisit it only under an explicit later-milestone authorization.
+
+The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 
 ## Non-blocking backlog
+
+### Phase 13 deferred live continuity
+
+- Revisit exact-root Discord → World continuation only in a separately authorized integration milestone. The final Phase 13 attempt proved exact root-to-effective compression resolution and persisted assistant deltas, then rejected `run.completed` because no current-turn assistant message was present. Required future proof remains ordered World assistant finals, exactly one strict `focus → trace → navigate → inspect` tour, truthful movement/arrival, and a final World chat turn. Do not treat the failed attempt or Phase 13 waiver as a green live gate.
 
 ### CI
 

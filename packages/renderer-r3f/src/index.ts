@@ -1,4 +1,207 @@
 export type RenderObjectKind = "package" | "directory" | "file" | "symbol";
+
+export type RepositoryCameraMode = "third-person" | "first-person" | "photo";
+export type RepositoryCameraState = {
+  readonly yaw: number;
+  readonly pitch: number;
+  readonly distance: number;
+};
+
+export const DEFAULT_REPOSITORY_CAMERA: RepositoryCameraState = Object.freeze({
+  yaw: Math.PI / 5,
+  pitch: Math.PI / 4,
+  distance: 28,
+});
+
+export const MAX_REPOSITORY_CAMERA_TRANSITION_FRAMES = 180;
+export const MAX_REPOSITORY_CAMERA_STALLED_FRAMES = 3;
+
+const REPOSITORY_CAMERA_POSE_EPSILON = 0.000001;
+const MIN_REPOSITORY_CAMERA_PROGRESS_RATIO = 0.001;
+const MIN_REPOSITORY_CAMERA_ABSOLUTE_PROGRESS = 0.000000001;
+
+export type RepositoryCameraTransitionPose = {
+  readonly position: readonly [number, number, number];
+  readonly target: readonly [number, number, number];
+  readonly fov: number;
+};
+
+export type RepositoryCameraTransitionState = {
+  readonly desired: RepositoryCameraTransitionPose;
+  readonly generation: number;
+  readonly frame: number;
+  readonly stalledFrames: number;
+  readonly previousRemainingError: number | null;
+};
+
+const materiallyEqualCameraValue = (left: number, right: number) =>
+  Object.is(left, right) ||
+  (Number.isFinite(left) &&
+    Number.isFinite(right) &&
+    Math.abs(left - right) <= REPOSITORY_CAMERA_POSE_EPSILON);
+
+const materiallyEqualCameraPose = (
+  left: RepositoryCameraTransitionPose,
+  right: RepositoryCameraTransitionPose,
+) =>
+  left.position.every((value, index) =>
+    materiallyEqualCameraValue(value, right.position[index] ?? Number.NaN),
+  ) &&
+  left.target.every((value, index) =>
+    materiallyEqualCameraValue(value, right.target[index] ?? Number.NaN),
+  ) &&
+  materiallyEqualCameraValue(left.fov, right.fov);
+
+export function retargetRepositoryCameraTransition(
+  current: RepositoryCameraTransitionState | null,
+  desired: RepositoryCameraTransitionPose,
+): RepositoryCameraTransitionState {
+  if (current && materiallyEqualCameraPose(current.desired, desired))
+    return current;
+  return {
+    desired: {
+      position: [...desired.position],
+      target: [...desired.target],
+      fov: desired.fov,
+    },
+    generation: (current?.generation ?? 0) + 1,
+    frame: 0,
+    stalledFrames: 0,
+    previousRemainingError: null,
+  };
+}
+
+export function advanceRepositoryCameraTransition(
+  current: RepositoryCameraTransitionState,
+  remainingError: number,
+  settled: boolean,
+): {
+  readonly state: RepositoryCameraTransitionState;
+  readonly continueRendering: boolean;
+  readonly snap: boolean;
+} {
+  const frame = Number.isFinite(current.frame)
+    ? Math.min(
+        MAX_REPOSITORY_CAMERA_TRANSITION_FRAMES,
+        Math.max(0, Math.floor(current.frame)) + 1,
+      )
+    : MAX_REPOSITORY_CAMERA_TRANSITION_FRAMES;
+  const finiteRemainingError =
+    Number.isFinite(remainingError) && remainingError >= 0
+      ? remainingError
+      : Number.POSITIVE_INFINITY;
+  const minimumProgress =
+    current.previousRemainingError === null
+      ? 0
+      : Math.max(
+          MIN_REPOSITORY_CAMERA_ABSOLUTE_PROGRESS,
+          current.previousRemainingError * MIN_REPOSITORY_CAMERA_PROGRESS_RATIO,
+        );
+  const progressed =
+    current.previousRemainingError === null ||
+    current.previousRemainingError - finiteRemainingError > minimumProgress;
+  const stalledFrames = settled
+    ? 0
+    : progressed
+      ? 0
+      : Math.min(
+          MAX_REPOSITORY_CAMERA_STALLED_FRAMES,
+          current.stalledFrames + 1,
+        );
+  const snap =
+    settled ||
+    stalledFrames >= MAX_REPOSITORY_CAMERA_STALLED_FRAMES ||
+    frame >= MAX_REPOSITORY_CAMERA_TRANSITION_FRAMES;
+  return {
+    state: {
+      ...current,
+      frame,
+      stalledFrames,
+      previousRemainingError: finiteRemainingError,
+    },
+    continueRendering: !snap,
+    snap,
+  };
+}
+
+const clampCamera = (value: number, minimum: number, maximum: number) =>
+  Math.min(
+    maximum,
+    Math.max(minimum, Number.isFinite(value) ? value : minimum),
+  );
+
+export function applyRepositoryCameraLook(
+  camera: RepositoryCameraState,
+  input: {
+    readonly movementX: number;
+    readonly movementY: number;
+    readonly sensitivity: number;
+    readonly invertedY: boolean;
+  },
+): RepositoryCameraState {
+  const scale = clampCamera(input.sensitivity, 0.1, 2) * 0.0025;
+  const vertical = input.invertedY ? input.movementY : -input.movementY;
+  return {
+    ...camera,
+    yaw: camera.yaw + input.movementX * scale,
+    pitch: clampCamera(
+      camera.pitch + vertical * scale,
+      -Math.PI / 2 + 0.1,
+      Math.PI / 2 - 0.1,
+    ),
+  };
+}
+
+export function applyRepositoryCameraZoom(
+  camera: RepositoryCameraState,
+  wheelDelta: number,
+): RepositoryCameraState {
+  return {
+    ...camera,
+    distance: clampCamera(camera.distance + wheelDelta * 0.02, 4, 120),
+  };
+}
+
+export function repositoryCameraPose({
+  mode,
+  camera,
+  target,
+  actorPosition,
+}: {
+  readonly mode: RepositoryCameraMode;
+  readonly camera: RepositoryCameraState;
+  readonly target: {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+  };
+  readonly actorPosition: { readonly x: number; readonly z: number } | null;
+}): {
+  readonly position: readonly [number, number, number];
+  readonly target: readonly [number, number, number];
+} {
+  if (mode === "first-person" && actorPosition) {
+    const eye = [actorPosition.x, 1.65, actorPosition.z] as const;
+    const cosPitch = Math.cos(camera.pitch);
+    return {
+      position: eye,
+      target: [
+        eye[0] + Math.sin(camera.yaw) * cosPitch,
+        eye[1] + Math.sin(camera.pitch),
+        eye[2] - Math.cos(camera.yaw) * cosPitch,
+      ],
+    };
+  }
+  const cosPitch = Math.cos(camera.pitch);
+  return {
+    position: [
+      target.x + Math.sin(camera.yaw) * cosPitch * camera.distance,
+      target.y + Math.sin(camera.pitch) * camera.distance,
+      target.z + Math.cos(camera.yaw) * cosPitch * camera.distance,
+    ],
+    target: [target.x, target.y, target.z],
+  };
+}
 export type RenderEvidenceOutcome =
   "created" | "modified" | "deleted" | "renamed" | "binary" | "reported";
 
@@ -330,18 +533,27 @@ function projectDependencyBridges(
   return bridges;
 }
 
+type Phase10AggregateDependency = {
+  readonly key: string;
+  readonly sourceRef: string;
+  readonly targetRef: string | null;
+  readonly confidence: readonly string[];
+};
+
+const aggregatePreparationCache = new WeakMap<
+  readonly RepositoryRenderObject[],
+  WeakMap<readonly Phase10AggregateDependency[], PreparedRepositoryInstances>
+>();
+
 export function preparePhase10AggregateView(
   baseObjects: readonly RepositoryRenderObject[],
-  dependencies: readonly {
-    readonly key: string;
-    readonly sourceRef: string;
-    readonly targetRef: string | null;
-    readonly confidence: readonly string[];
-  }[],
+  dependencies: readonly Phase10AggregateDependency[],
 ): PreparedRepositoryInstances {
+  const cached = aggregatePreparationCache.get(baseObjects)?.get(dependencies);
+  if (cached) return cached;
   const visibleObjects = baseObjects.slice(0, 2_000);
   const prepared = prepareRepositoryInstances(visibleObjects);
-  return {
+  const result = {
     ...prepared,
     dependencyBridges: projectDependencyBridges(
       visibleObjects,
@@ -353,6 +565,13 @@ export function preparePhase10AggregateView(
       })),
     ),
   };
+  let dependencyCache = aggregatePreparationCache.get(baseObjects);
+  if (!dependencyCache) {
+    dependencyCache = new WeakMap();
+    aggregatePreparationCache.set(baseObjects, dependencyCache);
+  }
+  dependencyCache.set(dependencies, result);
+  return result;
 }
 
 export type WebGLFallbackReason =
@@ -371,8 +590,17 @@ export function resolveWebGLCapability(
   const createContext =
     options.createContext ??
     (() => {
-      if (typeof document === "undefined") return null;
-      const canvas = document.createElement("canvas");
+      const browserDocument = (
+        globalThis as {
+          readonly document?: {
+            createElement(name: "canvas"): {
+              getContext(kind: "webgl2" | "webgl"): unknown;
+            };
+          };
+        }
+      ).document;
+      if (!browserDocument) return null;
+      const canvas = browserDocument.createElement("canvas");
       return canvas.getContext("webgl2") ?? canvas.getContext("webgl");
     });
   try {
@@ -406,6 +634,3 @@ export const RENDERER_CAPABILITY = {
   threeDimensionalRenderingAvailable: true,
   demandRendered: true,
 } as const;
-
-export { RepositoryIslandCanvas } from "./repository-island-canvas.js";
-export { AvatarKitCanvas, AvatarKitRosterCanvas } from "./avatar-kit-canvas.js";

@@ -1,7 +1,7 @@
 ---
 title: AgentIntersect World — Canonical Product and Implementation Design
 created: 2026-07-19
-updated: 2026-07-21
+updated: 2026-07-22
 type: concept
 tags:
   [project, coding, ai-agent, decision, embodied-agents, spatial-development]
@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 12 implementation `a1ffdc36715d35c78693a49e797fa984ec5c3086` passed Actions run `29858950696`. The user selected Phase 13 as the next-session planning topic on 2026-07-21; `docs/PHASE_13_SCOPE.md` is a draft restart artifact, and implementation has not started.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains explicitly deferred rather than green. Phase 14 is prepared for next-session scope review only and is not started or authorized for implementation.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2727,11 +2727,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 13 — Embodied user navigation and World Action Protocol
 
-**Status:** NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE. The user selected Phase 13 as the next-session topic on 2026-07-21. `docs/PHASE_13_SCOPE.md` is the draft restart artifact; selection authorizes fresh-session planning and decision freeze only, not production implementation.
+**Status:** COMPLETE UNDER USER WAIVER / LIVE DISCORD → WORLD CONTINUITY DEFERRED. The bounded local navigation/World Action implementation and all non-live closeout gates are accepted. Instrumented control runs isolated the intermittent memory runaway to headless Chromium's native pointer-lock path rather than World/R3F behavior, so only the real pointer-lock journey runs in headed Chromium under Xvfb while the remaining browser suite stays headless; repeated and fresh-process runs pass inside the unchanged 6 GiB RAM / 1 GiB swap boundary. The final exact-root retry resolved the Discord root through its effective compression continuation and persisted assistant deltas, then failed before a current-turn assistant final; no structured action tour, truthful arrival, or final World chat occurred. Per the user's final-attempt rule, that live feature was not retried and is pinned for a later milestone. Private closeout push and exact-SHA CI are authorized; release/tag/publication/deployment/public-ingress/visibility changes, original-AgentIntersect edits, and Phase 14 implementation remain prohibited.
 
 **Objective:** Make the codebase inhabitable and let agents show spatial intent through deterministic semantic actions rather than decorative wandering.
 
-**User-visible outcome:** The user navigates the repository with mouse/keyboard like an accessible FPS or through click/search/semantic controls. The connected agent can independently walk to files/symbols/tests, point at objects, focus the camera, trace relationships, compare areas, and lead/follow tours while chat remains available.
+**User-visible outcome:** The user enters a comfort-first third-person repository World, may explicitly opt into first-person pointer-lock traversal, and retains click/search/minimap, keyboard-only, touch, reduced-motion, and no-WebGL alternatives. Through a strict presentation-only Hermes helper, the connected agent can propose bounded action batches and lead one real `packages/spatial-code-graph` → `packages/renderer-r3f` tour while chat remains available.
+
+**Live continuity contract:** Phase 13 proves one-way cross-origin continuity. The operator starts the exact logical conversation in Discord, explicitly supplies that Discord root for World attachment, and World follows only the effective compression continuation proven by `GET /api/sessions/{root}/messages`. Ordered World chat, the strict action proposal/tour, and a final World chat turn must succeed. Phase 13 does not require returning to the same pre-existing Discord route, a post-tour Discord message, or a gateway-restart round trip. The supported later re-entry path is `prep end session` while still in World, followed later by Discord `/new` and `find handoff`; the durable handoff carries project continuity.
 
 **In scope:**
 
@@ -2754,15 +2756,19 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Code/artifacts:** `world-action-protocol`, `navigation`, browser control/camera systems, agent locomotion controller, trace/highlight layer, semantic action log, World Action adapter tool/contract, Storybook and Playwright navigation fixtures, Phase 13 performance/accessibility report.
 
-**Tests/evidence:** Object-scope/revision/rate validation; stale/deleted/renamed targets; deterministic paths and blocked fallback; pointer-lock entry/escape; configurable controls; follow/interrupt; trace limits/confidence; no action mutates files or dispatches tools; 10k/100k LOD performance; two-CPU fallback; reduced motion/keyboard/screen reader/mobile; first-hand tour where agent shows two connected code areas.
+**Tests/evidence:** Object-scope/revision/rate validation; stale/deleted/renamed targets; deterministic paths and blocked fallback; pointer-lock entry/escape; configurable controls; follow/interrupt; trace limits/confidence; no action mutates files or dispatches tools; 10k/100k LOD performance; two-CPU fallback; reduced motion/keyboard/screen reader/mobile; and a first-hand one-way Discord-root-to-World acceptance where ordered World chat and the strict agent-led tour show two connected code areas through a final World chat turn. Same-route Discord return and gateway-restart continuity are not acceptance evidence.
 
 **Acceptance criteria:** The user can traverse and recover from the World without getting trapped; the agent can truthfully navigate and present existing objects through validated high-level actions; action prose is never treated as authority; movement remains performant and has complete semantic alternatives; repository state is unchanged by navigation/presentation.
 
-**Exit gate:** First-hand operator approval of navigation comfort and one agent-led code tour. Exact-SHA CI green; Phase 14 remains separately authorized.
+**Exit gate:** Phase 13 closes under the explicit 2026-07-22 waiver after the local product, browser, performance, fresh-copy, cleanup, private-push, and exact-SHA CI gates pass. The failed one-way Discord-root-to-World assistant-final/action-tour criterion remains deferred and must never be described as passed. Phase 14 remains separately authorized.
 
-**Risks:** Game-like movement may become disorienting or decorative. Default to useful search/focus/follow shortcuts, retain the exact shell, and make movement reflect semantic attention rather than simulated thought.
+**Frozen implementation profile:** Use bounded 1–8 action batches, continuity-aware fail-closed target resolution, a deterministic versioned navigation mesh, explicit attention/path/movement/arrival/interruption state, third-person default with opt-in first-person pointer lock, a 256-object/512-edge/24-hop rich graph ceiling, seven-day/200-action replay with 32 pins and no automatic restart resume, a hybrid desktop budget of 16.7 ms main-thread render-work p95 plus 16.8 ms raw `requestAnimationFrame` cadence p95 with every sample retained, a 33.3 ms mobile/two-CPU cadence budget, and full clean-profile proof before private commit/push and exact-SHA CI. Release, deployment, publication, public ingress, visibility change, and Phase 14+ remain separate approval gates.
+
+**Risks:** Game-like movement may become disorienting or decorative, and the selected rich graph/navmesh must still meet aggressive performance budgets. Preserve user-priority interruption, exact blocked/stale/confidence truth, useful search/focus/follow shortcuts, semantic alternatives, and progressive LOD; stop rather than weakening Phase 10/11 or implying simulated thought.
 
 ## Phase 14 — Structured tool visualization, visual code explanations, and local project preview
+
+**Status:** NEXT SESSION / NOT STARTED / DECISIONS TO FREEZE. `docs/PHASE_14_SCOPE.md` authorizes orientation, review, and scope freeze only. No Phase 14 production code, dependencies, worker, tool execution, preview process, commit/push, or release action is authorized until the user explicitly approves the frozen draft.
 
 **Objective:** Complete the one-agent magic slice by connecting real tool use, code changes, tests, explanations, and a health-checked preview to embodied World presentation.
 

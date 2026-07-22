@@ -40,7 +40,10 @@ type FakeHermesOptions = {
   readonly noDeltas?: boolean;
   readonly malformed?: boolean;
   readonly mismatchedTerminal?: boolean;
+  readonly compressionContinuation?: boolean;
+  readonly compressionDuringTurn?: boolean;
   readonly oversized?: boolean;
+  readonly runTranscriptBytes?: number;
   readonly toolFailed?: boolean;
 };
 
@@ -62,6 +65,7 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
     { mode: 0o600 },
   );
   const calls: Array<{ method: string; url: string; body: string }> = [];
+  let safeResumeCalls = 0;
   const server = createServer((request, response) => {
     let body = "";
     request.on("data", (chunk) => (body += String(chunk)));
@@ -124,15 +128,36 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
         );
         return;
       }
+      if (request.url === "/api/sessions/20260721_011618_330489c8/messages") {
+        safeResumeCalls += 1;
+        response.end(
+          JSON.stringify({
+            object: "list",
+            session_id:
+              options.compressionContinuation ||
+              (options.compressionDuringTurn && safeResumeCalls >= 3)
+                ? "20260721_011700_compressed"
+                : "20260721_011618_330489c8",
+            data: [],
+          }),
+        );
+        return;
+      }
       if (
-        request.url === "/api/sessions/20260721_011618_330489c8/chat/stream" &&
+        (request.url === "/api/sessions/20260721_011618_330489c8/chat/stream" ||
+          request.url ===
+            "/api/sessions/20260721_011700_compressed/chat/stream") &&
         request.method === "POST"
       ) {
         response.setHeader("content-type", "text/event-stream");
-        const sessionId = "20260721_011618_330489c8";
+        const sessionId = options.compressionContinuation
+          ? "20260721_011700_compressed"
+          : "20260721_011618_330489c8";
         const terminalSessionId = options.mismatchedTerminal
           ? "different-session"
-          : sessionId;
+          : options.compressionDuringTurn
+            ? "20260721_011700_compressed"
+            : sessionId;
         const events = [
           sseEvent("run.started", {
             session_id: sessionId,
@@ -203,7 +228,17 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
             message_id: "msg_fixture",
             seq: options.noDeltas ? 4 : options.malformed ? 9 : 8,
             completed: true,
-            messages: [{ role: "assistant", content: "fixture answer" }],
+            messages: options.runTranscriptBytes
+              ? [
+                  {
+                    role: "tool",
+                    content: `RAW_RUN_TRANSCRIPT_CANARY_${"x".repeat(
+                      options.runTranscriptBytes,
+                    )}`,
+                  },
+                  { role: "assistant", content: "fixture answer" },
+                ]
+              : [{ role: "assistant", content: "fixture answer" }],
             usage: { input_tokens: 3, output_tokens: 2 },
           }),
           sseEvent("done", {
@@ -213,7 +248,9 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
           }),
         ].join("");
         const fragments: string[] = [];
-        const sizes = [1, 2, 5, 3, 11, 7];
+        const sizes = options.runTranscriptBytes
+          ? [17, 65_536, 32_768]
+          : [1, 2, 5, 3, 11, 7];
         for (let offset = 0, index = 0; offset < events.length; index += 1) {
           const next = offset + (sizes[index % sizes.length] ?? 1);
           fragments.push(events.slice(offset, next));
@@ -247,6 +284,122 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
 }
 
 describe("Phase 12 Hermes adapter and session gateway", () => {
+  it("attaches the exact session from a direct detail payload plus safe-resume evidence", async () => {
+    const sessionRef = "20260721_011618_330489c8";
+    const fetch = vi.fn(async (input: string | URL | Request) =>
+      Response.json(
+        String(input).endsWith("/messages")
+          ? { object: "list", session_id: sessionRef, data: [] }
+          : {
+              id: sessionRef,
+              source: "discord",
+              title: "Existing Discord lane",
+              message_count: 8,
+              updated_at: 1_753_075_600,
+            },
+      ),
+    ) as unknown as typeof globalThis.fetch;
+    const adapter = new HermesSessionAdapter({
+      baseUrl: "http://127.0.0.1:8000",
+      apiKey: "fixture-key",
+      profile: "default",
+      fetch,
+    });
+
+    await expect(adapter.attach(sessionRef)).resolves.toEqual({
+      id: sessionRef,
+      rootId: sessionRef,
+      source: "discord",
+      title: "Existing Discord lane",
+      messageCount: 8,
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(String(fetch.mock.calls[0]?.[0])).toBe(
+      `http://127.0.0.1:8000/api/sessions/${sessionRef}`,
+    );
+  });
+
+  it("binds an exact root only to the effective session proven by the Hermes messages resolver", async () => {
+    const fixture = await fakeHermes({ compressionContinuation: true });
+    const adapter = new HermesSessionAdapter({
+      baseUrl: fixture.baseUrl,
+      apiKey: "fixture-key",
+      profile: "default",
+      pluginCapabilityPath: fixture.pluginCapabilityPath,
+    });
+
+    await expect(
+      adapter.attach("20260721_011618_330489c8"),
+    ).resolves.toMatchObject({
+      id: "20260721_011700_compressed",
+      rootId: "20260721_011618_330489c8",
+    });
+    await expect(
+      adapter.sendText("20260721_011700_compressed", "continued turn", {
+        mode: "explore",
+        rootSessionRef: "20260721_011618_330489c8",
+      } as never),
+    ).resolves.toMatchObject({
+      finalText: "fixture answer",
+      sessionRef: "20260721_011700_compressed",
+    });
+    expect(
+      fixture.calls.filter((call) =>
+        call.url.endsWith("/20260721_011618_330489c8/messages"),
+      ),
+    ).toHaveLength(3);
+    expect(
+      fixture.calls.some((call) =>
+        call.url.endsWith("/20260721_011700_compressed/chat/stream"),
+      ),
+    ).toBe(true);
+  });
+
+  it("accepts a during-turn compression rotation only when the post-turn root resolver proves it", async () => {
+    const fixture = await fakeHermes({ compressionDuringTurn: true });
+    const adapter = new HermesSessionAdapter({
+      baseUrl: fixture.baseUrl,
+      apiKey: "fixture-key",
+      profile: "default",
+      pluginCapabilityPath: fixture.pluginCapabilityPath,
+    });
+    const attached = await adapter.attach("20260721_011618_330489c8");
+    expect(attached.id).toBe("20260721_011618_330489c8");
+    await expect(
+      adapter.sendText(attached.id, "compress during this turn", {
+        mode: "explore",
+        rootSessionRef: attached.rootId,
+      } as never),
+    ).resolves.toMatchObject({
+      finalText: "fixture answer",
+      sessionRef: "20260721_011700_compressed",
+    });
+  });
+
+  it("fails closed when a direct Hermes detail payload has another identity", async () => {
+    const fetch = vi.fn(async () =>
+      Response.json({
+        id: "another-discord-session",
+        source: "discord",
+        title: "Wrong Discord lane",
+        message_count: 3,
+      }),
+    ) as unknown as typeof globalThis.fetch;
+    const adapter = new HermesSessionAdapter({
+      baseUrl: "http://127.0.0.1:8000",
+      apiKey: "fixture-key",
+      profile: "default",
+      fetch,
+    });
+
+    await expect(
+      adapter.attach("20260721_011618_330489c8"),
+    ).rejects.toMatchObject({
+      code: "upstream",
+      message: "Hermes returned a different session identity",
+    });
+  });
+
   it("attests capabilities, selects only the existing session, and sends two persistent turns", async () => {
     const fixture = await fakeHermes();
     const adapter = new HermesSessionAdapter({
@@ -329,6 +482,39 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
     );
   });
 
+  it("accepts a bounded oversized run transcript without exposing its content", async () => {
+    const fixture = await fakeHermes({ runTranscriptBytes: 520_000 });
+    const adapter = new HermesSessionAdapter({
+      baseUrl: fixture.baseUrl,
+      apiKey: ["fixture", "key"].join("-"),
+      profile: "default",
+      pluginCapabilityPath: fixture.pluginCapabilityPath,
+    });
+    const observed: unknown[] = [];
+
+    await expect(
+      adapter.sendText("20260721_011618_330489c8", "compressed turn", {
+        mode: "explore",
+        onEvent: (event: unknown) => observed.push(event),
+      } as never),
+    ).resolves.toMatchObject({ finalText: "fixture answer" });
+    expect(JSON.stringify(observed)).not.toContain("RAW_RUN_TRANSCRIPT_CANARY");
+  });
+
+  it("rejects a run transcript beyond the total stream bound", async () => {
+    const fixture = await fakeHermes({ runTranscriptBytes: 1_100_000 });
+    const adapter = new HermesSessionAdapter({
+      baseUrl: fixture.baseUrl,
+      apiKey: ["fixture", "key"].join("-"),
+      profile: "default",
+      pluginCapabilityPath: fixture.pluginCapabilityPath,
+    });
+
+    await expect(
+      adapter.sendText("20260721_011618_330489c8", "excessive transcript"),
+    ).rejects.toThrow(/bounded response limit/i);
+  });
+
   it("accepts a real no-delta completion whose only final text is assistant.completed.content", async () => {
     const fixture = await fakeHermes({ noDeltas: true });
     const adapter = new HermesSessionAdapter({
@@ -364,9 +550,15 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
       let streamController!: ReadableStreamDefaultController<Uint8Array>;
       let requestSignal: AbortSignal | undefined;
       const fetchMock = async (
-        _input: string | URL | Request,
+        input: string | URL | Request,
         init?: RequestInit,
       ): Promise<Response> => {
+        if (String(input).endsWith("/messages"))
+          return Response.json({
+            object: "list",
+            session_id: "20260721_011618_330489c8",
+            data: [],
+          });
         requestSignal =
           init?.signal instanceof AbortSignal ? init.signal : undefined;
         return new Response(
@@ -573,6 +765,97 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
     const resumed = await gateway.attach(request);
     expect(resumed.sessionId).toBe(first.sessionId);
     expect(gateway.store.load().sessions).toHaveLength(1);
+  });
+
+  it("keeps the selected root binding stable while persisting a proven effective-session rotation", async () => {
+    let turn = 0;
+    const adapter: AgentAdapter = {
+      id: "fixture",
+      attest: async () => ({
+        schema: "aiw.agent-capabilities/0.12",
+        adapterId: "fixture",
+        adapterVersion: "1",
+        transport: "loopback-http-sse",
+        origin: "local",
+        auth: "server-bearer",
+        supportedModes: ["explore"],
+        ordering: "per-session-strict",
+        resume: "session-api",
+        shutdownOwner: "external",
+        maxInputBytes: 16384,
+        maxEventBytes: 32768,
+        capabilities: {
+          attach: true,
+          sendText: true,
+          streamDeltas: true,
+          toolStatus: false,
+          approvals: false,
+          interrupt: false,
+          avatarProposal: false,
+          skillsDisclosure: false,
+        },
+        unavailable: {
+          toolStatus: "fixture",
+          approvals: "fixture",
+          interrupt: "fixture",
+          avatarProposal: "fixture",
+          skillsDisclosure: "fixture",
+        },
+      }),
+      listSessions: async () => [],
+      attach: async () => ({
+        id: "effective-a",
+        rootId: "selected-root",
+        source: "fixture",
+        title: "Fixture",
+      }),
+      sendText: async (ref) => {
+        turn += 1;
+        expect(ref).toBe(turn === 1 ? "effective-a" : "effective-b");
+        return {
+          finalText: `done-${turn}`,
+          deltas: [],
+          sessionRef: "effective-b",
+        };
+      },
+    } as AgentAdapter;
+    const gateway = new AgentSessionGateway({
+      registry: new AdapterRegistry([adapter]),
+      store: new AgentSessionStore(newRoot()),
+    });
+    const attached = await gateway.attach({
+      adapterId: "fixture",
+      adapterSessionRef: "selected-root",
+      profile: "default",
+      workspaceId: "ws_fixture",
+      repositoryRef: "aiw://object/88888888888888888888888888888888",
+      mode: "explore",
+    });
+    expect(attached).toMatchObject({
+      adapterRootSessionRef: "selected-root",
+      adapterSessionRef: "effective-a",
+    });
+
+    await gateway.sendText(attached.sessionId, {
+      text: "rotate",
+      binding: attached,
+    });
+    expect(gateway.status(attached.sessionId)).toMatchObject({
+      adapterRootSessionRef: "selected-root",
+      adapterPreviousSessionRef: "effective-a",
+      adapterSessionRef: "effective-b",
+    });
+    await expect(
+      gateway.sendText(attached.sessionId, {
+        text: "continue with the original client binding",
+        binding: attached,
+      }),
+    ).resolves.toMatchObject({ finalText: "done-2" });
+    expect(gateway.status(attached.sessionId)).toMatchObject({
+      adapterRootSessionRef: "selected-root",
+      adapterSessionRef: "effective-b",
+      adapterPreviousSessionRef: null,
+    });
   });
 
   it("fails Hermes text closed when the plugin arbiter cannot be attested", async () => {

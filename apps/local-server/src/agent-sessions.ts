@@ -16,9 +16,11 @@ import {
   type AgentSessionEvent,
   type SessionMode,
 } from "@agentintersect-world/agent-session-protocol";
+import { WorldActionProposalSchema } from "@agentintersect-world/world-action-protocol";
 
 export type AdapterSessionSummary = {
   readonly id: string;
+  readonly rootId?: string;
   readonly source: string;
   readonly title: string;
   readonly messageCount?: number;
@@ -29,6 +31,7 @@ export type AdapterTurnResult = {
   readonly finalText: string;
   readonly deltas: readonly string[];
   readonly runId?: string;
+  readonly sessionRef?: string;
 };
 
 export type AdapterTurnEvent = {
@@ -41,6 +44,7 @@ export type AdapterTurnEvent = {
 
 export type AdapterTurnContext = {
   readonly mode: SessionMode;
+  readonly rootSessionRef?: string;
   readonly onEvent?: (event: AdapterTurnEvent) => Promise<void> | void;
   readonly signal?: AbortSignal;
 };
@@ -291,7 +295,8 @@ export class AgentSessionStore {
         .find(
           (session) =>
             session.adapterId === input.adapterId &&
-            session.adapterSessionRef === input.adapterSessionRef &&
+            (session.adapterRootSessionRef ?? session.adapterSessionRef) ===
+              input.adapterSessionRef &&
             session.profile === input.profile &&
             session.workspaceId === input.workspaceId &&
             session.repositoryRef === input.repositoryRef &&
@@ -461,10 +466,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isAdapterSessionRef(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/.test(value)
+  );
+}
+
 const HERMES_STREAM_MAX_BYTES = 1_048_576;
 const HERMES_STREAM_MAX_EVENTS = 1_024;
 const HERMES_STREAM_MAX_EVENT_BYTES = 32_768;
 const HERMES_STREAM_MAX_DELTA_BYTES = 65_536;
+
+function hermesStreamEventByteLimit(eventName: string): number {
+  // Hermes 0.19 run.completed carries an authoritative per-turn transcript.
+  // On a heavily compressed session its safe-resume fallback can include a
+  // large prior assistant/tool slice. World validates only terminal metadata
+  // and never emits or persists that transcript, but must still consume the
+  // frame to finish the turn. Keep every other event at 32 KiB and retain the
+  // independent 1 MiB total-stream ceiling for this terminal frame.
+  return eventName === "run.completed"
+    ? HERMES_STREAM_MAX_BYTES
+    : HERMES_STREAM_MAX_EVENT_BYTES;
+}
 
 async function consumeSse(
   body: ReadableStream<Uint8Array>,
@@ -507,7 +531,7 @@ async function consumeSse(
   const line = async (raw: string) => {
     const value = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
     frameBytes += Buffer.byteLength(value, "utf8") + 1;
-    if (frameBytes > HERMES_STREAM_MAX_EVENT_BYTES)
+    if (frameBytes > hermesStreamEventByteLimit(eventName))
       fail("Hermes turn stream event exceeds the bounded response limit");
     if (value === "") {
       await dispatch();
@@ -545,7 +569,10 @@ async function consumeSse(
         await line(current);
         newline = buffer.indexOf("\n");
       }
-      if (Buffer.byteLength(buffer, "utf8") > HERMES_STREAM_MAX_EVENT_BYTES)
+      if (
+        Buffer.byteLength(buffer, "utf8") >
+        hermesStreamEventByteLimit(eventName)
+      )
         fail("Hermes turn stream event exceeds the bounded response limit");
     }
     try {
@@ -609,8 +636,12 @@ export class HermesSessionAdapter implements AgentAdapter {
     this.#fetch = options.fetch ?? globalThis.fetch;
   }
 
-  #sameSessionArbiterAttested(): boolean {
-    if (!this.#pluginCapabilityPath) return false;
+  #pluginCapabilities(): {
+    readonly sameSessionSafe: boolean;
+    readonly worldActions: boolean;
+  } {
+    const unavailable = { sameSessionSafe: false, worldActions: false };
+    if (!this.#pluginCapabilityPath) return unavailable;
     try {
       const stat = fs.lstatSync(this.#pluginCapabilityPath);
       if (
@@ -619,13 +650,13 @@ export class HermesSessionAdapter implements AgentAdapter {
         stat.size > 4_096 ||
         (stat.mode & 0o077) !== 0
       )
-        return false;
+        return unavailable;
       const value: unknown = JSON.parse(
         fs.readFileSync(this.#pluginCapabilityPath, "utf8"),
       );
-      if (!isRecord(value)) return false;
+      if (!isRecord(value)) return unavailable;
       const keys = Object.keys(value).sort();
-      return (
+      const legacy =
         JSON.stringify(keys) ===
           JSON.stringify(
             ["plugin", "sameSessionArbiter", "schema", "version"].sort(),
@@ -633,11 +664,59 @@ export class HermesSessionAdapter implements AgentAdapter {
         value.schema === "aiw.hermes-plugin-capabilities/0.12" &&
         value.plugin === "agentintersect-world" &&
         value.version === "0.12.0" &&
-        value.sameSessionArbiter === "fcntl-turn-lock-v1"
-      );
+        value.sameSessionArbiter === "fcntl-turn-lock-v1";
+      if (legacy) return { sameSessionSafe: true, worldActions: false };
+      const actions = value.worldActions;
+      const exactActions =
+        isRecord(actions) &&
+        JSON.stringify(Object.keys(actions).sort()) ===
+          JSON.stringify(
+            [
+              "defaultTtlMs",
+              "enabled",
+              "maximumBatchActions",
+              "maximumEnvelopeBytes",
+              "maximumQueuedActions",
+              "maximumTtlMs",
+              "proposalHelper",
+              "protocol",
+              "rateActionsPerSecond",
+              "rateBurstActions",
+            ].sort(),
+          ) &&
+        actions.enabled === true &&
+        actions.protocol === "aiw.world-action/0.13" &&
+        actions.proposalHelper === "propose_world_action" &&
+        actions.maximumBatchActions === 8 &&
+        actions.maximumEnvelopeBytes === 16_384 &&
+        actions.defaultTtlMs === 30_000 &&
+        actions.maximumTtlMs === 120_000 &&
+        actions.rateActionsPerSecond === 4 &&
+        actions.rateBurstActions === 8 &&
+        actions.maximumQueuedActions === 32;
+      const sameSessionSafe =
+        JSON.stringify(keys) ===
+          JSON.stringify(
+            [
+              "plugin",
+              "sameSessionArbiter",
+              "schema",
+              "version",
+              "worldActions",
+            ].sort(),
+          ) &&
+        value.schema === "aiw.hermes-plugin-capabilities/0.13" &&
+        value.plugin === "agentintersect-world" &&
+        value.version === "0.13.0" &&
+        value.sameSessionArbiter === "fcntl-turn-lock-v1";
+      return { sameSessionSafe, worldActions: sameSessionSafe && exactActions };
     } catch {
-      return false;
+      return unavailable;
     }
+  }
+
+  #sameSessionArbiterAttested(): boolean {
+    return this.#pluginCapabilities().sameSessionSafe;
   }
 
   async #request(pathname: string, init?: RequestInit): Promise<Response> {
@@ -671,22 +750,62 @@ export class HermesSessionAdapter implements AgentAdapter {
     return response;
   }
 
+  async #json(response: Response, message: string): Promise<unknown> {
+    try {
+      return await response.json();
+    } catch {
+      throw new GatewayError("upstream", message);
+    }
+  }
+
+  async #resolveEffectiveSession(rootSessionRef: string): Promise<string> {
+    const response = await this.#request(
+      `/api/sessions/${encodeURIComponent(rootSessionRef)}/messages`,
+    );
+    if (response.status === 404)
+      throw new GatewayError("not_found", "Hermes session is missing");
+    if (!response.ok)
+      throw new GatewayError(
+        "upstream",
+        "Hermes safe session continuation is unavailable",
+      );
+    const body = await this.#json(
+      response,
+      "Hermes safe session continuation response is invalid",
+    );
+    if (
+      !isRecord(body) ||
+      body.object !== "list" ||
+      !Array.isArray(body.data) ||
+      !isAdapterSessionRef(body.session_id)
+    )
+      throw new GatewayError(
+        "upstream",
+        "Hermes safe session continuation response is invalid",
+      );
+    return body.session_id;
+  }
+
   async attest(): Promise<AgentCapabilityManifest> {
     const response = await this.#request("/v1/capabilities");
     if (!response.ok)
       throw new GatewayError("offline", "Hermes capability attestation failed");
-    const body: unknown = await response.json();
+    const body = await this.#json(
+      response,
+      "Hermes capability response is invalid",
+    );
     const features =
       isRecord(body) && isRecord(body.features) ? body.features : {};
     const attach =
       features.session_resources === true &&
       features.session_chat_streaming === true;
-    const sameSessionSafe = this.#sameSessionArbiterAttested();
+    const plugin = this.#pluginCapabilities();
+    const sameSessionSafe = plugin.sameSessionSafe;
     const text = attach && sameSessionSafe;
     return AgentCapabilityManifestSchema.parse({
       schema: "aiw.agent-capabilities/0.12",
       adapterId: "hermes",
-      adapterVersion: "0.18.2-f7c9feb3",
+      adapterVersion: "0.19.0-8208fc52",
       transport: "loopback-http-sse",
       origin: "local",
       auth: "server-bearer",
@@ -705,6 +824,7 @@ export class HermesSessionAdapter implements AgentAdapter {
         interrupt: false,
         avatarProposal: true,
         skillsDisclosure: true,
+        worldActions: plugin.worldActions,
       },
       unavailable: {
         ...(!attach
@@ -730,6 +850,33 @@ export class HermesSessionAdapter implements AgentAdapter {
         interrupt:
           "The exact-session transport does not expose an exact World-owned run ID for stop.",
       },
+      worldActions: plugin.worldActions
+        ? {
+            enabled: true,
+            protocol: "aiw.world-action/0.13",
+            proposalHelper: "propose_world_action",
+            maximumBatchActions: 8,
+            maximumEnvelopeBytes: 16_384,
+            defaultTtlMs: 30_000,
+            maximumTtlMs: 120_000,
+            rateActionsPerSecond: 4,
+            rateBurstActions: 8,
+            maximumQueuedActions: 32,
+          }
+        : {
+            enabled: false,
+            protocol: "aiw.world-action/0.13",
+            proposalHelper: "propose_world_action",
+            maximumBatchActions: 8,
+            maximumEnvelopeBytes: 16_384,
+            defaultTtlMs: 30_000,
+            maximumTtlMs: 120_000,
+            rateActionsPerSecond: 4,
+            rateBurstActions: 8,
+            maximumQueuedActions: 32,
+            unavailableReason:
+              "The structured Hermes proposal helper is not attested; persistent chat and manual navigation remain available.",
+          },
     });
   }
 
@@ -737,7 +884,10 @@ export class HermesSessionAdapter implements AgentAdapter {
     const response = await this.#request("/api/sessions?limit=100&offset=0");
     if (!response.ok)
       throw new GatewayError("upstream", "Hermes sessions are unavailable");
-    const body: unknown = await response.json();
+    const body = await this.#json(
+      response,
+      "Hermes sessions response is invalid",
+    );
     if (!isRecord(body) || !Array.isArray(body.data))
       throw new GatewayError("upstream", "Hermes sessions response is invalid");
     return body.data.slice(0, 100).flatMap((value) => {
@@ -777,16 +927,25 @@ export class HermesSessionAdapter implements AgentAdapter {
       throw new GatewayError("not_found", "Hermes session is missing");
     if (!response.ok)
       throw new GatewayError("upstream", "Hermes session attach failed");
-    const body: unknown = await response.json();
+    const body = await this.#json(
+      response,
+      "Hermes session attach response is invalid",
+    );
     const value =
-      isRecord(body) && isRecord(body.session) ? body.session : undefined;
+      isRecord(body) && isRecord(body.session)
+        ? body.session
+        : isRecord(body)
+          ? body
+          : undefined;
     if (!value || value.id !== sessionRef)
       throw new GatewayError(
         "upstream",
         "Hermes returned a different session identity",
       );
+    const effectiveSessionRef = await this.#resolveEffectiveSession(sessionRef);
     return {
-      id: sessionRef,
+      id: effectiveSessionRef,
+      rootId: sessionRef,
       source:
         typeof value.source === "string"
           ? value.source.slice(0, 64)
@@ -816,8 +975,16 @@ export class HermesSessionAdapter implements AgentAdapter {
         "validation",
         "Message must be 1-16384 UTF-8 bytes",
       );
+    const rootSessionRef = context?.rootSessionRef ?? sessionRef;
+    if (!isAdapterSessionRef(rootSessionRef))
+      throw new GatewayError(
+        "validation",
+        "Hermes root session identity is invalid",
+      );
+    const requestSessionRef =
+      await this.#resolveEffectiveSession(rootSessionRef);
     const response = await this.#request(
-      `/api/sessions/${encodeURIComponent(sessionRef)}/chat/stream`,
+      `/api/sessions/${encodeURIComponent(requestSessionRef)}/chat/stream`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -844,13 +1011,32 @@ export class HermesSessionAdapter implements AgentAdapter {
     let runCompleted = false;
     let done = false;
     let upstreamError = false;
+    let terminalSessionRef: string | undefined;
     const emit = async (event: AdapterTurnEvent) => {
       await context?.onEvent?.(event);
     };
     await consumeSse(response.body, context?.signal, async (event, data) => {
       if (!isRecord(data))
         throw new GatewayError("upstream", "Hermes turn event is invalid");
-      if (data.session_id !== sessionRef)
+      const isTerminal =
+        event === "assistant.completed" || event === "run.completed";
+      const eventSessionRef = data.session_id;
+      if (!isAdapterSessionRef(eventSessionRef))
+        throw new GatewayError(
+          "upstream",
+          "Hermes turn event session identity is invalid",
+        );
+      if (isTerminal) {
+        if (terminalSessionRef && terminalSessionRef !== eventSessionRef)
+          throw new GatewayError(
+            "upstream",
+            "Hermes terminal session identities do not match",
+          );
+        terminalSessionRef = eventSessionRef;
+      } else if (
+        eventSessionRef !== requestSessionRef &&
+        eventSessionRef !== terminalSessionRef
+      )
         throw new GatewayError(
           "upstream",
           "Hermes turn event session identity does not match",
@@ -962,7 +1148,14 @@ export class HermesSessionAdapter implements AgentAdapter {
         "upstream",
         "Hermes turn ended without a final response",
       );
-    return { finalText, deltas };
+    const effectiveSessionRef =
+      await this.#resolveEffectiveSession(rootSessionRef);
+    if (terminalSessionRef !== effectiveSessionRef)
+      throw new GatewayError(
+        "upstream",
+        "Hermes terminal session identity lacks safe continuation evidence",
+      );
+    return { finalText, deltas, sessionRef: effectiveSessionRef };
   }
 }
 
@@ -1029,6 +1222,7 @@ export class AgentSessionGateway {
     const existing = this.#store.findSessionBinding(request);
     const adapter = this.#registry.require(request.adapterId);
     let manifest: AgentCapabilityManifest;
+    let effectiveSessionRef: string;
     try {
       manifest = await adapter.attest();
       if (!manifest.capabilities.attach)
@@ -1036,7 +1230,21 @@ export class AgentSessionGateway {
           "unsupported",
           "Adapter attach capability is unavailable",
         );
-      await adapter.attach(request.adapterSessionRef);
+      const attached = await adapter.attach(request.adapterSessionRef);
+      if (!isAdapterSessionRef(attached.id))
+        throw new GatewayError(
+          "upstream",
+          "Adapter returned an invalid effective session identity",
+        );
+      if (
+        attached.rootId !== undefined &&
+        attached.rootId !== request.adapterSessionRef
+      )
+        throw new GatewayError(
+          "upstream",
+          "Adapter returned a different root session identity",
+        );
+      effectiveSessionRef = attached.id;
     } catch (error) {
       if (
         existing &&
@@ -1057,6 +1265,12 @@ export class AgentSessionGateway {
       return this.#store.saveSession(
         AgentSessionSchema.parse({
           ...existing,
+          adapterSessionRef: effectiveSessionRef,
+          adapterRootSessionRef: request.adapterSessionRef,
+          adapterPreviousSessionRef:
+            effectiveSessionRef === existing.adapterSessionRef
+              ? null
+              : existing.adapterSessionRef,
           capabilitySnapshotHash: snapshotHash,
           permissionRevision:
             existing.capabilitySnapshotHash === snapshotHash
@@ -1072,7 +1286,9 @@ export class AgentSessionGateway {
         schema: "aiw.agent-session/0.12",
         sessionId: randomUUID(),
         adapterId: request.adapterId,
-        adapterSessionRef: request.adapterSessionRef,
+        adapterSessionRef: effectiveSessionRef,
+        adapterRootSessionRef: request.adapterSessionRef,
+        adapterPreviousSessionRef: null,
         profile: request.profile,
         workspaceId: request.workspaceId,
         repositoryRef: request.repositoryRef,
@@ -1102,7 +1318,14 @@ export class AgentSessionGateway {
     } = {},
   ): Promise<AdapterTurnResult> {
     const persisted = this.#store.requireSession(sessionId);
-    assertTurnBinding(persisted, request.binding);
+    try {
+      assertTurnBinding(persisted, request.binding);
+    } catch {
+      throw new GatewayError(
+        "conflict",
+        "Turn binding no longer matches the selected root session",
+      );
+    }
     if (this.#busy.has(sessionId))
       throw new GatewayError(
         "conflict",
@@ -1150,6 +1373,8 @@ export class AgentSessionGateway {
         request.text,
         {
           mode: persisted.mode,
+          rootSessionRef:
+            persisted.adapterRootSessionRef ?? persisted.adapterSessionRef,
           ...(options.signal ? { signal: options.signal } : {}),
           onEvent: async (event) => {
             if (event.type === "assistant.delta")
@@ -1167,6 +1392,14 @@ export class AgentSessionGateway {
           },
         },
       );
+      if (
+        result.sessionRef !== undefined &&
+        !isAdapterSessionRef(result.sessionRef)
+      )
+        throw new GatewayError(
+          "upstream",
+          "Adapter returned an invalid effective session identity",
+        );
       this.#store.appendMessage(sessionId, "assistant", result.finalText);
       const safeFinal = sanitizeDisplayText(result.finalText, 16_384);
       await appendNormalizedEvent(
@@ -1175,8 +1408,14 @@ export class AgentSessionGateway {
         safeFinal.redaction,
       );
       const latest = this.#store.requireSession(sessionId);
+      const effectiveSessionRef = result.sessionRef ?? latest.adapterSessionRef;
       this.#store.saveSession({
         ...latest,
+        adapterSessionRef: effectiveSessionRef,
+        adapterPreviousSessionRef:
+          effectiveSessionRef === latest.adapterSessionRef
+            ? null
+            : latest.adapterSessionRef,
         activeRunId: result.runId ?? null,
         updatedAt: new Date().toISOString(),
       });
@@ -1344,4 +1583,85 @@ export function readPluginAvatarProposal(
     rationale: source.rationale,
     createdAt: source.createdAt,
   });
+}
+
+export function readPluginWorldActionProposal(
+  proposalPath: string,
+  adapterSessionRef: string | readonly string[],
+): {
+  readonly proposalId: string;
+  readonly sourceStreamId: string;
+  readonly sequence: number;
+  readonly createdAt: string;
+  readonly proposal: ReturnType<typeof WorldActionProposalSchema.parse>;
+} | null {
+  try {
+    if (!path.isAbsolute(proposalPath)) return null;
+    const adapterSessionRefs =
+      typeof adapterSessionRef === "string"
+        ? [adapterSessionRef]
+        : [...adapterSessionRef];
+    if (
+      adapterSessionRefs.length < 1 ||
+      adapterSessionRefs.length > 2 ||
+      adapterSessionRefs.some((value) => !isAdapterSessionRef(value))
+    )
+      return null;
+    const acceptedSessionHashes = new Set(
+      adapterSessionRefs.map((value) =>
+        createHash("sha256").update(value).digest("hex"),
+      ),
+    );
+    const stat = fs.lstatSync(proposalPath);
+    if (
+      !stat.isFile() ||
+      stat.isSymbolicLink() ||
+      stat.size > 16_384 ||
+      (stat.mode & 0o077) !== 0
+    )
+      return null;
+    const input: unknown = JSON.parse(fs.readFileSync(proposalPath, "utf8"));
+    if (!isRecord(input)) return null;
+    if (
+      JSON.stringify(Object.keys(input).sort()) !==
+        JSON.stringify(
+          [
+            "actions",
+            "createdAt",
+            "nativeSessionHash",
+            "proposalId",
+            "schema",
+            "sequence",
+            "ttlMs",
+          ].sort(),
+        ) ||
+      input.schema !== "aiw.hermes-world-action-proposal/0.13" ||
+      typeof input.proposalId !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        input.proposalId,
+      ) ||
+      !acceptedSessionHashes.has(String(input.nativeSessionHash)) ||
+      !Number.isSafeInteger(input.sequence) ||
+      (input.sequence as number) < 1 ||
+      typeof input.createdAt !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(
+        input.createdAt,
+      )
+    )
+      return null;
+    const parsed = WorldActionProposalSchema.safeParse({
+      actions: input.actions,
+      ttlMs: input.ttlMs,
+    });
+    if (!parsed.success) return null;
+    return {
+      proposalId: input.proposalId,
+      sourceStreamId: String(input.nativeSessionHash),
+      sequence: input.sequence as number,
+      createdAt: input.createdAt,
+      proposal: parsed.data,
+    };
+  } catch {
+    return null;
+  }
 }

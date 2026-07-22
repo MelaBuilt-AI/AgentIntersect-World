@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/local-server",
-  "version": "0.12.0-phase12",
+  "version": "0.13.0-phase13",
   "private": true,
   "type": "module",
   "exports": {
@@ -22,11 +22,13 @@
     "@agentintersect-world/agentintersect-client": "workspace:*",
     "@agentintersect-world/config": "workspace:*",
     "@agentintersect-world/observability": "workspace:*",
+    "@agentintersect-world/navigation": "workspace:*",
     "@agentintersect-world/persistence": "workspace:*",
     "@agentintersect-world/repo-indexer": "workspace:*",
     "@agentintersect-world/spatial-code-graph": "workspace:*",
     "@agentintersect-world/sync-yjs": "workspace:*",
     "@agentintersect-world/world-event-protocol": "workspace:*",
+    "@agentintersect-world/world-action-protocol": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@fastify/swagger": "9.8.1",
     "fastify": "5.10.0",

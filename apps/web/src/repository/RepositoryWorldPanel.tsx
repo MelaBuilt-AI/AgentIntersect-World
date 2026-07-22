@@ -1,12 +1,16 @@
 import {
-  RepositoryIslandCanvas,
   boundedSemanticObjects,
+  DEFAULT_REPOSITORY_CAMERA,
+  applyRepositoryCameraLook,
+  applyRepositoryCameraZoom,
   measureRepositoryPreparation,
   preparePhase10AggregateView,
   preparePhase10VisibleDetail,
   projectToMinimap,
   resolveWebGLCapability,
   type RepositoryRenderObject,
+  type RepositoryCameraMode,
+  type RepositoryCameraState,
   type WebGLFallbackReason,
 } from "@agentintersect-world/renderer-r3f";
 import type {
@@ -17,7 +21,15 @@ import type {
   WorldSnapshot,
 } from "@agentintersect-world/world-schema";
 import { useQuery } from "@tanstack/react-query";
-import { Component, useCallback, useMemo, useState } from "react";
+import {
+  Component,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   PHASE5_ABSOLUTE_PATH_FIXTURE,
@@ -48,6 +60,14 @@ import {
   searchRepositoryObjects,
 } from "./repository-browser-model.js";
 import { currentRepositorySelection } from "./repository-selection.js";
+import { WorldActionPanel } from "../world-actions/WorldActionPanel.js";
+import { performOperatorTeleport } from "../world-actions/operator-navigation.js";
+
+const RepositoryIslandCanvas = lazy(() =>
+  import("@agentintersect-world/renderer-r3f/repository-island").then(
+    ({ RepositoryIslandCanvas: Canvas }) => ({ default: Canvas }),
+  ),
+);
 
 function rendererObjects(
   snapshot: WorldSnapshot,
@@ -325,6 +345,72 @@ function RepositoryBrowser({
     requestedRef ?? repository?.ref ?? null,
   );
   const [focusRef, setFocusRef] = useState<string | null>(requestedRef);
+  const [agentPosition, setAgentPosition] = useState<{
+    readonly x: number;
+    readonly z: number;
+  } | null>(null);
+  const [cameraMode, setCameraMode] =
+    useState<RepositoryCameraMode>("third-person");
+  const [cameraState, setCameraState] = useState<RepositoryCameraState>(
+    DEFAULT_REPOSITORY_CAMERA,
+  );
+  const [cameraPreferences, setCameraPreferences] = useState({
+    sensitivity: 0.8,
+    invertedY: false,
+    fieldOfView: 75,
+    easing: 0.35,
+  });
+  const cameraSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const cameraDragRef = useRef<{
+    readonly pointerId: number;
+    readonly x: number;
+    readonly y: number;
+  } | null>(null);
+  const cameraMouseDragRef = useRef<{
+    readonly x: number;
+    readonly y: number;
+  } | null>(null);
+  const applyCameraLook = useCallback(
+    (input: {
+      readonly movementX: number;
+      readonly movementY: number;
+      readonly sensitivity: number;
+      readonly invertedY: boolean;
+    }) =>
+      setCameraState((current) => applyRepositoryCameraLook(current, input)),
+    [],
+  );
+  useEffect(() => {
+    const surface = cameraSurfaceRef.current;
+    if (!surface) return;
+    const down = (event: MouseEvent) => {
+      if (cameraMode === "first-person" || event.button !== 0) return;
+      cameraMouseDragRef.current = { x: event.clientX, y: event.clientY };
+    };
+    const move = (event: MouseEvent) => {
+      const drag = cameraMouseDragRef.current;
+      if (!drag) return;
+      applyCameraLook({
+        movementX: event.clientX - drag.x,
+        movementY: event.clientY - drag.y,
+        sensitivity: cameraPreferences.sensitivity,
+        invertedY: cameraPreferences.invertedY,
+      });
+      cameraMouseDragRef.current = { x: event.clientX, y: event.clientY };
+    };
+    const up = () => {
+      cameraMouseDragRef.current = null;
+    };
+    surface.addEventListener("mousedown", down, true);
+    window.addEventListener("mousemove", move, true);
+    window.addEventListener("mouseup", up, true);
+    return () => {
+      surface.removeEventListener("mousedown", down, true);
+      window.removeEventListener("mousemove", move, true);
+      window.removeEventListener("mouseup", up, true);
+      cameraMouseDragRef.current = null;
+    };
+  }, [applyCameraLook, cameraMode, cameraPreferences]);
   const selected =
     selectedRef === null ? null : (model.byRef.get(selectedRef) ?? null);
   const focusedFile =
@@ -685,11 +771,71 @@ function RepositoryBrowser({
             <CanvasBoundary
               onFailure={() => setFallbackReason("creation-failed")}
             >
-              <div className="island-canvas" data-testid="repository-canvas">
+              <div
+                ref={cameraSurfaceRef}
+                className="island-canvas"
+                data-testid="repository-canvas"
+                data-camera-mode={cameraMode}
+                data-camera-yaw={cameraState.yaw}
+                data-camera-pitch={cameraState.pitch}
+                data-camera-distance={cameraState.distance}
+                data-agent-position={
+                  agentPosition
+                    ? `${agentPosition.x},${agentPosition.z}`
+                    : "none"
+                }
+                data-photo-hidden={cameraMode === "photo"}
+                onPointerDownCapture={(event) => {
+                  if (
+                    cameraMode === "first-person" ||
+                    event.pointerType === "mouse"
+                  )
+                    return;
+                  cameraDragRef.current = {
+                    pointerId: event.pointerId,
+                    x: event.clientX,
+                    y: event.clientY,
+                  };
+                  event.currentTarget.setPointerCapture?.(event.pointerId);
+                }}
+                onPointerMoveCapture={(event) => {
+                  const drag = cameraDragRef.current;
+                  if (!drag || drag.pointerId !== event.pointerId) return;
+                  applyCameraLook({
+                    movementX: event.clientX - drag.x,
+                    movementY: event.clientY - drag.y,
+                    sensitivity: cameraPreferences.sensitivity,
+                    invertedY: cameraPreferences.invertedY,
+                  });
+                  cameraDragRef.current = {
+                    pointerId: event.pointerId,
+                    x: event.clientX,
+                    y: event.clientY,
+                  };
+                }}
+                onPointerUpCapture={(event) => {
+                  if (cameraDragRef.current?.pointerId === event.pointerId)
+                    cameraDragRef.current = null;
+                }}
+                onPointerCancelCapture={() => {
+                  cameraDragRef.current = null;
+                }}
+                onWheelCapture={(event) => {
+                  if (cameraMode === "first-person") return;
+                  setCameraState((current) =>
+                    applyRepositoryCameraZoom(current, event.deltaY),
+                  );
+                }}
+              >
                 <RepositoryIslandCanvas
                   prepared={prepared}
                   selectedRef={selectedRef}
                   focusRef={focusRef}
+                  agentPosition={agentPosition}
+                  cameraMode={cameraMode}
+                  cameraState={cameraState}
+                  fieldOfView={cameraPreferences.fieldOfView}
+                  cameraEasing={reducedMotion ? 0 : cameraPreferences.easing}
                   onSelect={select}
                   onContextLost={() => setFallbackReason("context-lost")}
                   reducedMotion={reducedMotion}
@@ -736,8 +882,17 @@ function RepositoryBrowser({
                     className={selectedRef === object.ref ? "is-selected" : ""}
                     data-evidence-outcome={evidenceByRef.get(object.ref)}
                     style={{ left: `${point.x}%`, top: `${point.y}%` }}
-                    aria-label={`Select ${object.name} from overview`}
-                    onClick={() => select(object.ref)}
+                    aria-label={`Travel to ${object.name} from overview`}
+                    onClick={() => {
+                      performOperatorTeleport({
+                        snapshot,
+                        selectedRef: object.ref,
+                        noWebGL: fallbackReason !== null,
+                        onAgentPosition: setAgentPosition,
+                        onSelect: select,
+                        onFocus: setFocusRef,
+                      });
+                    }}
                   />
                 );
               })}
@@ -823,6 +978,26 @@ function RepositoryBrowser({
           ) : null}
         </aside>
       </div>
+      <WorldActionPanel
+        snapshot={snapshot}
+        selectedRef={selectedRef}
+        onSelect={select}
+        onFocus={setFocusRef}
+        onAgentPosition={setAgentPosition}
+        noWebGL={fallbackReason !== null}
+        reducedMotion={reducedMotion}
+        cameraYaw={cameraState.yaw}
+        onCameraMode={setCameraMode}
+        onCameraLook={applyCameraLook}
+        onCameraPreferences={(preferences) =>
+          setCameraPreferences({
+            sensitivity: preferences.sensitivity,
+            invertedY: preferences.invertedY,
+            fieldOfView: preferences.fieldOfView,
+            easing: preferences.easing,
+          })
+        }
+      />
     </section>
   );
 }

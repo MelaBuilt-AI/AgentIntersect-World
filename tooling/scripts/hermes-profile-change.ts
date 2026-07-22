@@ -17,6 +17,7 @@ const MANAGED_DIRECTORIES = [
   "plugins/agentintersect-world",
   "agentintersect-world",
   "agentintersect-world/turn-locks",
+  "agentintersect-world/world-action-proposals",
 ] as const;
 const RUNTIME_STATE_FILES = [
   "avatar-proposal.json",
@@ -442,7 +443,11 @@ export function restoreHermesProfileBackup(
             RUNTIME_STATE_FILES.includes(
               entry.name as (typeof RUNTIME_STATE_FILES)[number],
             )
-          ) && !(entry.isDirectory() && entry.name === "turn-locks"),
+          ) &&
+          !(
+            entry.isDirectory() &&
+            ["turn-locks", "world-action-proposals"].includes(entry.name)
+          ),
       );
     if (unexpected.length > 0)
       throw new Error("Installed runtime state contains unexpected drift");
@@ -457,6 +462,24 @@ export function restoreHermesProfileBackup(
       if (unexpectedLocks.length > 0)
         throw new Error(
           "Installed runtime lock state contains unexpected drift",
+        );
+    }
+    const proposalDirectory = path.join(
+      runtimeDirectory,
+      "world-action-proposals",
+    );
+    if (fs.existsSync(proposalDirectory)) {
+      const unexpectedProposals = fs
+        .readdirSync(proposalDirectory, { withFileTypes: true })
+        .filter(
+          (entry) =>
+            !entry.isFile() ||
+            entry.isSymbolicLink() ||
+            !/^[a-f0-9-]{36}\.json$/.test(entry.name),
+        );
+      if (unexpectedProposals.length > 0)
+        throw new Error(
+          "Installed World Action proposal state contains unexpected drift",
         );
     }
   }
@@ -487,6 +510,14 @@ export function restoreHermesProfileBackup(
     if (fs.existsSync(lockDirectory)) {
       for (const name of fs.readdirSync(lockDirectory))
         fs.unlinkSync(path.join(lockDirectory, name));
+    }
+    const proposalDirectory = path.join(
+      runtimeDirectory,
+      "world-action-proposals",
+    );
+    if (fs.existsSync(proposalDirectory)) {
+      for (const name of fs.readdirSync(proposalDirectory))
+        fs.unlinkSync(path.join(proposalDirectory, name));
     }
   }
   for (const directory of [...manifest.directories].reverse()) {

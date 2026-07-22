@@ -109,7 +109,7 @@ describe("Phase 12 local APIs", () => {
         adapterSessionRef: "native",
         profile: "default",
         workspaceId: "ws_fixture",
-        repositoryRef: "repo_fixture",
+        repositoryRef: "aiw://object/88888888888888888888888888888888",
         mode: "explore",
       },
     });
@@ -150,6 +150,53 @@ describe("Phase 12 local APIs", () => {
         expect.stringMatching(/world-actions|preview\/start/i),
       ]),
     );
+    await server.close();
+  });
+
+  it("returns a bounded structured upstream error when an adapter attach identity is invalid", async () => {
+    const state = fixture();
+    const broken: AgentAdapter = {
+      ...state.registry.require("fixture"),
+      id: "broken",
+      attest: async () => ({
+        ...(await state.registry.require("fixture").attest()),
+        adapterId: "broken",
+      }),
+      attach: async () => ({
+        id: "invalid/effective/session",
+        source: "discord",
+        title: "Invalid",
+      }),
+    };
+    const registry = new AdapterRegistry([broken]);
+    const server = createLocalServer({
+      agentSessionGateway: new AgentSessionGateway({
+        registry,
+        store: new AgentSessionStore(path.join(state.root, ".broken-state")),
+      }),
+      agentAdapterRegistry: registry,
+    });
+    const response = await server.inject({
+      method: "POST",
+      url: "/agent-sessions/attach",
+      payload: {
+        adapterId: "broken",
+        adapterSessionRef: "selected-root",
+        profile: "default",
+        workspaceId: "ws_fixture",
+        repositoryRef: "aiw://object/88888888888888888888888888888888",
+        mode: "explore",
+      },
+    });
+    expect(response.statusCode).toBe(502);
+    expect(response.json()).toMatchObject({
+      ok: false,
+      error: {
+        code: "upstream",
+        message: "Adapter returned an invalid effective session identity",
+      },
+    });
+    expect(JSON.stringify(response.json()).length).toBeLessThan(1_024);
     await server.close();
   });
 

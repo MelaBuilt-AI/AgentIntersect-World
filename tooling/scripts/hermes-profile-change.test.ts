@@ -207,6 +207,27 @@ describe("deterministic parent-owned Hermes profile change", () => {
     expect(fs.existsSync(installed.plugin)).toBe(false);
   });
 
+  it("removes bounded Phase 13 proposal spool state from an isolated profile", () => {
+    const installed = installFreshPlugin();
+    const spool = path.join(
+      installed.profile,
+      "agentintersect-world",
+      "world-action-proposals",
+    );
+    fs.mkdirSync(spool, { recursive: true, mode: 0o700 });
+    fs.writeFileSync(
+      path.join(spool, "00000000-0000-4000-8000-000000000001.json"),
+      '{"schema":"aiw.hermes-world-action-proposal/0.13"}\n',
+      { mode: 0o600 },
+    );
+
+    restoreHermesProfileBackup(installed.manifest, installed.profile);
+
+    expect(
+      fs.existsSync(path.join(installed.profile, "agentintersect-world")),
+    ).toBe(false);
+  });
+
   it("validates installed source hashes before removing an accepted import cache", () => {
     const installed = installFreshPlugin();
     const cache = path.join(installed.plugin, "__pycache__");

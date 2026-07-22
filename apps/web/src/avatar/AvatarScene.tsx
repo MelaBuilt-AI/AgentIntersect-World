@@ -2,7 +2,7 @@ import type {
   AvatarAction,
   AvatarDraft,
 } from "@agentintersect-world/avatar-system";
-import { AvatarKitCanvas } from "@agentintersect-world/renderer-r3f";
+import { AvatarKitCanvas } from "@agentintersect-world/renderer-r3f/avatar-kit";
 export function AvatarScene({
   profile,
   action,

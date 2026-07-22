@@ -1,7 +1,7 @@
 export const APP_METADATA = {
   name: "AgentIntersect World",
-  phase: "Phase 12",
-  version: "0.12.0-phase12",
+  phase: "Phase 13",
+  version: "0.13.0-phase13",
 } as const;
 
 export const LOCAL_SERVER_DEFAULTS = {

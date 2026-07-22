@@ -76,8 +76,8 @@ export type ApiResult<T> = {
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 12"),
-    version: z.literal("0.12.0-phase12"),
+    phase: z.literal("Phase 13"),
+    version: z.literal("0.13.0-phase13"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -104,7 +104,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.12.0-phase12"),
+    version: z.literal("0.13.0-phase13"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })

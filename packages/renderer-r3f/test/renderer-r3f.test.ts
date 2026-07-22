@@ -183,4 +183,33 @@ describe("repository renderer preparation", () => {
     expect(prepared.total).toBe(2_000);
     expect(prepared.dependencyBridges).toHaveLength(1_024);
   });
+
+  it("reuses the decimated 100k aggregate instead of repeating full frame work", () => {
+    const objects = Array.from({ length: 100_000 }, (_, index) => ({
+      ref: `aiw://object/${index.toString(16).padStart(32, "0")}`,
+      kind: "file" as const,
+      name: `file-${index}.ts`,
+      position: { x: index % 500, y: 0, z: Math.floor(index / 500) },
+      bounds: {
+        x: index % 500,
+        z: Math.floor(index / 500),
+        width: 1,
+        depth: 1,
+      },
+    }));
+    const dependencies: never[] = [];
+    const first = preparePhase10AggregateView(objects, dependencies);
+    const samples: number[] = [];
+    let latest = first;
+    for (let frame = 0; frame < 120; frame += 1) {
+      const started = performance.now();
+      latest = preparePhase10AggregateView(objects, dependencies);
+      samples.push(performance.now() - started);
+    }
+    const p95 = [...samples].sort((left, right) => left - right)[113]!;
+
+    expect(latest).toBe(first);
+    expect(latest.total).toBe(2_000);
+    expect(p95).toBeLessThanOrEqual(33.3);
+  });
 });

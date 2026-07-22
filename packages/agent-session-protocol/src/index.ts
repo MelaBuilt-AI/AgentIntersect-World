@@ -19,7 +19,9 @@ const WorldRef = z
   .string()
   .min(1)
   .max(256)
-  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/);
+  .regex(
+    /^(?:[A-Za-z0-9][A-Za-z0-9._:-]*|aiw:\/\/(?:object|path)\/[A-Za-z0-9][A-Za-z0-9._:-]*)$/,
+  );
 const SessionModeSchema = z.enum([
   "explore",
   "collaborate",
@@ -33,6 +35,8 @@ export const AgentSessionSchema = z
     sessionId: z.string().uuid(),
     adapterId: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/),
     adapterSessionRef: LocalOpaqueRef,
+    adapterRootSessionRef: LocalOpaqueRef.optional(),
+    adapterPreviousSessionRef: LocalOpaqueRef.nullable().optional(),
     profile: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/),
     workspaceId: WorldRef,
     repositoryRef: WorldRef,
@@ -136,7 +140,62 @@ const CapabilityKeySchema = z.enum([
   "interrupt",
   "avatarProposal",
   "skillsDisclosure",
+  "worldActions",
 ]);
+
+const WorldActionCapabilitySchema = z
+  .object({
+    enabled: z.boolean(),
+    protocol: z.literal("aiw.world-action/0.13"),
+    proposalHelper: z.literal("propose_world_action"),
+    maximumBatchActions: z.literal(8),
+    maximumEnvelopeBytes: z.literal(16_384),
+    defaultTtlMs: z.literal(30_000),
+    maximumTtlMs: z.literal(120_000),
+    rateActionsPerSecond: z.literal(4),
+    rateBurstActions: z.literal(8),
+    maximumQueuedActions: z.literal(32),
+    unavailableReason: z.string().min(1).max(240).optional(),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (!value.enabled && !value.unavailableReason) {
+      context.addIssue({
+        code: "custom",
+        path: ["unavailableReason"],
+        message: "Disabled World Actions require an explanation",
+      });
+    }
+  });
+
+const DisabledWorldActionCapability = {
+  enabled: false,
+  protocol: "aiw.world-action/0.13",
+  proposalHelper: "propose_world_action",
+  maximumBatchActions: 8,
+  maximumEnvelopeBytes: 16_384,
+  defaultTtlMs: 30_000,
+  maximumTtlMs: 120_000,
+  rateActionsPerSecond: 4,
+  rateBurstActions: 8,
+  maximumQueuedActions: 32,
+  unavailableReason:
+    "Structured World Actions are unavailable; persistent chat and manual navigation remain available.",
+} as const;
+
+const CapabilityValuesSchema = z
+  .object({
+    attach: z.boolean(),
+    sendText: z.boolean(),
+    streamDeltas: z.boolean(),
+    toolStatus: z.boolean(),
+    approvals: z.boolean(),
+    interrupt: z.boolean(),
+    avatarProposal: z.boolean(),
+    skillsDisclosure: z.boolean(),
+    worldActions: z.boolean().default(false),
+  })
+  .strict();
 
 export const AgentCapabilityManifestSchema = z
   .object({
@@ -152,15 +211,19 @@ export const AgentCapabilityManifestSchema = z
     shutdownOwner: z.enum(["hermes", "world", "external"]),
     maxInputBytes: z.number().int().min(1).max(65_536),
     maxEventBytes: z.number().int().min(1).max(65_536),
-    capabilities: z.record(CapabilityKeySchema, z.boolean()),
+    capabilities: CapabilityValuesSchema,
     unavailable: z.partialRecord(
       CapabilityKeySchema,
       z.string().min(1).max(240),
+    ),
+    worldActions: WorldActionCapabilitySchema.default(
+      DisabledWorldActionCapability,
     ),
   })
   .strict()
   .superRefine((manifest, context) => {
     for (const key of CapabilityKeySchema.options) {
+      if (key === "worldActions") continue;
       if (!manifest.capabilities[key] && !manifest.unavailable[key]) {
         context.addIssue({
           code: "custom",
@@ -168,6 +231,13 @@ export const AgentCapabilityManifestSchema = z
           message: `Unavailable capability ${key} requires an explanation`,
         });
       }
+    }
+    if (manifest.capabilities.worldActions !== manifest.worldActions.enabled) {
+      context.addIssue({
+        code: "custom",
+        path: ["worldActions", "enabled"],
+        message: "World Action capability and protocol declaration disagree",
+      });
     }
   });
 
@@ -306,7 +376,6 @@ export function assertTurnBinding(
   const right = AgentSessionSchema.parse(requested);
   const checks: ReadonlyArray<[keyof AgentSession, string]> = [
     ["adapterId", "adapter"],
-    ["adapterSessionRef", "adapter session"],
     ["profile", "profile"],
     ["workspaceId", "workspace"],
     ["repositoryRef", "repository"],
@@ -314,6 +383,9 @@ export function assertTurnBinding(
     ["permissionRevision", "permission revision"],
     ["capabilitySnapshotHash", "capability snapshot"],
   ];
+  const leftRoot = left.adapterRootSessionRef ?? left.adapterSessionRef;
+  const rightRoot = right.adapterRootSessionRef ?? right.adapterSessionRef;
+  if (leftRoot !== rightRoot) throw new Error("Turn adapter session mismatch");
   for (const [key, label] of checks) {
     if (left[key] !== right[key]) throw new Error(`Turn ${label} mismatch`);
   }

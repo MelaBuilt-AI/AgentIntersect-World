@@ -19,6 +19,90 @@
   --disabled: #4b5563;
 }
 
+.world-actions {
+  margin-top: 1rem;
+  padding: clamp(0.85rem, 2vw, 1.4rem);
+  border: 1px solid var(--line, #34506c);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--panel, #0b1724) 94%, #143c62);
+}
+
+.world-actions__controls,
+.world-actions__wasd,
+.world-actions__touch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.world-actions__controls strong {
+  flex-basis: 100%;
+}
+
+.world-actions__truth,
+.world-actions__trace,
+.world-actions__timeline {
+  margin-top: 0.8rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 0.5rem;
+}
+
+.world-actions__truth ul,
+.world-actions__trace ul,
+.world-actions__timeline ol {
+  display: grid;
+  gap: 0.4rem;
+  padding-inline-start: 1.25rem;
+}
+
+.world-actions__truth li[data-active="true"] {
+  font-weight: 700;
+}
+
+.world-actions__timeline li[data-continuity="previous-recovered"] {
+  border-inline-start: 0.25rem solid #8a8f98;
+  padding-inline-start: 0.5rem;
+}
+
+.world-actions__timeline button {
+  margin-inline-start: 0.35rem;
+}
+
+.world-actions__semantic-fallback,
+.world-actions__capability {
+  padding: 0.6rem;
+  border-inline-start: 0.25rem solid currentColor;
+}
+
+@media (max-width: 600px) {
+  .world-actions__controls button,
+  .world-actions__touch button {
+    min-block-size: 2.75rem;
+    flex: 1 1 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-actions,
+  .world-actions * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .world-actions,
+  .world-actions__truth,
+  .world-actions__trace,
+  .world-actions__timeline {
+    border-color: CanvasText;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

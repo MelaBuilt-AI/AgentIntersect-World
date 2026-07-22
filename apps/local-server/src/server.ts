@@ -89,6 +89,12 @@ import {
   type AgentSessionGateway,
 } from "./agent-sessions.js";
 import { registerAgentSessionRoutes } from "./agent-session-routes.js";
+import { registerWorldActionRoutes } from "./world-action-routes.js";
+import {
+  WorldActionService,
+  type WorldActionContext,
+  type WorldActionProposalResult,
+} from "./world-actions.js";
 import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
@@ -107,6 +113,7 @@ export type LocalServer = FastifyInstance & {
   readonly presentationService: PresentationSyncService;
   readonly codeGraphService: CodeGraphService;
   readonly agentSessionGateway?: AgentSessionGateway;
+  readonly worldActionService?: WorldActionService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -128,6 +135,16 @@ export type LocalServerOptions = {
   readonly avatarProposal?: (
     sessionId: string,
   ) => Promise<AgentAvatarProposal | null> | AgentAvatarProposal | null;
+  readonly worldActionService?: WorldActionService;
+  readonly worldActionContext?: (
+    sessionId: string,
+  ) => Promise<WorldActionContext | null> | WorldActionContext | null;
+  readonly worldActionImport?: (
+    sessionId: string,
+    context: WorldActionContext,
+  ) =>
+    | Promise<readonly WorldActionProposalResult[]>
+    | readonly WorldActionProposalResult[];
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -229,6 +246,7 @@ export function createLocalServer(
   server.decorate("presentationService", presentationService);
   server.decorate("codeGraphService", codeGraphService);
   server.decorate("agentSessionGateway", options.agentSessionGateway);
+  server.decorate("worldActionService", options.worldActionService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -328,6 +346,13 @@ export function createLocalServer(
             : {}),
         },
         { success, failure },
+      );
+    if (options.worldActionService && options.worldActionContext)
+      registerWorldActionRoutes(
+        server,
+        options.worldActionService,
+        options.worldActionContext,
+        options.worldActionImport,
       );
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
