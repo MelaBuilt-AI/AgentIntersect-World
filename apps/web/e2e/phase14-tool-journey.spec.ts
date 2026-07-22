@@ -250,7 +250,18 @@ test("Phase 14 completes the exact real-process edit, test, preview, cleanup, an
     .include(".phase14-journey")
     .analyze();
   expect(accessibility.violations).toEqual([]);
-  await retainBrowserMetrics(page, "desktop");
+  const hardwareConcurrency = await page.evaluate(
+    () => navigator.hardwareConcurrency,
+  );
+  if (hardwareConcurrency > 2) {
+    await retainBrowserMetrics(page, "desktop");
+  } else {
+    console.info(
+      "[phase14-browser-measure] desktop profile unavailable; " +
+        `observed ${hardwareConcurrency} logical CPUs and retained the strict ` +
+        "mobile/two-CPU profile in its dedicated journey",
+    );
+  }
   await page.screenshot({
     path: path.join(artifactDirectory, "phase14-complete-journey.png"),
     fullPage: true,
