@@ -8,6 +8,16 @@
     "implementationSha": "91e44831d097bdde7b8c08abc8411d075d07ab2c",
     "manualIntegrationSha": "4ff11e45a86041cd7f3549b7f886f408a8a21061"
   },
+  "ci": {
+    "repository": "MelaBuilt-AI/AgentIntersect-World",
+    "visibility": "PRIVATE",
+    "headSha": "4ae352eb7df755d84994100fbeab279faf05b980",
+    "workflow": "phase-1-checks",
+    "runId": 29994988808,
+    "jobId": 89166443996,
+    "status": "completed",
+    "conclusion": "success"
+  },
   "agents": [
     {
       "agentId": "mr-fluff",

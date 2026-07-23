@@ -492,7 +492,7 @@ operator-acceptance gate.
 Date: 2026-07-23
 
 Status: **IMPLEMENTATION AND LIVE DEMONSTRATION GREEN / MANUALLY INTEGRATED /
-PRIVATE EXACT-SHA CI AND EXPLICIT USER ACCEPTANCE PENDING**
+PRIVATE EXACT-SHA CI GREEN / EXPLICIT USER ACCEPTANCE PENDING**
 
 ### Parent verification of the correction
 
@@ -575,3 +575,15 @@ Machine-readable evidence is retained at
 loopback-only and all owned listeners were stopped; the final listener count
 was zero. Phase 15 remains unsealed solely for its physical-microphone journey,
 and Phase 17 remains unauthorized.
+
+### Private exact-SHA CI
+
+The integrated/evidence tree was pushed only to private
+`MelaBuilt-AI/AgentIntersect-World` `main` at
+`4ae352eb7df755d84994100fbeab279faf05b980`. GitHub Actions workflow
+`phase-1-checks` run `29994988808`, job `89166443996`, completed successfully
+for that exact SHA. Local `main`, `origin/main`, and the run head SHA matched;
+the repository remained private. No tag, release, package publication,
+deployment, public ingress, visibility change, provider activation, or Phase
+17 work occurred. The sole remaining Phase 16 gate is explicit user acceptance
+of this bounded two-agent integration demonstration.

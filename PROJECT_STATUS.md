@@ -4,7 +4,7 @@ Updated: 2026-07-23
 
 ## Current milestone
 
-**Phase 16 — IMPLEMENTATION AND LIVE TWO-AGENT DEMONSTRATION GREEN / MANUALLY INTEGRATED / PRIVATE EXACT-SHA CI AND EXPLICIT USER ACCEPTANCE PENDING**
+**Phase 16 — IMPLEMENTATION AND LIVE TWO-AGENT DEMONSTRATION GREEN / MANUALLY INTEGRATED / PRIVATE EXACT-SHA CI GREEN / EXPLICIT USER ACCEPTANCE PENDING**
 
 **Inherited pending gate: Phase 15 — PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
 
@@ -13,7 +13,7 @@ Updated: 2026-07-23
 - Independent parent verification is green: Phase 16 conformance **9 files / 41 tests**, deterministic measurement PASS, complete `pnpm check` PASS, disposable `verify:fresh` PASS, and separate conformance passes from both final agent branches.
 - The final live proof used exactly Mr Fluff/Hermes and Beans/OpenClaw on distinct sessions, tasks, branches, worktrees, tool streams, and evidence streams. It projected same-file interest, one real Git conflict, an inert attributed injection-shaped message, a Beans -> Mr Fluff handoff, exact candidate/test evidence, fail-closed wrong-boundary and third-agent refusals, current restart persistence, previous-snapshot recovery, and preview-only cleanup.
 - Built browser proof showed both agents and all numbered controls without clipping, overflow, overlap, or console errors; enabled controls were blue and inactive controls were grey and focusable. Browser approval set `operator-approved` while preserving `mergeRun:false`.
-- Manual integration preserved both branch ancestries, surfaced the expected collaboration-file conflict, and resolved it by human-reviewed edit to `resolution: manually-integrated-both`; merge commit `4ff11e45a86041cd7f3549b7f886f408a8a21061`. Private exact-SHA CI and the frozen explicit user-acceptance gate remain pending, so Phase 17 stays closed.
+- Manual integration preserved both branch ancestries, surfaced the expected collaboration-file conflict, and resolved it by human-reviewed edit to `resolution: manually-integrated-both`; merge commit `4ff11e45a86041cd7f3549b7f886f408a8a21061`. Private exact-SHA GitHub Actions run `29994988808`, job `89166443996`, succeeded for integrated/evidence SHA `4ae352eb7df755d84994100fbeab279faf05b980`. Only the frozen explicit user-acceptance gate remains, so Phase 17 stays closed.
 - The candidate implements one consentful ten-step push-to-talk lane: strict browser capture and PCM bounds, shell-free exact-provider re-attestation/execution/cleanup, editable final transcript, canonical existing-session send, optional capability-detected browser/system TTS with actual opaque voice selection, barge-in, bounded preference/activity recovery, and truthful privacy/provider/device disclosure.
 - Independent parent and fresh-review corrections are green for automatic-ceiling handoff, actual voice selection/use and fail-closed revocation before asynchronous persistence resolves, product-wired recovery activity, awaited native-process termination, every current native runtime member's exact re-attestation, in-flight transcription abort/discard, truthful synthetic-versus-real performance evidence, recovery fixture integration, and forced-color blue-enabled/grey-disabled visual truth.
 - Final post-correction proof is green: literal `pnpm check`; 11/11 architecture; 39/39 Phase 15 conformance; 512/512 Vitest; 41/41 Playwright; production build/smoke; Storybook; no known production vulnerabilities; and fresh-copy verification for 452 project source files with the same 512/41 tests.
@@ -178,9 +178,9 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 16 — PRIVATE EXACT-SHA CI AND EXPLICIT USER ACCEPTANCE**
+**Phase 16 — EXPLICIT USER ACCEPTANCE**
 
-The implementation, independent parent checks, final live Mr Fluff/Beans demonstration, browser proof, recovery proof, and manual conflict integration are green. Push the final integrated evidence commit, require exact-SHA private CI, then present the bounded demonstration for the frozen explicit user-acceptance gate. Phase 17 remains closed until separately authorized.
+The implementation, independent parent checks, final live Mr Fluff/Beans demonstration, browser proof, recovery proof, manual conflict integration, private push, and exact-SHA CI are green. Present the bounded demonstration for the frozen explicit user-acceptance gate. Phase 17 remains closed until separately authorized.
 
 `docs/PHASE_15_SCOPE.md` also remains frozen. The bounded Phase 15 candidate and independent parent proof are green in `PHASE_15_REPORT.md`, but this host exposes no usable microphone input and the physical-microphone acceptance remains pending.
 
