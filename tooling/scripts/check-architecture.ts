@@ -42,6 +42,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/spatial-code-graph",
     "@agentintersect-world/sync-yjs",
     "@agentintersect-world/tool-protocol",
+    "@agentintersect-world/voice",
     "@agentintersect-world/world-event-protocol",
     "@agentintersect-world/world-action-protocol",
     "@agentintersect-world/world-schema",
@@ -59,12 +60,14 @@ const allowedWorkspaceDependencies: Readonly<
   "@agentintersect-world/sync-yjs": [],
   "@agentintersect-world/tool-protocol": [],
   "@agentintersect-world/ui": ["@agentintersect-world/world-schema"],
+  "@agentintersect-world/voice": [],
   "@agentintersect-world/web": [
     "@agentintersect-world/avatar-system",
     "@agentintersect-world/config",
     "@agentintersect-world/renderer-r3f",
     "@agentintersect-world/sync-yjs",
     "@agentintersect-world/ui",
+    "@agentintersect-world/voice",
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/world-event-protocol": [],
@@ -78,6 +81,7 @@ const browserRoots = new Set([
   "@agentintersect-world/spatial-code-graph",
   "@agentintersect-world/sync-yjs",
   "@agentintersect-world/ui",
+  "@agentintersect-world/voice",
   "@agentintersect-world/web",
 ]);
 
@@ -342,7 +346,7 @@ async function main() {
     return;
   }
   process.stdout.write(
-    "Architecture check passed: 15 workspace packages, including browser-safe Phase 12 authority boundaries.\n",
+    "Architecture check passed: 19 workspace packages, including browser-safe Phase 15 voice and Node-only provider boundaries.\n",
   );
 }
 

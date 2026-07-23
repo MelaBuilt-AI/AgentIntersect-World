@@ -98,6 +98,8 @@ import {
 import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
 import { registerPhase14Routes } from "./phase14-routes.js";
 import type { Phase14Service } from "./phase14-service.js";
+import type { VoiceService } from "./voice-service.js";
+import { registerVoiceRoutes } from "./voice-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -117,6 +119,7 @@ export type LocalServer = FastifyInstance & {
   readonly agentSessionGateway?: AgentSessionGateway;
   readonly worldActionService?: WorldActionService;
   readonly phase14Service?: Phase14Service;
+  readonly voiceService?: VoiceService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -149,6 +152,7 @@ export type LocalServerOptions = {
     | Promise<readonly WorldActionProposalResult[]>
     | readonly WorldActionProposalResult[];
   readonly phase14Service?: Phase14Service;
+  readonly voiceService?: VoiceService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -252,6 +256,7 @@ export function createLocalServer(
   server.decorate("agentSessionGateway", options.agentSessionGateway);
   server.decorate("worldActionService", options.worldActionService);
   server.decorate("phase14Service", options.phase14Service);
+  server.decorate("voiceService", options.voiceService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -362,6 +367,8 @@ export function createLocalServer(
       );
     if (options.phase14Service)
       registerPhase14Routes(server, options.phase14Service);
+    if (options.voiceService)
+      registerVoiceRoutes(server, options.voiceService, { success, failure });
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
       const correlationId = correlationFor(request);

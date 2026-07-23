@@ -1,0 +1,74 @@
+{
+  "schema": "aiw.phase15-live-provider/1",
+  "measuredAt": "2026-07-23T04:16:57.204Z",
+  "provider": {
+    "schema": "aiw.stt-attestation/0.15",
+    "providerId": "whisper.cpp-v1.9.1-base.en",
+    "implementation": "whisper-cli",
+    "processing": "local-process",
+    "language": "en",
+    "available": true,
+    "reason": null,
+    "partials": "unavailable",
+    "retention": "volatile-until-text-send",
+    "rawAudioLeavesMachine": false
+  },
+  "pins": {
+    "whisperCliSha256": "427dfb509f2c04d0f01c101978b5666102c6f7e3abf2a236452db5939f5b533a",
+    "modelSha256": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002",
+    "modelBytes": 147964211,
+    "runtimeInventorySha256": "cec21291ef72fc23ddfe92ad8bd8ea211eb2bc403356943eb50433b4f529b15d"
+  },
+  "command": {
+    "executable": "whisper-cli",
+    "shell": false,
+    "argvShape": [
+      "--model <attested-model>",
+      "--file <app-owned-wav>",
+      "--language en",
+      "--threads 8",
+      "--processors 1",
+      "--no-gpu",
+      "--no-fallback",
+      "--no-prints",
+      "--no-timestamps",
+      "--output-json-full",
+      "--output-file <app-owned-result>"
+    ]
+  },
+  "inputContract": {
+    "format": "pcm",
+    "channels": 1,
+    "sampleRate": 16000,
+    "bitsPerSample": 16,
+    "durationMs": 3308.875,
+    "encodedBytes": 105928,
+    "generatedBy": "installed Windows System.Speech voice plus installed ffmpeg",
+    "committedRawAudio": false
+  },
+  "result": {
+    "lexicalTextProduced": true,
+    "finalTextUtf8Bytes": 44,
+    "expectedFixtureMatch": true,
+    "elapsedMs": 662.074746,
+    "peakRssBytes": 299655168,
+    "outputBytes": 3689,
+    "elapsedTargetMs": 2000,
+    "elapsedHardCeilingMs": 10000,
+    "outputCeilingBytes": 1048576,
+    "pass": true
+  },
+  "stagedInventory": {
+    "regularFiles": 53,
+    "regularBytes": 185119961,
+    "symlinks": 0
+  },
+  "cleanup": {
+    "ownedTempRootExists": false,
+    "generatedSourceWavExists": false,
+    "whisperProcessCount": 0,
+    "providerListenerProcessCount": 0,
+    "pass": true
+  },
+  "verdict": true
+}

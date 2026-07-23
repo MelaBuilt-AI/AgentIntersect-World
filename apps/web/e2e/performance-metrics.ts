@@ -16,7 +16,10 @@ export function normalizeBrowserDuration(durationMs: number): number {
     : durationMs;
 }
 
-function isAtOrBelowThreshold(value: number, threshold: number): boolean {
+export function isAtOrBelowThreshold(
+  value: number,
+  threshold: number,
+): boolean {
   if (!Number.isFinite(value) || !Number.isFinite(threshold))
     return value <= threshold;
   // performance.now() subtraction can place a nominal 16.8 ms tick a few

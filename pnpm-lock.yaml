@@ -115,6 +115,9 @@ importers:
       "@agentintersect-world/tool-protocol":
         specifier: workspace:*
         version: link:../../packages/tool-protocol
+      "@agentintersect-world/voice":
+        specifier: workspace:*
+        version: link:../../packages/voice
       "@agentintersect-world/world-action-protocol":
         specifier: workspace:*
         version: link:../../packages/world-action-protocol
@@ -164,6 +167,9 @@ importers:
       "@agentintersect-world/ui":
         specifier: workspace:*
         version: link:../../packages/ui
+      "@agentintersect-world/voice":
+        specifier: workspace:*
+        version: link:../../packages/voice
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:../../packages/world-schema
@@ -285,6 +291,12 @@ importers:
       react-dom:
         specifier: 19.2.7
         version: 19.2.7(react@19.2.7)
+
+  packages/voice:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
 
   packages/world-action-protocol:
     dependencies:

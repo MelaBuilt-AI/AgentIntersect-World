@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   AgentSessionClient,
@@ -16,6 +16,11 @@ import {
   type ChatMessage,
 } from "./agent-stream-state.js";
 import { PHASE12_SESSION_FIXTURE } from "./session-fixtures.js";
+
+const VoiceJourneyPanel = lazy(async () => {
+  const module = await import("../voice/VoiceJourneyPanel.js");
+  return { default: module.VoiceJourneyPanel };
+});
 
 type Mode = "explore" | "collaborate";
 
@@ -419,9 +424,11 @@ const WORLD_SESSION_ID =
 export function AgentSessionPanel({
   fixtureState,
   enabled = true,
+  voiceEnabled = true,
 }: {
   readonly fixtureState?: AgentSessionViewState;
   readonly enabled?: boolean;
+  readonly voiceEnabled?: boolean;
 } = {}) {
   const client = useMemo(() => new AgentSessionClient(), []);
   const activeStream = useRef<AbortController | null>(null);
@@ -626,128 +633,158 @@ export function AgentSessionPanel({
       });
   };
   return (
-    <AgentSessionExperience
-      state={state}
-      onNativeSession={(selectedNativeSession) => {
-        window.localStorage.removeItem(SESSION_POINTER_KEY);
-        setState((current) => ({
-          ...current,
-          selectedNativeSession,
-          worldSession: null,
-          messages: [],
-          toolStatuses: [],
-          avatarProposal: null,
-          avatarConsent: "pending",
-          continuityLabel: "Unavailable",
-          lastResult:
-            "Existing session selected; connect to attest its binding.",
-        }));
-      }}
-      onMode={(mode) => {
-        if (
-          mode === "collaborate" &&
-          !window.confirm(
-            "Collaborate is more permissive than Explore. Continue with native Hermes approval policy?",
-          )
-        )
-          return;
-        window.localStorage.removeItem(SESSION_POINTER_KEY);
-        setState((current) => ({
-          ...current,
-          mode,
-          worldSession: null,
-          continuityLabel: "Unavailable",
-          lastResult: `${mode === "explore" ? "Explore" : "Collaborate"} selected; reconnect to bind permission revision.`,
-        }));
-      }}
-      onConnect={connect}
-      onSend={send}
-      onAvatarEdit={(displayName) =>
-        setState((current) => ({
-          ...current,
-          avatarProposal: current.avatarProposal
-            ? { ...current.avatarProposal, displayName }
-            : null,
-          avatarConsent: "pending",
-          lastResult: "Bounded avatar proposal edit is awaiting consent.",
-        }))
-      }
-      onAvatarDecision={(decision) => {
-        if (fixtureState) {
+    <>
+      <AgentSessionExperience
+        state={state}
+        onNativeSession={(selectedNativeSession) => {
+          window.localStorage.removeItem(SESSION_POINTER_KEY);
           setState((current) => ({
             ...current,
-            avatarConsent: decision,
+            selectedNativeSession,
+            worldSession: null,
+            messages: [],
+            toolStatuses: [],
+            avatarProposal: null,
+            avatarConsent: "pending",
+            continuityLabel: "Unavailable",
             lastResult:
-              decision === "accepted"
-                ? "Bounded avatar proposal accepted."
-                : "Avatar proposal declined; neutral profile retained.",
+              "Existing session selected; connect to attest its binding.",
           }));
-          return;
-        }
-        if (!state.worldSession || !state.avatarProposal) return;
-        setState((current) => ({ ...current, busy: true }));
-        void client
-          .avatarConsent(
-            state.worldSession.sessionId,
-            decision,
-            state.avatarProposal,
+        }}
+        onMode={(mode) => {
+          if (
+            mode === "collaborate" &&
+            !window.confirm(
+              "Collaborate is more permissive than Explore. Continue with native Hermes approval policy?",
+            )
           )
-          .then(() =>
+            return;
+          window.localStorage.removeItem(SESSION_POINTER_KEY);
+          setState((current) => ({
+            ...current,
+            mode,
+            worldSession: null,
+            continuityLabel: "Unavailable",
+            lastResult: `${mode === "explore" ? "Explore" : "Collaborate"} selected; reconnect to bind permission revision.`,
+          }));
+        }}
+        onConnect={connect}
+        onSend={send}
+        onAvatarEdit={(displayName) =>
+          setState((current) => ({
+            ...current,
+            avatarProposal: current.avatarProposal
+              ? { ...current.avatarProposal, displayName }
+              : null,
+            avatarConsent: "pending",
+            lastResult: "Bounded avatar proposal edit is awaiting consent.",
+          }))
+        }
+        onAvatarDecision={(decision) => {
+          if (fixtureState) {
             setState((current) => ({
               ...current,
-              busy: false,
               avatarConsent: decision,
               lastResult:
                 decision === "accepted"
-                  ? "Bounded avatar proposal and edits accepted."
+                  ? "Bounded avatar proposal accepted."
                   : "Avatar proposal declined; neutral profile retained.",
-            })),
-          )
-          .catch((error: unknown) =>
+            }));
+            return;
+          }
+          if (!state.worldSession || !state.avatarProposal) return;
+          setState((current) => ({ ...current, busy: true }));
+          void client
+            .avatarConsent(
+              state.worldSession.sessionId,
+              decision,
+              state.avatarProposal,
+            )
+            .then(() =>
+              setState((current) => ({
+                ...current,
+                busy: false,
+                avatarConsent: decision,
+                lastResult:
+                  decision === "accepted"
+                    ? "Bounded avatar proposal and edits accepted."
+                    : "Avatar proposal declined; neutral profile retained.",
+              })),
+            )
+            .catch((error: unknown) =>
+              setState((current) => ({
+                ...current,
+                busy: false,
+                lastResult:
+                  error instanceof Error
+                    ? error.message
+                    : "Avatar consent failed.",
+              })),
+            );
+        }}
+        onAvatarRevoke={() => {
+          if (fixtureState) {
             setState((current) => ({
               ...current,
-              busy: false,
-              lastResult:
-                error instanceof Error
-                  ? error.message
-                  : "Avatar consent failed.",
-            })),
-          );
-      }}
-      onAvatarRevoke={() => {
-        if (fixtureState) {
-          setState((current) => ({
-            ...current,
-            avatarConsent: "revoked",
-            lastResult:
-              "Agent avatar consent revoked; previous remains recoverable.",
-          }));
-          return;
-        }
-        if (!state.worldSession) return;
-        setState((current) => ({ ...current, busy: true }));
-        void client
-          .revokeAvatarConsent(state.worldSession.sessionId)
-          .then(() =>
-            setState((current) => ({
-              ...current,
-              busy: false,
               avatarConsent: "revoked",
               lastResult:
                 "Agent avatar consent revoked; previous remains recoverable.",
-            })),
-          )
-          .catch((error: unknown) =>
-            setState((current) => ({
-              ...current,
-              busy: false,
-              lastResult:
-                error instanceof Error
-                  ? error.message
-                  : "Avatar revoke failed.",
-            })),
-          );
-      }}
-    />
+            }));
+            return;
+          }
+          if (!state.worldSession) return;
+          setState((current) => ({ ...current, busy: true }));
+          void client
+            .revokeAvatarConsent(state.worldSession.sessionId)
+            .then(() =>
+              setState((current) => ({
+                ...current,
+                busy: false,
+                avatarConsent: "revoked",
+                lastResult:
+                  "Agent avatar consent revoked; previous remains recoverable.",
+              })),
+            )
+            .catch((error: unknown) =>
+              setState((current) => ({
+                ...current,
+                busy: false,
+                lastResult:
+                  error instanceof Error
+                    ? error.message
+                    : "Avatar revoke failed.",
+              })),
+            );
+        }}
+      />
+      {state.worldSession && voiceEnabled ? (
+        <Suspense fallback={<p>Loading the bounded voice controls…</p>}>
+          <VoiceJourneyPanel
+            session={state.worldSession}
+            proposal={
+              state.avatarProposal
+                ? {
+                    voiceId: "system.voice.en-US-neutral-1",
+                    label: `${state.avatarProposal.displayName} · browser/system neutral voice`,
+                    sourceDisclosure: `Explicit bounded self-description proposal only. ${state.avatarProposal.sourceDisclosure}`,
+                  }
+                : null
+            }
+            onCanonicalTurn={(operatorText, assistantText) =>
+              setState((current) => ({
+                ...current,
+                messages: [
+                  ...current.messages,
+                  { role: "user", text: operatorText },
+                  { role: "assistant", text: assistantText },
+                ],
+                lastResult:
+                  "Voice-accepted text and canonical reply received through the exact session gateway.",
+              }))
+            }
+          />
+        </Suspense>
+      ) : null}
+    </>
   );
 }

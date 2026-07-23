@@ -1,12 +1,12 @@
 # Phase 15 — Frozen Decision Scope
 
-**Status:** SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PIN APPROVED / ARTIFACT GATE PASS PENDING USER ACCEPTANCE / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED
+**Status:** IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED
 
 **Prepared:** 2026-07-22
 
 **Planning baseline:** clean private `main` at `bbc2ea32cc40bac609ad20d0c8e85b9870888589` before this planning/provenance-only update. The preceding CI maintenance at `dba11b88f92d90df718d2068d98110d35201d296` remains green under exact-SHA GitHub Actions run `29966798446`, job `89079968383`, with zero annotations.
 
-**Authority:** The user approved and froze Decision classes 1–10 as written, approved the exact STT runtime/model pin, and separately authorized the completed bounded artifact verification and benchmark on 2026-07-22. Those approvals are not Phase 15 implementation authority. The verified provider remains unactivated outside the repository. No Phase 15 product implementation, dependency or configuration change, microphone integration, release, publication, deployment, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 16+ work, or other consequential action is authorized until the user accepts the artifact result and separately authorizes implementation.
+**Authority:** On 2026-07-22 the user accepted the artifact result and explicitly authorized exactly one bounded Phase 15 implementation under frozen Decisions 1–10. The implementation candidate and independent parent proof are green for every host-exposed deterministic, exact-provider, browser, visual, recovery, performance, and cleanup path recorded in `PHASE_15_REPORT.md`. This host exposes no usable physical microphone, so the frozen user-accepted physical-microphone journey remains pending and Phase 15 is not yet sealed complete. The verified provider remains staged and unactivated outside the repository; tests and live proof may point explicitly at that staging tree only after exact re-attestation. Phase completion, provider promotion or activation, release, publication, deployment, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 16+ work, and every other non-goal remain closed pending their separate parent/user gates.
 
 ## Inherited baseline and authority boundary
 
@@ -53,7 +53,7 @@ The implementation freeze must pin the accepted browser capture formats and trut
 
 Before implementation, separately pin and approve the exact local runtime, model, version, license, files, hashes, and download policy. If the runtime or model is unavailable or mismatched, report the capability as unavailable and keep text usable. Do not depend on browser or operating-system `SpeechRecognition` privacy assumptions.
 
-The approved exact runtime/model pin and provisioning policy are recorded in `docs/PHASE_15_STT_PROVIDER_PIN.md`. The bounded artifact download, safe inventory, exact hash verification, offline synthetic quality/performance benchmark, cleanup, and limitations are recorded in `docs/PHASE_15_STT_ARTIFACT_REPORT.md` and structured evidence under `artifacts/phase15/stt-provider/`. The artifact gate passes pending user acceptance; the provider remains unactivated and the result confers no product implementation authority.
+The approved exact runtime/model pin and provisioning policy are recorded in `docs/PHASE_15_STT_PROVIDER_PIN.md`. The bounded artifact download, safe inventory, exact hash verification, offline synthetic quality/performance benchmark, cleanup, and limitations are recorded in `docs/PHASE_15_STT_ARTIFACT_REPORT.md` and structured evidence under `artifacts/phase15/stt-provider/`. The user accepted that artifact result and authorized the bounded implementation candidate now verified in `PHASE_15_REPORT.md`. The provider remains staged and unactivated; the physical-microphone user-acceptance journey, promotion, and every later gate remain closed.
 
 ## 4. Transcript lifecycle and session binding
 
@@ -134,4 +134,4 @@ Explicitly exclude:
 
 ## Decision-freeze gate
 
-Phase 15 remains selected next but not started. Decisions 1–10 and the exact STT pin are approved. The bounded artifact gate passes with the provider unactivated and awaits user acceptance. No implementation may begin without a separate explicit authorization after that acceptance.
+Decisions 1–10 and the exact STT pin remain frozen. The artifact result was accepted and exactly one bounded implementation candidate is locally and independently verified. The provider remains staged and unactivated; the physical-microphone user-acceptance journey, phase completion, provider promotion/activation, and every non-goal remain closed.

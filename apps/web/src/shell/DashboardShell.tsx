@@ -92,6 +92,7 @@ export function DashboardShell({
       authority.ready.config.agentIntersectCommandsEnabled);
   const agentSessionsEnabled =
     fixtureValue === "phase12-session" ||
+    fixtureValue === "phase15-voice" ||
     fixtureValue === "phase12-api" ||
     (authority.status === "ready" &&
       authority.ready.config.agentSessionsEnabled);
@@ -329,8 +330,12 @@ export function DashboardShell({
             <div className="stacked-panels">
               <AgentSessionPanel
                 enabled={agentSessionsEnabled}
-                {...(fixtureValue === "phase12-session"
-                  ? { fixtureState: PHASE12_SESSION_FIXTURE }
+                {...(fixtureValue === "phase12-session" ||
+                fixtureValue === "phase15-voice"
+                  ? {
+                      fixtureState: PHASE12_SESSION_FIXTURE,
+                      voiceEnabled: fixtureValue === "phase15-voice",
+                    }
                   : fixtureValue === "phase12-offline"
                     ? { fixtureState: PHASE12_OFFLINE_SESSION_FIXTURE }
                     : {})}

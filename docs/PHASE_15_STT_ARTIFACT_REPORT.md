@@ -1,14 +1,14 @@
 # Phase 15 STT Artifact Verification Report
 
-**PASS FOR ARTIFACT PROVENANCE, OFFLINE SMOKE, SYNTHETIC QUALITY, AND PERFORMANCE / PENDING USER ACCEPTANCE / PROVIDER NOT ACTIVATED / PHASE 15 IMPLEMENTATION NOT AUTHORIZED**
+**PASS FOR ARTIFACT PROVENANCE, OFFLINE SMOKE, SYNTHETIC QUALITY, AND PERFORMANCE / RESULT ACCEPTED / IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
 
 **Verified:** 2026-07-22
 
 ## Authority and conclusion
 
-The user approved the immutable `whisper.cpp` v1.9.1 plus English `base.en` pin and authorized only bounded artifact download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, and this report. That bounded gate passes on the observed WSL2 host.
+The user approved the immutable `whisper.cpp` v1.9.1 plus English `base.en` pin and originally authorized only bounded artifact download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, and this report. That bounded gate passed on the observed WSL2 host. The user later accepted this result and explicitly authorized exactly one bounded Phase 15 implementation candidate, now verified in `PHASE_15_REPORT.md` except for the separately required physical-microphone user-acceptance journey.
 
-This report is not Phase 15 product acceptance. It does not authorize application code, dependency or configuration changes, microphone capture, provider activation, Hermes integration, TTS, release, publication, or deployment. The verified runtime and model remain under private `.staging` storage outside the repository with activation blocked.
+This historical artifact report is not Phase 15 completion or provider activation authority. The bounded implementation authorization permits only the frozen Phase 15 slice; physical-microphone user acceptance, release, publication, deployment, provider promotion/activation, Phase 16+, original-AgentIntersect operations, and Hermes-profile changes remain closed. The verified runtime and model remain under private `.staging` storage outside the repository.
 
 Authoritative sanitized evidence is retained under `artifacts/phase15/stt-provider/`. No runtime binary, model, WAV, raw provider payload, credential, or absolute home path is committed.
 
@@ -128,6 +128,6 @@ The retained private staging summary remains byte-exact at SHA-256 `ae207d3068e6
 
 This gate used deterministic synthetic installed voices. It does not replace first-hand microphone/operator acceptance. Three runs are insufficient for percentile claims. The 30-second fixture is one spoken phrase padded with silence, not 30 seconds of continuous speech.
 
-The following remain unimplemented and untested: browser microphone capture and permission states, partial captions, final edit/send/cancel, exact-session re-attestation, TTS, barge-in, accessibility/mobile/no-WebGL operation, persistence/recovery, and complete first-hand push-to-talk acceptance.
+Browser permission states, partial/final caption behavior, final edit/send/cancel, exact-session re-attestation, TTS, barge-in, accessibility/mobile/no-WebGL operation, and persistence/recovery belong to the later implementation report rather than this historical artifact report. Deterministic and exact-provider parent proof is green in `PHASE_15_REPORT.md`. This host exposes no usable physical microphone, so the distinct physical-microphone user-acceptance journey remains outstanding.
 
-The clean next gate is explicit user acceptance of this artifact result plus separate authorization for the bounded Phase 15 implementation. Until then, provider activation and all product implementation remain blocked.
+The artifact result was accepted and the bounded Phase 15 implementation candidate is verified. The next gate is one user-accepted physical-microphone journey; provider promotion/activation remains blocked.

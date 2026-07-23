@@ -28,6 +28,7 @@
     "@agentintersect-world/spatial-code-graph": "workspace:*",
     "@agentintersect-world/sync-yjs": "workspace:*",
     "@agentintersect-world/tool-protocol": "workspace:*",
+    "@agentintersect-world/voice": "workspace:*",
     "@agentintersect-world/world-event-protocol": "workspace:*",
     "@agentintersect-world/world-action-protocol": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",

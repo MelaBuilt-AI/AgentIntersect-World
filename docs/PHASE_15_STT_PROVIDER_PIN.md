@@ -1,10 +1,10 @@
 # Phase 15 STT Provider Pin
 
-**APPROVED 2026-07-22 / ARTIFACTS VERIFIED AND BENCHMARKED / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED**
+**APPROVED 2026-07-22 / ARTIFACT RESULT ACCEPTED / IMPLEMENTATION AUTHORIZED AND IN PROGRESS / PROVIDER UNACTIVATED**
 
 **Prepared and sources retrieved:** 2026-07-22
 
-This document records the exact approved provider-selection and provenance pin for the frozen Phase 15 Decision 3 boundary. The bounded artifact verification and benchmark are complete in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`. This pin is not Phase 15 product acceptance or authority to activate the provider, modify application code or dependencies, integrate microphone/session/TTS behavior, release, publish, or deploy.
+This document records the exact approved provider-selection and provenance pin for the frozen Phase 15 Decision 3 boundary. The bounded artifact verification and benchmark are complete in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`; the user accepted that result and explicitly authorized exactly one bounded Phase 15 implementation, now in progress. This pin is not Phase 15 completion or authority to promote/activate the provider, release, publish, deploy, or cross any later gate.
 
 ## Observed target environment
 
@@ -41,7 +41,7 @@ Use `ggml-org/whisper.cpp` v1.9.1 with the unquantized English `base.en` model f
 - **GitHub-provided asset digest:** `sha256:f3bf3b4369a99b54665b0f19b88483b30de27f25963b0414235dea03198515c5`
 - **Exact URL:** `https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.1/whisper-bin-ubuntu-x64.tar.gz`
 
-The release workflow at the pinned tag copies `LICENSE` into `build/bin` and archives the complete `build/bin` directory. The approved download was safely inventoried and every extracted/materialized file is recorded in `artifacts/phase15/stt-provider/runtime-inventory.json`; activation remains blocked pending user acceptance of the artifact result and separate implementation authorization.
+The release workflow at the pinned tag copies `LICENSE` into `build/bin` and archives the complete `build/bin` directory. The approved download was safely inventoried and every extracted/materialized file is recorded in `artifacts/phase15/stt-provider/runtime-inventory.json`; activation remains blocked even though the artifact result was accepted and the bounded implementation was authorized.
 
 Pinned source evidence:
 
@@ -66,7 +66,7 @@ Use the unquantized `base.en` model to keep the first quality baseline straightf
 
 ## Approved provisioning and download policy
 
-This policy authorized the completed bounded artifact verification only. It does not authorize future automatic downloads, provider activation, product implementation, release, publication, or deployment.
+This policy governed the completed bounded artifact verification. The later bounded implementation authorization does not authorize future automatic downloads, provider promotion/activation, release, publication, or deployment.
 
 - No automatic, implicit, browser-triggered, startup-triggered, CI-triggered, or runtime download.
 - No Hugging Face token or login, package manager, model-hub SDK, Git LFS clone, arbitrary URL, latest tag, mutable branch, redirect-derived revision, or silent fallback.
@@ -75,7 +75,7 @@ This policy authorized the completed bounded artifact verification only. It does
 - Require the runtime archive to be exactly `9,379,235` bytes and the model to be exactly `147,964,211` bytes before activation. Compute SHA-256 locally and require exact equality before extraction or use.
 - Before extracting the runtime archive, reject absolute paths, `..` traversal, hard links, devices, FIFOs, duplicate normalized paths, paths longer than 240 characters, more than 128 final regular files, more than 128 MiB of final expanded regular-file content, and unexpected root placement. Reject every symlink except the eight exact relative same-directory shared-library aliases recorded in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`; materialize those aliases as verified private regular-file copies and retain zero symlinks on disk.
 - Extract only into a new versioned directory. Never overlay an existing provider.
-- Inventory and hash every extracted or materialized regular file. The accepted extraction shape is 35 archive regular files plus eight materialized aliases, 43 final regular files, 27,751,742 bytes, zero symlinks, and inventory SHA-256 `cec21291ef72fc23ddfe92ad8bd8ea211eb2bc403356943eb50433b4f529b15d`. Keep activation blocked until the artifact result and later implementation are separately accepted.
+- Inventory and hash every extracted or materialized regular file. The accepted extraction shape is 35 archive regular files plus eight materialized aliases, 43 final regular files, 27,751,742 bytes, zero symlinks, and inventory SHA-256 `cec21291ef72fc23ddfe92ad8bd8ea211eb2bc403356943eb50433b4f529b15d`. Before every use, application attestation must re-hash and re-check the current path, size, mode, and content of every inventory member; trusting only the inventory-file digest is insufficient. Keep activation blocked until the artifact result and later implementation are separately accepted.
 - Use atomic rename only after every check passes and activation is separately authorized. On any failure, delete partial and staging material, report the capability as unavailable, and do not touch a previous accepted provider. The verified artifacts remain in `.staging`; no activation rename occurred.
 - Store a provenance manifest containing upstream URLs, immutable revisions, byte sizes, hashes, license hash, retrieval timestamp, and verification result. Store no credentials or raw audio.
 - Runtime operation must be offline, with no network fallback. Network egress must be unnecessary after provisioning.
@@ -98,7 +98,7 @@ This contract records the bounded execution shape proven by the artifact benchma
 
 1. **Provider pin:** approved on 2026-07-22.
 2. **Artifact gate:** bounded download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, cleanup, and report completed. Provider activation remains blocked.
-3. **Current gate:** explicit user acceptance of `docs/PHASE_15_STT_ARTIFACT_REPORT.md` plus separate authorization for the bounded Phase 15 implementation.
+3. **Current gate:** artifact result accepted and one bounded Phase 15 implementation authorized/in progress. Provider promotion/activation and parent closeout remain separate closed gates.
 
 ## Primary sources
 

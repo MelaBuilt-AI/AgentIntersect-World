@@ -1,0 +1,12 @@
+{
+  "schema": "aiw.phase15-browser-performance/1",
+  "profile": "mobile-two-cpu-reduced-motion-forced-colors-no-webgl",
+  "hardwareConcurrency": 2,
+  "captureResponseMs": 16,
+  "captureCeilingMs": 250,
+  "requestToSpeakingMs": 81,
+  "requestToSpeakingTargetMs": 1000,
+  "stopResponseMs": 45.400000005960464,
+  "stopCeilingMs": 100,
+  "verdict": true
+}

@@ -36,6 +36,8 @@ import {
   type WorldActionProposalResult,
 } from "./world-actions.js";
 import { Phase14Service } from "./phase14-service.js";
+import { WhisperCliProvider } from "@agentintersect-world/voice/node";
+import { VoiceService, VoiceStore } from "./voice-service.js";
 
 const config = (() => {
   try {
@@ -130,12 +132,32 @@ if (config !== undefined) {
       "operations.json",
     ),
   });
+  const voiceService = agentSessionGateway
+    ? new VoiceService({
+        provider: new WhisperCliProvider({
+          ...(process.env.AIW_PHASE15_STT_PROVIDER_ROOT
+            ? { providerRoot: process.env.AIW_PHASE15_STT_PROVIDER_ROOT }
+            : {}),
+          tempRoot: path.join(
+            config.presentationSync.dataDir,
+            "..",
+            "phase15",
+            "volatile-audio",
+          ),
+        }),
+        gateway: agentSessionGateway,
+        store: new VoiceStore(
+          path.join(config.presentationSync.dataDir, "..", "phase15"),
+        ),
+      })
+    : undefined;
   const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
     ...(evidenceService ? { evidenceService } : {}),
     phase14Service,
+    ...(voiceService ? { voiceService } : {}),
     ...(agentSessionGateway
       ? {
           agentSessionGateway,

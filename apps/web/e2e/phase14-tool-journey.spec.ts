@@ -8,6 +8,7 @@ import { format as formatArtifactJson } from "prettier";
 
 import fixtureManifest from "../../../examples/phase14-magic-slice/fixture.manifest.json" with { type: "json" };
 import { openPanel, seedConfiguredAvatar } from "./helpers.js";
+import { isAtOrBelowThreshold } from "./performance-metrics.js";
 
 test.use({ trace: "off" });
 
@@ -139,10 +140,10 @@ async function retainBrowserMetrics(
     evidence.profileVerification.matches &&
     raw.renderWorkMs.length === 120 &&
     raw.cadenceMs.length === 120 &&
-    evidence.calculated.renderWorkP95Ms <= 16.7 &&
-    evidence.calculated.cadenceP95Ms <= 16.8 &&
-    evidence.calculated.longestTaskMs <= 100 &&
-    evidence.calculated.incrementalHeapMiB <= 32;
+    isAtOrBelowThreshold(evidence.calculated.renderWorkP95Ms, 16.7) &&
+    isAtOrBelowThreshold(evidence.calculated.cadenceP95Ms, 16.8) &&
+    isAtOrBelowThreshold(evidence.calculated.longestTaskMs, 100) &&
+    isAtOrBelowThreshold(evidence.calculated.incrementalHeapMiB, 32);
   await fs.mkdir(artifactDirectory, { recursive: true });
   const retainedEvidence = { ...evidence, verdict };
   await fs.writeFile(

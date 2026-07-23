@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PIN APPROVED / ARTIFACT GATE PASS PENDING USER ACCEPTANCE / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED**. The provider planning marker is clean private `main` at `7e18c35bac712d8260af6c74df07ae655e7af852`; exact-SHA run `29968732061`, job `89085796768`, succeeded with zero annotations. The bounded artifact gate verified immutable runtime/model hashes, safe inventory, offline synthetic quality/performance, and cleanup; artifacts remain under private `.staging` storage. No Phase 15 product code, dependency/configuration change, provider listener, microphone or Hermes integration, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, or Phase 16+ work occurred.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**. The bounded artifact gate and implementation report verify immutable runtime/model hashes, safe inventory, exact-provider execution, deterministic browser/media behavior, canonical authority, accessibility, performance, recovery, and cleanup. This host exposes no usable physical microphone, so the frozen user-accepted physical-microphone journey remains pending and Phase 15 is not sealed complete. Artifacts remain under private `.staging` storage. Provider promotion/activation, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, and Phase 16+ remain closed.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2806,7 +2806,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 15 — Voice, expressive presence, and consentful agent identity
 
-**Selection status:** SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PIN APPROVED / ARTIFACT GATE PASS PENDING USER ACCEPTANCE / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED. The user approved the ten decision classes and the exact immutable runtime/model/download pin in `docs/PHASE_15_SCOPE.md` and `docs/PHASE_15_STT_PROVIDER_PIN.md`. The separately authorized artifact gate passed with exact evidence in `docs/PHASE_15_STT_ARTIFACT_REPORT.md` and `artifacts/phase15/stt-provider/`; the verified artifacts remain unactivated outside the repository. Artifact success does not authorize Phase 15 implementation.
+**Selection status:** IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED. The user approved and froze the ten decision classes and exact immutable runtime/model/download pin in `docs/PHASE_15_SCOPE.md` and `docs/PHASE_15_STT_PROVIDER_PIN.md`, accepted the separately verified artifact result, and explicitly authorized exactly one bounded Phase 15 implementation. `PHASE_15_REPORT.md` records the completed candidate, independent parent corrections, exact-provider/browser/performance/cleanup proof, and the honest host microphone limitation. The verified artifacts remain staged and unactivated outside the repository; physical-microphone user acceptance, phase completion, provider promotion or activation, release, Phase 16+, original-AgentIntersect operations, and Hermes-profile changes remain closed parent/user gates.
 
 **Objective:** Add natural voice conversation and richer expressive presence without changing authority, leaking identity, or pretending presentation equals emotion.
 
@@ -2826,7 +2826,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Voice is optional, consentful, interruptible, captioned, and routes through the same persistent session and authority as text; external provider exposure is explicit; no voice/persona data enters presentation sync beyond approved fields; activity expression remains truthful and color-independent.
 
-**Exit gate:** User approves one complete push-to-talk conversation and provider/privacy disclosure. Phase 16 requires separate authorization.
+**Exit gate:** Pending only one user-approved physical-microphone push-to-talk conversation and provider/privacy disclosure on a host that exposes a browser capture endpoint. Deterministic fixture, exact-provider, canonical-send, TTS/barge-in, recovery, accessibility, performance, cleanup, and fresh-copy implementation proof are green in `PHASE_15_REPORT.md`, but do not substitute for that physical-microphone acceptance. Phase 16 requires separate authorization.
 
 **Risks:** Latency can make presence feel worse and providers may retain data. Prefer push-to-talk/local STT, display latency/provider truth, keep text canonical, and never block the core product on voice.
 
@@ -3112,7 +3112,7 @@ The re-baseline establishes direction but intentionally leaves implementation ch
 3. Which Hermes profile/session should be the first acceptance identity, and may its `SOUL.md` produce a local bounded avatar proposal?
 4. Should Collaborate mode use the agent’s normal approval settings unchanged, or may World add a stricter per-session cap?
 5. What exact capability envelope may Autonomous mode eventually receive: paths, tools, process count, duration, token/cost, network, and preview?
-6. **Phase 15 decision resolved 2026-07-22:** the initial STT baseline is local/loopback-only; the exact `whisper.cpp` runtime and `base.en` model pin is approved, and its bounded artifact gate passes pending user acceptance with the provider unactivated and implementation separately blocked.
+6. **Phase 15 decision resolved 2026-07-22:** the initial STT baseline is local/loopback-only; the exact `whisper.cpp` runtime and `base.en` model pin is approved, the bounded artifact result was accepted, and one frozen-scope implementation is authorized/in progress with the provider unactivated.
 7. **Phase 15 decision resolved 2026-07-22:** optional browser/system `speechSynthesis` is the initial TTS baseline, capability-detected and truthfully disclosed; voice/avatar mapping remains previewable, consentful, changeable, and revocable.
 8. What pointer-lock/WASD bindings and camera comfort defaults should be the reference controls?
 9. Which repository fixture and bounded feature best demonstrate the first magic slice without depending on unrelated private work?
@@ -3126,7 +3126,7 @@ The re-baseline establishes direction but intentionally leaves implementation ch
 17. When should a temporary agent annotation become durable: explicit user pin only, or agent request plus user confirmation?
 18. Should Guided Build import/select design documents entirely through World in revised Phase 12, or initially expose only the current AgentIntersect-managed plan and add authoring later?
 
-Resolved decisions: the repository remains private; completed Phases 0–11 remain accepted; free-form collaboration is primary; Guided Build remains; one Hermes text magic slice precedes voice/multi-agent; raw persona/memory/chain-of-thought is not shared; and Phase 15 Decisions 1–10 are approved and frozen as written on 2026-07-22. The exact STT provider pin, Phase 15 implementation, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, and Phase 16+ work retain their separate approval gates.
+Resolved decisions: the repository remains private; completed Phases 0–11 remain accepted; free-form collaboration is primary; Guided Build remains; one Hermes text magic slice precedes voice/multi-agent; raw persona/memory/chain-of-thought is not shared; and Phase 15 Decisions 1–10 are approved and frozen as written on 2026-07-22. The exact STT provider pin and artifact result are approved/accepted, and exactly one bounded Phase 15 implementation is authorized/in progress. Provider promotion/activation, phase completion, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, and Phase 16+ work retain separate closed gates.
 
 ## Definition of done for the re-baselined private-alpha candidate
 
@@ -3162,16 +3162,7 @@ None may bypass the core authority invariants. In particular, unrelated-user exe
 
 ## Current stop condition and next approval gates
 
-**Stop condition now:** Phase 15 Decisions 1–10 are approved and frozen, but Phase 15 remains not started and implementation is not authorized. The exact STT provider/model/download proposal in `docs/PHASE_15_STT_PROVIDER_PIN.md` remains pending user approval. Do not download, extract, install, start, benchmark, or implement the proposed provider/model; change dependencies or configuration; modify Hermes core/profile or the original AgentIntersect repository; begin Phase 16+; release; publish; deploy; expose public ingress; or change visibility.
-
-If the user approves the exact provider proposal, the next bounded session is limited to:
-
-1. download only the two immutable artifacts named there into restrictive staging outside the repository;
-2. enforce exact sizes and hashes, safely inventory the archive, and keep activation blocked pending acceptance;
-3. run an offline smoke, quality, and performance benchmark within the approved ceilings; and
-4. report the evidence without implementing Phase 15 product code.
-
-Phase 15 implementation remains a later, separate explicit authorization after the artifacts and benchmark are accepted.
+**Stop condition now:** Phase 15 Decisions 1–10, the exact provider pin, the artifact result, and exactly one bounded implementation candidate are authorized and independently verified; the provider remains staged/unactivated. This host exposes no usable physical microphone, so do not mark the phase complete until the user accepts one physical-microphone journey and its disclosure. Do not promote or activate the provider, modify Hermes core/profile or the original AgentIntersect repository, retry the deferred Phase 13 continuity gate, begin Phase 16+, release, publish, deploy, expose public ingress, or change visibility.
 
 ## Source references and AgentIntersect anchors
 

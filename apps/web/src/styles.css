@@ -19,6 +19,137 @@
   --disabled: #4b5563;
 }
 
+.voice-journey {
+  display: grid;
+  gap: 1rem;
+  margin-block: 1rem;
+  padding: clamp(0.8rem, 2vw, 1.4rem);
+  border: 1px solid color-mix(in srgb, var(--accent, #2979ff) 45%, transparent);
+  background: color-mix(in srgb, #07111f 94%, transparent);
+}
+
+.voice-journey header,
+.voice-step__item,
+.voice-consent,
+.voice-disclosure div {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.voice-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.voice-step__item {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+}
+
+.voice-step__item h4,
+.voice-step__item p,
+.voice-step__item dl {
+  margin: 0;
+}
+
+.voice-disclosure {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.voice-disclosure div {
+  grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
+}
+
+.voice-disclosure dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.voice-primary {
+  min-height: 2.75rem;
+  touch-action: manipulation;
+}
+
+.voice-primary--enabled {
+  border-color: #83b8ff;
+  background: #1769cf;
+  color: #fff;
+  cursor: pointer;
+}
+
+.voice-primary--disabled,
+.voice-primary:disabled {
+  border-color: #777;
+  background: #4b5058;
+  color: #dedede;
+  cursor: not-allowed;
+}
+
+.voice-step__item textarea {
+  width: 100%;
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.voice-results {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.7rem;
+  border-inline-start: 0.25rem solid #4a9dff;
+}
+
+@media (max-width: 720px) {
+  .voice-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .voice-disclosure div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-journey *,
+  .voice-journey *::before,
+  .voice-journey *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .voice-journey,
+  .voice-step__item,
+  .voice-primary,
+  .voice-results {
+    border-color: CanvasText;
+    forced-color-adjust: auto;
+  }
+
+  .voice-primary--enabled {
+    forced-color-adjust: none;
+    border-color: #83b8ff;
+    background: #1769cf;
+    color: #fff;
+  }
+
+  .voice-primary--disabled,
+  .voice-primary:disabled {
+    forced-color-adjust: none;
+    border-color: #777;
+    background: #4b5058;
+    color: #dedede;
+  }
+}
+
 .world-actions {
   margin-top: 1rem;
   padding: clamp(0.85rem, 2vw, 1.4rem);

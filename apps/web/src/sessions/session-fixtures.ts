@@ -6,6 +6,7 @@ const fixtureSession: WorldAgentSession = {
   sessionId: "11111111-1111-4111-8111-111111111111",
   adapterId: "hermes",
   adapterSessionRef: "20260721_011618_330489c8",
+  adapterRootSessionRef: "phase15-root-session",
   profile: "default",
   workspaceId: "ws_fixture",
   repositoryRef: "repo_fixture",
