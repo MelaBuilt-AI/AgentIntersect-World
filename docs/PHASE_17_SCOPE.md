@@ -1,11 +1,20 @@
 # Phase 17 Scope Freeze
 
-Status: **USER-AUTHORIZED BOUNDED IMPLEMENTATION SHAPE**
+Status: **USER-AUTHORIZED BOUNDED IMPLEMENTATION SHAPE / USER ACCEPTED / SEALED / COMPLETE**
 
 This document is the mandatory first repository edit for Phase 17. It freezes the
 authorized implementation shape below. Phase 18 remains unauthorized and has not
 started. If repository evidence materially contradicts any decision here,
 implementation must stop without reinterpreting the decision.
+
+Acceptance closeout: the technical implementation/evidence tree at
+`bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA
+`phase-1-checks` run `30019778458`, job `89249166240`. After that proof, the
+user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is
+accepted, sealed, and complete. Phase 15 remains unsealed solely for its
+physical-microphone journey with the local STT provider staged/unactivated;
+Phase 13 Discord → World continuity remains FAIL/deferred under waiver; and
+Phase 18 remains separately unauthorized and not started.
 
 ## 1. One bounded vertical slice
 
@@ -147,9 +156,10 @@ production APIs/state, not a mock-only dashboard. It includes:
 - Update `PROJECT_STATUS.md`, `AgentIntersect_WorldDD.md`, and
   `PHASE_17_REPORT.md` only from measured evidence after implementation checks
   are green.
-- Worker wording remains **IMPLEMENTATION CANDIDATE / PARENT VERIFICATION
-  PENDING**. Do not claim final user acceptance, remote push, exact-SHA CI, or a
-  Phase 17 seal.
+- During the worker stage, wording remained **IMPLEMENTATION CANDIDATE / PARENT
+  VERIFICATION PENDING** and no worker could claim user acceptance, remote push,
+  exact-SHA CI, or a Phase 17 seal. Those gates were later satisfied by parent
+  verification, private push, exact-SHA CI, and the user's explicit acceptance.
 - Preserve Phase 15 pending/unactivated, the Phase 13 waiver, and Phase 16
   sealed completion.
 - Phase 18 remains unauthorized and has not started.

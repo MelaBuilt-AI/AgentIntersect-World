@@ -1,6 +1,25 @@
 {
   "schema": "aiw.phase17-recovery-drill/0.17",
   "verdict": "PASS",
+  "acceptanceSeal": {
+    "status": "user-accepted-sealed-complete",
+    "authorizedDate": "2026-07-23",
+    "authorizedInNewSession": true,
+    "authorizationBasis": "after-technical-completion-and-exact-sha-ci-proof",
+    "technicalCompletionStatusRecordSha": "bdfb1c8ae58303e8afad41f6a2411fd8adfeef93",
+    "exactShaCi": {
+      "workflow": "phase-1-checks",
+      "runId": 30019778458,
+      "jobId": 89249166240,
+      "conclusion": "success"
+    },
+    "phase15": {
+      "status": "unsealed-physical-microphone-journey-pending",
+      "localSttProvider": "staged-unactivated"
+    },
+    "phase13DiscordWorldContinuity": "failed-deferred-under-waiver",
+    "phase18": "unauthorized-not-started"
+  },
   "checks": {
     "exactlyTwoWorktrees": true,
     "operationStarted": true,

@@ -4,14 +4,14 @@ Updated: 2026-07-23
 
 ## Current milestone
 
-**Phase 17 — TECHNICAL ACCEPTANCE PASS / USER ACCEPTANCE PENDING**
+**Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 
 **Inherited pending gate: Phase 15 — PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
 
 - Phase 17 is governed by the user-authorized bounded shape in `docs/PHASE_17_SCOPE.md`; its architecture and authority boundaries are recorded in `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`; independent parent evidence is recorded in `PHASE_17_REPORT.md` and `artifacts/phase17/recovery-drill.json`.
 - The corrected candidate adds strict `aiw.observability/0.17` contracts, exactly eight derived readiness rows, checksummed current/previous snapshots, a bounded append-only event ledger, corrupt-current preservation, exact retry receipts for apply/export/delete, proof-based export/delete integrity, production APIs, an equivalent thin local CLI, and a lazy accessible Diagnostics & Recovery shell surface.
 - The deterministic production-backed drill is PASS across all 17 checks: one exactly authorized World-owned operation is terminated before completion, then reload classifies it as orphaned/interrupted without fabricating success; current/previous/loss truth is exact; recovery preview is non-mutating; apply/export/delete replay only with their original bindings; both worktrees and repository hashes are unchanged; privacy canaries and absolute paths are absent; and cleanup leaves zero owned processes, listeners, temporary files, or exports.
-- The fresh privacy/recovery review found six blocker families; the one authorized correction pass added focused RED-to-GREEN regressions for export integrity, deletion absence proof, termination/apply authority, fixed-file target symlinks, and comprehensive path redaction. Independent parent verification is green: Phase 17 conformance **8 files / 27 tests**; direct recovery/privacy replay challenge PASS; `measure:phase17` production build **20/20**, drill **17/17**, and focused browser **1/1**; complete `pnpm check` with typecheck **38/38**, architecture **11/11**, Vitest **580/580**, build **20/20**, smoke, and Playwright **44/44**; and disposable `verify:fresh` PASS for **502** project source files. First-hand production visual QA found and corrected duplicate list markers through a focused RED-to-GREEN browser regression; the final numbered controls are readable, blue when enabled, grey/focusable when unavailable, and free of clipping or overflow. The implementation commit's exact-SHA CI is recorded externally in its GitHub status/final closeout; explicit user acceptance remains pending.
+- The fresh privacy/recovery review found six blocker families; the one authorized correction pass added focused RED-to-GREEN regressions for export integrity, deletion absence proof, termination/apply authority, fixed-file target symlinks, and comprehensive path redaction. Independent parent verification is green: Phase 17 conformance **8 files / 27 tests**; direct recovery/privacy replay challenge PASS; `measure:phase17` production build **20/20**, drill **17/17**, and focused browser **1/1**; complete `pnpm check` with typecheck **38/38**, architecture **11/11**, Vitest **580/580**, build **20/20**, smoke, and Playwright **44/44**; and disposable `verify:fresh` PASS for **502** project source files. First-hand production visual QA found and corrected duplicate list markers through a focused RED-to-GREEN browser regression; the final numbered controls are readable, blue when enabled, grey/focusable when unavailable, and free of clipping or overflow. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session. Phase 17 is accepted, sealed, and complete.
 - Phase 16 remains governed by `docs/PHASE_16_SCOPE.md`; the implementation contract is `docs/PHASE_16_IMPLEMENTATION_CONTRACT.md`; deterministic, parent, live, recovery, browser, and manual-integration evidence is recorded in `PHASE_16_REPORT.md` and `artifacts/phase16/final-live-proof.json`. Phase 15 remains governed by `docs/PHASE_15_SCOPE.md` and `PHASE_15_REPORT.md`.
 - The corrected Phase 16 implementation provides strict `aiw.coordination/0.16` contracts, a byte-bounded sanitized presentation projection, checksummed current/previous recovery, serialized authority and Git reconciliation, explicit production repository/worktree roots, exact two-agent ceilings, a lazy semantic Agents panel with monotonic polling, and a real disposable-Git fixture. It never auto-merges or auto-deletes.
 - Independent parent verification is green: Phase 16 conformance **9 files / 41 tests**, deterministic measurement PASS, complete `pnpm check` PASS, disposable `verify:fresh` PASS, and separate conformance passes from both final agent branches.
@@ -24,7 +24,7 @@ Updated: 2026-07-23
 - Exact staged-provider proof matched the expected transcript in `662.074746 ms` at `299,655,168` bytes peak RSS, with exact runtime/model/inventory-file hashes plus every current runtime member's path/hash/size/mode, 53 regular files / 185,119,961 bytes / zero symlinks, and zero residual process, listener, temp root, source WAV, or raw-audio file. A disposable copied-tree shared-library mutation now fails unavailable. The provider remains staged and unactivated outside the repository.
 - First-hand production-built browser/visual proof is green for deterministic capture, in-flight cancel/discard, edit/send/canonical reply, TTS/revocation/stop, genuinely pinned mobile/two-CPU/reduced-motion/forced-colors/no-WebGL operation, zero serious/critical axe violations, and zero visual clipping/overflow. Supplemental Node control microbenchmarks are explicitly non-acceptance evidence rather than mislabeled microphone/STT/TTS timings; none of this is mislabeled as physical-microphone proof.
 - This Windows host exposes only an HDMI output endpoint and no microphone endpoint. WSLg `RDPSource` delivered no samples and blocked; the exact owned probe process pair was terminated/awaited and no WAV remains. One physical-microphone journey and explicit user acceptance therefore remain the sole frozen exit gate; Phase 15 is not sealed complete.
-- On 2026-07-23 the user explicitly chose to leave the clean pushed Phase 15 candidate in that state and carry the physical-microphone journey as a pending TODO. The user then authorized and accepted bounded Phase 16, and separately authorized the bounded Phase 17 recovery slice now at technical acceptance with explicit user acceptance pending. Phase 15 remains unsealed solely for the physical-microphone journey, and its local STT provider remains staged/unactivated.
+- On 2026-07-23 the user explicitly chose to leave the clean pushed Phase 15 candidate in that state and carry the physical-microphone journey as a pending TODO. The user then authorized and accepted bounded Phase 16, separately authorized the bounded Phase 17 recovery slice, and explicitly accepted Phase 17 after technical completion and exact-SHA CI proof. Phase 17 is sealed and complete. Phase 15 remains unsealed solely for the physical-microphone journey, and its local STT provider remains staged/unactivated.
 - Phase 14 remains complete and sealed with all existing evidence below. The Phase 13 Discord → World continuity path remains FAIL/deferred under waiver, was not retried, and is excluded from Phase 15.
 
 ## Accepted Phase 14 baseline
@@ -182,17 +182,16 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Closeout status
 
-**Phase 17 — TECHNICAL ACCEPTANCE PASS / USER ACCEPTANCE PENDING**
+**Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 
-The bounded corrected Phase 17 slice has passed independent parent inspection,
+The bounded corrected Phase 17 slice passed independent parent inspection,
 direct recovery/privacy challenges, conformance, deterministic recovery
 measurement, first-hand production browser/visual proof, complete repository
-checks, and disposable fresh-copy verification. The required fresh review was
-completed and its blockers received the one authorized correction pass. The
-implementation commit's private exact-SHA CI is an external GitHub status/final
-closeout record because the tracked report cannot self-reference its own future
-commit. Explicit user acceptance remains the final seal gate. Phase 16 remains
-accepted, sealed, and complete.
+checks, disposable fresh-copy verification, private push, and exact-SHA CI at
+`bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` under run `30019778458`, job
+`89249166240`. After that proof, the user explicitly accepted Phase 17 in the
+new session. Phase 17 is accepted, sealed, and complete. Phase 16 remains
+accepted, sealed, and complete; Phase 18 remains unauthorized and not started.
 
 `docs/PHASE_15_SCOPE.md` also remains frozen. The bounded Phase 15 candidate and independent parent proof are green in `PHASE_15_REPORT.md`, but this host exposes no usable microphone input and the physical-microphone acceptance remains pending.
 
@@ -200,7 +199,7 @@ Phase 14 remains sealed and accepted: the user froze and explicitly authorized i
 
 The Phase 13 exact-root Discord → World continuation remains FAIL/deferred as a separate backlog item and was not retried. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
 
-Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 18+, and every action outside the remaining Phase 15 gate and frozen Phase 17 slice remain prohibited without their required separate authorization.
+Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 18+, and every action outside the remaining Phase 15 gate remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 

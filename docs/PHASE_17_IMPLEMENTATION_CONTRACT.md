@@ -1,6 +1,6 @@
 # Phase 17 Implementation Contract
 
-Status: **PARENT/FRESH VERIFIED / USER ACCEPTANCE PENDING**
+Status: **USER ACCEPTED / SEALED / COMPLETE**
 
 This contract implements only the user-authorized Phase 17 recovery slice
 frozen in `docs/PHASE_17_SCOPE.md`. Phase 18 is unauthorized and not started.
@@ -73,9 +73,13 @@ frozen in `docs/PHASE_17_SCOPE.md`. Phase 18 is unauthorized and not started.
 
 ## Closeout boundary
 
-Independent parent verification and disposable fresh-copy proof are green.
-The implementation commit's exact-SHA CI is an external GitHub status/final
-closeout record because a tracked file cannot self-reference its own future
-commit. Explicit user acceptance remains the final seal gate. No tag, release,
-publication, deployment, visibility change, provider activation,
-profile/sibling-repository change, or Phase 18 work is authorized here.
+Independent parent verification and disposable fresh-copy proof are green. The
+technical implementation/evidence tree at
+`bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA
+`phase-1-checks` run `30019778458`, job `89249166240`. After that proof, the
+user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is
+accepted, sealed, and complete. The future status-only seal commit and its CI
+remain external records because a tracked file cannot self-reference its own
+future commit. No tag, release, publication, deployment, visibility change,
+provider activation, profile/sibling-repository change, or Phase 18 work is
+authorized here.

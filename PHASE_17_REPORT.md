@@ -2,19 +2,21 @@
 
 Date: 2026-07-23
 
-Status: **PARENT/FRESH VERIFIED / USER ACCEPTANCE PENDING**
+Status: **USER ACCEPTED / SEALED / COMPLETE**
 
-Verdict: **TECHNICAL ACCEPTANCE PASS**
+Verdict: **ACCEPTANCE PASS**
 
 Phase 17 delivers the user-authorized bounded observability, diagnostics, and
 deterministic-recovery slice frozen in `docs/PHASE_17_SCOPE.md`. Parent review,
 focused correction, direct runtime challenges, full repository verification,
 production browser proof, and disposable fresh-copy verification are complete.
 
-This tracked report intentionally cannot self-reference the commit SHA or CI run
-that contains it. The private exact-SHA GitHub Actions result is an external
-closeout record attached to that commit and reported in the vault/final response.
-Explicit user acceptance remains the final seal gate.
+The technical implementation/evidence tree at
+`bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA
+`phase-1-checks` run `30019778458`, job `89249166240`. After that proof, the
+user explicitly accepted Phase 17 in the new session on 2026-07-23. This tracked
+report cannot self-reference the future status-only seal commit or its CI run;
+those remain external GitHub/vault closeout records.
 
 ## Delivered slice
 
@@ -161,9 +163,18 @@ fresh-copy rerun.
   provider activation, Hermes core/profile change, original-AgentIntersect
   operation, or tester distribution occurred.
 
-## Closeout state
+## User acceptance and seal
 
-All local, privacy, runtime, browser, cleanup, and fresh-copy technical gates are
-green. The private implementation commit's exact-SHA GitHub Actions result is
-recorded externally because a commit cannot contain its own future SHA/status.
-Explicit user acceptance is the remaining seal gate.
+All local, privacy, runtime, browser, cleanup, fresh-copy, private-push, and
+exact-SHA technical gates were green before the acceptance decision. The user
+then said, “Nice job fluff! Bring it home! Accepted.” Phase 17 is user accepted,
+sealed, and complete.
+
+This status-only closeout changes no implementation, recovery behavior,
+verification evidence, privacy boundary, or artifact measurement. Phase 15
+remains unsealed solely for its physical-microphone journey with the local STT
+provider staged/unactivated; Phase 13 Discord → World continuity remains
+FAIL/deferred under waiver; and Phase 18 remains separately unauthorized and
+not started. No tag, release, publication, deployment, public ingress,
+visibility change, provider activation, Hermes core/profile change, or
+original-AgentIntersect operation is authorized by this seal.
