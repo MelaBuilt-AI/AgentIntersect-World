@@ -143,4 +143,4 @@ No runtime/model binary, raw WAV/audio, raw provider payload, credential, absolu
 
 Private commit/push and exact-SHA CI may verify this implementation candidate before that user acceptance, but they do not substitute for it or authorize provider activation.
 
-On 2026-07-23 the user chose to leave this clean pushed candidate unsealed with the physical-microphone journey retained as a pending TODO and selected Phase 16 next. Phase 16 remains not authorized and not started; this sequencing decision is not a microphone-acceptance waiver or Phase 15 seal.
+On 2026-07-23 the user chose to leave this clean pushed candidate unsealed with the physical-microphone journey retained as a pending TODO. The user subsequently approved/froze `docs/PHASE_16_SCOPE.md` and authorized its bounded implementation to start in a new session. No Phase 16 work began during this status transition; this sequencing decision is not a microphone-acceptance waiver or Phase 15 seal, and provider activation remains separately gated.
