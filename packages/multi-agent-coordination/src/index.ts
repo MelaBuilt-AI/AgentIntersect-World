@@ -67,6 +67,14 @@ function utf8ByteLength(value: string): number {
   return bytes;
 }
 
+const boundedUtf8Text = (bytes: number) =>
+  z
+    .string()
+    .refine(
+      (value) => utf8ByteLength(value) <= bytes,
+      `Expected at most ${bytes} UTF-8 bytes`,
+    );
+
 export const AgentIdSchema = agentId;
 export type AgentId = z.infer<typeof AgentIdSchema>;
 
@@ -139,7 +147,7 @@ export const AgentMessageSchema = z.strictObject({
   recipientAgentId: agentId,
   nativeSessionId: identifier,
   taskId: identifier,
-  text: boundedText(COORDINATION_LIMITS.messageBytes),
+  text: boundedUtf8Text(COORDINATION_LIMITS.messageBytes),
   authority: z.literal("none"),
   contentKind: z.literal("inert-visible-record"),
   createdAt: timestamp,
@@ -156,7 +164,7 @@ export const HandoffSchema = z.strictObject({
   worktreeId: identifier,
   sourceBranch: boundedText(256),
   sourceHead: boundedText(64),
-  summary: boundedText(COORDINATION_LIMITS.evidenceBytes),
+  summary: boundedUtf8Text(COORDINATION_LIMITS.evidenceBytes),
   evidenceIds: z.array(identifier).max(32),
   createdAt: timestamp,
 });
@@ -197,7 +205,7 @@ export const TestEvidenceSchema = z.strictObject({
   head: boundedText(64),
   command: boundedText(1_024),
   exitCode: z.number().int().min(0).max(255),
-  summary: boundedText(COORDINATION_LIMITS.evidenceBytes),
+  summary: boundedUtf8Text(COORDINATION_LIMITS.evidenceBytes),
   digest,
   recordedAt: timestamp,
 });
@@ -225,7 +233,7 @@ export const MergeCandidateSchema = z.strictObject({
   targetBranch: boundedText(256),
   sourceHead: boundedText(64),
   targetHead: boundedText(64),
-  diff: boundedText(COORDINATION_LIMITS.candidateDiffBytes),
+  diff: boundedUtf8Text(COORDINATION_LIMITS.candidateDiffBytes),
   diffDigest: digest,
   changedPaths: z.array(relativePath).max(COORDINATION_LIMITS.gitPaths),
   testEvidenceIds: z.array(identifier).max(COORDINATION_LIMITS.tests),
@@ -526,6 +534,9 @@ const PresentationAgentSchema = z.strictObject({
   adapter: AgentBindingSchema.shape.adapter,
   model: boundedText(128),
   status: AgentBindingSchema.shape.status,
+  nativeSessionId: identifier,
+  toolStreamId: identifier,
+  evidenceStreamId: identifier,
   taskId: identifier.nullable(),
   worktreeId: identifier.nullable(),
 });
@@ -554,6 +565,16 @@ export const CoordinationPresentationSchema = z.strictObject({
       head: boundedText(64),
       commonRepositoryId: identifier,
       state: WorktreeSchema.shape.state,
+    }),
+  ),
+  interests: z.array(
+    z.strictObject({
+      interestId: identifier,
+      agentId,
+      taskId: identifier,
+      targetKind: z.enum(["file", "object"]),
+      target: boundedText(256),
+      state: InterestSchema.shape.state,
     }),
   ),
   contention: z.array(
@@ -605,6 +626,18 @@ export const CoordinationPresentationSchema = z.strictObject({
       digest,
     }),
   ),
+  cleanupPlans: z.array(
+    z.strictObject({
+      cleanupPlanId: identifier,
+      agentId,
+      worktreeId: identifier,
+      displayPath: relativePath,
+      branch: boundedText(256),
+      recommendation: CleanupPlanSchema.shape.recommendation,
+      reasons: z.array(boundedText(256)).max(8),
+      previewOnly: z.literal(true),
+    }),
+  ),
 });
 export type CoordinationPresentation = z.infer<
   typeof CoordinationPresentationSchema
@@ -643,6 +676,9 @@ export function projectCoordinationForPresentation(
         adapter: agent.adapter,
         model: safePresentationLabel(agent.model),
         status: agent.status,
+        nativeSessionId: agent.nativeSessionId,
+        toolStreamId: agent.toolStreamId,
+        evidenceStreamId: agent.evidenceStreamId,
         taskId: agent.assignedTaskId,
         worktreeId: agent.worktreeId,
       })) ?? [],
@@ -662,6 +698,15 @@ export function projectCoordinationForPresentation(
         head: worktree.head,
         commonRepositoryId: worktree.commonRepositoryId,
         state: worktree.state,
+      })) ?? [],
+    interests:
+      snapshot?.interests.map((interest) => ({
+        interestId: interest.interestId,
+        agentId: interest.agentId,
+        taskId: interest.taskId,
+        targetKind: interest.targetKind,
+        target: safePresentationLabel(interest.target),
+        state: interest.state,
       })) ?? [],
     contention:
       snapshot?.contentions.map((contention) => ({
@@ -706,6 +751,17 @@ export function projectCoordinationForPresentation(
         exitCode: test.exitCode,
         statusSummary: test.exitCode === 0 ? "Test passed" : "Test failed",
         digest: test.digest,
+      })) ?? [],
+    cleanupPlans:
+      snapshot?.cleanupPlans.map((plan) => ({
+        cleanupPlanId: plan.cleanupPlanId,
+        agentId: plan.agentId,
+        worktreeId: plan.worktreeId,
+        displayPath: plan.displayPath,
+        branch: safePresentationLabel(plan.branch),
+        recommendation: plan.recommendation,
+        reasons: plan.reasons.map(safePresentationLabel),
+        previewOnly: true,
       })) ?? [],
   });
 }
@@ -933,6 +989,9 @@ export function applyCoordinationAction(
       break;
     }
     case "agent.bind": {
+      const existing = snapshot.agents.find(
+        (value) => value.agentId === action.binding.agentId,
+      );
       const expected =
         action.binding.agentId === "mr-fluff"
           ? {
@@ -967,11 +1026,45 @@ export function applyCoordinationAction(
           "binding_mismatch",
           "Native session and stream bindings must be distinct",
         );
+      const sameIdentity =
+        !existing ||
+        (existing.adapter === action.binding.adapter &&
+          existing.displayName === action.binding.displayName &&
+          existing.avatarId === action.binding.avatarId &&
+          existing.nativeSessionId === action.binding.nativeSessionId &&
+          existing.toolStreamId === action.binding.toolStreamId &&
+          existing.evidenceStreamId === action.binding.evidenceStreamId);
+      const hasActiveReferences =
+        existing !== undefined &&
+        (existing.assignedTaskId !== null ||
+          existing.worktreeId !== null ||
+          snapshot.ownership.some(
+            (ownership) =>
+              ownership.agentId === existing.agentId &&
+              ownership.state === "active",
+          ) ||
+          snapshot.interests.some(
+            (interest) =>
+              interest.agentId === existing.agentId &&
+              interest.state === "active",
+          ) ||
+          snapshot.worktrees.some(
+            (worktree) => worktree.agentId === existing.agentId,
+          ));
+      if (hasActiveReferences && !sameIdentity)
+        throw new CoordinationProtocolError(
+          "binding_mismatch",
+          "An active agent identity or native-session binding cannot be rebound",
+        );
       next = {
         ...next,
         agents: upsertBy(
           snapshot.agents,
-          { ...action.binding, assignedTaskId: null, worktreeId: null },
+          {
+            ...action.binding,
+            assignedTaskId: existing?.assignedTaskId ?? null,
+            worktreeId: existing?.worktreeId ?? null,
+          },
           (value) => value.agentId,
           COORDINATION_LIMITS.agents,
         ),

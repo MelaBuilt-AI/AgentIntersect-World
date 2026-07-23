@@ -37,6 +37,22 @@ describe("Phase 16 semantic coordination panel", () => {
     expect(html).toContain("Inert visible record · no authority");
   });
 
+  it("shows safe binding, active-interest, and cleanup-preview truth", () => {
+    const html = renderToStaticMarkup(
+      <CoordinationPanel
+        projection={PHASE16_COORDINATION_FIXTURE}
+        onAction={() => undefined}
+      />,
+    );
+    expect(html).toContain("hermes-session-fixture-01");
+    expect(html).toContain("tool-fluff-01");
+    expect(html).toContain("evidence-fluff-01");
+    expect(html).toContain("Active interests");
+    expect(html).toContain("src/shared.ts");
+    expect(html).toContain("Cleanup preview");
+    expect(html).toContain("preview only");
+  });
+
   it("shows current/recovered truth and blue-enabled/grey-disabled controls without WebGL", () => {
     const html = renderToStaticMarkup(
       <CoordinationPanel
@@ -97,5 +113,11 @@ describe("Phase 16 semantic coordination panel", () => {
           `data-step="${step}"[\\s\\S]*?coordination-primary--disabled`,
         ),
       );
+    expect(fixture).toMatch(
+      /data-step="2"[\s\S]*?<button[^>]*aria-disabled="true"/,
+    );
+    expect(fixture).not.toMatch(
+      /data-step="2"[\s\S]*?<button[^>]*\sdisabled=""/,
+    );
   });
 });

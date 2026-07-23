@@ -174,6 +174,7 @@ export async function runPhase16Fixture(
 
   const service = new CoordinationService({
     directory: storeDirectory,
+    approvedRepositoryRoot: repository,
     allowedWorktreeParent: root,
   });
   try {
@@ -470,7 +471,11 @@ export async function runPhase16Fixture(
       )?.state ?? "unavailable";
     const currentPath = service.pathsForTest().current;
     await writeFile(currentPath, '{"corrupt":true}\n', "utf8");
-    const restarted = new CoordinationService({ directory: storeDirectory });
+    const restarted = new CoordinationService({
+      directory: storeDirectory,
+      approvedRepositoryRoot: repository,
+      allowedWorktreeParent: root,
+    });
     const recovered = await restarted.snapshot();
     const stale = await restarted.reconcile({
       coordinationSessionId: "phase16-fixture",

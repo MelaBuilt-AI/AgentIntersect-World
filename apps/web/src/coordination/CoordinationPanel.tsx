@@ -29,6 +29,25 @@ const ACTIONS = [
   "Cancel coordination",
 ] as const;
 
+const COORDINATION_POLL_INTERVAL_MS = 1_000;
+
+function preferLivePresentation(
+  current: CoordinationPresentation | null,
+  incoming: CoordinationPresentation,
+): CoordinationPresentation {
+  if (!current) return incoming;
+  const currentRevision = current.revision ?? -1;
+  const incomingRevision = incoming.revision ?? -1;
+  if (incomingRevision < currentRevision) return current;
+  if (
+    incomingRevision === currentRevision &&
+    current.truth === "current" &&
+    incoming.truth === "previous-recovered"
+  )
+    return current;
+  return incoming;
+}
+
 export function CoordinationPanel({
   projection,
   onAction,
@@ -125,6 +144,12 @@ export function CoordinationPanel({
                     <dl>
                       <dt>Task</dt>
                       <dd>{task?.title ?? "Unassigned"}</dd>
+                      <dt>Native session</dt>
+                      <dd>{agent.nativeSessionId}</dd>
+                      <dt>Tool / evidence streams</dt>
+                      <dd>
+                        {agent.toolStreamId} · {agent.evidenceStreamId}
+                      </dd>
                       <dt>Worktree / branch</dt>
                       <dd>
                         {worktree
@@ -154,6 +179,15 @@ export function CoordinationPanel({
           <section className="coordination-truth-grid">
             <article>
               <h3>Interest and contention</h3>
+              <h4>Active interests</h4>
+              {snapshot.interests
+                .filter((interest) => interest.state === "active")
+                .map((interest) => (
+                  <p key={interest.interestId}>
+                    {interest.agentId} · {interest.targetKind} ·{" "}
+                    {interest.target}
+                  </p>
+                ))}
               {snapshot.contention.map((contention) => (
                 <p key={contention.contentionId}>
                   <strong>Interest contention · not a Git conflict</strong>
@@ -205,6 +239,20 @@ export function CoordinationPanel({
                 </p>
               ))}
             </article>
+            <article>
+              <h3>Cleanup preview</h3>
+              {snapshot.cleanupPlans.length === 0 ? (
+                <p>No cleanup preview recorded.</p>
+              ) : (
+                snapshot.cleanupPlans.map((plan) => (
+                  <p key={plan.cleanupPlanId}>
+                    {plan.displayPath} · {plan.recommendation} · preview only
+                    <br />
+                    {plan.reasons.join(" ")}
+                  </p>
+                ))
+              )}
+            </article>
           </section>
         </>
       )}
@@ -222,9 +270,11 @@ export function CoordinationPanel({
                 className={`coordination-primary coordination-primary--${
                   actionEnabled ? "enabled" : "disabled"
                 }`}
-                disabled={!actionEnabled}
+                aria-disabled={!actionEnabled}
                 aria-describedby={`coordination-step-${step}-reason`}
-                onClick={() => onAction(step)}
+                onClick={() => {
+                  if (actionEnabled) onAction(step);
+                }}
               >
                 {step}. {label}
               </button>
@@ -255,20 +305,37 @@ export function CoordinationPanelLoader({
       : "Loading current coordination truth…",
   );
   const actionSequence = useRef(0);
+  const loadedOnce = useRef(fixture);
   useEffect(() => {
     if (fixture) return;
     const controller = new AbortController();
-    void getCoordinationSnapshot(controller.signal)
-      .then((next) => {
-        setProjection(next);
-        setResult("Current coordination truth loaded.");
-      })
-      .catch((error: unknown) =>
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      try {
+        const next = await getCoordinationSnapshot(controller.signal);
+        if (!active) return;
+        setProjection((current) => preferLivePresentation(current, next));
+        if (!loadedOnce.current) {
+          loadedOnce.current = true;
+          setResult("Current coordination truth loaded.");
+        }
+      } catch (error) {
+        if (!active || controller.signal.aborted) return;
         setResult(
           error instanceof Error ? error.message : "Coordination unavailable.",
-        ),
-      );
-    return () => controller.abort();
+        );
+      } finally {
+        if (active)
+          timer = setTimeout(() => void poll(), COORDINATION_POLL_INTERVAL_MS);
+      }
+    };
+    void poll();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      controller.abort();
+    };
   }, [fixture]);
 
   const perform = async (step: number) => {

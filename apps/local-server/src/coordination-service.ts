@@ -57,7 +57,9 @@ type GitResult = {
 
 export type CoordinationServiceOptions = {
   readonly directory: string;
+  readonly approvedRepositoryRoot?: string;
   readonly allowedWorktreeParent?: string;
+  readonly requireApprovedGitBoundary?: boolean;
 };
 
 export class CoordinationServiceError extends Error {
@@ -196,7 +198,9 @@ function protocolErrorCode(
 
 export class CoordinationService {
   readonly #directory: string;
+  readonly #approvedRepositoryRoot: string | null;
   readonly #allowedWorktreeParent: string | null;
+  readonly #requireApprovedGitBoundary: boolean;
   readonly #currentPath: string;
   readonly #previousPath: string;
   #loaded = false;
@@ -210,15 +214,21 @@ export class CoordinationService {
   #gitTail: Promise<void> = Promise.resolve();
   #activeChild: ChildProcess | null = null;
   #commonRepositoryId: string | null = null;
+  #mutationTail: Promise<void> = Promise.resolve();
   #closed = false;
 
   constructor(options: CoordinationServiceOptions) {
     this.#directory = resolve(options.directory);
     this.#currentPath = join(this.#directory, "coordination.current.json");
     this.#previousPath = join(this.#directory, "coordination.previous.json");
+    this.#approvedRepositoryRoot = options.approvedRepositoryRoot
+      ? resolve(options.approvedRepositoryRoot)
+      : null;
     this.#allowedWorktreeParent = options.allowedWorktreeParent
       ? resolve(options.allowedWorktreeParent)
       : null;
+    this.#requireApprovedGitBoundary =
+      options.requireApprovedGitBoundary ?? false;
   }
 
   pathsForTest(): { readonly current: string; readonly previous: string } {
@@ -254,58 +264,70 @@ export class CoordinationService {
         parsed.error.issues[0]?.message ?? "Invalid coordination action",
       );
     const request = parsed.data;
-    await this.#load();
-    if (this.#projection.truth === "unavailable")
-      throw new CoordinationServiceError(
-        "unavailable",
-        "Coordination generations are unavailable; refusing mutation",
+    return this.#serializeMutation(async () => {
+      this.#assertProductionBoundaryConfigured();
+      await this.#load();
+      if (this.#projection.truth === "unavailable")
+        throw new CoordinationServiceError(
+          "unavailable",
+          "Coordination generations are unavailable; refusing mutation",
+        );
+      const current =
+        this.#projection.snapshot ?? createEmptyCoordinationSnapshot();
+      const existing = current.correlations.find(
+        (record) => record.correlationId === request.correlationId,
       );
-    const current =
-      this.#projection.snapshot ?? createEmptyCoordinationSnapshot();
-    const existing = current.correlations.find(
-      (record) => record.correlationId === request.correlationId,
+      if (existing) {
+        if (
+          existing.requestCanonical !==
+          canonicalCoordinationValue(persistedRequest(request))
+        )
+          throw new CoordinationServiceError(
+            "correlation_conflict",
+            "Correlation ID was reused with different input",
+          );
+        return { snapshot: current, replayed: true };
+      }
+      try {
+        this.#assertRequestState(current, request);
+        const next = await this.#apply(current, request);
+        await this.#persist(next);
+        this.#projection = CoordinationProjectionSchema.parse({
+          schema: "aiw.coordination-projection/0.16",
+          truth: "current",
+          snapshot: next,
+          unavailableReason: null,
+        });
+        return { snapshot: next, replayed: false };
+      } catch (error) {
+        if (error instanceof CoordinationServiceError) throw error;
+        if (error instanceof CoordinationProtocolError)
+          throw new CoordinationServiceError(
+            protocolErrorCode(error.code),
+            error.message,
+          );
+        const code =
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          (error as { code: unknown }).code === "resource_limit"
+            ? "resource-limit"
+            : "conflict";
+        throw new CoordinationServiceError(
+          code,
+          error instanceof Error ? error.message : "Coordination action failed",
+        );
+      }
+    });
+  }
+
+  #serializeMutation<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.#mutationTail.then(operation, operation);
+    this.#mutationTail = result.then(
+      () => undefined,
+      () => undefined,
     );
-    if (existing) {
-      if (
-        existing.requestCanonical !==
-        canonicalCoordinationValue(persistedRequest(request))
-      )
-        throw new CoordinationServiceError(
-          "correlation_conflict",
-          "Correlation ID was reused with different input",
-        );
-      return { snapshot: current, replayed: true };
-    }
-    try {
-      this.#assertRequestState(current, request);
-      const next = await this.#apply(current, request);
-      await this.#persist(next);
-      this.#projection = CoordinationProjectionSchema.parse({
-        schema: "aiw.coordination-projection/0.16",
-        truth: "current",
-        snapshot: next,
-        unavailableReason: null,
-      });
-      return { snapshot: next, replayed: false };
-    } catch (error) {
-      if (error instanceof CoordinationServiceError) throw error;
-      if (error instanceof CoordinationProtocolError)
-        throw new CoordinationServiceError(
-          protocolErrorCode(error.code),
-          error.message,
-        );
-      const code =
-        error &&
-        typeof error === "object" &&
-        "code" in error &&
-        (error as { code: unknown }).code === "resource_limit"
-          ? "resource-limit"
-          : "conflict";
-      throw new CoordinationServiceError(
-        code,
-        error instanceof Error ? error.message : "Coordination action failed",
-      );
-    }
+    return result;
   }
 
   async reconcile(input: unknown): Promise<CoordinationProjection> {
@@ -324,63 +346,77 @@ export class CoordinationService {
         "validation",
         parsed.error.issues[0]?.message ?? "Invalid reconciliation request",
       );
-    await this.#load();
+    return this.#serializeMutation(async () => {
+      this.#assertProductionBoundaryConfigured();
+      await this.#load();
+      if (
+        this.#projection.truth === "unavailable" ||
+        !this.#projection.snapshot ||
+        !this.#projection.snapshot.coordinationSessionId
+      )
+        throw new CoordinationServiceError(
+          "unavailable",
+          "Current coordination truth is unavailable for reconciliation",
+        );
+      if (
+        parsed.data.coordinationSessionId !==
+        this.#projection.snapshot.coordinationSessionId
+      )
+        throw new CoordinationServiceError(
+          "git-refused",
+          "Coordination session mismatch",
+        );
+      let snapshot = this.#projection.snapshot;
+      const worktrees: CoordinationWorktree[] = [];
+      for (const worktree of snapshot.worktrees) {
+        try {
+          const internal = this.#worktreePaths.get(worktree.worktreeId);
+          if (!internal) {
+            worktrees.push({ ...worktree, state: "stale" });
+            continue;
+          }
+          worktrees.push(
+            await this.#measureWorktree(
+              worktree,
+              internal.repositoryRoot,
+              internal.worktreePath,
+            ),
+          );
+        } catch (error) {
+          const state =
+            error instanceof CoordinationServiceError &&
+            error.message.includes("different repository")
+              ? "wrong-repository"
+              : error &&
+                  typeof error === "object" &&
+                  "code" in error &&
+                  (error as { code: unknown }).code === "ENOENT"
+                ? "deleted"
+                : "unavailable";
+          worktrees.push({ ...worktree, state });
+        }
+      }
+      snapshot = CoordinationSnapshotSchema.parse({
+        ...snapshot,
+        worktrees,
+      });
+      this.#projection = CoordinationProjectionSchema.parse({
+        ...this.#projection,
+        snapshot,
+      });
+      return this.#projection;
+    });
+  }
+
+  #assertProductionBoundaryConfigured(): void {
     if (
-      this.#projection.truth === "unavailable" ||
-      !this.#projection.snapshot ||
-      !this.#projection.snapshot.coordinationSessionId
-    )
-      throw new CoordinationServiceError(
-        "unavailable",
-        "Current coordination truth is unavailable for reconciliation",
-      );
-    if (
-      parsed.data.coordinationSessionId !==
-      this.#projection.snapshot.coordinationSessionId
+      this.#requireApprovedGitBoundary &&
+      (!this.#approvedRepositoryRoot || !this.#allowedWorktreeParent)
     )
       throw new CoordinationServiceError(
         "git-refused",
-        "Coordination session mismatch",
+        "Production coordination mutations require an operator-approved repository root and worktree parent",
       );
-    let snapshot = this.#projection.snapshot;
-    const worktrees: CoordinationWorktree[] = [];
-    for (const worktree of snapshot.worktrees) {
-      try {
-        const internal = this.#worktreePaths.get(worktree.worktreeId);
-        if (!internal) {
-          worktrees.push({ ...worktree, state: "stale" });
-          continue;
-        }
-        worktrees.push(
-          await this.#measureWorktree(
-            worktree,
-            internal.repositoryRoot,
-            internal.worktreePath,
-          ),
-        );
-      } catch (error) {
-        const state =
-          error instanceof CoordinationServiceError &&
-          error.message.includes("different repository")
-            ? "wrong-repository"
-            : error &&
-                typeof error === "object" &&
-                "code" in error &&
-                (error as { code: unknown }).code === "ENOENT"
-              ? "deleted"
-              : "unavailable";
-        worktrees.push({ ...worktree, state });
-      }
-    }
-    snapshot = CoordinationSnapshotSchema.parse({
-      ...snapshot,
-      worktrees,
-    });
-    this.#projection = CoordinationProjectionSchema.parse({
-      ...this.#projection,
-      snapshot,
-    });
-    return this.#projection;
   }
 
   readonly #worktreePaths = new Map<
@@ -785,17 +821,14 @@ export class CoordinationService {
     repositoryRoot: string,
     worktreePath: string,
   ): Promise<void> {
-    const repository = await this.#validatedDirectory(repositoryRoot);
+    const { allowedParent } = await this.#approvedGitBoundary(repositoryRoot);
     if (!isAbsolute(worktreePath))
       throw new CoordinationServiceError(
         "git-refused",
         "Worktree path must be absolute",
       );
     const parent = await this.#validatedDirectory(dirname(worktreePath));
-    const allowed = this.#allowedWorktreeParent
-      ? await this.#validatedDirectory(this.#allowedWorktreeParent)
-      : dirname(repository);
-    if (!contained(allowed, parent))
+    if (!contained(allowedParent, parent))
       throw new CoordinationServiceError(
         "git-refused",
         "Worktree path is outside the allowed parent",
@@ -816,6 +849,32 @@ export class CoordinationService {
       )
         throw error;
     }
+  }
+
+  async #approvedGitBoundary(repositoryRoot: string): Promise<{
+    readonly repositoryRoot: string;
+    readonly allowedParent: string;
+  }> {
+    if (!this.#approvedRepositoryRoot || !this.#allowedWorktreeParent)
+      throw new CoordinationServiceError(
+        "git-refused",
+        "An operator-approved repository root and worktree parent are required",
+      );
+    const [approvedRepositoryRoot, allowedParent, requestedRepositoryRoot] =
+      await Promise.all([
+        this.#validatedDirectory(this.#approvedRepositoryRoot),
+        this.#validatedDirectory(this.#allowedWorktreeParent),
+        this.#validatedDirectory(repositoryRoot),
+      ]);
+    if (requestedRepositoryRoot !== approvedRepositoryRoot)
+      throw new CoordinationServiceError(
+        "git-refused",
+        "Repository root is not the operator-approved repository",
+      );
+    return {
+      repositoryRoot: requestedRepositoryRoot,
+      allowedParent,
+    };
   }
 
   async #validatedDirectory(path: string): Promise<string> {
@@ -880,7 +939,8 @@ export class CoordinationService {
     repositoryRootInput: string,
     worktreePathInput: string,
   ): Promise<CoordinationWorktree> {
-    const repositoryRoot = await this.#validatedDirectory(repositoryRootInput);
+    const { repositoryRoot, allowedParent } =
+      await this.#approvedGitBoundary(repositoryRootInput);
     const worktreePath = await this.#validatedDirectory(worktreePathInput);
     if (repositoryRoot === worktreePath)
       throw new CoordinationServiceError(
@@ -898,10 +958,7 @@ export class CoordinationService {
         "git-refused",
         "Real worktree path is already attached to another identity",
       );
-    const allowed = this.#allowedWorktreeParent
-      ? await this.#validatedDirectory(this.#allowedWorktreeParent)
-      : dirname(repositoryRoot);
-    if (!contained(allowed, worktreePath))
+    if (!contained(allowedParent, worktreePath))
       throw new CoordinationServiceError(
         "git-refused",
         "Worktree is outside the allowed parent",
@@ -1086,6 +1143,14 @@ export class CoordinationService {
       targetPaths.repositoryRoot,
       targetPaths.worktreePath,
     );
+    if (
+      measuredSource.state !== "current" ||
+      measuredTarget.state !== "current"
+    )
+      throw new CoordinationServiceError(
+        "git-refused",
+        `Candidate worktrees must be current and clean; source=${measuredSource.state} target=${measuredTarget.state}`,
+      );
     const exactBindings = [measuredSource, measuredTarget];
     for (const record of action.testEvidence) {
       const exact = exactBindings.some(
@@ -1142,8 +1207,12 @@ export class CoordinationService {
     const changedPaths = names.stdout
       .split(/\r?\n/)
       .map((value) => value.trim())
-      .filter(Boolean)
-      .slice(0, COORDINATION_LIMITS.gitPaths);
+      .filter(Boolean);
+    if (changedPaths.length > COORDINATION_LIMITS.gitPaths)
+      throw new CoordinationServiceError(
+        "resource-limit",
+        "Candidate changed paths exceed the 256-path exact-evidence ceiling",
+      );
     const conflicting = mergeTree.exitCode === 1;
     if (mergeTree.exitCode !== 0 && mergeTree.exitCode !== 1)
       throw new CoordinationServiceError(
@@ -1186,10 +1255,7 @@ export class CoordinationService {
       testEvidenceIds: action.testEvidence.map((value) => value.testId),
       conflictIds: conflicts.map((value) => value.conflictId),
       uncertainties: action.uncertainties,
-      cleanupState:
-        measuredSource.state === "dirty" || measuredTarget.state === "dirty"
-          ? "blocked-dirty"
-          : "not-planned",
+      cleanupState: "not-planned",
       state: conflicting ? "conflicting" : "candidate",
       mergeRun: false,
       preparedAt: now,
@@ -1312,6 +1378,6 @@ export class CoordinationService {
   async dispose(): Promise<void> {
     this.#closed = true;
     this.#activeChild?.kill("SIGTERM");
-    await this.#gitTail;
+    await Promise.all([this.#mutationTail, this.#gitTail]);
   }
 }

@@ -105,6 +105,7 @@ async function createFixture(worktrees = 0): Promise<Fixture> {
   await git(repository, ["commit", "-m", "fixture: initial"]);
   const service = new CoordinationService({
     directory: join(root, "store"),
+    approvedRepositoryRoot: repository,
     allowedWorktreeParent: root,
   });
   const fixture: Fixture = {
@@ -399,6 +400,7 @@ describe("Phase 16 exact worktree bindings", () => {
     ]);
     const restarted = new CoordinationService({
       directory: join(fixture.root, "store"),
+      approvedRepositoryRoot: fixture.repository,
       allowedWorktreeParent: fixture.root,
     });
     const snapshot = (await restarted.snapshot()).snapshot;
@@ -494,6 +496,7 @@ describe("Phase 16 exact worktree bindings", () => {
     const fixture = await createFixture(1);
     const restarted = new CoordinationService({
       directory: join(fixture.root, "store"),
+      approvedRepositoryRoot: fixture.repository,
       allowedWorktreeParent: fixture.root,
     });
     const snapshot = (await restarted.snapshot()).snapshot;
@@ -568,6 +571,7 @@ describe("Phase 16 reconciliation authority", () => {
     await writeFile(paths.previous, "corrupt-previous");
     const unavailable = new CoordinationService({
       directory: join(fixture.root, "store"),
+      approvedRepositoryRoot: fixture.repository,
       allowedWorktreeParent: fixture.root,
     });
     const before = await unavailable.snapshot();
@@ -662,5 +666,231 @@ describe("Phase 16 merge candidate evidence", () => {
     expect((await fixture.service.snapshot()).snapshot?.revision).toBe(
       revision,
     );
+  });
+
+  it("rejects preparation when either measured worktree is dirty or on the wrong branch", async () => {
+    const dirty = await createFixture(2);
+    await writeFile(
+      join(dirty.worktreeRoot, "beans", "uncommitted.txt"),
+      "dirty\n",
+    );
+    const dirtyRevision = dirty.snapshot.revision;
+    await expect(
+      dirty.service.action(
+        request(
+          dirty,
+          "candidate-dirty",
+          candidate(dirty, "candidate-dirty", []),
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "git-refused" });
+    expect((await dirty.service.snapshot()).snapshot?.revision).toBe(
+      dirtyRevision,
+    );
+    expect((await dirty.service.snapshot()).snapshot?.mergeCandidates).toEqual(
+      [],
+    );
+
+    const wrongBranch = await createFixture(2);
+    await git(join(wrongBranch.worktreeRoot, "beans"), [
+      "switch",
+      "-c",
+      "phase16/wrong-beans",
+    ]);
+    const branchRevision = wrongBranch.snapshot.revision;
+    await expect(
+      wrongBranch.service.action(
+        request(
+          wrongBranch,
+          "candidate-wrong-branch",
+          candidate(wrongBranch, "candidate-wrong-branch", []),
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "git-refused" });
+    expect((await wrongBranch.service.snapshot()).snapshot?.revision).toBe(
+      branchRevision,
+    );
+    expect(
+      (await wrongBranch.service.snapshot()).snapshot?.mergeCandidates,
+    ).toEqual([]);
+  });
+
+  it("refuses more than 256 exact changed paths without candidate mutation", async () => {
+    const fixture = await createFixture(2);
+    const source = join(fixture.worktreeRoot, "beans");
+    const generated = join(source, "generated");
+    await mkdir(generated);
+    await Promise.all(
+      Array.from({ length: 257 }, (_, index) =>
+        writeFile(
+          join(generated, `path-${String(index).padStart(3, "0")}.txt`),
+          `${index}\n`,
+        ),
+      ),
+    );
+    await git(source, ["add", "generated"]);
+    await git(source, ["commit", "-m", "fixture: 257 changed paths"]);
+    const revision = fixture.snapshot.revision;
+
+    await expect(
+      fixture.service.action(
+        request(
+          fixture,
+          "candidate-too-many-paths",
+          candidate(fixture, "candidate-too-many-paths", []),
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "resource-limit" });
+    const after = (await fixture.service.snapshot()).snapshot;
+    expect(after?.revision).toBe(revision);
+    expect(after?.mergeCandidates).toEqual([]);
+    expect(after?.testEvidence).toEqual([]);
+  });
+});
+
+describe("Phase 16 service mutation serialization", () => {
+  it("checks a concurrent stale revision against live truth and never loses an accepted update", async () => {
+    const fixture = await createFixture(1);
+    const revision = fixture.snapshot.revision;
+    const validation = fixture.service.action(
+      request(fixture, "concurrent-validation", {
+        kind: "worktree.validate",
+        worktreeId: "worktree-mr-fluff",
+        agentId: "mr-fluff",
+        nativeSessionId: "hermes-correction",
+        repositoryRoot: fixture.repository,
+        worktreePath: join(fixture.worktreeRoot, "mr-fluff"),
+      }),
+    );
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    const staleTask = fixture.service.action(
+      request(fixture, "concurrent-stale-task", {
+        kind: "task.upsert",
+        task: {
+          taskId: "task-concurrent",
+          title: "Must not be silently overwritten",
+          status: "ready",
+          dependencyTaskIds: [],
+          ownerAgentId: null,
+        },
+      }),
+    );
+
+    const [validated, stale] = await Promise.allSettled([
+      validation,
+      staleTask,
+    ]);
+    expect(validated.status).toBe("fulfilled");
+    expect(stale).toMatchObject({
+      status: "rejected",
+      reason: { code: "revision_conflict" },
+    });
+    const finalSnapshot = (await fixture.service.snapshot()).snapshot;
+    expect(finalSnapshot?.revision).toBe(revision + 1);
+    expect(
+      finalSnapshot?.tasks.some((task) => task.taskId === "task-concurrent"),
+    ).toBe(false);
+    expect(
+      finalSnapshot?.lifecycleEvents.some(
+        (event) => event.kind === "worktree-validated",
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("Phase 16 operator-approved repository boundary", () => {
+  it("fails closed when no approved repository root or worktree parent is configured", async () => {
+    const fixture = await createFixture();
+    const unapproved = new CoordinationService({
+      directory: join(fixture.root, "unapproved-store"),
+    });
+    const unapprovedFixture = {
+      ...fixture,
+      service: unapproved,
+      snapshot: createEmptyCoordinationSnapshot(),
+    };
+    await apply(unapprovedFixture, "initialize-unapproved", {
+      kind: "session.initialize",
+      repositoryId: "repo-unapproved",
+      repositoryDisplayName: "Unapproved fixture",
+      operatorId: "operator-local",
+    });
+    await apply(unapprovedFixture, "bind-unapproved", {
+      kind: "agent.bind",
+      binding: {
+        agentId: "mr-fluff",
+        adapter: "hermes",
+        displayName: "Mr Fluff",
+        avatarId: "mr-fluff",
+        nativeSessionId: "hermes-unapproved",
+        model: "gpt-5.6-sol",
+        toolStreamId: "tools-unapproved",
+        evidenceStreamId: "evidence-unapproved",
+        status: "ready",
+      },
+    });
+    await apply(unapprovedFixture, "task-unapproved", {
+      kind: "task.upsert",
+      task: {
+        taskId: "task-unapproved",
+        title: "Unapproved task",
+        status: "ready",
+        dependencyTaskIds: [],
+        ownerAgentId: null,
+      },
+    });
+    await apply(unapprovedFixture, "assign-unapproved", {
+      kind: "task.assign",
+      taskId: "task-unapproved",
+      agentId: "mr-fluff",
+      nativeSessionId: "hermes-unapproved",
+    });
+    const action = worktreeCreate(unapprovedFixture, {
+      worktreeId: "worktree-unapproved",
+      agentId: "mr-fluff",
+      nativeSessionId: "hermes-unapproved",
+      taskId: "task-unapproved",
+      suffix: "unapproved",
+    });
+    await expectNoGitMutation(unapprovedFixture, action, "git-refused");
+  });
+
+  it("rejects a clean registered worktree from an unrelated repository before binding", async () => {
+    const fixture = await createFixture();
+    const otherRepository = join(fixture.root, "unrelated-repository");
+    const otherWorktree = join(fixture.worktreeRoot, "unrelated-fluff");
+    await git(fixture.root, ["init", "--initial-branch=main", otherRepository]);
+    await writeFile(join(otherRepository, "README.md"), "# unrelated\n");
+    await git(otherRepository, ["add", "README.md"]);
+    await git(otherRepository, ["commit", "-m", "fixture: unrelated initial"]);
+    await git(otherRepository, [
+      "worktree",
+      "add",
+      "-b",
+      "phase16/correction-mr-fluff",
+      otherWorktree,
+      "main",
+    ]);
+    const revision = fixture.snapshot.revision;
+
+    await expect(
+      fixture.service.action(
+        request(fixture, "attach-unrelated-approved-root", {
+          kind: "worktree.attach",
+          worktreeId: "worktree-mr-fluff",
+          agentId: "mr-fluff",
+          nativeSessionId: "hermes-correction",
+          taskId: "task-fluff",
+          repositoryRoot: otherRepository,
+          worktreePath: otherWorktree,
+          branch: "phase16/correction-mr-fluff",
+          displayPath: "worktrees/mr-fluff",
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "git-refused" });
+    expect((await fixture.service.snapshot()).snapshot?.revision).toBe(
+      revision,
+    );
+    expect((await fixture.service.snapshot()).snapshot?.worktrees).toEqual([]);
   });
 });

@@ -83,6 +83,26 @@ test("Phase 16 two-agent coordination is truthful, accessible, and bounded", asy
     name: "2. Bind Mr Fluff",
   });
   await expect(disabled).toBeDisabled();
+  const resultBeforeDisabledActivation = await page
+    .getByRole("status")
+    .last()
+    .textContent();
+  let disabledDispatches = 0;
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      request.url().includes("/api/coordination/")
+    )
+      disabledDispatches += 1;
+  });
+  await disabled.focus();
+  await expect(disabled).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status").last()).toHaveText(
+    resultBeforeDisabledActivation ?? "",
+  );
+  expect(disabledDispatches).toBe(0);
+  await expect(disabled).toHaveAttribute("aria-disabled", "true");
   await expect(disabled).toHaveClass(/coordination-primary--disabled/);
   await expect(cleanup).toHaveClass(/coordination-primary--enabled/);
 
@@ -102,4 +122,129 @@ test("Phase 16 two-agent coordination is truthful, accessible, and bounded", asy
       ({ impact }) => impact === "serious" || impact === "critical",
     ),
   ).toEqual([]);
+});
+
+test("Phase 16 live service proxy polls current truth serially and cleans up", async ({
+  page,
+}) => {
+  let snapshotRequests = 0;
+  let inFlightSnapshotRequests = 0;
+  let maximumInFlight = 0;
+  const isSnapshotRequest = (request: { method(): string; url(): string }) =>
+    request.method() === "GET" &&
+    request.url().includes("/api/coordination/snapshot");
+  page.on("request", (request) => {
+    if (!isSnapshotRequest(request)) return;
+    snapshotRequests += 1;
+    inFlightSnapshotRequests += 1;
+    maximumInFlight = Math.max(maximumInFlight, inFlightSnapshotRequests);
+  });
+  const finished = (request: { method(): string; url(): string }) => {
+    if (isSnapshotRequest(request)) inFlightSnapshotRequests -= 1;
+  };
+  page.on("requestfinished", finished);
+  page.on("requestfailed", finished);
+
+  await seedConfiguredAvatar(page);
+  await page.goto("/");
+  await openPanel(page, "Agents");
+  const panel = page.getByLabel("Phase 16 multi-agent coordination");
+  await expect(panel).toBeVisible();
+  await expect.poll(() => snapshotRequests).toBeGreaterThanOrEqual(1);
+
+  const initial = await page.request.get("/api/coordination/snapshot");
+  expect(initial.status()).toBe(200);
+  const initialBody = (await initial.json()) as {
+    data: {
+      revision: number | null;
+      coordinationSessionId: string | null;
+      cancelled: boolean | null;
+      agents: Array<{
+        agentId: "mr-fluff" | "beans";
+        nativeSessionId: string;
+      }>;
+    };
+  };
+  expect(initialBody.data.cancelled).not.toBe(true);
+  let revision = initialBody.data.revision ?? 0;
+  let coordinationSessionId =
+    initialBody.data.coordinationSessionId ?? "phase16-live-polling";
+  let nativeSessionId = initialBody.data.agents.find(
+    (agent) => agent.agentId === "mr-fluff",
+  )?.nativeSessionId;
+  const postAction = async (
+    correlationId: string,
+    action: Record<string, unknown>,
+  ) => {
+    const response = await page.request.post("/api/coordination/actions", {
+      data: {
+        schema: "aiw.coordination-action/0.16",
+        coordinationSessionId,
+        actor: "operator",
+        operatorApproval: "approved",
+        expectedRevision: revision,
+        correlationId,
+        action,
+      },
+    });
+    expect(response.status()).toBe(200);
+    const body = (await response.json()) as { data: { revision: number } };
+    revision = body.data.revision;
+  };
+
+  if (initialBody.data.revision === null) {
+    await postAction("live-polling-initialize", {
+      kind: "session.initialize",
+      repositoryId: "repo-live-polling",
+      repositoryDisplayName: "Live polling fixture",
+      operatorId: "operator-local",
+    });
+    coordinationSessionId = "phase16-live-polling";
+  }
+  if (!nativeSessionId) {
+    nativeSessionId = "hermes-live-polling";
+    await postAction("live-polling-bind-fluff", {
+      kind: "agent.bind",
+      binding: {
+        agentId: "mr-fluff",
+        adapter: "hermes",
+        displayName: "Mr Fluff",
+        avatarId: "mr-fluff",
+        nativeSessionId,
+        model: "gpt-5.6-sol",
+        toolStreamId: "tool-live-polling",
+        evidenceStreamId: "evidence-live-polling",
+        status: "ready",
+      },
+    });
+  }
+  await postAction(`live-polling-task-${revision}`, {
+    kind: "task.upsert",
+    task: {
+      taskId: "task-live-polling",
+      title: "Live proxy polling task",
+      status: "ready",
+      dependencyTaskIds: [],
+      ownerAgentId: null,
+    },
+  });
+  await postAction(`live-polling-assign-${revision}`, {
+    kind: "task.assign",
+    taskId: "task-live-polling",
+    agentId: "mr-fluff",
+    nativeSessionId,
+  });
+
+  await expect(panel.getByText(nativeSessionId)).toBeVisible({
+    timeout: 5_000,
+  });
+  await expect(panel.getByText("Live proxy polling task")).toBeVisible();
+  await expect.poll(() => snapshotRequests).toBeGreaterThanOrEqual(2);
+  expect(maximumInFlight).toBe(1);
+
+  await page.goto("about:blank");
+  const requestsAfterUnmount = snapshotRequests;
+  await page.waitForTimeout(1_250);
+  expect(snapshotRequests).toBe(requestsAfterUnmount);
+  expect(inFlightSnapshotRequests).toBe(0);
 });

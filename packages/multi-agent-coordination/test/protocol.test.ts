@@ -208,4 +208,140 @@ describe("Phase 16 coordination protocol", () => {
       "Attributed inert message recorded",
     );
   });
+
+  it("preserves an identical active agent binding and refuses active rebinding", () => {
+    const active = CoordinationSnapshotSchema.parse({
+      ...boundSnapshot(),
+      agents: boundSnapshot().agents.map((agent) =>
+        agent.agentId === "mr-fluff"
+          ? { ...agent, worktreeId: "worktree-fluff" }
+          : agent,
+      ),
+    });
+    const sameBinding = {
+      ...approved,
+      correlationId: "correlation-bind-fluff-same",
+      action: {
+        kind: "agent.bind" as const,
+        binding: {
+          agentId: "mr-fluff" as const,
+          adapter: "hermes" as const,
+          displayName: "Mr Fluff" as const,
+          avatarId: "mr-fluff" as const,
+          nativeSessionId: "hermes-session-fixture-01",
+          model: "gpt-5.6-sol",
+          toolStreamId: "tool-fluff-01",
+          evidenceStreamId: "evidence-fluff-01",
+          status: "active" as const,
+        },
+      },
+    };
+
+    const preserved = applyCoordinationAction(active, sameBinding);
+    expect(
+      preserved.agents.find((agent) => agent.agentId === "mr-fluff"),
+    ).toMatchObject({
+      assignedTaskId: "task-fluff-doc",
+      worktreeId: "worktree-fluff",
+    });
+
+    expect(() =>
+      applyCoordinationAction(active, {
+        ...sameBinding,
+        correlationId: "correlation-bind-fluff-rebound",
+        action: {
+          ...sameBinding.action,
+          binding: {
+            ...sameBinding.action.binding,
+            nativeSessionId: "hermes-session-rebound",
+          },
+        },
+      }),
+    ).toThrow(/active|rebind|binding/i);
+  });
+
+  it("enforces declared hard text ceilings in UTF-8 bytes", () => {
+    const multibyteMessage = CoordinationActionSchema.safeParse({
+      ...approved,
+      correlationId: "correlation-multibyte-message",
+      action: {
+        kind: "message.record",
+        message: {
+          messageId: "message-multibyte",
+          senderAgentId: "beans",
+          recipientAgentId: "mr-fluff",
+          nativeSessionId: "openclaw-session-fixture-01",
+          taskId: "task-beans-doc",
+          text: "🦊".repeat(1_025),
+        },
+      },
+    });
+    expect(multibyteMessage.success).toBe(false);
+
+    const multibyteEvidence = CoordinationActionSchema.safeParse({
+      ...approved,
+      correlationId: "correlation-multibyte-evidence",
+      action: {
+        kind: "merge-candidate.prepare",
+        candidateId: "candidate-multibyte-evidence",
+        sourceAgentId: "beans",
+        targetAgentId: "mr-fluff",
+        sourceTaskId: "task-beans-doc",
+        targetTaskId: "task-fluff-doc",
+        sourceWorktreeId: "worktree-beans",
+        targetWorktreeId: "worktree-fluff",
+        testEvidence: [
+          {
+            testId: "test-multibyte",
+            agentId: "beans",
+            nativeSessionId: "openclaw-session-fixture-01",
+            taskId: "task-beans-doc",
+            worktreeId: "worktree-beans",
+            branch: "phase16/fixture-beans",
+            head: "0".repeat(40),
+            command: "test",
+            exitCode: 0,
+            summary: "🦊".repeat(2_049),
+            digest: "0".repeat(64),
+            recordedAt: "2026-07-23T00:00:00.000Z",
+          },
+        ],
+        uncertainties: [],
+      },
+    });
+    expect(multibyteEvidence.success).toBe(false);
+
+    expect(() =>
+      CoordinationSnapshotSchema.parse({
+        ...boundSnapshot(),
+        mergeCandidates: [
+          {
+            candidateId: "candidate-multibyte-diff",
+            sourceAgentId: "beans",
+            targetAgentId: "mr-fluff",
+            sourceTaskId: "task-beans-doc",
+            targetTaskId: "task-fluff-doc",
+            repositoryId: "repo-fixture",
+            sourceWorktreeId: "worktree-beans",
+            targetWorktreeId: "worktree-fluff",
+            sourceBranch: "phase16/fixture-beans",
+            targetBranch: "phase16/fixture-fluff",
+            sourceHead: "1".repeat(40),
+            targetHead: "2".repeat(40),
+            diff: "🦊".repeat(32_769),
+            diffDigest: "0".repeat(64),
+            changedPaths: [],
+            testEvidenceIds: [],
+            conflictIds: [],
+            uncertainties: [],
+            cleanupState: "not-planned",
+            state: "candidate",
+            mergeRun: false,
+            preparedAt: "2026-07-23T00:00:00.000Z",
+            approvedAt: null,
+          },
+        ],
+      }),
+    ).toThrow(/byte|128|limit|small/i);
+  });
 });

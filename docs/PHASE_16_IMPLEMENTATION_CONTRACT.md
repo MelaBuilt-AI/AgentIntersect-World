@@ -176,6 +176,22 @@ repository root itself is not accepted as both agents' editing worktree.
 Wrong-session, wrong-agent, wrong-repository, wrong-branch, unregistered, or
 cross-worktree operations fail before snapshot mutation.
 
+The production local server receives its operator-approved Git boundary only
+through `AIW_PHASE16_REPOSITORY_ROOT` and
+`AIW_PHASE16_WORKTREE_PARENT`. The variables must be configured together as
+absolute, existing, non-symlink directories and are canonicalized before the
+service is constructed. Production mutation and reconciliation fail closed
+when either value is absent or invalid; snapshot reads remain available. The
+requested repository root must equal the approved canonical root, and there is
+no caller-derived fallback parent. Local development that enables Phase 16
+mutation therefore starts the real server with both exact values, for example:
+
+```sh
+AIW_PHASE16_REPOSITORY_ROOT=/absolute/operator-approved/repository \
+AIW_PHASE16_WORKTREE_PARENT=/absolute/operator-approved/worktree-parent \
+corepack pnpm@11.15.0 --filter @agentintersect-world/local-server dev
+```
+
 Reconciliation classifies worktrees as `current`, `dirty`, `stale`,
 `missing`, `deleted`, `wrong-repository`, `wrong-branch`, or `unavailable`.
 Cleanup is planning only: action 13 returns exact bounded targets, dirty/stale
@@ -220,6 +236,15 @@ candidate/test/conflict status, and recovery truth. It excludes absolute
 paths, raw prompts, secrets, raw diff bodies, unrestricted tool output,
 subprocess data, API actions, and authority tokens. Yjs remains presentation
 only and cannot dispatch coordination actions.
+
+The live panel polls the strict presentation endpoint at a bounded interval.
+It schedules the next request only after the prior request settles, aborts and
+clears its timer on unmount, and never replaces a newer current revision with
+an older or previous-recovered response. The projection includes bounded
+native-session, tool-stream, evidence-stream, active-interest, and
+cleanup-preview fields required by the panel. Inactive primary controls remain
+focusable `aria-disabled="true"` buttons, expose their refusal reason, and
+guard dispatch in the event handler.
 
 ## 8. Exact deterministic fixture
 

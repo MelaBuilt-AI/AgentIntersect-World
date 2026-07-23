@@ -39,6 +39,7 @@ import { Phase14Service } from "./phase14-service.js";
 import { WhisperCliProvider } from "@agentintersect-world/voice/node";
 import { VoiceService, VoiceStore } from "./voice-service.js";
 import { CoordinationService } from "./coordination-service.js";
+import { loadProductionCoordinationGitConfig } from "./coordination-production-config.js";
 
 const config = (() => {
   try {
@@ -54,7 +55,24 @@ const config = (() => {
   }
 })();
 
-if (config !== undefined) {
+const coordinationGitConfig =
+  config === undefined
+    ? undefined
+    : await (async () => {
+        try {
+          return await loadProductionCoordinationGitConfig();
+        } catch (error) {
+          process.stderr.write(
+            `Phase 16 configuration error: ${
+              error instanceof Error ? error.message : "invalid Git boundary"
+            }\n`,
+          );
+          process.exitCode = 1;
+          return undefined;
+        }
+      })();
+
+if (config !== undefined && coordinationGitConfig !== undefined) {
   let selectedRepository: () => CurrentRepositorySelection | null = () => null;
   const readClient = config.agentIntersectRead
     ? new AgentIntersectReadClient({
@@ -159,6 +177,8 @@ if (config !== undefined) {
       "phase16",
       "coordination",
     ),
+    ...(coordinationGitConfig ?? {}),
+    requireApprovedGitBoundary: true,
   });
   const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,

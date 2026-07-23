@@ -205,7 +205,21 @@ export const PHASE16_COORDINATION_FIXTURE: CoordinationPresentation =
             recordedAt: now,
           },
         ],
-        cleanupPlans: [],
+        cleanupPlans: [
+          {
+            cleanupPlanId: "cleanup-worktree-beans",
+            agentId: "beans",
+            worktreeId: "worktree-beans",
+            displayPath: "worktrees/beans",
+            branch: "phase16/fixture-beans",
+            recommendation: "allowed",
+            reasons: [
+              "Clean registered worktree; operator may remove it outside World.",
+            ],
+            previewOnly: true,
+            createdAt: now,
+          },
+        ],
         lifecycleEvents: [],
         correlations: [],
         cancelled: false,

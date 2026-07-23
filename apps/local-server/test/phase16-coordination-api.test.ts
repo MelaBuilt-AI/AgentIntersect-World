@@ -333,6 +333,21 @@ describe("Phase 16 coordination API", () => {
       revision: 7,
       repositoryDisplayName: "Browser-safe fixture",
       operatorId: "operator-local",
+      agents: [
+        {
+          agentId: "beans",
+          adapter: "openclaw",
+          displayName: "Beans",
+          avatarId: "beans",
+          nativeSessionId: "openclaw-safe",
+          model: "gpt-5.6-sol",
+          toolStreamId: "tool-safe",
+          evidenceStreamId: "evidence-safe",
+          status: "active",
+          assignedTaskId: "task-safe",
+          worktreeId: "worktree-beans",
+        },
+      ],
       tasks: [
         {
           taskId: "task-safe",
@@ -340,6 +355,17 @@ describe("Phase 16 coordination API", () => {
           status: "active",
           dependencyTaskIds: [],
           ownerAgentId: "beans",
+        },
+      ],
+      interests: [
+        {
+          interestId: "interest-safe",
+          agentId: "beans",
+          nativeSessionId: "openclaw-safe",
+          taskId: "task-safe",
+          targetKind: "file",
+          target: "src/shared.ts",
+          state: "active",
         },
       ],
       messages: [
@@ -414,6 +440,19 @@ describe("Phase 16 coordination API", () => {
           recordedAt: now,
         },
       ],
+      cleanupPlans: [
+        {
+          cleanupPlanId: "cleanup-safe",
+          agentId: "beans",
+          worktreeId: "worktree-beans",
+          displayPath: "worktrees/beans",
+          branch: "phase16/safe-beans",
+          recommendation: "allowed",
+          reasons: ["Clean registered worktree; preview only."],
+          previewOnly: true,
+          createdAt: now,
+        },
+      ],
     });
     const projection = {
       schema: "aiw.coordination-projection/0.16" as const,
@@ -463,6 +502,21 @@ describe("Phase 16 coordination API", () => {
       expect(response.json().data.messages[0]).toMatchObject({
         senderAgentId: "beans",
         recipientAgentId: "mr-fluff",
+      });
+      expect(response.json().data.agents[0]).toMatchObject({
+        nativeSessionId: "openclaw-safe",
+        toolStreamId: "tool-safe",
+        evidenceStreamId: "evidence-safe",
+      });
+      expect(response.json().data.interests[0]).toMatchObject({
+        agentId: "beans",
+        target: "src/shared.ts",
+        state: "active",
+      });
+      expect(response.json().data.cleanupPlans[0]).toMatchObject({
+        cleanupPlanId: "cleanup-safe",
+        displayPath: "worktrees/beans",
+        previewOnly: true,
       });
       expect(response.json().data.tasks[0]).toMatchObject({
         taskId: "task-safe",

@@ -380,3 +380,109 @@ The requested full fresh-copy verification was not rerun. The worktree remains
 uncommitted. This pass did not launch or configure Beans/OpenClaw, perform
 divergent collaboration edits, claim live two-agent proof, commit, push,
 merge, publish, deploy, or claim final integration.
+
+## Independently reproduced merge-blocker correction appendix
+
+Date: 2026-07-23
+
+Status: **EIGHT MERGE BLOCKERS REPRODUCED RED / BOUNDED FIXES GREEN / LIVE
+BEANS, COMMIT, PUSH, MERGE, AND PHASE COMPLETION NOT CLAIMED**
+
+### Exact fixes
+
+- Serialized actions and reconciliation through one service mutation tail.
+  Revision and correlation checks now run against live truth after entering the
+  queue, rejected operations cannot overwrite a concurrently accepted
+  snapshot, and disposal awaits the mutation and Git tails.
+- Preserved identical active agent bindings, including task and worktree IDs.
+  Identity, native-session, tool-stream, or evidence-stream rebinding now fails
+  closed while active task, ownership, interest, or worktree references exist.
+- Required both candidate worktrees to remeasure as `current` (clean and on the
+  declared branch) before evidence is accepted. Candidate branch/HEAD evidence
+  is checked against that measured truth.
+- Added production-only Git configuration through
+  `AIW_PHASE16_REPOSITORY_ROOT` and `AIW_PHASE16_WORKTREE_PARENT`. Both paths
+  must be absolute, real, existing, and canonical. Production mutation and
+  reconciliation fail closed without both values, unrelated repositories are
+  refused, and the old caller-derived parent fallback is gone. Deterministic
+  service construction remains available through explicit test options.
+- Replaced the 256-path truncation with a `resource-limit` refusal before any
+  candidate, conflict, test-evidence, correlation, or revision mutation.
+- Added one-second serialized browser polling with abort/timer cleanup and
+  monotonic current-over-previous revision selection. The safe presentation
+  schema now carries opaque native-session/tool/evidence bindings, bounded
+  active interests, and relative cleanup previews without absolute paths, raw
+  diffs, raw prompts, or unrestricted output.
+- Enforced the 4 KiB message, 8 KiB handoff/test summary, 128 KiB candidate
+  diff, retained-diff, and snapshot ceilings by UTF-8 bytes. Multibyte boundary
+  cases are covered.
+- Replaced native-disabled primary controls with focusable
+  `aria-disabled="true"` buttons. Disabled reasons remain associated, guarded
+  handlers never dispatch, and actionable primary controls remain blue.
+
+### RED -> GREEN evidence
+
+- Initial focused Vitest RED:
+  `corepack pnpm@11.15.0 vitest run packages/multi-agent-coordination/test/protocol.test.ts apps/local-server/test/phase16-coordination-corrections.test.ts apps/web/test/phase16-coordination-ui.test.tsx --maxWorkers=1 --no-file-parallelism`
+  failed as intended with **3 failed files, 9 failed tests, and 20 passing
+  tests**. The failures reproduced lost-update concurrency, active rebinding,
+  dirty/wrong-branch candidate acceptance, 257-path truncation, missing and
+  unrelated production roots, character-counted multibyte limits, omitted
+  presentation truth, and native-disabled controls.
+- Initial focused Playwright RED:
+  `xvfb-run -a corepack pnpm@11.15.0 playwright test apps/web/e2e/phase16-coordination-journey.spec.ts --workers=1`
+  failed **2/2**: the inactive control could not receive focus and the live
+  service/proxy view did not poll new binding truth.
+- Focused Vitest GREEN passed **4 files / 32 tests** after the fixes.
+- Final `corepack pnpm@11.15.0 conformance:phase16` passed **9 files / 41
+  tests**, including the unchanged deterministic transcript.
+- Final `corepack pnpm@11.15.0 measure:phase16` returned **PASS**: 2 agents, 2
+  worktrees, 2 tasks, 2 interests, 18 events, 22,703-byte snapshot, 507-byte
+  candidate diff, 62-byte inert message, zero absolute-path leakage, and zero
+  owned processes after cancellation.
+- Final focused Playwright passed **2/2**. It covers the fixture accessibility
+  journey plus the built live Fastify/Vite proxy, repeated polling, maximum one
+  in-flight snapshot request, live UI update, focusable/no-dispatch inactive
+  controls, and polling cleanup after unmount.
+- `corepack pnpm@11.15.0 format:check` — PASS.
+- `corepack pnpm@11.15.0 lint` — PASS.
+- `corepack pnpm@11.15.0 typecheck` — PASS, **38/38 Turbo tasks**.
+- `corepack pnpm@11.15.0 build` — PASS, **20/20 Turbo tasks**; startup entry
+  399.41 kB and the lazy Phase 16 panel 25.95 kB.
+- `git diff --check` — run after this appendix and final formatting.
+
+### Disclosed tradeoffs
+
+- Production snapshot GET remains available without the two Git-boundary
+  variables so the browser can show truthful unavailable/uninitialized state;
+  all production mutation and reconciliation are refused until both are valid.
+- The live view uses bounded one-second polling rather than a new subscription
+  transport. Requests never overlap and unmount aborts the active request and
+  clears the timer.
+- Presentation exposes only bounded opaque IDs and repository-relative display
+  paths. Raw candidate diffs and absolute worktree paths remain server-only.
+
+### Changed files
+
+- `PHASE_16_REPORT.md`
+- `apps/local-server/src/coordination-production-config.ts`
+- `apps/local-server/src/coordination-service.ts`
+- `apps/local-server/src/index.ts`
+- `apps/local-server/test/phase16-coordination-api.test.ts`
+- `apps/local-server/test/phase16-coordination-corrections.test.ts`
+- `apps/local-server/test/phase16-coordination-production-config.test.ts`
+- `apps/web/e2e/phase16-coordination-journey.spec.ts`
+- `apps/web/src/coordination/CoordinationPanel.tsx`
+- `apps/web/src/coordination/coordination-fixtures.ts`
+- `apps/web/test/phase16-coordination-ui.test.tsx`
+- `docs/PHASE_16_IMPLEMENTATION_CONTRACT.md`
+- `package.json`
+- `packages/multi-agent-coordination/src/index.ts`
+- `packages/multi-agent-coordination/test/protocol.test.ts`
+- `playwright.config.ts`
+- `tooling/scripts/phase16-fixture.ts`
+
+The worktree remains uncommitted. This correction did not launch or configure
+Hermes or OpenClaw, add a third project agent, touch another worktree, use a
+public service, expose secrets, merge, push, publish, or claim the Phase 16
+operator-acceptance gate.
