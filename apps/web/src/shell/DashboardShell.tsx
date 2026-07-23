@@ -45,6 +45,11 @@ const Phase14JourneyPanel = lazy(async () => {
   return { default: module.Phase14JourneyPanel };
 });
 
+const CoordinationPanelLoader = lazy(async () => {
+  const module = await import("../coordination/CoordinationPanel.js");
+  return { default: module.CoordinationPanelLoader };
+});
+
 export function DashboardShell({
   profile,
   previousProfile,
@@ -328,6 +333,20 @@ export function DashboardShell({
           )}
           {activePanel === "Agents" && (
             <div className="stacked-panels">
+              {(fixtureValue === null ||
+                fixtureValue === "phase16-coordination") && (
+                <Suspense
+                  fallback={
+                    <section className="panel-state" role="status">
+                      Loading Phase 16 coordination truth…
+                    </section>
+                  }
+                >
+                  <CoordinationPanelLoader
+                    fixture={fixtureValue === "phase16-coordination"}
+                  />
+                </Suspense>
+              )}
               <AgentSessionPanel
                 enabled={agentSessionsEnabled}
                 {...(fixtureValue === "phase12-session" ||
@@ -435,7 +454,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 14 approved edit, test, and loopback preview</span>
+        <span>Phase 16 two-agent coordination · manual merge approval</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>

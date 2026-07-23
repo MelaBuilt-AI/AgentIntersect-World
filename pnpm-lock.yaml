@@ -7,6 +7,9 @@ settings:
 importers:
   .:
     devDependencies:
+      "@agentintersect-world/multi-agent-coordination":
+        specifier: workspace:*
+        version: link:packages/multi-agent-coordination
       "@agentintersect-world/renderer-r3f":
         specifier: workspace:*
         version: link:packages/renderer-r3f
@@ -94,6 +97,9 @@ importers:
       "@agentintersect-world/config":
         specifier: workspace:*
         version: link:../../packages/config
+      "@agentintersect-world/multi-agent-coordination":
+        specifier: workspace:*
+        version: link:../../packages/multi-agent-coordination
       "@agentintersect-world/navigation":
         specifier: workspace:*
         version: link:../../packages/navigation
@@ -145,6 +151,9 @@ importers:
       yjs:
         specifier: 13.6.31
         version: 13.6.31
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
     devDependencies:
       "@types/ws":
         specifier: 8.18.1
@@ -158,6 +167,9 @@ importers:
       "@agentintersect-world/config":
         specifier: workspace:*
         version: link:../../packages/config
+      "@agentintersect-world/multi-agent-coordination":
+        specifier: workspace:*
+        version: link:../../packages/multi-agent-coordination
       "@agentintersect-world/renderer-r3f":
         specifier: workspace:*
         version: link:../../packages/renderer-r3f
@@ -213,6 +225,12 @@ importers:
   packages/avatar-system: {}
 
   packages/config: {}
+
+  packages/multi-agent-coordination:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
 
   packages/navigation: {}
 

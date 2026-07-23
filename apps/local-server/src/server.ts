@@ -100,6 +100,8 @@ import { registerPhase14Routes } from "./phase14-routes.js";
 import type { Phase14Service } from "./phase14-service.js";
 import type { VoiceService } from "./voice-service.js";
 import { registerVoiceRoutes } from "./voice-routes.js";
+import type { CoordinationService } from "./coordination-service.js";
+import { registerCoordinationRoutes } from "./coordination-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -120,6 +122,7 @@ export type LocalServer = FastifyInstance & {
   readonly worldActionService?: WorldActionService;
   readonly phase14Service?: Phase14Service;
   readonly voiceService?: VoiceService;
+  readonly coordinationService?: CoordinationService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -153,6 +156,7 @@ export type LocalServerOptions = {
     | readonly WorldActionProposalResult[];
   readonly phase14Service?: Phase14Service;
   readonly voiceService?: VoiceService;
+  readonly coordinationService?: CoordinationService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -257,6 +261,7 @@ export function createLocalServer(
   server.decorate("worldActionService", options.worldActionService);
   server.decorate("phase14Service", options.phase14Service);
   server.decorate("voiceService", options.voiceService);
+  server.decorate("coordinationService", options.coordinationService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -271,6 +276,7 @@ export function createLocalServer(
     presentationService.close();
     await codeGraphService.close();
     await options.phase14Service?.dispose();
+    await options.coordinationService?.dispose();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -369,6 +375,11 @@ export function createLocalServer(
       registerPhase14Routes(server, options.phase14Service);
     if (options.voiceService)
       registerVoiceRoutes(server, options.voiceService, { success, failure });
+    if (options.coordinationService)
+      registerCoordinationRoutes(server, options.coordinationService, {
+        success,
+        failure,
+      });
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
       const correlationId = correlationFor(request);

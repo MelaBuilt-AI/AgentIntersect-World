@@ -21,6 +21,7 @@
     "@agentintersect-world/agent-session-protocol": "workspace:*",
     "@agentintersect-world/agentintersect-client": "workspace:*",
     "@agentintersect-world/config": "workspace:*",
+    "@agentintersect-world/multi-agent-coordination": "workspace:*",
     "@agentintersect-world/observability": "workspace:*",
     "@agentintersect-world/navigation": "workspace:*",
     "@agentintersect-world/persistence": "workspace:*",
@@ -37,6 +38,7 @@
     "lib0": "0.2.117",
     "ws": "8.21.1",
     "y-protocols": "1.0.7",
-    "yjs": "13.6.31"
+    "yjs": "13.6.31",
+    "zod": "4.4.3"
   }
 }

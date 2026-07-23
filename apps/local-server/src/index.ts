@@ -38,6 +38,7 @@ import {
 import { Phase14Service } from "./phase14-service.js";
 import { WhisperCliProvider } from "@agentintersect-world/voice/node";
 import { VoiceService, VoiceStore } from "./voice-service.js";
+import { CoordinationService } from "./coordination-service.js";
 
 const config = (() => {
   try {
@@ -151,12 +152,21 @@ if (config !== undefined) {
         ),
       })
     : undefined;
+  const coordinationService = new CoordinationService({
+    directory: path.join(
+      config.presentationSync.dataDir,
+      "..",
+      "phase16",
+      "coordination",
+    ),
+  });
   const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
     ...(evidenceService ? { evidenceService } : {}),
     phase14Service,
+    coordinationService,
     ...(voiceService ? { voiceService } : {}),
     ...(agentSessionGateway
       ? {

@@ -16,6 +16,7 @@
   "dependencies": {
     "@agentintersect-world/avatar-system": "workspace:*",
     "@agentintersect-world/config": "workspace:*",
+    "@agentintersect-world/multi-agent-coordination": "workspace:*",
     "@agentintersect-world/renderer-r3f": "workspace:*",
     "@agentintersect-world/sync-yjs": "workspace:*",
     "@agentintersect-world/ui": "workspace:*",

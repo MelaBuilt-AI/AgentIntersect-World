@@ -23,9 +23,18 @@ export const HealthResponseSchema = z
 
 export const ApiErrorCodeSchema = z.enum([
   "validation",
+  "invalid",
   "unauthorized",
   "forbidden",
   "conflict",
+  "revision_conflict",
+  "correlation_conflict",
+  "binding_mismatch",
+  "git_refused",
+  "git_failed",
+  "cancelled",
+  "resource_limit",
+  "unavailable",
   "not_found",
   "authority_unavailable",
   "upstream",
