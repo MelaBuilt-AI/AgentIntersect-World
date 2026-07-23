@@ -113,9 +113,11 @@ After summary generation:
 
 Authoritative sanitized evidence:
 
+The retained private staging summary remains byte-exact at SHA-256 `ae207d3068e6a149a4b0016abd0083d03aef8ec1f832ac44168e75986d747b07`. The repository copy was formatting-normalized after exact-SHA CI correctly enforced the project-wide Prettier gate; parsed JSON equality with the retained staging source was verified before the correction commit.
+
 | Evidence                                                            | SHA-256                                                            |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `artifacts/phase15/stt-provider/benchmark-summary.json`             | `ae207d3068e6a149a4b0016abd0083d03aef8ec1f832ac44168e75986d747b07` |
+| `artifacts/phase15/stt-provider/benchmark-summary.json`             | `066665b18cf08f789e481160ef8ee65b167b336bb936ed94cce858ab96a001e7` |
 | `artifacts/phase15/stt-provider/provenance-manifest.json`           | `d12d1bdc867c455da47d06e44c302e8b00b99c6ed8682b3f74dd78c203b6dc68` |
 | `artifacts/phase15/stt-provider/runtime-inventory.json`             | `cec21291ef72fc23ddfe92ad8bd8ea211eb2bc403356943eb50433b4f529b15d` |
 | `artifacts/phase15/stt-provider/benchmark-fixtures.json`            | `08c9f45ad2c1ab63410b40c41eabbf52ab6d999c9c9ffc43f6c79fcfeade51d5` |

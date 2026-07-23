@@ -26,9 +26,7 @@
     "cpu_only": true,
     "hard_timeout_seconds": 10,
     "json_full": true,
-    "namespace_interfaces": [
-      "lo"
-    ],
+    "namespace_interfaces": ["lo"],
     "network_namespace": true,
     "per_output_ceiling_bytes": 1048576,
     "process_per_utterance": true,
