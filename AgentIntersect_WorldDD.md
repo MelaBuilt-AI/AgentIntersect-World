@@ -1,7 +1,7 @@
 ---
 title: AgentIntersect World — Canonical Product and Implementation Design
 created: 2026-07-19
-updated: 2026-07-22
+updated: 2026-07-23
 type: concept
 tags:
   [project, coding, ai-agent, decision, embodied-agents, spatial-development]
@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**. The bounded artifact gate and implementation report verify immutable runtime/model hashes, safe inventory, exact-provider execution, deterministic browser/media behavior, canonical authority, accessibility, performance, recovery, and cleanup. This host exposes no usable physical microphone, so the frozen user-accepted physical-microphone journey remains pending and Phase 15 is not sealed complete. Artifacts remain under private `.staging` storage. Provider promotion/activation, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, and Phase 16+ remain closed.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**. The bounded artifact gate and implementation report verify immutable runtime/model hashes, safe inventory, exact-provider execution, deterministic browser/media behavior, canonical authority, accessibility, performance, recovery, and cleanup. This host exposes no usable physical microphone, so the frozen user-accepted physical-microphone journey remains pending and Phase 15 is not sealed complete. Artifacts remain under private `.staging` storage. On 2026-07-23 the user selected Phase 16 next while explicitly instructing that it not start; Phase 16 is **SELECTED NEXT / NOT AUTHORIZED TO START / NOT STARTED**. Provider promotion/activation, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 16 planning/implementation, and Phase 17+ remain closed.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2806,7 +2806,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 15 — Voice, expressive presence, and consentful agent identity
 
-**Selection status:** IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED. The user approved and froze the ten decision classes and exact immutable runtime/model/download pin in `docs/PHASE_15_SCOPE.md` and `docs/PHASE_15_STT_PROVIDER_PIN.md`, accepted the separately verified artifact result, and explicitly authorized exactly one bounded Phase 15 implementation. `PHASE_15_REPORT.md` records the completed candidate, independent parent corrections, exact-provider/browser/performance/cleanup proof, and the honest host microphone limitation. The verified artifacts remain staged and unactivated outside the repository; physical-microphone user acceptance, phase completion, provider promotion or activation, release, Phase 16+, original-AgentIntersect operations, and Hermes-profile changes remain closed parent/user gates.
+**Selection status:** IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED. The user approved and froze the ten decision classes and exact immutable runtime/model/download pin in `docs/PHASE_15_SCOPE.md` and `docs/PHASE_15_STT_PROVIDER_PIN.md`, accepted the separately verified artifact result, and explicitly authorized exactly one bounded Phase 15 implementation. `PHASE_15_REPORT.md` records the completed candidate, independent parent corrections, exact-provider/browser/performance/cleanup proof, and the honest host microphone limitation. The verified artifacts remain staged and unactivated outside the repository. On 2026-07-23 the user chose to retain the physical-microphone journey as an explicit pending TODO while selecting Phase 16 next; this does not seal Phase 15, waive its exit gate, activate the provider, or authorize Phase 16 planning or implementation.
 
 **Objective:** Add natural voice conversation and richer expressive presence without changing authority, leaking identity, or pretending presentation equals emotion.
 
@@ -2826,11 +2826,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Voice is optional, consentful, interruptible, captioned, and routes through the same persistent session and authority as text; external provider exposure is explicit; no voice/persona data enters presentation sync beyond approved fields; activity expression remains truthful and color-independent.
 
-**Exit gate:** Pending only one user-approved physical-microphone push-to-talk conversation and provider/privacy disclosure on a host that exposes a browser capture endpoint. Deterministic fixture, exact-provider, canonical-send, TTS/barge-in, recovery, accessibility, performance, cleanup, and fresh-copy implementation proof are green in `PHASE_15_REPORT.md`, but do not substitute for that physical-microphone acceptance. Phase 16 requires separate authorization.
+**Exit gate:** Pending only one user-approved physical-microphone push-to-talk conversation and provider/privacy disclosure on a host that exposes a browser capture endpoint. Deterministic fixture, exact-provider, canonical-send, TTS/barge-in, recovery, accessibility, performance, cleanup, and fresh-copy implementation proof are green in `PHASE_15_REPORT.md`, but do not substitute for that physical-microphone acceptance. The user explicitly carried this gate forward as a pending TODO while selecting Phase 16 next; Phase 15 remains unsealed and Phase 16 remains separately unauthorized and not started.
 
 **Risks:** Latency can make presence feel worse and providers may retain data. Prefer push-to-talk/local STT, display latency/provider truth, keep text canonical, and never block the core product on voice.
 
 ## Phase 16 — Multi-agent coordination, isolated worktrees, and embodied handoffs
+
+**Selection status:** SELECTED NEXT / NOT AUTHORIZED TO START / NOT STARTED. This records ordering only. No Phase 16 scope freeze, worker/agent selection, worktree, branch, code, test, or implementation activity is authorized by this selection.
 
 **Objective:** Let one operator collaborate with multiple persistent agents without invisible file collisions, ambiguous ownership, or untraceable cross-agent instructions.
 

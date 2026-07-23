@@ -139,6 +139,8 @@ No runtime/model binary, raw WAV/audio, raw provider payload, credential, absolu
 
 1. On a host with a real browser-visible microphone, inspect the disclosure and complete one physical push-to-talk utterance through edit/send/canonical reply/optional TTS/stop.
 2. The user explicitly accepts that journey and provider/privacy disclosure.
-3. Record the acceptance in project status and seal Phase 15; Phase 16 remains separately gated.
+3. Record the acceptance in project status and seal Phase 15.
 
 Private commit/push and exact-SHA CI may verify this implementation candidate before that user acceptance, but they do not substitute for it or authorize provider activation.
+
+On 2026-07-23 the user chose to leave this clean pushed candidate unsealed with the physical-microphone journey retained as a pending TODO and selected Phase 16 next. Phase 16 remains not authorized and not started; this sequencing decision is not a microphone-acceptance waiver or Phase 15 seal.

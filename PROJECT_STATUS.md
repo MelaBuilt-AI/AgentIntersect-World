@@ -1,10 +1,12 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-22
+Updated: 2026-07-23
 
 ## Current milestone
 
 **Phase 15 — Voice, expressive presence, and consentful agent identity: IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
+
+**Next selected milestone: Phase 16 — Multi-agent coordination, isolated worktrees, and embodied handoffs: SELECTED NEXT / NOT AUTHORIZED TO START / NOT STARTED**
 
 - Frozen decision sheet: `docs/PHASE_15_SCOPE.md`; implementation evidence: `PHASE_15_REPORT.md`; exact provider pin and historical artifact proof: `docs/PHASE_15_STT_PROVIDER_PIN.md`, `docs/PHASE_15_STT_ARTIFACT_REPORT.md`, and `artifacts/phase15/stt-provider/`.
 - The candidate implements one consentful ten-step push-to-talk lane: strict browser capture and PCM bounds, shell-free exact-provider re-attestation/execution/cleanup, editable final transcript, canonical existing-session send, optional capability-detected browser/system TTS with actual opaque voice selection, barge-in, bounded preference/activity recovery, and truthful privacy/provider/device disclosure.
@@ -12,7 +14,8 @@ Updated: 2026-07-22
 - Final post-correction proof is green: literal `pnpm check`; 11/11 architecture; 39/39 Phase 15 conformance; 512/512 Vitest; 41/41 Playwright; production build/smoke; Storybook; no known production vulnerabilities; and fresh-copy verification for 452 project source files with the same 512/41 tests.
 - Exact staged-provider proof matched the expected transcript in `662.074746 ms` at `299,655,168` bytes peak RSS, with exact runtime/model/inventory-file hashes plus every current runtime member's path/hash/size/mode, 53 regular files / 185,119,961 bytes / zero symlinks, and zero residual process, listener, temp root, source WAV, or raw-audio file. A disposable copied-tree shared-library mutation now fails unavailable. The provider remains staged and unactivated outside the repository.
 - First-hand production-built browser/visual proof is green for deterministic capture, in-flight cancel/discard, edit/send/canonical reply, TTS/revocation/stop, genuinely pinned mobile/two-CPU/reduced-motion/forced-colors/no-WebGL operation, zero serious/critical axe violations, and zero visual clipping/overflow. Supplemental Node control microbenchmarks are explicitly non-acceptance evidence rather than mislabeled microphone/STT/TTS timings; none of this is mislabeled as physical-microphone proof.
-- This Windows host exposes only an HDMI output endpoint and no microphone endpoint. WSLg `RDPSource` delivered no samples and blocked; the exact owned probe process pair was terminated/awaited and no WAV remains. One physical-microphone journey and explicit user acceptance therefore remain the sole frozen exit gate; Phase 15 is not sealed complete and Phase 16 has not started.
+- This Windows host exposes only an HDMI output endpoint and no microphone endpoint. WSLg `RDPSource` delivered no samples and blocked; the exact owned probe process pair was terminated/awaited and no WAV remains. One physical-microphone journey and explicit user acceptance therefore remain the sole frozen exit gate; Phase 15 is not sealed complete.
+- On 2026-07-23 the user explicitly chose to leave the clean pushed Phase 15 candidate in that state, carry the physical-microphone journey as a pending TODO, and mark Phase 16 selected next. This is not a Phase 15 acceptance waiver and does not authorize Phase 16 planning or implementation; no Phase 16 work has started.
 - Phase 14 remains complete and sealed with all existing evidence below. The Phase 13 Discord → World continuity path remains FAIL/deferred under waiver, was not retried, and is excluded from Phase 15.
 
 ## Accepted Phase 14 baseline
