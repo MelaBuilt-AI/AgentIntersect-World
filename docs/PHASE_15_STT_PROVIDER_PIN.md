@@ -1,10 +1,10 @@
-# Phase 15 STT Provider Pin Proposal
+# Phase 15 STT Provider Pin
 
-**PROPOSED / PENDING USER APPROVAL / NO DOWNLOAD OR INSTALL AUTHORIZED / IMPLEMENTATION NOT AUTHORIZED**
+**APPROVED 2026-07-22 / ARTIFACTS VERIFIED AND BENCHMARKED / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED**
 
 **Prepared and sources retrieved:** 2026-07-22
 
-This document is an exact provider-selection and provenance proposal for the frozen Phase 15 Decision 3 boundary. It is not an implementation plan, artifact acceptance record, benchmark result, success claim, or authority to download, extract, install, start, benchmark, or integrate any runtime or model.
+This document records the exact approved provider-selection and provenance pin for the frozen Phase 15 Decision 3 boundary. The bounded artifact verification and benchmark are complete in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`. This pin is not Phase 15 product acceptance or authority to activate the provider, modify application code or dependencies, integrate microphone/session/TTS behavior, release, publish, or deploy.
 
 ## Observed target environment
 
@@ -17,15 +17,15 @@ The following machine-specific facts were observed on 2026-07-22 and are selecti
 - `nvidia-smi` unavailable, so the initial baseline must not depend on CUDA or a GPU; and
 - `cmake` unavailable, favoring an official prebuilt runtime for the first bounded slice rather than source compilation.
 
-## Candidate decision
+## Approved candidate decision
 
-Recommend `ggml-org/whisper.cpp` v1.9.1 with the unquantized English `base.en` model for the initial CPU-only English baseline.
+Use `ggml-org/whisper.cpp` v1.9.1 with the unquantized English `base.en` model for the initial CPU-only English baseline.
 
 1. **`ggml-org/whisper.cpp` v1.9.1 — selected.** It has a native CPU path, an official Ubuntu x64 release asset with a GitHub-provided SHA-256 digest, a small runtime surface, an MIT license, and direct `whisper-cli` execution. That shape is suitable for shell-free child execution without a listener.
 2. **`SYSTRAN/faster-whisper` v1.2.1 — not selected for the first slice.** It is MIT-licensed and capable, but its PyPI metadata requires Python 3.9 or newer plus `ctranslate2`, `huggingface-hub`, `tokenizers`, `onnxruntime`, `av`, and `tqdm`. That is a materially larger native/package and provisioning surface. Keep it as a future, separately approved option, especially if GPU needs change.
 3. **Browser `SpeechRecognition` — rejected as the canonical initial STT baseline.** MDN documents that recognition is server-based by default and sends audio to a web service; on-device recognition depends on browser support and browser-managed language packs. That does not provide deterministic local-first provenance. Browser/system `speechSynthesis` remains separately allowed by approved Decision 5 with truthful disclosure.
 
-## Exact proposed runtime pin
+## Exact approved runtime pin
 
 - **Upstream:** `https://github.com/ggml-org/whisper.cpp`
 - **Release/tag:** `v1.9.1`
@@ -41,7 +41,7 @@ Recommend `ggml-org/whisper.cpp` v1.9.1 with the unquantized English `base.en` m
 - **GitHub-provided asset digest:** `sha256:f3bf3b4369a99b54665b0f19b88483b30de27f25963b0414235dea03198515c5`
 - **Exact URL:** `https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.1/whisper-bin-ubuntu-x64.tar.gz`
 
-The release workflow at the pinned tag copies `LICENSE` into `build/bin` and archives the complete `build/bin` directory. No extracted per-file inventory is claimed here. Activation must remain blocked until a separately approved download is safely inventoried and every file proposed for activation is hashed.
+The release workflow at the pinned tag copies `LICENSE` into `build/bin` and archives the complete `build/bin` directory. The approved download was safely inventoried and every extracted/materialized file is recorded in `artifacts/phase15/stt-provider/runtime-inventory.json`; activation remains blocked pending user acceptance of the artifact result and separate implementation authorization.
 
 Pinned source evidence:
 
@@ -49,7 +49,7 @@ Pinned source evidence:
 - `.github/workflows/release.yml`: SHA-256 `007d14f3212f1ec99d7608a5ed08ea8d013d346dc120475702d83f7c94823eed`
 - `README.md`: SHA-256 `e0eeb79e3e9feea2623111082a1a3e6260e71894eab0132ef394c1f7ae225ce9`
 
-## Exact proposed model pin
+## Exact approved model pin
 
 - **Repository:** `https://huggingface.co/ggerganov/whisper.cpp`
 - **Immutable revision:** `5359861c739e955e79d9a303bcbc70fb988958b1`
@@ -64,26 +64,26 @@ This is an English-only initial baseline. If non-English speech is requested, th
 
 Use the unquantized `base.en` model to keep the first quality baseline straightforward. Any smaller quantized fallback requires separate evidence and approval.
 
-## Proposed provisioning and download policy
+## Approved provisioning and download policy
 
-This policy remains proposed and is not download, extraction, installation, inventory, benchmark, or activation authority.
+This policy authorized the completed bounded artifact verification only. It does not authorize future automatic downloads, provider activation, product implementation, release, publication, or deployment.
 
 - No automatic, implicit, browser-triggered, startup-triggered, CI-triggered, or runtime download.
 - No Hugging Face token or login, package manager, model-hub SDK, Git LFS clone, arbitrary URL, latest tag, mutable branch, redirect-derived revision, or silent fallback.
-- After separate approval, permit only the two exact HTTPS asset/model URLs recorded above.
+- The completed bounded verification fetched only the two exact HTTPS asset/model URLs recorded above. Any future refetch requires the same immutable URLs, sizes, and hashes; there is no runtime network fallback.
 - Download into restrictive `.partial` temporary files under `${XDG_DATA_HOME:-$HOME/.local/share}/agentintersect-world/providers/whisper.cpp/v1.9.1/.staging/`, outside the repository. Keep the model under a revision-named child directory.
 - Require the runtime archive to be exactly `9,379,235` bytes and the model to be exactly `147,964,211` bytes before activation. Compute SHA-256 locally and require exact equality before extraction or use.
-- Before extracting the runtime archive, reject absolute paths, `..` traversal, symlinks, hard links, devices, FIFOs, duplicate normalized paths, paths longer than 240 characters, more than 128 regular files, more than 128 MiB of expanded regular-file content, and unexpected root placement.
+- Before extracting the runtime archive, reject absolute paths, `..` traversal, hard links, devices, FIFOs, duplicate normalized paths, paths longer than 240 characters, more than 128 final regular files, more than 128 MiB of final expanded regular-file content, and unexpected root placement. Reject every symlink except the eight exact relative same-directory shared-library aliases recorded in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`; materialize those aliases as verified private regular-file copies and retain zero symlinks on disk.
 - Extract only into a new versioned directory. Never overlay an existing provider.
-- Inventory and hash every extracted regular file. Keep activation blocked until the exact inventory and all activated-file hashes are recorded and separately accepted.
-- Use atomic rename only after every check passes. On any failure, delete partial and staging material, report the capability as unavailable, and do not touch the previous accepted provider.
+- Inventory and hash every extracted or materialized regular file. The accepted extraction shape is 35 archive regular files plus eight materialized aliases, 43 final regular files, 27,751,742 bytes, zero symlinks, and inventory SHA-256 `cec21291ef72fc23ddfe92ad8bd8ea211eb2bc403356943eb50433b4f529b15d`. Keep activation blocked until the artifact result and later implementation are separately accepted.
+- Use atomic rename only after every check passes and activation is separately authorized. On any failure, delete partial and staging material, report the capability as unavailable, and do not touch a previous accepted provider. The verified artifacts remain in `.staging`; no activation rename occurred.
 - Store a provenance manifest containing upstream URLs, immutable revisions, byte sizes, hashes, license hash, retrieval timestamp, and verification result. Store no credentials or raw audio.
 - Runtime operation must be offline, with no network fallback. Network egress must be unnecessary after provisioning.
 - Uninstall may remove only the owned versioned provider/model directory after explicit approval; it must never delete an arbitrary path.
 
-## Proposed execution contract
+## Approved execution contract
 
-This contract records a future bounded execution shape. It is not implementation or process-start authority.
+This contract records the bounded execution shape proven by the artifact benchmark. It is not application implementation or future process-start authority.
 
 - Use only `whisper-cli`. Do not start `whisper-server` or any provider listener.
 - Spawn shell-free with a fixed argument allowlist grounded in the pinned v1.9.1 CLI: model path, one input file, English language, bounded thread count, JSON-full output, no uncontrolled command construction.
@@ -92,13 +92,13 @@ This contract records a future bounded execution shape. It is not implementation
 - Permit one active transcription and at most one queued transcription, an eight-thread ceiling on this host, a hard timeout aligned with the approved 10-second STT ceiling, at most 1 MiB of combined captured stdout/stderr/JSON output, process-tree termination, and truthful unavailable, timeout, queue-full, and cancelled states.
 - Use a restrictive app-owned temporary directory and file. Accept no user-supplied paths, arbitrary flags, or shell. Retain no raw audio, and guarantee cleanup after success, failure, cancellation, or restart.
 - Persist only approved redacted operation summaries. A transcript may persist only through the existing accepted Hermes text-send path.
-- Do not claim that the approved latency or resource targets pass. A later, separately authorized provisioning benchmark must prove or reject this pin. Never weaken thresholds to make it pass.
+- The separately authorized benchmark proved three CPU-only process-per-utterance runs in 0.71–0.82 seconds with peak RSS 295,792 KiB, all below the frozen 2-second target and 10-second hard ceiling. Aggregate synthetic-fixture WER was `0.024390243902439025` with one substitution across 41 reference words. No WER threshold was predeclared, so the exact error is reported without retroactive gating. Never weaken thresholds to make a later implementation pass.
 
 ## Separate approval gates
 
-1. **Current gate:** approve, revise, or reject this immutable provider/model/download proposal.
-2. **If approved:** the next allowed step is only bounded artifact download, safe inventory, hash verification, offline smoke/quality/performance benchmarking, and a report. It is not Phase 15 product implementation.
-3. **Later gate:** Phase 15 implementation remains subject to separate explicit authorization after the artifacts and benchmark are accepted.
+1. **Provider pin:** approved on 2026-07-22.
+2. **Artifact gate:** bounded download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, cleanup, and report completed. Provider activation remains blocked.
+3. **Current gate:** explicit user acceptance of `docs/PHASE_15_STT_ARTIFACT_REPORT.md` plus separate authorization for the bounded Phase 15 implementation.
 
 ## Primary sources
 

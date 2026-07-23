@@ -4,11 +4,12 @@ Updated: 2026-07-22
 
 ## Current milestone
 
-**Phase 15 — Voice, expressive presence, and consentful agent identity: SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PROVIDER PIN PROPOSED AND PENDING USER APPROVAL / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED**
+**Phase 15 — Voice, expressive presence, and consentful agent identity: SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PIN APPROVED / ARTIFACT GATE PASS PENDING USER ACCEPTANCE / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED**
 
 - Frozen decision sheet: `docs/PHASE_15_SCOPE.md`. The user approved and froze its ten decision classes as written on 2026-07-22; that approval is not Phase 15 implementation authority.
-- Exact provider-selection proposal: `docs/PHASE_15_STT_PROVIDER_PIN.md`. It proposes immutable `whisper.cpp` v1.9.1 and unquantized `base.en` pins plus bounded provisioning/execution policy. The pin remains separately proposed and pending user approval; no runtime/model download, extraction, installation, process start, benchmark, or product implementation is authorized.
-- This planning/provenance-only update began from clean private `main` at `bbc2ea32cc40bac609ad20d0c8e85b9870888589`. No implementation, dependency, model/runtime download, provider process, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, or Phase 16+ work occurred.
+- Approved provider pin: `docs/PHASE_15_STT_PROVIDER_PIN.md`. It fixes immutable `whisper.cpp` v1.9.1 and unquantized English `base.en` artifacts plus a shell-free, CPU-only, offline execution contract. The bounded verification report is `docs/PHASE_15_STT_ARTIFACT_REPORT.md`; authoritative sanitized evidence is under `artifacts/phase15/stt-provider/`.
+- Artifact verification passed on the observed Ryzen/WSL2 host: exact runtime/model hashes; 43-file, 27,751,742-byte no-symlink inventory; three offline namespace-isolated runs in 0.71–0.82 seconds; one substitution across 41 reference words; peak RSS 295,792 KiB; no retained audio/raw payload/partial/process. Verified artifacts remain in private `.staging` storage outside the repository with activation blocked pending user acceptance and separate implementation authorization.
+- The frozen-scope/provider planning marker is clean private `main` at `7e18c35bac712d8260af6c74df07ae655e7af852`, exact-SHA run `29968732061`, job `89085796768`, green with zero annotations. No Phase 15 product code, dependency/configuration change, microphone or Hermes integration, provider listener, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, or Phase 16+ work occurred during artifact verification.
 - CI maintenance completed on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`: exact-SHA GitHub Actions run `29966798446`, job `89079968383`, succeeded with zero annotations after the official Node-24-native `actions/checkout@v7` and `actions/setup-node@v7` upgrades.
 - Phase 14 remains complete and sealed with all existing evidence below. The Phase 13 Discord → World continuity path remains FAIL/deferred under waiver, was not retried, and is excluded from Phase 15.
 
@@ -167,15 +168,15 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Next milestone
 
-**Phase 15 — SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PROVIDER PIN PROPOSED AND PENDING USER APPROVAL / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED**
+**Phase 15 — SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PIN APPROVED / ARTIFACT GATE PASS PENDING USER ACCEPTANCE / PROVIDER NOT ACTIVATED / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED**
 
-`docs/PHASE_15_SCOPE.md` is frozen as written following explicit user approval on 2026-07-22. `docs/PHASE_15_STT_PROVIDER_PIN.md` is a separate immutable runtime/model/download proposal that remains pending user approval. Approval of that proposal would authorize only the separately bounded artifact-verification and benchmark step described there, not Phase 15 product implementation. No Phase 15 implementation may begin without later separate explicit authorization.
+`docs/PHASE_15_SCOPE.md` is frozen as written following explicit user approval on 2026-07-22. The immutable runtime/model/download pin in `docs/PHASE_15_STT_PROVIDER_PIN.md` is approved, and the separately authorized artifact gate passes with evidence in `docs/PHASE_15_STT_ARTIFACT_REPORT.md` and `artifacts/phase15/stt-provider/`. The provider remains unactivated outside the repository pending user acceptance. No Phase 15 implementation may begin without later separate explicit authorization.
 
 Phase 14 remains sealed and accepted: the user froze and explicitly authorized its bounded implementation on 2026-07-22, and `docs/PHASE_14_SCOPE.md` remains its controlling contract. The complete slice, independent parent proof, retained evidence, cleanup, private push, and exact-SHA GitHub Actions run `29963116363` are green.
 
 The Phase 13 exact-root Discord → World continuation remains FAIL/deferred as a separate backlog item and was not retried. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
 
-Runtime/model download, extraction, installation, provider process start, benchmarking, dependency or configuration change, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 15 implementation, and Phase 16+ remain prohibited without their required separate authorization.
+Future runtime/model refetch, provider activation, process start outside the accepted benchmark, additional benchmarking, dependency or configuration change, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 15 implementation, and Phase 16+ remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 

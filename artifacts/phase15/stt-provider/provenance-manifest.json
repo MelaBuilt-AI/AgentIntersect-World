@@ -1,0 +1,43 @@
+{
+  "activation": "blocked-pending-user-acceptance-and-separate-implementation-authorization",
+  "archive_policy": {
+    "actual_expanded_bytes": 27751742,
+    "actual_regular_files": 43,
+    "approved_aliases_materialized_as_regular_files": 8,
+    "archive_regular_files": 35,
+    "max_expanded_bytes": 134217728,
+    "max_path_chars": 240,
+    "max_regular_files": 128,
+    "root": "whisper-bin-ubuntu-x64",
+    "symlinks_retained": 0
+  },
+  "benchmark": {
+    "fixture_evidence_sha256": "08c9f45ad2c1ab63410b40c41eabbf52ab6d999c9c9ffc43f6c79fcfeade51d5",
+    "summary_path": ".staging/evidence/benchmark-summary.json",
+    "summary_sha256": "ae207d3068e6a149a4b0016abd0083d03aef8ec1f832ac44168e75986d747b07"
+  },
+  "created_at": "2026-07-23T00:52:46.623534+00:00",
+  "credentials_stored": false,
+  "model": {
+    "name": "ggml-base.en.bin",
+    "sha256": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002",
+    "size": 147964211,
+    "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.en.bin"
+  },
+  "model_path": ".staging/model/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.en.bin",
+  "raw_audio_stored": false,
+  "runtime": {
+    "name": "whisper-bin-ubuntu-x64.tar.gz",
+    "sha256": "f3bf3b4369a99b54665b0f19b88483b30de27f25963b0414235dea03198515c5",
+    "size": 9379235,
+    "url": "https://github.com/ggml-org/whisper.cpp/releases/download/v1.9.1/whisper-bin-ubuntu-x64.tar.gz"
+  },
+  "runtime_inventory_sha256": "cec21291ef72fc23ddfe92ad8bd8ea211eb2bc403356943eb50433b4f529b15d",
+  "schema": "aiw.phase15-stt-artifact-verification/1",
+  "status": "artifact-benchmark-pass-not-activated-pending-user-acceptance",
+  "whisper_cli": {
+    "path": ".staging/runtime-extracted/whisper-bin-ubuntu-x64/whisper-cli",
+    "sha256": "427dfb509f2c04d0f01c101978b5666102c6f7e3abf2a236452db5939f5b533a",
+    "size": 976312
+  }
+}

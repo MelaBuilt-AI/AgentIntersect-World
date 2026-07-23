@@ -1,0 +1,214 @@
+{
+  "aggregate": {
+    "all_outputs_within_ceiling": true,
+    "all_under_10_second_hard_ceiling": true,
+    "all_under_2_second_target": true,
+    "deletions": 0,
+    "errors": 1,
+    "fixtures": 3,
+    "insertions": 0,
+    "max_elapsed_seconds": 0.82,
+    "max_rss_kb": 295792,
+    "quality_threshold": "No WER threshold was predeclared; exact errors are reported without weakening or retroactive gating.",
+    "reference_words": 41,
+    "substitutions": 1,
+    "wer": 0.024390243902439025
+  },
+  "cleanup": {
+    "provider_activation": "blocked-pending-user-acceptance-and-separate-implementation-authorization",
+    "raw_provider_payloads_retained": false,
+    "wav_files_retained": false,
+    "whisper_processes_after_run": 0,
+    "windows_raw_files_retained": false
+  },
+  "created_at": "2026-07-23T00:57:51.669884+00:00",
+  "execution_contract": {
+    "cpu_only": true,
+    "hard_timeout_seconds": 10,
+    "json_full": true,
+    "namespace_interfaces": [
+      "lo"
+    ],
+    "network_namespace": true,
+    "per_output_ceiling_bytes": 1048576,
+    "process_per_utterance": true,
+    "processors": 1,
+    "provider_listener": false,
+    "temperature_fallback": false,
+    "threads": 8
+  },
+  "hardware": {
+    "architecture": "x86_64",
+    "execution_backend": "CPU-only, whisper.cpp auto-selected libggml-cpu-zen4.so",
+    "logical_cpus": 16,
+    "mem_total_kb": 16175184,
+    "model_name": "AMD Ryzen 7 7800X3D 8-Core Processor"
+  },
+  "limitations": [
+    "Synthetic installed Windows SAPI voices are deterministic smoke/quality fixtures, not first-hand microphone acceptance.",
+    "Three runs are insufficient for percentile claims.",
+    "The 30-second fixture pads the David utterance with silence to exercise the full accepted duration ceiling.",
+    "Phase 15 browser capture, partial transcript states, edit/send/cancel, session re-attestation, and TTS are not implemented or tested here."
+  ],
+  "model": {
+    "language": "en",
+    "multilingual": false,
+    "name": "ggml-base.en.bin",
+    "revision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+    "sha256": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002"
+  },
+  "runs": [
+    {
+      "cpu_percent": "562%",
+      "deletions": 0,
+      "elapsed_seconds": 0.82,
+      "errors": 0,
+      "exit_status": 0,
+      "expected_text": "The quick brown fox jumps over the lazy dog. Local speech stays on this computer.",
+      "input": {
+        "bits_per_sample": 16,
+        "bytes": 199870,
+        "channels": 1,
+        "codec": "pcm_s16le",
+        "duration_seconds": 6.2435,
+        "sample_rate_hz": 16000,
+        "sha256": "e81421443ce5107dfcad74ddd31109e666ffbcc78c781900b9d4b8874eaf6cc7"
+      },
+      "insertions": 0,
+      "max_rss_kb": 291960,
+      "name": "david-clean",
+      "raw_output_evidence": {
+        "json": {
+          "bytes": 5313,
+          "sha256": "148783294b4a4ca2838a87b419edbbe608570bdde8e107284efb58779c9ab488"
+        },
+        "stderr": {
+          "bytes": 562,
+          "sha256": "f986dec2e5977e4b01491d52a960386bb14c1c271c5574c6137bd78a49bf612e"
+        },
+        "stdout": {
+          "bytes": 83,
+          "sha256": "87653eb12236adfedfbf87f8956df69277f5db87944bf96e1881811730851bbb"
+        },
+        "time": {
+          "bytes": 124,
+          "sha256": "36b6cbb257e728dcc32fe8df3d9e1e5d7f7c1f9c94a08f49315ce5f3f1c9542a"
+        }
+      },
+      "raw_outputs_deleted_after_summary": true,
+      "reference_words": 15,
+      "substitutions": 0,
+      "system_seconds": 0.33,
+      "transcript": "The quick brown fox jumps over the lazy dog. Local speech stays on this computer.",
+      "under_10_second_hard_ceiling": true,
+      "under_2_second_target": true,
+      "user_seconds": 4.27,
+      "voice": "Microsoft David Desktop",
+      "wer": 0.0
+    },
+    {
+      "cpu_percent": "581%",
+      "deletions": 0,
+      "elapsed_seconds": 0.71,
+      "errors": 1,
+      "exit_status": 0,
+      "expected_text": "Typed text remains authoritative. Voice input must be reviewed before sending.",
+      "input": {
+        "bits_per_sample": 16,
+        "bytes": 189952,
+        "channels": 1,
+        "codec": "pcm_s16le",
+        "duration_seconds": 5.933563,
+        "sample_rate_hz": 16000,
+        "sha256": "3eca0de0dd895ed7ee0221cc680693d2540cdb8a9d3242ed4feead2dd593a353"
+      },
+      "insertions": 0,
+      "max_rss_kb": 292016,
+      "name": "zira-clean",
+      "raw_output_evidence": {
+        "json": {
+          "bytes": 4376,
+          "sha256": "537b4987d9e6209d553582aadf0dd72fa19f29d9966a1231b2cc420ea923efe8"
+        },
+        "stderr": {
+          "bytes": 560,
+          "sha256": "79f9cef7483934e4361e0a4b0edddfde446432cb5df3d4dceb9dfefd9eebdaaf"
+        },
+        "stdout": {
+          "bytes": 79,
+          "sha256": "515ad5324a9721458a25314e66cc7ce7d948918cf200aac86377676f3c9fb84c"
+        },
+        "time": {
+          "bytes": 124,
+          "sha256": "766c28fafdbc06a9a7cf0ecca6afd1f67f2f1568bffca95222479a48f458a3fe"
+        }
+      },
+      "raw_outputs_deleted_after_summary": true,
+      "reference_words": 11,
+      "substitutions": 1,
+      "system_seconds": 0.23,
+      "transcript": "Type text remains authoritative. Voice input must be reviewed before sending.",
+      "under_10_second_hard_ceiling": true,
+      "under_2_second_target": true,
+      "user_seconds": 3.92,
+      "voice": "Microsoft Zira Desktop",
+      "wer": 0.09090909090909091
+    },
+    {
+      "cpu_percent": "607%",
+      "deletions": 0,
+      "elapsed_seconds": 0.71,
+      "errors": 0,
+      "exit_status": 0,
+      "expected_text": "The quick brown fox jumps over the lazy dog. Local speech stays on this computer.",
+      "input": {
+        "bits_per_sample": 16,
+        "bytes": 960078,
+        "channels": 1,
+        "codec": "pcm_s16le",
+        "duration_seconds": 30.0,
+        "sample_rate_hz": 16000,
+        "sha256": "10617f64e5729cb27f10b0eba10b5ca7debb28e40e021c4815aafbc66b951a6a"
+      },
+      "insertions": 0,
+      "max_rss_kb": 295792,
+      "name": "david-padded-30s",
+      "raw_output_evidence": {
+        "json": {
+          "bytes": 5336,
+          "sha256": "a7d9990182d6178353b1ee4e26702ce430f4d17e74e56d0a41b73aee8098162d"
+        },
+        "stderr": {
+          "bytes": 572,
+          "sha256": "12f1c952447405093d13fe95e5a9fb919e8a23783bad48cd2962a05265d20142"
+        },
+        "stdout": {
+          "bytes": 83,
+          "sha256": "87653eb12236adfedfbf87f8956df69277f5db87944bf96e1881811730851bbb"
+        },
+        "time": {
+          "bytes": 124,
+          "sha256": "d08de39db9b65fa8edf87c473f8a111789a8c14c1c47b7230c087c33bfff2032"
+        }
+      },
+      "raw_outputs_deleted_after_summary": true,
+      "reference_words": 15,
+      "substitutions": 0,
+      "system_seconds": 0.26,
+      "transcript": "The quick brown fox jumps over the lazy dog. Local speech stays on this computer.",
+      "under_10_second_hard_ceiling": true,
+      "under_2_second_target": true,
+      "user_seconds": 4.09,
+      "voice": "Microsoft David Desktop",
+      "wer": 0.0
+    }
+  ],
+  "runtime": {
+    "archive_sha256": "f3bf3b4369a99b54665b0f19b88483b30de27f25963b0414235dea03198515c5",
+    "commit": "f049fff95a089aa9969deb009cdd4892b3e74916",
+    "version": "whisper.cpp v1.9.1",
+    "whisper_cli_sha256": "427dfb509f2c04d0f01c101978b5666102c6f7e3abf2a236452db5939f5b533a"
+  },
+  "schema": "aiw.phase15-stt-benchmark/1",
+  "status": "pass-for-artifact-smoke-quality-performance; not-product-acceptance"
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "bits_per_sample": 16,
+    "bytes": 199870,
+    "channels": 1,
+    "codec": "pcm_s16le",
+    "duration_seconds": 6.2435,
+    "expected_text": "The quick brown fox jumps over the lazy dog. Local speech stays on this computer.",
+    "name": "david-clean.wav",
+    "sample_rate_hz": 16000,
+    "sha256": "e81421443ce5107dfcad74ddd31109e666ffbcc78c781900b9d4b8874eaf6cc7"
+  },
+  {
+    "bits_per_sample": 16,
+    "bytes": 189952,
+    "channels": 1,
+    "codec": "pcm_s16le",
+    "duration_seconds": 5.933563,
+    "expected_text": "Typed text remains authoritative. Voice input must be reviewed before sending.",
+    "name": "zira-clean.wav",
+    "sample_rate_hz": 16000,
+    "sha256": "3eca0de0dd895ed7ee0221cc680693d2540cdb8a9d3242ed4feead2dd593a353"
+  },
+  {
+    "bits_per_sample": 16,
+    "bytes": 960078,
+    "channels": 1,
+    "codec": "pcm_s16le",
+    "duration_seconds": 30.0,
+    "expected_text": "The quick brown fox jumps over the lazy dog. Local speech stays on this computer.",
+    "name": "david-padded-30s.wav",
+    "sample_rate_hz": 16000,
+    "sha256": "10617f64e5729cb27f10b0eba10b5ca7debb28e40e021c4815aafbc66b951a6a"
+  }
+]
