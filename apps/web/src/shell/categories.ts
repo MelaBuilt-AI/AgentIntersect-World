@@ -4,6 +4,7 @@ export const WORLD_CATEGORIES = [
   "Agents",
   "Activity",
   "Evidence",
+  "Diagnostics",
   "Settings",
 ] as const;
 

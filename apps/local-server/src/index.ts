@@ -40,6 +40,7 @@ import { WhisperCliProvider } from "@agentintersect-world/voice/node";
 import { VoiceService, VoiceStore } from "./voice-service.js";
 import { CoordinationService } from "./coordination-service.js";
 import { loadProductionCoordinationGitConfig } from "./coordination-production-config.js";
+import { Phase17Service } from "./phase17-service.js";
 
 const config = (() => {
   try {
@@ -180,6 +181,16 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     ...(coordinationGitConfig ?? {}),
     requireApprovedGitBoundary: true,
   });
+  const phase17Service = new Phase17Service({
+    directory:
+      process.env.AIW_PHASE17_STATE_DIR ??
+      path.join(
+        config.presentationSync.dataDir,
+        "..",
+        "phase17",
+        "observability",
+      ),
+  });
   const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,
     integrationService,
@@ -187,6 +198,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     ...(evidenceService ? { evidenceService } : {}),
     phase14Service,
     coordinationService,
+    phase17Service,
     ...(voiceService ? { voiceService } : {}),
     ...(agentSessionGateway
       ? {

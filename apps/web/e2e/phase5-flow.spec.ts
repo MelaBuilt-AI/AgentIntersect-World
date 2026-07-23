@@ -72,6 +72,7 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
     "Agents",
     "Activity",
     "Evidence",
+    "Diagnostics",
     "Settings",
   ]);
   await page.getByLabel("Default harness intent").selectOption("openclaw");

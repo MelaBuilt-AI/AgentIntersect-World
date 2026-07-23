@@ -102,6 +102,8 @@ import type { VoiceService } from "./voice-service.js";
 import { registerVoiceRoutes } from "./voice-routes.js";
 import type { CoordinationService } from "./coordination-service.js";
 import { registerCoordinationRoutes } from "./coordination-routes.js";
+import type { Phase17Service } from "./phase17-service.js";
+import { registerPhase17Routes } from "./phase17-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -123,6 +125,7 @@ export type LocalServer = FastifyInstance & {
   readonly phase14Service?: Phase14Service;
   readonly voiceService?: VoiceService;
   readonly coordinationService?: CoordinationService;
+  readonly phase17Service?: Phase17Service;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -157,6 +160,7 @@ export type LocalServerOptions = {
   readonly phase14Service?: Phase14Service;
   readonly voiceService?: VoiceService;
   readonly coordinationService?: CoordinationService;
+  readonly phase17Service?: Phase17Service;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -262,6 +266,7 @@ export function createLocalServer(
   server.decorate("phase14Service", options.phase14Service);
   server.decorate("voiceService", options.voiceService);
   server.decorate("coordinationService", options.coordinationService);
+  server.decorate("phase17Service", options.phase17Service);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -277,6 +282,7 @@ export function createLocalServer(
     await codeGraphService.close();
     await options.phase14Service?.dispose();
     await options.coordinationService?.dispose();
+    await options.phase17Service?.dispose();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -377,6 +383,11 @@ export function createLocalServer(
       registerVoiceRoutes(server, options.voiceService, { success, failure });
     if (options.coordinationService)
       registerCoordinationRoutes(server, options.coordinationService, {
+        success,
+        failure,
+      });
+    if (options.phase17Service)
+      registerPhase17Routes(server, options.phase17Service, {
         success,
         failure,
       });

@@ -6,9 +6,15 @@ const serverPort = 43_770;
 const webPort = 45_173;
 const approvedRepositoryRoot = realpathSync(process.cwd());
 const approvedWorktreeParent = realpathSync(dirname(approvedRepositoryRoot));
+const configuredPlaywrightDataRoot = process.env.AIW_PLAYWRIGHT_DATA_ROOT;
+const playwrightDataRoot =
+  configuredPlaywrightDataRoot ?? `/tmp/aiw-phase17-playwright-${process.pid}`;
+if (!configuredPlaywrightDataRoot)
+  process.env.AIW_PHASE17_PLAYWRIGHT_CLEANUP_ROOT = playwrightDataRoot;
 
 export default defineConfig({
   testDir: "./apps/web/e2e",
+  globalTeardown: "./tooling/scripts/playwright-global-teardown.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,
@@ -41,6 +47,7 @@ export default defineConfig({
         AIW_PRESENTATION_ALLOWED_ORIGIN: `http://127.0.0.1:${webPort}`,
         AIW_PRESENTATION_ALLOWED_HOST: `127.0.0.1:${webPort}`,
         AIW_PRESENTATION_DATA_DIR: "/tmp/aiw-phase9-playwright-presentation",
+        AIW_PHASE17_STATE_DIR: `${playwrightDataRoot}/phase17`,
         AIW_PHASE16_REPOSITORY_ROOT: approvedRepositoryRoot,
         AIW_PHASE16_WORKTREE_PARENT: approvedWorktreeParent,
       },

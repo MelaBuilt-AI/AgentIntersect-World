@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/observability",
-  "version": "0.14.0-phase14",
+  "version": "0.17.0-phase17",
   "private": true,
   "type": "module",
   "exports": {
@@ -14,6 +14,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@agentintersect-world/world-schema": "workspace:*"
+    "@agentintersect-world/world-schema": "workspace:*",
+    "zod": "4.4.3"
   }
 }

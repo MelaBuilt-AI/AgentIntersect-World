@@ -19,6 +19,174 @@
   --disabled: #4b5563;
 }
 
+.diagnostics-panel {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.diagnostics-panel > header,
+.diagnostics-overall,
+.diagnostics-truth,
+.diagnostics-panel > section,
+.diagnostics-actions {
+  border: 1px solid rgba(74, 167, 255, 0.28);
+  border-radius: 0.75rem;
+  background: rgba(7, 16, 28, 0.88);
+  padding: 1rem;
+}
+
+.diagnostics-overall strong {
+  color: #7fc5ff;
+}
+
+.diagnostics-truth {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.diagnostics-truth div,
+.diagnostics-incidents dl div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.4fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.diagnostics-truth dt,
+.diagnostics-incidents dt {
+  color: #7fc5ff;
+  font-weight: 700;
+}
+
+.diagnostics-truth dd,
+.diagnostics-incidents dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.diagnostics-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.diagnostics-readiness {
+  width: 100%;
+  min-width: 46rem;
+  border-collapse: collapse;
+}
+
+.diagnostics-readiness caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 0.5rem 0;
+}
+
+.diagnostics-readiness th,
+.diagnostics-readiness td {
+  border-bottom: 1px solid rgba(127, 197, 255, 0.18);
+  padding: 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.readiness-status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  background: #203348;
+}
+
+.readiness-status--ready {
+  background: #155f48;
+}
+
+.readiness-status--degraded,
+.readiness-status--recovery-needed {
+  background: #725319;
+}
+
+.readiness-status--unavailable {
+  background: #3d4650;
+}
+
+.diagnostics-incidents,
+.diagnostics-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.diagnostics-actions {
+  margin: 0;
+  list-style: none;
+}
+
+.diagnostics-incidents li,
+.diagnostics-actions li {
+  min-width: 0;
+}
+
+.diagnostics-primary {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  color: #fff;
+}
+
+.diagnostics-primary--enabled {
+  border-color: #76c4ff;
+  background: #1268b3;
+  cursor: pointer;
+}
+
+.diagnostics-primary--disabled {
+  border-color: #68727d;
+  background: #3d4650;
+  color: #d0d4d8;
+  cursor: not-allowed;
+}
+
+.diagnostics-primary:focus-visible {
+  outline: 3px solid #9ed7ff;
+  outline-offset: 2px;
+}
+
+.diagnostics-actions small {
+  display: block;
+  padding: 0.35rem 0.25rem 0;
+  color: #b6c7d8;
+}
+
+@media (max-width: 600px) {
+  .diagnostics-panel > header,
+  .diagnostics-overall,
+  .diagnostics-truth,
+  .diagnostics-panel > section,
+  .diagnostics-actions {
+    padding: 0.75rem;
+  }
+
+  .diagnostics-truth div,
+  .diagnostics-incidents dl div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagnostics-panel *,
+  .diagnostics-panel *::before,
+  .diagnostics-panel *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 .voice-journey {
   display: grid;
   gap: 1rem;
@@ -622,7 +790,7 @@ p {
   margin: 0 auto;
   border-block: 1px solid var(--line);
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .terminal-nav button {
   background: transparent;

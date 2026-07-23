@@ -50,6 +50,11 @@ const CoordinationPanelLoader = lazy(async () => {
   return { default: module.CoordinationPanelLoader };
 });
 
+const DiagnosticsPanelLoader = lazy(async () => {
+  const module = await import("../diagnostics/DiagnosticsPanel.js");
+  return { default: module.DiagnosticsPanelLoader };
+});
+
 export function DashboardShell({
   profile,
   previousProfile,
@@ -433,6 +438,17 @@ export function DashboardShell({
               }}
             />
           )}
+          {activePanel === "Diagnostics" && (
+            <Suspense
+              fallback={
+                <section className="panel-state" role="status">
+                  Loading Diagnostics &amp; Recovery…
+                </section>
+              }
+            >
+              <DiagnosticsPanelLoader />
+            </Suspense>
+          )}
           {activePanel === "Settings" && (
             <AvatarBuilder
               key={`${profile.profileId}-${profile.updatedAt}`}
@@ -454,7 +470,7 @@ export function DashboardShell({
       )}
 
       <footer className="dashboard-footer">
-        <span>Phase 16 two-agent coordination · manual merge approval</span>
+        <span>Phase 17 local diagnostics · safe recovery</span>
         <span>Relative, shareable World metadata only</span>
       </footer>
     </main>

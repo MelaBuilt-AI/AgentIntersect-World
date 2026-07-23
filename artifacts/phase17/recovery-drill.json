@@ -1,0 +1,80 @@
+{
+  "schema": "aiw.phase17-recovery-drill/0.17",
+  "verdict": "PASS",
+  "checks": {
+    "exactlyTwoWorktrees": true,
+    "operationStarted": true,
+    "ownedChildKilled": true,
+    "orphanClassified": true,
+    "noCompletionFabricated": true,
+    "exactCurrentPreviousTruth": true,
+    "noMutationPreview": true,
+    "safeApply": true,
+    "applyIdempotent": true,
+    "exportIdempotent": true,
+    "deleteIdempotent": true,
+    "privacySafe": true,
+    "exportDeleted": true,
+    "restartPersistent": true,
+    "wrongIdentityRejected": true,
+    "repositoryPreserved": true,
+    "cleanupZero": true
+  },
+  "measurements": {
+    "currentRevision": 4,
+    "previousRevision": 3,
+    "eventCount": 6,
+    "incidentCount": 1,
+    "readinessRows": 8,
+    "exportBytes": 4311,
+    "ownedProcesses": 0,
+    "listenerCount": 0,
+    "temporaryFiles": 0
+  },
+  "truth": {
+    "currentState": "Managed local diagnostic export deleted with proof.",
+    "previousVerifiedState": "Privacy-safe diagnostic bundle exported locally.",
+    "lossWindow": "Non-derivable work may be lost after operation-started and before termination; no completion evidence exists.",
+    "recoverySource": "current",
+    "operationState": "reconciled",
+    "completionRecorded": false,
+    "applyReplayed": true,
+    "exportReplayed": true,
+    "deleteReplayed": true
+  },
+  "privacy": {
+    "absolutePathLeak": false,
+    "secretCanaryLeak": false,
+    "personaCanaryLeak": false,
+    "rawContentFields": false
+  },
+  "git": {
+    "repositoryHeadBefore": "d045083000b9dbad40ff37f3e22e95b2eb455e95",
+    "repositoryHeadAfter": "d045083000b9dbad40ff37f3e22e95b2eb455e95",
+    "worktreeTopologyBefore": "b952605a04c297dc157bdfbbfe9194cb8dd016faf52e7d18ebc48e8a395ec3a4",
+    "worktreeTopologyAfter": "b952605a04c297dc157bdfbbfe9194cb8dd016faf52e7d18ebc48e8a395ec3a4",
+    "statusBefore": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+    "statusAfter": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+    "markerDigestBefore": "ce53d80854174ae82ef94adfb2b67f1765cea8490af42458be11a21d860dd5b1",
+    "markerDigestAfter": "ce53d80854174ae82ef94adfb2b67f1765cea8490af42458be11a21d860dd5b1"
+  },
+  "api": {
+    "initializeStatus": 200,
+    "startStatus": 200,
+    "terminateStatus": 200,
+    "inspectStatus": 200,
+    "previewStatus": 200,
+    "applyStatus": 200,
+    "diagnosticPreviewStatus": 200,
+    "exportStatus": 200,
+    "deleteStatus": 200,
+    "wrongIdentityStatus": 409
+  },
+  "cleanup": {
+    "exportAbsent": true,
+    "temporaryFilesZero": true,
+    "ownedProcessesZero": true,
+    "listenersZero": true,
+    "fixtureRootRemoved": true
+  }
+}
