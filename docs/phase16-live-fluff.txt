@@ -1,0 +1,8 @@
+agent: mr-fluff
+adapter: hermes
+native-session: hermes-discord-1529732538107695114
+task: task-phase16-live-fluff
+worktree: worktrees/phase16-fluff
+branch: phase16/fluff
+tool-stream: codex-phase16-live
+evidence-stream: evidence-phase16-live-fluff
