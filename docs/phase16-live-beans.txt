@@ -1,0 +1,8 @@
+agent: beans
+adapter: openclaw
+native-session: a4fdeb05-cd2d-4517-9720-88cfedf54e15
+task: task-phase16-live-beans
+worktree: worktrees/phase16-beans
+branch: phase16/beans
+tool-stream: openclaw-agent-beans-phase16
+evidence-stream: evidence-phase16-live-beans
