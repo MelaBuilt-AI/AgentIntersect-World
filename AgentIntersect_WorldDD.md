@@ -17,7 +17,7 @@ version: 0.2-design-rebaseline
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains explicitly deferred rather than green. Phase 14 is complete with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is selected next for decision review only; its draft recommendations remain pending approval, it is not started, and implementation is not authorized.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PROVIDER PIN PROPOSED AND PENDING USER APPROVAL / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED**. This planning/provenance-only update began from clean private `main` at `bbc2ea32cc40bac609ad20d0c8e85b9870888589`; no implementation, dependency, model/runtime download, provider process, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, or Phase 16+ work occurred.
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
@@ -2806,7 +2806,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 15 — Voice, expressive presence, and consentful agent identity
 
-**Selection status:** SELECTED NEXT / DRAFT SCOPE / DECISIONS PENDING / NOT STARTED. The decision sheet is `docs/PHASE_15_SCOPE.md`. Its conservative recommendations are pending explicit user approval; it is not frozen implementation authority, and Phase 15 implementation is not authorized.
+**Selection status:** SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PROVIDER PIN PROPOSED AND PENDING USER APPROVAL / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED. The user approved and froze the ten decision classes in `docs/PHASE_15_SCOPE.md` as written on 2026-07-22. The exact immutable runtime/model/download proposal is recorded in `docs/PHASE_15_STT_PROVIDER_PIN.md` and remains separately pending user approval. Neither the decision freeze nor the provider proposal authorizes Phase 15 implementation.
 
 **Objective:** Add natural voice conversation and richer expressive presence without changing authority, leaking identity, or pretending presentation equals emotion.
 
@@ -3112,8 +3112,8 @@ The re-baseline establishes direction but intentionally leaves implementation ch
 3. Which Hermes profile/session should be the first acceptance identity, and may its `SOUL.md` produce a local bounded avatar proposal?
 4. Should Collaborate mode use the agent’s normal approval settings unchanged, or may World add a stricter per-session cap?
 5. What exact capability envelope may Autonomous mode eventually receive: paths, tools, process count, duration, token/cost, network, and preview?
-6. Which voice providers are acceptable for the first proof, and must STT be entirely local by default?
-7. Should TTS use one neutral default voice until the avatar proposal flow is proven, or allow agent-proposed provider voices in Phase 15?
+6. **Phase 15 decision resolved 2026-07-22:** the initial STT baseline is local/loopback-only; the proposed exact `whisper.cpp` runtime and `base.en` model pin remains separately pending user approval in `docs/PHASE_15_STT_PROVIDER_PIN.md`.
+7. **Phase 15 decision resolved 2026-07-22:** optional browser/system `speechSynthesis` is the initial TTS baseline, capability-detected and truthfully disclosed; voice/avatar mapping remains previewable, consentful, changeable, and revocable.
 8. What pointer-lock/WASD bindings and camera comfort defaults should be the reference controls?
 9. Which repository fixture and bounded feature best demonstrate the first magic slice without depending on unrelated private work?
 10. Which start/readiness profile should Preview Manager support first: Vite, a user-entered command, package-script selection, or manifest detection?
@@ -3126,7 +3126,7 @@ The re-baseline establishes direction but intentionally leaves implementation ch
 17. When should a temporary agent annotation become durable: explicit user pin only, or agent request plus user confirmation?
 18. Should Guided Build import/select design documents entirely through World in revised Phase 12, or initially expose only the current AgentIntersect-managed plan and add authoring later?
 
-Resolved decisions: the repository remains private; completed Phases 0–11 remain accepted; free-form collaboration is primary; Guided Build remains; one Hermes text magic slice precedes voice/multi-agent; raw persona/memory/chain-of-thought is not shared; no implementation/release/public action is authorized by this design revision.
+Resolved decisions: the repository remains private; completed Phases 0–11 remain accepted; free-form collaboration is primary; Guided Build remains; one Hermes text magic slice precedes voice/multi-agent; raw persona/memory/chain-of-thought is not shared; and Phase 15 Decisions 1–10 are approved and frozen as written on 2026-07-22. The exact STT provider pin, Phase 15 implementation, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, and Phase 16+ work retain their separate approval gates.
 
 ## Definition of done for the re-baselined private-alpha candidate
 
@@ -3160,22 +3160,18 @@ The candidate is done only when all statements are true and evidenced:
 
 None may bypass the core authority invariants. In particular, unrelated-user execution, cloud agents, raw-memory avatars, CRDT prompt/tool authority, shared unisolated editing, biometric identity, voice cloning, public preview tunnels, and generative meshes require separate scope, threat models, and ADRs.
 
-## Quick-start implementation brief for the next approved session
+## Current stop condition and next approval gates
 
-**Stop condition now:** design review and Phase 12 scope decisions. Do not implement, install, modify Hermes/AgentIntersect, start a new agent process, publish, deploy, or change visibility during this design revision.
+**Stop condition now:** Phase 15 Decisions 1–10 are approved and frozen, but Phase 15 remains not started and implementation is not authorized. The exact STT provider/model/download proposal in `docs/PHASE_15_STT_PROVIDER_PIN.md` remains pending user approval. Do not download, extract, install, start, benchmark, or implement the proposed provider/model; change dependencies or configuration; modify Hermes core/profile or the original AgentIntersect repository; begin Phase 16+; release; publish; deploy; expose public ingress; or change visibility.
 
-If the user explicitly authorizes Phase 12 planning/implementation, the next bounded session should:
+If the user approves the exact provider proposal, the next bounded session is limited to:
 
-1. Verify clean private Phase 11 baseline, exact-SHA CI, runtime, and current design hash.
-2. Resolve the blocking Phase 12 questions: Hermes seam, acceptance profile/session, permission behavior, adapter modification authorization, retention, and magic-slice fixture.
-3. Inspect current Hermes documentation/runtime read-only and capture a capability matrix without exposing credentials or persona content.
-4. Freeze `docs/PHASE_12_SCOPE.md` with the one-agent text cutline, explicit non-goals, schemas, first-hand acceptance journey, and no Phase 13 leakage.
-5. Define `aiw.agent-session/0.12`, `aiw.agent-event/0.12`, adapter capability manifest, mode/permission transition table, and persistence migration.
-6. Plan one deep Hermes adapter and contract fixture before any second adapter.
-7. Implement through functionality-first slices: connect/resume → text turn → events/status → avatar proposal → reload/restart → safe controls.
-8. Independently prove the same persistent Hermes session, skills/project context, mode boundaries, redaction, and no CRDT authority.
-9. Prompt first-hand user conversation and visual review before private commit/push and exact-SHA CI.
-10. Close Phase 12 and stop; do not begin navigation/World Actions automatically.
+1. download only the two immutable artifacts named there into restrictive staging outside the repository;
+2. enforce exact sizes and hashes, safely inventory the archive, and keep activation blocked pending acceptance;
+3. run an offline smoke, quality, and performance benchmark within the approved ceilings; and
+4. report the evidence without implementing Phase 15 product code.
+
+Phase 15 implementation remains a later, separate explicit authorization after the artifacts and benchmark are accepted.
 
 ## Source references and AgentIntersect anchors
 

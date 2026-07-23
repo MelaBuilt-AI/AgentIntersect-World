@@ -1,12 +1,12 @@
-# Phase 15 — Draft Decision Scope
+# Phase 15 — Frozen Decision Scope
 
-**Status:** DRAFT / SELECTED NEXT / DECISIONS PENDING / IMPLEMENTATION NOT AUTHORIZED
+**Status:** SELECTED NEXT / DECISIONS 1–10 APPROVED AND FROZEN / STT PROVIDER PIN PROPOSED AND PENDING USER APPROVAL / IMPLEMENTATION NOT AUTHORIZED / NOT STARTED
 
 **Prepared:** 2026-07-22
 
-**Maintenance baseline:** clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA GitHub Actions run `29966798446`, job `89079968383`, succeeded with zero annotations.
+**Planning baseline:** clean private `main` at `bbc2ea32cc40bac609ad20d0c8e85b9870888589` before this planning/provenance-only update. The preceding CI maintenance at `dba11b88f92d90df718d2068d98110d35201d296` remains green under exact-SHA GitHub Actions run `29966798446`, job `89079968383`, with zero annotations.
 
-**Authority:** This file is a decision sheet, not frozen implementation authority. Every recommendation below remains pending user approval. No Phase 15 implementation, dependency change, commit, push, release, publication, deployment, or other consequential action is authorized by this draft.
+**Authority:** The user approved and froze Decision classes 1–10 as written on 2026-07-22. This scope freeze is not implementation authority. The exact STT runtime/model pin proposed in `docs/PHASE_15_STT_PROVIDER_PIN.md` remains separately pending user approval. No Phase 15 implementation, dependency or configuration change, provider/model download or install, provider process, commit, push, release, publication, deployment, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 16+ work, or other consequential action is authorized by this scope freeze.
 
 ## Inherited baseline and authority boundary
 
@@ -18,7 +18,7 @@
 
 ## 1. Canonical vertical slice and authority
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Freeze exactly one existing Phase 12 Hermes-backed session and one numbered journey:
 
@@ -37,7 +37,7 @@ The accepted transcript is sent through the same `AgentSessionGateway.sendText` 
 
 ## 2. Capture consent, device, format, and hard bounds
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Require an explicit user gesture for every activation and valid browser permission, while truthfully disclosing whether the browser retained that permission. Support push-to-talk only: no always-on microphone, wake word, or background capture.
 
@@ -47,15 +47,17 @@ The implementation freeze must pin the accepted browser capture formats and trut
 
 ## 3. STT provider boundary and initial baseline
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Define a strict versioned STT provider interface and deterministic fake provider/audio fixtures for tests. The first real provider baseline is local/loopback-only STT; cloud STT is excluded from the initial slice.
 
 Before implementation, separately pin and approve the exact local runtime, model, version, license, files, hashes, and download policy. If the runtime or model is unavailable or mismatched, report the capability as unavailable and keep text usable. Do not depend on browser or operating-system `SpeechRecognition` privacy assumptions.
 
+The proposed exact runtime/model pin and provisioning policy are recorded in `docs/PHASE_15_STT_PROVIDER_PIN.md`. That immutable pin remains separately **PROPOSED / PENDING USER APPROVAL** and confers no download, installation, benchmark, or implementation authority.
+
 ## 4. Transcript lifecycle and session binding
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Treat partial captions as volatile and visibly non-final. Make the final transcript editable before send. Cancel discards the utterance. Send binds the exact session, mode, permission revision, and capability hash, then re-attests those bindings immediately before the normal text-send path.
 
@@ -63,7 +65,7 @@ Persist only accepted text as an ordinary bounded World/Hermes message projectio
 
 ## 5. TTS baseline, playback, and barge-in
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Use optional browser/system `speechSynthesis` as the initial TTS baseline, capability-detected and truthfully labeled. Captions and canonical text never depend on synthesis. Do not claim browser/system speech is local unless the platform proves that; disclose implementation and provider uncertainty.
 
@@ -71,7 +73,7 @@ Allow one playback at a time. Keep a stop control always reachable, make a new c
 
 ## 6. Provider/device/privacy disclosure and data boundary
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Before activation, show the provider, local/external status, selected device, data sent, retention claim and its source, current availability, and whether raw audio leaves the machine.
 
@@ -79,7 +81,7 @@ The initial slice has no external provider, provider account, credential, raw id
 
 ## 7. Consentful agent voice/avatar identity
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Allow an agent to propose a voice/avatar mapping only from a bounded, explicit self-description/proposal record. Never infer it from memory, transcript, biometrics, a private profile, hidden reasoning, or emotion detection.
 
@@ -87,7 +89,7 @@ The user previews and explicitly accepts, changes, declines, or revokes the mapp
 
 ## 8. Semantic operator flow, captions, and truthful expression
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Use numbered controls with persistent status and results. Enabled primary controls are blue and disabled controls are grey. Label current versus previous state and provider truth explicitly.
 
@@ -95,7 +97,7 @@ Provide keyboard, touch, screen-reader, reduced-motion, forced-colors, mobile, a
 
 ## 9. Persistence, recovery, performance, and resource limits
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Persist only bounded consent/preferences, opaque provider/voice IDs, and redacted operation summaries. Cap the aggregate voice settings/history projection at 256 KiB and retain the newest 20 operations for at most 7 days.
 
@@ -113,7 +115,7 @@ Retain raw samples and capability-aware profiles. Do not weaken thresholds for C
 
 ## 10. Acceptance evidence, delivery gate, and explicit exclusions
 
-**Decision: PENDING USER APPROVAL**
+**Decision: APPROVED AND FROZEN — 2026-07-22**
 
 **Recommendation:** Require deterministic RED→GREEN fixtures plus first-hand local microphone/operator proof. Cover permission denied/no device, unavailable or mismatched local provider, size/time ceilings, partial/final/edit/send/cancel, exact-session re-attestation, TTS unavailable/failure, interruption, reload/restart, secret/persona canaries, accessibility/mobile/no-WebGL equivalence, cleanup, latency, and resource evidence.
 
@@ -132,4 +134,4 @@ Explicitly exclude:
 
 ## Decision-freeze gate
 
-Phase 15 remains selected next but not started. One later explicit user approval may freeze these ten decision classes after any requested revisions. Until then, these recommendations are proposals only and no implementation may begin.
+Phase 15 remains selected next but not started. Decisions 1–10 are approved and frozen as written on 2026-07-22. The exact STT provider/model pin remains a separate proposal pending user approval, and no implementation may begin without later separate explicit authorization.
