@@ -175,9 +175,9 @@ repository's complete `check`, including all 42 Playwright journeys.
   cross-worktree proof, first-hand desktop/mobile/browser proof, cleanup,
   private fresh-copy/exact-SHA CI reconciliation, and presentation of the
   manual integration candidate.
-- The user remains the sole integration authority. Phase 16 is not complete
-  until the user accepts the bounded live demonstration; Phase 17 remains
-  unauthorized.
+- At this worker stage, the user remained the sole integration authority and
+  Phase 16 completion still depended on a future acceptance decision; Phase 17
+  remained unauthorized.
 
 ## Parent-verification correction appendix
 
@@ -491,8 +491,7 @@ operator-acceptance gate.
 
 Date: 2026-07-23
 
-Status: **IMPLEMENTATION AND LIVE DEMONSTRATION GREEN / MANUALLY INTEGRATED /
-PRIVATE EXACT-SHA CI GREEN / EXPLICIT USER ACCEPTANCE PENDING**
+Status: **USER ACCEPTED / SEALED / COMPLETE**
 
 ### Parent verification of the correction
 
@@ -574,7 +573,9 @@ Machine-readable evidence is retained at
 `artifacts/phase16/final-live-proof.json`. All final live services were
 loopback-only and all owned listeners were stopped; the final listener count
 was zero. Phase 15 remains unsealed solely for its physical-microphone journey,
-and Phase 17 remains unauthorized.
+the local STT provider remains staged/unactivated, and Phase 17 remains
+separately unauthorized and not started. Phase 13 Discord → World continuity
+remains failed/deferred under waiver and was not retried.
 
 ### Private exact-SHA CI
 
@@ -585,5 +586,17 @@ The integrated/evidence tree was pushed only to private
 for that exact SHA. Local `main`, `origin/main`, and the run head SHA matched;
 the repository remained private. No tag, release, package publication,
 deployment, public ingress, visibility change, provider activation, or Phase
-17 work occurred. The sole remaining Phase 16 gate is explicit user acceptance
-of this bounded two-agent integration demonstration.
+17 work occurred.
+
+### User acceptance and seal
+
+After technical completion and exact-SHA `phase-1-checks` run `29995642552`,
+job `89168556242`, succeeded for status-record SHA
+`3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance
+in the new session. Phase 16 is user accepted, sealed, and complete. This
+status-only closeout does not alter any implementation, integration,
+verification, attribution, cleanup, or boundary evidence above. Phase 15
+remains unsealed solely for its physical-microphone journey with the local STT
+provider staged/unactivated; Phase 13 Discord → World continuity remains
+failed/deferred under waiver; and Phase 17 remains separately unauthorized and
+not started.

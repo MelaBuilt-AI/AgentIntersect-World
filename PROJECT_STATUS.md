@@ -4,7 +4,7 @@ Updated: 2026-07-23
 
 ## Current milestone
 
-**Phase 16 — IMPLEMENTATION AND LIVE TWO-AGENT DEMONSTRATION GREEN / MANUALLY INTEGRATED / PRIVATE EXACT-SHA CI GREEN / EXPLICIT USER ACCEPTANCE PENDING**
+**Phase 16 — USER ACCEPTED / SEALED / COMPLETE**
 
 **Inherited pending gate: Phase 15 — PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
 
@@ -13,14 +13,14 @@ Updated: 2026-07-23
 - Independent parent verification is green: Phase 16 conformance **9 files / 41 tests**, deterministic measurement PASS, complete `pnpm check` PASS, disposable `verify:fresh` PASS, and separate conformance passes from both final agent branches.
 - The final live proof used exactly Mr Fluff/Hermes and Beans/OpenClaw on distinct sessions, tasks, branches, worktrees, tool streams, and evidence streams. It projected same-file interest, one real Git conflict, an inert attributed injection-shaped message, a Beans -> Mr Fluff handoff, exact candidate/test evidence, fail-closed wrong-boundary and third-agent refusals, current restart persistence, previous-snapshot recovery, and preview-only cleanup.
 - Built browser proof showed both agents and all numbered controls without clipping, overflow, overlap, or console errors; enabled controls were blue and inactive controls were grey and focusable. Browser approval set `operator-approved` while preserving `mergeRun:false`.
-- Manual integration preserved both branch ancestries, surfaced the expected collaboration-file conflict, and resolved it by human-reviewed edit to `resolution: manually-integrated-both`; merge commit `4ff11e45a86041cd7f3549b7f886f408a8a21061`. Private exact-SHA GitHub Actions run `29994988808`, job `89166443996`, succeeded for integrated/evidence SHA `4ae352eb7df755d84994100fbeab279faf05b980`. Only the frozen explicit user-acceptance gate remains, so Phase 17 stays closed.
+- Manual integration preserved both branch ancestries, surfaced the expected collaboration-file conflict, and resolved it by human-reviewed edit to `resolution: manually-integrated-both`; merge commit `4ff11e45a86041cd7f3549b7f886f408a8a21061`. Private exact-SHA GitHub Actions run `29994988808`, job `89166443996`, succeeded for integrated/evidence SHA `4ae352eb7df755d84994100fbeab279faf05b980`. The final status-record SHA `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0` then passed exact-SHA `phase-1-checks` run `29995642552`, job `89168556242`. After that technical completion and exact-SHA CI proof, the user authorized acceptance in the new session; Phase 16 is accepted, sealed, and complete. Phase 17 remains separately unauthorized and not started.
 - The candidate implements one consentful ten-step push-to-talk lane: strict browser capture and PCM bounds, shell-free exact-provider re-attestation/execution/cleanup, editable final transcript, canonical existing-session send, optional capability-detected browser/system TTS with actual opaque voice selection, barge-in, bounded preference/activity recovery, and truthful privacy/provider/device disclosure.
 - Independent parent and fresh-review corrections are green for automatic-ceiling handoff, actual voice selection/use and fail-closed revocation before asynchronous persistence resolves, product-wired recovery activity, awaited native-process termination, every current native runtime member's exact re-attestation, in-flight transcription abort/discard, truthful synthetic-versus-real performance evidence, recovery fixture integration, and forced-color blue-enabled/grey-disabled visual truth.
 - Final post-correction proof is green: literal `pnpm check`; 11/11 architecture; 39/39 Phase 15 conformance; 512/512 Vitest; 41/41 Playwright; production build/smoke; Storybook; no known production vulnerabilities; and fresh-copy verification for 452 project source files with the same 512/41 tests.
 - Exact staged-provider proof matched the expected transcript in `662.074746 ms` at `299,655,168` bytes peak RSS, with exact runtime/model/inventory-file hashes plus every current runtime member's path/hash/size/mode, 53 regular files / 185,119,961 bytes / zero symlinks, and zero residual process, listener, temp root, source WAV, or raw-audio file. A disposable copied-tree shared-library mutation now fails unavailable. The provider remains staged and unactivated outside the repository.
 - First-hand production-built browser/visual proof is green for deterministic capture, in-flight cancel/discard, edit/send/canonical reply, TTS/revocation/stop, genuinely pinned mobile/two-CPU/reduced-motion/forced-colors/no-WebGL operation, zero serious/critical axe violations, and zero visual clipping/overflow. Supplemental Node control microbenchmarks are explicitly non-acceptance evidence rather than mislabeled microphone/STT/TTS timings; none of this is mislabeled as physical-microphone proof.
 - This Windows host exposes only an HDMI output endpoint and no microphone endpoint. WSLg `RDPSource` delivered no samples and blocked; the exact owned probe process pair was terminated/awaited and no WAV remains. One physical-microphone journey and explicit user acceptance therefore remain the sole frozen exit gate; Phase 15 is not sealed complete.
-- On 2026-07-23 the user explicitly chose to leave the clean pushed Phase 15 candidate in that state and carry the physical-microphone journey as a pending TODO. The user then authorized bounded Phase 16 delivery with Mr Fluff/Hermes as Agent 1 and same-machine OpenClaw agent `beans` as Agent 2, model `gpt-5.6-sol`, exactly two agents, one private repository, separate worktrees, manual integration, and no public services or autonomous swarm. That live proof and manual integration are now green as recorded above; Phase 15 remains unsealed and Phase 17 remains gated.
+- On 2026-07-23 the user explicitly chose to leave the clean pushed Phase 15 candidate in that state and carry the physical-microphone journey as a pending TODO. The user then authorized bounded Phase 16 delivery with Mr Fluff/Hermes as Agent 1 and same-machine OpenClaw agent `beans` as Agent 2, model `gpt-5.6-sol`, exactly two agents, one private repository, separate worktrees, manual integration, and no public services or autonomous swarm. That live proof and manual integration are green as recorded above; Phase 15 remains unsealed solely for the physical-microphone journey, its local STT provider remains staged/unactivated, and Phase 17 remains separately unauthorized and not started.
 - Phase 14 remains complete and sealed with all existing evidence below. The Phase 13 Discord → World continuity path remains FAIL/deferred under waiver, was not retried, and is excluded from Phase 15.
 
 ## Accepted Phase 14 baseline
@@ -176,11 +176,11 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 - The startup entry chunk was reduced from 1,383.34 kB to 359.48 kB by independently splitting presentation synchronization and repository/R3F loading; a manifest regression protects both boundaries and constrained hardware reduces cosmetics without changing semantic truth.
 - Private exact-SHA Actions run `29780316891` passed both `measure:phase10` and the complete `pnpm check` job on two reported CPUs.
 
-## Next milestone
+## Closeout status
 
-**Phase 16 — EXPLICIT USER ACCEPTANCE**
+**Phase 16 — USER ACCEPTED / SEALED / COMPLETE**
 
-The implementation, independent parent checks, final live Mr Fluff/Beans demonstration, browser proof, recovery proof, manual conflict integration, private push, and exact-SHA CI are green. Present the bounded demonstration for the frozen explicit user-acceptance gate. Phase 17 remains closed until separately authorized.
+The implementation, independent parent checks, final live Mr Fluff/Beans demonstration, browser proof, recovery proof, manual conflict integration, private push, and exact-SHA CI are green. After technical completion and exact-SHA `phase-1-checks` run `29995642552` / job `89168556242` succeeded for `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance in the new session. Phase 16 is accepted, sealed, and complete. Phase 17 remains separately unauthorized and not started.
 
 `docs/PHASE_15_SCOPE.md` also remains frozen. The bounded Phase 15 candidate and independent parent proof are green in `PHASE_15_REPORT.md`, but this host exposes no usable microphone input and the physical-microphone acceptance remains pending.
 
@@ -188,7 +188,7 @@ Phase 14 remains sealed and accepted: the user froze and explicitly authorized i
 
 The Phase 13 exact-root Discord → World continuation remains FAIL/deferred as a separate backlog item and was not retried. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
 
-Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 17+, and every action outside the frozen Phase 16/remaining Phase 15 gates remain prohibited without their required separate authorization.
+Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 17+, and every action outside the remaining Phase 15 gate remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 

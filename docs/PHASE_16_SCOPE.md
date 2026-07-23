@@ -1,12 +1,14 @@
 # AgentIntersect World — Phase 16 Frozen Scope
 
-Status: **DECISIONS APPROVED AND FROZEN / IMPLEMENTATION AND LIVE TWO-AGENT DEMONSTRATION GREEN / MANUALLY INTEGRATED / PRIVATE EXACT-SHA CI GREEN / EXPLICIT USER ACCEPTANCE PENDING**
+Status: **DECISIONS APPROVED AND FROZEN / USER ACCEPTED / SEALED / COMPLETE**
 
 Date: 2026-07-23
 
 Authority: the user approved Decisions 1–10 below and instructed Mr Fluff to preserve them for a new-session Phase 16 start. This authorization permits only the bounded Phase 16 implementation described here. It does not authorize work in the current session, Phase 17+, public services, an autonomous swarm, publication, deployment, release, provider activation, repository-visibility changes, or automatic integration.
 
 Phase 15 remains an exact-SHA-verified implementation candidate with its real physical-microphone journey and explicit user acceptance carried as a pending TODO. That pending acceptance is not mislabeled as complete and does not reopen Phase 15 implementation.
+
+Acceptance closeout: after technical completion and exact-SHA `phase-1-checks` run `29995642552` / job `89168556242` succeeded for status-record SHA `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance in the new session. Phase 16 is accepted, sealed, and complete. Phase 15 remains unsealed solely for the physical-microphone journey with the local STT provider staged/unactivated; Phase 13 Discord → World continuity remains failed/deferred under waiver; and Phase 17 remains separately unauthorized and not started.
 
 ## Frozen decisions
 
@@ -50,7 +52,7 @@ No public service, public ingress, hosted coordination plane, cloud agent market
 
 ### Decision 10 — Canonical Phase 16 defaults and exit gate
 
-All unspecified details use the canonical Phase 16 defaults in `AgentIntersect_WorldDD.md`: attributable sessions, strict worktree isolation, visible contention, explicit handoffs, reviewable merge/conflict projection, bounded resources, restart recovery, and one-operator authority. The phase exits only when the user approves a bounded two-agent collaboration and integration demonstration. Phase 17 requires separate authorization.
+All unspecified details use the canonical Phase 16 defaults in `AgentIntersect_WorldDD.md`: attributable sessions, strict worktree isolation, visible contention, explicit handoffs, reviewable merge/conflict projection, bounded resources, restart recovery, and one-operator authority. The phase exits only when the user approves a bounded two-agent collaboration and integration demonstration. The user supplied that approval in the new-session acceptance closeout after technical completion and exact-SHA CI proof. Phase 17 remains separately unauthorized and not started.
 
 ## Objective
 

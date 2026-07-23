@@ -18,6 +18,25 @@
     "status": "completed",
     "conclusion": "success"
   },
+  "acceptanceSeal": {
+    "status": "user-accepted-sealed-complete",
+    "authorizedDate": "2026-07-23",
+    "authorizedInNewSession": true,
+    "authorizationBasis": "after-technical-completion-and-exact-sha-ci-proof",
+    "technicalCompletionStatusRecordSha": "3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0",
+    "exactShaCi": {
+      "workflow": "phase-1-checks",
+      "runId": 29995642552,
+      "jobId": 89168556242,
+      "conclusion": "success"
+    },
+    "phase15": {
+      "status": "unsealed-physical-microphone-journey-pending",
+      "localSttProvider": "staged-unactivated"
+    },
+    "phase13DiscordWorldContinuity": "failed-deferred-under-waiver",
+    "phase17": "unauthorized-not-started"
+  },
   "agents": [
     {
       "agentId": "mr-fluff",
