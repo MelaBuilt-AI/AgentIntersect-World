@@ -1,3 +1,4 @@
-This neutral surface is reserved for the later isolated two-agent collaboration proof.
-Mr Fluff/Codex and Beans will edit the shared value differently only during that proof.
-shared-value: mr-fluff
+This surface recorded the deliberate overlapping Phase 16 edits from both isolated agents.
+The conflict was reviewed and resolved manually after explicit operator approval; approval itself ran no merge.
+shared-values: mr-fluff + beans
+resolution: manually-integrated-both
