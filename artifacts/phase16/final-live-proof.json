@@ -1,0 +1,144 @@
+{
+  "schema": "aiw.phase16-live-evidence/1",
+  "date": "2026-07-23",
+  "repository": {
+    "name": "MelaBuilt-AI/AgentIntersect-World",
+    "visibility": "PRIVATE",
+    "baselineSha": "47859701b7d2f9d280185faf26502fc4f1a399c4",
+    "implementationSha": "91e44831d097bdde7b8c08abc8411d075d07ab2c",
+    "manualIntegrationSha": "4ff11e45a86041cd7f3549b7f886f408a8a21061"
+  },
+  "agents": [
+    {
+      "agentId": "mr-fluff",
+      "adapter": "hermes",
+      "nativeSessionId": "hermes-discord-1529732538107695114",
+      "model": "gpt-5.6-sol",
+      "taskId": "task-phase16-live-fluff",
+      "branch": "phase16/live-fluff-final",
+      "worktree": "worktrees/phase16-fluff",
+      "toolStreamId": "codex-phase16-live",
+      "evidenceStreamId": "evidence-phase16-live-fluff",
+      "head": "f85f1dcb3a973ca81e82efbd03119c333f3e42ae"
+    },
+    {
+      "agentId": "beans",
+      "adapter": "openclaw",
+      "nativeSessionId": "63a1a70a-71ea-42b2-a080-b13bd358ec17",
+      "model": "gpt-5.6-sol",
+      "taskId": "task-phase16-live-beans",
+      "branch": "phase16/live-beans-final",
+      "worktree": "worktrees/phase16-beans",
+      "toolStreamId": "openclaw-agent-beans-phase16",
+      "evidenceStreamId": "evidence-phase16-live-beans",
+      "head": "da34451d3546b6a74871e59007005b0bab21038d"
+    }
+  ],
+  "coordination": {
+    "sessionId": "phase16-final-live-1529732538107695114",
+    "revision": 18,
+    "truth": "current",
+    "agentCount": 2,
+    "worktreeCount": 2,
+    "taskCount": 2,
+    "interestCount": 2,
+    "messageCount": 1,
+    "handoffCount": 1,
+    "conflictCount": 1,
+    "candidate": {
+      "candidateId": "candidate-phase16-live-beans-to-fluff",
+      "sourceBranch": "phase16/live-beans-final",
+      "targetBranch": "phase16/live-fluff-final",
+      "state": "operator-approved",
+      "changedPathCount": 3,
+      "testCount": 2,
+      "conflictCount": 1,
+      "diffDigest": "007236fc40d8e15d6e66e3a5563158dc36173e24e23adcb793d2e2c1959be492",
+      "mergeRun": false
+    },
+    "cleanupPreview": {
+      "previewOnly": true,
+      "recommendation": "allowed",
+      "deleted": false
+    },
+    "sanitizedPresentationSnapshotSha256": "0192bc766aa076e1d60ed9b853ba084a8cf0c1e639b05cc354610a747c1732c3"
+  },
+  "failClosed": {
+    "wrongSession": {
+      "http": 422,
+      "code": "git_refused",
+      "revisionBefore": 16,
+      "revisionAfter": 16,
+      "mutated": false
+    },
+    "wrongRepository": {
+      "http": 422,
+      "code": "git_refused",
+      "revisionBefore": 16,
+      "revisionAfter": 16,
+      "mutated": false
+    },
+    "wrongWorktree": {
+      "http": 422,
+      "code": "git_refused",
+      "revisionBefore": 16,
+      "revisionAfter": 16,
+      "mutated": false
+    },
+    "wrongBranch": {
+      "http": 422,
+      "code": "git_refused",
+      "revisionBefore": 16,
+      "revisionAfter": 16,
+      "mutated": false
+    },
+    "thirdAgent": {
+      "http": 400,
+      "code": "validation",
+      "revisionBefore": 16,
+      "revisionAfter": 16,
+      "mutated": false
+    }
+  },
+  "recovery": {
+    "restart": {
+      "revision": 18,
+      "truth": "current",
+      "candidateState": "operator-approved",
+      "mergeRun": false,
+      "sha256": "4f94748f5cfcd6857504ae7d5525fec56054970d02037aea0832be012bbb4430"
+    },
+    "corruptCurrentFallback": {
+      "revision": 17,
+      "truth": "previous-recovered",
+      "candidateState": "operator-approved",
+      "mergeRun": false,
+      "sha256": "afdff8f68342c59d9a188269096c0765f93aeceb238abf72da3b31aea7a769e4"
+    }
+  },
+  "manualIntegration": {
+    "approvalWasSeparate": true,
+    "automaticMergeRan": false,
+    "conflictObserved": true,
+    "resolution": "manually-integrated-both",
+    "mergeCommit": "4ff11e45a86041cd7f3549b7f886f408a8a21061",
+    "mergeParents": [
+      "d282cabd7996dbcc4745666b67647eaceded3b97",
+      "da34451d3546b6a74871e59007005b0bab21038d"
+    ]
+  },
+  "browser": {
+    "builtVitePort": 45178,
+    "localServerPort": 43775,
+    "loopbackOnly": true,
+    "bothAgentCardsReadable": true,
+    "numberedControlsReachable": true,
+    "activeControlsBlue": true,
+    "inactiveControlsGreyAndFocusable": true,
+    "clippingOrHorizontalOverflowObserved": false,
+    "consoleErrorsObserved": false
+  },
+  "cleanup": {
+    "ownedListenersAfterProbe": 0
+  }
+}

@@ -486,3 +486,92 @@ The worktree remains uncommitted. This correction did not launch or configure
 Hermes or OpenClaw, add a third project agent, touch another worktree, use a
 public service, expose secrets, merge, push, publish, or claim the Phase 16
 operator-acceptance gate.
+
+## Final independent parent, live two-agent, and manual-integration appendix
+
+Date: 2026-07-23
+
+Status: **IMPLEMENTATION AND LIVE DEMONSTRATION GREEN / MANUALLY INTEGRATED /
+PRIVATE EXACT-SHA CI AND EXPLICIT USER ACCEPTANCE PENDING**
+
+### Parent verification of the correction
+
+Mr Fluff did not accept the correction worker's exit code as proof. The parent
+inspected the real 17-file correction, removed unrelated generated artifacts
+before committing, and independently reran:
+
+- `corepack pnpm@11.15.0 conformance:phase16` — PASS, **9 files / 41 tests**.
+- `corepack pnpm@11.15.0 measure:phase16` — PASS with exactly 2 agents,
+  2 worktrees, 2 tasks, 2 interests, 18 events, bounded snapshot/diff/message
+  sizes, no absolute-path leak, and zero owned processes after cancellation.
+- `corepack pnpm@11.15.0 check` — PASS, including format, lint, typecheck,
+  architecture, Vitest, build, smoke, and Playwright.
+- `corepack pnpm@11.15.0 verify:fresh` — PASS in a disposable fresh copy.
+- Both final live branches reran `conformance:phase16` independently — PASS.
+
+The corrected implementation commit is
+`91e44831d097bdde7b8c08abc8411d075d07ab2c`.
+
+### Final real two-agent proof
+
+The final proof used only these two real editing agents in one private
+repository:
+
+1. Mr Fluff/Hermes, native session
+   `hermes-discord-1529732538107695114`, branch
+   `phase16/live-fluff-final`, worktree `worktrees/phase16-fluff`, final head
+   `f85f1dcb3a973ca81e82efbd03119c333f3e42ae`, with bounded Codex as the tool
+   stream.
+2. Beans/OpenClaw, native session
+   `63a1a70a-71ea-42b2-a080-b13bd358ec17`, branch
+   `phase16/live-beans-final`, worktree `worktrees/phase16-beans`, final head
+   `da34451d3546b6a74871e59007005b0bab21038d`, model `gpt-5.6-sol`.
+
+Both agents made separately attributable commits in isolated worktrees. World
+projected two tasks, two ownership bindings, two active interests on the same
+file, one attributed inert injection-shaped message, one explicit Beans -> Mr
+Fluff handoff with two evidence items, and a real three-path candidate with one
+Git conflict and two passing test records.
+
+The candidate was approved through the built browser at revision 17. The state
+became `operator-approved` while `mergeRun` remained `false`: approval did not
+execute integration. A cleanup preview advanced revision 18, remained
+`previewOnly`, and deleted nothing.
+
+### Fail-closed and recovery proof
+
+Against the final live service, wrong native session, wrong repository root,
+wrong worktree parent, and wrong branch actions all returned HTTP 422
+`git_refused`; each preserved revision 16 exactly and reported `mutated:false`.
+A third agent was rejected at strict protocol validation with HTTP 400 and also
+preserved revision 16. Deterministic conformance additionally covers stale and
+deleted worktrees, cancellation, resource ceilings, concurrent mutation,
+active-binding rebinding, oversized path sets, and UTF-8 byte ceilings.
+
+The revision-18 current snapshot survived a clean stop/restart with the
+approved candidate and `mergeRun:false`. In a copied fixture, a deliberately
+invalid current-store checksum recovered the revision-17 previous snapshot as
+`previous-recovered`, again preserving the approved candidate and
+`mergeRun:false`.
+
+### Browser and manual integration proof
+
+The production-built loopback service and Vite preview showed both readable
+agent cards; binding IDs, active interests, conflict/test evidence, message,
+handoff, candidate, cleanup state, and all numbered controls were reachable.
+Enabled controls were blue, inactive controls were grey and focusable, and no
+clipping, overlap, horizontal overflow, or console error was observed.
+
+Manual Git integration then preserved both branch ancestries. The Beans merge
+produced the expected real conflict in
+`docs/phase16-live-collaboration.txt`. Mr Fluff inspected and manually resolved
+that conflict to `resolution: manually-integrated-both`; no automatic merge or
+conflict resolver ran. The merge commit is
+`4ff11e45a86041cd7f3549b7f886f408a8a21061`, with both approved branches in
+its ancestry.
+
+Machine-readable evidence is retained at
+`artifacts/phase16/final-live-proof.json`. All final live services were
+loopback-only and all owned listeners were stopped; the final listener count
+was zero. Phase 15 remains unsealed solely for its physical-microphone journey,
+and Phase 17 remains unauthorized.
