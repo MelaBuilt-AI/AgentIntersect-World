@@ -31,6 +31,7 @@ describe("acceptance command graph", () => {
     const endToEnd = requireScript(manifest, "test:e2e");
     const flaggedEndToEnd = requireScript(manifest, "test:e2e:flagged");
     const unflaggedEndToEnd = requireScript(manifest, "test:e2e:unflagged");
+    const phase11Measurement = requireScript(manifest, "measure:phase11");
     const phase13Measurement = requireScript(manifest, "measure:phase13");
     const aggregate = requireScript(manifest, "check");
 
@@ -57,6 +58,17 @@ describe("acceptance command graph", () => {
     expect(
       unflaggedEndToEnd.indexOf("corepack pnpm@11.15.0 build"),
     ).toBeLessThan(unflaggedEndToEnd.indexOf("xvfb-run -a playwright test"));
+    expect(phase11Measurement).toContain(
+      "VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack pnpm@11.15.0 exec vite build apps/web --config apps/web/vite.config.ts",
+    );
+    expect(phase11Measurement).toContain(
+      "VITE_AIW_LOCAL_DEVELOPER_UI=1 playwright test apps/web/e2e/phase11-avatar-journey.spec.ts",
+    );
+    expect(
+      phase11Measurement.indexOf("VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack"),
+    ).toBeLessThan(
+      phase11Measurement.indexOf("VITE_AIW_LOCAL_DEVELOPER_UI=1 playwright"),
+    );
     expect(phase13Measurement).toContain(
       "xvfb-run -a playwright test apps/web/e2e/phase13-world-action-journey.spec.ts --workers=1",
     );

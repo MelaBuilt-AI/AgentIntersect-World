@@ -28,7 +28,7 @@
     "avatar:build": "PYTHONHASHSEED=0 /usr/local/bin/blender --background --factory-startup --python tooling/avatar/build_avatar_kit.py && prettier --write assets/avatar/aiw-avatar-kit.manifest.json",
     "avatar:inspect": "/usr/local/bin/blender --background assets/avatar/aiw-avatar-kit.blend --python tooling/avatar/inspect_avatar_blend.py && prettier --write assets/avatar/aiw-avatar-blend-inspection.json",
     "avatar:verify": "python3 tooling/avatar/verify_avatar_assets.py",
-    "measure:phase11": "corepack pnpm@11.15.0 build && playwright test apps/web/e2e/phase11-avatar-journey.spec.ts",
+    "measure:phase11": "corepack pnpm@11.15.0 build && VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack pnpm@11.15.0 exec vite build apps/web --config apps/web/vite.config.ts && VITE_AIW_LOCAL_DEVELOPER_UI=1 playwright test apps/web/e2e/phase11-avatar-journey.spec.ts",
     "measure:phase13": "corepack pnpm@11.15.0 --filter @agentintersect-world/navigation build && tsx tooling/scripts/measure-phase13.ts && xvfb-run -a playwright test apps/web/e2e/phase13-world-action-journey.spec.ts --workers=1",
     "measure:phase14": "corepack pnpm@11.15.0 --filter @agentintersect-world/tool-protocol build && tsx tooling/scripts/measure-phase14.ts && xvfb-run -a playwright test apps/web/e2e/phase14-tool-journey.spec.ts --workers=1",
     "measure:phase15": "corepack pnpm@11.15.0 build && tsx tooling/scripts/measure-phase15.ts && xvfb-run -a playwright test apps/web/e2e/phase15-voice-journey.spec.ts --workers=1",

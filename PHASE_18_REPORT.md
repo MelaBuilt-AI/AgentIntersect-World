@@ -2,7 +2,7 @@
 
 **VERDICT: PARENT_VERIFIED_AUTHORIZED_FOR_PRIVATE_COMMIT_AND_EXACT_SHA_CI**
 
-Status: fresh independent parent verification green / exact-SHA CI and first-hand user retest next
+Status: fresh independent parent verification green / deterministic exact-SHA CI command correction under verification
 
 Date: 2026-07-25
 
@@ -440,3 +440,20 @@ No dependency or lockfile changed. No provider/profile/core/external mutation, P
 `PARENT_VERIFIED_AUTHORIZED_FOR_PRIVATE_COMMIT_AND_EXACT_SHA_CI`
 
 The corrected revised Phase 18 implementation is independently green and the user has authorized private `main` commit/push followed by exact-SHA CI. Phase 18 is **not user accepted or sealed**. After exact-SHA CI succeeds, the next required gate is a fresh full-browser first-hand journey from the true opening experience for Aaron and Mr Fluff to test together.
+
+## Exact-SHA CI command-graph correction — 2026-07-25
+
+Private `main` commit `2a78ae335651756f1df3c97fe799db51490d5ab4` matched the remote ref exactly, but exact-SHA GitHub Actions run `30162706333`, job `89690508831`, failed before the aggregate at `pnpm measure:phase11`.
+
+The failure was deterministic rather than a Phase 11 performance regression. Both Phase 11 browser tests navigate to the intentionally flag-gated `/internal/dashboard` route, while the legacy root measurement script built the default unflagged web application. The application correctly failed closed: `world-hero` and the `Agents` control were absent. Checkout, dependency installation, Phase 10 measurement, and avatar verification had already passed; `pnpm check` was skipped after the Phase 11 command failed.
+
+A focused command-graph regression was added before changing the manifest. It failed **1/3** for the expected missing flagged-build command. The minimal correction now requires an explicit `VITE_AIW_LOCAL_DEVELOPER_UI=1` web rebuild before the Phase 11 browser file and runs that browser file under the same explicit flag. No product code, test threshold, timeout, retry, dependency, lockfile, provider, profile, or external boundary changed.
+
+Local correction proof is green:
+
+- acceptance command graph: **3/3**;
+- exact `corepack pnpm@11.15.0 measure:phase11`: **2/2** browser tests;
+- measured performance: `120` frames, `frameP95Ms: 16.7`, `longestTaskMs: 0`, `12` visible avatars, and `64` semantic rows.
+- authoritative `corepack pnpm@11.15.0 check`: formatting, lint, typecheck, architecture, **114/114 test files / 606/606 Vitest**, **20/20 builds**, smoke PASS, **52/52 flagged Playwright**, and **1/1 unflagged fail-closed Playwright**.
+
+The parent-verified product verdict remains unchanged. Aggregate-generated Phase 13–15 and Phase 18 evidence churn was restored to the committed parent-verified bytes, and no owned listener remained. Delivery remains open until a follow-up private commit passes exact-SHA CI. First-hand user retesting still follows that green remote gate.
