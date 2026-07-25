@@ -1,7 +1,7 @@
 ---
 title: AgentIntersect World — Canonical Product and Implementation Design
 created: 2026-07-19
-updated: 2026-07-24
+updated: 2026-07-25
 type: concept
 tags:
   [project, coding, ai-agent, decision, embodied-agents, spatial-development]
@@ -10,16 +10,18 @@ sources:
   - _inbox/AgentIntersect World/AIW tech stack.docx
 status: active-implementation
 product: AgentIntersect World
-version: 0.2-design-rebaseline
+version: 0.3-ui-ux-rebaseline
 ---
 
 # AgentIntersect World — Canonical Product and Implementation Design
 
 ## Document status
 
-**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**. The bounded artifact gate and implementation report verify immutable runtime/model hashes, safe inventory, exact-provider execution, deterministic browser/media behavior, canonical authority, accessibility, performance, recovery, and cleanup. On 2026-07-24 the operator completed and explicitly accepted the real Microsoft Edge physical-microphone journey, exact-session Hermes/Discord canonical reply, optional browser/system TTS, and cleanup recorded in `artifacts/phase15/physical-microphone-acceptance.json`. The provider remains under private `.staging` storage and was not promoted or activated. Phase 16 is **USER ACCEPTED / SEALED / COMPLETE** under `docs/PHASE_16_SCOPE.md`, `docs/PHASE_16_IMPLEMENTATION_CONTRACT.md`, `PHASE_16_REPORT.md`, and `artifacts/phase16/final-live-proof.json`. Exactly Mr Fluff/Hermes and Beans/OpenClaw produced isolated attributable branches; parent full/fresh/browser/recovery proof is green; browser approval preserved `mergeRun:false`; and manual Git integration surfaced and resolved the real conflict. After technical completion and exact-SHA `phase-1-checks` run `29995642552` / job `89168556242` succeeded for status-record SHA `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance in the new session. Phase 17 is **USER ACCEPTED / SEALED / COMPLETE** under `docs/PHASE_17_SCOPE.md`, `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`, `PHASE_17_REPORT.md`, and `artifacts/phase17/recovery-drill.json`; its required fresh privacy/recovery review completed, the one bounded correction pass addressed the reported blockers, and independent parent focused/full/runtime/browser/cleanup/fresh-copy proof is green. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session. The future status-only seal commit and its CI remain external records because a tracked file cannot self-reference its own future commit. Phase 15 is sealed with the local STT provider staged/unactivated; Phase 13 Discord → World continuity remains FAIL/deferred under waiver; Phase 18 remains unauthorized and not started; and no release, publication, deployment, public ingress, or visibility change is claimed.
+**Status:** Canonical active design, re-baselined on 2026-07-20 around free-form embodied agent sessions and approved by the user as the forward product direction. Phases 0–12 are complete with private exact-SHA CI evidence. Phase 13 is complete under the user's 2026-07-22 live-gate waiver: its local navigation/World Action slice and non-live gates are accepted, while exact-root Discord → World assistant-final/action-tour continuity remains FAIL/deferred rather than green and was not retried. Phase 14 is complete and sealed with retained evidence, independent parent proof, private push, and green exact-SHA GitHub Actions run `29963116363` for commit `68a41925fa93fca23c8b2efffd56e8869d6676a0`. CI maintenance is complete on clean private `main` at `dba11b88f92d90df718d2068d98110d35201d296`; exact-SHA run `29966798446`, job `89079968383`, succeeded with zero annotations. Phase 15 is **USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**. The bounded artifact gate and implementation report verify immutable runtime/model hashes, safe inventory, exact-provider execution, deterministic browser/media behavior, canonical authority, accessibility, performance, recovery, and cleanup. On 2026-07-24 the operator completed and explicitly accepted the real Microsoft Edge physical-microphone journey, exact-session Hermes/Discord canonical reply, optional browser/system TTS, and cleanup recorded in `artifacts/phase15/physical-microphone-acceptance.json`. The provider remains under private `.staging` storage and was not promoted or activated. Phase 16 is **USER ACCEPTED / SEALED / COMPLETE** under `docs/PHASE_16_SCOPE.md`, `docs/PHASE_16_IMPLEMENTATION_CONTRACT.md`, `PHASE_16_REPORT.md`, and `artifacts/phase16/final-live-proof.json`. Exactly Mr Fluff/Hermes and Beans/OpenClaw produced isolated attributable branches; parent full/fresh/browser/recovery proof is green; browser approval preserved `mergeRun:false`; and manual Git integration surfaced and resolved the real conflict. After technical completion and exact-SHA `phase-1-checks` run `29995642552` / job `89168556242` succeeded for status-record SHA `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance in the new session. Phase 17 is **USER ACCEPTED / SEALED / COMPLETE** under `docs/PHASE_17_SCOPE.md`, `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`, `PHASE_17_REPORT.md`, and `artifacts/phase17/recovery-drill.json`; its required fresh privacy/recovery review completed, the one bounded correction pass addressed the reported blockers, and independent parent focused/full/runtime/browser/cleanup/fresh-copy proof is green. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session. The future status-only seal commit and its CI remain external records because a tracked file cannot self-reference its own future commit. Phase 15 is sealed with the local STT provider staged/unactivated; Phase 13 Discord → World continuity remains FAIL/deferred under waiver; revised Phase 18 is independently parent verified and awaiting explicit user-facing acceptance; and no release, publication, deployment, public ingress, or visibility change is claimed.
 
 **Canonical product and repository name:** **AgentIntersect World**.
+
+**Superseding Phase 18 status (2026-07-25):** First-hand testing reopened Phase 18 after the prior parent proof. The bounded correction now has fresh independent parent verification green; private `main` commit/push, exact-SHA CI, and a new full-browser user retest are authorized next. Phase 18 is not user accepted, sealed, released, deployed, or published.
 
 **Decision:** AgentIntersect World is a new, separate project and repository. The original AgentIntersect repository remains untouched. Phase 0 established a one-time compatibility baseline; normal World development no longer repeatedly inspects or verifies the original checkout. When baseline code is needed, the required code may be copied into World with provenance recorded once and is then maintained as World-owned code. World may still consume compatible local HTTP/SSE/MCP/worker surfaces, but the original AgentIntersect repository is not an ongoing phase gate.
 
@@ -30,6 +32,43 @@ This document uses three maturity labels:
 - **Future/Deferred** — explicitly outside the v0.1 cutline and not implied by current AgentIntersect.
 
 No code, package, repository, release, or external configuration change is authorized by this document.
+
+### World-entry UI/UX product re-baseline — 2026-07-25
+
+**Precedence:** This section is the governing product-experience baseline. It supersedes any older language that presents the inherited dashboard, diagnostics, readiness, recovery, evidence, connector, lifecycle, or control-plane panels as the normal World experience. It does not reopen or invalidate completed Phases 0–17, their reports, scopes, artifacts, or acceptance evidence. First-hand testing reopened revised Phase 18; the bounded controls/transcript/activity/responsive correction now has fresh independent parent verification green, with private exact-SHA CI and a new full-browser user retest next. User acceptance and sealing remain open. The accepted Phase 5–17 dashboard-oriented machinery remains available only behind the explicit local developer flag and exact internal route.
+
+**Product principle:** The normal product journey is identity → embodiment → agent calling/connection → enter a 3D space → direct agents by chat or voice → conversationally load a repository, causing the existing floor to transform into the repository landscape. Existing operational machinery remains available only behind an explicit local developer flag and internal route, with no link from the normal experience.
+
+The following ten decisions are frozen and must not be reinterpreted:
+
+1. **Multi Agent:** each named agent connects immediately; after at least two agents are connected **and** their avatars have been explicitly created, `Enter World` appears. The user may add more agents before entering.
+2. **First launch:** show the animated logo, then `identify_`, then `Create Avatar`. **Later launches:** show the personalized logo/name, replay `AgentIntersect_`, and offer session selection without forcing avatar creation.
+3. Every first-time newly connected agent must pass through an explicit avatar creator before `Enter World`; no invisible default avatar is allowed.
+4. Multi Agent repeats this exact sequence: connect one agent → immediately create its avatar → return to the constellation → repeat.
+5. A Hermes/OpenClaw name miss types `agent not found_` and allows immediate retry without technical details.
+6. Inside World, the only required persistent HUD is a minimal bottom-center chat field with an adjacent push-to-talk control.
+7. An unaddressed Multi Agent message goes to all connected agents; clicking an avatar or using `@name` targets one.
+8. Loading a repository transforms the entire existing floor into the repository landscape; there is no portal or separate repository space.
+9. The default camera is third-person behind the user avatar; a first-person toggle is optional later.
+10. The existing admin/developer dashboard is retained only behind an explicit local developer flag/internal route and is not linked from the normal user experience.
+
+The visual and interaction invariants are also frozen:
+
+- Opening is full-screen with one large existing animated AgentIntersect logo and nothing else.
+- All World text uses Consolas.
+- Typed labels animate character-by-character and end with a blinking underscore cursor.
+- After user-avatar creation, the user’s name overlays the center of the logo’s X.
+- `AgentIntersect_` appears centered below the logo; `Single Agent` materializes left and `Multi Agent` right below it.
+- Four clickable harness terminal labels sit at the colored logo endpoints: `openclaw_` upper-left/red, `hermes_` upper-right/yellow, `claude_` lower-left/orange, and `codex_` lower-right/blue-cyan.
+- A harness click advances the cursor like a terminal newline, types `agent name?`, advances again, and accepts typed input.
+- Codex and Claude use the entered name as the World agent identity. Hermes and OpenClaw resolve an existing local harness identity.
+- A large translucent Consolas overlay subtly pulses `connecting agent` / `connecting agents`, then `agent connected` / `agents connected`.
+- `Enter World` materializes centered only after truthful connection readiness and every required avatar is complete.
+- The initial 3D environment is a small, open, blank floor room with capacity for later walls or a skybox; the user and agents can navigate freely.
+- Same-PC active-harness connection is invisible. LAN/different-PC setup UI is deferred.
+- Enabled actions are blue and unavailable actions are grey. Reduced motion, keyboard access, captions, responsive containment, and truthful current/previous state remain mandatory without becoming admin chrome.
+
+`docs/WORLD_ENTRY_EXPERIENCE.md` is the concise normative interaction specification for this direction. Where it and older normal-experience prose conflict, this 2026-07-25 re-baseline and that specification govern. Implementation still requires a separately frozen scope and explicit user authorization.
 
 ### Development operating rules — 2026-07-19 override
 
@@ -86,16 +125,19 @@ The authoritative concept inputs are the relocated Obsidian copies `AgentInterse
 | Consentful avatar/voice proposals    | 2026-07-20 re-baseline    | Bounded local proposal, operator preview/edit/accept/revoke              |
 | Text magic slice before expansion    | 2026-07-20 re-baseline    | One agent/repo/edit/test/preview precedes voice and multi-agent editing  |
 | Worktree-isolated parallel agents    | 2026-07-20 re-baseline    | Simultaneous editors do not silently share one mutable checkout          |
+| Embodied entry is the normal product | 2026-07-25 re-baseline    | Identity, agents, World, chat/voice, then conversational repository load |
+| Dashboard is internal machinery      | 2026-07-25 re-baseline    | Local developer flag/internal route only; no normal-experience link      |
+| Repository replaces the floor        | 2026-07-25 re-baseline    | The current floor transforms in place; no portal or separate code space  |
 | Broad security hardening             | Future/Deferred           | Dedicated milestone after the main product path functions                |
 | XR, physics, cloud execution         | Future/Deferred           | Optional adapters; not v0.1 dependencies                                 |
 
 ## Executive summary
 
-**One-sentence pitch:** AgentIntersect World lets a developer enter a live spatial model of a codebase and collaborate with persistent embodied AI agents through text, voice, navigation, visible tool use, evidence-backed changes, and live project previews.
+**One-sentence pitch:** AgentIntersect World lets a developer create an identity, call one or more embodied AI agents into a shared 3D space, direct them through chat or voice, and transform the floor into a live repository landscape.
 
-AgentIntersect World is a browser-first spatial agentic development environment, not a decorative code city and not merely the original AgentIntersect dashboard rendered in 3D. Packages, directories, files, symbols, tests, dependencies, issues, sessions, tools, previews, phases, and runs become addressable World objects. The human navigates through mouse/keyboard or an equivalent semantic shell. Persistent agents inhabit approved avatars, converse through resumable chat, move to the code objects they are attending to, use real tools through their harness, and present work through exact diffs, tests, evidence, and local previews.
+AgentIntersect World is a browser-first spatial agentic development environment, not a decorative code city and not an admin/developer dashboard rendered in 3D. The normal product is the embodied journey: establish or restore the user identity, connect named local agents and create their avatars, enter a blank shared 3D room, converse through the minimal chat/push-to-talk HUD, and ask an agent to load a repository. Packages, directories, files, symbols, tests, dependencies, issues, sessions, tools, previews, phases, and runs then become addressable World objects as the room’s existing floor transforms into the repository landscape.
 
-The first re-baselined proof is deliberately narrow: open one repository, enter as the user avatar, attach one persistent Hermes session, approve an agent-proposed avatar, exchange free-form text, ask the agent to visually explain a code relationship, request one bounded change, observe real tool events and affected objects, run tests, open a verified local preview, and resume the same session after reload. Voice and simultaneous multi-agent editing follow after this magic slice is stable. Guided Build remains available for design-document phases through AgentIntersect.
+The corrected revised Phase 18 proof is deliberately narrow: reach clean or returning identity; choose `Single Agent` and `hermes_`; enter `Mr Fluff`; truthfully resolve the exact safe native label; explicitly create Mr Fluff’s avatar; enter and continuously control one third-person blank floor room; retain chat and canonical activity truth; and watch the whole floor transform into its repository landscape. Fresh independent parent verification and explicit user-facing acceptance remain open; the slice is not sealed, committed, pushed, released, or deployed.
 
 ## Product thesis, category, and value
 
@@ -105,7 +147,7 @@ Modern coding agents are operationally capable but perceptually thin. Their work
 
 ### Category
 
-The product category is **embodied spatial agentic development**: a repo-first environment in which one trusted human and their owned agents share a live World model tied to real sessions, repository state, tools, and evidence. It is adjacent to agentic IDEs, game-like code visualization, voice assistants, collaborative development, and digital-twin interfaces. It is not a generic metaverse, a replacement for Git/source editors, a hidden chain-of-thought visualizer, or an unrestricted cloud agent host.
+The product category is **embodied spatial agentic development**: an identity-and-agent-first environment in which one trusted human and their owned agents enter a shared World, then bring repository state, tools, and evidence into that space through conversation. It is adjacent to agentic IDEs, game-like code visualization, voice assistants, collaborative development, and digital-twin interfaces. It is not a generic metaverse, a replacement for Git/source editors, a hidden chain-of-thought visualizer, an admin console as the normal product, or an unrestricted cloud agent host.
 
 ### Differentiators
 
@@ -146,7 +188,7 @@ The product category is **embodied spatial agentic development**: a repo-first e
 
 ### Primary magic-slice demo
 
-“I entered my repository and worked beside my AI agent.” The user creates a local avatar, opens one repository, attaches an existing Hermes profile/session, reviews the agent’s proposed avatar, and enters the World with it. The user asks, “Show me how the last feature connects to the previous implementation.” The agent replies in chat, walks to the relevant objects, highlights a bounded dependency/call path, and presents associated diff and tests. The user then requests one next feature. Real tool events move the avatar between affected objects, edits create evidence-backed construction state, tests activate beacons, and completion opens a health-checked local preview. Reloading World resumes the same conversation, avatar, permissions, focus, and evidence.
+“I called my AI agent into a World, then asked it to bring in my repository.” On a later launch, the user sees the personalized animated logo, their name centered on the X, and the typed `AgentIntersect_` session choice. They choose `Single Agent`, click `hermes_`, enter `Mr Fluff`, see truthful connecting/connected state, explicitly create Mr Fluff’s avatar, and enter a small blank room in third-person. The only persistent HUD is bottom-center chat and push-to-talk. The user asks Mr Fluff to load one repository; the entire existing floor transforms into the repository landscape. The user can then converse, navigate, and continue into the already accepted repository, session, action, evidence, and preview capabilities without seeing control-plane panels.
 
 ### Secondary Guided Build demo
 
@@ -171,6 +213,8 @@ The operator selects a design document, sees compiled phases and acceptance crit
 - Provide same-operator multi-view presence and durable annotations locally or on the trusted LAN.
 - Provide an accessible 2D shell equivalent for every required operation.
 - Persist graph/cache/run projections locally and rebuild deterministically after loss.
+- Make the normal experience identity/embodiment/agent connection/World entry/chat-or-voice/repository transformation rather than dashboard operation.
+- Keep diagnostics, evidence, recovery, readiness, connectors, lifecycle, and control-plane capabilities invisible until an explicit local developer flag/internal route is used.
 
 ### Non-goals
 
@@ -188,7 +232,7 @@ The operator selects a design document, sees compiled phases and acceptance crit
 
 ### v0.1 cutline
 
-The next cutline is the one-agent magic slice: one operator, one repository, one persistent Hermes session, text chat, approved agent-avatar proposal, semantic user/agent navigation, visual code explanation, structured tool events, one bounded edit and test, one local preview, interruption/safe control, and reload/restart recovery. Guided Build remains operational through AgentIntersect. Voice, simultaneous multi-agent editing, broader agent adapters, multiple repo continents, public collaboration, XR, physics, and cloud sync are later phases or deferred.
+The next proposed cutline is revised Phase 18’s World Entry Experience: one restored operator avatar, one existing local Hermes identity (`Mr Fluff`), explicit agent-avatar creation, truthful readiness, third-person entry into a blank floor room, the minimal chat/push-to-talk HUD, and one conversational repository request that transforms the complete floor into the repository landscape. The accepted Phase 0–17 machinery remains available beneath this journey. Revised Phase 19 adds multi-agent constellation and harness breadth. Revised Phase 20 carries forward integrated acceptance and bounded hardening. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
 
 ### Relationship to AgentIntersect and AgentClutch
 
@@ -213,10 +257,13 @@ The next cutline is the one-agent magic slice: one operator, one repository, one
 9. **Consentful embodiment:** appearance, voice, labels, and identity-derived traits are previewed, editable, revocable, and bounded.
 10. **One-human multi-agent ownership:** every connected agent, browser view, worktree, and preview belongs to the same trusted operator in this design.
 11. **Isolation before parallelism:** simultaneous editing agents receive separate worktrees or a comparably explicit ownership boundary.
-12. **LOD and accessibility first:** every graph/embodiment feature declares degradation and a semantic DOM equivalent before visual scale-up.
-13. **Adapter capability honesty:** unsupported resume, tool telemetry, approvals, voice, memory, or World Actions stay visibly unavailable.
-14. **Independent evolution:** completed World code and fixtures are owned here; original projects are consulted or modified only with explicit authorization.
-15. **Functionality before broad hardening:** preserve inexpensive safety boundaries, prove the experience, then perform bounded hardening where supported workflows create concrete risk.
+12. **Embodied product, invisible machinery:** normal users see identity, agents, the World, and chat/voice; administrative machinery is internal and unlinked.
+13. **Truth before affordance:** `Enter World` exists only when required connections and explicit avatars are ready; enabled actions are blue and unavailable actions are grey.
+14. **Transform in place:** a repository request transforms the current floor instead of opening a portal or moving the user to a separate code space.
+15. **LOD and accessibility first:** every graph/embodiment feature declares degradation and a semantic DOM equivalent before visual scale-up.
+16. **Adapter capability honesty:** unsupported resume, tool telemetry, approvals, voice, memory, or World Actions stay visibly unavailable.
+17. **Independent evolution:** completed World code and fixtures are owned here; original projects are consulted or modified only with explicit authorization.
+18. **Functionality before broad hardening:** preserve inexpensive safety boundaries, prove the experience, then perform bounded hardening where supported workflows create concrete risk.
 
 ## Current AgentIntersect capability inventory
 
@@ -1401,22 +1448,22 @@ sequenceDiagram
   participant W as World authority/session gateway
   participant R as Repository/code graph
   participant H as Hermes adapter/session
-  U->>B: Create avatar and select repository
-  B->>W: Open/index repository
-  W->>R: Build/reuse deterministic World projection
-  U->>B: Connect Hermes profile/session in Collaborate mode
+  U->>B: Restore user avatar and choose Single Agent
+  U->>B: Select hermes_ and enter Mr Fluff
   B->>W: Create/attach session with permission revision
   W->>H: Capability handshake and resume
   H-->>W: Session identity, readiness, capabilities
-  W-->>B: Agent roster entry and proposed avatar availability
-  U->>B: Review/approve agent avatar
+  W-->>B: Truthful connecting then connected state
+  U->>B: Explicitly create Mr Fluff avatar
   B->>W: Persist approved bounded profile
-  B->>B: Spawn user and agent avatars in World
-  U->>B: Type free-form message
+  B->>B: Materialize Enter World
+  U->>B: Enter blank floor room in third-person
+  U->>B: Ask Mr Fluff to load one repository
   B->>W: Send message to exact session
   W->>H: Same persistent session turn
-  H-->>W: Assistant/tool/action event stream
-  W-->>B: Chat, bubble, status, accepted World Actions
+  H-->>W: Repository request plus assistant/action events
+  W->>R: Open/index and build deterministic projection
+  R-->>B: Transform the entire current floor into repository landscape
 ```
 
 ### Ask for a visual code explanation
@@ -1844,21 +1891,12 @@ Above-head UI shows the required name, concise status, typing/speaking indicator
 
 ### Primary layout
 
-- **World viewport:** spatial map, pointer-lock/click/semantic navigation, user/agent presence, selection, follow and presentation actions.
-- **Persistent chat:** exact session/mode/adapter/worktree identity, text/attachments, queue/steer/interrupt, approvals, captions, and durable results.
-- **Voice controls:** push-to-talk, transcript preview, provider disclosure, captions, playback/interrupt, per-agent approved voice.
-- **Session mode bar:** Explore/Collaborate/Autonomous/Guided Build, permission revision, capability gaps, and escalation controls.
-- **Command/inspection shell:** semantic repo tree, search, command palette, current status; fully usable without canvas.
-- **Minimap:** districts, collaborators, active run locus, viewport frustum.
-- **Object inspector:** path/URI, metrics, dependencies, Git/test state, source provenance.
-- **Diff/evidence panel:** exact diff, commands/tests, handoff/evidence links, redaction state.
-- **Run timeline:** queued→claimed→working→changed→tested→handoff→completed/failed with correlation IDs.
-- **Phase board:** AgentIntersect phases, acceptance criteria, telemetry, safe pause/auto-advance state.
-- **Agent roster:** adapter/session/worktree-safe display, approved avatar/voice, current task/focus/status, capability and privacy disclosure.
-- **World explanation layer:** bounded traces, comparisons, annotations, camera tours, object/edge confidence and truncation truth.
-- **Preview panel/portal:** health-checked local project previews, open-in-browser fallback, evidence capture, and teardown.
-- **Terminal drawer fallback:** read-only streamed/captured output by default; no implicit direct PTY.
-- **Collaboration bar:** presence, presenter follow, annotations, room privacy.
+- **Opening and constellation:** full-screen animated logo, typed identity/session choices, harness endpoint labels, truthful connection overlays, explicit per-agent avatar creation, and readiness-gated `Enter World`.
+- **World viewport:** the normal product surface. It begins as a small open blank floor room, defaults to third-person behind the user avatar, supports free user/agent navigation, and transforms that complete floor into the requested repository landscape.
+- **Persistent HUD:** only a minimal bottom-center chat field and adjacent push-to-talk control are required. Captions and truthful status use transient, contained presentation rather than permanent dashboard chrome.
+- **Message targeting:** unaddressed text goes to all connected agents. Clicking an avatar or using `@name` targets one agent.
+- **Accessible equivalents:** keyboard and semantic DOM paths remain available for every required operation, but they should feel like the same embodied journey rather than expose control-plane organization.
+- **Internal developer surface:** session identity, capability details, repository tree/search, object inspector, minimap, diffs/evidence, run timeline, phase board, roster diagnostics, preview controls, terminal fallback, recovery, and collaboration diagnostics remain supported internal machinery behind an explicit local developer flag/internal route. The normal experience contains no link to it.
 
 ### Accepted AgentIntersect visual-shell inheritance
 
@@ -1896,19 +1934,23 @@ The logo remains a home/reset action. Categories may initially expose truthful u
 
 **What is not reused:** the original AgentIntersect menu contents, control-plane route assumptions, Connect/OnBoarding/Design/Control/Workers/Records business logic, external configuration writes, worker authority, or monolithic server-rendered implementation. World ports the accepted visual and interaction design into typed React components backed only by World APIs.
 
-**Phase placement:** Phases 3–11 remain accepted foundations. Revised Phase 12 adds modes, session gateway, Hermes text chat, permissions, and lifecycle controls. Phase 13 adds embodied user/agent navigation and World Actions. Phase 14 adds visual explanations, structured tool activity, bounded edits/tests, and previews. Phase 15 adds voice and expressive presence. Phase 16 adds isolated multi-agent coordination.
+**Current versus proposed:** The completed Phase 5 dashboard and the Phase 6–17 operational panels remain accepted internal capability foundations. The 2026-07-25 normal experience has a corrected revised Phase 18 implementation with fresh independent parent verification green; private exact-SHA CI and a new full-browser first-hand user retest remain before explicit user acceptance. Revised Phase 19 will add the multi-agent constellation and harness breadth; revised Phase 20 will perform integrated embodied acceptance and bounded hardening.
 
 ### Onboarding
 
-The first-run experience begins with the inherited `identify_` avatar builder, transitions into the dashboard, checks capabilities, selects/indexes one repository, explains local/session/voice boundaries, and enters a short camera/search tour. The operator then chooses a session mode and connects or resumes an agent. The first deep connector is Hermes; the wizard detects readiness, names the exact profile/session boundary, shows capabilities without secrets, and never rewrites external agent configuration without explicit approval. The agent may propose an avatar after connection. If no agent is available, World remains fully usable in repository Explore mode. AgentIntersect is required only for Guided Build features that depend on it.
+On first launch, the browser shows only one large animated AgentIntersect logo, then types `identify_`, then presents `Create Avatar`. After the user creates the avatar, their name overlays the center of the X. `AgentIntersect_` types below the logo, followed by `Single Agent` on the left and `Multi Agent` on the right. On later launches, the personalized logo/name appears first, `AgentIntersect_` replays, and session selection follows without forcing user-avatar creation.
+
+Single Agent exposes the four terminal harness labels at the logo endpoints. Selecting `hermes_` or `openclaw_` asks `agent name?` and resolves an existing local identity; a miss types `agent not found_` and immediately permits retry without technical detail. Selecting `codex_` or `claude_` uses the entered name as the World identity. Every newly connected agent must then pass through explicit avatar creation before readiness can reveal `Enter World`.
+
+Multi Agent repeats connect one agent → immediately create that agent’s avatar → return to the constellation. `Enter World` is unavailable until at least two agents are truthfully connected and all their avatars are complete, though more agents may be added first. Same-PC harness attachment is invisible; LAN/different-PC setup UI is deferred.
 
 ### Errors and recovery
 
-Every error has: human summary, affected capability, whether data is safe, retry/reconcile action, diagnostics ID, and technical disclosure. Examples: index canceled (old generation remains active), parser degraded (file view available), AgentIntersect workspace mismatch (execution blocked), SSE gap (snapshot reconciliation), room offline (local annotations pending), database corruption (read-only/rebuild choices). Never hide control-plane unavailability behind an avatar animation.
+Normal-experience errors are brief, human, and actionable. A Hermes/OpenClaw identity miss is exactly `agent not found_` plus immediate retry; it does not expose connector diagnostics. Connection, avatar, repository, chat, voice, and World-entry state must remain truthful, including current versus previous/recovered state. Technical details, diagnostics IDs, recovery tools, and control-plane disclosures remain available only on the explicitly enabled internal developer surface. Never hide unavailability behind an avatar animation or enable a blue action before authority is ready.
 
 ### Accessibility
 
-All objects have semantic roles/labels in a synchronized DOM tree. Keyboard controls cover search, tree navigation, select, inspect, follow, and commands. Focus never becomes trapped in canvas. Provide skip-to-shell, logical tab order, configurable keymap, screen-reader live regions for run state, captions for spatial audio, reduced motion, camera-sickness controls, high contrast, text scaling, and color-independent status through shape/icon/text. Automated axe tests and manual keyboard/screen-reader checks are release gates.
+All objects have semantic roles/labels in a synchronized DOM tree. Keyboard controls cover identity, session choice, harness selection, name entry/retry, avatar creation, `Enter World`, navigation, chat, targeting, push-to-talk, and repository interaction. Focus never becomes trapped in canvas. Provide logical tab order, screen-reader live regions for typed/connection/repository state, captions for voice, reduced-motion equivalents for typewriter/pulse/floor transformation, camera-sickness controls, high contrast, text scaling, responsive containment, and color-independent enabled/unavailable truth in addition to blue/grey styling. Automated axe tests and manual keyboard/screen-reader checks remain acceptance gates without introducing admin chrome.
 
 ## CLI and developer experience
 
@@ -2311,47 +2353,37 @@ Targets are engineering budgets, not public uptime promises. Reference hardware,
 
 ### Re-baselined roadmap map
 
-Completed Phases 0–11 are the accepted foundation and are not reopened by this design:
+Completed Phases 0–17 are accepted historical foundations and are not reopened by this design:
 
-| Foundation  | Completed capabilities                                                            |
-| ----------- | --------------------------------------------------------------------------------- |
-| Phases 0–2  | Compatibility baseline, monorepo, local authority/configuration                   |
-| Phases 3–4  | Repository discovery/index, stable World identity, deterministic layout/LOD       |
-| Phases 5–6  | Inherited shell/repository island, AgentIntersect read integration/replay         |
-| Phases 7–8  | Real bounded phase intent, durable diff/test/evidence and construction projection |
-| Phases 9–10 | Same-operator presentation sync, symbols/dependencies/large-repo hardening        |
-| Phase 11    | Privacy-safe modular Blender avatars and authoritative embodied status            |
+| Foundation   | Completed capabilities                                                               |
+| ------------ | ------------------------------------------------------------------------------------ |
+| Phases 0–2   | Compatibility baseline, monorepo, local authority/configuration                      |
+| Phases 3–4   | Repository discovery/index, stable World identity, deterministic layout/LOD          |
+| Phases 5–6   | Inherited shell/repository island, AgentIntersect read integration/replay            |
+| Phases 7–8   | Real bounded phase intent, durable diff/test/evidence and construction projection    |
+| Phases 9–10  | Same-operator presentation sync, symbols/dependencies/large-repo hardening           |
+| Phases 11–14 | Modular avatars, persistent Hermes session, navigation/actions, tools and previews   |
+| Phases 15–17 | Staged voice lane, isolated multi-agent coordination, diagnostics/recovery machinery |
 
-The revised remaining path is:
+The unstarted future path is replaced by this sequence:
 
-| Phase | Product question answered                                              | Primary deliverable                                                        |
-| ----- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 12    | Can World hold a real persistent free-form agent conversation safely?  | Session modes, Agent Session Gateway, one deep Hermes text adapter         |
-| 13    | Can the human and agent inhabit and point through the same code world? | FPS/semantic navigation, deterministic agent movement, World Actions       |
-| 14    | Can visible collaboration produce real code and demonstrate it?        | Tool visualization, visual explanations, edit/test evidence, local preview |
-| 15    | Can conversation feel natural without compromising authority/privacy?  | Push-to-talk STT, captions/TTS, expressive presence, consentful identity   |
-| 16    | Can multiple agents collaborate without invisible collisions?          | Isolated worktrees, tasks, contention, handoffs, merge/conflict truth      |
-| 17    | Can the expanded system recover and explain failure?                   | Observability, diagnostics, retention, corruption/restart drills           |
-| 18    | Does the complete experience work as one product?                      | Open, multi-agent, Guided Build, voice, preview, recovery acceptance       |
-| 19    | Is a reversible private-alpha candidate technically ready?             | Local staged artifact, docs, SBOM, compatibility, backup/delete/rollback   |
+| Phase | Status                                                     | Product question answered                                            | Primary deliverable                                               |
+| ----- | ---------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 18    | Correction implemented; awaiting fresh parent verification | Can one user call Mr Fluff into a World and bring in a repository?   | Single-Agent Hermes World-entry magic slice                       |
+| 19    | Not started or authorized                                  | Can the frozen constellation work across agents and harnesses?       | Multi-Agent sequence, targeting, and four-harness breadth         |
+| 20    | Not started or authorized                                  | Does the embodied product work reliably across accepted foundations? | Integrated acceptance and bounded hardening; old Phase 18 purpose |
 
 ```mermaid
 flowchart LR
-  P11[Phase 11: avatar foundation] --> P12[12: persistent sessions and text]
-  P12 --> P13[13: embodied navigation and actions]
-  P13 --> P14[14: tools, explanations, preview]
-  P14 --> Magic[One-agent magic slice approved]
-  Magic --> P15[15: voice and expression]
-  Magic --> P16[16: multi-agent worktrees]
-  P15 --> P17[17: diagnostics and recovery]
-  P16 --> P17
-  P17 --> P18[18: integrated acceptance]
-  P18 --> P19[19: private-alpha readiness]
-  Guided[AgentIntersect Guided Build] --> P12
-  Guided --> P18
+  Historical[Phases 0-17: accepted foundations] --> P18[18: Single-Agent Hermes World entry]
+  P18 --> P19[19: Multi-Agent constellation and harness breadth]
+  P19 --> P20[20: embodied acceptance and bounded hardening]
+  Internal[Existing internal machinery] --> P18
+  Internal --> P19
+  Internal --> P20
 ```
 
-Delivery rule: each phase freezes a scope, implements one observable slice, runs focused/full proof, receives independent Mr Fluff artifact and first-hand user verification, commits privately with exact-SHA CI when authorized, and stops. No phase auto-authorizes the next.
+Delivery rule for any later authorized implementation: each phase freezes a scope, implements one observable slice, runs focused/full proof, receives independent Mr Fluff artifact and first-hand user verification, and stops. Commit/push and exact-SHA CI require their own included authorization. No phase auto-authorizes the next, and this documentation-only re-baseline authorizes none of Phases 18–20.
 
 Every phase is a bounded approval unit. Phase numbering is ordered, but measured research tasks may overlap only when their dependencies and write scopes are explicit. “Exit gate” means evidence exists and the next phase may be proposed; it is not release authorization.
 
@@ -2860,7 +2892,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 17 — Observability, diagnostics, and deterministic recovery
 
-**Selection status:** USER ACCEPTED / SEALED / COMPLETE. The user-authorized bounded shape is frozen in `docs/PHASE_17_SCOPE.md`; architecture and authority boundaries are in `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`; independent parent evidence is in `PHASE_17_REPORT.md` and `artifacts/phase17/recovery-drill.json`. The required fresh privacy/recovery review completed, its blockers received the one authorized correction pass, and parent focused/full/runtime/browser/cleanup/fresh-copy proof is green. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is accepted, sealed, and complete. Phase 18 remains unauthorized and not started.
+**Selection status:** USER ACCEPTED / SEALED / COMPLETE. The user-authorized bounded shape is frozen in `docs/PHASE_17_SCOPE.md`; architecture and authority boundaries are in `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`; independent parent evidence is in `PHASE_17_REPORT.md` and `artifacts/phase17/recovery-drill.json`. The required fresh privacy/recovery review completed, its blockers received the one authorized correction pass, and parent focused/full/runtime/browser/cleanup/fresh-copy proof is green. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is accepted, sealed, and complete. Revised Phase 18 remains unauthorized and not started.
 
 **Objective:** Make embodied sessions, tools, navigation, voice, previews, multi-agent worktrees, and Guided Build supportable and privacy-safe under failure.
 
@@ -2882,109 +2914,154 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Derivable state rebuilds; non-derivable loss range is explicit; no tool/preview/session completion is fabricated; exports pass redaction/privacy scans; readiness names precise degraded capabilities; recovery preserves repository/worktree safety.
 
-**Exit gate:** Satisfied. Independent parent inspection, focused privacy review/correction, direct recovery challenges, full repository proof, first-hand production browser QA, cleanup, fresh-copy confirmation, private exact-SHA CI, and explicit user acceptance are complete. Phase 17 is accepted, sealed, and complete. Phase 18 remains separately unauthorized and not started.
+**Exit gate:** Satisfied. Independent parent inspection, focused privacy review/correction, direct recovery challenges, full repository proof, first-hand production browser QA, cleanup, fresh-copy confirmation, private exact-SHA CI, and explicit user acceptance are complete. Phase 17 is accepted, sealed, and complete. Revised Phase 18’s reopened correction is parent verified; private exact-SHA CI and a new first-hand full-browser user retest remain before explicit user-facing acceptance.
 
 **Risks:** Diagnostics can become an exfiltration channel and recovery can damage work. Default to summaries, require preview, fail closed on export redaction errors, preserve corrupt data before repair, and never auto-delete worktrees.
 
-## Phase 18 — Embodied vertical-slice acceptance and bounded hardening
+## Phase 18 — World Entry Experience — Single-Agent Hermes magic slice
 
-**Objective:** Validate the complete re-baselined product through real open-collaboration, Guided Build, voice, multi-agent, recovery, accessibility, performance, and authority scenarios without adding features.
+**Status:** REOPENED CORRECTION IMPLEMENTED / AWAITING FRESH INDEPENDENT PARENT VERIFICATION. Not user accepted, sealed, committed, pushed, released, deployed, or CI-verified. Correction proof is recorded in `PHASE_18_REPORT.md` and `artifacts/phase18/`.
 
-**User-visible outcome:** A recorded acceptance journey proves the World is useful as an embodied development environment—not merely a collection of subsystems—and produces a readiness scorecard and residual-risk register for the user’s decision.
+**Objective:** Replace the normal dashboard-first journey with one coherent embodied entry slice that reuses accepted Phase 0–17 capabilities beneath a user-facing identity, Hermes connection, explicit agent-avatar, World entry, chat, and repository-floor transformation.
 
-**In scope:** Fresh clone and disposable repos; one persistent Hermes magic slice; visual explanation; real edit/test/preview; voice path; two-agent worktree scenario; Guided Build design/phase run through unchanged pinned AgentIntersect; safe pause/emergency drill; reconnect/restart/corruption; keyboard/DOM equivalence; large-repo degradation; one bounded review only where warranted by observed or explicitly requested risk.
+**User-visible outcome:** A returning user sees their personalized animated logo and name, replays `AgentIntersect_`, chooses `Single Agent` → `hermes_`, enters `Mr Fluff`, truthfully connects the existing local identity, explicitly creates Mr Fluff’s avatar, enters a blank room in third-person, and asks through bottom-center chat to load one repository. The entire current floor transforms into that repository landscape.
 
-**Out of scope:** New features/adapters, unrelated visual polish, public release, marketing, tester distribution, broad speculative hardening.
+**In scope:** Existing user-avatar restore; full-screen animated logo; Consolas/typewriter/cursor behavior; personalized name centered on the X; `AgentIntersect_`; Single/Multi choice with only Single active for this slice; four correctly positioned harness labels with only `hermes_` active for the slice; terminal `agent name?` input; local Mr Fluff resolution; `agent not found_` retry; truthful connecting/connected overlay; mandatory explicit Mr Fluff avatar creator; readiness-gated `Enter World`; blank floor room; third-person-behind-user camera; free user/agent navigation; bottom-center chat and adjacent push-to-talk control; one text repository request; full-floor repository transformation; keyboard/reduced-motion/captions/responsive/current-vs-previous truth; local developer-flag/internal-route retention of the old dashboard with no normal link.
 
-**Dependencies:** Revised Phases 12–17 required paths green; completed Phases 0–11 remain accepted.
+**Out of scope:** Multi-agent entry; OpenClaw/Codex/Claude connection breadth; LAN/different-PC setup; custom Mr Fluff voice; first-person mode; new repository indexing/graph semantics; Phase 13 Discord continuity retry; broad admin redesign; original AgentIntersect or Hermes/OpenClaw changes; provider activation; public/release/deploy/tag/publish actions.
 
-**Concrete tasks:** Script reproducible setup; record expected/failure paths; run the complete acceptance matrix; measure responsiveness/latency; verify privacy/authority invariants; triage must-fix versus defer; perform bounded correction; produce acceptance report, evidence bundle, scorecard, and residual register.
+**Dependencies:** Accepted Phases 0–17; existing persisted user avatar and animated logo asset; Hermes exact-session capability/list/attach/history/message/avatar-consent surfaces; avatar system; repository index/World snapshot; third-person navigation; R3F repository-island rendering. The user-authorized frozen boundary and exact evidence paths are recorded in `docs/PHASE_18_SCOPE.md`.
 
-**Code/artifacts:** Open-collaboration and Guided Build Playwright specs, voice/multi-agent/recovery fixtures, recorded evidence, acceptance report, residual-risk register, private-alpha recommendation.
+**Concrete tasks:**
 
-**Tests/evidence:** Complete scenario below; clean clone; session resume; offline/reconnect; adapter reset; hostile CRDT/World Action; workspace mismatch; large repo; keyboard-only; reduced motion; no WebGL; preview failure; worktree conflict; safe pause/emergency results; secret/persona leakage scan.
+1. Add a deterministic World-entry state machine with explicit first/repeat launch, session, harness prompt, resolving, connected, agent-avatar, ready, entering, blank-world, repository-loading, repository-world, and recoverable error states.
+2. Recompose the current app entry around the animated logo and user profile without deleting the accepted internal dashboard.
+3. Implement the Single Agent constellation and Hermes terminal prompt, including `agent not found_` retry and current/previous recovery.
+4. Attach the exact existing Mr Fluff Hermes identity through the accepted gateway, then require explicit agent-avatar creation/consent before readiness.
+5. Enter a small blank floor room with third-person camera and only chat/push-to-talk as persistent HUD.
+6. Interpret one explicit chat repository-load request through a bounded World-owned interaction, reuse repository indexing/projection, and transform the current floor in place.
+7. Gate the internal dashboard behind an explicit local developer flag/internal route with no normal-experience link.
+8. Add semantic, keyboard, reduced-motion, captions, forced-colors, no-WebGL, mobile containment, and truthful unavailable/current/previous coverage.
 
-**Acceptance criteria:** Every re-baselined definition-of-done item is evidenced; the one-agent magic slice is compelling and reliable; multi-agent and voice degrade safely; Guided Build remains truthful; no open High-risk defect in supported flows; Standard deferrals have owner/mitigation; acceptance recording shows real sessions, object refs, tools, diff/tests, previews, and recovery.
+**Code/artifacts:** The bounded implementation is in `apps/web/src/App.tsx`, `apps/web/src/world-entry/`, `apps/web/src/styles.css`, and `packages/renderer-r3f/src/world-room-canvas.tsx`, with focused Vitest/Playwright coverage and retained evidence under `artifacts/phase18/`. The implementation intentionally reused existing session/avatar/repository/navigation authority without local-server, protocol, provider, Hermes/OpenClaw, or original-AgentIntersect changes. Exact paths/results are recorded in `PHASE_18_REPORT.md`.
 
-**Exit gate:** User reviews the acceptance report and explicitly decides whether private-alpha preparation may begin.
+**Tests/evidence:** Worker-local proof is green for the pure state machine, safe-name/client composition, returning/first-launch DOM, explicit agent avatar, one scene/canvas floor transition, exact-session HUD, repository failure/success truth, internal-route isolation, preserved Phase 5/6/11/12/13/15/repository/renderer regressions, full Vitest, typecheck, architecture, lint, production build, and the focused desktop/mobile/no-WebGL Playwright journey. Retained screenshots, trace, and axe summary are under `artifacts/phase18/`. These are worker results awaiting independent parent reproduction.
 
-**Risks:** Demo-only shortcuts and visual theater. Tests must use production boundaries; fixture-only paths are labeled/non-shipping; every claimed outcome resolves to real evidence.
+**Acceptance criteria:** The exact journey completes without visiting or linking to the dashboard; no first-time Mr Fluff avatar is silently defaulted; `Enter World` is absent until Hermes is truthfully connected and the avatar is complete; the camera begins third-person behind the user; only chat and push-to-talk persist in World; one repository request transforms the whole existing floor; errors are brief and retryable; internal machinery remains available only under the explicit local developer flag/internal route; accessibility and truthful state invariants pass.
 
-## Phase 19 — Private alpha readiness (no release authorization)
+**Exit gate:** The reopened correction worker implementation and local proof are complete. Fresh independent parent inspection/functional reproduction and first-hand user acceptance remain open; therefore Phase 18 is not accepted or sealed. Completion does not authorize Phase 19, commit/push, provider activation, or any public action.
 
-**Objective:** Prepare a reversible private-alpha candidate for the embodied-session product without publishing, releasing, deploying, or inviting testers.
+**Risks:** Existing panel-oriented composition may leak admin chrome; native Hermes identity matching may expose technical detail; blank-room and repository renderers may become separate spaces; persisted state may reveal `Enter World` early. Mitigate through an explicit state machine, semantic truth selectors, one floor scene identity, internal-route boundary tests, and end-to-end readiness assertions.
 
-**User-visible outcome:** A locally staged candidate can be installed, upgraded, used, backed up, recovered, uninstalled, and rolled back with documented adapter/voice/preview/worktree compatibility and no private-source leakage.
+## Phase 19 — Multi-Agent Constellation and Harness Breadth
 
-**In scope:** Version proposal; changelog draft; install/uninstall/upgrade docs; Hermes/AgentIntersect/adapter compatibility declaration; optional voice-provider matrix; preview/worktree requirements; signed artifact/reproducibility plan; SBOM/licenses; data/session/avatar/voice deletion/export; feedback template; rollback instructions; limited tester criteria; go/no-go checklist.
+**Status:** NOT STARTED / NOT AUTHORIZED.
 
-**Out of scope:** npm publish, GitHub release, public repository, deployment, marketing, telemetry enablement, public tunnels, tester invitations, private-alpha distribution.
+**Objective:** Extend the accepted Phase 18 entry composition to the frozen Multi Agent sequence and truthful harness breadth without changing the normal World HUD or local single-human ownership model.
 
-**Dependencies:** Phase 18 approval to prepare; all required gates green.
+**User-visible outcome:** The user chooses `Multi Agent`, connects one named agent, immediately creates that agent’s avatar, returns to the constellation, and repeats. After at least two agents are connected and all avatars are complete, `Enter World` materializes; the user may add more first. Inside World, unaddressed chat reaches all agents, while avatar click or `@name` targets one.
 
-**Concrete tasks:** Build candidate locally; test fresh install/upgrade/uninstall; test session/avatar/chat/evidence backup and deletion; verify adapters and local preview; document known risks; prepare opt-in consent and issue template; scan for private AgentIntersect/Hermes source, raw personas, credentials, transcripts, paths, and artifacts; draft distribution decision checklist.
+**In scope:** Multi Agent session choice; sequential connect-one/create-avatar/return loop; at-least-two readiness gate; add-more-before-entry; four harness endpoints and colors; Hermes/OpenClaw local identity resolution and retry; Codex/Claude entered-name identity; singular/plural connecting overlays; per-agent truthful readiness/current/previous state; per-agent avatar persistence; message broadcast and targeted routing; accessible constellation navigation.
 
-**Code/artifacts:** Candidate in approved local staging, checksums, SBOM/license report, compatibility matrix, install/data/rollback docs, release checklist draft, rollback drill evidence.
+**Out of scope:** LAN/different-PC setup UI; unrelated users; public rooms; simultaneous-agent worktree redesign; new harness runtimes or external configuration writes; custom voice; admin redesign; Phase 13 retry; release/publication/deployment.
 
-**Tests/evidence:** Reproducible build, checksum, dependency/malware scan, fresh machine/container smoke, private-source/persona/secret leakage scan, retention/deletion, adapter absence/degradation, voice disabled path, preview loopback proof, rollback.
+**Dependencies:** User-accepted revised Phase 18; accepted Phase 16 coordination/session boundaries; capability-declared adapters already supported by World or separately frozen adapter work.
 
-**Acceptance criteria:** Candidate is technically ready for a separate private-alpha distribution decision; nothing is published or distributed; external agents remain independently versioned; user data/session identity is controllable and removable; rollback is proven.
+**Concrete tasks:**
 
-**Exit gate:** Explicit user authorization is required for any actual private-alpha distribution or later public-readiness work.
+1. Generalize the Phase 18 state machine to ordered per-agent records without weakening its truth gates.
+2. Implement the exact connect → avatar → constellation repetition and optional add-more loop.
+3. Add OpenClaw resolution and Codex/Claude named World identities behind truthful capability checks.
+4. Require two connected/avatar-complete agents before `Enter World`.
+5. Add broadcast-by-default chat, avatar selection, and `@name` targeting with visible recipient truth.
+6. Prove keyboard/reduced-motion/captions/responsive behavior for the full constellation.
 
-**Risks:** Accidental publication, source/persona/session leakage, or bundling external runtimes. Keep all external actions out of automation, stage locally, scan manifests/artifacts, and require a separate explicit decision.
+**Code/artifacts:** Phase 18 World-entry modules; session/coordination clients and accepted gateway surfaces; avatar profile storage keyed by agent/session; multi-agent HUD recipient state; focused unit/DOM/E2E fixtures. Exact files must be frozen in the Phase 19 implementation scope.
+
+**Tests/evidence:** Sequential three-agent flow; incomplete-avatar and one-agent `Enter World` refusal; each harness success/unavailable/name-miss behavior; singular/plural overlays; broadcast and exact-target delivery; reload/current-previous recovery; keyboard, axe, reduced-motion, forced-colors, captions, mobile containment, and blue/grey truth.
+
+**Acceptance criteria:** No agent enters without an explicit avatar; two complete agents unlock entry and one never does; additional agents can be added before entry; each message has truthful all-or-one targeting; missing local identities retry without technical detail; unsupported harnesses stay grey and never imply connection.
+
+**Exit gate:** Separate user acceptance of the complete constellation and routing journey. Phase 20 and any external action remain separately gated.
+
+**Risks:** Parallel connection state can skip avatar creation, recipient ambiguity can misroute messages, and broad harness labels can overclaim support. Use ordered state transitions, explicit recipient display, adapter capability gates, and delivery-attribution tests.
+
+## Phase 20 — Embodied Product Acceptance and Bounded Hardening
+
+**Status:** NOT STARTED / NOT AUTHORIZED.
+
+**Objective:** Carry forward the former Phase 18 acceptance purpose under the new sequence: validate the complete embodied normal experience and accepted internal foundations without adding product breadth.
+
+**User-visible outcome:** A recorded acceptance journey proves AgentIntersect World works as one identity-to-agent-to-World-to-repository product for Single and Multi Agent use, with internal machinery remaining invisible during normal operation, and produces a readiness scorecard plus residual-risk register for the user’s decision.
+
+**In scope:** Fresh clone and disposable repositories; first/repeat launch; revised Phase 18 Hermes magic slice; revised Phase 19 constellation and targeting; repository-floor transformation; text and staged optional voice degradation; visual explanation; real edit/test/preview; two-agent isolated-worktree scenario; Guided Build through unchanged pinned AgentIntersect; safe pause/emergency drill; reconnect/restart/corruption; internal developer route; keyboard/DOM equivalence; large-repo degradation; bounded correction only for observed or explicitly requested risk.
+
+**Out of scope:** New features/adapters, LAN setup UI, custom voice, unrelated visual expansion, public release, marketing, tester distribution, provider activation, Phase 13 retry, or broad speculative hardening.
+
+**Dependencies:** User-accepted revised Phases 18 and 19; completed Phases 0–17 remain accepted.
+
+**Concrete tasks:**
+
+1. Script the exact normative acceptance journey in `docs/WORLD_ENTRY_EXPERIENCE.md`.
+2. Run Single and Multi Agent success, unavailable, retry, reload, repository, chat/voice, targeting, and internal-route isolation paths.
+3. Exercise the already accepted edit/test/preview, isolated worktree, Guided Build, recovery, privacy, accessibility, and performance foundations through the new normal experience.
+4. Verify authority, current/previous state, enabled-blue/unavailable-grey, and no-admin-chrome invariants.
+5. Triage observed defects, perform only bounded corrections, and produce the evidence bundle, scorecard, and residual register.
+
+**Code/artifacts:** End-to-end Playwright acceptance specs, disposable fixtures, retained evidence, acceptance report, residual-risk register, and a private-alpha recommendation. Candidate packaging/readiness work is not implied.
+
+**Tests/evidence:** Complete normative journey; clean clone; session resume; offline/reconnect; adapter reset; workspace mismatch; large repo; keyboard-only; reduced motion; high contrast; captions; no WebGL; preview failure; worktree conflict; safe pause/emergency results; internal-route boundary; secret/persona leakage scan; responsive containment.
+
+**Acceptance criteria:** Every 2026-07-25 frozen journey invariant is evidenced; one-agent entry and repository transformation are compelling and reliable; multi-agent sequencing/targeting is truthful; accepted tool/edit/test/preview/coordination/recovery foundations remain reachable through conversation; no dashboard leaks into normal UX; no open High-risk defect exists in supported flows; Standard deferrals have owner and mitigation.
+
+**Exit gate:** User reviews the Phase 20 acceptance report and explicitly decides the next bounded milestone. Private-alpha preparation, distribution, release, publication, deployment, tags, and visibility changes remain separately authorized decisions.
+
+**Risks:** Acceptance can regress into subsystem checklists or demo-only shortcuts. Tests must begin at the normal entry surface, use production boundaries, label fixtures, keep internal machinery unlinked, and resolve every claimed result to truthful evidence.
 
 ## Vertical-slice acceptance scenario
 
-The canonical acceptance scenario is normative for the re-baselined embodied-session candidate. It has two connected paths: open collaboration proves the primary experience; Guided Build proves the deterministic design/phase workflow remains intact.
+The canonical future acceptance scenario is normative for revised Phase 20. The shorter Phase 18 acceptance journey in `docs/WORLD_ENTRY_EXPERIENCE.md` must pass first and remains the required starting surface for this complete journey.
 
-### Path A — Open embodied collaboration
+### Path A — Normal Single Agent experience
 
-1. From a fresh World clone, run locked setup/doctor against a disposable repository. No external agent is modified by setup.
-2. Open World at loopback, complete or restore the user avatar, select the repository, and see deterministic package/directory/file/symbol/dependency objects with semantic DOM equivalence.
-3. Choose Collaborate mode and connect a supported Hermes profile. World shows the exact profile/session/repository boundary, capability manifest, permission revision, and unavailable features without secrets.
-4. Attach or resume one persistent Hermes session. Send a continuity request such as “find handoff”; prove the response comes from the same profile/session with its approved skills/project context.
-5. Ask Hermes for a bounded self-description/avatar proposal. Preview, edit if desired, approve, and spawn the agent avatar. Verify raw `SOUL.md`, memory, transcripts, and secrets never enter World/Yjs payloads.
-6. Enter the World through mouse/keyboard controls; also complete the same selection/focus/chat operations through the semantic shell.
-7. Ask, “Show me how the last feature connects to the previous implementation.” Hermes uses repository/code-graph tools, replies in chat, navigates to exact objects, highlights a bounded path with edge confidence/truncation, and opens related diff/test evidence.
-8. Verify the avatar’s attention/location, chat bubble, status icon, and animations correspond only to accepted World Actions and structured events. No hidden reasoning is shown.
-9. Ask Hermes to implement one approved bounded feature. Observe actual search/read/edit/test/build events as accessible status and spatial activity. Deny one approval and confirm no action/effect falsely claims it ran; approve the intended path afterward.
-10. Confirm real Git/filesystem changes produce exact Phase 8 evidence and affected objects; candidate areas remain visually distinct until confirmed.
-11. Have Hermes start a local project preview through Preview Manager. Verify assigned worktree, loopback binding, process identity, selected port, readiness, open-in-browser or in-world display, screenshot/evidence, and clean teardown.
-12. Use push-to-talk to ask one follow-up. Preview the transcript, send it into the same session, receive captions and optional TTS, interrupt playback, and verify text remains canonical when voice fails.
-13. Reload the browser and restart the World server. Reattach to the same Hermes session, recover avatar/chat metadata/focus/evidence, reconcile tool/preview state, and show explicit reset/unavailable truth if any native state cannot resume.
+1. On first launch, verify the full-screen animated logo-only opening, typed `identify_`, explicit user-avatar creation, personalized name centered on the X, and then `AgentIntersect_` with Single/Multi choice.
+2. On a later launch, verify the personalized logo/name and replayed `AgentIntersect_` without forced avatar creation.
+3. Choose `Single Agent`, click `hermes_`, observe terminal newline behavior and `agent name?`, enter `Mr Fluff`, and verify `agent not found_` supports immediate nontechnical retry when resolution fails.
+4. Observe truthful `connecting agent` then `agent connected`; explicitly create Mr Fluff’s avatar; verify `Enter World` does not exist before both connection and avatar completion.
+5. Enter a small open blank floor room in third-person behind the user. Verify free user/agent navigation and that only bottom-center chat plus adjacent push-to-talk persist.
+6. Ask Mr Fluff to load the approved repository. Verify the entire current floor transforms in place into the deterministic repository landscape, with no portal or separate space.
+7. Continue through accepted chat, visual explanation, one real bounded edit/test, evidence-backed spatial state, and one health-checked local preview without exposing internal dashboard chrome.
+8. Use push-to-talk for one captioned follow-up when available; verify text remains canonical and the control degrades truthfully when the staged provider is unavailable.
+9. Reload/restart and verify current versus previous/recovered identity, session, avatar, repository, chat, focus, and evidence truth.
 
-### Path B — Multi-agent coordination
+### Path B — Normal Multi Agent experience
 
-14. Connect a second supported agent in a separate session and isolated Git worktree. Give each a distinct approved avatar and task.
-15. Ask both agents to inspect overlapping code. World shows interest/contention without claiming a file conflict before edits exist.
-16. Let each make bounded edits in its own worktree. Verify no cross-worktree write, process, preview, or evidence attribution occurs.
-17. Produce an explicit handoff and merge candidate. Show exact diffs/tests, identify any conflict, and require operator-approved integration.
-18. Restart during active coordination and recover or truthfully classify each session, worktree, task, preview, and handoff.
+10. Choose `Multi Agent`; connect one named agent, immediately create its avatar, and return to the constellation.
+11. Verify one complete agent does not reveal `Enter World`; connect and create a second; verify entry materializes only after both are truthfully ready. Add a third before entry.
+12. Exercise Hermes/OpenClaw local identity resolution and Codex/Claude entered-name identity under truthful capability gates.
+13. In World, send one unaddressed message to all agents, click an avatar to target one, and use `@name` to target one. Verify delivery attribution and visible recipient truth.
+14. Exercise the accepted two-agent isolated-worktree contention, handoff, preview, conflict, restart, and operator-controlled integration foundations through the conversational experience.
 
-### Path C — Guided Build compatibility
+### Path C — Internal compatibility without normal-experience leakage
 
-19. Start an unchanged pinned AgentIntersect instance with verified onboarding/design/phase prerequisites and an approved disposable phase task.
-20. Create a Guided Build World session. Display the design phases/acceptance criteria and AgentIntersect readiness; World does not duplicate phase/process authority.
-21. Submit one `worker.enqueue-phase` intent for a real approved harness. One and only one matching AgentIntersect job is created.
-22. The worker claims/runs the job, makes a real edit, runs a real test, and publishes lifecycle/handoff/evidence. World projects status, avatar activity, affected objects, exact diff/test/evidence, and current/previous truth.
-23. In a separate run, exercise safe pause and prove requested versus reached are distinct. Exercise emergency stop against a disposable AgentIntersect-owned process and display per-process outcomes without World signaling a PID directly.
-24. Disconnect/reconnect a browser and restart World. Event dedupe/replay restores the same final projection without duplicate job, tool completion, construction effect, or preview.
+15. Enable the explicit local developer flag and navigate directly to the internal route. Verify diagnostics, evidence, readiness, connectors, lifecycle, recovery, Guided Build, safe pause, and emergency results remain functional.
+16. Disable the flag and verify the internal route fails closed and no normal screen links to it.
+17. Exercise one unchanged pinned AgentIntersect Guided Build run through internal tooling; verify World does not duplicate phase/process authority and no internal controls appear in the normal World HUD.
 
 ### Cross-cutting acceptance
 
-25. Repeat required flows with keyboard-only/reduced-motion/high-contrast/no-WebGL configurations and verify no horizontal overflow or unreachable status/results.
-26. Run bounded large-repository/two-CPU measurements and verify LOD, semantic truth, chat, navigation, avatars, and tool status degrade within frozen budgets.
-27. Inspect presentation traffic and diagnostic export for secret/persona/transcript/path/tool-output leakage. Synthetic CRDT prompt/tool and stale World Action updates create no session turn or mutation.
-28. Verify the repository remains private and no release, package publication, deployment, public tunnel, visibility change, or unauthorized original-project modification occurred.
+18. Repeat required paths with keyboard-only, reduced-motion, high-contrast/forced-colors, captions, no-WebGL, desktop, and mobile layouts. Verify Consolas, contained typewriter/cursor presentation, blue-enabled/grey-unavailable truth, no trapped focus, and no overflow.
+19. Run bounded large-repository/two-CPU measurements and verify floor transformation, LOD, semantic truth, chat, navigation, and avatars remain within frozen budgets or truthfully degrade.
+20. Inspect presentation traffic and diagnostic export for secret/persona/transcript/path/tool-output leakage; verify every visible completion resolves to real session/repository/test/preview/lifecycle evidence.
+21. Confirm the Phase 13 Discord → World continuity gate remains FAIL/deferred under waiver, the Phase 15 provider remains staged/unactivated, custom Mr Fluff voice and LAN setup UI remain deferred, and no original-project, release, publication, deployment, tag, public-ingress, or visibility action occurred.
 
-**Pass statement:** one operator and persistent Hermes agent can converse, explain code spatially, perform one real approved edit/test, and present a verified local preview; two isolated agents can coordinate without hidden collision; Guided Build can execute one real AgentIntersect phase with truthful lifecycle controls; every visible result is evidence-backed and recoverable across supported restarts.
+**Pass statement:** one operator can establish or restore identity, call one or more explicitly embodied agents into a blank World, direct them through the minimal chat/voice HUD, and transform the current floor into a truthful repository landscape; accepted edit/test/preview/coordination/recovery machinery works beneath that experience without becoming normal-product chrome.
 
 ## Release and readiness plan
 
 ### Private alpha
 
-Entry requires the Phase 18 scenario, zero open High-risk issues, documented Standard risks, pinned AgentIntersect compatibility, signed local candidate, privacy/retention documentation, and a rollback/data-delete drill. Alpha remains opt-in, small, and private. Collection of feedback/diagnostics is explicit and redacted.
+Any future private-alpha preparation requires the revised Phase 20 scenario, zero open High-risk issues, documented Standard risks, pinned compatibility, privacy/retention documentation, and a rollback/data-delete plan. Phase 20 does not itself authorize candidate packaging, distribution, publication, or release. Any later alpha remains opt-in, small, private, and separately approved; feedback/diagnostics collection must be explicit and redacted.
 
 ### Private beta
 
@@ -3134,14 +3211,18 @@ The re-baseline establishes direction but intentionally leaves implementation ch
 17. When should a temporary agent annotation become durable: explicit user pin only, or agent request plus user confirmation?
 18. Should Guided Build import/select design documents entirely through World in revised Phase 12, or initially expose only the current AgentIntersect-managed plan and add authoring later?
 
-Resolved decisions: the repository remains private; completed Phases 0–11 remain accepted; free-form collaboration is primary; Guided Build remains; one Hermes text magic slice precedes voice/multi-agent; raw persona/memory/chain-of-thought is not shared; and Phase 15 Decisions 1–10 are approved and frozen as written on 2026-07-22. The exact STT provider pin and artifact result are approved/accepted, and exactly one bounded Phase 15 implementation candidate is independently verified. The user separately authorized the bounded Phase 17 slice now represented by its unverified implementation candidate. Provider promotion/activation, Phase 15 completion, release, deployment, publication, public ingress, visibility change, Hermes-core/profile change, original-AgentIntersect operation, and Phase 18+ work retain separate closed gates.
+Resolved decisions: the repository remains private; completed Phases 0–17 remain accepted historical foundations; free-form collaboration and Guided Build remain supported capabilities; raw persona/memory/chain-of-thought is not shared; Phase 13 Discord → World continuity remains FAIL/deferred under waiver; Phase 15 is accepted with its provider staged/unactivated; and the 2026-07-25 World-entry journey, ten product decisions, and visual invariants are frozen. Revised Phases 18–20, provider promotion/activation, custom Mr Fluff voice, LAN setup UI, release, deployment, publication, public ingress, visibility change, Hermes/OpenClaw/core/profile change, and original-AgentIntersect operation retain separate closed gates.
 
-## Definition of done for the re-baselined private-alpha candidate
+## Definition of done for revised Phase 20 embodied-product acceptance
 
-The candidate is done only when all statements are true and evidenced:
+Revised Phase 20 acceptance is done only when all statements are true and evidenced:
 
 - AgentIntersect World remains a separate private project; no unauthorized release, publication, deployment, public tunnel, visibility change, or external-project modification occurred.
 - Fresh clone/install/build/doctor succeeds on the approved matrix with locked dependencies.
+- First and later launch follow the frozen animated-logo, identity, personalization, `AgentIntersect_`, and session-choice sequence.
+- Single Agent and Multi Agent enforce truthful connection plus explicit per-agent avatar completion before `Enter World`.
+- The user enters a blank floor room in third-person; only chat and push-to-talk persist; a conversational repository request transforms the entire current floor in place.
+- Normal UX contains no dashboard link or control-plane chrome; the accepted dashboard machinery is available only through the explicit local developer flag/internal route.
 - One safe local repository opens with deterministic IDs, hierarchy, search, symbols/dependencies, bounded LOD, and clear parse/coverage truth.
 - The World is navigable through reference mouse/keyboard controls and through a complete semantic shell with reduced-motion/no-WebGL equivalents.
 - The user avatar restores locally; one Hermes session connects/resumes with visible session/mode/repository/capability/permission identity.
@@ -3160,7 +3241,7 @@ The candidate is done only when all statements are true and evidenced:
 - Large-repo/two-CPU performance, navigation comfort, avatar, chat, tool effects, voice, preview, accessibility, and fresh-copy budgets pass or have explicitly approved revisions.
 - Every visible success/completion/action resolves to assistant/tool/repository/test/preview/lifecycle evidence; no hidden reasoning or fabricated emotion/progress is presented.
 - No open High-risk defect remains in supported flows; Standard residuals have owner, mitigation, trigger, and user-visible limitation.
-- A locally staged candidate passes reproducibility, SBOM/license, leakage, install/upgrade/uninstall, backup/delete, and rollback proof; distribution still requires a separate user decision.
+- Any future locally staged candidate, packaging, SBOM/license, install/upgrade/uninstall, backup/delete, rollback, distribution, publication, or release work requires a separate milestone and explicit authorization after Phase 20.
 
 ## Explicit post-candidate backlog
 
@@ -3170,7 +3251,7 @@ None may bypass the core authority invariants. In particular, unrelated-user exe
 
 ## Current stop condition and next approval gates
 
-**Stop condition now:** Phases 15, 16, and 17 are user accepted, sealed, and complete. Phase 15 passed its real physical-microphone and optional browser/system TTS journey on 2026-07-24; its local STT provider remains staged/unactivated. Phase 13 Discord → World continuity remains FAIL/deferred under waiver and was not retried. Phase 18 remains unauthorized and not started. UI re-baselining and a custom Mr Fluff voice are desired future work but are not authorized by this seal. Do not promote or activate the provider, modify Hermes core/profile or the original AgentIntersect repository, retry the deferred Phase 13 continuity gate, begin Phase 18+, release, publish, deploy, expose public ingress, or change visibility.
+**Stop condition now:** Phases 0–17 remain accepted historical foundations. Phase 13 Discord → World continuity remains FAIL/deferred under waiver and was not retried. Phase 15’s local STT provider remains staged/unactivated. Revised Phase 18—**World Entry Experience — Single-Agent Hermes magic slice**—has fresh independent parent verification green; private exact-SHA CI and a new full-browser first-hand user retest are next, while explicit user-facing acceptance remains open. Revised Phases 19 and 20 are not started or authorized. Do not call Phase 18 user accepted or sealed, promote or activate a provider, modify Hermes/OpenClaw/core/profile or the original AgentIntersect repository, retry Phase 13, begin Phase 19/20, install packages, start persistent services, release, publish, tag, deploy, expose public ingress, or change visibility without separate explicit authorization.
 
 ## Source references and AgentIntersect anchors
 
@@ -3224,6 +3305,8 @@ The historical `/mnt/c/Users/Mela AI/OneDrive/Documents/Mela AI/AgentWorld Studi
 - [[pragmatic-secure-delivery]]
 
 ## Design approval decision
+
+**Decision recorded 2026-07-25:** The user froze the World-entry UI/UX re-baseline in this document and `docs/WORLD_ENTRY_EXPERIENCE.md`, resequenced the unstarted future roadmap as revised Phases 18–20, and authorized documentation changes only. This decision does not authorize implementation, tests, package or asset changes, commits/pushes, service startup, provider activation, external configuration, Phase 13 retry, original-AgentIntersect work, release, publication, tagging, deployment, public ingress, or visibility changes.
 
 **Decision recorded 2026-07-21:** The user approved the embodied-session re-baseline as the forward product direction, answered all eight blocking Phase 12 choices, and explicitly authorized complete bounded Phase 12 implementation through Codex orchestration.
 

@@ -11,7 +11,7 @@ test("ready integration drives selected harness while execution stays disabled",
   page,
 }) => {
   await seed(page);
-  await page.goto("/?fixture=phase6-ready");
+  await page.goto("/internal/dashboard?fixture=phase6-ready");
   await expect(
     page.getByText(/Selected harness read status: ready/),
   ).toBeVisible();
@@ -35,7 +35,7 @@ for (const fixture of ["offline", "mismatch", "replayed", "hostile"] as const) {
     page,
   }) => {
     await seed(page);
-    await page.goto(`/?fixture=phase6-${fixture}`);
+    await page.goto(`/internal/dashboard?fixture=phase6-${fixture}`);
     await openPanel(page, "Activity");
     const expectedStatus =
       fixture === "replayed" || fixture === "hostile" ? "ready" : fixture;
@@ -70,7 +70,7 @@ test("mobile integration panel has no horizontal overflow", async ({
 }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await seed(page);
-  await page.goto("/?fixture=phase6-replayed");
+  await page.goto("/internal/dashboard?fixture=phase6-replayed");
   await openPanel(page, "Activity");
   const dimensions = await page.evaluate(() => ({
     client: document.documentElement.clientWidth,

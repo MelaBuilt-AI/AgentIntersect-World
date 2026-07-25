@@ -102,7 +102,7 @@ test("Phase 13 defaults to third person, enters first person explicitly, and Esc
   page,
 }) => {
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase10-graph");
+  await page.goto("/internal/dashboard?fixture=phase10-graph");
   await openPanel(page, "World");
   const actions = page.locator(".world-actions");
   await expect(actions).toBeVisible();
@@ -156,7 +156,7 @@ test("Phase 13 manual controls change the rendered camera and actor state @point
 }) => {
   test.setTimeout(120_000);
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase10-graph");
+  await page.goto("/internal/dashboard?fixture=phase10-graph");
   await openPanel(page, "World");
   const actions = page.locator(".world-actions");
   const canvas = page.getByTestId("repository-canvas");
@@ -299,7 +299,7 @@ test("Phase 13 mobile/reduced-motion/forced-colors/no-WebGL retains semantic and
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase10-graph&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase10-graph&webgl=off");
   await openPanel(page, "World");
   const actions = page.locator(".world-actions");
   await expect(actions).toContainText(
@@ -362,7 +362,7 @@ test("Phase 13 captures deterministic frame/Long Task metrics and screenshot", a
       }),
     );
   });
-  await page.goto("/?fixture=phase10-10k");
+  await page.goto("/internal/dashboard?fixture=phase10-10k");
   await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
     "data-state",
     "complete",
@@ -468,7 +468,7 @@ test("Phase 13 100k mobile/two-CPU aggregate stays bounded and semantic", async 
       }),
     );
   });
-  await page.goto("/?fixture=phase10-100k");
+  await page.goto("/internal/dashboard?fixture=phase10-100k");
   await expect(page.getByTestId("typewriter-line")).toHaveAttribute(
     "data-state",
     "complete",
@@ -557,10 +557,12 @@ test("Phase 13 retains a short tour-equivalent control video", async ({
     recordVideo: { dir: evidenceDirectory, size: { width: 960, height: 675 } },
   });
   const page = await context.newPage();
-  await page.goto("http://127.0.0.1:45173/?fixture=phase10-graph&webgl=off");
+  await page.goto(
+    "http://127.0.0.1:45173/internal/dashboard?fixture=phase10-graph&webgl=off",
+  );
   const identify = page.getByTestId("identify-opening");
   if (await identify.isVisible()) {
-    await page.getByRole("button", { name: "Begin identification" }).click();
+    await page.getByRole("button", { name: "Create Avatar" }).click();
     await page.getByLabel("Required agent name").fill("Codex");
     await page
       .getByRole("button", { name: "Save avatar and enter World" })

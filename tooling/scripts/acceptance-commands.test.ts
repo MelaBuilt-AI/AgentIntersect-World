@@ -29,18 +29,34 @@ describe("acceptance command graph", () => {
     );
     const browserInstall = requireScript(manifest, "test:e2e:install");
     const endToEnd = requireScript(manifest, "test:e2e");
+    const flaggedEndToEnd = requireScript(manifest, "test:e2e:flagged");
+    const unflaggedEndToEnd = requireScript(manifest, "test:e2e:unflagged");
     const phase13Measurement = requireScript(manifest, "measure:phase13");
     const aggregate = requireScript(manifest, "check");
 
     expect(browserInstall).toBe("playwright install chromium");
     expect(endToEnd).toContain("corepack pnpm@11.15.0 test:e2e:install");
-    expect(endToEnd).toContain("xvfb-run -a playwright test");
+    expect(endToEnd).toContain("corepack pnpm@11.15.0 test:e2e:flagged");
+    expect(endToEnd).toContain("corepack pnpm@11.15.0 test:e2e:unflagged");
     expect(endToEnd.indexOf("test:e2e:install")).toBeLessThan(
-      endToEnd.indexOf("xvfb-run -a playwright test"),
+      endToEnd.indexOf("test:e2e:flagged"),
     );
-    expect(endToEnd.indexOf("corepack pnpm@11.15.0 build")).toBeLessThan(
-      endToEnd.indexOf("xvfb-run -a playwright test"),
+    expect(endToEnd.indexOf("test:e2e:flagged")).toBeLessThan(
+      endToEnd.indexOf("test:e2e:unflagged"),
     );
+    expect(flaggedEndToEnd).toContain("VITE_AIW_LOCAL_DEVELOPER_UI=1");
+    expect(flaggedEndToEnd).toContain(
+      "xvfb-run -a playwright test --config playwright.config.ts",
+    );
+    expect(flaggedEndToEnd.indexOf("corepack pnpm@11.15.0 build")).toBeLessThan(
+      flaggedEndToEnd.indexOf("xvfb-run -a playwright test"),
+    );
+    expect(unflaggedEndToEnd).toContain(
+      "xvfb-run -a playwright test --config playwright.unflagged.config.ts",
+    );
+    expect(
+      unflaggedEndToEnd.indexOf("corepack pnpm@11.15.0 build"),
+    ).toBeLessThan(unflaggedEndToEnd.indexOf("xvfb-run -a playwright test"));
     expect(phase13Measurement).toContain(
       "xvfb-run -a playwright test apps/web/e2e/phase13-world-action-journey.spec.ts --workers=1",
     );
@@ -52,16 +68,23 @@ describe("acceptance command graph", () => {
     expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase11"]');
   });
 
-  it("routes only the real Phase 13 pointer-lock journey through headed Chromium", async () => {
+  it("routes only the real pointer-lock journeys through headed Chromium", async () => {
     const { default: config } = await import("../../playwright.config.js");
-    const pointerLockSpec = "**/phase13-world-action-journey.spec.ts";
+    const pointerLockSpecs = [
+      "**/phase13-world-action-journey.spec.ts",
+      "**/world-entry-single-agent.spec.ts",
+    ];
     const pointerLockTag = /@pointer-lock/;
     const phase13Spec = await readProjectFile(
       "apps/web/e2e/phase13-world-action-journey.spec.ts",
     );
+    const worldEntrySpec = await readProjectFile(
+      "apps/web/e2e/world-entry-single-agent.spec.ts",
+    );
     const projects = config.projects ?? [];
 
     expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
+    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(1);
     expect(projects).toHaveLength(2);
     expect(projects[0]?.name ?? "").toBe("");
     expect(projects).toEqual([
@@ -74,7 +97,7 @@ describe("acceptance command graph", () => {
       }),
       expect.objectContaining({
         name: "headed-pointer-lock",
-        testMatch: pointerLockSpec,
+        testMatch: pointerLockSpecs,
         grep: pointerLockTag,
         use: expect.objectContaining({
           browserName: "chromium",

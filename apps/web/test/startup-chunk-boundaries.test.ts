@@ -57,6 +57,17 @@ describe("production startup chunk boundaries", () => {
     expect(entry?.dynamicImports).toEqual(
       expect.arrayContaining([
         "src/avatar/AvatarScene.tsx",
+        "src/shell/DashboardShell.tsx",
+      ]),
+    );
+    expect(entry?.dynamicImports).not.toContain(
+      "src/presentation/PresentationPanelLoader.tsx",
+    );
+    expect(entry?.dynamicImports).not.toContain(
+      "src/repository/RepositoryWorldPanel.tsx",
+    );
+    expect(manifest["src/shell/DashboardShell.tsx"]?.dynamicImports).toEqual(
+      expect.arrayContaining([
         "src/presentation/PresentationPanelLoader.tsx",
         "src/repository/RepositoryWorldPanel.tsx",
       ]),

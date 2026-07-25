@@ -1,8 +1,45 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-24
+Updated: 2026-07-25
 
 ## Current milestone
+
+**REVISED PHASE 18 PARENT VERIFIED — PRIVATE EXACT-SHA CI AND USER RETEST NEXT**
+
+The user authorized complete bounded revised Phase 18 implementation on 2026-07-25, then first-hand testing reopened it after observing nonfunctional ordinary World controls and no durable reply to `hi`. The bounded correction is implemented under `docs/PHASE_18_SCOPE.md`, `PHASE_18_REPORT.md`, and `artifacts/phase18/`. Fresh independent parent verification found and corrected forced-colors semantic overlap, misleading pointer-lock evidence, an oversized activity banner, and a stale headed-project contract. Final local proof is green: focused World/renderer **16/16**, production World entry **7/7**, aggregate **114/114 files / 606/606 Vitest**, **20/20 builds**, smoke PASS, **52/52 flagged Playwright**, and **1/1 unflagged fail-closed Playwright**. Private commit/push and exact-SHA CI are authorized next; Phase 18 is not user accepted, sealed, released, deployed, or published. Phases 0–17 remain accepted historical foundations.
+
+Revised Phase 18 is **PARENT VERIFIED / PRIVATE EXACT-SHA CI AND FIRST-HAND USER RETEST PENDING**. The corrected journey is: clean or returning identity → explicit avatar creation/continuity → Single Agent Hermes/Mr Fluff → readiness-gated entry → continuously playable one-canvas World with following camera and truthful mouse lock → durable transcript plus canonical overhead activity bubble → same-floor repository transformation.
+
+### Next priority — exact-SHA CI, then first-hand Phase 18 retest
+
+- Commit and push the parent-verified private `main` candidate, require exact-SHA GitHub Actions success, then launch the supported local normal `/` experience for Aaron and Mr Fluff to test together.
+- Exercise the returning-user identity, exact `hermes_` / `Mr Fluff` connect-and-retry path, Mr Fluff avatar acceptance, `Enter World`, third-person room, chat/PTT truth, repository request, in-place repository-floor transformation, mobile containment, keyboard/reduced-motion behavior, and no-WebGL fallback as applicable.
+- Treat Aaron's screenshots/video and direct observations as authoritative. Fix only concrete defects with focused regressions and rerun the affected proof.
+- Parent diff/artifact/browser verification is green. Do not call Phase 18 accepted or sealed until Aaron completes the fresh full-browser journey and explicitly accepts it.
+- Do not begin revised Phase 19 or Phase 20 during this testing session unless Aaron explicitly expands scope.
+
+Revised Phase 19 is **Multi-Agent Constellation and Harness Breadth**, not started or authorized. Revised Phase 20 is **Embodied Product Acceptance and Bounded Hardening**, not started or authorized; it carries forward the former Phase 18 acceptance purpose.
+
+The frozen normal-experience invariants are:
+
+- First launch is animated logo → `identify_` → `Create Avatar`; later launches personalize the logo/name, replay `AgentIntersect_`, and offer session selection without forcing avatar creation.
+- Single/Multi choices materialize below the centered title. Harness endpoints are `openclaw_` upper-left/red, `hermes_` upper-right/yellow, `claude_` lower-left/orange, and `codex_` lower-right/blue-cyan.
+- Every newly connected agent requires explicit avatar creation. Multi Agent repeats connect one → create its avatar → return; at least two connected/avatar-complete agents are required before `Enter World`.
+- Hermes/OpenClaw name misses type `agent not found_` and retry immediately without technical detail; Codex/Claude use the entered name as World identity.
+- World defaults to third-person behind the user. Only chat and push-to-talk persist. Unaddressed messages go to all; avatar click or `@name` targets one.
+- Opening is full-screen with the existing animated logo and no other content; all text is Consolas; typed labels animate character-by-character and finish with a blinking underscore; connection overlays pulse truthful singular/plural state.
+- Same-PC connection is invisible. LAN/different-PC setup UI and custom Mr Fluff voice remain deferred.
+- Enabled actions are blue, unavailable actions grey; keyboard access, reduced motion, captions, responsive containment, and truthful current/previous state remain mandatory without admin chrome.
+
+Normative details: `AgentIntersect_WorldDD.md` and `docs/WORLD_ENTRY_EXPERIENCE.md`. The frozen implementation scope is `docs/PHASE_18_SCOPE.md`; the worker handoff is `PHASE_18_REPORT.md`; the originating plan is `.hermes/plans/2026-07-25_000842-world-entry-single-agent-magic-slice.md`.
+
+### Closed gates
+
+- Phase 13 Discord → World continuity remains **FAIL/deferred under waiver** and was not retried.
+- Phase 15 remains **USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**; custom Mr Fluff voice remains deferred.
+- Phases 16 and 17 remain **USER ACCEPTED / SEALED / COMPLETE**.
+- Revised Phase 18’s reopened correction is parent verified; private commit/push, exact-SHA CI, and first-hand user retest are authorized, while explicit user acceptance/sealing remains open. Revised Phases 19–20 remain not started and not authorized.
+- Provider promotion/activation, LAN setup UI, Hermes/OpenClaw/core/profile modification, original-AgentIntersect inspection/modification, further implementation beyond the frozen Phase 18 scope, package installation, persistent service startup, Phase 13 retry, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
 
 **Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 
@@ -192,7 +229,7 @@ checks, disposable fresh-copy verification, private push, and exact-SHA CI at
 `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` under run `30019778458`, job
 `89249166240`. After that proof, the user explicitly accepted Phase 17 in the
 new session. Phase 17 is accepted, sealed, and complete. Phase 16 remains
-accepted, sealed, and complete; Phase 18 remains unauthorized and not started.
+accepted, sealed, and complete; revised Phase 18’s reopened correction is parent verified, with private exact-SHA CI and a new first-hand full-browser retest next.
 
 `docs/PHASE_15_SCOPE.md` remains frozen. The bounded Phase 15 implementation, independent parent proof, real physical-microphone journey, exact-session canonical reply, optional browser/system TTS, cleanup, and explicit user acceptance are green in `PHASE_15_REPORT.md` and `artifacts/phase15/physical-microphone-acceptance.json`. Phase 15 is user accepted, sealed, and complete; its provider remains staged and unactivated.
 
@@ -200,7 +237,7 @@ Phase 14 remains sealed and accepted: the user froze and explicitly authorized i
 
 The Phase 13 exact-root Discord → World continuation remains FAIL/deferred as a separate backlog item and was not retried. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
 
-Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 18+, UI re-baselining implementation, and custom voice implementation remain prohibited without their required separate authorization.
+Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes/OpenClaw/core/profile change, original-AgentIntersect operation, revised Phases 19–20 implementation, Phase 18 scope expansion, LAN setup UI, and custom voice implementation remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 
@@ -208,7 +245,7 @@ The Phase 13 hybrid performance contract remains inherited: main-thread render-w
 
 ### Product UI and Mr Fluff voice
 
-- Re-baseline the World operator experience around short, obvious task journeys. The physical-microphone gate showed that the Hermes connector and voice lane were difficult to discover behind the Agents category and a long, dense dashboard; this requires product-level information architecture and interaction cleanup rather than cosmetic tweaks.
+- Complete fresh independent parent verification and first-hand user acceptance for the corrected revised Phase 18 World-entry experience before any acceptance/seal or Phase 19 action.
 - Add a distinctive, high-quality custom Mr Fluff voice in a separately authorized future milestone. Preserve explicit preview/accept/change/revoke/stop controls and provenance; do not treat the accepted browser/system TTS baseline as a custom voice or silently introduce voice cloning.
 
 ### Phase 13 deferred live continuity

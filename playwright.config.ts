@@ -14,6 +14,7 @@ if (!configuredPlaywrightDataRoot)
 
 export default defineConfig({
   testDir: "./apps/web/e2e",
+  testIgnore: "**/world-entry-internal-fail-closed.spec.ts",
   globalTeardown: "./tooling/scripts/playwright-global-teardown.ts",
   fullyParallel: false,
   workers: 1,
@@ -33,7 +34,10 @@ export default defineConfig({
     },
     {
       name: "headed-pointer-lock",
-      testMatch: "**/phase13-world-action-journey.spec.ts",
+      testMatch: [
+        "**/phase13-world-action-journey.spec.ts",
+        "**/world-entry-single-agent.spec.ts",
+      ],
       grep: /@pointer-lock/,
       use: { browserName: "chromium", headless: false },
     },

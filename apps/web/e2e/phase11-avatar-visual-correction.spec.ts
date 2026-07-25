@@ -26,8 +26,8 @@ test("corrected 3D editor renders connected human, dog, and cat choices with act
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
-  await page.getByRole("button", { name: "Begin identification" }).click();
+  await page.goto("/internal/dashboard");
+  await page.getByRole("button", { name: "Create Avatar" }).click();
   await page.getByLabel("Required agent name").fill("Phase Eleven");
   const preview = page.getByTestId("avatar-preview");
   await expectAvatarReady(preview, { species: "human", shirt: "Codex" });

@@ -77,7 +77,7 @@ test("Phase 17 production diagnostics recovers, exports, and deletes truthfully"
   expect(terminated.status()).toBe(200);
 
   await seedConfiguredAvatar(page);
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   await openPanel(page, "Diagnostics");
   const panel = page.getByLabel("Diagnostics & Recovery");
   await expect(panel).toBeVisible();

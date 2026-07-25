@@ -19,7 +19,7 @@ test("Phase 16 two-agent coordination is truthful, accessible, and bounded", asy
     });
   });
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase16-coordination");
+  await page.goto("/internal/dashboard?fixture=phase16-coordination");
   await openPanel(page, "Agents");
 
   const panel = page.getByLabel("Phase 16 multi-agent coordination");
@@ -146,7 +146,7 @@ test("Phase 16 live service proxy polls current truth serially and cleans up", a
   page.on("requestfailed", finished);
 
   await seedConfiguredAvatar(page);
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   await openPanel(page, "Agents");
   const panel = page.getByLabel("Phase 16 multi-agent coordination");
   await expect(panel).toBeVisible();

@@ -32,6 +32,10 @@ export function AvatarBuilder({
   onSave,
   onDelete,
   title = "Create your World avatar",
+  intro = "Manual choices stay in this browser. Automatic profile mapping is off; prompts, memory, transcripts, paths, secrets, traits, and biometrics are never accepted.",
+  saveLabel,
+  saveDisabled = false,
+  successMessage = "Avatar saved locally. Current and previous recovery updated.",
 }: {
   readonly initialProfile: AvatarDraft;
   readonly currentProfile?: AvatarProfile | null;
@@ -40,6 +44,10 @@ export function AvatarBuilder({
   readonly onSave: (profile: AvatarDraft) => void;
   readonly onDelete?: () => void;
   readonly title?: string;
+  readonly intro?: string;
+  readonly saveLabel?: string;
+  readonly saveDisabled?: boolean;
+  readonly successMessage?: string;
 }) {
   const [draft, setDraft] = useState<AvatarDraft>(() =>
     avatarDraftFrom(initialProfile),
@@ -128,18 +136,14 @@ export function AvatarBuilder({
       return;
     }
     onSave(valid);
-    setResult("Avatar saved locally. Current and previous recovery updated.");
+    setResult(successMessage);
   };
   return (
     <section className="avatar-builder" aria-labelledby="avatar-builder-title">
       <div className="avatar-builder__copy">
         <span className="terminal-kicker">aiw_avatar_0_11_</span>
         <h1 id="avatar-builder-title">{title}</h1>
-        <p>
-          Manual choices stay in this browser. Automatic profile mapping is off;
-          prompts, memory, transcripts, paths, secrets, traits, and biometrics
-          are never accepted.
-        </p>
+        <p>{intro}</p>
         <fieldset>
           <legend>
             <b>1</b> Name
@@ -274,9 +278,10 @@ export function AvatarBuilder({
               className="primary-action"
               type="button"
               onClick={save}
-              disabled={!valid}
+              disabled={!valid || saveDisabled}
             >
-              Save avatar{currentProfile ? " changes" : " and enter World"}
+              {saveLabel ??
+                `Save avatar${currentProfile ? " changes" : " and enter World"}`}
             </button>
             {currentProfile && (
               <button

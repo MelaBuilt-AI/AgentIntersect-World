@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
 
+export const INTERNAL_DASHBOARD_PATH = "/internal/dashboard";
+
 export async function selectAvatarCosmeticQuality(
   page: Page,
   quality: "full" | "constrained",
@@ -12,11 +14,14 @@ export async function selectAvatarCosmeticQuality(
   }, quality);
 }
 
-export async function enterDashboard(page: Page, path = "/") {
+export async function enterDashboard(
+  page: Page,
+  path = INTERNAL_DASHBOARD_PATH,
+) {
   await page.goto(path);
   const identify = page.getByTestId("identify-opening");
   if (await identify.isVisible().catch(() => false)) {
-    await page.getByRole("button", { name: "Begin identification" }).click();
+    await page.getByRole("button", { name: "Create Avatar" }).click();
     await page.getByLabel("Required agent name").fill("Codex");
     await page
       .getByRole("button", { name: "Save avatar and enter World" })

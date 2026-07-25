@@ -170,7 +170,7 @@ test("Phase 15 exact numbered push-to-talk journey is accessible and authority-b
   });
 
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase15-voice");
+  await page.goto("/internal/dashboard?fixture=phase15-voice");
   expect(await page.evaluate(() => navigator.hardwareConcurrency)).toBe(2);
   await openPanel(page, "Agents");
   const journey = page.getByLabel("Phase 15 voice journey");

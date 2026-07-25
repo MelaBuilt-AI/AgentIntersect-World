@@ -67,3 +67,31 @@ Prefer the terms **multi-agent**, **multi-view**, or **local/LAN session** in ne
 - Fix confirmed defects once, retest the affected behavior, and move forward when acceptance criteria pass.
 - Commit/push may proceed when the user has authorized it and the working feature plus tests/build are green.
 - Remote creation, publication, release, tags, public visibility, and changes to the original AgentIntersect repository remain explicit user approval gates.
+
+## 7. Normal World experience and internal surface
+
+- The normal product is identity → embodiment → agent connection → enter a 3D space → direct agents through chat/voice → conversationally load a repository, transforming the entire current floor into the repository landscape.
+- Do not present the inherited dashboard, diagnostics, evidence, recovery, readiness, connectors, lifecycle, or control-plane panels as normal-product navigation.
+- Retain that accepted machinery only behind an explicit local developer flag/internal route. The normal experience must not link to it.
+- Inside World, the only required persistent HUD is a minimal bottom-center chat field and adjacent push-to-talk control. Default camera is third-person behind the user; first-person is optional later.
+- An unaddressed Multi Agent message goes to all connected agents. Avatar click or `@name` targets one.
+
+## 8. Frozen entry and visual invariants
+
+- First launch: full-screen existing animated logo only → typed `identify_` → `Create Avatar`. Later launches: personalized logo/name → replay `AgentIntersect_` → session selection; never force user-avatar creation again.
+- After user-avatar creation, center the user’s name on the logo X. Place `AgentIntersect_` below it, then `Single Agent` left and `Multi Agent` right.
+- Use Consolas for all World text. Typed labels animate character-by-character and finish with a blinking underscore cursor.
+- Place `openclaw_` upper-left/red, `hermes_` upper-right/yellow, `claude_` lower-left/orange, and `codex_` lower-right/blue-cyan at the logo endpoints.
+- Harness selection advances like a terminal newline, types `agent name?`, advances again, and accepts input. Hermes/OpenClaw resolve existing local identities; a miss types `agent not found_` and retries without technical detail. Codex/Claude use the entered name as World identity.
+- Every newly connected agent requires an explicit avatar creator; no invisible default. Multi Agent repeats connect one → create its avatar → return to constellation. Reveal `Enter World` only after at least two agents are connected and all required avatars are complete; allow more agents before entry.
+- Use a subtle translucent Consolas `connecting agent(s)` then `agent(s) connected` overlay. Reveal `Enter World` only from truthful readiness.
+- Begin in a small open blank floor room with free user/agent navigation and capacity for later walls/skybox. A repository transforms the entire floor in place; never use a portal or separate repository space.
+- Same-PC harness connection is invisible. LAN/different-PC setup UI and custom Mr Fluff voice remain deferred.
+- Enabled actions are blue and unavailable actions grey. Preserve keyboard access, captions, reduced-motion equivalents, responsive containment, and truthful current/previous state without adding admin chrome.
+
+## 9. Documentation versus implementation authority
+
+- The 2026-07-25 product direction is normative in `AgentIntersect_WorldDD.md` and `docs/WORLD_ENTRY_EXPERIENCE.md`.
+- Revised Phase 18 is **World Entry Experience — Single-Agent Hermes magic slice**; revised Phase 19 is **Multi-Agent Constellation and Harness Breadth**; revised Phase 20 is **Embodied Product Acceptance and Bounded Hardening**.
+- Documentation or planning approval does not authorize implementation, tests, manifests, assets, evidence generation, package installation, services, provider activation, commits/pushes, external configuration, Phase 13 retry, original-AgentIntersect work, release, publication, tags, deployment, public ingress, or visibility changes.
+- First-hand user testing reopened revised Phase 18 and authorized the bounded correction recorded in `docs/PHASE_18_SCOPE.md`, `PHASE_18_REPORT.md`, and `artifacts/phase18/`. Fresh independent parent verification is green. The user authorized private `main` commit/push, exact-SHA CI, and a new full-browser first-hand retest; do not call Phase 18 user accepted or sealed, or begin revised Phase 19/20, unless the user explicitly authorizes that later gate.

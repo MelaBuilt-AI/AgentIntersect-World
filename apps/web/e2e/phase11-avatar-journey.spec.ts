@@ -17,8 +17,8 @@ test("Phase 11 name-gated text-only editor saves, reopens, exports, and deletes 
     if (request.url().includes("aiw-avatar-kit.glb"))
       assets.push(request.url());
   });
-  await page.goto("/?avatar3d=text");
-  await page.getByRole("button", { name: "Begin identification" }).click();
+  await page.goto("/internal/dashboard?avatar3d=text");
+  await page.getByRole("button", { name: "Create Avatar" }).click();
   const save = page.getByRole("button", {
     name: "Save avatar and enter World",
   });
@@ -85,13 +85,13 @@ test("Phase 11 keeps GLB lazy, degrades 3D count on two CPUs, retains 64 semanti
   page.on("request", (request) => {
     if (request.url().includes("aiw-avatar-kit.glb")) glb.push(request.url());
   });
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   await expect(page.getByTestId("identify-opening")).toBeVisible();
   expect(glb).toEqual([]);
   await seedConfiguredAvatar(page);
   await page.reload();
   await openPanel(page, "Agents");
-  await page.goto("/?fixture=phase11-performance");
+  await page.goto("/internal/dashboard?fixture=phase11-performance");
   await openPanel(page, "Agents");
   await expect(page.getByTestId("avatar-performance-fixture")).toBeVisible();
   await expect(page.locator(".avatar-roster > ul > li")).toHaveCount(64);

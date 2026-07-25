@@ -14,7 +14,7 @@ import {
 } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 
-type Selection = {
+export type AvatarSelection = {
   readonly species: string;
   readonly head: string;
   readonly hands: string;
@@ -25,6 +25,20 @@ type Selection = {
   readonly bodyColor: string;
   readonly shirt: string;
 };
+
+const avatarSelectionKey = (selection: AvatarSelection) =>
+  [
+    selection.species,
+    selection.head,
+    selection.hands,
+    selection.feet,
+    selection.fur,
+    selection.tail,
+    selection.markings,
+    selection.bodyColor,
+    selection.shirt,
+  ].join(":");
+
 const modularPrefixes = [
   "HEAD_",
   "HAND_",
@@ -36,7 +50,7 @@ const modularPrefixes = [
   "COLOR_SWATCH_",
 ];
 
-function configureScene(source: Group, selection: Selection): Group {
+function configureScene(source: Group, selection: AvatarSelection): Group {
   const scene = SkeletonUtils.clone(source);
   const visible = new Set([
     `HEAD_${selection.species}_${selection.head}`,
@@ -97,12 +111,16 @@ function AvatarModel({
   action,
   animate,
   position = [0, -0.45, 0],
+  rotation = [0, 0, 0],
+  scale = 1,
 }: {
   readonly gltf: GLTF;
-  readonly selection: Selection;
+  readonly selection: AvatarSelection;
   readonly action: string;
   readonly animate: boolean;
   readonly position?: readonly [number, number, number];
+  readonly rotation?: readonly [number, number, number];
+  readonly scale?: number;
 }) {
   const scene = useMemo(
     () => configureScene(gltf.scene, selection),
@@ -132,7 +150,11 @@ function AvatarModel({
   useFrame((_, delta) => {
     if (animate) mixer.update(Math.min(delta, 0.05));
   });
-  return <primitive object={scene} position={position} />;
+  return (
+    <group position={position} rotation={rotation} scale={scale}>
+      <primitive object={scene} />
+    </group>
+  );
 }
 
 function AvatarRenderReady({
@@ -151,13 +173,55 @@ function AvatarRenderReady({
   return null;
 }
 
+export function AvatarKitWorldModel({
+  asset,
+  role,
+  selection,
+  action,
+  animate,
+  position,
+  rotation = [0, 0, 0],
+  scale = 1,
+  onReady,
+}: {
+  readonly asset: "/assets/avatar/aiw-avatar-kit.glb";
+  readonly role: "user" | "agent";
+  readonly selection: AvatarSelection;
+  readonly action: string;
+  readonly animate: boolean;
+  readonly position: readonly [number, number, number];
+  readonly rotation?: readonly [number, number, number];
+  readonly scale?: number;
+  readonly onReady: (role: "user" | "agent") => void;
+}) {
+  const gltf = useLoader(GLTFLoader, asset);
+  const selectionKey = avatarSelectionKey(selection);
+  return (
+    <group name={`${role}-modular-avatar`}>
+      <AvatarModel
+        gltf={gltf}
+        selection={selection}
+        action={action}
+        animate={animate}
+        position={position}
+        rotation={rotation}
+        scale={scale}
+      />
+      <AvatarRenderReady
+        selectionKey={`${role}:${selectionKey}`}
+        onReady={() => onReady(role)}
+      />
+    </group>
+  );
+}
+
 export function AvatarKitRosterCanvas({
   asset,
   avatars,
 }: {
   readonly asset: "/assets/avatar/aiw-avatar-kit.glb";
   readonly avatars: readonly {
-    readonly selection: Selection;
+    readonly selection: AvatarSelection;
     readonly action: string;
     readonly animate: boolean;
   }[];
@@ -201,22 +265,12 @@ export function AvatarKitCanvas({
   animate,
 }: {
   readonly asset: "/assets/avatar/aiw-avatar-kit.glb";
-  readonly selection: Selection;
+  readonly selection: AvatarSelection;
   readonly action: string;
   readonly animate: boolean;
 }) {
   const gltf = useLoader(GLTFLoader, asset);
-  const selectionKey = [
-    selection.species,
-    selection.head,
-    selection.hands,
-    selection.feet,
-    selection.fur,
-    selection.tail,
-    selection.markings,
-    selection.bodyColor,
-    selection.shirt,
-  ].join(":");
+  const selectionKey = avatarSelectionKey(selection);
   const [readySelection, setReadySelection] = useState<string | null>(null);
   return (
     <div

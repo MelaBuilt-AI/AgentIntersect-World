@@ -183,7 +183,7 @@ test("Phase 14 completes the exact real-process edit, test, preview, cleanup, an
   });
 
   await seedConfiguredAvatar(page);
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   await openPanel(page, "Activity");
   const lane = page.locator(".phase14-journey");
   await expect(lane).toBeVisible();
@@ -302,7 +302,7 @@ test.describe("Phase 14 semantic mobile fallback", () => {
       HTMLCanvasElement.prototype.getContext = () => null;
     });
     await seedConfiguredAvatar(page);
-    await page.goto("/?fixture=phase14-journey");
+    await page.goto("/internal/dashboard?fixture=phase14-journey");
     const activity = page.getByRole("button", {
       name: "Activity",
       exact: true,

@@ -14,7 +14,7 @@ test("Phase 8 evidence remains authoritative in reduced-motion DOM fallback and 
   });
   page.on("pageerror", (error) => consoleErrors.push(error.message));
 
-  await page.goto("/?fixture=phase8-evidence&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase8-evidence&webgl=off");
   await openPanel(page, "Evidence");
   const panel = page.getByRole("region", { name: "Evidence panel" });
   const current = panel.getByRole("article", { name: "Current evidence" });

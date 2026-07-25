@@ -28,7 +28,7 @@ for (const viewport of [
     });
     page.on("pageerror", (error) => errors.push(error.message));
     await seedConfiguredAvatar(page);
-    await page.goto("/?fixture=phase12-session");
+    await page.goto("/internal/dashboard?fixture=phase12-session");
     await openPanel(page, "Agents");
     await expect(
       page.getByRole("heading", { name: "Hermes connector and World chat" }),
@@ -92,7 +92,7 @@ test("Phase 12 offline avatar consent controls are disabled and neutral-grey", a
   page,
 }) => {
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase12-offline");
+  await page.goto("/internal/dashboard?fixture=phase12-offline");
   await openPanel(page, "Agents");
   await expect(page.getByText("Unavailable · offline")).toBeVisible();
   await expect(
@@ -290,7 +290,7 @@ test("Phase 12 browser reload resumes the durable World projection", async ({
     }),
   );
   await seedConfiguredAvatar(page);
-  await page.goto("/?fixture=phase12-api");
+  await page.goto("/internal/dashboard?fixture=phase12-api");
   await openPanel(page, "Agents");
   const connect = page.getByRole("button", {
     name: "Connect existing session",

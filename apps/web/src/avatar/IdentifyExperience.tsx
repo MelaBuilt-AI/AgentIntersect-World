@@ -80,7 +80,7 @@ export function IdentifyExperience({
           className="identify-action"
           onClick={() => setStage(reducedMotion ? "appearance" : "transition")}
         >
-          Begin identification
+          Create Avatar
         </button>
       </section>
     </main>

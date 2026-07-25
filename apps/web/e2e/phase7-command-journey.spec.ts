@@ -101,7 +101,7 @@ test("authorized Phase 7 real-job journey stays one-dispatch and shows fixture r
     });
   });
 
-  await page.goto("/?fixture=phase7-job");
+  await page.goto("/internal/dashboard?fixture=phase7-job");
   await openPanel(page, "Activity");
   const panel = page.getByTestId("phase7-command-panel");
   await expect(

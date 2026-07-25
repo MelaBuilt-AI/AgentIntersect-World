@@ -29,7 +29,7 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
   page,
 }) => {
   await selectAvatarCosmeticQuality(page, "full");
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   await expect(page.getByTestId("identify-opening")).toBeVisible();
   await expect(page.getByText("identify_", { exact: false })).toBeVisible();
   await expectNoSeriousAxeViolations(page);
@@ -37,7 +37,7 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
     animations: "disabled",
     maxDiffPixelRatio: CROSS_RUN_VISUAL_DIFF_RATIO,
   });
-  await page.getByRole("button", { name: "Begin identification" }).click();
+  await page.getByRole("button", { name: "Create Avatar" }).click();
   await expect(page.getByTestId("identify-transition")).toBeVisible();
   await expect(page.getByTestId("avatar-preview")).toBeVisible();
   await expect(page).toHaveScreenshot("phase5-avatar-builder-desktop.png", {
@@ -135,7 +135,7 @@ test("repository island shares semantic selection/focus and survives context los
   page,
 }) => {
   await seedAvatar(page);
-  await page.goto("/?fixture=phase5");
+  await page.goto("/internal/dashboard?fixture=phase5");
   await openPanel(page, "World");
   await expect(
     page.getByRole("heading", { name: "phase5-fixture island" }),
@@ -190,7 +190,7 @@ test("absolute object paths are redacted from the rendered inspector", async ({
   page,
 }) => {
   await seedAvatar(page);
-  await page.goto("/?fixture=phase5-paths&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase5-paths&webgl=off");
   await openPanel(page, "World");
   await page
     .getByLabel("Search packages, directories, and files")
@@ -206,8 +206,8 @@ test("reduced motion skips transitions and completes typewriter immediately", as
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await page.getByRole("button", { name: "Begin identification" }).click();
+  await page.goto("/internal/dashboard");
+  await page.getByRole("button", { name: "Create Avatar" }).click();
   await expect(page.getByTestId("identify-transition")).toHaveCount(0);
   await expect(page.getByTestId("avatar-preview")).toBeVisible();
   await page.getByLabel("Required agent name").fill("Codex");
@@ -225,7 +225,7 @@ test("keyboard-only navigation searches, selects, focuses, closes, and edits Set
   page,
 }) => {
   await seedAvatar(page);
-  await page.goto("/?fixture=phase5&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase5&webgl=off");
   const world = page.getByRole("button", { name: "World", exact: true });
   await world.focus();
   await page.keyboard.press("Enter");
@@ -262,7 +262,7 @@ test("disabled/creation-failed fallback, reduced motion, high contrast, and mobi
   await seedAvatar(page);
   await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/?fixture=phase5&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase5&webgl=off");
   await openPanel(page, "World");
   await expect(page.getByTestId("webgl-fallback")).toContainText("disabled");
   await page
@@ -291,7 +291,7 @@ test("disabled/creation-failed fallback, reduced motion, high contrast, and mobi
     maxDiffPixelRatio: CROSS_RUN_VISUAL_DIFF_RATIO,
   });
 
-  await page.goto("/?fixture=phase5&webgl=fail");
+  await page.goto("/internal/dashboard?fixture=phase5&webgl=fail");
   await openPanel(page, "World");
   await expect(page.getByTestId("webgl-fallback")).toContainText(
     "creation failed",
@@ -302,7 +302,7 @@ test("10k fixture prepares, renders, searches, and selects without 10k DOM rows"
   page,
 }, testInfo) => {
   await seedAvatar(page);
-  await page.goto("/?fixture=phase5-10k");
+  await page.goto("/internal/dashboard?fixture=phase5-10k");
   const renderStarted = performance.now();
   await openPanel(page, "World");
   const measurement = page.getByTestId("instance-measurement");

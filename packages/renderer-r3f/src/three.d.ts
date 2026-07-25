@@ -5,6 +5,7 @@ declare module "three" {
     y: number;
     z: number;
     set(x: number, y: number, z: number): this;
+    fromArray(array: ArrayLike<number>, offset?: number): this;
   }
   export class Object3D {
     position: Vector3;
@@ -16,6 +17,29 @@ declare module "three" {
   }
   export class Group extends Object3D {}
   export class Material {}
+  export class Texture {
+    minFilter: unknown;
+    dispose(): void;
+  }
+  export class CanvasTexture extends Texture {
+    constructor(canvas: HTMLCanvasElement);
+  }
+  export const LinearFilter: unknown;
+  export class SpriteMaterial extends Material {
+    constructor(parameters?: {
+      map?: Texture;
+      transparent?: boolean;
+      depthTest?: boolean;
+    });
+    map: Texture | null;
+    dispose(): void;
+  }
+  export class Sprite extends Object3D {
+    constructor(material?: SpriteMaterial);
+    material: SpriteMaterial;
+    scale: Vector3;
+    renderOrder: number;
+  }
   export class Mesh extends Object3D {
     constructor(geometry?: unknown, material?: unknown);
     material: Material | Material[];

@@ -1,0 +1,11 @@
+{
+  "schema": "aiw.phase18-accessibility/1",
+  "tested": [
+    "keyboard",
+    "axe",
+    "reduced-motion",
+    "captions",
+    "desktop-overflow"
+  ],
+  "seriousOrCriticalViolations": []
+}

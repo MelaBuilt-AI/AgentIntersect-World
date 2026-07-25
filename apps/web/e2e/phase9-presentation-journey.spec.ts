@@ -97,7 +97,10 @@ test("two browser contexts converge durable and ephemeral presentation state", a
     });
     page.on("pageerror", (error) => browserErrors.push(error.message));
   }
-  await Promise.all([left.goto("/?view=left"), right.goto("/?view=right")]);
+  await Promise.all([
+    left.goto("/internal/dashboard?view=left"),
+    right.goto("/internal/dashboard?view=right"),
+  ]);
   const leftLane = left.getByRole("region", { name: "Presentation sync" });
   const rightLane = right.getByRole("region", { name: "Presentation sync" });
   await expect(leftLane.getByText("connected", { exact: true })).toBeVisible();

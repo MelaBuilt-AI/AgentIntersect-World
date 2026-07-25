@@ -20,7 +20,7 @@ test("Phase 10 focuses one file, preserves semantic fallback selection, and surf
   });
   page.on("pageerror", (error) => errors.push(error.message));
 
-  await page.goto("/?fixture=phase10-graph&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase10-graph&webgl=off");
   await openPanel(page, "World");
   const status = page.getByTestId("code-graph-status");
   await expect(status).toContainText("Phase 10 current");
@@ -92,7 +92,7 @@ test("Phase 10 100k aggregate view materializes zero repository-wide symbols and
     }
   });
   await seedConfiguredAvatar(page, profile);
-  await page.goto("/?fixture=phase10-100k&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase10-100k&webgl=off");
   await openPanel(page, "World");
   await expect(page.getByTestId("code-graph-status")).toContainText(
     "5000/5000 files parsed",
@@ -166,7 +166,7 @@ test("Phase 10 10k aggregate view meets the 120-frame and no-all-detail ceilings
     }
   });
   await seedConfiguredAvatar(page, profile);
-  await page.goto("/?fixture=phase10-10k&webgl=off");
+  await page.goto("/internal/dashboard?fixture=phase10-10k&webgl=off");
   await openPanel(page, "World");
   await expect(page.getByTestId("code-graph-status")).toContainText(
     "500/500 files parsed",
