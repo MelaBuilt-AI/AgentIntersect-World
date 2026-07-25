@@ -1,8 +1,8 @@
 # Revised Phase 18 Worker Report
 
-**VERDICT: PARENT_VERIFIED_AUTHORIZED_FOR_PRIVATE_COMMIT_AND_EXACT_SHA_CI**
+**VERDICT: PARENT_VERIFIED_EXACT_SHA_CI_GREEN_FIRST_HAND_RETEST_PENDING**
 
-Status: fresh independent parent verification green / deterministic exact-SHA CI command correction under verification
+Status: fresh independent parent verification and exact-SHA CI green / first-hand user retest next
 
 Date: 2026-07-25
 
@@ -457,3 +457,13 @@ Local correction proof is green:
 - authoritative `corepack pnpm@11.15.0 check`: formatting, lint, typecheck, architecture, **114/114 test files / 606/606 Vitest**, **20/20 builds**, smoke PASS, **52/52 flagged Playwright**, and **1/1 unflagged fail-closed Playwright**.
 
 The parent-verified product verdict remains unchanged. Aggregate-generated Phase 13–15 and Phase 18 evidence churn was restored to the committed parent-verified bytes, and no owned listener remained. Delivery remains open until a follow-up private commit passes exact-SHA CI. First-hand user retesting still follows that green remote gate.
+
+## Exact-SHA CI success — 2026-07-25
+
+The aggregate-green command correction was committed as `b7e4a6706ec783eebfa96188b75ce2d54af11e50`, pushed to private `main`, and matched the remote ref exactly. GitHub Actions run `30163161342`, job `89691659661`, completed with `success` for that exact `headSha`.
+
+The remote job passed checkout, pinned Node/pnpm setup, frozen-lockfile installation, pinned Chromium installation, Phase 10 measurement, avatar verification, the corrected Phase 11 measurement, and the complete `pnpm check` aggregate. The worktree and remote `main` were clean and equal after the run.
+
+`EXACT_SHA_CI_GREEN_FIRST_HAND_RETEST_PENDING`
+
+Phase 18 remains **not user accepted or sealed**. The next gate is the fresh native full-browser journey from the true opening experience for Aaron and Mr Fluff to test together.
