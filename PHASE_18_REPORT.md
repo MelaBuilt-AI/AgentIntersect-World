@@ -1,8 +1,8 @@
 # Revised Phase 18 Worker Report
 
-**VERDICT: PARENT_VERIFIED_EXACT_SHA_CI_GREEN_FIRST_HAND_RETEST_PENDING**
+**VERDICT: EXACT_SHA_CI_GREEN_USER_RETEST_CORRECTIONS_REQUIRED**
 
-Status: fresh independent parent verification and exact-SHA CI green / first-hand user retest next
+Status: first-hand native fixture-assisted retest completed / corrections required before acceptance
 
 Date: 2026-07-25
 
@@ -467,3 +467,11 @@ The remote job passed checkout, pinned Node/pnpm setup, frozen-lockfile installa
 `EXACT_SHA_CI_GREEN_FIRST_HAND_RETEST_PENDING`
 
 Phase 18 remains **not user accepted or sealed**. The next gate is the fresh native full-browser journey from the true opening experience for Aaron and Mr Fluff to test together.
+
+## First-hand native retest outcome — 2026-07-25
+
+Aaron completed the clean normal `/` journey from empty browser storage without `seedConfiguredAvatar`. First launch, user and Mr Fluff avatar creation, chat/composer use, persistent transcript, compact activity presentation, and approved repository-floor transformation worked. The API boundary was explicitly fixture-backed; “Hello Mela” was canned test output and not live Hermes continuity.
+
+The retest found seven correction families: both avatar species sink into the floor; the controlled avatar does not continuously share camera heading; camera look must be hold-right-mouse and release-to-exit instead of left-click/persistent pointer lock; both mouse axes are reversed; transcript and composer bottom edges need one responsive shared anchor; all four constellation buttons need wider outward responsive placement; and agent addressing must derive from the avatar's selected user name rather than hard-coded `Mela`.
+
+The complete acceptance criteria and four authoritative screenshots are recorded in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md` and `artifacts/phase18/user-retest/`. Phase 18 remains open. Revised Phases 19–20 remain not started and unauthorized.

@@ -2,7 +2,7 @@
 
 Status: Normative UI/UX re-baseline, frozen 2026-07-25
 
-Implementation status: Revised Phase 18 implemented, fresh-parent-verified, and exact-SHA CI green; first-hand user retest pending
+Implementation status: Revised Phase 18 prior candidate parent-verified and exact-SHA CI green; first-hand user retest found the correction backlog in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`
 
 ## 1. Authority and product principle
 

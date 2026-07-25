@@ -21,7 +21,7 @@ version: 0.3-ui-ux-rebaseline
 
 **Canonical product and repository name:** **AgentIntersect World**.
 
-**Superseding Phase 18 status (2026-07-25):** First-hand testing reopened Phase 18 after the prior parent proof. The bounded correction now has fresh independent parent verification and private exact-SHA CI green; a new native full-browser user retest is next. Phase 18 is not user accepted, sealed, released, deployed, or published.
+**Superseding Phase 18 status (2026-07-25):** The bounded correction has fresh independent parent verification and private exact-SHA CI green. Aaron's subsequent clean native fixture-assisted retest passed first launch, avatar creation, chat/transcript/status presentation, and repository-floor transformation, but found the seven concrete correction families frozen in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`. Those corrections, reverification, and another first-hand retest are next. Phase 18 is not user accepted, sealed, released, deployed, or published.
 
 **Decision:** AgentIntersect World is a new, separate project and repository. The original AgentIntersect repository remains untouched. Phase 0 established a one-time compatibility baseline; normal World development no longer repeatedly inspects or verifies the original checkout. When baseline code is needed, the required code may be copied into World with provenance recorded once and is then maintained as World-owned code. World may still consume compatible local HTTP/SSE/MCP/worker surfaces, but the original AgentIntersect repository is not an ongoing phase gate.
 
