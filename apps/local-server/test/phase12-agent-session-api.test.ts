@@ -264,6 +264,7 @@ describe("Phase 12 local APIs", () => {
       listSessions: async () => [],
       attach: async (id) => ({ id, source: "fixture", title: "Fixture" }),
       sendText: async (_ref, _text, context) => {
+        expect(context?.userDisplayName).toBe("Aaron");
         const onEvent = (
           context as never as {
             onEvent: (event: unknown) => Promise<void>;
@@ -314,7 +315,11 @@ describe("Phase 12 local APIs", () => {
         {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: "hello", binding: session }),
+          body: JSON.stringify({
+            text: "hello",
+            binding: session,
+            context: { userDisplayName: "Aaron" },
+          }),
         },
       );
       expect(response.headers.get("content-type")).toMatch(

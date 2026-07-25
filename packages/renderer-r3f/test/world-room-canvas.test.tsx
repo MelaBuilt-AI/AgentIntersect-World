@@ -40,6 +40,7 @@ type RendererApi = {
     readonly position: readonly [number, number, number];
     readonly target: readonly [number, number, number];
   };
+  readonly calculateControlledAvatarYaw: (cameraYaw: number) => number;
   readonly prepareWorldRoomScene: (input: {
     readonly floor: "blank" | "repository";
     readonly userAvatar: AvatarSelection;
@@ -67,6 +68,7 @@ type RendererApi = {
 const api = rendererModule as unknown as Partial<RendererApi>;
 const avatarApi = avatarKitModule as unknown as {
   readonly AvatarKitWorldModel?: unknown;
+  readonly avatarGroundOffset?: (selection: AvatarSelection) => number;
 };
 const userAvatar: AvatarSelection = {
   species: "human",
@@ -90,8 +92,38 @@ const agentAvatar: AvatarSelection = {
   bodyColor: "fur-charcoal",
   shirt: "Hermes",
 };
+const dogAvatar: AvatarSelection = {
+  ...agentAvatar,
+  species: "dog",
+  head: "labrador",
+  tail: "dog-straight",
+};
 
 describe("Phase 18 shared World room canvas", () => {
+  it("grounds human, cat, and dog selections from canonical visible foot and paw bounds", () => {
+    expect(typeof avatarApi.avatarGroundOffset).toBe("function");
+    if (!avatarApi.avatarGroundOffset || !api.prepareWorldRoomScene) return;
+    expect(avatarApi.avatarGroundOffset(userAvatar)).toBe(0.855);
+    expect(avatarApi.avatarGroundOffset(agentAvatar)).toBe(0.85);
+    expect(avatarApi.avatarGroundOffset(dogAvatar)).toBe(0.85);
+
+    for (const floor of ["blank", "repository"] as const) {
+      const scene = api.prepareWorldRoomScene({
+        floor,
+        objects: [],
+        userAvatar,
+        agentAvatar,
+      });
+      expect(scene).toMatchObject({
+        floor: { kind: floor },
+        avatars: [
+          { id: "user-avatar", position: [0, 0.855, 0] },
+          { id: "mr-fluff-avatar", position: [3, 0.85, 2] },
+        ],
+      });
+    }
+  });
+
   it("derives a visibly following third-person camera from live yaw and pitch", () => {
     expect(typeof api.calculateWorldCameraPose).toBe("function");
     if (!api.calculateWorldCameraPose) return;
@@ -101,9 +133,28 @@ describe("Phase 18 shared World room canvas", () => {
         camera: { yaw: Math.PI / 2, pitch: 0 },
       }),
     ).toEqual({
-      position: [16, 1.6, -2],
+      position: [-8, 1.6, -2],
       target: [4, 1.2, -2],
     });
+  });
+
+  it("continuously aligns only the controlled avatar with camera heading", () => {
+    expect(typeof api.calculateControlledAvatarYaw).toBe("function");
+    if (!api.calculateControlledAvatarYaw) return;
+    expect(api.calculateControlledAvatarYaw(0)).toBeCloseTo(Math.PI);
+    expect(api.calculateControlledAvatarYaw(Math.PI / 2)).toBeCloseTo(
+      Math.PI / 2,
+    );
+    const source = readFileSync(
+      new URL("../src/world-room-canvas.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(source).toMatch(
+      /role="user"[\s\S]*rotation=\{\[0, controlledAvatarYaw, 0\]\}/u,
+    );
+    expect(source).not.toMatch(
+      /role="agent"[\s\S]*rotation=\{\[0, controlledAvatarYaw, 0\]\}/u,
+    );
   });
 
   it("anchors canonical activity truth above Mr Fluff with reduced-motion parity", () => {
@@ -197,12 +248,12 @@ describe("Phase 18 shared World room canvas", () => {
       avatars: [
         {
           id: "user-avatar",
-          position: [0, 0, 0],
+          position: [0, 0.855, 0],
           selection: userAvatar,
         },
         {
           id: "mr-fluff-avatar",
-          position: [3, 0, 2],
+          position: [3, 0.85, 2],
           selection: agentAvatar,
         },
       ],

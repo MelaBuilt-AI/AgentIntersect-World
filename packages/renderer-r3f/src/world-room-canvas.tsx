@@ -16,6 +16,7 @@ import {
 
 import {
   AvatarKitWorldModel,
+  avatarGroundOffset,
   type AvatarSelection,
 } from "./avatar-kit-canvas.js";
 import {
@@ -65,6 +66,11 @@ const activityVisualLabel = (state: WorldRoomActivity["state"]) =>
     failed: "attention",
   })[state];
 
+export function calculateControlledAvatarYaw(cameraYaw: number): number {
+  const modelYaw = Math.PI - cameraYaw;
+  return Math.atan2(Math.sin(modelYaw), Math.cos(modelYaw));
+}
+
 export function calculateWorldCameraPose({
   userPosition,
   camera,
@@ -79,7 +85,7 @@ export function calculateWorldCameraPose({
   const horizontalDistance = Math.cos(camera.pitch) * distance;
   return {
     position: [
-      cameraValue(userPosition.x + Math.sin(camera.yaw) * horizontalDistance),
+      cameraValue(userPosition.x - Math.sin(camera.yaw) * horizontalDistance),
       cameraValue(1.6 + Math.sin(camera.pitch) * distance),
       cameraValue(userPosition.z + Math.cos(camera.yaw) * horizontalDistance),
     ],
@@ -191,8 +197,24 @@ export function prepareWorldRoomScene(input: {
     },
     camera: THIRD_PERSON_CAMERA,
     avatars: [
-      { ...AVATARS[0], selection: input.userAvatar },
-      { ...AVATARS[1], selection: input.agentAvatar },
+      {
+        ...AVATARS[0],
+        position: [
+          AVATARS[0].position[0],
+          avatarGroundOffset(input.userAvatar),
+          AVATARS[0].position[2],
+        ],
+        selection: input.userAvatar,
+      },
+      {
+        ...AVATARS[1],
+        position: [
+          AVATARS[1].position[0],
+          avatarGroundOffset(input.agentAvatar),
+          AVATARS[1].position[2],
+        ],
+        selection: input.agentAvatar,
+      },
     ],
   } as const;
 }
@@ -258,6 +280,7 @@ function WorldRoomScene({
   readonly onContextLost: () => void;
 }) {
   const { camera, gl, invalidate } = useThree();
+  const controlledAvatarYaw = calculateControlledAvatarYaw(cameraLook.yaw);
   const prepared = useMemo(
     () => prepareRepositoryInstances(objects),
     [objects],
@@ -311,11 +334,17 @@ function WorldRoomScene({
     gl.domElement.dataset.userPosition = `${userPosition.x},${userPosition.z}`;
     gl.domElement.dataset.cameraYaw = cameraLook.yaw.toFixed(3);
     gl.domElement.dataset.cameraPitch = cameraLook.pitch.toFixed(3);
+    gl.domElement.dataset.controlledAvatarHeading = cameraLook.yaw.toFixed(3);
+    gl.domElement.dataset.agentAvatarHeading = "independent";
     gl.domElement.dataset.agentActivity = activity.state;
     gl.domElement.dataset.userAvatarSpecies = userAvatar.species;
     gl.domElement.dataset.userAvatarShirt = userAvatar.shirt;
+    gl.domElement.dataset.userAvatarGroundOffset =
+      avatarGroundOffset(userAvatar).toFixed(3);
     gl.domElement.dataset.agentAvatarSpecies = agentAvatar.species;
     gl.domElement.dataset.agentAvatarShirt = agentAvatar.shirt;
+    gl.domElement.dataset.agentAvatarGroundOffset =
+      avatarGroundOffset(agentAvatar).toFixed(3);
     gl.domElement.dataset.avatarRenderReady =
       avatarReady.user && avatarReady.agent ? "true" : "false";
     invalidate();
@@ -367,6 +396,7 @@ function WorldRoomScene({
         action="Idle"
         animate={!reducedMotion}
         position={[userPosition.x, 0, userPosition.z]}
+        rotation={[0, controlledAvatarYaw, 0]}
         onReady={onAvatarReady}
       />
       <AgentActivityBillboard
@@ -425,8 +455,14 @@ export function WorldRoomCanvas({
       data-floor-state={floor}
       data-user-avatar-species={userAvatar.species}
       data-user-avatar-shirt={userAvatar.shirt}
+      data-user-avatar-ground-offset={avatarGroundOffset(userAvatar).toFixed(3)}
       data-agent-avatar-species={agentAvatar.species}
       data-agent-avatar-shirt={agentAvatar.shirt}
+      data-agent-avatar-ground-offset={avatarGroundOffset(agentAvatar).toFixed(
+        3,
+      )}
+      data-controlled-avatar-heading={camera.yaw.toFixed(3)}
+      data-agent-avatar-heading="independent"
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       data-agent-activity={activity.state}

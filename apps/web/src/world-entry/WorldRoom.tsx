@@ -59,9 +59,9 @@ export function WorldRoom({
     pitch: 0.35,
   });
   const cameraRef = useRef(camera);
-  const [pointerState, setPointerState] = useState<
-    "unlocked" | "requesting" | "locked" | "denied" | "unavailable"
-  >("unlocked");
+  const activeLookPointer = useRef<number | null>(null);
+  const deliberateRightGesture = useRef(Number.NEGATIVE_INFINITY);
+  const [mouseLookActive, setMouseLookActive] = useState(false);
   const noWebGL = forceNoWebGL || contextLost;
   useEffect(() => {
     cameraRef.current = camera;
@@ -73,7 +73,10 @@ export function WorldRoom({
       const previous = lastFrame.current ?? timestamp;
       lastFrame.current = timestamp;
       const elapsedSeconds = Math.min(0.1, (timestamp - previous) / 1_000);
-      if (pressedKeys.current.size > 0)
+      if (
+        pressedKeys.current.size > 0 &&
+        !isEditableWorldTarget(document.activeElement)
+      )
         setUserPosition((position) =>
           moveWorldPosition({
             position,
@@ -92,12 +95,21 @@ export function WorldRoom({
     };
   }, []);
 
+  const stopMouseLook = useCallback((updateState = true) => {
+    const room = roomRef.current;
+    const pointerId = activeLookPointer.current;
+    activeLookPointer.current = null;
+    if (room && pointerId !== null && room.hasPointerCapture?.(pointerId))
+      room.releasePointerCapture(pointerId);
+    if (updateState) setMouseLookActive(false);
+  }, []);
+
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
       if (isEditableWorldTarget(event.target)) return;
       const key = event.key.toLocaleLowerCase();
-      if (key === "escape" && document.pointerLockElement === roomRef.current) {
-        document.exitPointerLock?.();
+      if (key === "escape" && activeLookPointer.current !== null) {
+        stopMouseLook();
         return;
       }
       if (key === "shift" || isOperatorMovementKey(key)) {
@@ -108,59 +120,38 @@ export function WorldRoom({
     const up = (event: KeyboardEvent) => {
       pressedKeys.current.delete(event.key.toLocaleLowerCase());
     };
-    const clear = () => pressedKeys.current.clear();
+    const clear = () => {
+      pressedKeys.current.clear();
+      stopMouseLook();
+    };
+    const focus = (event: FocusEvent) => {
+      if (isEditableWorldTarget(event.target)) pressedKeys.current.clear();
+    };
+    const release = (event: PointerEvent) => {
+      if (event.pointerId === activeLookPointer.current) stopMouseLook();
+    };
+    const visibility = () => {
+      if (document.visibilityState !== "visible") clear();
+    };
     window.addEventListener("keydown", down, true);
     window.addEventListener("keyup", up, true);
     window.addEventListener("blur", clear);
+    window.addEventListener("pointerup", release, true);
+    window.addEventListener("pointercancel", release, true);
+    document.addEventListener("focusin", focus, true);
+    document.addEventListener("visibilitychange", visibility);
     return () => {
       window.removeEventListener("keydown", down, true);
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
+      window.removeEventListener("pointerup", release, true);
+      window.removeEventListener("pointercancel", release, true);
+      document.removeEventListener("focusin", focus, true);
+      document.removeEventListener("visibilitychange", visibility);
+      pressedKeys.current.clear();
+      stopMouseLook(false);
     };
-  }, []);
-
-  useEffect(() => {
-    const changed = () =>
-      setPointerState(
-        document.pointerLockElement === roomRef.current ? "locked" : "unlocked",
-      );
-    const denied = () => setPointerState("denied");
-    const mouseLook = (event: MouseEvent) => {
-      if (document.pointerLockElement !== roomRef.current) return;
-      setCamera((current) =>
-        applyWorldCameraLook(current, {
-          movementX: event.movementX,
-          movementY: event.movementY,
-        }),
-      );
-    };
-    document.addEventListener("pointerlockchange", changed);
-    document.addEventListener("pointerlockerror", denied);
-    document.addEventListener("mousemove", mouseLook);
-    return () => {
-      document.removeEventListener("pointerlockchange", changed);
-      document.removeEventListener("pointerlockerror", denied);
-      document.removeEventListener("mousemove", mouseLook);
-    };
-  }, []);
-
-  const requestMouseLook = useCallback(() => {
-    const room = roomRef.current;
-    if (!room || document.pointerLockElement === room) return;
-    if (typeof room.requestPointerLock !== "function") {
-      setPointerState("unavailable");
-      room.focus();
-      return;
-    }
-    setPointerState("requesting");
-    try {
-      const request = room.requestPointerLock();
-      if (request && typeof request.catch === "function")
-        void request.catch(() => setPointerState("denied"));
-    } catch {
-      setPointerState("denied");
-    }
-  }, []);
+  }, [stopMouseLook]);
 
   return (
     <main
@@ -173,13 +164,52 @@ export function WorldRoom({
       data-user-avatar-shirt={userAvatar.shirt}
       data-agent-avatar-species={agentAvatar.species}
       data-agent-avatar-shirt={agentAvatar.shirt}
-      data-pointer-lock={pointerState}
+      data-mouse-look={mouseLookActive ? "active" : "idle"}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       tabIndex={0}
-      aria-label="AgentIntersect World room. Click the World for mouse look. Use W A S D or arrow keys to move and Shift to sprint."
+      aria-label="AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move and Shift to sprint."
       onPointerDown={(event) => {
-        if (event.button === 0) requestMouseLook();
+        if (event.button !== 2 || !(event.target instanceof HTMLCanvasElement))
+          return;
+        activeLookPointer.current = event.pointerId;
+        deliberateRightGesture.current = event.timeStamp;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.focus({ preventScroll: true });
+        setMouseLookActive(true);
+      }}
+      onPointerMove={(event) => {
+        if (event.pointerId !== activeLookPointer.current) return;
+        if ((event.buttons & 2) === 0) {
+          stopMouseLook();
+          return;
+        }
+        setCamera((current) =>
+          applyWorldCameraLook(current, {
+            movementX: event.movementX,
+            movementY: event.movementY,
+          }),
+        );
+      }}
+      onPointerUp={(event) => {
+        if (event.pointerId === activeLookPointer.current) stopMouseLook();
+      }}
+      onPointerCancel={(event) => {
+        if (event.pointerId === activeLookPointer.current) stopMouseLook();
+      }}
+      onContextMenu={(event) => {
+        const pointerTarget = document.elementFromPoint(
+          event.clientX,
+          event.clientY,
+        );
+        if (
+          (event.target instanceof HTMLCanvasElement ||
+            pointerTarget instanceof HTMLCanvasElement) &&
+          event.timeStamp - deliberateRightGesture.current <= 1_000
+        ) {
+          event.preventDefault();
+          deliberateRightGesture.current = Number.NEGATIVE_INFINITY;
+        }
       }}
     >
       <section
@@ -187,18 +217,10 @@ export function WorldRoom({
         aria-label="World controls"
         role="status"
       >
-        <span>Click World: mouse look · Esc: release</span>
+        <span>Hold right mouse on canvas: look · release: stop</span>
         <span>WASD / arrows: move · Shift: sprint</span>
         <strong>
-          {pointerState === "locked"
-            ? "Mouse look locked"
-            : pointerState === "requesting"
-              ? "Requesting mouse look"
-              : pointerState === "denied"
-                ? "Mouse look denied · keyboard ready"
-                : pointerState === "unavailable"
-                  ? "Mouse look unavailable · keyboard ready"
-                  : "Mouse look unlocked"}
+          {mouseLookActive ? "Mouse look active" : "Mouse look idle"}
         </strong>
       </section>
       <div

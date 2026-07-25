@@ -319,6 +319,7 @@ export class AgentSessionClient {
     options: {
       readonly onEvent?: (event: WorldAgentEvent) => Promise<void> | void;
       readonly signal?: AbortSignal;
+      readonly userDisplayName?: string;
     } = {},
   ): Promise<{
     readonly finalText: string;
@@ -339,7 +340,13 @@ export class AgentSessionClient {
             accept: "text/event-stream",
             "content-type": "application/json",
           },
-          body: JSON.stringify({ text, binding: session }),
+          body: JSON.stringify({
+            text,
+            binding: session,
+            ...(options.userDisplayName
+              ? { context: { userDisplayName: options.userDisplayName } }
+              : {}),
+          }),
           signal,
         },
       );

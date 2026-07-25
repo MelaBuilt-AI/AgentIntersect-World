@@ -66,6 +66,10 @@ describe("Phase 12 browser client", () => {
     const chunks = Array.from(bytes, (byte) => new Uint8Array([byte]));
     const fetcher = vi.fn(async (_input: string, init?: RequestInit) => {
       expect(init?.signal).toBeInstanceOf(AbortSignal);
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        text: "hello",
+        context: { userDisplayName: "Aaron" },
+      });
       return new Response(
         new ReadableStream<Uint8Array>({
           pull(controller) {
@@ -94,6 +98,7 @@ describe("Phase 12 browser client", () => {
     const observed: unknown[] = [];
     const client = new AgentSessionClient(fetcher as typeof fetch);
     const result = await client.stream(session, "hello", {
+      userDisplayName: "Aaron",
       onEvent: (value) => observed.push(value),
     });
     expect(result.finalText).toBe("live reply");

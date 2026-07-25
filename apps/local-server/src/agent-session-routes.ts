@@ -228,6 +228,18 @@ export function registerAgentSessionRoutes(
           properties: {
             text: { type: "string", minLength: 1, maxLength: 16_384 },
             binding: { type: "object", additionalProperties: true },
+            context: {
+              type: "object",
+              additionalProperties: false,
+              required: ["userDisplayName"],
+              properties: {
+                userDisplayName: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 80,
+                },
+              },
+            },
           },
         },
       },
@@ -259,6 +271,18 @@ export function registerAgentSessionRoutes(
           properties: {
             text: { type: "string", minLength: 1, maxLength: 16_384 },
             binding: { type: "object", additionalProperties: true },
+            context: {
+              type: "object",
+              additionalProperties: false,
+              required: ["userDisplayName"],
+              properties: {
+                userDisplayName: {
+                  type: "string",
+                  minLength: 1,
+                  maxLength: 80,
+                },
+              },
+            },
           },
         },
       },

@@ -233,6 +233,7 @@ export function WorldEntryExperience({
     });
     try {
       const answer = await client.sendExactSession(session, text, {
+        userDisplayName: profile.agentName,
         onEvent: streamCaption,
       });
       updateChat({ type: "SEND_COMPLETED", text: answer.finalText });

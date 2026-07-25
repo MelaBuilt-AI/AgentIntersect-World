@@ -36,7 +36,7 @@ export function applyWorldCameraLook(
     yaw: camera.yaw + input.movementX * 0.0025,
     pitch: Math.max(
       -pitchLimit,
-      Math.min(pitchLimit, camera.pitch - input.movementY * 0.0025),
+      Math.min(pitchLimit, camera.pitch + input.movementY * 0.0025),
     ),
   };
 }

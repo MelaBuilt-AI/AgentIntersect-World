@@ -26,6 +26,20 @@ export type AvatarSelection = {
   readonly shirt: string;
 };
 
+const VISIBLE_GROUND_OFFSETS = {
+  feet: 0.855,
+  paws: 0.85,
+  "clawed-paws": 0.85,
+} as const;
+
+export function avatarGroundOffset(selection: AvatarSelection): number {
+  return (
+    VISIBLE_GROUND_OFFSETS[
+      selection.feet as keyof typeof VISIBLE_GROUND_OFFSETS
+    ] ?? (selection.species === "human" ? 0.855 : 0.85)
+  );
+}
+
 const avatarSelectionKey = (selection: AvatarSelection) =>
   [
     selection.species,
@@ -196,6 +210,7 @@ export function AvatarKitWorldModel({
 }) {
   const gltf = useLoader(GLTFLoader, asset);
   const selectionKey = avatarSelectionKey(selection);
+  const groundOffset = avatarGroundOffset(selection) * scale;
   return (
     <group name={`${role}-modular-avatar`}>
       <AvatarModel
@@ -203,7 +218,7 @@ export function AvatarKitWorldModel({
         selection={selection}
         action={action}
         animate={animate}
-        position={position}
+        position={[position[0], position[1] + groundOffset, position[2]]}
         rotation={rotation}
         scale={scale}
       />

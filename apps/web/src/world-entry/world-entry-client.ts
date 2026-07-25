@@ -78,6 +78,7 @@ export type WorldEntrySessionPort = {
     options?: {
       readonly onEvent?: (event: WorldAgentEvent) => Promise<void> | void;
       readonly signal?: AbortSignal;
+      readonly userDisplayName?: string;
     },
   ): Promise<{
     readonly finalText: string;
@@ -110,6 +111,14 @@ function safeDisplayLabel(value: string): boolean {
       return code < 32 || code === 127;
     })
   );
+}
+
+export function prepareWorldUserContext(displayName: string): {
+  readonly userDisplayName: string;
+} {
+  const userDisplayName = displayName.normalize("NFC").trim();
+  if (!safeDisplayLabel(userDisplayName)) throw new Error("chat unavailable_");
+  return { userDisplayName };
 }
 
 export function resolveHermesDisplayName(
@@ -281,6 +290,7 @@ export function createWorldEntryClient(
       options: {
         readonly onEvent?: (event: WorldAgentEvent) => Promise<void> | void;
         readonly signal?: AbortSignal;
+        readonly userDisplayName?: string;
       } = {},
     ): Promise<{
       readonly finalText: string;
@@ -289,7 +299,14 @@ export function createWorldEntryClient(
       const bounded = text.trim().slice(0, 4_000);
       if (!bounded || session.adapterId !== "hermes")
         throw new Error("chat unavailable_");
-      return await sessionClient.stream(session, bounded, options);
+      const userContext =
+        options.userDisplayName === undefined
+          ? {}
+          : prepareWorldUserContext(options.userDisplayName);
+      return await sessionClient.stream(session, bounded, {
+        ...options,
+        ...userContext,
+      });
     },
 
     async loadRepository(rootPath: string): Promise<RepositoryLoadResult> {

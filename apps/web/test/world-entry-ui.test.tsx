@@ -128,12 +128,26 @@ describe("Phase 18 World entry experience", () => {
         sprint: true,
       }),
     ).toEqual({ x: 15, z: -6.415 });
-    expect(
-      roomApi.applyWorldCameraLook(
-        { yaw: 0, pitch: 0 },
-        { movementX: 100, movementY: -10_000 },
-      ),
-    ).toEqual({ yaw: 0.25, pitch: 1.4707963267948965 });
+    const lookRight = roomApi.applyWorldCameraLook(
+      { yaw: 0, pitch: 0 },
+      { movementX: 100, movementY: 0 },
+    );
+    const lookLeft = roomApi.applyWorldCameraLook(
+      { yaw: 0, pitch: 0 },
+      { movementX: -100, movementY: 0 },
+    );
+    const lookUp = roomApi.applyWorldCameraLook(
+      { yaw: 0, pitch: 0 },
+      { movementX: 0, movementY: -100 },
+    );
+    const lookDown = roomApi.applyWorldCameraLook(
+      { yaw: 0, pitch: 0 },
+      { movementX: 0, movementY: 100 },
+    );
+    expect(lookRight.yaw).toBeGreaterThan(0);
+    expect(lookLeft.yaw).toBeLessThan(0);
+    expect(lookUp.pitch).toBeLessThan(0);
+    expect(lookDown.pitch).toBeGreaterThan(0);
     expect(
       roomApi.isEditableWorldTarget({
         tagName: "INPUT",
@@ -442,6 +456,25 @@ describe("Phase 18 World entry experience", () => {
     }
   });
 
+  it("uses held right-button canvas look with complete release guards and no pointer lock", () => {
+    const source = readFileSync(
+      new URL("../src/world-entry/WorldRoom.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(source).toContain("event.button !== 2");
+    expect(source).toContain("HTMLCanvasElement");
+    expect(source).toContain("setPointerCapture");
+    expect(source).toContain("releasePointerCapture");
+    expect(source).toContain('"pointerup"');
+    expect(source).toContain('"blur"');
+    expect(source).toContain('"visibilitychange"');
+    expect(source).toContain("onContextMenu");
+    expect(source).not.toMatch(
+      /requestPointerLock|pointerlockchange|pointerlockerror/u,
+    );
+    expect(source).toContain("Hold right mouse");
+  });
+
   it("defines meaningful multi-object browser evidence and real renderer selection proof", () => {
     const e2e = readFileSync(
       new URL("../e2e/world-entry-single-agent.spec.ts", import.meta.url),
@@ -477,7 +510,45 @@ describe("Phase 18 World entry experience", () => {
       /\[data-renderer="webgl"\] \.world-room__activity-semantic\s*\{[^}]*clip:\s*rect\(0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+0(?:px)?\);/su,
     );
     expect(styles).toMatch(
-      /@media \(max-width: 640px\)[\s\S]*\.world-transcript\s*\{[^}]*max-width:\s*calc\(100% - 1\.5rem\);/u,
+      /@media \(max-width: 640px\)[\s\S]*\.world-transcript\s*\{[^}]*max-width:\s*100%;/u,
+    );
+  });
+
+  it("places transcript and composer on one responsive bottom grid track", () => {
+    const styles = readFileSync(
+      new URL("../src/styles.css", import.meta.url),
+      "utf8",
+    );
+    expect(styles).toMatch(
+      /\.world-hud\s*\{[^}]*grid-template-areas:[^;}]*"captions captions"[^;}]*"transcript controls"[^;}]*"voice voice"/su,
+    );
+    expect(styles).toMatch(
+      /\.world-transcript\s*\{[^}]*position:\s*static;[^}]*grid-area:\s*transcript;[^}]*align-self:\s*end;/su,
+    );
+    expect(styles).toMatch(
+      /\.world-hud__controls\s*\{[^}]*grid-area:\s*controls;[^}]*align-self:\s*end;/su,
+    );
+  });
+
+  it("places every harness outward with responsive radial constraints", () => {
+    const styles = readFileSync(
+      new URL("../src/styles.css", import.meta.url),
+      "utf8",
+    );
+    expect(styles).toMatch(
+      /\.world-harness--openclaw\s*\{[^}]*top:\s*clamp\([^;]+;[^}]*left:\s*clamp\([^;]+;/su,
+    );
+    expect(styles).toMatch(
+      /\.world-harness--hermes\s*\{[^}]*top:\s*clamp\([^;]+;[^}]*right:\s*clamp\([^;]+;/su,
+    );
+    expect(styles).toMatch(
+      /\.world-harness--claude\s*\{[^}]*bottom:\s*clamp\([^;]+;[^}]*left:\s*clamp\([^;]+;/su,
+    );
+    expect(styles).toMatch(
+      /\.world-harness--codex\s*\{[^}]*right:\s*clamp\([^;]+;[^}]*bottom:\s*clamp\([^;]+;/su,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width: 640px\)[\s\S]*\.world-harness--openclaw,[\s\S]*left:\s*-0\.5rem;/u,
     );
   });
 });

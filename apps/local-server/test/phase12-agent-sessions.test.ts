@@ -338,7 +338,8 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
       adapter.sendText("20260721_011700_compressed", "continued turn", {
         mode: "explore",
         rootSessionRef: "20260721_011618_330489c8",
-      } as never),
+        userDisplayName: "Aaron",
+      }),
     ).resolves.toMatchObject({
       finalText: "fixture answer",
       sessionRef: "20260721_011700_compressed",
@@ -348,11 +349,18 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
         call.url.endsWith("/20260721_011618_330489c8/messages"),
       ),
     ).toHaveLength(3);
-    expect(
-      fixture.calls.some((call) =>
-        call.url.endsWith("/20260721_011700_compressed/chat/stream"),
-      ),
-    ).toBe(true);
+    const streamCall = fixture.calls.find((call) =>
+      call.url.endsWith("/20260721_011700_compressed/chat/stream"),
+    );
+    expect(streamCall).toBeDefined();
+    const streamBody = JSON.parse(streamCall?.body ?? "{}") as {
+      readonly message?: string;
+      readonly system_message?: string;
+    };
+    expect(streamBody.message).toBe("continued turn");
+    expect(streamBody.system_message).toContain("read-only");
+    expect(streamBody.system_message).toContain('display name is "Aaron"');
+    expect(streamBody.system_message).toContain("use that exact display name");
   });
 
   it("accepts a during-turn compression rotation only when the post-turn root resolver proves it", async () => {
@@ -809,9 +817,10 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
         source: "fixture",
         title: "Fixture",
       }),
-      sendText: async (ref) => {
+      sendText: async (ref, _text, context) => {
         turn += 1;
         expect(ref).toBe(turn === 1 ? "effective-a" : "effective-b");
+        expect(context?.userDisplayName).toBe(turn === 1 ? "Aaron" : "Riley");
         return {
           finalText: `done-${turn}`,
           deltas: [],
@@ -839,6 +848,7 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
     await gateway.sendText(attached.sessionId, {
       text: "rotate",
       binding: attached,
+      context: { userDisplayName: "Aaron" },
     });
     expect(gateway.status(attached.sessionId)).toMatchObject({
       adapterRootSessionRef: "selected-root",
@@ -849,6 +859,7 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
       gateway.sendText(attached.sessionId, {
         text: "continue with the original client binding",
         binding: attached,
+        context: { userDisplayName: "Riley" },
       }),
     ).resolves.toMatchObject({ finalText: "done-2" });
     expect(gateway.status(attached.sessionId)).toMatchObject({

@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { vi } from "vitest";
 
 type ClientApi = {
+  readonly prepareWorldUserContext: (displayName: string) => {
+    readonly userDisplayName: string;
+  };
   readonly resolveHermesDisplayName: (
     enteredName: string,
     sessions: readonly {
@@ -26,6 +29,9 @@ type ClientApi = {
     readonly sendExactSession: (
       session: Readonly<Record<string, unknown>>,
       text: string,
+      options?: {
+        readonly userDisplayName: string;
+      },
     ) => Promise<Readonly<Record<string, unknown>>>;
     readonly loadRepository: (
       rootPath: string,
@@ -79,6 +85,17 @@ describe("Phase 18 World entry client composition", () => {
     ).toEqual({
       status: "not_found",
       message: "agent not found_",
+    });
+  });
+
+  it("derives bounded agent addressing context from each selected avatar name", () => {
+    expect(typeof api.prepareWorldUserContext).toBe("function");
+    if (!api.prepareWorldUserContext) return;
+    expect(api.prepareWorldUserContext(" Aaron ")).toEqual({
+      userDisplayName: "Aaron",
+    });
+    expect(api.prepareWorldUserContext("Riley")).toEqual({
+      userDisplayName: "Riley",
     });
   });
 
@@ -199,16 +216,20 @@ describe("Phase 18 World entry client composition", () => {
       "accepted",
       proposal,
     );
-    await expect(
-      client.sendExactSession(session, "Load this repository"),
-    ).resolves.toMatchObject({
-      finalText: "Repository request understood.",
-    });
-    expect(sessionClient.stream).toHaveBeenCalledWith(
-      session,
-      "Load this repository",
-      expect.objectContaining({}),
-    );
+    for (const userDisplayName of ["Aaron", "Riley"]) {
+      await expect(
+        client.sendExactSession(session, "Load this repository", {
+          userDisplayName,
+        }),
+      ).resolves.toMatchObject({
+        finalText: "Repository request understood.",
+      });
+      expect(sessionClient.stream).toHaveBeenLastCalledWith(
+        session,
+        "Load this repository",
+        expect.objectContaining({ userDisplayName }),
+      );
+    }
   });
 
   it("preserves blank-floor truth on failed indexing and returns a current projection on success", async () => {

@@ -274,7 +274,7 @@ const envelope = (data: unknown) => ({
   },
 });
 
-function streamBody(requestText: string) {
+function streamBody(requestText: string, userDisplayName: string) {
   const terminal = (event: string, value: unknown) =>
     `event: ${event}\ndata: ${JSON.stringify(value)}\n\n`;
   const worldEvent = (
@@ -295,14 +295,16 @@ function streamBody(requestText: string) {
     });
   const repository = /repository/iu.test(requestText);
   const finalText = repository
-    ? "The repository floor is ready."
-    : "Hello Mela — Mr Fluff is here and ready.";
+    ? "[fixture] The repository floor is ready."
+    : `[fixture] Hello ${userDisplayName} — Mr Fluff is here and ready.`;
   return [
     worldEvent(1, "message.user-accepted", {
       text: requestText,
     }),
     worldEvent(2, "message.assistant-delta", {
-      text: repository ? "Loading the approved repository." : "Hello Mela — ",
+      text: repository
+        ? "[fixture] Loading the approved repository."
+        : `[fixture] Hello ${userDisplayName} — `,
     }),
     worldEvent(3, "tool.started", {
       toolName: repository ? "repository.index" : "terminal.status",
@@ -361,11 +363,19 @@ async function installWorldFixtures(page: Page) {
       };
     else if (pathname.endsWith("/avatar-consent")) data = { state: "accepted" };
     else if (pathname.endsWith("/stream")) {
-      const body = request.postDataJSON() as { readonly text?: unknown } | null;
+      const body = request.postDataJSON() as {
+        readonly text?: unknown;
+        readonly context?: { readonly userDisplayName?: unknown };
+      } | null;
       await route.fulfill({
         status: 200,
         contentType: "text/event-stream",
-        body: streamBody(typeof body?.text === "string" ? body.text : ""),
+        body: streamBody(
+          typeof body?.text === "string" ? body.text : "",
+          typeof body?.context?.userDisplayName === "string"
+            ? body.context.userDisplayName
+            : "World user",
+        ),
       });
       return;
     } else if (
@@ -398,15 +408,116 @@ async function installWorldFixtures(page: Page) {
   });
 }
 
+async function expectOutwardConstellation(page: Page) {
+  const geometry = await page.evaluate(() => {
+    const mark = document
+      .querySelector<HTMLElement>(".world-entry-logo__mark")!
+      .getBoundingClientRect();
+    const center = {
+      x: mark.left + mark.width / 2,
+      y: mark.top + mark.height / 2,
+    };
+    const button = (selector: string) => {
+      const bounds = document
+        .querySelector<HTMLElement>(selector)!
+        .getBoundingClientRect();
+      return {
+        left: bounds.left,
+        right: bounds.right,
+        top: bounds.top,
+        bottom: bounds.bottom,
+        x: bounds.left + bounds.width / 2,
+        y: bounds.top + bounds.height / 2,
+        radial:
+          Math.hypot(
+            bounds.left + bounds.width / 2 - center.x,
+            bounds.top + bounds.height / 2 - center.y,
+          ) / mark.width,
+      };
+    };
+    return {
+      viewport: {
+        width: document.documentElement.clientWidth,
+        height: document.documentElement.clientHeight,
+      },
+      center,
+      openclaw: button(".world-harness--openclaw"),
+      hermes: button(".world-harness--hermes"),
+      claude: button(".world-harness--claude"),
+      codex: button(".world-harness--codex"),
+    };
+  });
+  for (const value of [
+    geometry.openclaw,
+    geometry.hermes,
+    geometry.claude,
+    geometry.codex,
+  ]) {
+    expect(value.radial).toBeGreaterThan(0.52);
+    expect(value.left).toBeGreaterThanOrEqual(-0.5);
+    expect(value.right).toBeLessThanOrEqual(geometry.viewport.width + 0.5);
+    expect(value.top).toBeGreaterThanOrEqual(-0.5);
+    expect(value.bottom).toBeLessThanOrEqual(geometry.viewport.height + 0.5);
+  }
+  expect(geometry.openclaw.x).toBeLessThan(geometry.center.x);
+  expect(geometry.openclaw.y).toBeLessThan(geometry.center.y);
+  expect(geometry.hermes.x).toBeGreaterThan(geometry.center.x);
+  expect(geometry.hermes.y).toBeLessThan(geometry.center.y);
+  expect(geometry.claude.x).toBeLessThan(geometry.center.x);
+  expect(geometry.claude.y).toBeGreaterThan(geometry.center.y);
+  expect(geometry.codex.x).toBeGreaterThan(geometry.center.x);
+  expect(geometry.codex.y).toBeGreaterThan(geometry.center.y);
+}
+
+async function expectSharedHudBottomTrack(page: Page) {
+  const geometry = await page.evaluate(() => {
+    const transcript = document
+      .querySelector<HTMLElement>(".world-transcript")!
+      .getBoundingClientRect();
+    const controls = document
+      .querySelector<HTMLElement>(".world-hud__controls")!
+      .getBoundingClientRect();
+    return {
+      bottomDelta: Math.abs(transcript.bottom - controls.bottom),
+      overlap:
+        transcript.left < controls.right &&
+        transcript.right > controls.left &&
+        transcript.top < controls.bottom &&
+        transcript.bottom > controls.top,
+      overflowY: getComputedStyle(
+        document.querySelector<HTMLElement>(".world-transcript")!,
+      ).overflowY,
+      viewportWidth: document.documentElement.clientWidth,
+      transcriptLeft: transcript.left,
+      controlsRight: controls.right,
+    };
+  });
+  expect(geometry.bottomDelta).toBeLessThanOrEqual(1);
+  expect(geometry.overlap).toBe(false);
+  expect(geometry.overflowY).toBe("auto");
+  expect(geometry.transcriptLeft).toBeGreaterThanOrEqual(-0.5);
+  expect(geometry.controlsRight).toBeLessThanOrEqual(
+    geometry.viewportWidth + 0.5,
+  );
+}
+
 async function completeJourney(
   page: Page,
   evidence:
-    "desktop" | "large-desktop" | "mobile" | "no-webgl" | "pointer-lock",
+    | "desktop"
+    | "large-desktop"
+    | "mobile"
+    | "no-webgl"
+    | "pointer-lock"
+    | "fixture-name",
+  userDisplayName = "Aaron",
 ) {
-  await seedConfiguredAvatar(page, "Mela");
+  await seedConfiguredAvatar(page, userDisplayName);
   await installWorldFixtures(page);
   await page.goto("/");
-  await expect(page.locator(".world-entry-logo__name")).toHaveText("Mela");
+  await expect(page.locator(".world-entry-logo__name")).toHaveText(
+    userDisplayName,
+  );
   await expect(
     page.getByText("AgentIntersect", { exact: true }).last(),
   ).toBeVisible();
@@ -423,6 +534,12 @@ async function completeJourney(
     });
 
   await page.getByRole("button", { name: /Single Agent/ }).click();
+  await expectOutwardConstellation(page);
+  if (evidence === "desktop" || evidence === "mobile")
+    await page.screenshot({
+      path: `${evidenceDirectory}/constellation-outward-${evidence}.png`,
+      fullPage: true,
+    });
   await page.getByRole("button", { name: /hermes_/ }).click();
   await page.getByLabel("Agent name").fill("Missing Agent");
   await page.getByRole("button", { name: "Connect agent" }).click();
@@ -461,6 +578,7 @@ async function completeJourney(
   await expect(
     page.getByRole("button", { name: /Push to talk/ }),
   ).toBeDisabled();
+  await expectSharedHudBottomTrack(page);
   if (
     evidence === "desktop" ||
     evidence === "large-desktop" ||
@@ -470,8 +588,25 @@ async function completeJourney(
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute("data-user-avatar-species", "human");
     await expect(canvas).toHaveAttribute("data-user-avatar-shirt", "Codex");
+    await expect(canvas).toHaveAttribute(
+      "data-user-avatar-ground-offset",
+      "0.855",
+    );
     await expect(canvas).toHaveAttribute("data-agent-avatar-species", "cat");
     await expect(canvas).toHaveAttribute("data-agent-avatar-shirt", "Hermes");
+    await expect(canvas).toHaveAttribute(
+      "data-agent-avatar-ground-offset",
+      "0.850",
+    );
+    const cameraHeading = await canvas.getAttribute("data-camera-yaw");
+    await expect(canvas).toHaveAttribute(
+      "data-controlled-avatar-heading",
+      cameraHeading ?? "",
+    );
+    await expect(canvas).toHaveAttribute(
+      "data-agent-avatar-heading",
+      "independent",
+    );
     await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true");
     await expect(canvas).toHaveAttribute("data-user-position", "0,0");
     await page.keyboard.down("KeyW");
@@ -494,7 +629,7 @@ async function completeJourney(
   });
   await expect(transcript).toContainText("Youhi");
   await expect(transcript).toContainText(
-    "Mr FluffHello Mela — Mr Fluff is here and ready.",
+    `Mr Fluff[fixture] Hello ${userDisplayName} — Mr Fluff is here and ready.`,
   );
   await expect(transcript).toContainText("Coding completed · terminal.status");
   await expect(page.locator("[data-activity-state=completed]")).toContainText(
@@ -525,11 +660,17 @@ async function completeJourney(
       /Repository floor · Current · 2 packages · 2 directories · 5 files/,
     ),
   ).toBeVisible();
+  await expectSharedHudBottomTrack(page);
   if (evidence === "desktop" || evidence === "large-desktop")
     await expect(
       page.locator('canvas[data-floor-state="repository"]'),
     ).toHaveAttribute("data-avatar-render-ready", "true");
-  if (evidence !== "pointer-lock") {
+  if (
+    evidence === "desktop" ||
+    evidence === "large-desktop" ||
+    evidence === "mobile" ||
+    evidence === "no-webgl"
+  ) {
     const output =
       evidence === "desktop"
         ? "repository-floor-desktop.png"
@@ -585,7 +726,7 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
-  await seedConfiguredAvatar(page, "Mela");
+  await seedConfiguredAvatar(page, "Aaron");
   await context.tracing.start({
     screenshots: true,
     snapshots: true,
@@ -593,7 +734,7 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
   });
   try {
     await page.goto("/");
-    await expect(page.locator(".world-entry-logo__name")).toHaveText("Mela");
+    await expect(page.locator(".world-entry-logo__name")).toHaveText("Aaron");
     await expect(
       page.getByRole("button", { name: /Single Agent/ }),
     ).toBeVisible();
@@ -603,6 +744,13 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
     sanitizeTraceArchive(tracePath);
   }
   await completeJourney(page, "desktop");
+  await page.evaluate(() => {
+    document.documentElement.style.zoom = "1.25";
+  });
+  await expectSharedHudBottomTrack(page);
+  await page.evaluate(() => {
+    document.documentElement.style.zoom = "";
+  });
   const results = await new AxeBuilder({ page }).analyze();
   const severe = results.violations.filter(
     (violation) =>
@@ -724,7 +872,7 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
   expect(dimensions.canvas).toEqual(dimensions.viewport);
 });
 
-test("explicit World gesture grants mouse look and Escape releases it @pointer-lock", async ({
+test("held right-button canvas look follows both axes and clears every exit guard @pointer-lock", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -732,20 +880,145 @@ test("explicit World gesture grants mouse look and Escape releases it @pointer-l
   await completeJourney(page, "pointer-lock");
   const room = page.locator("main.world-room");
   const canvas = page.locator("canvas");
-  const yaw = await canvas.getAttribute("data-camera-yaw");
-  await room.click({ position: { x: 640, y: 360 } });
-  await expect(room).toHaveAttribute("data-pointer-lock", "locked");
-  await expect(
-    room.getByText("Mouse look locked", { exact: true }),
-  ).toBeVisible();
-  await page.mouse.move(760, 360, { steps: 4 });
-  await expect(canvas).not.toHaveAttribute("data-camera-yaw", yaw ?? "");
+  const bounds = await canvas.boundingBox();
+  expect(bounds).not.toBeNull();
+  if (!bounds) return;
+  const center = {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2,
+  };
+  const initialYaw = Number(await canvas.getAttribute("data-camera-yaw"));
+  const initialPitch = Number(await canvas.getAttribute("data-camera-pitch"));
+  await page.evaluate(() => {
+    window.addEventListener("contextmenu", (event) => {
+      document.body.dataset.contextMenuPrevented = String(
+        event.defaultPrevented,
+      );
+    });
+  });
+
+  await page.mouse.click(center.x, center.y, { button: "left" });
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await expect(canvas).toHaveAttribute(
+    "data-camera-yaw",
+    initialYaw.toFixed(3),
+  );
+
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down({ button: "right" });
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await page.mouse.move(center.x + 120, center.y - 80, { steps: 4 });
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-camera-yaw")))
+    .toBeGreaterThan(initialYaw);
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-camera-pitch")))
+    .toBeLessThan(initialPitch);
+  const rightYaw = Number(await canvas.getAttribute("data-camera-yaw"));
+  const upPitch = Number(await canvas.getAttribute("data-camera-pitch"));
+  expect(rightYaw).toBeGreaterThan(initialYaw);
+  expect(upPitch).toBeLessThan(initialPitch);
+  await expect
+    .poll(async () => {
+      const yaw = Number(await canvas.getAttribute("data-camera-yaw"));
+      const heading = Number(
+        await canvas.getAttribute("data-controlled-avatar-heading"),
+      );
+      return Math.abs(yaw - heading);
+    })
+    .toBeLessThan(0.001);
+  await expect(canvas).toHaveAttribute(
+    "data-agent-avatar-heading",
+    "independent",
+  );
+  await page.mouse.up({ button: "right" });
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-context-menu-prevented",
+    "true",
+  );
+  await page
+    .getByLabel("Message Mr Fluff")
+    .click({ button: "right", force: true });
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-context-menu-prevented",
+    "false",
+  );
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down({ button: "right" });
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await page.mouse.move(center.x - 60, center.y + 80, { steps: 4 });
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-camera-yaw")))
+    .toBeLessThan(rightYaw);
+  await expect
+    .poll(async () => Number(await canvas.getAttribute("data-camera-pitch")))
+    .toBeGreaterThan(upPitch);
+  const leftYaw = Number(await canvas.getAttribute("data-camera-yaw"));
+  const downPitch = Number(await canvas.getAttribute("data-camera-pitch"));
+  expect(leftYaw).toBeLessThan(rightYaw);
+  expect(downPitch).toBeGreaterThan(upPitch);
+  await page.mouse.up({ button: "right" });
+  const releasedYaw = await canvas.getAttribute("data-camera-yaw");
+  await page.mouse.move(center.x + 160, center.y);
+  await expect(canvas).toHaveAttribute("data-camera-yaw", releasedYaw ?? "");
+
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down({ button: "right" });
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
+
+  await page.mouse.down({ button: "right" });
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "hidden",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await room.focus();
+  const positionBeforeForward = String(
+    await canvas.getAttribute("data-user-position"),
+  )
+    .split(",")
+    .map(Number);
+  await page.keyboard.down("KeyW");
+  await page.waitForTimeout(180);
+  await page.keyboard.up("KeyW");
+  const positionAfterForward = String(
+    await canvas.getAttribute("data-user-position"),
+  )
+    .split(",")
+    .map(Number);
+  const heading = Number(
+    await canvas.getAttribute("data-controlled-avatar-heading"),
+  );
+  const movementX = positionAfterForward[0] - positionBeforeForward[0];
+  const movementZ = positionAfterForward[1] - positionBeforeForward[1];
+  expect(Math.hypot(movementX, movementZ)).toBeGreaterThan(0);
+  expect(
+    movementX * Math.sin(heading) + movementZ * -Math.cos(heading),
+  ).toBeGreaterThan(0);
+
   await page.screenshot({
     path: `${evidenceDirectory}/repository-floor-pointer-lock.png`,
     fullPage: true,
   });
-  await page.keyboard.press("Escape");
-  await expect(room).toHaveAttribute("data-pointer-lock", "unlocked");
 });
 
 test("no-WebGL semantic state completes the same repository-floor journey", async ({
@@ -764,6 +1037,19 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
   await expect(
     page.getByText("WorldEntryExperience.tsx", { exact: false }),
   ).toBeVisible();
+});
+
+test("fixture addressing follows a second selected avatar name", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await completeJourney(page, "fixture-name", "Riley");
+  await expect(
+    page.getByRole("log", { name: "Conversation and activity" }),
+  ).toContainText(
+    "Mr Fluff[fixture] Hello Riley — Mr Fluff is here and ready.",
+  );
 });
 
 test("normal entry never exposes the internal dashboard", async ({ page }) => {
