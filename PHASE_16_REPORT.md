@@ -572,10 +572,12 @@ its ancestry.
 Machine-readable evidence is retained at
 `artifacts/phase16/final-live-proof.json`. All final live services were
 loopback-only and all owned listeners were stopped; the final listener count
-was zero. Phase 15 remains unsealed solely for its physical-microphone journey,
-the local STT provider remains staged/unactivated, and Phase 17 remains
-separately unauthorized and not started. Phase 13 Discord → World continuity
-remains failed/deferred under waiver and was not retried.
+was zero. At that Phase 16 evidence point, Phase 15 remained unsealed solely for
+its physical-microphone journey and Phase 17 remained separately unauthorized.
+Phase 15 later passed and was sealed on 2026-07-24 while the local STT provider
+remained staged/unactivated; Phase 17 was later completed under its own contract.
+Phase 13 Discord → World continuity remains failed/deferred under waiver and was
+not retried.
 
 ### Private exact-SHA CI
 
@@ -595,8 +597,9 @@ job `89168556242`, succeeded for status-record SHA
 `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance
 in the new session. Phase 16 is user accepted, sealed, and complete. This
 status-only closeout does not alter any implementation, integration,
-verification, attribution, cleanup, or boundary evidence above. Phase 15
-remains unsealed solely for its physical-microphone journey with the local STT
-provider staged/unactivated; Phase 13 Discord → World continuity remains
-failed/deferred under waiver; and Phase 17 remains separately unauthorized and
-not started.
+verification, attribution, cleanup, or boundary evidence above. At that time,
+Phase 15 remained unsealed solely for its physical-microphone journey and Phase
+17 remained separately unauthorized. Phase 15 later passed and was sealed on
+2026-07-24 with the local STT provider still staged/unactivated; Phase 17 was
+later authorized, completed, and sealed. Phase 13 Discord → World continuity
+remains failed/deferred under waiver.

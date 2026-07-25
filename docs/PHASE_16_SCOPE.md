@@ -6,9 +6,9 @@ Date: 2026-07-23
 
 Authority: the user approved Decisions 1–10 below and instructed Mr Fluff to preserve them for a new-session Phase 16 start. This authorization permits only the bounded Phase 16 implementation described here. It does not authorize work in the current session, Phase 17+, public services, an autonomous swarm, publication, deployment, release, provider activation, repository-visibility changes, or automatic integration.
 
-Phase 15 remains an exact-SHA-verified implementation candidate with its real physical-microphone journey and explicit user acceptance carried as a pending TODO. That pending acceptance is not mislabeled as complete and does not reopen Phase 15 implementation.
+When this frozen Phase 16 scope was prepared, Phase 15 was an exact-SHA-verified implementation candidate with its real physical-microphone journey and explicit user acceptance carried as a pending TODO. That historical sequencing was not mislabeled as completion and did not reopen Phase 15 implementation. The pending gate later passed and Phase 15 was explicitly sealed on 2026-07-24.
 
-Acceptance closeout: after technical completion and exact-SHA `phase-1-checks` run `29995642552` / job `89168556242` succeeded for status-record SHA `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance in the new session. Phase 16 is accepted, sealed, and complete. Phase 15 remains unsealed solely for the physical-microphone journey with the local STT provider staged/unactivated; Phase 13 Discord → World continuity remains failed/deferred under waiver; and Phase 17 remains separately unauthorized and not started.
+Acceptance closeout: after technical completion and exact-SHA `phase-1-checks` run `29995642552` / job `89168556242` succeeded for status-record SHA `3cf9e53b2c9e05f232d68d61a7ee029f2ff946f0`, the user authorized acceptance in the new session. Phase 16 is accepted, sealed, and complete. Phase 15 later passed its physical-microphone journey and was explicitly sealed on 2026-07-24 while its local STT provider remained staged/unactivated. Phase 13 Discord → World continuity remains failed/deferred under waiver. Phase 17 was subsequently authorized, completed, and sealed under its own contract; Phase 18 remains unauthorized and not started.
 
 ## Frozen decisions
 

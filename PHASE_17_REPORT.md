@@ -153,8 +153,10 @@ fresh-copy rerun.
 
 ## Preserved boundaries
 
-- Phase 15 remains unsealed solely for physical-microphone acceptance; its local
-  STT provider remains staged and unactivated.
+- At the Phase 17 seal, Phase 15 remained unsealed solely for physical-microphone
+  acceptance. That gate later passed with explicit user acceptance on 2026-07-24;
+  Phase 15 is now sealed while its local STT provider remains staged and
+  unactivated.
 - Phase 13 Discord → World continuity remains FAIL/deferred under its existing
   waiver and was not retried.
 - Phase 16 remains accepted, sealed, and complete.
@@ -170,11 +172,12 @@ exact-SHA technical gates were green before the acceptance decision. The user
 then said, “Nice job fluff! Bring it home! Accepted.” Phase 17 is user accepted,
 sealed, and complete.
 
-This status-only closeout changes no implementation, recovery behavior,
-verification evidence, privacy boundary, or artifact measurement. Phase 15
-remains unsealed solely for its physical-microphone journey with the local STT
-provider staged/unactivated; Phase 13 Discord → World continuity remains
-FAIL/deferred under waiver; and Phase 18 remains separately unauthorized and
-not started. No tag, release, publication, deployment, public ingress,
-visibility change, provider activation, Hermes core/profile change, or
-original-AgentIntersect operation is authorized by this seal.
+This status-only Phase 17 closeout changed no implementation, recovery behavior,
+verification evidence, privacy boundary, or artifact measurement. At that time,
+Phase 15 remained unsealed solely for its physical-microphone journey. The gate
+later passed and Phase 15 was explicitly sealed on 2026-07-24 without provider
+promotion/activation. Phase 13 Discord → World continuity remains FAIL/deferred
+under waiver, and Phase 18 remains separately unauthorized and not started. No
+tag, release, publication, deployment, public ingress, visibility change,
+provider activation, Hermes core change, or original-AgentIntersect operation
+is authorized by either seal.

@@ -1,12 +1,12 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-23
+Updated: 2026-07-24
 
 ## Current milestone
 
 **Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 
-**Inherited pending gate: Phase 15 — PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
+**Phase 15 — USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**
 
 - Phase 17 is governed by the user-authorized bounded shape in `docs/PHASE_17_SCOPE.md`; its architecture and authority boundaries are recorded in `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`; independent parent evidence is recorded in `PHASE_17_REPORT.md` and `artifacts/phase17/recovery-drill.json`.
 - The corrected candidate adds strict `aiw.observability/0.17` contracts, exactly eight derived readiness rows, checksummed current/previous snapshots, a bounded append-only event ledger, corrupt-current preservation, exact retry receipts for apply/export/delete, proof-based export/delete integrity, production APIs, an equivalent thin local CLI, and a lazy accessible Diagnostics & Recovery shell surface.
@@ -23,8 +23,8 @@ Updated: 2026-07-23
 - Final post-correction proof is green: literal `pnpm check`; 11/11 architecture; 39/39 Phase 15 conformance; 512/512 Vitest; 41/41 Playwright; production build/smoke; Storybook; no known production vulnerabilities; and fresh-copy verification for 452 project source files with the same 512/41 tests.
 - Exact staged-provider proof matched the expected transcript in `662.074746 ms` at `299,655,168` bytes peak RSS, with exact runtime/model/inventory-file hashes plus every current runtime member's path/hash/size/mode, 53 regular files / 185,119,961 bytes / zero symlinks, and zero residual process, listener, temp root, source WAV, or raw-audio file. A disposable copied-tree shared-library mutation now fails unavailable. The provider remains staged and unactivated outside the repository.
 - First-hand production-built browser/visual proof is green for deterministic capture, in-flight cancel/discard, edit/send/canonical reply, TTS/revocation/stop, genuinely pinned mobile/two-CPU/reduced-motion/forced-colors/no-WebGL operation, zero serious/critical axe violations, and zero visual clipping/overflow. Supplemental Node control microbenchmarks are explicitly non-acceptance evidence rather than mislabeled microphone/STT/TTS timings; none of this is mislabeled as physical-microphone proof.
-- This Windows host exposes only an HDMI output endpoint and no microphone endpoint. WSLg `RDPSource` delivered no samples and blocked; the exact owned probe process pair was terminated/awaited and no WAV remains. One physical-microphone journey and explicit user acceptance therefore remain the sole frozen exit gate; Phase 15 is not sealed complete.
-- On 2026-07-23 the user explicitly chose to leave the clean pushed Phase 15 candidate in that state and carry the physical-microphone journey as a pending TODO. The user then authorized and accepted bounded Phase 16, separately authorized the bounded Phase 17 recovery slice, and explicitly accepted Phase 17 after technical completion and exact-SHA CI proof. Phase 17 is sealed and complete. Phase 15 remains unsealed solely for the physical-microphone journey, and its local STT provider remains staged/unactivated.
+- On 2026-07-24 the operator connected an **HD Pro Webcam C920**, explicitly allowed microphone access in Microsoft Edge, completed physical push-to-talk through the exact staged local provider, accepted the final caption **“Mr. Fluff, please reply with physical microphone gate received.”**, sent it through the existing Explore-mode Hermes/Discord session, received canonical reply **“Physical microphone gate received.”**, and heard the reply through optional browser/system TTS. The exact session/correlation, 666/663/686 ms completed local operations, and cleanup truth are retained in `artifacts/phase15/physical-microphone-acceptance.json`.
+- Raw audio and provider payloads were not retained; the volatile audio tree was empty, no residual Whisper/FFmpeg process remained, and voice activity returned to `null`. The user reported TTS **“worked!”** and explicitly selected **“Seal Phase 15 now.”** Phase 15 is user accepted, sealed, and complete. The provider remains staged/unactivated; the gate did not promote or activate it.
 - Phase 14 remains complete and sealed with all existing evidence below. The Phase 13 Discord → World continuity path remains FAIL/deferred under waiver, was not retried, and is excluded from Phase 15.
 
 ## Accepted Phase 14 baseline
@@ -193,17 +193,22 @@ checks, disposable fresh-copy verification, private push, and exact-SHA CI at
 new session. Phase 17 is accepted, sealed, and complete. Phase 16 remains
 accepted, sealed, and complete; Phase 18 remains unauthorized and not started.
 
-`docs/PHASE_15_SCOPE.md` also remains frozen. The bounded Phase 15 candidate and independent parent proof are green in `PHASE_15_REPORT.md`, but this host exposes no usable microphone input and the physical-microphone acceptance remains pending.
+`docs/PHASE_15_SCOPE.md` remains frozen. The bounded Phase 15 implementation, independent parent proof, real physical-microphone journey, exact-session canonical reply, optional browser/system TTS, cleanup, and explicit user acceptance are green in `PHASE_15_REPORT.md` and `artifacts/phase15/physical-microphone-acceptance.json`. Phase 15 is user accepted, sealed, and complete; its provider remains staged and unactivated.
 
 Phase 14 remains sealed and accepted: the user froze and explicitly authorized its bounded implementation on 2026-07-22, and `docs/PHASE_14_SCOPE.md` remains its controlling contract. The complete slice, independent parent proof, retained evidence, cleanup, private push, and exact-SHA GitHub Actions run `29963116363` are green.
 
 The Phase 13 exact-root Discord → World continuation remains FAIL/deferred as a separate backlog item and was not retried. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
 
-Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 18+, and every action outside the remaining Phase 15 gate remain prohibited without their required separate authorization.
+Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 18+, UI re-baselining implementation, and custom voice implementation remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 
 ## Non-blocking backlog
+
+### Product UI and Mr Fluff voice
+
+- Re-baseline the World operator experience around short, obvious task journeys. The physical-microphone gate showed that the Hermes connector and voice lane were difficult to discover behind the Agents category and a long, dense dashboard; this requires product-level information architecture and interaction cleanup rather than cosmetic tweaks.
+- Add a distinctive, high-quality custom Mr Fluff voice in a separately authorized future milestone. Preserve explicit preview/accept/change/revoke/stop controls and provenance; do not treat the accepted browser/system TTS baseline as a custom voice or silently introduce voice cloning.
 
 ### Phase 13 deferred live continuity
 

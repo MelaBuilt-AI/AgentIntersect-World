@@ -1,12 +1,12 @@
 # Phase 15 — Frozen Decision Scope
 
-**Status:** IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED
+**Status:** USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED
 
 **Prepared:** 2026-07-22
 
 **Planning baseline:** clean private `main` at `bbc2ea32cc40bac609ad20d0c8e85b9870888589` before this planning/provenance-only update. The preceding CI maintenance at `dba11b88f92d90df718d2068d98110d35201d296` remains green under exact-SHA GitHub Actions run `29966798446`, job `89079968383`, with zero annotations.
 
-**Authority:** On 2026-07-22 the user accepted the artifact result and explicitly authorized exactly one bounded Phase 15 implementation under frozen Decisions 1–10. The implementation candidate and independent parent proof are green for every host-exposed deterministic, exact-provider, browser, visual, recovery, performance, and cleanup path recorded in `PHASE_15_REPORT.md`. This host exposes no usable physical microphone, so the frozen user-accepted physical-microphone journey remains pending and Phase 15 is not yet sealed complete. The verified provider remains staged and unactivated outside the repository; tests and live proof may point explicitly at that staging tree only after exact re-attestation. On 2026-07-23 the user chose to leave the clean pushed candidate in that state and carry the physical-microphone journey as a pending TODO. The user subsequently approved/froze the bounded Phase 16 contract in `docs/PHASE_16_SCOPE.md` and authorized it to start in a new session; no Phase 16 work was started while this Phase 15 record was updated. This does not waive or satisfy the Phase 15 exit gate or activate the provider. Phase completion, provider promotion or activation, release, publication, deployment, visibility change, Hermes-core/profile change, original-AgentIntersect operation, Phase 17+, and every other non-goal remain closed pending their separate parent/user gates.
+**Authority:** On 2026-07-22 the user accepted the artifact result and explicitly authorized exactly one bounded Phase 15 implementation under frozen Decisions 1–10. The implementation candidate and independent parent proof were green before the final gate. On 2026-07-24 the operator completed and explicitly accepted the real Microsoft Edge physical-microphone journey recorded in `artifacts/phase15/physical-microphone-acceptance.json`, then selected **“Seal Phase 15 now.”** Phase 15 is user accepted, sealed, and complete. The verified provider remains staged and unactivated outside the repository; this acceptance used only explicit bounded staging-root configuration after exact re-attestation and did not promote or activate it. The historical 2026-07-23 choice to carry the gate as pending is now superseded only by this acceptance. Phase 13 remains failed/deferred under its waiver; provider promotion or activation, release, publication, deployment, visibility change, original-AgentIntersect operation, and Phase 18+ remain closed pending separate authorization.
 
 ## Inherited baseline and authority boundary
 
@@ -134,4 +134,4 @@ Explicitly exclude:
 
 ## Decision-freeze gate
 
-Decisions 1–10 and the exact STT pin remain frozen. The artifact result was accepted and exactly one bounded implementation candidate is locally and independently verified. The provider remains staged and unactivated; the physical-microphone user-acceptance journey, phase completion, provider promotion/activation, and every non-goal remain closed.
+Decisions 1–10 and the exact STT pin remain frozen. The artifact result, bounded implementation, independent proof, real physical-microphone journey, exact-session canonical reply, optional browser/system TTS, cleanup, and explicit user acceptance are complete. Phase 15 is sealed. The provider remains staged and unactivated; provider promotion/activation and every non-goal remain closed.

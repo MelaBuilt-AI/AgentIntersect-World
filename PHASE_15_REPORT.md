@@ -1,16 +1,17 @@
 # Phase 15 — Voice, Expressive Presence, and Consentful Agent Identity
 
-**Status:** IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED
+**Status:** USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED
 
 **Verified:** 2026-07-23
+**Physical-microphone acceptance and seal:** 2026-07-24
 
 ## Authority and outcome
 
-The user froze Decisions 1–10 in `docs/PHASE_15_SCOPE.md`, accepted the separately verified `whisper.cpp` artifact result, and authorized exactly one bounded Phase 15 implementation. That implementation candidate is complete and independently parent-verified within the capabilities exposed to this WSL/Windows host.
+The user froze Decisions 1–10 in `docs/PHASE_15_SCOPE.md`, accepted the separately verified `whisper.cpp` artifact result, and authorized exactly one bounded Phase 15 implementation. The implementation candidate and its independent parent proof were already green before the final physical-microphone gate.
 
-Phase 15 is **not yet sealed complete**. The frozen exit gate still requires one user-accepted physical-microphone push-to-talk journey. This host exposes only one Windows HDMI output endpoint and no microphone endpoint. WSLg advertises `RDPSource`, but a bounded two-second input probe delivered no samples and blocked; the exact owned `timeout`/`ffmpeg` process pair was terminated and awaited, and no probe WAV remains. Deterministic browser capture, exact local-provider execution, canonical send, captions, TTS, interruption, recovery, visual, and cleanup proof are green, but none is mislabeled as a physical-microphone PASS.
+On 2026-07-24 the operator connected an **HD Pro Webcam C920** microphone, explicitly allowed microphone access in Microsoft Edge, completed the production-backed push-to-talk journey through the exact staged local provider, accepted the editable final caption, sent it through the existing Hermes session, received the canonical reply, and heard that reply through optional browser/system TTS. The operator then explicitly chose **“Seal Phase 15 now.”** Phase 15 is user accepted, sealed, and complete.
 
-The pinned provider remains staged and unactivated outside the repository. No release, publication, deployment, public ingress, visibility change, Hermes core/profile change, original-AgentIntersect operation, Phase 13 continuity retry, or Phase 16+ work occurred.
+The pinned provider remains staged and unactivated outside the repository. Its `.staging` root was supplied only as an explicit bounded runtime configuration for this gate; no promotion or activation rename occurred. The reviewed AgentIntersect World Hermes plugin/API configuration was installed temporarily under explicit permission, the gateway was restarted, and byte-for-byte restoration is part of this closeout. No release, publication, deployment, public ingress, visibility change, Hermes core change, original-AgentIntersect operation, Phase 13 continuity retry, or Phase 18 work occurred.
 
 ## Delivered vertical slice
 
@@ -129,18 +130,29 @@ This is deterministic browser/operator proof, not a physical-microphone claim.
 - `artifacts/phase15/phase15-browser-performance.json`
 - `artifacts/phase15/phase15-live-provider.json`
 - `artifacts/phase15/phase15-voice-mobile.png`
+- `artifacts/phase15/physical-microphone-acceptance.json`
 - `artifacts/phase15/stt-provider/` sanitized provenance evidence
 - `docs/PHASE_15_STT_PROVIDER_PIN.md`
 - `docs/PHASE_15_STT_ARTIFACT_REPORT.md`
 
 No runtime/model binary, raw WAV/audio, raw provider payload, credential, absolute home path, provider process, listener, or activation marker is retained in the repository.
 
-## Remaining gate
+## Physical-microphone acceptance and seal
 
-1. On a host with a real browser-visible microphone, inspect the disclosure and complete one physical push-to-talk utterance through edit/send/canonical reply/optional TTS/stop.
-2. The user explicitly accepts that journey and provider/privacy disclosure.
-3. Record the acceptance in project status and seal Phase 15.
+The final operator journey is retained in sanitized form at
+`artifacts/phase15/physical-microphone-acceptance.json`:
 
-Private commit/push and exact-SHA CI may verify this implementation candidate before that user acceptance, but they do not substitute for it or authorize provider activation.
+- Microsoft Edge exposed the connected **HD Pro Webcam C920** and the operator explicitly allowed access;
+- physical push-to-talk produced the initial final caption **“Mr. Fluff, please reply with physical microphone gate received.”** without an edit;
+- the accepted text entered World session `e4455fcc-41b7-473c-819d-6d2da7e5762b`, bound in Explore mode to Hermes/Discord adapter session `20260724_204916_8293dc`;
+- correlation `f2af858d-6ec5-486e-bbae-2a818c361d81` retained the accepted user message, six assistant deltas, and canonical `message.assistant-final` **“Physical microphone gate received.”**;
+- three local transcription operations completed in 666 ms, 663 ms, and 686 ms during operator attempts;
+- optional browser/system TTS spoke the canonical reply and the operator reported **“worked!”**;
+- no WAV, WebM, MP3, OGG, FLAC, raw provider payload, transcript text in the voice store, residual `whisper-cli`, or residual FFmpeg process remained; voice activity returned to `null`;
+- the operator explicitly selected **“Seal Phase 15 now.”**
 
-On 2026-07-23 the user chose to leave this clean pushed candidate unsealed with the physical-microphone journey retained as a pending TODO. The user subsequently approved/froze `docs/PHASE_16_SCOPE.md` and authorized its bounded implementation to start in a new session. No Phase 16 work began during this status transition; this sequencing decision is not a microphone-acceptance waiver or Phase 15 seal, and provider activation remains separately gated.
+This acceptance does not activate or promote the staged provider and does not change the separate Phase 13 waiver. Phase 18 remains unauthorized and not started.
+
+## Deferred product improvements
+
+The gate exposed a major usability problem: the connector and voice lane were difficult to discover behind the Agents category and the long, dense dashboard. A product/UI re-baselining pass is intentionally deferred until after this seal. A distinctive custom Mr Fluff voice is also a desired near-future enhancement, but it is not part of Phase 15; the accepted baseline remains transparent browser/system TTS with explicit local consent and stop controls.

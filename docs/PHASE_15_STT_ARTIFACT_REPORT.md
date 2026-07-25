@@ -1,14 +1,14 @@
 # Phase 15 STT Artifact Verification Report
 
-**PASS FOR ARTIFACT PROVENANCE, OFFLINE SMOKE, SYNTHETIC QUALITY, AND PERFORMANCE / RESULT ACCEPTED / IMPLEMENTATION CANDIDATE VERIFIED / PHYSICAL-MICROPHONE USER ACCEPTANCE PENDING / PROVIDER UNACTIVATED**
+**HISTORICAL ARTIFACT PASS — 2026-07-22 / PHASE 15 LATER USER ACCEPTED AND SEALED — 2026-07-24 / PROVIDER STAGED AND UNACTIVATED**
 
 **Verified:** 2026-07-22
 
 ## Authority and conclusion
 
-The user approved the immutable `whisper.cpp` v1.9.1 plus English `base.en` pin and originally authorized only bounded artifact download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, and this report. That bounded gate passed on the observed WSL2 host. The user later accepted this result and explicitly authorized exactly one bounded Phase 15 implementation candidate, now verified in `PHASE_15_REPORT.md` except for the separately required physical-microphone user-acceptance journey.
+The user approved the immutable `whisper.cpp` v1.9.1 plus English `base.en` pin and originally authorized only bounded artifact download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, and this report. That bounded gate passed on the observed WSL2 host. The user later accepted this result, authorized exactly one bounded Phase 15 implementation, and on 2026-07-24 completed and accepted the separately required physical-microphone journey recorded in `PHASE_15_REPORT.md`.
 
-This historical artifact report is not Phase 15 completion or provider activation authority. The bounded implementation authorization permits only the frozen Phase 15 slice; physical-microphone user acceptance, release, publication, deployment, provider promotion/activation, Phase 16+, original-AgentIntersect operations, and Hermes-profile changes remain closed. The verified runtime and model remain under private `.staging` storage outside the repository.
+This historical artifact report was not itself Phase 15 completion or provider activation authority. Phase 15 later sealed through separate implementation, live acceptance, and user-acceptance evidence. The verified runtime and model remain under private `.staging` storage outside the repository; provider promotion/activation is still closed.
 
 Authoritative sanitized evidence is retained under `artifacts/phase15/stt-provider/`. No runtime binary, model, WAV, raw provider payload, credential, or absolute home path is committed.
 
@@ -124,10 +124,10 @@ The retained private staging summary remains byte-exact at SHA-256 `ae207d3068e6
 | `artifacts/phase15/stt-provider/network-namespace-proc-net-dev.txt` | `dcee31fcbec3e6c05cc28dd7f68c6ce4dd33ec6c92104c80ecac9d1aac3f79c0` |
 | `artifacts/phase15/stt-provider/post-run-process-check.txt`         | `fcf33dfbe13c2354bf0e1b063f9fb422747a46cee00b7420bceff2b81457b345` |
 
-## Limitations and next gate
+## Historical limitations and later gate result
 
-This gate used deterministic synthetic installed voices. It does not replace first-hand microphone/operator acceptance. Three runs are insufficient for percentile claims. The 30-second fixture is one spoken phrase padded with silence, not 30 seconds of continuous speech.
+This artifact gate used deterministic synthetic installed voices and did not replace first-hand microphone/operator acceptance. Three runs are insufficient for percentile claims. The 30-second fixture is one spoken phrase padded with silence, not 30 seconds of continuous speech.
 
-Browser permission states, partial/final caption behavior, final edit/send/cancel, exact-session re-attestation, TTS, barge-in, accessibility/mobile/no-WebGL operation, and persistence/recovery belong to the later implementation report rather than this historical artifact report. Deterministic and exact-provider parent proof is green in `PHASE_15_REPORT.md`. This host exposes no usable physical microphone, so the distinct physical-microphone user-acceptance journey remains outstanding.
+Browser permission states, partial/final caption behavior, final edit/send/cancel, exact-session re-attestation, TTS, barge-in, accessibility/mobile/no-WebGL operation, and persistence/recovery belong to the later implementation and acceptance report rather than this historical artifact report. Those gates, including the real physical-microphone journey, later passed as recorded in `PHASE_15_REPORT.md` and `artifacts/phase15/physical-microphone-acceptance.json`.
 
-The artifact result was accepted and the bounded Phase 15 implementation candidate is verified. The next gate is one user-accepted physical-microphone journey; provider promotion/activation remains blocked.
+The artifact result, bounded implementation, and physical-microphone journey were accepted; Phase 15 is sealed. Provider promotion/activation remains blocked.

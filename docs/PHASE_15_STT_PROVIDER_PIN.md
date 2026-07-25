@@ -1,10 +1,10 @@
 # Phase 15 STT Provider Pin
 
-**APPROVED 2026-07-22 / ARTIFACT RESULT ACCEPTED / IMPLEMENTATION AUTHORIZED AND IN PROGRESS / PROVIDER UNACTIVATED**
+**APPROVED 2026-07-22 / PHASE 15 USER ACCEPTED AND SEALED 2026-07-24 / PROVIDER STAGED AND UNACTIVATED**
 
 **Prepared and sources retrieved:** 2026-07-22
 
-This document records the exact approved provider-selection and provenance pin for the frozen Phase 15 Decision 3 boundary. The bounded artifact verification and benchmark are complete in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`; the user accepted that result and explicitly authorized exactly one bounded Phase 15 implementation, now in progress. This pin is not Phase 15 completion or authority to promote/activate the provider, release, publish, deploy, or cross any later gate.
+This document records the exact approved provider-selection and provenance pin for the frozen Phase 15 Decision 3 boundary. The bounded artifact verification and benchmark are complete in `docs/PHASE_15_STT_ARTIFACT_REPORT.md`; the user accepted that result, authorized exactly one bounded implementation, completed the real physical-microphone journey, and sealed Phase 15 on 2026-07-24. This pin remains no authority to promote/activate the provider, release, publish, deploy, or cross any later gate.
 
 ## Observed target environment
 
@@ -98,7 +98,7 @@ This contract records the bounded execution shape proven by the artifact benchma
 
 1. **Provider pin:** approved on 2026-07-22.
 2. **Artifact gate:** bounded download, safe inventory, exact hash verification, offline smoke/quality/performance benchmarking, cleanup, and report completed. Provider activation remains blocked.
-3. **Current gate:** artifact result accepted and one bounded Phase 15 implementation authorized/in progress. Provider promotion/activation and parent closeout remain separate closed gates.
+3. **Phase closeout:** bounded implementation, exact-provider proof, real physical-microphone journey, optional browser/system TTS, cleanup, and explicit user acceptance passed; Phase 15 sealed on 2026-07-24. Provider promotion/activation remains a separate closed gate.
 
 ## Primary sources
 

@@ -11,10 +11,11 @@ Acceptance closeout: the technical implementation/evidence tree at
 `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA
 `phase-1-checks` run `30019778458`, job `89249166240`. After that proof, the
 user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is
-accepted, sealed, and complete. Phase 15 remains unsealed solely for its
-physical-microphone journey with the local STT provider staged/unactivated;
-Phase 13 Discord → World continuity remains FAIL/deferred under waiver; and
-Phase 18 remains separately unauthorized and not started.
+accepted, sealed, and complete. At that time Phase 15 remained unsealed solely
+for its physical-microphone journey; that gate later passed and Phase 15 was
+explicitly sealed on 2026-07-24 while its local STT provider remained
+staged/unactivated. Phase 13 Discord → World continuity remains FAIL/deferred
+under waiver, and Phase 18 remains separately unauthorized and not started.
 
 ## 1. One bounded vertical slice
 
@@ -160,6 +161,7 @@ production APIs/state, not a mock-only dashboard. It includes:
   VERIFICATION PENDING** and no worker could claim user acceptance, remote push,
   exact-SHA CI, or a Phase 17 seal. Those gates were later satisfied by parent
   verification, private push, exact-SHA CI, and the user's explicit acceptance.
-- Preserve Phase 15 pending/unactivated, the Phase 13 waiver, and Phase 16
-  sealed completion.
+- Preserve the then-current Phase 15 pending/unactivated boundary, the Phase 13
+  waiver, and Phase 16 sealed completion. Phase 15 later passed and was sealed
+  on 2026-07-24 without provider activation.
 - Phase 18 remains unauthorized and has not started.

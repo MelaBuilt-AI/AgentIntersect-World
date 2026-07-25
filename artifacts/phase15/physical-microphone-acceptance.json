@@ -1,0 +1,58 @@
+{
+  "schema": "aiw.phase15.physical-microphone-acceptance/1",
+  "acceptedOn": "2026-07-24",
+  "result": "pass",
+  "journey": {
+    "browser": "Microsoft Edge",
+    "physicalMicrophone": "HD Pro Webcam C920",
+    "permission": "explicitly allowed by operator",
+    "capture": "push-to-talk",
+    "initialFinalCaption": "Mr. Fluff, please reply with physical microphone gate received.",
+    "acceptedText": "Mr. Fluff, please reply with physical microphone gate received.",
+    "canonicalHermesReply": "Physical microphone gate received.",
+    "browserSystemTts": "heard and accepted by operator",
+    "stopPlaybackControl": "available",
+    "customMrFluffVoice": "deferred; not part of Phase 15"
+  },
+  "provider": {
+    "id": "whisper.cpp-v1.9.1-base.en",
+    "storageState": "staged-and-unactivated",
+    "runtimeUse": "explicit bounded provider-root configuration for this acceptance only",
+    "promotionOrActivation": false,
+    "completedOperationMs": [666, 663, 686]
+  },
+  "sessionBinding": {
+    "adapter": "hermes",
+    "source": "discord",
+    "profile": "default",
+    "mode": "explore",
+    "status": "ready",
+    "continuity": "current",
+    "worldSessionId": "e4455fcc-41b7-473c-819d-6d2da7e5762b",
+    "adapterSessionRef": "20260724_204916_8293dc",
+    "correlationId": "f2af858d-6ec5-486e-bbae-2a818c361d81",
+    "userAcceptedAt": "2026-07-25T01:22:21.880Z",
+    "assistantFinalAt": "2026-07-25T01:22:28.920Z",
+    "discordPromptMessageId": "1530384581449224294",
+    "discordReplyEvidenceMessageId": "1530384831194599576"
+  },
+  "cleanup": {
+    "rawAudioFilesRetained": 0,
+    "volatileAudioFilesRemaining": 0,
+    "residualWhisperProcesses": 0,
+    "residualFfmpegProcesses": 0,
+    "transcriptTextRetainedInVoiceStore": false,
+    "voiceActivityAfterJourney": null
+  },
+  "operatorAcceptance": {
+    "ttsResult": "worked!",
+    "sealDecision": "Seal Phase 15 now"
+  },
+  "boundaries": {
+    "phase13ContinuityWaiverChanged": false,
+    "phase18Started": false,
+    "providerActivated": false,
+    "releaseOrPublication": false,
+    "publicIngress": false
+  }
+}
