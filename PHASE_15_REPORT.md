@@ -153,6 +153,8 @@ The final operator journey is retained in sanitized form at
 
 This acceptance does not activate or promote the staged provider and does not change the separate Phase 13 waiver. Phase 18 remains unauthorized and not started.
 
+The private Phase 15 closeout commit `46e63d9524e75e451b89ba950acc6d77402a8716` passed exact-SHA GitHub Actions workflow `30139319599`, job `89629399227` (`success`). The closeout also passed literal `pnpm check` (11/11 architecture, 580/580 Vitest, 20/20 builds, 44/44 Playwright) and `pnpm verify:fresh` for 503 project source files.
+
 ## Deferred product improvements
 
 The gate exposed a major usability problem: the connector and voice lane were difficult to discover behind the Agents category and the long, dense dashboard. A product/UI re-baselining pass is intentionally deferred until after this seal. A distinctive custom Mr Fluff voice is also a desired near-future enhancement, but it is not part of Phase 15; the accepted baseline remains transparent browser/system TTS with explicit local consent and stop controls.
