@@ -1,5 +1,7 @@
-export const AVATAR_SCHEMA = "aiw.avatar/0.11" as const;
-export const AVATAR_PROFILE_STORAGE_KEY = "aiw.avatar.profile.0.11";
+export const AVATAR_SCHEMA = "aiw.avatar/0.18.5" as const;
+export const AVATAR_PROFILE_STORAGE_KEY = "aiw.avatar.profile.0.18.5";
+export const LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY =
+  "aiw.avatar.profile.0.11";
 export const LEGACY_AVATAR_PROFILE_STORAGE_KEY = "aiw.avatar-appearance.v1";
 export const AVATAR_RUNTIME_ASSET = "/assets/avatar/aiw-avatar-kit.glb";
 export const AVATAR_CONTACT_SHEET =
@@ -61,10 +63,43 @@ export const AVATAR_ACTIONS = [
   "Idle",
   "Walk",
   "Run",
+  "TurnLeft",
+  "TurnRight",
+  "StartWalk",
+  "StopWalk",
+  "Talk",
+  "Listen",
+  "Wave",
+  "Point",
+  "Explain",
+  "Think",
+  "Nod",
+  "Shrug",
   "Work",
   "Celebrate",
   "Error",
   "Offline",
+] as const;
+export const AVATAR_LODS = ["LOD0", "LOD1", "LOD2"] as const;
+export const AVATAR_EXPRESSION_TARGETS = [
+  "Blink",
+  "BrowUp",
+  "BrowDown",
+  "EyeWide",
+  "EyeSquint",
+  "Smile",
+  "Frown",
+  "JawOpen",
+  "SpeechO",
+  "SpeechE",
+  "SpeechMBP",
+] as const;
+export const AVATAR_ANATOMICAL_STATES = [
+  "Neutral",
+  "Listen",
+  "Talk",
+  "Celebrate",
+  "Error",
 ] as const;
 export const AVATAR_ATTACHMENTS = [
   "ATTACH_HEAD",
@@ -87,6 +122,8 @@ export type AvatarMarkings = (typeof AVATAR_MARKINGS)[number];
 export type AvatarBodyColor = (typeof AVATAR_BODY_COLORS)[number];
 export type AvatarShirt = (typeof AVATAR_SHIRTS)[number];
 export type AvatarAction = (typeof AVATAR_ACTIONS)[number];
+export type AvatarExpressionTarget = (typeof AVATAR_EXPRESSION_TARGETS)[number];
+export type AvatarAnatomicalState = (typeof AVATAR_ANATOMICAL_STATES)[number];
 export type AvatarSourceDisclosure =
   "manual-local-input" | "phase6-roster-opt-in";
 
@@ -312,6 +349,33 @@ export function parseAvatarProfile(value: unknown): AvatarProfile | null {
     : null;
 }
 
+function migratePhase11AvatarProfile(value: unknown): AvatarProfile | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return null;
+  const record = value as Record<string, unknown>;
+  if (
+    !hasExactKeys(record, profileKeys) ||
+    record.schema !== "aiw.avatar/0.11" ||
+    typeof record.profileId !== "string" ||
+    !opaqueId.test(record.profileId) ||
+    !validIso(record.createdAt) ||
+    !validIso(record.updatedAt)
+  )
+    return null;
+  const draft = parseAvatarDraft(
+    Object.fromEntries(draftKeys.map((key) => [key, record[key]])),
+  );
+  return draft
+    ? {
+        schema: AVATAR_SCHEMA,
+        profileId: record.profileId,
+        ...draft,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+      }
+    : null;
+}
+
 export function avatarDraftFrom(
   value: AvatarDraft | AvatarProfile,
 ): AvatarDraft {
@@ -331,7 +395,7 @@ export function avatarDraftFrom(
     const unconfigured = parseAvatarDraft({ ...value, agentName: "Draft" });
     if (unconfigured) return { ...unconfigured, agentName: "" };
   }
-  throw new TypeError("Invalid aiw.avatar/0.11 draft");
+  throw new TypeError("Invalid aiw.avatar/0.18.5 draft");
 }
 
 export function createAvatarProfile(
@@ -346,7 +410,7 @@ export function createAvatarProfile(
       ? Object.fromEntries(draftKeys.map((key) => [key, suppliedProfile[key]]))
       : draftValue,
   );
-  if (!draft) throw new TypeError("Invalid aiw.avatar/0.11 draft");
+  if (!draft) throw new TypeError("Invalid aiw.avatar/0.18.5 draft");
   const id =
     previous?.profileId ??
     profileId ??
@@ -359,12 +423,12 @@ export function createAvatarProfile(
     updatedAt: now,
   };
   const parsed = parseAvatarProfile(candidate);
-  if (!parsed) throw new TypeError("Invalid aiw.avatar/0.11 profile");
+  if (!parsed) throw new TypeError("Invalid aiw.avatar/0.18.5 profile");
   return parsed;
 }
 
 type ProfileEnvelope = {
-  readonly schema: "aiw.avatar-store/0.11";
+  readonly schema: "aiw.avatar-store/0.18.5";
   readonly current: AvatarProfile;
   readonly previous: AvatarProfile | null;
 };
@@ -372,6 +436,7 @@ export type AvatarLoadResult = {
   readonly status:
     | "saved"
     | "recovered-previous"
+    | "migrated-phase11"
     | "unconfigured"
     | "migrated-unconfigured"
     | "corrupt-unconfigured";
@@ -386,15 +451,35 @@ function parseEnvelope(value: unknown): ProfileEnvelope | null {
   const record = value as Record<string, unknown>;
   if (
     !hasExactKeys(record, ["schema", "current", "previous"]) ||
-    record.schema !== "aiw.avatar-store/0.11"
+    record.schema !== "aiw.avatar-store/0.18.5"
   )
     return null;
   const current = parseAvatarProfile(record.current);
   const previous =
     record.previous === null ? null : parseAvatarProfile(record.previous);
   return current
-    ? { schema: "aiw.avatar-store/0.11", current, previous }
+    ? { schema: "aiw.avatar-store/0.18.5", current, previous }
     : null;
+}
+
+function parsePhase11Envelope(value: unknown): {
+  readonly current: AvatarProfile;
+  readonly previous: AvatarProfile | null;
+} | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return null;
+  const record = value as Record<string, unknown>;
+  if (
+    !hasExactKeys(record, ["schema", "current", "previous"]) ||
+    record.schema !== "aiw.avatar-store/0.11"
+  )
+    return null;
+  const current = migratePhase11AvatarProfile(record.current);
+  const previous =
+    record.previous === null
+      ? null
+      : migratePhase11AvatarProfile(record.previous);
+  return current ? { current, previous } : null;
 }
 
 export function migrateLegacyAvatarProfile(value: unknown): AvatarDraft | null {
@@ -464,6 +549,27 @@ export function loadAvatarProfiles(storage: AvatarStorage): AvatarLoadResult {
       draft: DEFAULT_AVATAR_DRAFT,
     };
   }
+  const phase11 = storage.getItem(LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY);
+  if (phase11 !== null) {
+    try {
+      const migrated = parsePhase11Envelope(JSON.parse(phase11));
+      if (migrated)
+        return {
+          status: "migrated-phase11",
+          current: migrated.current,
+          previous: migrated.previous,
+          draft: migrated.current,
+        };
+    } catch {
+      /* preserve corrupt Phase 11 source */
+    }
+    return {
+      status: "corrupt-unconfigured",
+      current: null,
+      previous: null,
+      draft: DEFAULT_AVATAR_DRAFT,
+    };
+  }
   const legacy = storage.getItem(LEGACY_AVATAR_PROFILE_STORAGE_KEY);
   if (legacy !== null) {
     try {
@@ -498,10 +604,10 @@ export function saveAvatarProfile(
   value: unknown,
 ): AvatarProfile {
   const profile = parseAvatarProfile(value);
-  if (!profile) throw new TypeError("Invalid aiw.avatar/0.11 profile");
+  if (!profile) throw new TypeError("Invalid aiw.avatar/0.18.5 profile");
   const loaded = loadAvatarProfiles(storage);
   const envelope: ProfileEnvelope = {
-    schema: "aiw.avatar-store/0.11",
+    schema: "aiw.avatar-store/0.18.5",
     current: profile,
     previous: loaded.current,
   };
@@ -511,6 +617,7 @@ export function saveAvatarProfile(
 
 export function deleteAvatarProfiles(storage: AvatarStorage): void {
   storage.removeItem?.(AVATAR_PROFILE_STORAGE_KEY);
+  storage.removeItem?.(LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY);
   storage.removeItem?.(LEGACY_AVATAR_PROFILE_STORAGE_KEY);
 }
 
@@ -568,8 +675,115 @@ export function revokeAvatarMapping(profile: AvatarProfile): AvatarProfile {
 
 export function exportAvatarProfile(profileValue: unknown): string {
   const profile = parseAvatarProfile(profileValue);
-  if (!profile) throw new TypeError("Invalid aiw.avatar/0.11 profile");
+  if (!profile) throw new TypeError("Invalid aiw.avatar/0.18.5 profile");
   return JSON.stringify(profile, null, 2);
+}
+
+export function composeAvatarAnimationState(input: {
+  readonly action: AvatarAction;
+  readonly reducedMotion: boolean;
+  readonly speechShape: AvatarExpressionTarget | null;
+  readonly gaze: "operator" | "camera" | "work" | "neutral";
+}): {
+  readonly base: AvatarAction;
+  readonly upperBody: AvatarAction | null;
+  readonly face: AvatarExpressionTarget | null;
+  readonly gaze: "operator" | "camera" | "work" | "neutral";
+  readonly secondary: AvatarAnatomicalState;
+  readonly crossfadeSeconds: number;
+  readonly secondaryMotion: boolean;
+} {
+  const upperBodyActions = new Set<AvatarAction>([
+    "Talk",
+    "Listen",
+    "Wave",
+    "Point",
+    "Explain",
+    "Think",
+    "Nod",
+    "Shrug",
+    "Work",
+  ]);
+  const upperBody = upperBodyActions.has(input.action) ? input.action : null;
+  const base = upperBody === null ? input.action : "Idle";
+  const secondary: AvatarAnatomicalState =
+    input.action === "Talk" ||
+    input.action === "Explain" ||
+    input.action === "Work"
+      ? "Talk"
+      : input.action === "Listen" || input.action === "Think"
+        ? "Listen"
+        : input.action === "Celebrate"
+          ? "Celebrate"
+          : input.action === "Error" || input.action === "Offline"
+            ? "Error"
+            : "Neutral";
+  const face =
+    input.speechShape ??
+    (input.action === "Celebrate"
+      ? "Smile"
+      : input.action === "Error" || input.action === "Offline"
+        ? "Frown"
+        : input.action === "Think" || input.action === "Listen"
+          ? "BrowUp"
+          : input.action === "Explain"
+            ? "SpeechE"
+            : input.action === "Work"
+              ? "EyeSquint"
+              : null);
+  return {
+    base,
+    upperBody,
+    face,
+    gaze: input.gaze,
+    secondary,
+    crossfadeSeconds: 0.22,
+    secondaryMotion: !input.reducedMotion,
+  };
+}
+
+/**
+ * Canonical Phase 18.5 runtime layer projection. The legacy compose export is
+ * retained for callers that predate the explicit layer-state name.
+ */
+export const projectAvatarLayerState = composeAvatarAnimationState;
+
+export type AvatarWorldActivity =
+  "idle" | "thinking" | "tool" | "coding" | "completed" | "failed" | string;
+export type AvatarMovementPhase = "idle" | "starting" | "moving" | "stopping";
+
+export function projectWorldAvatarAction(input: {
+  readonly role: "user" | "agent";
+  readonly activity: AvatarWorldActivity;
+  readonly movement: AvatarMovementPhase;
+  readonly terminalElapsedMs: number;
+}): AvatarAction {
+  if (input.role === "user")
+    return (
+      {
+        starting: "StartWalk",
+        moving: "Walk",
+        stopping: "StopWalk",
+        idle: "Idle",
+      } as const
+    )[input.movement];
+  if (
+    input.terminalElapsedMs > 2200 &&
+    (input.activity === "completed" || input.activity === "failed")
+  )
+    return "Idle";
+  return (
+    (
+      {
+        thinking: "Think",
+        tool: "Explain",
+        coding: "Work",
+        completed: "Celebrate",
+        failed: "Error",
+        idle: "Idle",
+      } as const
+    )[input.activity as "idle"] ?? "Idle"
+  );
 }
 
 export function avatarProfileSummary(value: AvatarDraft): string {

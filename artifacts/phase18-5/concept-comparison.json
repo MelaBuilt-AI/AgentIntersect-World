@@ -1,0 +1,27 @@
+{
+  "schema": "aiw.phase18-5.concepts/1",
+  "selected": "Luminous Codecraft",
+  "delegatedApproval": true,
+  "actualGeneratedGeometry": true,
+  "representativeContent": [
+    "human silhouette",
+    "cat silhouette",
+    "costume and material treatment",
+    "face language",
+    "repository object and environment motifs"
+  ],
+  "directions": [
+    {
+      "name": "Signal Atelier",
+      "score": 82
+    },
+    {
+      "name": "Luminous Codecraft",
+      "score": 94
+    },
+    {
+      "name": "Soft Circuit Foundry",
+      "score": 85
+    }
+  ]
+}

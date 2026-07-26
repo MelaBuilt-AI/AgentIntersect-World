@@ -232,7 +232,7 @@ The operator selects a design document, sees compiled phases and acceptance crit
 
 ### v0.1 cutline
 
-The current cutline leaves revised Phase 18's World Entry Experience open while moving next to the explicitly authorized **Phase 18.5 — Avatar and World Visual Production**. Phase 18 retains its physical-mouse camera and real in-World single-agent chat/voice/coding acceptance gates; none are waived. Phase 18.5 upgrades the modular avatar and repository-landscape visual foundations before revised Phase 19 adds multi-agent constellation and harness breadth. Revised Phase 20 then carries forward integrated acceptance and bounded hardening. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
+The current cutline leaves revised Phase 18's World Entry Experience open while the explicitly authorized **Phase 18.5 — Avatar and World Visual Production** has reached a visual/hardware-accepted, locally and fresh-copy verified private-delivery candidate. Phase 18 retains its physical-mouse camera and real in-World single-agent chat/voice/coding acceptance gates; none are waived. Revised Phase 19 remains unauthorized until its dependencies and acceptance gates are satisfied, and revised Phase 20 remains separately gated. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
 
 ### Relationship to AgentIntersect and AgentClutch
 
@@ -2892,7 +2892,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 17 — Observability, diagnostics, and deterministic recovery
 
-**Selection status:** USER ACCEPTED / SEALED / COMPLETE. The user-authorized bounded shape is frozen in `docs/PHASE_17_SCOPE.md`; architecture and authority boundaries are in `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`; independent parent evidence is in `PHASE_17_REPORT.md` and `artifacts/phase17/recovery-drill.json`. The required fresh privacy/recovery review completed, its blockers received the one authorized correction pass, and parent focused/full/runtime/browser/cleanup/fresh-copy proof is green. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is accepted, sealed, and complete. Revised Phase 18 is implemented but remains open; Phase 18.5 is authorized next and not started.
+**Selection status:** USER ACCEPTED / SEALED / COMPLETE. The user-authorized bounded shape is frozen in `docs/PHASE_17_SCOPE.md`; architecture and authority boundaries are in `docs/PHASE_17_IMPLEMENTATION_CONTRACT.md`; independent parent evidence is in `PHASE_17_REPORT.md` and `artifacts/phase17/recovery-drill.json`. The required fresh privacy/recovery review completed, its blockers received the one authorized correction pass, and parent focused/full/runtime/browser/cleanup/fresh-copy proof is green. The technical implementation/evidence tree at `bdfb1c8ae58303e8afad41f6a2411fd8adfeef93` passed private exact-SHA `phase-1-checks` run `30019778458`, job `89249166240`; after that proof, the user explicitly accepted Phase 17 in the new session on 2026-07-23. Phase 17 is accepted, sealed, and complete. Revised Phase 18 is implemented but remains open; Phase 18.5 now has an uncommitted implementation candidate awaiting browser-capable parent proof and first-hand acceptance.
 
 **Objective:** Make embodied sessions, tools, navigation, voice, previews, multi-agent worktrees, and Guided Build supportable and privacy-safe under failure.
 
@@ -2914,7 +2914,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** Derivable state rebuilds; non-derivable loss range is explicit; no tool/preview/session completion is fabricated; exports pass redaction/privacy scans; readiness names precise degraded capabilities; recovery preserves repository/worktree safety.
 
-**Exit gate:** Satisfied. Independent parent inspection, focused privacy review/correction, direct recovery challenges, full repository proof, first-hand production browser QA, cleanup, fresh-copy confirmation, private exact-SHA CI, and explicit user acceptance are complete. Phase 17 is accepted, sealed, and complete. Revised Phase 18 remains open with preserved camera/live single-agent gates; Aaron separately authorized Phase 18.5 as the next not-started milestone.
+**Exit gate:** Satisfied. Independent parent inspection, focused privacy review/correction, direct recovery challenges, full repository proof, first-hand production browser QA, cleanup, fresh-copy confirmation, private exact-SHA CI, and explicit user acceptance are complete. Phase 17 is accepted, sealed, and complete. Revised Phase 18 remains open with preserved camera/live single-agent gates; Aaron separately authorized Phase 18.5, whose visual/hardware-accepted implementation candidate now has complete local and fresh-copy proof and awaits private delivery, exact-SHA CI, and explicit user acceptance.
 
 **Risks:** Diagnostics can become an exfiltration channel and recovery can damage work. Default to summaries, require preview, fail closed on export redaction errors, preserve corrupt data before repair, and never auto-delete worktrees.
 
@@ -2957,7 +2957,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 18.5 — Avatar and World Visual Production
 
-**Status:** AUTHORIZED / NEXT UP / NOT STARTED. Aaron explicitly chose this milestone next on 2026-07-26 while preserving every open Phase 18 acceptance gate.
+**Status:** VISUAL/HARDWARE ACCEPTED / COMPLETE LOCAL AND FRESH PROOF GREEN / PRIVATE DELIVERY AND USER ACCEPTANCE PENDING. Aaron explicitly chose this milestone on 2026-07-26 while preserving every open Phase 18 acceptance gate. Parent proof includes production Edge/RTX visual and performance acceptance, the complete canonical check, a clean production audit, historical-artifact reconciliation, and a 596-file disposable fresh-copy verification. Private commit/push and exact-SHA CI are the remaining technical closeout steps; explicit user acceptance remains a separate exit gate.
 
 **Objective:** Replace the lightweight modular-avatar and box-only repository-art prototypes with one coherent, original, high-detail, game-ready visual system while preserving truthful semantics, modularity, accessibility, and local runtime performance.
 
@@ -2979,7 +2979,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 6. Build the semantic repository visual kit from existing truthful metadata, then prove representative small and large repository floors.
 7. Measure startup, memory, frame timing, draw calls, and degradation; correct only observed blockers; produce assembled contact sheets, motion captures, runtime screenshots, and exact manifests.
 
-**Code/artifacts:** `docs/PHASE_18_5_SCOPE.md` (to be created first); Blender source and generation/inspection tooling under the existing avatar asset boundary; optimized GLB/texture/LOD assets; renderer/avatar-system/schema projection updates; repository visual-kit assets; focused unit/browser/performance tests; retained concept, assembled-avatar, animation, and repository-floor evidence. Exact paths and budgets are frozen before production.
+**Code/artifacts:** `docs/PHASE_18_5_SCOPE.md`; `assets/phase18-5/phase18-5-asset-contract.json`; deterministic Blender source, GLB, shared texture atlases, manifests, and independent inspections under `assets/avatar/` and `apps/web/public/assets/avatar/`; avatar-system/runtime and renderer projection updates; the semantic repository visual kit; focused unit/browser/performance tests; and retained concept, hero, family, turnaround, facial, gesture, motion, production-structure, and repository-kit evidence under `artifacts/phase18-5/`. `PHASE_18_5_REPORT.md` records accepted hardware proof, complete parent verification, historical worker-sandbox constraints, and the pending private-delivery gates.
 
 **Tests/evidence:** Two clean deterministic regenerations where promised; direct `.blend` and independent GLB parsing; full assembled human/dog/cat variants rather than detached inventories; distinct multi-bone/action and module signatures; facial/ear/tail/attachment/clothing bounds; real runtime selection/profile migration; smooth Idle/Walk/Run/turn/talk/work/gesture blending; keyboard/reduced-motion/no-WebGL truth; small/large repository semantic readability; browser frame/memory/startup proof; first-hand visual approval.
 

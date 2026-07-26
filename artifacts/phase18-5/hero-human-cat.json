@@ -1,0 +1,9 @@
+{
+  "schema": "aiw.phase18-5.hero-gate/1",
+  "passed": true,
+  "species": ["human", "cat"],
+  "sharedRig": "AIW_Biped_Rig",
+  "bones": 60,
+  "actions": 19,
+  "expressionsPerHead": 11
+}

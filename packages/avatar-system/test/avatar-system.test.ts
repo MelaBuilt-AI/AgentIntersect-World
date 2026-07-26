@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   AVATAR_ACTIONS,
+  AVATAR_ANATOMICAL_STATES,
   AVATAR_BODY_COLORS,
+  AVATAR_EXPRESSION_TARGETS,
   AVATAR_HEADS,
+  AVATAR_LODS,
   AVATAR_PROFILE_STORAGE_KEY,
+  LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY,
   LEGACY_AVATAR_PROFILE_STORAGE_KEY,
+  composeAvatarAnimationState,
   avatarProfileSummary,
   deleteAvatarProfiles,
   exportAvatarProfile,
@@ -14,6 +19,8 @@ import {
   migrateLegacyAvatarProfile,
   parseAvatarProfile,
   projectAvatarAnimation,
+  projectAvatarLayerState,
+  projectWorldAvatarAction,
   saveAvatarProfile,
   validateAgentName,
   type AvatarProfile,
@@ -33,7 +40,7 @@ class MemoryStorage {
 }
 
 const profile = (name = "Codex"): AvatarProfile => ({
-  schema: "aiw.avatar/0.11",
+  schema: "aiw.avatar/0.18.5",
   profileId: "avatar_0123456789abcdef0123456789abcdef",
   agentRef: null,
   agentName: name,
@@ -52,7 +59,7 @@ const profile = (name = "Codex"): AvatarProfile => ({
   updatedAt: "2026-07-20T12:00:00.000Z",
 });
 
-describe("aiw.avatar/0.11 strict profile", () => {
+describe("aiw.avatar/0.18.5 strict profile", () => {
   it("exposes the frozen option and action sets", () => {
     expect(Object.values(AVATAR_HEADS).flat()).toHaveLength(12);
     expect(AVATAR_BODY_COLORS).toHaveLength(12);
@@ -60,11 +67,90 @@ describe("aiw.avatar/0.11 strict profile", () => {
       "Idle",
       "Walk",
       "Run",
+      "TurnLeft",
+      "TurnRight",
+      "StartWalk",
+      "StopWalk",
+      "Talk",
+      "Listen",
+      "Wave",
+      "Point",
+      "Explain",
+      "Think",
+      "Nod",
+      "Shrug",
       "Work",
       "Celebrate",
       "Error",
       "Offline",
     ]);
+    expect(AVATAR_LODS).toEqual(["LOD0", "LOD1", "LOD2"]);
+    expect(AVATAR_EXPRESSION_TARGETS).toEqual([
+      "Blink",
+      "BrowUp",
+      "BrowDown",
+      "EyeWide",
+      "EyeSquint",
+      "Smile",
+      "Frown",
+      "JawOpen",
+      "SpeechO",
+      "SpeechE",
+      "SpeechMBP",
+    ]);
+    expect(AVATAR_ANATOMICAL_STATES).toEqual([
+      "Neutral",
+      "Listen",
+      "Talk",
+      "Celebrate",
+      "Error",
+    ]);
+  });
+
+  it("losslessly migrates a saved aiw.avatar/0.11 current/previous envelope", () => {
+    const storage = new MemoryStorage();
+    const phase11Profile = {
+      ...profile("Phase Eleven"),
+      schema: "aiw.avatar/0.11",
+    };
+    storage.setItem(
+      LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        schema: "aiw.avatar-store/0.11",
+        current: phase11Profile,
+        previous: {
+          ...phase11Profile,
+          agentName: "Previous Eleven",
+          updatedAt: "2026-07-20T11:00:00.000Z",
+        },
+      }),
+    );
+    const loaded = loadAvatarProfiles(storage);
+    expect(loaded).toMatchObject({
+      status: "migrated-phase11",
+      current: {
+        schema: "aiw.avatar/0.18.5",
+        agentName: "Phase Eleven",
+        species: "human",
+        head: "round",
+        bodyColor: "warm-light",
+      },
+      previous: {
+        schema: "aiw.avatar/0.18.5",
+        agentName: "Previous Eleven",
+      },
+    });
+    expect(storage.values.get(LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY)).toBe(
+      JSON.stringify({
+        schema: "aiw.avatar-store/0.11",
+        current: phase11Profile,
+        previous: {
+          ...phase11Profile,
+          agentName: "Previous Eleven",
+          updatedAt: "2026-07-20T11:00:00.000Z",
+        },
+      }),
+    );
   });
 
   it("normalizes names and rejects empty, control, overlong, unknown, and incompatible values", () => {
@@ -200,6 +286,84 @@ describe("aiw.avatar/0.11 strict profile", () => {
 });
 
 describe("authoritative avatar animation", () => {
+  it("composes semantic upper-body, face, gaze, and secondary layers", () => {
+    expect(
+      composeAvatarAnimationState({
+        action: "Talk",
+        reducedMotion: false,
+        speechShape: "SpeechO",
+        gaze: "operator",
+      }),
+    ).toEqual({
+      base: "Idle",
+      upperBody: "Talk",
+      face: "SpeechO",
+      gaze: "operator",
+      secondary: "Talk",
+      crossfadeSeconds: 0.22,
+      secondaryMotion: true,
+    });
+    expect(
+      composeAvatarAnimationState({
+        action: "Celebrate",
+        reducedMotion: true,
+        speechShape: null,
+        gaze: "camera",
+      }),
+    ).toMatchObject({
+      base: "Celebrate",
+      upperBody: null,
+      face: "Smile",
+      secondary: "Celebrate",
+      secondaryMotion: false,
+    });
+  });
+
+  it("projects truthful World activity and user movement into observable actions", () => {
+    expect(
+      ["idle", "thinking", "tool", "coding", "completed", "failed"].map(
+        (activity) =>
+          projectWorldAvatarAction({
+            role: "agent",
+            activity,
+            movement: "idle",
+            terminalElapsedMs: 0,
+          }),
+      ),
+    ).toEqual(["Idle", "Think", "Explain", "Work", "Celebrate", "Error"]);
+    expect(
+      ["starting", "moving", "stopping", "idle"].map((movement) =>
+        projectWorldAvatarAction({
+          role: "user",
+          activity: "coding",
+          movement,
+          terminalElapsedMs: 0,
+        }),
+      ),
+    ).toEqual(["StartWalk", "Walk", "StopWalk", "Idle"]);
+    expect(
+      projectWorldAvatarAction({
+        role: "agent",
+        activity: "completed",
+        movement: "idle",
+        terminalElapsedMs: 2201,
+      }),
+    ).toBe("Idle");
+    expect(
+      projectAvatarLayerState({
+        action: "Work",
+        reducedMotion: true,
+        speechShape: null,
+        gaze: "work",
+      }),
+    ).toMatchObject({
+      base: "Idle",
+      upperBody: "Work",
+      gaze: "work",
+      secondaryMotion: false,
+    });
+  });
+
   it.each([
     ["queued", "Idle"],
     ["idle", "Idle"],

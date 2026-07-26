@@ -1,0 +1,13 @@
+{
+  "instances": 10000,
+  "matrixFloats": 160000,
+  "maximumPreparationMs": 2.197,
+  "medianPreparationMs": 1.442,
+  "node": "v24.18.0",
+  "selectionIndex": 9999,
+  "selectionMs": 1.259,
+  "semanticRows": 160,
+  "thresholdMs": 250,
+  "thresholdPassed": true,
+  "warmRunsMs": [1.828, 1.565, 2.197, 1.442, 1.08, 1.093, 1.325]
+}

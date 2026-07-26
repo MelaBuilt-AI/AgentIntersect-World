@@ -114,6 +114,18 @@ try {
     }
   }
   await run("corepack", ["pnpm@11.15.0", "measure:phase11"], freshRoot);
+  await run(
+    "corepack",
+    [
+      "pnpm@11.15.0",
+      "exec",
+      "prettier",
+      "--write",
+      "artifacts/phase18-5/phase18-5-measurement.json",
+      "assets/avatar/aiw-avatar-kit.glb-inspection.json",
+    ],
+    freshRoot,
+  );
   await run("corepack", ["pnpm@11.15.0", "check"], freshRoot);
   process.stdout.write(
     `Fresh verification passed for ${copiedFiles} project source files.\n`,

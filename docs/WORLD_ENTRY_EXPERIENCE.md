@@ -288,7 +288,7 @@ The following are explicitly deferred:
 
 Aaron explicitly authorized **Phase 18.5 — Avatar and World Visual Production** as the next milestone while leaving revised Phase 18 open. This does not waive the pending physical-mouse camera or real in-World single-agent chat/voice/coding gates. Phase 18.5 may replace avatar and repository rendering foundations first, but those Phase 18 gates must later pass against the integrated candidate. Phase 19 and Phase 20 remain closed.
 
-Phase 18.5 begins with `docs/PHASE_18_5_SCOPE.md` and an executable asset contract, followed by concept approval, one human-plus-cat hero slice, full modular avatar/animation production, truthful metadata-driven repository environment art, runtime optimization, independent proof, and first-hand visual acceptance. No Phase 18.5 implementation began during this sequencing documentation update.
+Phase 18.5 began with `docs/PHASE_18_5_SCOPE.md` and an executable asset contract. The uncommitted implementation candidate now includes the approved Luminous Codecraft direction, a human-plus-cat hero slice, the full modular human/dog/cat family, shared rig/actions/PBR/LODs, truthful metadata-driven repository environment art, runtime composition, and deterministic structural/visual evidence. The managed worker sandbox cannot start a browser or loopback listener, so the prepared integrated Playwright screenshots and frame/Long Task measurement remain blocked and truthfully absent. Parent proof in a browser-capable environment and Aaron's first-hand visual acceptance are still required; Phase 18.5 is not accepted or sealed.
 
 ## 18. Revised Phase 18 acceptance journey
 

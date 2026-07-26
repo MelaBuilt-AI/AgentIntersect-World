@@ -6,38 +6,35 @@ import {
 } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
-  BoxGeometry,
   GridHelper,
   InstancedMesh,
   BufferGeometry,
   LineBasicMaterial,
   LineSegments,
   Matrix4,
-  MeshStandardMaterial,
+  MeshBasicMaterial,
   Vector3,
 } from "three";
 
 import type {
   PreparedInstanceGroup,
   PreparedRepositoryInstances,
-  RenderObjectKind,
+  RepositoryVisualFamily,
   RepositoryCameraMode,
   RepositoryCameraState,
   RepositoryCameraTransitionState,
 } from "./index.js";
 import {
   advanceRepositoryCameraTransition,
-  RENDER_OBJECT_KINDS,
+  REPOSITORY_VISUAL_FAMILIES,
   repositoryCameraPose,
   retargetRepositoryCameraTransition,
 } from "./index.js";
-
-const colors: Readonly<Record<RenderObjectKind, string>> = {
-  package: "#8b5cf6",
-  directory: "#38bdf8",
-  file: "#2563eb",
-  symbol: "#22d3ee",
-};
+import {
+  createRepositoryGeometry,
+  createRepositoryMaterial,
+  REPOSITORY_VISUAL_COLORS,
+} from "./repository-visual-kit.js";
 
 const evidenceColors = {
   created: "#22d3ee",
@@ -48,19 +45,53 @@ const evidenceColors = {
   reported: "#64748b",
 } as const;
 
+export type RepositoryIslandQuality = {
+  readonly tier: "semantic-detail" | "aggregate";
+  readonly dpr: number | [number, number];
+  readonly antialias: boolean;
+  readonly pbrMaterials: boolean;
+};
+
+export function repositoryIslandQuality(
+  total: number,
+  reducedMotion: boolean,
+): RepositoryIslandQuality {
+  if (total >= 1_000)
+    return {
+      tier: "aggregate",
+      dpr: 1,
+      antialias: false,
+      pbrMaterials: false,
+    };
+  return {
+    tier: "semantic-detail",
+    dpr: reducedMotion ? 1 : [1, 1.5],
+    antialias: true,
+    pbrMaterials: true,
+  };
+}
+
+export function repositoryPointerMissSelection(): null {
+  return null;
+}
+
 function InstanceGroup({
-  kind,
+  family,
   group,
   onSelect,
+  quality,
 }: {
-  readonly kind: RenderObjectKind;
+  readonly family: RepositoryVisualFamily;
   readonly group: PreparedInstanceGroup;
-  readonly onSelect: (ref: string) => void;
+  readonly onSelect: (ref: string | null) => void;
+  readonly quality: RepositoryIslandQuality;
 }) {
   const mesh = useMemo(() => {
     const instance = new InstancedMesh(
-      new BoxGeometry(),
-      new MeshStandardMaterial({ color: colors[kind], roughness: 0.72 }),
+      createRepositoryGeometry(group.geometry),
+      quality.pbrMaterials
+        ? createRepositoryMaterial(family)
+        : new MeshBasicMaterial({ color: REPOSITORY_VISUAL_COLORS[family] }),
       group.count,
     );
     const matrix = new Matrix4();
@@ -69,9 +100,9 @@ function InstanceGroup({
       instance.setMatrixAt(index, matrix);
     }
     instance.instanceMatrix.needsUpdate = true;
-    instance.name = `${kind}-instances`;
+    instance.name = `${family}-instances`;
     return instance;
-  }, [group, kind]);
+  }, [family, group, quality.pbrMaterials]);
   const handlePointer = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     const instanceId = (
@@ -90,8 +121,8 @@ function selectedPosition(
   ref: string | null,
 ): readonly [number, number, number] | null {
   if (ref === null) return null;
-  for (const kind of RENDER_OBJECT_KINDS) {
-    const group = prepared.groups[kind];
+  for (const family of REPOSITORY_VISUAL_FAMILIES) {
+    const group = prepared.groups[family];
     const index = group.refs.indexOf(ref);
     if (index >= 0) {
       const offset = index * 16;
@@ -116,6 +147,7 @@ function SceneBridge({
   cameraEasing,
   onSelect,
   onContextLost,
+  quality,
 }: {
   readonly prepared: PreparedRepositoryInstances;
   readonly selectedRef: string | null;
@@ -125,8 +157,9 @@ function SceneBridge({
   readonly cameraState: RepositoryCameraState;
   readonly fieldOfView: number;
   readonly cameraEasing: number;
-  readonly onSelect: (ref: string) => void;
+  readonly onSelect: (ref: string | null) => void;
   readonly onContextLost: () => void;
+  readonly quality: RepositoryIslandQuality;
 }) {
   const { camera, gl, invalidate, scene } = useThree();
   const desiredPosition = useRef(camera.position.clone());
@@ -357,12 +390,13 @@ function SceneBridge({
       {prepared.dependencyBridges.length > 0 && (
         <primitive object={dependencyLines} name="dependency-bridges" />
       )}
-      {RENDER_OBJECT_KINDS.map((kind) => (
+      {REPOSITORY_VISUAL_FAMILIES.map((family) => (
         <InstanceGroup
-          key={kind}
-          kind={kind}
-          group={prepared.groups[kind]}
+          key={family}
+          family={family}
+          group={prepared.groups[family]}
           onSelect={onSelect}
+          quality={quality}
         />
       ))}
       {cameraMode !== "photo" && selected !== null && (
@@ -421,18 +455,22 @@ export function RepositoryIslandCanvas({
   readonly cameraState: RepositoryCameraState;
   readonly fieldOfView: number;
   readonly cameraEasing: number;
-  readonly onSelect: (ref: string) => void;
+  readonly onSelect: (ref: string | null) => void;
   readonly onContextLost: () => void;
   readonly reducedMotion: boolean;
 }) {
+  const quality = repositoryIslandQuality(prepared.total, reducedMotion);
   return (
     <Canvas
       aria-hidden="true"
       camera={{ position: [18, 22, 24], fov: 45, near: 0.1, far: 10_000 }}
-      dpr={reducedMotion ? 1 : [1, 1.5]}
+      dpr={quality.dpr}
       frameloop="demand"
-      gl={{ antialias: true, powerPreference: "high-performance" }}
-      onPointerMissed={() => undefined}
+      gl={{
+        antialias: quality.antialias,
+        powerPreference: "high-performance",
+      }}
+      onPointerMissed={() => onSelect(repositoryPointerMissSelection())}
     >
       <SceneBridge
         prepared={prepared}
@@ -445,6 +483,7 @@ export function RepositoryIslandCanvas({
         cameraEasing={cameraEasing}
         onSelect={onSelect}
         onContextLost={onContextLost}
+        quality={quality}
       />
     </Canvas>
   );

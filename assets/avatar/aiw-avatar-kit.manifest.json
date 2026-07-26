@@ -1,6 +1,28 @@
 {
-  "actions": ["Idle", "Walk", "Run", "Work", "Celebrate", "Error", "Offline"],
+  "actions": [
+    "Idle",
+    "Walk",
+    "Run",
+    "TurnLeft",
+    "TurnRight",
+    "StartWalk",
+    "StopWalk",
+    "Talk",
+    "Listen",
+    "Wave",
+    "Point",
+    "Explain",
+    "Think",
+    "Nod",
+    "Shrug",
+    "Work",
+    "Celebrate",
+    "Error",
+    "Offline"
+  ],
+  "anatomicalStates": ["Neutral", "Listen", "Talk", "Celebrate", "Error"],
   "armatures": ["AIW_Biped_Rig"],
+  "artDirection": "Luminous Codecraft",
   "attachments": [
     "ATTACH_HEAD",
     "ATTACH_HAND_L",
@@ -36,25 +58,85 @@
   ],
   "evidenceBoards": [
     "apps/web/public/assets/avatar/aiw-avatar-contact-sheet.png",
-    "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png"
+    "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png",
+    "apps/web/public/assets/avatar/aiw-avatar-hero-human-cat.png",
+    "apps/web/public/assets/avatar/aiw-avatar-multiview.png",
+    "apps/web/public/assets/avatar/aiw-avatar-facial-speech.png",
+    "apps/web/public/assets/avatar/aiw-avatar-hand-gestures.png",
+    "apps/web/public/assets/avatar/aiw-avatar-concept-comparison.png",
+    "apps/web/public/assets/avatar/aiw-avatar-style-bible.png",
+    "apps/web/public/assets/avatar/aiw-repository-kit.png"
+  ],
+  "expressions": [
+    "Blink",
+    "BrowUp",
+    "BrowDown",
+    "EyeWide",
+    "EyeSquint",
+    "Smile",
+    "Frown",
+    "JawOpen",
+    "SpeechO",
+    "SpeechE",
+    "SpeechMBP"
   ],
   "feet": ["feet", "paws", "clawed-paws"],
   "files": {
+    "apps/web/public/assets/avatar/aiw-avatar-concept-comparison.png": {
+      "bytes": 2190244,
+      "sha256": "6dcd38fadeee3d3296b8a291652219cd3e6ec84efa00a372fa0eeb6650db7127"
+    },
     "apps/web/public/assets/avatar/aiw-avatar-contact-sheet.png": {
-      "bytes": 2036272,
-      "sha256": "920ac65093ca2c9d7266c6a6ff2673c3c18bf47b8b2531a21262274fd5ea0045"
+      "bytes": 2187957,
+      "sha256": "7574789b4594618f2ad999a41409c4bae50e7ff381d8583841e4b0f803ff1bf2"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-facial-speech.png": {
+      "bytes": 2127021,
+      "sha256": "8b2677fe977bcec01416fe97e29a905e7559fb8d71aa44c33330af0c83115b94"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-hand-gestures.png": {
+      "bytes": 2029022,
+      "sha256": "6bcf304bb714f8f9174b3cd656e2a606afd99232d28d3490dfb4f4fa7ab6123b"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-hero-human-cat.png": {
+      "bytes": 1033170,
+      "sha256": "35e3c877c3af1ba51a6af77717ab53763a02bb44dd3c1a5063749bb4907726d2"
     },
     "apps/web/public/assets/avatar/aiw-avatar-kit.glb": {
-      "bytes": 1727424,
-      "sha256": "aa7bf4ae80447bc892fe6ae150309f62178bab5289a4010d5bb7457f988c7692"
+      "bytes": 6188344,
+      "sha256": "af8750d8e15b6e564d2937ccc85f52c938695c78785568192018d8b2da7aa6ac"
     },
     "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png": {
-      "bytes": 1094533,
-      "sha256": "ec8d24e66a6f45e527a5a4903a90c5d755de75657e34c5ee0a5af3d293915f91"
+      "bytes": 2233203,
+      "sha256": "25adc57edeed50a0ea7dd25517553b617c9ff34a527ddb17d6122f8e32b4cbca"
     },
-    "assets/avatar/aiw-avatar-kit.blend": {
-      "bytes": 314939,
-      "sha256": "585d49ae806511727464331d639422cb3c4b643b5ef6c0e8ff03c260ad966371"
+    "apps/web/public/assets/avatar/aiw-avatar-multiview.png": {
+      "bytes": 1120942,
+      "sha256": "407ff1a348a791e3eed528f0b56947a6dcebb94c0291cbab927978eb0f0875b8"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-style-bible.png": {
+      "bytes": 2267826,
+      "sha256": "9070295b88bdbc54dc40be58d71f4dd0afdb2b2cc2f1264deb84d2760f170673"
+    },
+    "apps/web/public/assets/avatar/aiw-repository-kit.png": {
+      "bytes": 2080138,
+      "sha256": "07c8b819c57e7673cf32321f28d663b0254a1955f313b8f9c723600ffe633e15"
+    },
+    "apps/web/public/assets/avatar/textures/aiw-avatar-baseColor.png": {
+      "bytes": 2212,
+      "sha256": "102864f0ec9305afe774bf28f8c20232a5b5271fe3daa21578932474bcd02a80"
+    },
+    "apps/web/public/assets/avatar/textures/aiw-avatar-emissive.png": {
+      "bytes": 2675,
+      "sha256": "2627620237e1ef36f443739cbd662496a39fcb51b1eccf12e1e19cfcbfc6c9af"
+    },
+    "apps/web/public/assets/avatar/textures/aiw-avatar-normal.png": {
+      "bytes": 2059,
+      "sha256": "0ffc0af086936fb340b7014f21bd29842a3b8a30eb67742347170b7a5ebd39b2"
+    },
+    "apps/web/public/assets/avatar/textures/aiw-avatar-orm.png": {
+      "bytes": 2098,
+      "sha256": "2415490c27283cb16013b5e86f92670339fac6a0215f6a857fbb12968fc6e2dc"
     }
   },
   "fur": ["none", "short", "long"],
@@ -66,8 +148,105 @@
     "human": ["round", "angular", "soft", "square"]
   },
   "license": "Project-owned / self-authored",
+  "lods": {
+    "LOD0": {
+      "distance": 8,
+      "drawCallProxy": 18,
+      "geometrySignature": "c913c1bba53bae86858d299b2f3f98390ca6867270635f924b949b5bb3a6663b",
+      "includedMeshes": [
+        "CORE_MIDSECTION",
+        "CORE_CHEST",
+        "CORE_ARM_L",
+        "CORE_ARM_R",
+        "CORE_LEG_L",
+        "CORE_LEG_R",
+        "PANEL_CHEST",
+        "PANEL_HIPS",
+        "PANEL_SHOULDER_L",
+        "PANEL_SHOULDER_R",
+        "PANEL_KNEE_L",
+        "PANEL_KNEE_R",
+        "CIRCUIT_SEAM_CHEST",
+        "CIRCUIT_SEAM_ARM_L",
+        "CIRCUIT_SEAM_ARM_R",
+        "JOINT_COLLAR_NECK",
+        "JOINT_COLLAR_WRIST_L",
+        "JOINT_COLLAR_WRIST_R",
+        "JOINT_COLLAR_HIP_L",
+        "JOINT_COLLAR_HIP_R",
+        "JOINT_COLLAR_ANKLE_L",
+        "JOINT_COLLAR_ANKLE_R",
+        "HEAD_cat_maine-coon",
+        "HAND_clawed-paws_L",
+        "HAND_clawed-paws_R",
+        "FOOT_clawed-paws_L",
+        "FOOT_clawed-paws_R",
+        "FUR_long",
+        "TAIL_cat-curled",
+        "MARKING_mask",
+        "SHIRT_Hermes",
+        "SHIRT_LABEL_Hermes"
+      ],
+      "triangleBudget": 65000,
+      "triangles": 33329
+    },
+    "LOD1": {
+      "distance": 18,
+      "drawCallProxy": 12,
+      "geometrySignature": "8df63dc090c5b46c5a5f023bbd2883d9c32c9d4af4fe7d8a916a73d1272225f7",
+      "includedMeshes": [
+        "CORE_MIDSECTION",
+        "CORE_CHEST",
+        "CORE_ARM_L",
+        "CORE_ARM_R",
+        "CORE_LEG_L",
+        "CORE_LEG_R",
+        "PANEL_CHEST",
+        "PANEL_HIPS",
+        "PANEL_SHOULDER_L",
+        "PANEL_SHOULDER_R",
+        "PANEL_KNEE_L",
+        "PANEL_KNEE_R",
+        "CIRCUIT_SEAM_CHEST",
+        "JOINT_COLLAR_NECK",
+        "JOINT_COLLAR_WRIST_L",
+        "JOINT_COLLAR_WRIST_R",
+        "JOINT_COLLAR_HIP_L",
+        "JOINT_COLLAR_HIP_R",
+        "JOINT_COLLAR_ANKLE_L",
+        "JOINT_COLLAR_ANKLE_R",
+        "HEAD_cat_maine-coon",
+        "HAND_clawed-paws_L",
+        "HAND_clawed-paws_R",
+        "FOOT_clawed-paws_L",
+        "FOOT_clawed-paws_R",
+        "TAIL_cat-curled",
+        "SHIRT_Hermes"
+      ],
+      "triangleBudget": 32000,
+      "triangles": 30408
+    },
+    "LOD2": {
+      "distance": 10000,
+      "drawCallProxy": 8,
+      "geometrySignature": "9e00119690416c0f43e3cb61d3416493406ec8e556920a2d82761c5e61ecba52",
+      "includedMeshes": ["LOD2_BODY_cat", "LOD2_SHIRT_Hermes"],
+      "triangleBudget": 12000,
+      "triangles": 4040
+    }
+  },
   "markings": ["solid", "muzzle", "mask", "socks"],
-  "schema": "aiw.avatar-assets/0.11",
+  "pbr": {
+    "sharedAtlases": {
+      "baseColor": "apps/web/public/assets/avatar/textures/aiw-avatar-baseColor.png",
+      "emissive": "apps/web/public/assets/avatar/textures/aiw-avatar-emissive.png",
+      "normal": "apps/web/public/assets/avatar/textures/aiw-avatar-normal.png",
+      "orm": "apps/web/public/assets/avatar/textures/aiw-avatar-orm.png"
+    },
+    "uvRequired": true,
+    "workflow": "metallic-roughness"
+  },
+  "schema": "aiw.avatar-assets/0.18.5",
   "shirts": [
     {
       "color": "#2563EB",
@@ -90,5 +269,10 @@
       "name": "OpenClaw"
     }
   ],
-  "tails": ["none", "cat-straight", "cat-curled", "dog-straight", "dog-curled"]
+  "tails": ["none", "cat-straight", "cat-curled", "dog-straight", "dog-curled"],
+  "volatileContainer": {
+    "budgetBytes": 50331648,
+    "path": "assets/avatar/aiw-avatar-kit.blend",
+    "reason": "Blender container metadata is process-volatile; source semantics are independently inspected."
+  }
 }

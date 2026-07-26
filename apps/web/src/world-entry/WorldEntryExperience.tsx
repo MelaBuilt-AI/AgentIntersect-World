@@ -54,6 +54,13 @@ function renderObjects(
       name: object.name,
       position: object.position,
       bounds: object.bounds,
+      ...(object.kind === "file"
+        ? {
+            fileKind: object.fileKind,
+            language: object.language,
+            size: object.size,
+          }
+        : {}),
     }));
 }
 

@@ -1,4 +1,27 @@
 export type RenderObjectKind = "package" | "directory" | "file" | "symbol";
+export const REPOSITORY_VISUAL_FAMILIES = [
+  "package-workspace-hub",
+  "directory-archive-gate",
+  "source-file-code-slab",
+  "test-file-beacon",
+  "documentation-book",
+  "config-control-terminal",
+  "data-storage-vault",
+  "binary-artifact-crate",
+  "symbol-function-node",
+] as const;
+export type RepositoryVisualFamily =
+  (typeof REPOSITORY_VISUAL_FAMILIES)[number];
+export type RepositoryGeometryKind =
+  | "workspace-hub"
+  | "archive-gate"
+  | "code-slab"
+  | "test-beacon"
+  | "book"
+  | "control-terminal"
+  | "storage-vault"
+  | "artifact-crate"
+  | "function-node";
 
 export type RepositoryCameraMode = "third-person" | "first-person" | "photo";
 export type RepositoryCameraState = {
@@ -221,18 +244,34 @@ export type RepositoryRenderObject = {
     readonly depth: number;
   };
   readonly evidenceOutcome?: RenderEvidenceOutcome;
+  readonly fileKind?:
+    | "source"
+    | "test"
+    | "documentation"
+    | "configuration"
+    | "manifest"
+    | "data"
+    | "asset"
+    | "binary"
+    | "other";
+  readonly language?: string | null;
+  readonly size?: number;
 };
 
 export type PreparedInstanceGroup = {
   readonly count: number;
   readonly refs: readonly string[];
   readonly matrices: Float32Array;
+  readonly geometry: RepositoryGeometryKind;
 };
 
 export type PreparedRepositoryInstances = {
-  readonly groups: Readonly<Record<RenderObjectKind, PreparedInstanceGroup>>;
+  readonly groups: Readonly<
+    Record<RepositoryVisualFamily, PreparedInstanceGroup>
+  >;
   readonly total: number;
   readonly overview: { readonly width: number; readonly depth: number };
+  readonly drawCallProxy: number;
   readonly evidenceMarkers: readonly {
     readonly ref: string;
     readonly outcome: RenderEvidenceOutcome;
@@ -263,19 +302,72 @@ export const RENDER_OBJECT_KINDS = [
   "symbol",
 ] as const satisfies readonly RenderObjectKind[];
 
+const TEST_FILE =
+  /(?:^|[._-])(?:test|tests|spec|specs|fixture|fixtures)(?:[._-]|$)/i;
+const DOCUMENTATION_FILE =
+  /^(?:readme|changelog|contributing|license)(?:\.|$)|\.(?:md|mdx|rst|adoc|txt)$/i;
+const CONFIG_FILE =
+  /^(?:package|tsconfig|jsconfig|vite\.config|vitest\.config|eslint\.config|prettier\.config|dockerfile|makefile)(?:\.|$)|\.(?:json|jsonc|ya?ml|toml|ini|conf|config)$/i;
+const DATA_FILE = /\.(?:csv|tsv|sql|sqlite|sqlite3|db|parquet|arrow)$/i;
+const BINARY_FILE =
+  /\.(?:glb|gltf|blend|png|jpe?g|gif|webp|avif|ico|pdf|zip|tar|gz|7z|wasm|bin|exe|dll|so|dylib|woff2?|ttf|otf|mp3|wav|ogg|mp4|webm)$/i;
+
+export function repositoryVisualFamily(
+  object: RepositoryRenderObject,
+): RepositoryVisualFamily {
+  if (object.kind === "package") return "package-workspace-hub";
+  if (object.kind === "directory") return "directory-archive-gate";
+  if (object.kind === "symbol") return "symbol-function-node";
+  if (object.fileKind === "test") return "test-file-beacon";
+  if (object.fileKind === "documentation") return "documentation-book";
+  if (object.fileKind === "configuration" || object.fileKind === "manifest")
+    return "config-control-terminal";
+  if (object.fileKind === "data") return "data-storage-vault";
+  if (object.fileKind === "asset" || object.fileKind === "binary")
+    return "binary-artifact-crate";
+  if (object.fileKind === "source") return "source-file-code-slab";
+  if (TEST_FILE.test(object.name)) return "test-file-beacon";
+  if (DOCUMENTATION_FILE.test(object.name)) return "documentation-book";
+  if (CONFIG_FILE.test(object.name)) return "config-control-terminal";
+  if (DATA_FILE.test(object.name)) return "data-storage-vault";
+  if (BINARY_FILE.test(object.name)) return "binary-artifact-crate";
+  return "source-file-code-slab";
+}
+
+const REPOSITORY_GEOMETRIES: Readonly<
+  Record<RepositoryVisualFamily, RepositoryGeometryKind>
+> = {
+  "package-workspace-hub": "workspace-hub",
+  "directory-archive-gate": "archive-gate",
+  "source-file-code-slab": "code-slab",
+  "test-file-beacon": "test-beacon",
+  "documentation-book": "book",
+  "config-control-terminal": "control-terminal",
+  "data-storage-vault": "storage-vault",
+  "binary-artifact-crate": "artifact-crate",
+  "symbol-function-node": "function-node",
+};
+
+const repositoryFamilyHeight = (family: RepositoryVisualFamily) =>
+  ({
+    "package-workspace-hub": 2.6,
+    "directory-archive-gate": 1.7,
+    "source-file-code-slab": 0.82,
+    "test-file-beacon": 1.35,
+    "documentation-book": 0.62,
+    "config-control-terminal": 1.05,
+    "data-storage-vault": 1.25,
+    "binary-artifact-crate": 0.95,
+    "symbol-function-node": 0.42,
+  })[family];
+
 function matrixFor(
   object: RepositoryRenderObject,
+  family: RepositoryVisualFamily,
   target: Float32Array,
   offset: number,
 ) {
-  const height =
-    object.kind === "package"
-      ? 2.4
-      : object.kind === "directory"
-        ? 1.4
-        : object.kind === "symbol"
-          ? 0.35
-          : 0.7;
+  const height = repositoryFamilyHeight(family);
   const width = Math.max(0.4, object.bounds.width * 0.82);
   const depth = Math.max(0.4, object.bounds.depth * 0.82);
   target.set(
@@ -304,63 +396,54 @@ function matrixFor(
 export function prepareRepositoryInstances(
   objects: readonly RepositoryRenderObject[],
 ): PreparedRepositoryInstances {
-  const counts: Record<RenderObjectKind, number> = {
-    package: 0,
-    directory: 0,
-    file: 0,
-    symbol: 0,
-  };
+  const counts = Object.fromEntries(
+    REPOSITORY_VISUAL_FAMILIES.map((family) => [family, 0]),
+  ) as Record<RepositoryVisualFamily, number>;
   let width = 1;
   let depth = 1;
   for (const object of objects) {
-    counts[object.kind] += 1;
+    counts[repositoryVisualFamily(object)] += 1;
     width = Math.max(width, object.bounds.x + object.bounds.width);
     depth = Math.max(depth, object.bounds.z + object.bounds.depth);
   }
   const mutable = Object.fromEntries(
-    RENDER_OBJECT_KINDS.map((kind) => [
-      kind,
+    REPOSITORY_VISUAL_FAMILIES.map((family) => [
+      family,
       {
-        refs: new Array<string>(counts[kind]),
-        matrices: new Float32Array(counts[kind] * 16),
+        refs: new Array<string>(counts[family]),
+        matrices: new Float32Array(counts[family] * 16),
         cursor: 0,
       },
     ]),
   ) as Record<
-    RenderObjectKind,
+    RepositoryVisualFamily,
     { refs: string[]; matrices: Float32Array; cursor: number }
   >;
   for (const object of objects) {
-    const group = mutable[object.kind];
+    const family = repositoryVisualFamily(object);
+    const group = mutable[family];
     group.refs[group.cursor] = object.ref;
-    matrixFor(object, group.matrices, group.cursor * 16);
+    matrixFor(object, family, group.matrices, group.cursor * 16);
     group.cursor += 1;
   }
+  const groups = Object.fromEntries(
+    REPOSITORY_VISUAL_FAMILIES.map((family) => [
+      family,
+      {
+        count: counts[family],
+        refs: mutable[family].refs,
+        matrices: mutable[family].matrices,
+        geometry: REPOSITORY_GEOMETRIES[family],
+      },
+    ]),
+  ) as unknown as Record<RepositoryVisualFamily, PreparedInstanceGroup>;
   return {
-    groups: {
-      package: {
-        count: counts.package,
-        refs: mutable.package.refs,
-        matrices: mutable.package.matrices,
-      },
-      directory: {
-        count: counts.directory,
-        refs: mutable.directory.refs,
-        matrices: mutable.directory.matrices,
-      },
-      file: {
-        count: counts.file,
-        refs: mutable.file.refs,
-        matrices: mutable.file.matrices,
-      },
-      symbol: {
-        count: counts.symbol,
-        refs: mutable.symbol.refs,
-        matrices: mutable.symbol.matrices,
-      },
-    },
+    groups,
     total: objects.length,
     overview: { width, depth },
+    drawCallProxy: REPOSITORY_VISUAL_FAMILIES.filter(
+      (family) => counts[family] > 0,
+    ).length,
     evidenceMarkers: objects
       .filter(
         (
@@ -371,12 +454,7 @@ export function prepareRepositoryInstances(
       )
       .slice(0, 256)
       .map((object) => {
-        const height =
-          object.kind === "package"
-            ? 2.4
-            : object.kind === "directory"
-              ? 1.4
-              : 0.7;
+        const height = repositoryFamilyHeight(repositoryVisualFamily(object));
         return {
           ref: object.ref,
           outcome: object.evidenceOutcome,

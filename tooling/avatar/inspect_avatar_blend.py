@@ -1,4 +1,4 @@
-"""Independent Blender-side structural and geometry inspection for Phase 11."""
+"""Independent Blender-side structural and geometry inspection for Phase 18.5."""
 from __future__ import annotations
 
 import bpy
@@ -9,10 +9,26 @@ from pathlib import Path
 from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "assets/avatar/aiw-avatar-blend-inspection.json"
+OUT = ROOT / "assets/avatar/aiw-avatar-kit.blend-inspection.json"
 CORE = ["CORE_MIDSECTION", "CORE_CHEST", "CORE_ARM_L", "CORE_ARM_R", "CORE_LEG_L", "CORE_LEG_R"]
+SURFACE_DETAILS = [
+    "PANEL_CHEST", "PANEL_HIPS", "PANEL_SHOULDER_L", "PANEL_SHOULDER_R",
+    "PANEL_KNEE_L", "PANEL_KNEE_R", "CIRCUIT_SEAM_CHEST",
+    "CIRCUIT_SEAM_ARM_L", "CIRCUIT_SEAM_ARM_R",
+    "JOINT_COLLAR_NECK", "JOINT_COLLAR_WRIST_L", "JOINT_COLLAR_WRIST_R",
+    "JOINT_COLLAR_HIP_L", "JOINT_COLLAR_HIP_R",
+    "JOINT_COLLAR_ANKLE_L", "JOINT_COLLAR_ANKLE_R",
+]
 ANCHORS = ["ATTACH_HEAD", "ATTACH_HAND_L", "ATTACH_HAND_R", "ATTACH_FOOT_L", "ATTACH_FOOT_R", "ATTACH_TAIL", "ATTACH_SHIRT", "ATTACH_NAMEPLATE"]
-ACTIONS = ["Idle", "Walk", "Run", "Work", "Celebrate", "Error", "Offline"]
+ACTIONS = [
+    "Idle", "Walk", "Run", "TurnLeft", "TurnRight", "StartWalk", "StopWalk",
+    "Talk", "Listen", "Wave", "Point", "Explain", "Think", "Nod", "Shrug",
+    "Work", "Celebrate", "Error", "Offline",
+]
+EXPRESSIONS = {
+    "Blink", "BrowUp", "BrowDown", "EyeWide", "EyeSquint", "Smile", "Frown",
+    "JawOpen", "SpeechO", "SpeechE", "SpeechMBP",
+}
 FACE_GROUPS = {"FACE_EYE_L", "FACE_EYE_R", "FACE_NOSE", "FACE_MOUTH"}
 PRIMARY_BONES = ["root", "pelvis", "spine", "chest", "neck", "head", "upper_arm.L", "lower_arm.L", "hand.L", "upper_arm.R", "lower_arm.R", "hand.R", "upper_leg.L", "lower_leg.L", "foot.L", "upper_leg.R", "lower_leg.R", "foot.R"]
 
@@ -113,6 +129,8 @@ for head_name in sorted(name for name in mesh_names if name.startswith("HEAD_"))
     head_face_inventory[head_name] = {
         "groups": groups,
         "faceMaterials": sorted(material.name for material in head.data.materials if material and material.name.startswith("MAT_FACE_")),
+        "morphTargets": sorted(key.name for key in head.data.shape_keys.key_blocks if key.name != "Basis")
+        if head.data.shape_keys else [],
     }
 pose_evidence = {
     action.name: {
@@ -121,17 +139,58 @@ pose_evidence = {
     }
     for action in bpy.data.actions
 }
-skinned_names = [name for name in mesh_names if name.startswith(("CORE_", "HEAD_", "HAND_", "FOOT_", "FUR_", "TAIL_", "MARKING_", "SHIRT_"))]
+skinned_names = [name for name in mesh_names if name.startswith((
+    "CORE_", "HEAD_", "HAND_", "FOOT_", "FUR_", "TAIL_", "MARKING_",
+    "SHIRT_", "PANEL_", "CIRCUIT_", "JOINT_", "LOD2_",
+))]
 skeleton_bound = all(
     any(modifier.type == "ARMATURE" and modifier.object == rig for modifier in bpy.data.objects[name].modifiers)
     and len(bpy.data.objects[name].vertex_groups) > 0
     for name in skinned_names
 )
+texture_roles = {
+    node.name.removeprefix("AIW_").removesuffix("_ATLAS").lower()
+    for material in bpy.data.materials
+    if material.use_nodes
+    for node in material.node_tree.nodes
+    if node.type == "TEX_IMAGE" and node.image
+}
+runtime_meshes = [bpy.data.objects[name] for name in skinned_names]
+uv_meshes = {
+    obj.name: len(obj.data.uv_layers)
+    for obj in runtime_meshes
+}
+triangle_count = sum(len(obj.data.polygons) for obj in runtime_meshes)
+assembled = CORE + SURFACE_DETAILS + [
+    "HEAD_cat_maine-coon", "HAND_clawed-paws_L", "HAND_clawed-paws_R",
+    "FOOT_clawed-paws_L", "FOOT_clawed-paws_R", "FUR_long",
+    "TAIL_cat-curled", "MARKING_mask", "SHIRT_Hermes", "SHIRT_LABEL_Hermes",
+]
+lod_meshes = {
+    "LOD0": assembled,
+    "LOD1": [
+        name for name in assembled
+        if not name.startswith(("FUR_", "MARKING_", "SHIRT_LABEL_", "CIRCUIT_SEAM_ARM_"))
+    ],
+    "LOD2": ["LOD2_BODY_cat", "LOD2_SHIRT_Hermes"],
+}
+lod_triangles = {
+    name: sum(len(bpy.data.objects[mesh_name].data.polygons) for mesh_name in included)
+    for name, included in lod_meshes.items()
+}
+lod_signatures = {
+    name: hashlib.sha256(json.dumps(
+        [(mesh_name, geometry_hash(bpy.data.objects[mesh_name])) for mesh_name in included],
+        separators=(",", ":"),
+    ).encode()).hexdigest()
+    for name, included in lod_meshes.items()
+}
 
 checks = {
     "oneArmature": len(armatures) == 1 and armatures[0].name == "AIW_Biped_Rig",
     "sixSharedCoreObjects": all(name in mesh_names for name in CORE) and len([name for name in mesh_names if name.startswith("CORE_")]) == 6,
     "primaryBones": rig is not None and all(name in rig.data.bones for name in PRIMARY_BONES),
+    "supersetBoneCount": rig is not None and 56 <= len(rig.data.bones) <= 68,
     "attachments": all(name in names for name in ANCHORS),
     "actions": sorted(action.name for action in bpy.data.actions) == sorted(ACTIONS),
     "heads": len([name for name in mesh_names if name.startswith("HEAD_")]) == 12,
@@ -156,6 +215,18 @@ checks = {
         and len(entry["faceMaterials"]) >= 2
         for entry in head_face_inventory.values()
     ) and len(head_face_inventory) == 12,
+    "expressionSpeechContract": all(
+        set(entry["morphTargets"]) == EXPRESSIONS
+        for entry in head_face_inventory.values()
+    ),
+    "sharedPbrAtlasRoles": {"base_color", "orm", "normal", "emissive"} <= texture_roles,
+    "runtimeUvs": all(count > 0 for count in uv_meshes.values()),
+    "lodTriangleQuality": (
+        25000 <= lod_triangles["LOD0"] <= 65000
+        and 12000 <= lod_triangles["LOD1"] <= 32000
+        and 4000 <= lod_triangles["LOD2"] <= 12000
+        and len(set(lod_signatures.values())) == 3
+    ),
     "poseEvidenceMetadata": set(pose_evidence) == set(ACTIONS) and all(
         entry["label"] == name and isinstance(entry["frame"], int)
         for name, entry in pose_evidence.items()
@@ -165,12 +236,22 @@ checks = {
 }
 
 result = {
-    "schema": "aiw.avatar-blend-inspection/0.11", "checks": checks, "passed": all(checks.values()),
+    "schema": "aiw.avatar-blend-inspection/0.18.5", "checks": checks, "passed": all(checks.values()),
     "counts": {"objects": len(bpy.data.objects), "meshes": len(bpy.data.meshes), "materials": len(bpy.data.materials), "armatures": len(armatures), "bones": len(rig.data.bones) if rig else 0, "actions": len(bpy.data.actions)},
     "coreObjects": CORE, "attachments": ANCHORS, "actions": sorted(action.name for action in bpy.data.actions),
     "geometry": geometry, "curvedTailSpans": curved_tail_spans, "shirtLabelBounds": shirt_label_bounds,
     "connectionGaps": connections, "actionDetails": action_details,
     "headFaceInventory": head_face_inventory, "poseEvidence": pose_evidence,
+    "textureRoles": sorted(texture_roles), "uvLayers": uv_meshes,
+    "triangleCount": triangle_count,
+    "lods": {
+        name: {
+            "triangles": lod_triangles[name],
+            "includedMeshes": included,
+            "geometrySignature": lod_signatures[name],
+        }
+        for name, included in lod_meshes.items()
+    },
 }
 OUT.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 print(json.dumps(result, sort_keys=True))

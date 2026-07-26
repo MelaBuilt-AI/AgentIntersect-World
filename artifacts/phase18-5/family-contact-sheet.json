@@ -1,0 +1,12 @@
+{
+  "schema": "aiw.phase18-5.family/1",
+  "species": ["human", "dog", "cat"],
+  "heads": 12,
+  "colors": 12,
+  "shirts": 4,
+  "hands": ["hands", "paws", "clawed-paws"],
+  "feet": ["feet", "paws", "clawed-paws"],
+  "fur": ["none", "short", "long"],
+  "tails": ["none", "cat-straight", "cat-curled", "dog-straight", "dog-curled"],
+  "markings": ["solid", "muzzle", "mask", "socks"]
+}

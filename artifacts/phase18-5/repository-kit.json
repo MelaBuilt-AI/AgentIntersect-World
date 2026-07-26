@@ -1,0 +1,9 @@
+{
+  "schema": "aiw.phase18-5.repository-kit/1",
+  "inputAuthority": "existing World object kind and name metadata only",
+  "actualGeneratedGeometry": true,
+  "presentation": "isometric contact sheet",
+  "instancedFamilies": 9,
+  "supplementalFamilies": ["dependency-bridge", "evidence-change-marker"],
+  "fabricatedSemantics": false
+}

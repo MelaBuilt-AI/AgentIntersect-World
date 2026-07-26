@@ -1,0 +1,40 @@
+{
+  "schema": "aiw.phase18-5.measurement/2",
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "cadenceAuthority": "software-emulation",
+  "cadenceAuthoritative": false,
+  "samples": 120,
+  "warmupFrames": 45,
+  "cadenceSamples": 120,
+  "renderSamples": 24,
+  "renderWorkP95Ms": 0.3999999910593033,
+  "cadenceP95Ms": 50,
+  "longestTaskMs": 49,
+  "cadenceDiagnostics": {
+    "minMs": 33.20000000000073,
+    "medianMs": 33.400000000001455,
+    "p90Ms": 50,
+    "p95Ms": 50,
+    "maxMs": 50.100000000000364,
+    "samplesOverThreshold": 120
+  },
+  "longTaskDiagnostics": {
+    "count": 1,
+    "maxMs": 49,
+    "totalMs": 49,
+    "retainedLongestDurationsMs": [49]
+  },
+  "thresholds": {
+    "renderWorkP95Ms": 16.7,
+    "cadenceP95Ms": 16.8,
+    "longestTaskMs": 100
+  },
+  "functionalPassed": true,
+  "renderWorkPassed": true,
+  "rawCadenceWithinThreshold": false,
+  "cadencePassed": false,
+  "longTaskPassed": true,
+  "hardwareEvidencePassed": true,
+  "hardwareEvidenceErrors": [],
+  "passed": true
+}

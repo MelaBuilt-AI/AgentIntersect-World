@@ -7,16 +7,29 @@ declare module "three" {
     set(x: number, y: number, z: number): this;
     fromArray(array: ArrayLike<number>, offset?: number): this;
   }
+  export class Euler {
+    x: number;
+    y: number;
+    z: number;
+  }
   export class Object3D {
+    parent: Object3D | null;
     position: Vector3;
+    rotation: Euler;
     name: string;
     visible: boolean;
+    userData: Record<string, unknown>;
     clone(recursive?: boolean): this;
+    add(...objects: Object3D[]): this;
+    remove(...objects: Object3D[]): this;
     traverse(callback: (object: Object3D) => void): void;
     getObjectByName(name: string): Object3D | undefined;
   }
   export class Group extends Object3D {}
-  export class Material {}
+  export class Material {
+    name: string;
+    clone(): this;
+  }
   export class Texture {
     minFilter: unknown;
     dispose(): void;
@@ -44,11 +57,44 @@ declare module "three" {
     constructor(geometry?: unknown, material?: unknown);
     material: Material | Material[];
   }
-  export class BoxGeometry {
-    constructor(width?: number, height?: number, depth?: number);
-  }
   export class BufferGeometry {
     setFromPoints(points: readonly Vector3[]): this;
+    rotateX(angle: number): this;
+  }
+  export class BoxGeometry extends BufferGeometry {
+    constructor(
+      width?: number,
+      height?: number,
+      depth?: number,
+      widthSegments?: number,
+      heightSegments?: number,
+      depthSegments?: number,
+    );
+  }
+  export class ConeGeometry extends BufferGeometry {
+    constructor(radius?: number, height?: number, radialSegments?: number);
+  }
+  export class CylinderGeometry extends BufferGeometry {
+    constructor(
+      radiusTop?: number,
+      radiusBottom?: number,
+      height?: number,
+      radialSegments?: number,
+    );
+  }
+  export class IcosahedronGeometry extends BufferGeometry {
+    constructor(radius?: number, detail?: number);
+  }
+  export class OctahedronGeometry extends BufferGeometry {
+    constructor(radius?: number, detail?: number);
+  }
+  export class TorusGeometry extends BufferGeometry {
+    constructor(
+      radius?: number,
+      tube?: number,
+      radialSegments?: number,
+      tubularSegments?: number,
+    );
   }
   export class SphereGeometry {
     constructor(
@@ -57,19 +103,23 @@ declare module "three" {
       heightSegments?: number,
     );
   }
-  export class MeshStandardMaterial {
+  export class MeshStandardMaterial extends Material {
     constructor(parameters?: {
       color?: ColorRepresentation;
       roughness?: number;
+      metalness?: number;
+      emissive?: ColorRepresentation;
+      emissiveIntensity?: number;
     });
     color: Color;
     roughness: number;
   }
-  export class MeshBasicMaterial {
+  export class MeshBasicMaterial extends Material {
+    constructor(parameters?: { color?: ColorRepresentation });
     color: Color;
     wireframe: boolean;
   }
-  export class LineBasicMaterial {
+  export class LineBasicMaterial extends Material {
     constructor(parameters?: {
       color?: ColorRepresentation;
       transparent?: boolean;
@@ -81,6 +131,7 @@ declare module "three" {
   }
   export class Color {
     constructor(color?: ColorRepresentation);
+    getHexString(): string;
   }
   export class AmbientLight extends Object3D {
     intensity: number;
@@ -108,6 +159,12 @@ declare module "three" {
   }
   export class AnimationClip {
     name: string;
+    duration: number;
+    tracks: KeyframeTrack[];
+    clone(): AnimationClip;
+  }
+  export class KeyframeTrack {
+    name: string;
   }
   export class AnimationAction {
     time: number;
@@ -123,6 +180,7 @@ declare module "three" {
     constructor(root: Object3D);
     clipAction(clip: AnimationClip): AnimationAction;
     update(delta: number): void;
+    stopAllAction(): this;
   }
 }
 

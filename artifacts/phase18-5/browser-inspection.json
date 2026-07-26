@@ -1,0 +1,23 @@
+{
+  "schema": "aiw.phase18-5.browser-inspection/1",
+  "passed": true,
+  "errors": [],
+  "inspection": {
+    "renderer": "webgl",
+    "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "floor": "repository",
+    "avatarReady": "true",
+    "userSpecies": "human",
+    "agentSpecies": "cat",
+    "userAction": "Idle",
+    "agentAction": "Celebrate",
+    "agentFace": "Smile",
+    "agentSecondary": "Celebrate",
+    "userLod": "LOD2",
+    "agentLod": "LOD2",
+    "renderLoop": "continuous",
+    "semanticRows": 9,
+    "cadenceAuthority": "software-emulation",
+    "cadenceAuthoritative": false
+  }
+}

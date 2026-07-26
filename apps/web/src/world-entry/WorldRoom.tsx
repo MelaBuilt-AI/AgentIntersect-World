@@ -1,13 +1,20 @@
 import {
+  repositoryVisualFamily,
   resolveWebGLCapability,
   type RepositoryRenderObject,
 } from "@agentintersect-world/renderer-r3f";
-import type { AvatarDraft } from "@agentintersect-world/avatar-system";
+import {
+  projectAvatarLayerState,
+  projectWorldAvatarAction,
+  type AvatarDraft,
+  type AvatarMovementPhase,
+} from "@agentintersect-world/avatar-system";
 import {
   lazy,
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -54,6 +61,10 @@ export function WorldRoom({
     () => forceNoWebGL || !resolveWebGLCapability().available,
   );
   const [userPosition, setUserPosition] = useState({ x: 0, z: 0 });
+  const [movementPhase, setMovementPhase] =
+    useState<AvatarMovementPhase>("idle");
+  const [expiredTerminalActivity, setExpiredTerminalActivity] =
+    useState<WorldActivity | null>(null);
   const [camera, setCamera] = useState<WorldCameraLook>({
     yaw: 0,
     pitch: 0.35,
@@ -69,8 +80,23 @@ export function WorldRoom({
   useEffect(() => {
     cameraRef.current = camera;
   }, [camera]);
+  useEffect(() => {
+    if (movementPhase !== "starting" && movementPhase !== "stopping") return;
+    const next = movementPhase === "starting" ? "moving" : "idle";
+    const timer = window.setTimeout(() => setMovementPhase(next), 220);
+    return () => window.clearTimeout(timer);
+  }, [movementPhase]);
+  useEffect(() => {
+    if (activity.state !== "completed" && activity.state !== "failed") return;
+    const timer = window.setTimeout(
+      () => setExpiredTerminalActivity(activity),
+      2201,
+    );
+    return () => window.clearTimeout(timer);
+  }, [activity]);
 
   useEffect(() => {
+    if (movementPhase !== "starting" && movementPhase !== "moving") return;
     let frame = 0;
     const tick = (timestamp: number) => {
       const previous = lastFrame.current ?? timestamp;
@@ -96,7 +122,7 @@ export function WorldRoom({
       window.cancelAnimationFrame(frame);
       lastFrame.current = null;
     };
-  }, []);
+  }, [movementPhase]);
 
   const stopMouseLook = useCallback((updateState = true) => {
     activeLookPointer.current = null;
@@ -115,6 +141,7 @@ export function WorldRoom({
   }, []);
 
   useEffect(() => {
+    const activeKeys = pressedKeys.current;
     const down = (event: KeyboardEvent) => {
       if (isEditableWorldTarget(event.target)) return;
       const key = event.key.toLocaleLowerCase();
@@ -123,19 +150,34 @@ export function WorldRoom({
         return;
       }
       if (key === "shift" || isOperatorMovementKey(key)) {
-        pressedKeys.current.add(key);
-        if (isOperatorMovementKey(key)) event.preventDefault();
+        const alreadyMoving = [...activeKeys].some(isOperatorMovementKey);
+        activeKeys.add(key);
+        if (isOperatorMovementKey(key)) {
+          if (!alreadyMoving) setMovementPhase("starting");
+          event.preventDefault();
+        }
       }
     };
     const up = (event: KeyboardEvent) => {
-      pressedKeys.current.delete(event.key.toLocaleLowerCase());
+      const key = event.key.toLocaleLowerCase();
+      activeKeys.delete(key);
+      if (
+        isOperatorMovementKey(key) &&
+        ![...activeKeys].some(isOperatorMovementKey)
+      )
+        setMovementPhase("stopping");
     };
     const clear = () => {
-      pressedKeys.current.clear();
+      if ([...activeKeys].some(isOperatorMovementKey))
+        setMovementPhase("stopping");
+      activeKeys.clear();
       stopMouseLook();
     };
     const focus = (event: FocusEvent) => {
-      if (isEditableWorldTarget(event.target)) pressedKeys.current.clear();
+      if (!isEditableWorldTarget(event.target)) return;
+      if ([...activeKeys].some(isOperatorMovementKey))
+        setMovementPhase("stopping");
+      activeKeys.clear();
     };
     const release = (event: PointerEvent) => {
       if (event.pointerId === activeLookPointer.current) stopMouseLook();
@@ -210,10 +252,48 @@ export function WorldRoom({
       document.removeEventListener("pointerlockchange", pointerLockChanged);
       document.removeEventListener("pointerlockerror", pointerLockError);
       document.removeEventListener("mousemove", look);
-      pressedKeys.current.clear();
+      activeKeys.clear();
       stopMouseLook(false);
     };
   }, [stopMouseLook]);
+
+  const userAction = projectWorldAvatarAction({
+    role: "user",
+    activity: activity.state,
+    movement: movementPhase,
+    terminalElapsedMs: 0,
+  });
+  const agentAction = projectWorldAvatarAction({
+    role: "agent",
+    activity: activity.state,
+    movement: "idle",
+    terminalElapsedMs: expiredTerminalActivity === activity ? 2201 : 0,
+  });
+  const userLayerState = useMemo(
+    () =>
+      projectAvatarLayerState({
+        action: userAction,
+        reducedMotion,
+        speechShape: null,
+        gaze: "camera",
+      }),
+    [reducedMotion, userAction],
+  );
+  const agentLayerState = useMemo(
+    () =>
+      projectAvatarLayerState({
+        action: agentAction,
+        reducedMotion,
+        speechShape: null,
+        gaze:
+          activity.state === "tool" || activity.state === "coding"
+            ? "work"
+            : activity.state === "thinking"
+              ? "operator"
+              : "camera",
+      }),
+    [activity.state, agentAction, reducedMotion],
+  );
 
   return (
     <main
@@ -229,6 +309,8 @@ export function WorldRoom({
       data-mouse-look={mouseLookActive ? "active" : "idle"}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
+      data-user-avatar-action={userAction}
+      data-agent-avatar-action={agentAction}
       tabIndex={0}
       aria-label="AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move and Shift to sprint."
       onPointerDown={(event) => {
@@ -331,7 +413,7 @@ export function WorldRoom({
             >
               {objects.slice(0, 160).map((object) => (
                 <li key={object.ref}>
-                  {object.kind}: {object.name}
+                  {repositoryVisualFamily(object)}: {object.name}
                 </li>
               ))}
             </ol>
@@ -360,6 +442,10 @@ export function WorldRoom({
               activity={activity}
               userAvatar={userAvatar}
               agentAvatar={agentAvatar}
+              userAction={userAction}
+              agentAction={agentAction}
+              userLayerState={userLayerState}
+              agentLayerState={agentLayerState}
               reducedMotion={reducedMotion}
               onContextLost={() => setContextLost(true)}
             />

@@ -17,14 +17,21 @@ import {
 import {
   AvatarKitWorldModel,
   avatarGroundOffset,
+  type AvatarLayerState,
+  type AvatarLod,
   type AvatarSelection,
 } from "./avatar-kit-canvas.js";
 import {
   prepareRepositoryInstances,
   type PreparedInstanceGroup,
-  type RenderObjectKind,
+  REPOSITORY_VISUAL_FAMILIES,
   type RepositoryRenderObject,
+  type RepositoryVisualFamily,
 } from "./index.js";
+import {
+  createRepositoryGeometry,
+  createRepositoryMaterial,
+} from "./repository-visual-kit.js";
 
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 
@@ -41,20 +48,21 @@ export type WorldRoomActivity = {
 };
 
 const AVATARS = [
-  { id: "user-avatar", position: [0, 0, 0] as const },
-  { id: "mr-fluff-avatar", position: [3, 0, 2] as const },
+  { id: "user-avatar", position: [0, 0, 0] as const, scale: 0.82 },
+  { id: "mr-fluff-avatar", position: [2.6, 0, 0] as const, scale: 0.82 },
 ] as const;
 
 const THIRD_PERSON_CAMERA = {
   id: "third-person-user",
   mode: "third-person",
-  position: [0, 7, 12] as const,
-  target: [0, 1, 0] as const,
+  position: [0, 5, 9.5] as const,
+  target: [1, 0.7, 0] as const,
 } as const;
 
 const cameraValue = (value: number) => Math.round(value * 1_000) / 1_000;
-const ACTIVITY_BUBBLE_ANCHOR = [3, 3.45, 2] as const;
-const ACTIVITY_BUBBLE_SCALE = [3.8, 1.2, 1] as const;
+const ACTIVITY_BUBBLE_ANCHOR = [2.6, 3.25, 0] as const;
+const ACTIVITY_BUBBLE_SCALE = [1.65, 0.5, 1] as const;
+const REPOSITORY_CENTER = [1.1, 0, -2.4] as const;
 
 const activityVisualLabel = (state: WorldRoomActivity["state"]) =>
   ({
@@ -81,16 +89,116 @@ export function calculateWorldCameraPose({
   readonly position: readonly [number, number, number];
   readonly target: readonly [number, number, number];
 } {
-  const distance = 12;
+  const distance = 10.1;
   const horizontalDistance = Math.cos(camera.pitch) * distance;
   return {
     position: [
       cameraValue(userPosition.x - Math.sin(camera.yaw) * horizontalDistance),
-      cameraValue(1.6 + Math.sin(camera.pitch) * distance),
+      cameraValue(1.54 + Math.sin(camera.pitch) * distance),
       cameraValue(userPosition.z + Math.cos(camera.yaw) * horizontalDistance),
     ],
-    target: [userPosition.x, 1.2, userPosition.z],
+    target: [userPosition.x + 1, 0.7, userPosition.z],
   };
+}
+
+export function projectWorldPointToViewport({
+  point,
+  camera,
+  viewport,
+  fovDegrees,
+}: {
+  readonly point: readonly [number, number, number];
+  readonly camera: {
+    readonly position: readonly [number, number, number];
+    readonly target: readonly [number, number, number];
+  };
+  readonly viewport: { readonly width: number; readonly height: number };
+  readonly fovDegrees: number;
+}): { readonly x: number; readonly y: number; readonly depth: number } {
+  const subtract = (
+    left: readonly [number, number, number],
+    right: readonly [number, number, number],
+  ) => [left[0] - right[0], left[1] - right[1], left[2] - right[2]] as const;
+  const normalize = (value: readonly [number, number, number]) => {
+    const length = Math.hypot(...value) || 1;
+    return value.map((component) => component / length) as [
+      number,
+      number,
+      number,
+    ];
+  };
+  const cross = (
+    left: readonly [number, number, number],
+    right: readonly [number, number, number],
+  ) =>
+    [
+      left[1] * right[2] - left[2] * right[1],
+      left[2] * right[0] - left[0] * right[2],
+      left[0] * right[1] - left[1] * right[0],
+    ] as const;
+  const dot = (
+    left: readonly [number, number, number],
+    right: readonly [number, number, number],
+  ) => left[0] * right[0] + left[1] * right[1] + left[2] * right[2];
+  const forward = normalize(subtract(camera.target, camera.position));
+  const right = normalize(cross(forward, [0, 1, 0]));
+  const up = cross(right, forward);
+  const relative = subtract(point, camera.position);
+  const depth = dot(relative, forward);
+  const tangent = Math.tan((fovDegrees * Math.PI) / 360);
+  const normalizedX =
+    (dot(relative, right) / (depth * tangent)) *
+    (viewport.height / viewport.width);
+  const normalizedY = dot(relative, up) / (depth * tangent);
+  return {
+    x: cameraValue(((normalizedX + 1) * viewport.width) / 2),
+    y: cameraValue(((1 - normalizedY) * viewport.height) / 2),
+    depth: cameraValue(depth),
+  };
+}
+
+export function calculateRepositoryTransform(
+  objects: readonly {
+    readonly bounds: {
+      readonly x: number;
+      readonly z: number;
+      readonly width: number;
+      readonly depth: number;
+    };
+  }[],
+) {
+  if (objects.length === 0) return { position: [0, 0, 0] as const, scale: 1 };
+  const minimumX = Math.min(...objects.map((object) => object.bounds.x));
+  const maximumX = Math.max(
+    ...objects.map((object) => object.bounds.x + object.bounds.width),
+  );
+  const minimumZ = Math.min(...objects.map((object) => object.bounds.z));
+  const maximumZ = Math.max(
+    ...objects.map((object) => object.bounds.z + object.bounds.depth),
+  );
+  const span = Math.max(maximumX - minimumX, maximumZ - minimumZ, 1);
+  const scale = Math.min(0.24, 6 / span);
+  return {
+    position: [
+      cameraValue(REPOSITORY_CENTER[0] - ((minimumX + maximumX) / 2) * scale),
+      0,
+      cameraValue(REPOSITORY_CENTER[2] - ((minimumZ + maximumZ) / 2) * scale),
+    ] as const,
+    scale,
+  };
+}
+
+export function applyWorldCanvasObservability(
+  dataset: DOMStringMap,
+  input: {
+    readonly userLod: AvatarLod;
+    readonly agentLod: AvatarLod;
+    readonly reducedMotion: boolean;
+  },
+): void {
+  dataset.userAvatarLod = input.userLod;
+  dataset.agentAvatarLod = input.agentLod;
+  dataset.renderLoop = input.reducedMotion ? "demand" : "continuous";
 }
 
 export function prepareWorldActivityBubble({
@@ -201,45 +309,37 @@ export function prepareWorldRoomScene(input: {
         ...AVATARS[0],
         position: [
           AVATARS[0].position[0],
-          avatarGroundOffset(input.userAvatar),
+          cameraValue(avatarGroundOffset(input.userAvatar) * AVATARS[0].scale),
           AVATARS[0].position[2],
         ],
+        scale: AVATARS[0].scale,
         selection: input.userAvatar,
       },
       {
         ...AVATARS[1],
         position: [
           AVATARS[1].position[0],
-          avatarGroundOffset(input.agentAvatar),
+          cameraValue(avatarGroundOffset(input.agentAvatar) * AVATARS[1].scale),
           AVATARS[1].position[2],
         ],
+        scale: AVATARS[1].scale,
         selection: input.agentAvatar,
       },
     ],
   } as const;
 }
 
-const repositoryColors: Readonly<Record<RenderObjectKind, string>> = {
-  package: "#8b5cf6",
-  directory: "#38bdf8",
-  file: "#2563eb",
-  symbol: "#22d3ee",
-};
-
 function InstanceGroup({
-  kind,
+  family,
   group,
 }: {
-  readonly kind: RenderObjectKind;
+  readonly family: RepositoryVisualFamily;
   readonly group: PreparedInstanceGroup;
 }) {
   const mesh = useMemo(() => {
     const instance = new InstancedMesh(
-      new BoxGeometry(),
-      new MeshStandardMaterial({
-        color: repositoryColors[kind],
-        roughness: 0.68,
-      }),
+      createRepositoryGeometry(group.geometry),
+      createRepositoryMaterial(family),
       group.count,
     );
     const matrix = new Matrix4();
@@ -248,9 +348,9 @@ function InstanceGroup({
       instance.setMatrixAt(index, matrix);
     }
     instance.instanceMatrix.needsUpdate = true;
-    instance.name = `world-room-${kind}-instances`;
+    instance.name = `world-room-${family}-instances`;
     return instance;
-  }, [group, kind]);
+  }, [family, group]);
   return group.count > 0 ? <primitive object={mesh} /> : null;
 }
 
@@ -262,9 +362,15 @@ function WorldRoomScene({
   activity,
   userAvatar,
   agentAvatar,
+  userAction,
+  agentAction,
+  userLayerState,
+  agentLayerState,
   reducedMotion,
   avatarReady,
+  avatarLod,
   onAvatarReady,
+  onAvatarLodChange,
   onContextLost,
 }: {
   readonly floor: WorldRoomFloor;
@@ -274,38 +380,27 @@ function WorldRoomScene({
   readonly activity: WorldRoomActivity;
   readonly userAvatar: AvatarSelection;
   readonly agentAvatar: AvatarSelection;
+  readonly userAction: string;
+  readonly agentAction: string;
+  readonly userLayerState: AvatarLayerState;
+  readonly agentLayerState: AvatarLayerState;
   readonly reducedMotion: boolean;
   readonly avatarReady: Readonly<{ user: boolean; agent: boolean }>;
+  readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly onAvatarReady: (role: "user" | "agent") => void;
+  readonly onAvatarLodChange: (role: "user" | "agent", lod: AvatarLod) => void;
   readonly onContextLost: () => void;
 }) {
-  const { camera, gl, invalidate } = useThree();
+  const { camera, gl, invalidate, scene } = useThree();
   const controlledAvatarYaw = calculateControlledAvatarYaw(cameraLook.yaw);
   const prepared = useMemo(
     () => prepareRepositoryInstances(objects),
     [objects],
   );
-  const repositoryTransform = useMemo(() => {
-    if (objects.length === 0) return { position: [0, 0, 0] as const, scale: 1 };
-    const minimumX = Math.min(...objects.map((object) => object.bounds.x));
-    const maximumX = Math.max(
-      ...objects.map((object) => object.bounds.x + object.bounds.width),
-    );
-    const minimumZ = Math.min(...objects.map((object) => object.bounds.z));
-    const maximumZ = Math.max(
-      ...objects.map((object) => object.bounds.z + object.bounds.depth),
-    );
-    const span = Math.max(maximumX - minimumX, maximumZ - minimumZ, 1);
-    const scale = Math.min(0.4, 10 / span);
-    return {
-      position: [
-        5.2 - ((minimumX + maximumX) / 2) * scale,
-        0,
-        3 - ((minimumZ + maximumZ) / 2) * scale,
-      ] as const,
-      scale,
-    };
-  }, [objects]);
+  const repositoryTransform = useMemo(
+    () => calculateRepositoryTransform(objects),
+    [objects],
+  );
   const floorMesh = useMemo(() => {
     const mesh = new Mesh(
       new BoxGeometry(34, 0.2, 34),
@@ -337,6 +432,13 @@ function WorldRoomScene({
     gl.domElement.dataset.controlledAvatarHeading = cameraLook.yaw.toFixed(3);
     gl.domElement.dataset.agentAvatarHeading = "independent";
     gl.domElement.dataset.agentActivity = activity.state;
+    gl.domElement.dataset.userAvatarAction = userAction;
+    gl.domElement.dataset.agentAvatarAction = agentAction;
+    gl.domElement.dataset.agentAvatarUpperBody =
+      agentLayerState.upperBody ?? "none";
+    gl.domElement.dataset.agentAvatarFace = agentLayerState.face ?? "neutral";
+    gl.domElement.dataset.agentAvatarGaze = agentLayerState.gaze;
+    gl.domElement.dataset.agentAvatarSecondary = agentLayerState.secondary;
     gl.domElement.dataset.userAvatarSpecies = userAvatar.species;
     gl.domElement.dataset.userAvatarShirt = userAvatar.shirt;
     gl.domElement.dataset.userAvatarGroundOffset =
@@ -347,17 +449,27 @@ function WorldRoomScene({
       avatarGroundOffset(agentAvatar).toFixed(3);
     gl.domElement.dataset.avatarRenderReady =
       avatarReady.user && avatarReady.agent ? "true" : "false";
+    applyWorldCanvasObservability(gl.domElement.dataset, {
+      userLod: avatarLod.user,
+      agentLod: avatarLod.agent,
+      reducedMotion,
+    });
     invalidate();
   }, [
     agentAvatar,
+    agentAction,
+    agentLayerState,
     activity,
     avatarReady,
+    avatarLod,
     camera,
     cameraLook,
     floor,
     gl,
     invalidate,
+    reducedMotion,
     userAvatar,
+    userAction,
     userPosition,
   ]);
   useEffect(() => {
@@ -368,10 +480,34 @@ function WorldRoomScene({
     gl.domElement.addEventListener("webglcontextlost", handler);
     return () => gl.domElement.removeEventListener("webglcontextlost", handler);
   }, [gl, onContextLost]);
+  useEffect(() => {
+    const canvas = gl.domElement;
+    canvas.dataset.phase18_5RenderReady = "true";
+    const measure = (event: Event) => {
+      const requestId = (event as CustomEvent).detail?.requestId;
+      if (!Number.isInteger(requestId)) return;
+      const started = performance.now();
+      gl.render(scene, camera);
+      gl.getContext().finish();
+      canvas.dispatchEvent(
+        new CustomEvent("aiw:render-sample", {
+          detail: {
+            requestId,
+            durationMs: performance.now() - started,
+          },
+        }),
+      );
+    };
+    canvas.addEventListener("aiw:measure-render", measure);
+    return () => {
+      canvas.removeEventListener("aiw:measure-render", measure);
+      delete canvas.dataset.phase18_5RenderReady;
+    };
+  }, [camera, gl, scene]);
   return (
     <>
-      <ambientLight intensity={1.25} />
-      <directionalLight position={[6, 10, 5]} intensity={2.1} />
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[6, 10, 5]} intensity={1.6} />
       <primitive object={floorMesh} />
       <primitive object={grid} />
       {floor === "repository" ? (
@@ -380,11 +516,11 @@ function WorldRoomScene({
           position={repositoryTransform.position}
           scale={repositoryTransform.scale}
         >
-          {(Object.keys(prepared.groups) as RenderObjectKind[]).map((kind) => (
+          {REPOSITORY_VISUAL_FAMILIES.map((family) => (
             <InstanceGroup
-              key={kind}
-              kind={kind}
-              group={prepared.groups[kind]}
+              key={family}
+              family={family}
+              group={prepared.groups[family]}
             />
           ))}
         </group>
@@ -393,11 +529,14 @@ function WorldRoomScene({
         asset="/assets/avatar/aiw-avatar-kit.glb"
         role="user"
         selection={userAvatar}
-        action="Idle"
+        action={userAction}
+        layerState={userLayerState}
         animate={!reducedMotion}
         position={[userPosition.x, 0, userPosition.z]}
         rotation={[0, controlledAvatarYaw, 0]}
+        scale={AVATARS[0].scale}
         onReady={onAvatarReady}
+        onLodChange={onAvatarLodChange}
       />
       <AgentActivityBillboard
         activity={activity}
@@ -407,10 +546,13 @@ function WorldRoomScene({
         asset="/assets/avatar/aiw-avatar-kit.glb"
         role="agent"
         selection={agentAvatar}
-        action="Idle"
+        action={agentAction}
+        layerState={agentLayerState}
         animate={!reducedMotion}
         position={AVATARS[1].position}
+        scale={AVATARS[1].scale}
         onReady={onAvatarReady}
+        onLodChange={onAvatarLodChange}
       />
     </>
   );
@@ -424,6 +566,10 @@ export function WorldRoomCanvas({
   activity,
   userAvatar,
   agentAvatar,
+  userAction,
+  agentAction,
+  userLayerState,
+  agentLayerState,
   reducedMotion,
   onContextLost,
 }: {
@@ -434,6 +580,10 @@ export function WorldRoomCanvas({
   readonly activity: WorldRoomActivity;
   readonly userAvatar: AvatarSelection;
   readonly agentAvatar: AvatarSelection;
+  readonly userAction: string;
+  readonly agentAction: string;
+  readonly userLayerState: AvatarLayerState;
+  readonly agentLayerState: AvatarLayerState;
   readonly reducedMotion: boolean;
   readonly onContextLost: () => void;
 }) {
@@ -441,11 +591,23 @@ export function WorldRoomCanvas({
     user: false,
     agent: false,
   });
+  const [avatarLod, setAvatarLod] = useState<{
+    user: AvatarLod;
+    agent: AvatarLod;
+  }>({ user: "LOD2", agent: "LOD2" });
   const onAvatarReady = useCallback((role: "user" | "agent") => {
     setAvatarReady((current) =>
       current[role] ? current : { ...current, [role]: true },
     );
   }, []);
+  const onAvatarLodChange = useCallback(
+    (role: "user" | "agent", lod: AvatarLod) => {
+      setAvatarLod((current) =>
+        current[role] === lod ? current : { ...current, [role]: lod },
+      );
+    },
+    [],
+  );
   return (
     <Canvas
       aria-hidden="true"
@@ -466,11 +628,20 @@ export function WorldRoomCanvas({
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       data-agent-activity={activity.state}
+      data-user-avatar-action={userAction}
+      data-agent-avatar-action={agentAction}
+      data-agent-avatar-upper-body={agentLayerState.upperBody ?? "none"}
+      data-agent-avatar-face={agentLayerState.face ?? "neutral"}
+      data-agent-avatar-gaze={agentLayerState.gaze}
+      data-agent-avatar-secondary={agentLayerState.secondary}
+      data-user-avatar-lod={avatarLod.user}
+      data-agent-avatar-lod={avatarLod.agent}
+      data-render-loop={reducedMotion ? "demand" : "continuous"}
       data-avatar-render-ready={
         avatarReady.user && avatarReady.agent ? "true" : "false"
       }
-      camera={{ position: THIRD_PERSON_CAMERA.position, fov: 52 }}
-      dpr={reducedMotion ? 1 : [1, 1.5]}
+      camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46 }}
+      dpr={1}
       frameloop={reducedMotion ? "demand" : "always"}
       gl={{ antialias: true, powerPreference: "high-performance" }}
       onPointerMissed={() => undefined}
@@ -483,9 +654,15 @@ export function WorldRoomCanvas({
         activity={activity}
         userAvatar={userAvatar}
         agentAvatar={agentAvatar}
+        userAction={userAction}
+        agentAction={agentAction}
+        userLayerState={userLayerState}
+        agentLayerState={agentLayerState}
         reducedMotion={reducedMotion}
         avatarReady={avatarReady}
+        avatarLod={avatarLod}
         onAvatarReady={onAvatarReady}
+        onAvatarLodChange={onAvatarLodChange}
         onContextLost={onContextLost}
       />
     </Canvas>

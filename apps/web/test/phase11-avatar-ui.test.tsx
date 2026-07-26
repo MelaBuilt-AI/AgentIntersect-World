@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { AvatarBuilder } from "../src/avatar/AvatarBuilder.js";
+import { AvatarPreview } from "../src/avatar/AvatarPreview.js";
 import { AvatarRoster } from "../src/avatar/AvatarRoster.js";
 import { integrationFixture } from "../src/integration/integration-fixtures.js";
 
@@ -93,5 +94,14 @@ describe("Phase 11 semantic avatar UI", () => {
     expect(html).toContain("Unconfigured — no fake avatar assigned");
     expect(html).toContain("Current: running");
     expect(html).toContain("Previous: none observed in this view");
+  });
+  it("keeps optional compact 3D cosmetics static in dashboard panels", () => {
+    const html = renderToStaticMarkup(
+      <AvatarPreview profile={profile} compact action="Work" animate={false} />,
+    );
+    expect(html).toContain("Compact static preview");
+    expect(html).toContain("Rendered contact sheet fallback");
+    expect(html).not.toContain("Loading optional 3D preview");
+    expect(html).toContain("Animation: Work");
   });
 });

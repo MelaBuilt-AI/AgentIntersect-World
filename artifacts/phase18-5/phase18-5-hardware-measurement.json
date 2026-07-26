@@ -1,0 +1,77 @@
+{
+  "schema": "aiw.phase18-5.hardware-measurement/1",
+  "measuredAt": "2026-07-26T08:02:08-04:00",
+  "authority": "hardware",
+  "passed": true,
+  "browser": {
+    "name": "Microsoft Edge",
+    "version": "150.0.4078.83",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "errors": []
+  },
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "observability": {
+    "userLod": "LOD2",
+    "agentLod": "LOD2",
+    "renderLoop": "continuous"
+  },
+  "sampling": {
+    "warmupFrames": 45,
+    "cadenceSamples": 120,
+    "renderSamples": 24
+  },
+  "metrics": {
+    "cadence": {
+      "minMs": 9.0,
+      "medianMs": 9.5,
+      "p90Ms": 10.1,
+      "p95Ms": 10.2,
+      "maxMs": 11.9,
+      "samplesOverThreshold": 0
+    },
+    "renderWork": {
+      "p95Ms": 0.2
+    },
+    "longTasks": {
+      "count": 0,
+      "maxMs": 0
+    }
+  },
+  "thresholds": {
+    "renderWorkP95Ms": 16.7,
+    "cadenceP95Ms": 16.8,
+    "longestTaskMs": 100
+  },
+  "productionInputs": {
+    "packages/renderer-r3f/src/avatar-kit-canvas.tsx": {
+      "sha256": "54d9759e0c643c2ea89dc91f2b6ab66e14e21e92448ef6de88e11b94e3f7254e"
+    },
+    "packages/renderer-r3f/src/world-room-canvas.tsx": {
+      "sha256": "69c6078448d304d601f5e556b4d4639fa9fee9f6f0cef85d6813c004ad51dc63"
+    },
+    "packages/renderer-r3f/src/index.ts": {
+      "sha256": "c600a39901b9364f6b6991cc0a71f4d7179440851b105d400d3fae7aa9ba4a05"
+    },
+    "packages/avatar-system/src/index.ts": {
+      "sha256": "cb1e565643a6934190d678effd6df0b76416df3d5a883cdc86f8a5ec21e7b18d"
+    },
+    "apps/web/public/assets/avatar/aiw-avatar-kit.glb": {
+      "sha256": "af8750d8e15b6e564d2937ccc85f52c938695c78785568192018d8b2da7aa6ac"
+    }
+  },
+  "screenshot": {
+    "path": "artifacts/phase18-5/browser-world-edge-hardware.png",
+    "sha256": "3595c73a3e61d0805e6b554356fffe36f1a3f27cc343a4cb9e41bafa84cc9c9d"
+  },
+  "visualQa": {
+    "passed": true,
+    "notes": [
+      "Full user and agent silhouettes are readable above the HUD.",
+      "Warm skin/fur, graphite/midnight panels, harness accents, and emissive identity are visible.",
+      "Semantic repository geometry is visible and the activity billboard does not overlap the avatar."
+    ]
+  }
+}

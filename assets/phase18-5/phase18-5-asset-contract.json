@@ -1,0 +1,224 @@
+{
+  "schema": "aiw.phase18-5.asset-contract/1",
+  "phase": "18.5",
+  "status": "frozen",
+  "baseCommit": "998068811cbb6a8770bd50c04bb6cc8268db167c",
+  "authority": {
+    "requestedBy": "Aaron",
+    "delegatedDecisions": "Mr Fluff recommended choices",
+    "scope": "docs/PHASE_18_5_SCOPE.md",
+    "artDirection": "Luminous Codecraft",
+    "provenance": "project-owned/self-authored-only"
+  },
+  "compatibility": {
+    "readableProfileSchemas": ["aiw.avatar/0.11", "aiw.avatar/0.18.5"],
+    "writeProfileSchema": "aiw.avatar/0.18.5",
+    "losslessMigrationFrom": "aiw.avatar/0.11",
+    "preserveLazyLoading": true,
+    "preserveConstrainedNoGlbRequest": true,
+    "preserveSemanticFallback": true,
+    "preserveSelectionLabels": true
+  },
+  "inventory": {
+    "species": ["human", "dog", "cat"],
+    "headsPerSpecies": 4,
+    "headCount": 12,
+    "colorCount": 12,
+    "shirtCount": 4,
+    "requiredModuleFamilies": [
+      "heads",
+      "hands-paws-claws",
+      "feet-paws-claws",
+      "fur",
+      "tails",
+      "markings",
+      "shirts",
+      "terminal-accents"
+    ],
+    "lods": ["LOD0", "LOD1", "LOD2"]
+  },
+  "rig": {
+    "armatures": 1,
+    "targetBoneCount": 60,
+    "minimumBoneCount": 56,
+    "maximumBoneCount": 68,
+    "requiredBoneFamilies": [
+      "root",
+      "pelvis-spine-chest-neck-head",
+      "jaw",
+      "eyes",
+      "brows-face",
+      "arms-hands-articulated-fingers",
+      "legs-feet-toes",
+      "ears-multisegment",
+      "tail-multisegment"
+    ],
+    "requiredActions": [
+      "Idle",
+      "Walk",
+      "Run",
+      "TurnLeft",
+      "TurnRight",
+      "StartWalk",
+      "StopWalk",
+      "Talk",
+      "Listen",
+      "Wave",
+      "Point",
+      "Explain",
+      "Think",
+      "Nod",
+      "Shrug",
+      "Work",
+      "Celebrate",
+      "Error",
+      "Offline"
+    ],
+    "runtimeComposition": [
+      "smooth-crossfade",
+      "upper-body",
+      "face-speech",
+      "gaze",
+      "anatomical-secondary",
+      "reduced-motion-secondary-freeze"
+    ]
+  },
+  "expressions": {
+    "requiredForEveryHeadFamily": [
+      "Blink",
+      "BrowUp",
+      "BrowDown",
+      "EyeWide",
+      "EyeSquint",
+      "Smile",
+      "Frown",
+      "JawOpen",
+      "SpeechO",
+      "SpeechE",
+      "SpeechMBP"
+    ],
+    "anatomicalStates": ["Neutral", "Listen", "Talk", "Celebrate", "Error"]
+  },
+  "materials": {
+    "workflow": "metallic-roughness-pbr",
+    "requiredTextureRoles": ["baseColor", "orm", "normal", "emissive"],
+    "sharedAtlases": true,
+    "uvsRequired": true,
+    "embeddedOrRelativeImagesRequired": true,
+    "perAvatarTextureDuplicationAllowed": false,
+    "distinctRuntimeIdentityRequired": true,
+    "representativeMaterialFamilies": [
+      "body-skin-fur",
+      "graphite-midnight-panels",
+      "harness-shirts",
+      "cyan-violet-emissive-circuits"
+    ]
+  },
+  "budgets": {
+    "triangles": {
+      "LOD0": {
+        "minimum": 25000,
+        "maximum": 65000
+      },
+      "LOD1": {
+        "minimum": 12000,
+        "maximum": 32000
+      },
+      "LOD2": {
+        "minimum": 4000,
+        "maximum": 12000
+      }
+    },
+    "drawCallsOrProxy": {
+      "LOD0": 18,
+      "LOD1": 12,
+      "LOD2": 8
+    },
+    "runtimeGlbBytes": 16777216,
+    "blenderSourceBytes": 50331648,
+    "avatarTexturePayloadBytes": 12582912,
+    "mainThreadRenderWorkP95Ms": 16.7,
+    "rawFrameCadenceP95Ms": 16.8,
+    "longTaskMaxMs": 100
+  },
+  "visualQuality": {
+    "lodGeometrySetsMustBeDistinct": true,
+    "evidenceUsesGeneratedGeometry": true,
+    "conceptDirectionCount": 3,
+    "requiredHandCloseups": [
+      "open",
+      "fist",
+      "point",
+      "pinch-typing",
+      "expressive-spread"
+    ],
+    "requiredRepositoryEvidenceFamilies": 11
+  },
+  "repositoryFamilies": [
+    "package-workspace-hub",
+    "directory-archive-gate",
+    "source-file-code-slab",
+    "test-file-beacon",
+    "documentation-book",
+    "config-control-terminal",
+    "data-storage-vault",
+    "binary-artifact-crate",
+    "symbol-function-node",
+    "dependency-bridge",
+    "evidence-change-marker"
+  ],
+  "requiredGeneratedAssets": [
+    "assets/avatar/aiw-avatar-kit.blend",
+    "apps/web/public/assets/avatar/aiw-avatar-kit.glb",
+    "apps/web/public/assets/avatar/aiw-avatar-hero-human-cat.png",
+    "apps/web/public/assets/avatar/aiw-avatar-multiview.png",
+    "apps/web/public/assets/avatar/aiw-avatar-facial-speech.png",
+    "apps/web/public/assets/avatar/aiw-avatar-hand-gestures.png",
+    "apps/web/public/assets/avatar/aiw-avatar-concept-comparison.png",
+    "apps/web/public/assets/avatar/aiw-avatar-style-bible.png",
+    "apps/web/public/assets/avatar/aiw-repository-kit.png",
+    "assets/avatar/aiw-avatar-kit.manifest.json",
+    "assets/avatar/aiw-avatar-kit.blend-inspection.json",
+    "assets/avatar/aiw-avatar-kit.glb-inspection.json"
+  ],
+  "requiredEvidence": [
+    "artifacts/phase18-5/concept-comparison.png",
+    "artifacts/phase18-5/concept-comparison.json",
+    "artifacts/phase18-5/style-bible.png",
+    "artifacts/phase18-5/style-bible.json",
+    "artifacts/phase18-5/hero-human-cat.png",
+    "artifacts/phase18-5/hero-human-cat.json",
+    "artifacts/phase18-5/family-contact-sheet.png",
+    "artifacts/phase18-5/family-contact-sheet.json",
+    "artifacts/phase18-5/avatar-multiview.png",
+    "artifacts/phase18-5/facial-speech-sheet.png",
+    "artifacts/phase18-5/hand-gesture-sheet.png",
+    "artifacts/phase18-5/motion-sheet.png",
+    "artifacts/phase18-5/wireframe-lod-uv-pbr.png",
+    "artifacts/phase18-5/repository-kit.png",
+    "artifacts/phase18-5/repository-kit.json",
+    "artifacts/phase18-5/browser-world-avatar.png",
+    "artifacts/phase18-5/browser-world-repository.png",
+    "artifacts/phase18-5/browser-inspection.json",
+    "artifacts/phase18-5/phase18-5-measurement.json",
+    "artifacts/phase18-5/determinism.json"
+  ],
+  "gates": [
+    "scope",
+    "concepts-style-bible",
+    "human-cat-hero",
+    "full-avatar-family",
+    "repository-kit",
+    "browser-integration",
+    "full-verification"
+  ],
+  "forbidden": {
+    "networkAssetSources": true,
+    "newDependencies": true,
+    "manualOpaqueBlenderEdits": true,
+    "thirdPartyModelsTexturesConcepts": true,
+    "phase18LiveGateWork": true,
+    "phase19Or20Work": true,
+    "commitPushPublishDeploy": true
+  }
+}

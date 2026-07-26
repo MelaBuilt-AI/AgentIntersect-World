@@ -1,0 +1,1004 @@
+{
+  "actionDetails": {
+    "Celebrate": {
+      "bones": [
+        "chest",
+        "lower_arm.L",
+        "lower_arm.R",
+        "upper_arm.L",
+        "upper_arm.R"
+      ],
+      "frameRange": [1.0, 20.0],
+      "signature": "ec0e3445f5f6ecf23e678214d994c10834b3cc6eb164511f537383bfe9a52218",
+      "trackCount": 15
+    },
+    "Error": {
+      "bones": ["chest", "head", "upper_arm.L", "upper_arm.R"],
+      "frameRange": [1.0, 32.0],
+      "signature": "31e5b4e5242274215b3bd760dbf16fd15add5cf17ec17e3aeda128ee8c62036c",
+      "trackCount": 12
+    },
+    "Explain": {
+      "bones": ["head", "upper_arm.L", "upper_arm.R"],
+      "frameRange": [1.0, 20.0],
+      "signature": "e47e2421b7e37fd1f3ca1ba12ac5a5c09ca6e6b1429e25fcc93d3697a621dac6",
+      "trackCount": 9
+    },
+    "Idle": {
+      "bones": ["chest", "upper_arm.L", "upper_arm.R"],
+      "frameRange": [1.0, 32.0],
+      "signature": "06e0c26de1e200cc4747a85ba8af8c5a377061b456199013b26785745003db08",
+      "trackCount": 9
+    },
+    "Listen": {
+      "bones": ["chest", "ear.L.02", "ear.R.02", "head"],
+      "frameRange": [1.0, 20.0],
+      "signature": "66bb6d4bc842374ae9376e401c917f47bcb97e48e883884b6b99acf730b23cf6",
+      "trackCount": 12
+    },
+    "Nod": {
+      "bones": ["chest", "head", "neck"],
+      "frameRange": [1.0, 20.0],
+      "signature": "056bc478f660ae96852130d4c653fb75d90bca30418c3b0c1b1904951c3dbaa6",
+      "trackCount": 9
+    },
+    "Offline": {
+      "bones": [
+        "chest",
+        "head",
+        "upper_arm.L",
+        "upper_arm.R",
+        "upper_leg.L",
+        "upper_leg.R"
+      ],
+      "frameRange": [1.0, 32.0],
+      "signature": "0e16452b348d50f8c4f00b2b224725b84b98ee678a973fae2ff887a3b0a54d52",
+      "trackCount": 18
+    },
+    "Point": {
+      "bones": ["head", "lower_arm.L", "upper_arm.L"],
+      "frameRange": [1.0, 20.0],
+      "signature": "cd0e88ba18337d0d4b3a6785806b9a70c7c05a152e3a403db75fd7995c9dc149",
+      "trackCount": 9
+    },
+    "Run": {
+      "bones": [
+        "chest",
+        "lower_arm.L",
+        "lower_arm.R",
+        "upper_arm.L",
+        "upper_arm.R",
+        "upper_leg.L",
+        "upper_leg.R"
+      ],
+      "frameRange": [1.0, 15.0],
+      "signature": "a18e46f62edb032b5aef59d5a984d9f971c474f6aa5dac5fa414c1d04da431be",
+      "trackCount": 21
+    },
+    "Shrug": {
+      "bones": ["clavicle.L", "clavicle.R", "upper_arm.L", "upper_arm.R"],
+      "frameRange": [1.0, 20.0],
+      "signature": "50a89ec4083c7d7acaed0fc20f638aa8718822023e7c10547286f817ba317812",
+      "trackCount": 12
+    },
+    "StartWalk": {
+      "bones": ["pelvis", "upper_arm.R", "upper_leg.L"],
+      "frameRange": [1.0, 24.0],
+      "signature": "f8f4b3b3d97be6b93b6a5c6a0b2fb5008eec6132ccebff205507c368a0739b25",
+      "trackCount": 9
+    },
+    "StopWalk": {
+      "bones": ["pelvis", "upper_arm.L", "upper_leg.R"],
+      "frameRange": [1.0, 24.0],
+      "signature": "d23be18d99df4431fa014a20294d69fdd8817c06bfbc207c704de5db9c91906e",
+      "trackCount": 9
+    },
+    "Talk": {
+      "bones": ["brow.L", "brow.R", "chest", "jaw", "tail.03"],
+      "frameRange": [1.0, 20.0],
+      "signature": "cc3637614766fac3afca5260ed3baee63cfff479cd138861057eacb39d7ae287",
+      "trackCount": 15
+    },
+    "Think": {
+      "bones": ["head", "lower_arm.R", "upper_arm.R"],
+      "frameRange": [1.0, 20.0],
+      "signature": "0c27d607bed2f19d2d263eaaf17b552f256b015c2ae1702fae59ddf1e6bf7238",
+      "trackCount": 9
+    },
+    "TurnLeft": {
+      "bones": ["chest", "head", "pelvis"],
+      "frameRange": [1.0, 20.0],
+      "signature": "a701630d713cc6b9e890f33ab3010954877e70b52304e81127e02461fc1daa02",
+      "trackCount": 9
+    },
+    "TurnRight": {
+      "bones": ["chest", "head", "pelvis"],
+      "frameRange": [1.0, 20.0],
+      "signature": "df5cc4a46342982d3c09a3816ac865ab64e75ae621d42932901266593d7ad46a",
+      "trackCount": 9
+    },
+    "Walk": {
+      "bones": [
+        "chest",
+        "upper_arm.L",
+        "upper_arm.R",
+        "upper_leg.L",
+        "upper_leg.R"
+      ],
+      "frameRange": [1.0, 25.0],
+      "signature": "ab0ff4bb47cfaad558295e3c0edba9ddf8f68c2c4cfad89be1d82bd94664e198",
+      "trackCount": 15
+    },
+    "Wave": {
+      "bones": ["hand.L", "lower_arm.L", "upper_arm.L"],
+      "frameRange": [1.0, 20.0],
+      "signature": "876fe92154d2307a154e1d8f305a812bfd5da6e9c5ba34de1c7f20626126a930",
+      "trackCount": 9
+    },
+    "Work": {
+      "bones": [
+        "head",
+        "lower_arm.L",
+        "lower_arm.R",
+        "upper_arm.L",
+        "upper_arm.R"
+      ],
+      "frameRange": [1.0, 24.0],
+      "signature": "dc18c208eefe0d8cc3b0317aa916b3aa66ad17b0639afadee016a77fedd8c06d",
+      "trackCount": 15
+    }
+  },
+  "actions": [
+    "Celebrate",
+    "Error",
+    "Explain",
+    "Idle",
+    "Listen",
+    "Nod",
+    "Offline",
+    "Point",
+    "Run",
+    "Shrug",
+    "StartWalk",
+    "StopWalk",
+    "Talk",
+    "Think",
+    "TurnLeft",
+    "TurnRight",
+    "Walk",
+    "Wave",
+    "Work"
+  ],
+  "attachments": [
+    "ATTACH_HEAD",
+    "ATTACH_HAND_L",
+    "ATTACH_HAND_R",
+    "ATTACH_FOOT_L",
+    "ATTACH_FOOT_R",
+    "ATTACH_TAIL",
+    "ATTACH_SHIRT",
+    "ATTACH_NAMEPLATE"
+  ],
+  "checks": {
+    "actions": true,
+    "attachments": true,
+    "bodyColors": true,
+    "connectedStandingBiped": true,
+    "curvedTailGeometry": true,
+    "distinctActionSignatures": true,
+    "distinctModuleGeometry": true,
+    "evidenceBoardMetadata": true,
+    "expressionSpeechContract": true,
+    "facialFeatureInventory": true,
+    "feet": true,
+    "fur": true,
+    "hands": true,
+    "heads": true,
+    "lodTriangleQuality": true,
+    "markings": true,
+    "multiBoneActions": true,
+    "oneArmature": true,
+    "poseEvidenceMetadata": true,
+    "primaryBones": true,
+    "runtimeUvs": true,
+    "sharedPbrAtlasRoles": true,
+    "shirtLabels": true,
+    "shirtLabelsInsideFront": true,
+    "shirts": true,
+    "sixSharedCoreObjects": true,
+    "skeletonBoundMeshes": true,
+    "supersetBoneCount": true,
+    "tails": true
+  },
+  "connectionGaps": {
+    "armHandL": 0.0,
+    "armHandR": 0.0,
+    "chestArmL": 0.0,
+    "chestArmR": 0.0,
+    "chestHead": 0.0,
+    "legFootL": 0.0,
+    "legFootR": 0.0,
+    "midsectionChest": 0.0,
+    "midsectionLegL": 0.0,
+    "midsectionLegR": 0.0
+  },
+  "coreObjects": [
+    "CORE_MIDSECTION",
+    "CORE_CHEST",
+    "CORE_ARM_L",
+    "CORE_ARM_R",
+    "CORE_LEG_L",
+    "CORE_LEG_R"
+  ],
+  "counts": {
+    "actions": 19,
+    "armatures": 1,
+    "bones": 60,
+    "materials": 29,
+    "meshes": 85,
+    "objects": 94
+  },
+  "curvedTailSpans": {
+    "TAIL_cat-curled": [0.53535, 0.59535, 0.88408],
+    "TAIL_dog-curled": [0.54439, 0.46271, 0.72]
+  },
+  "geometry": {
+    "feet": {
+      "FOOT_clawed-paws_L": {
+        "bounds": {
+          "max": [0.39854, 0.14, -0.58],
+          "min": [0.00146, -0.55, -0.86]
+        },
+        "hash": "62046a788c2a2ffa1c31e4e125ec734d508b946a97ea0a75a51de0646b60ffcd",
+        "vertices": 1016
+      },
+      "FOOT_feet_L": {
+        "bounds": {
+          "max": [0.37817, 0.12, -0.605],
+          "min": [0.02183, -0.46, -0.86]
+        },
+        "hash": "2ad46d722d22e095889a2d7f01143fc26a0cd160b5b952f212c03b0b775da5c1",
+        "vertices": 1066
+      },
+      "FOOT_paws_L": {
+        "bounds": {
+          "max": [0.39854, 0.14, -0.58],
+          "min": [0.00146, -0.49, -0.86]
+        },
+        "hash": "7ca29b4ce902d77eb82265dd2e345f0b5cdefc9c7e93f99e7132420c31d518f8",
+        "vertices": 976
+      }
+    },
+    "fur": {
+      "FUR_long": {
+        "bounds": {
+          "max": [0.64757, 0.268, 1.56],
+          "min": [-0.64757, -0.345, -0.71]
+        },
+        "hash": "e34c8cebced1c85332a433656e4a0482e8996a23de09844ec6c0b8da546cda6c",
+        "vertices": 1258
+      },
+      "FUR_none": {
+        "bounds": {
+          "max": [0.018, 0.098, 0.898],
+          "min": [-0.018, 0.062, 0.862]
+        },
+        "hash": "6a481d1913962cf449d1b60ad8717047ce27916dc44dccdcbed5f828e2764306",
+        "vertices": 8
+      },
+      "FUR_short": {
+        "bounds": {
+          "max": [0.555, 0.268, 1.495],
+          "min": [-0.555, -0.31, 0.71]
+        },
+        "hash": "a55691d510568787d1d148ab797ab512d6cefd2849b0919dc5f38bffab6e92d7",
+        "vertices": 422
+      }
+    },
+    "hands": {
+      "HAND_clawed-paws_L": {
+        "bounds": {
+          "max": [0.75, 0.15, 0.59],
+          "min": [0.37, -0.29, 0.29]
+        },
+        "hash": "66c7e4f96791eb1761afeb9a739e83246606a5ee3b071210a0ae5e94a080b538",
+        "vertices": 986
+      },
+      "HAND_hands_L": {
+        "bounds": {
+          "max": [0.695, 0.08, 0.575],
+          "min": [0.425, -0.13848, 0.197]
+        },
+        "hash": "01bd383ae408b0895e0c6f94499b3f81bcd40bc8dc1277f898755267b19c2da4",
+        "vertices": 1502
+      },
+      "HAND_paws_L": {
+        "bounds": {
+          "max": [0.75, 0.15, 0.59],
+          "min": [0.37, -0.245, 0.29]
+        },
+        "hash": "5c0936a03b2ad595156f8b8b08fc21f4bd0c4631c448a6ba81a616bf48ff30dd",
+        "vertices": 946
+      }
+    },
+    "markings": {
+      "MARKING_mask": {
+        "bounds": {
+          "max": [0.29217, -0.264, 1.98],
+          "min": [-0.29217, -0.32, 1.76]
+        },
+        "hash": "d120f24427f5ec75dabce658d96978f94e1bb0bc18fca1f038ac398c0255e1c2",
+        "vertices": 160
+      },
+      "MARKING_muzzle": {
+        "bounds": {
+          "max": [0.1807, -0.25, 1.85],
+          "min": [-0.1807, -0.32, 1.61]
+        },
+        "hash": "7f96584f764720209401d35465ef17001bba6feac957f22b1e51a9aff1e3f2de",
+        "vertices": 52
+      },
+      "MARKING_socks": {
+        "bounds": {
+          "max": [0.368, 0.18, -0.37],
+          "min": [-0.368, -0.19, -0.73]
+        },
+        "hash": "80de1b5eac19627ee6fcb56f98360638ebf6b325ccbe1ca1f743d726f246b001",
+        "vertices": 112
+      },
+      "MARKING_solid": {
+        "bounds": {
+          "max": [0.016, 0.116, 1.016],
+          "min": [-0.016, 0.084, 0.984]
+        },
+        "hash": "426302f27bd76d1a03b0498ffebabd4874d7542667f99f8bf49b531225df41bc",
+        "vertices": 8
+      }
+    },
+    "tails": {
+      "TAIL_cat-curled": {
+        "bounds": {
+          "max": [0.48317, 0.75203, 1.35421],
+          "min": [-0.05218, 0.15668, 0.47013]
+        },
+        "hash": "1fb89f33b082353f38ab58003c03fe713354a5c60fe2f1a5ead20f9b6920a89d",
+        "vertices": 60
+      },
+      "TAIL_cat-straight": {
+        "bounds": {
+          "max": [0.055, 1.10691, 0.87485],
+          "min": [-0.055, 0.17627, 0.46782]
+        },
+        "hash": "b170ac19057e002e074de0a2737e1da9087618972f15b26814a0328479a642fa",
+        "vertices": 40
+      },
+      "TAIL_dog-curled": {
+        "bounds": {
+          "max": [0.07032, 0.59475, 1.17575],
+          "min": [-0.47407, 0.13204, 0.45575]
+        },
+        "hash": "67e656dabc346e590496b3dfd7f927e9fdb0e3629a273a30c75b2481f9f552f6",
+        "vertices": 50
+      },
+      "TAIL_dog-straight": {
+        "bounds": {
+          "max": [0.075, 0.91574, 0.89173],
+          "min": [-0.075, 0.15826, 0.45206]
+        },
+        "hash": "4dddbccd833256ad2e60a5072f7ae825304ddc58605ab6eaf0d2783840fcf62c",
+        "vertices": 40
+      },
+      "TAIL_none": {
+        "bounds": {
+          "max": [0.018, 0.198, 0.498],
+          "min": [-0.018, 0.162, 0.462]
+        },
+        "hash": "6a481d1913962cf449d1b60ad8717047ce27916dc44dccdcbed5f828e2764306",
+        "vertices": 8
+      }
+    }
+  },
+  "headFaceInventory": {
+    "HEAD_cat_bengal": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 8
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_cat_maine-coon": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 8
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_cat_shorthair": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 8
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_cat_siamese": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 8
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_dog_beagle": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 200
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_dog_husky": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 200
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_dog_labrador": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 200
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_dog_shepherd": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 200
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_human_angular": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 10
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_human_round": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 10
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_human_soft": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 10
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    },
+    "HEAD_human_square": {
+      "faceMaterials": [
+        "MAT_FACE_BROW",
+        "MAT_FACE_EYE",
+        "MAT_FACE_MOUTH",
+        "MAT_FACE_NOSE"
+      ],
+      "groups": {
+        "FACE_BROW_L": 114,
+        "FACE_BROW_R": 114,
+        "FACE_EYE_L": 222,
+        "FACE_EYE_R": 222,
+        "FACE_MOUTH": 164,
+        "FACE_NOSE": 10
+      },
+      "morphTargets": [
+        "Blink",
+        "BrowDown",
+        "BrowUp",
+        "EyeSquint",
+        "EyeWide",
+        "Frown",
+        "JawOpen",
+        "Smile",
+        "SpeechE",
+        "SpeechMBP",
+        "SpeechO"
+      ]
+    }
+  },
+  "lods": {
+    "LOD0": {
+      "geometrySignature": "20bea9dca83de9c81f124fc5380bf714fe54266e47996c73aac6bbbc9ee9d664",
+      "includedMeshes": [
+        "CORE_MIDSECTION",
+        "CORE_CHEST",
+        "CORE_ARM_L",
+        "CORE_ARM_R",
+        "CORE_LEG_L",
+        "CORE_LEG_R",
+        "PANEL_CHEST",
+        "PANEL_HIPS",
+        "PANEL_SHOULDER_L",
+        "PANEL_SHOULDER_R",
+        "PANEL_KNEE_L",
+        "PANEL_KNEE_R",
+        "CIRCUIT_SEAM_CHEST",
+        "CIRCUIT_SEAM_ARM_L",
+        "CIRCUIT_SEAM_ARM_R",
+        "JOINT_COLLAR_NECK",
+        "JOINT_COLLAR_WRIST_L",
+        "JOINT_COLLAR_WRIST_R",
+        "JOINT_COLLAR_HIP_L",
+        "JOINT_COLLAR_HIP_R",
+        "JOINT_COLLAR_ANKLE_L",
+        "JOINT_COLLAR_ANKLE_R",
+        "HEAD_cat_maine-coon",
+        "HAND_clawed-paws_L",
+        "HAND_clawed-paws_R",
+        "FOOT_clawed-paws_L",
+        "FOOT_clawed-paws_R",
+        "FUR_long",
+        "TAIL_cat-curled",
+        "MARKING_mask",
+        "SHIRT_Hermes",
+        "SHIRT_LABEL_Hermes"
+      ],
+      "triangles": 33329
+    },
+    "LOD1": {
+      "geometrySignature": "6a5ae30b46cd4a7eb02662bf1f83d96fc98f91c05114c46a28540f1f9181e7a7",
+      "includedMeshes": [
+        "CORE_MIDSECTION",
+        "CORE_CHEST",
+        "CORE_ARM_L",
+        "CORE_ARM_R",
+        "CORE_LEG_L",
+        "CORE_LEG_R",
+        "PANEL_CHEST",
+        "PANEL_HIPS",
+        "PANEL_SHOULDER_L",
+        "PANEL_SHOULDER_R",
+        "PANEL_KNEE_L",
+        "PANEL_KNEE_R",
+        "CIRCUIT_SEAM_CHEST",
+        "JOINT_COLLAR_NECK",
+        "JOINT_COLLAR_WRIST_L",
+        "JOINT_COLLAR_WRIST_R",
+        "JOINT_COLLAR_HIP_L",
+        "JOINT_COLLAR_HIP_R",
+        "JOINT_COLLAR_ANKLE_L",
+        "JOINT_COLLAR_ANKLE_R",
+        "HEAD_cat_maine-coon",
+        "HAND_clawed-paws_L",
+        "HAND_clawed-paws_R",
+        "FOOT_clawed-paws_L",
+        "FOOT_clawed-paws_R",
+        "TAIL_cat-curled",
+        "SHIRT_Hermes"
+      ],
+      "triangles": 30408
+    },
+    "LOD2": {
+      "geometrySignature": "923d60fdb8b442dfa7d57a5083535d0ea1d3ce8922f8c3fccbf7ab9e7af968ab",
+      "includedMeshes": ["LOD2_BODY_cat", "LOD2_SHIRT_Hermes"],
+      "triangles": 4040
+    }
+  },
+  "passed": true,
+  "poseEvidence": {
+    "Celebrate": {
+      "frame": 10,
+      "label": "Celebrate"
+    },
+    "Error": {
+      "frame": 16,
+      "label": "Error"
+    },
+    "Explain": {
+      "frame": 10,
+      "label": "Explain"
+    },
+    "Idle": {
+      "frame": 16,
+      "label": "Idle"
+    },
+    "Listen": {
+      "frame": 10,
+      "label": "Listen"
+    },
+    "Nod": {
+      "frame": 10,
+      "label": "Nod"
+    },
+    "Offline": {
+      "frame": 1,
+      "label": "Offline"
+    },
+    "Point": {
+      "frame": 10,
+      "label": "Point"
+    },
+    "Run": {
+      "frame": 1,
+      "label": "Run"
+    },
+    "Shrug": {
+      "frame": 10,
+      "label": "Shrug"
+    },
+    "StartWalk": {
+      "frame": 12,
+      "label": "StartWalk"
+    },
+    "StopWalk": {
+      "frame": 12,
+      "label": "StopWalk"
+    },
+    "Talk": {
+      "frame": 10,
+      "label": "Talk"
+    },
+    "Think": {
+      "frame": 10,
+      "label": "Think"
+    },
+    "TurnLeft": {
+      "frame": 10,
+      "label": "TurnLeft"
+    },
+    "TurnRight": {
+      "frame": 10,
+      "label": "TurnRight"
+    },
+    "Walk": {
+      "frame": 1,
+      "label": "Walk"
+    },
+    "Wave": {
+      "frame": 10,
+      "label": "Wave"
+    },
+    "Work": {
+      "frame": 12,
+      "label": "Work"
+    }
+  },
+  "schema": "aiw.avatar-blend-inspection/0.18.5",
+  "shirtLabelBounds": {
+    "Claude": {
+      "max": [0.2777, -0.268, 1.2382],
+      "min": [-0.2747, -0.268, 1.0982]
+    },
+    "Codex": {
+      "max": [0.2749, -0.268, 1.2382],
+      "min": [-0.2653, -0.268, 1.0982]
+    },
+    "Hermes": {
+      "max": [0.3159, -0.268, 1.2364],
+      "min": [-0.3089, -0.268, 1.0982]
+    },
+    "OpenClaw": {
+      "max": [0.34353, -0.268, 1.2214],
+      "min": [-0.33647, -0.268, 1.07677]
+    }
+  },
+  "textureRoles": ["base_color", "emissive", "normal", "orm"],
+  "triangleCount": 114936,
+  "uvLayers": {
+    "CIRCUIT_SEAM_ARM_L": 1,
+    "CIRCUIT_SEAM_ARM_R": 1,
+    "CIRCUIT_SEAM_CHEST": 1,
+    "CORE_ARM_L": 1,
+    "CORE_ARM_R": 1,
+    "CORE_CHEST": 1,
+    "CORE_LEG_L": 1,
+    "CORE_LEG_R": 1,
+    "CORE_MIDSECTION": 1,
+    "FOOT_clawed-paws_L": 1,
+    "FOOT_clawed-paws_R": 1,
+    "FOOT_feet_L": 1,
+    "FOOT_feet_R": 1,
+    "FOOT_paws_L": 1,
+    "FOOT_paws_R": 1,
+    "FUR_long": 1,
+    "FUR_none": 1,
+    "FUR_short": 1,
+    "HAND_clawed-paws_L": 1,
+    "HAND_clawed-paws_R": 1,
+    "HAND_hands_L": 1,
+    "HAND_hands_R": 1,
+    "HAND_paws_L": 1,
+    "HAND_paws_R": 1,
+    "HEAD_cat_bengal": 1,
+    "HEAD_cat_maine-coon": 1,
+    "HEAD_cat_shorthair": 1,
+    "HEAD_cat_siamese": 1,
+    "HEAD_dog_beagle": 1,
+    "HEAD_dog_husky": 1,
+    "HEAD_dog_labrador": 1,
+    "HEAD_dog_shepherd": 1,
+    "HEAD_human_angular": 1,
+    "HEAD_human_round": 1,
+    "HEAD_human_soft": 1,
+    "HEAD_human_square": 1,
+    "JOINT_COLLAR_ANKLE_L": 1,
+    "JOINT_COLLAR_ANKLE_R": 1,
+    "JOINT_COLLAR_HIP_L": 1,
+    "JOINT_COLLAR_HIP_R": 1,
+    "JOINT_COLLAR_NECK": 1,
+    "JOINT_COLLAR_WRIST_L": 1,
+    "JOINT_COLLAR_WRIST_R": 1,
+    "LOD2_BODY_cat": 1,
+    "LOD2_BODY_dog": 1,
+    "LOD2_BODY_human": 1,
+    "LOD2_SHIRT_Claude": 1,
+    "LOD2_SHIRT_Codex": 1,
+    "LOD2_SHIRT_Hermes": 1,
+    "LOD2_SHIRT_OpenClaw": 1,
+    "MARKING_mask": 1,
+    "MARKING_muzzle": 1,
+    "MARKING_socks": 1,
+    "MARKING_solid": 1,
+    "PANEL_CHEST": 1,
+    "PANEL_HIPS": 1,
+    "PANEL_KNEE_L": 1,
+    "PANEL_KNEE_R": 1,
+    "PANEL_SHOULDER_L": 1,
+    "PANEL_SHOULDER_R": 1,
+    "SHIRT_Claude": 1,
+    "SHIRT_Codex": 1,
+    "SHIRT_Hermes": 1,
+    "SHIRT_LABEL_Claude": 1,
+    "SHIRT_LABEL_Codex": 1,
+    "SHIRT_LABEL_Hermes": 1,
+    "SHIRT_LABEL_OpenClaw": 1,
+    "SHIRT_OpenClaw": 1,
+    "TAIL_cat-curled": 1,
+    "TAIL_cat-straight": 1,
+    "TAIL_dog-curled": 1,
+    "TAIL_dog-straight": 1,
+    "TAIL_none": 1
+  }
+}

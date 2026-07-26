@@ -62,6 +62,10 @@ import {
 import { currentRepositorySelection } from "./repository-selection.js";
 import { WorldActionPanel } from "../world-actions/WorldActionPanel.js";
 import { performOperatorTeleport } from "../world-actions/operator-navigation.js";
+import {
+  repositoryProjectionLimit,
+  supportedRepositoryProjection,
+} from "./repository-render-policy.js";
 
 const RepositoryIslandCanvas = lazy(() =>
   import("@agentintersect-world/renderer-r3f/repository-island").then(
@@ -70,13 +74,13 @@ const RepositoryIslandCanvas = lazy(() =>
 );
 
 function rendererObjects(
-  snapshot: WorldSnapshot,
+  objects: readonly WorldObject[],
   evidenceByRef: ReadonlyMap<
     string,
     EvidenceRecord["changes"][number]["outcome"]
   >,
 ): readonly RepositoryRenderObject[] {
-  return snapshot.objects
+  return objects
     .filter(
       (
         object,
@@ -96,6 +100,13 @@ function rendererObjects(
         name: object.name,
         position: object.position,
         bounds: object.bounds,
+        ...(object.kind === "file"
+          ? {
+              fileKind: object.fileKind,
+              language: object.language,
+              size: object.size,
+            }
+          : {}),
         ...(evidenceOutcome ? { evidenceOutcome } : {}),
       };
     });
@@ -455,18 +466,21 @@ function RepositoryBrowser({
       ),
     [evidence],
   );
-  const renderObjects = useMemo(
-    () => rendererObjects(snapshot, evidenceByRef),
-    [evidenceByRef, snapshot],
+  const projectedWorldObjects = useMemo(
+    () =>
+      supportedRepositoryProjection(
+        snapshot.objects,
+        repositoryProjectionLimit(graphRequested, fallbackReason !== null),
+      ),
+    [fallbackReason, graphRequested, snapshot.objects],
   );
-  const graphAvailable = graphStatus?.current != null;
-  const visibleRenderObjects = useMemo(
-    () => (graphAvailable ? renderObjects.slice(0, 2_000) : renderObjects),
-    [graphAvailable, renderObjects],
+  const renderObjects = useMemo(
+    () => rendererObjects(projectedWorldObjects, evidenceByRef),
+    [evidenceByRef, projectedWorldObjects],
   );
   const preparation = useMemo(
-    () => measureRepositoryPreparation(visibleRenderObjects),
-    [visibleRenderObjects],
+    () => measureRepositoryPreparation(renderObjects),
+    [renderObjects],
   );
   const aggregatePreparation = useMemo(
     () =>
@@ -476,9 +490,11 @@ function RepositoryBrowser({
     [graphAggregate, preparation.prepared, renderObjects],
   );
   const phase10Detail = useMemo(() => {
-    const focusedRenderFile = renderObjects.find(
-      (object) => object.ref === focusedGraph?.fileRef,
-    );
+    const focusedRenderFile =
+      renderObjects.find((object) => object.ref === focusedGraph?.fileRef) ??
+      (focusedFile?.kind === "file"
+        ? rendererObjects([focusedFile], evidenceByRef)[0]
+        : undefined);
     if (!focusedGraph || !focusedRenderFile) return null;
     return preparePhase10VisibleDetail({
       baseObjects: renderObjects,
@@ -487,7 +503,7 @@ function RepositoryBrowser({
       dependencies: focusedGraph.dependencies,
       selectedRef,
     });
-  }, [focusedGraph, renderObjects, selectedRef]);
+  }, [evidenceByRef, focusedFile, focusedGraph, renderObjects, selectedRef]);
   const prepared = phase10Detail?.prepared ?? aggregatePreparation;
   const safeGraphLabel = (ref: string): string =>
     model.byRef.get(ref)?.name ?? ref;
@@ -499,7 +515,7 @@ function RepositoryBrowser({
           graphStatus?.previous?.generationId === graphAggregate.generationId
         ? "previous"
         : "generation mismatch";
-  const select = useCallback((ref: string) => setSelectedRef(ref), []);
+  const select = useCallback((ref: string | null) => setSelectedRef(ref), []);
   const keyboardMove = (direction: Parameters<typeof moveSelection>[2]) => {
     const next = moveSelection(keyboardModel, selectedRef, direction);
     setSelectedRef(next);

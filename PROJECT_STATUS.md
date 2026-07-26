@@ -4,23 +4,28 @@ Updated: 2026-07-26
 
 ## Current milestone
 
-**PHASE 18.5 AUTHORIZED / NEXT UP / NOT STARTED — PHASE 18 REMAINS OPEN**
+**PHASE 18.5 VISUAL/HARDWARE PARENT ACCEPTED — COMPLETE LOCAL AND FRESH VERIFICATION GREEN — PRIVATE DELIVERY PENDING — PHASE 18 REMAINS OPEN**
 
 On 2026-07-26 Aaron explicitly chose **Phase 18.5 — Avatar and World Visual Production** as the next-session implementation priority even though revised Phase 18 remains open. This sequencing decision does not accept, seal, waive, or delete any Phase 18 gate. The pending physical-mouse held-right camera test plus real in-World Hermes/other-enabled-single-agent chat/voice and bounded coding acceptance remain mandatory and must ultimately be confirmed against the integrated visual candidate.
 
 The Phase 18 interaction correction is privately delivered on clean `main` at `b1f488c23f53b5ba6b75ea84c44a44924c7b0a2b`; exact-SHA GitHub Actions run `30187070037`, job `89753560868`, passed under Node 24. Aaron has visually accepted the corrected harness-button placement but has not yet completed the physical-mouse camera test. The fixture-assisted browser remains explicitly non-live and cannot satisfy the newly expanded live-agent/coding gates.
 
-### Next priority — begin Phase 18.5 visual production
+### Current Phase 18.5 candidate
 
-1. Freeze `docs/PHASE_18_5_SCOPE.md` and the executable avatar/environment asset contract before production edits.
-2. Generate and present original high-resolution multi-view avatar/world concept candidates; obtain Aaron's visual direction approval before modeling the full kit.
-3. Build one complete human-plus-cat hero vertical slice using high-detail Blender sources, optimized runtime topology, PBR atlases/LODs, one modular superset rig, facial/ear/tail contracts, smooth locomotion, talking/listening, work, and gesture animation.
-4. Extend the accepted modular human/dog/cat family only after the hero slice is approved.
-5. Replace the box-only repository landscape with a truthful reusable semantic visual grammar driven by existing package/file/language/size/symbol/dependency/evidence metadata.
-6. Preserve skeleton-safe cloning, profile continuity/migration, instancing, lazy loading, low-spec/reduced-motion/no-WebGL semantics, accessibility, and local performance budgets.
-7. Run independent structural/runtime/visual proof and first-hand acceptance; do not claim completion from inventory counts or detached-part renders.
+1. `docs/PHASE_18_5_SCOPE.md` and the executable asset contract were frozen before implementation edits.
+2. The parent-rejected abstract first montage has been replaced. The approved Luminous Codecraft direction now has three actual-form direction boards, a multi-panel generated-geometry style bible, a corrected human-plus-cat hero, readable face/speech and five-hand-pose close-ups, a full modular human/dog/cat family, and an actual-geometry 11-family repository board.
+3. The avatar production asset now contains 85 runtime meshes and 114,936 full-kit triangles. Its real assembled distance tiers are 33,329 / 30,408 / 4,040 triangles, inside the enforced 25k–65k / 12k–32k / 4k–12k bands, with distinct included-mesh sets and geometry signatures independently recounted from both `.blend` and GLB.
+4. The repository renderer uses truthful metadata-driven package, directory, source, test, documentation, config, data, binary, and symbol families, with dependency bridges and evidence/change markers.
+5. The final production hardware run in Edge 150 on an NVIDIA GeForce RTX 5070 Ti at 1600×1000 passed with zero browser/page errors, both avatars at LOD2, a continuous loop, 10.2 ms cadence p95, 0.2 ms render-work p95, and zero Long Tasks. Parent visual QA passed full silhouettes, PBR identity, semantic geometry, billboard, and HUD composition.
+6. The remaining blocker was isolated to the agent crossing inside the prior 10-unit cutoff after bounded user movement. World now selects LOD0 through 6 units, LOD1 above 6 through 9, and the real 4,040-triangle species-specific LOD2 beyond 9 or for non-finite distance. Builder remains forced LOD0 and roster forced LOD1. Passing composition is unchanged.
+7. Runtime clones physically remove unused meshes, memoize by stable selection values plus LOD, cache bone/morph targets, use one mixer per root, and use one full semantic clip at LOD2. World DPR is 1.0; the separate movement rAF runs only while moving; and HUD panels no longer perform live backdrop blurs over WebGL. LOD0/LOD1 retain masked base/upper-body composition.
+8. Measurement records the unmasked WebGL renderer and classifies hardware versus software emulation. Hardware must pass live cadence. Software cadence remains explicitly failed/non-authoritative and requires current fingerprinted hardware evidence; thresholds remain 16.7 / 16.8 / 100 ms.
+9. The retained WSL software lane is functional and honest: errors `[]`, both LOD2, continuous, render-work p95 0.3 ms, zero Long Tasks, but raw cadence median 33.3 / p95 50.0 ms and `cadencePassed=false`.
+10. The final canonical parent comparison exposed seven older-dashboard regressions after visual/hardware acceptance. The correction now explicitly clears repository selection on canvas background misses, projects only 2,000 graph objects to WebGL and 160 to semantic fallback, applies a DPR-1/non-antialiased/basic-material aggregate tier at 1,000+ objects, bounds the 12-avatar roster surface, and defers optional compact LOD0 preview loading for 1,400 ms so panel switching cannot consume the 1,200 ms cancel window. Normal small-world semantic geometry and every Phase 18.5 quality floor remain unchanged.
+11. Parent verification is green: TypeScript 38/38, architecture 11/11, Vitest 116/116 files and 642/642 tests, production build 20/20, smoke, Storybook, 55/55 flagged Playwright, 1/1 unflagged fail-closed Playwright, independent asset verification 28/28, and a 596-file disposable `verify:fresh` run. The five hardware-fingerprinted production inputs remain byte-identical to the accepted evidence.
+12. The production audit found one high-severity advisory in inherited `find-my-way` 9.6.0 through Fastify. The closeout pins the existing transitive router to patched 9.7.0; the audit now reports no known vulnerabilities, and 206/206 local-server tests plus smoke and the complete fresh-copy gate pass. Unrelated generated churn under historical Phase 13–18 evidence directories was restored before delivery.
 
-Phase 18.5 implementation was **not started in the sequencing session**. No concept art, Blender source, GLB, animation, runtime code, dependency, provider, service, or repository asset changed before this status transition. Local ComfyUI was not installed/running during evaluation; any model/backend download or cloud use remains a separate approved provenance/setup gate.
+The implementation used only project-authored Blender/Python/SVG/HTML/CSS/Three.js sources and the repository's existing dependency families. No cloud image service, ComfyUI/model download, third-party model/texture/concept asset, provider activation, commit, push, release, deployment, or public action occurred. Private delivery is the next authorized action; merge, release, publication, deployment, and visibility changes remain closed.
 
 Revised Phase 19 (**Multi-Agent Constellation and Harness Breadth**) and revised Phase 20 (**Embodied Product Acceptance and Bounded Hardening**) remain not started and not authorized.
 
@@ -53,7 +58,7 @@ Normative details: `AgentIntersect_WorldDD.md` and `docs/WORLD_ENTRY_EXPERIENCE.
 - Phase 15 remains **USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**; custom Mr Fluff voice remains deferred.
 - Phases 16 and 17 remain **USER ACCEPTED / SEALED / COMPLETE**.
 - Revised Phase 18's seven first-hand correction families are privately delivered and exact-SHA CI green; harness geometry is visually accepted, while the physical-mouse camera check and real in-World single-agent chat/voice/coding gates remain open. Phase 18 is not accepted or sealed.
-- Phase 18.5 visual production is the sole newly authorized next implementation milestone. Provider promotion/activation, LAN setup UI, Hermes/OpenClaw/core/profile modification, original-AgentIntersect inspection/modification, Phase 13 retry, revised Phase 19/20 work, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
+- Phase 18.5 has an uncommitted visual/hardware-accepted implementation candidate with complete canonical and fresh-copy verification green. Authorized private delivery and exact-SHA CI remain pending. Provider promotion/activation, LAN setup UI, Hermes/OpenClaw/core/profile modification, original-AgentIntersect inspection/modification, Phase 13 retry, revised Phase 19/20 work, merge, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
 
 **Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 

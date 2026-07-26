@@ -5,12 +5,19 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import {
+  classifyPhase18_5Renderer,
+  readPhase18_5HardwareEvidence,
+  validatePhase18_5HardwareEvidence,
+} from "../../../tooling/scripts/phase18-5-performance-evidence.js";
 import { seedConfiguredAvatar } from "./helpers.js";
 
 test.use({ trace: "off" });
 
 const evidenceDirectory = resolve("artifacts/phase18");
+const phase18_5EvidenceDirectory = resolve("artifacts/phase18-5");
 mkdirSync(evidenceDirectory, { recursive: true });
+mkdirSync(phase18_5EvidenceDirectory, { recursive: true });
 
 function sanitizeTraceArchive(archivePath: string) {
   const sanitizer = String.raw`
@@ -532,6 +539,101 @@ async function expectSharedHudBottomTrack(page: Page) {
   );
 }
 
+async function measurePhase18_5Frames(page: Page) {
+  return page.evaluate(async () => {
+    const canvas = document.querySelector<HTMLCanvasElement>(
+      'canvas[data-floor-state="repository"]',
+    );
+    if (!canvas || canvas.dataset.phase18_5RenderReady !== "true")
+      throw new Error("Phase 18.5 World renderer is not ready");
+    const warmupFrames = 45;
+    const cadenceSampleCount = 120;
+    const renderSampleCount = 24;
+    const waitFrames = (count: number) =>
+      new Promise<void>((resolve) => {
+        let remaining = count;
+        const frame = () => {
+          remaining -= 1;
+          if (remaining <= 0) resolve();
+          else requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+      });
+    await waitFrames(warmupFrames);
+
+    let longestTaskMs = 0;
+    const longTaskDurationsMs: number[] = [];
+    const recordLongTasks = (entries: readonly PerformanceEntry[]) => {
+      for (const entry of entries) {
+        longestTaskMs = Math.max(longestTaskMs, entry.duration);
+        longTaskDurationsMs.push(entry.duration);
+      }
+    };
+    const observer = new PerformanceObserver((list) =>
+      recordLongTasks(list.getEntries()),
+    );
+    let observingLongTasks = false;
+    try {
+      observer.observe({ type: "longtask" });
+      observingLongTasks = true;
+    } catch {
+      observer.disconnect();
+    }
+    const cadenceMs = await new Promise<number[]>((resolve) => {
+      const samples: number[] = [];
+      let previous: number | null = null;
+      const frame = (now: number) => {
+        if (previous !== null) samples.push(now - previous);
+        previous = now;
+        if (samples.length < cadenceSampleCount) requestAnimationFrame(frame);
+        else resolve(samples);
+      };
+      requestAnimationFrame(frame);
+    });
+    if (observingLongTasks) {
+      recordLongTasks(observer.takeRecords());
+      observer.disconnect();
+    }
+
+    let requestId = 0;
+    const render = () =>
+      new Promise<number>((resolve, reject) => {
+        const id = ++requestId;
+        const completed = (event: Event) => {
+          const detail = (event as CustomEvent).detail;
+          if (detail?.requestId !== id) return;
+          clearTimeout(timeout);
+          canvas.removeEventListener("aiw:render-sample", completed);
+          resolve(detail.durationMs);
+        };
+        const timeout = window.setTimeout(() => {
+          canvas.removeEventListener("aiw:render-sample", completed);
+          reject(new Error("Phase 18.5 render sample timed out"));
+        }, 1_000);
+        canvas.addEventListener("aiw:render-sample", completed);
+        canvas.dispatchEvent(
+          new CustomEvent("aiw:measure-render", {
+            detail: { requestId: id },
+          }),
+        );
+      });
+    const renderWorkMs: number[] = [];
+    for (let index = 0; index < renderSampleCount; index += 1) {
+      await waitFrames(2);
+      renderWorkMs.push(await render());
+    }
+    return {
+      cadenceMs,
+      renderWorkMs,
+      longestTaskMs,
+      longTaskDurationsMs,
+      warmupFrames,
+      cadenceSampleCount,
+      renderSampleCount,
+    };
+  });
+}
+
 async function completeJourney(
   page: Page,
   evidence:
@@ -540,7 +642,8 @@ async function completeJourney(
     | "mobile"
     | "no-webgl"
     | "pointer-lock"
-    | "fixture-name",
+    | "fixture-name"
+    | "phase18-5",
   userDisplayName = "Aaron",
 ) {
   await seedConfiguredAvatar(page, userDisplayName);
@@ -586,7 +689,11 @@ async function completeJourney(
   await expect(page.getByRole("button", { name: "Enter World" })).toHaveCount(
     0,
   );
-  if (evidence === "desktop" || evidence === "large-desktop") {
+  if (
+    evidence === "desktop" ||
+    evidence === "large-desktop" ||
+    evidence === "phase18-5"
+  ) {
     await expect(page.getByTestId("avatar-preview")).toBeVisible();
     await expect(
       page.locator('.avatar-kit-canvas[data-avatar-render-ready="true"]'),
@@ -613,7 +720,8 @@ async function completeJourney(
   if (
     evidence === "desktop" ||
     evidence === "large-desktop" ||
-    evidence === "pointer-lock"
+    evidence === "pointer-lock" ||
+    evidence === "phase18-5"
   ) {
     const canvas = page.locator('canvas[data-camera-mode="third-person"]');
     await expect(canvas).toBeVisible();
@@ -676,6 +784,11 @@ async function completeJourney(
       path: `${evidenceDirectory}/blank-room-desktop.png`,
       fullPage: true,
     });
+  if (evidence === "phase18-5")
+    await page.screenshot({
+      path: `${phase18_5EvidenceDirectory}/browser-world-avatar.png`,
+      fullPage: true,
+    });
 
   await page
     .getByLabel("Message Mr Fluff")
@@ -692,7 +805,11 @@ async function completeJourney(
     ),
   ).toBeVisible();
   await expectSharedHudBottomTrack(page);
-  if (evidence === "desktop" || evidence === "large-desktop")
+  if (
+    evidence === "desktop" ||
+    evidence === "large-desktop" ||
+    evidence === "phase18-5"
+  )
     await expect(
       page.locator('canvas[data-floor-state="repository"]'),
     ).toHaveAttribute("data-avatar-render-ready", "true");
@@ -715,6 +832,11 @@ async function completeJourney(
       fullPage: true,
     });
   }
+  if (evidence === "phase18-5")
+    await page.screenshot({
+      path: `${phase18_5EvidenceDirectory}/browser-world-repository.png`,
+      fullPage: true,
+    });
 }
 
 test("native acceptance constellation aligns endpoint rows and moves outward", async ({
@@ -860,6 +982,195 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
   expect(errors).toEqual([]);
 });
 
+test("Phase 18.5 integrates the avatar family and semantic repository kit", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await completeJourney(page, "phase18-5");
+  await expect(
+    page.getByRole("list", { name: "Repository floor objects" }),
+  ).toContainText("source-file-code-slab");
+  const inspection = await page.evaluate(() => {
+    const canvas = document.querySelector<HTMLCanvasElement>(
+      'canvas[data-floor-state="repository"]',
+    );
+    const room = document.querySelector<HTMLElement>("main.world-room");
+    const context =
+      canvas?.getContext("webgl2") ?? canvas?.getContext("webgl") ?? null;
+    const debugRendererInfo = context?.getExtension(
+      "WEBGL_debug_renderer_info",
+    ) as { readonly UNMASKED_RENDERER_WEBGL: number } | null;
+    const unmaskedRenderer = context
+      ? String(
+          context.getParameter(
+            debugRendererInfo?.UNMASKED_RENDERER_WEBGL ?? context.RENDERER,
+          ),
+        )
+      : null;
+    return {
+      renderer: room?.dataset.renderer ?? null,
+      unmaskedRenderer,
+      floor: room?.dataset.floorState ?? null,
+      avatarReady: canvas?.dataset.avatarRenderReady ?? null,
+      userSpecies: canvas?.dataset.userAvatarSpecies ?? null,
+      agentSpecies: canvas?.dataset.agentAvatarSpecies ?? null,
+      userAction: canvas?.dataset.userAvatarAction ?? null,
+      agentAction: canvas?.dataset.agentAvatarAction ?? null,
+      agentFace: canvas?.dataset.agentAvatarFace ?? null,
+      agentSecondary: canvas?.dataset.agentAvatarSecondary ?? null,
+      userLod: canvas?.dataset.userAvatarLod ?? null,
+      agentLod: canvas?.dataset.agentAvatarLod ?? null,
+      renderLoop: canvas?.dataset.renderLoop ?? null,
+      semanticRows: document.querySelectorAll(
+        ".world-room__repository-objects li",
+      ).length,
+    };
+  });
+  const frames = await measurePhase18_5Frames(page);
+  const percentile = (values: readonly number[], fraction: number) =>
+    [...values].sort((left, right) => left - right)[
+      Math.ceil(values.length * fraction) - 1
+    ] ?? Number.POSITIVE_INFINITY;
+  const thresholds = {
+    renderWorkP95Ms: 16.7,
+    cadenceP95Ms: 16.8,
+    longestTaskMs: 100,
+  } as const;
+  const cadenceAuthority = classifyPhase18_5Renderer(
+    inspection.unmaskedRenderer,
+  );
+  const cadenceAuthoritative = cadenceAuthority === "hardware";
+  const cadenceDiagnostics = {
+    minMs: Math.min(...frames.cadenceMs),
+    medianMs: percentile(frames.cadenceMs, 0.5),
+    p90Ms: percentile(frames.cadenceMs, 0.9),
+    p95Ms: percentile(frames.cadenceMs, 0.95),
+    maxMs: Math.max(...frames.cadenceMs),
+    samplesOverThreshold: frames.cadenceMs.filter(
+      (duration) => duration > thresholds.cadenceP95Ms,
+    ).length,
+  };
+  const retainedLongTaskDurations = [...frames.longTaskDurationsMs]
+    .sort((left, right) => right - left)
+    .slice(0, 20);
+  const longTaskDiagnostics = {
+    count: frames.longTaskDurationsMs.length,
+    maxMs: frames.longestTaskMs,
+    totalMs: frames.longTaskDurationsMs.reduce(
+      (total, duration) => total + duration,
+      0,
+    ),
+    retainedLongestDurationsMs: retainedLongTaskDurations,
+  };
+  const measurement = {
+    schema: "aiw.phase18-5.measurement/2",
+    renderer: inspection.unmaskedRenderer,
+    cadenceAuthority,
+    cadenceAuthoritative,
+    samples: 120,
+    warmupFrames: frames.warmupFrames,
+    cadenceSamples: frames.cadenceSampleCount,
+    renderSamples: frames.renderSampleCount,
+    renderWorkP95Ms: percentile(frames.renderWorkMs, 0.95),
+    cadenceP95Ms: cadenceDiagnostics.p95Ms,
+    longestTaskMs: frames.longestTaskMs,
+    cadenceDiagnostics,
+    longTaskDiagnostics,
+    thresholds,
+  };
+  const renderWorkPassed =
+    measurement.renderWorkP95Ms <= measurement.thresholds.renderWorkP95Ms;
+  const rawCadenceWithinThreshold =
+    measurement.cadenceP95Ms <= measurement.thresholds.cadenceP95Ms;
+  const cadencePassed = cadenceAuthoritative && rawCadenceWithinThreshold;
+  const longTaskPassed =
+    measurement.longestTaskMs <= measurement.thresholds.longestTaskMs;
+  const hardwareEvidenceValidation = validatePhase18_5HardwareEvidence(
+    readPhase18_5HardwareEvidence(),
+  );
+  const hardwareEvidencePassed = hardwareEvidenceValidation.passed;
+  const functionalPassed =
+    errors.length === 0 &&
+    inspection.renderer === "webgl" &&
+    inspection.floor === "repository" &&
+    inspection.avatarReady === "true" &&
+    inspection.userLod === "LOD2" &&
+    inspection.agentLod === "LOD2" &&
+    inspection.renderLoop === "continuous" &&
+    inspection.semanticRows > 0;
+  const passed =
+    functionalPassed &&
+    renderWorkPassed &&
+    longTaskPassed &&
+    (cadenceAuthoritative ? cadencePassed : hardwareEvidencePassed);
+  writeFileSync(
+    `${phase18_5EvidenceDirectory}/phase18-5-measurement.json`,
+    `${JSON.stringify(
+      {
+        ...measurement,
+        functionalPassed,
+        renderWorkPassed,
+        rawCadenceWithinThreshold,
+        cadencePassed,
+        longTaskPassed,
+        hardwareEvidencePassed,
+        hardwareEvidenceErrors: hardwareEvidenceValidation.errors,
+        passed,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    `${phase18_5EvidenceDirectory}/browser-inspection.json`,
+    `${JSON.stringify(
+      {
+        schema: "aiw.phase18-5.browser-inspection/1",
+        passed: functionalPassed,
+        errors,
+        inspection: {
+          ...inspection,
+          cadenceAuthority,
+          cadenceAuthoritative,
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  expect(inspection).toMatchObject({
+    renderer: "webgl",
+    floor: "repository",
+    avatarReady: "true",
+    userSpecies: "human",
+    agentSpecies: "cat",
+    userAction: "Idle",
+    agentAction: "Celebrate",
+    agentFace: "Smile",
+    agentSecondary: "Celebrate",
+    userLod: "LOD2",
+    agentLod: "LOD2",
+    renderLoop: "continuous",
+  });
+  expect(errors).toEqual([]);
+  expect(measurement.renderWorkP95Ms).toBeLessThanOrEqual(16.7);
+  expect(measurement.longestTaskMs).toBeLessThanOrEqual(100);
+  if (cadenceAuthoritative) {
+    expect(rawCadenceWithinThreshold).toBe(true);
+    expect(cadencePassed).toBe(true);
+  } else {
+    expect(cadencePassed).toBe(false);
+    expect(hardwareEvidenceValidation).toEqual({ passed: true, errors: [] });
+  }
+  expect(passed).toBe(true);
+});
+
 test("mobile keyboard/reduced-motion/forced-colors journey remains contained", async ({
   page,
 }) => {
@@ -869,6 +1180,10 @@ test("mobile keyboard/reduced-motion/forced-colors journey remains contained", a
     forcedColors: "active",
   });
   await completeJourney(page, "mobile");
+  await expect(page.locator("canvas")).toHaveAttribute(
+    "data-render-loop",
+    "demand",
+  );
   for (const selector of [
     ".world-room__semantic",
     ".world-room__activity-semantic",
@@ -1100,8 +1415,15 @@ test("held right-button canvas look follows both axes and clears every exit guar
     .split(",")
     .map(Number);
   await page.keyboard.down("KeyW");
+  await expect
+    .poll(() => canvas.getAttribute("data-user-avatar-action"))
+    .toMatch(/StartWalk|Walk/u);
   await page.waitForTimeout(180);
   await page.keyboard.up("KeyW");
+  await expect(canvas).toHaveAttribute("data-user-avatar-action", "StopWalk");
+  await expect
+    .poll(() => canvas.getAttribute("data-user-avatar-action"))
+    .toBe("Idle");
   const positionAfterForward = String(
     await canvas.getAttribute("data-user-position"),
   )

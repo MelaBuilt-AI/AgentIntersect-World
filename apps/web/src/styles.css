@@ -766,8 +766,7 @@
   border: 1px solid rgba(56, 189, 248, 0.42);
   border-radius: 0.7rem;
   padding: 0.65rem;
-  background: rgba(3, 9, 20, 0.84);
-  backdrop-filter: blur(14px);
+  background: rgba(3, 9, 20, 0.96);
   scrollbar-gutter: stable;
 }
 
@@ -829,8 +828,7 @@
   padding: 0.55rem;
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 0.8rem;
-  background: rgba(3, 9, 20, 0.82);
-  backdrop-filter: blur(14px);
+  background: rgba(3, 9, 20, 0.96);
   width: min(100%, 760px);
 }
 
@@ -2625,6 +2623,12 @@ p {
   height: 38rem;
   border: 1px solid #365d91;
   background: radial-gradient(circle, #16305b, #020617 70%);
+}
+.avatar-performance-fixture .avatar-kit-roster-canvas {
+  width: min(100%, 36rem);
+  height: 16rem;
+  margin-inline: auto;
+  contain: layout paint;
 }
 .avatar-performance-fixture > ol {
   display: grid;

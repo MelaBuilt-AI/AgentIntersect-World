@@ -1,0 +1,35 @@
+{
+  "schema": "aiw.phase18-5.determinism/1",
+  "passed": true,
+  "processes": 2,
+  "stableOutputCount": 16,
+  "mismatches": [],
+  "blenderContainerVolatile": true,
+  "environmentShutdown": {
+    "generatorExitCodes": [130, 130],
+    "inspectorExitCodes": [130, 130],
+    "reason": "Both independent Blender processes completed every authoritative write and printed their terminal version before the managed sandbox blocked PulseAudio mainloop shutdown; each finished process was interrupted only after outputs were complete."
+  },
+  "comparison": {
+    "command": "cmp each of 16 stable outputs copied after run 1 against run 2",
+    "exitCode": 0
+  },
+  "stableHashes": {
+    "apps/web/public/assets/avatar/aiw-avatar-kit.glb": "af8750d8e15b6e564d2937ccc85f52c938695c78785568192018d8b2da7aa6ac",
+    "apps/web/public/assets/avatar/aiw-avatar-contact-sheet.png": "7574789b4594618f2ad999a41409c4bae50e7ff381d8583841e4b0f803ff1bf2",
+    "apps/web/public/assets/avatar/aiw-avatar-motion-sheet.png": "25adc57edeed50a0ea7dd25517553b617c9ff34a527ddb17d6122f8e32b4cbca",
+    "apps/web/public/assets/avatar/aiw-avatar-hero-human-cat.png": "35e3c877c3af1ba51a6af77717ab53763a02bb44dd3c1a5063749bb4907726d2",
+    "apps/web/public/assets/avatar/aiw-avatar-multiview.png": "407ff1a348a791e3eed528f0b56947a6dcebb94c0291cbab927978eb0f0875b8",
+    "apps/web/public/assets/avatar/aiw-avatar-facial-speech.png": "8b2677fe977bcec01416fe97e29a905e7559fb8d71aa44c33330af0c83115b94",
+    "apps/web/public/assets/avatar/aiw-avatar-hand-gestures.png": "6bcf304bb714f8f9174b3cd656e2a606afd99232d28d3490dfb4f4fa7ab6123b",
+    "apps/web/public/assets/avatar/aiw-avatar-concept-comparison.png": "6dcd38fadeee3d3296b8a291652219cd3e6ec84efa00a372fa0eeb6650db7127",
+    "apps/web/public/assets/avatar/aiw-avatar-style-bible.png": "9070295b88bdbc54dc40be58d71f4dd0afdb2b2cc2f1264deb84d2760f170673",
+    "apps/web/public/assets/avatar/aiw-repository-kit.png": "07c8b819c57e7673cf32321f28d663b0254a1955f313b8f9c723600ffe633e15",
+    "apps/web/public/assets/avatar/textures/aiw-avatar-baseColor.png": "102864f0ec9305afe774bf28f8c20232a5b5271fe3daa21578932474bcd02a80",
+    "apps/web/public/assets/avatar/textures/aiw-avatar-emissive.png": "2627620237e1ef36f443739cbd662496a39fcb51b1eccf12e1e19cfcbfc6c9af",
+    "apps/web/public/assets/avatar/textures/aiw-avatar-normal.png": "0ffc0af086936fb340b7014f21bd29842a3b8a30eb67742347170b7a5ebd39b2",
+    "apps/web/public/assets/avatar/textures/aiw-avatar-orm.png": "2415490c27283cb16013b5e86f92670339fac6a0215f6a857fbb12968fc6e2dc",
+    "assets/avatar/aiw-avatar-kit.manifest.json": "52cb2d02024c1fc0b2ef9d84718d149c414d9d6e966d329da516f8851bbde929",
+    "assets/avatar/aiw-avatar-kit.blend-inspection.json": "a6af5dae2ee320fc4514a32f9a42c586065e867ad2c0838070c854cd903e2f70"
+  }
+}

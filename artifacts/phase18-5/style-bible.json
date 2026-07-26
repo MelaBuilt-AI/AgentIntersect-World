@@ -1,0 +1,18 @@
+{
+  "schema": "aiw.phase18-5.style-bible/1",
+  "selected": "Luminous Codecraft",
+  "provenance": "project-owned/self-authored",
+  "actualGeneratedGeometry": true,
+  "panels": [
+    "character proportions and silhouettes",
+    "human and cat face vocabulary",
+    "hands paws and claws",
+    "clothing and terminal accents",
+    "PBR surface response",
+    "cyan and violet emissive circuits",
+    "repository object and environment motifs"
+  ],
+  "surfaces": ["graphite-matte-pbr", "midnight-navy", "warm-skin-fur"],
+  "accents": ["cyan-circuit", "violet-circuit", "truthful-harness"],
+  "typography": "Consolas"
+}

@@ -9,7 +9,9 @@ const objects: RepositoryRenderObject[] = Array.from(
   (_, index) => ({
     ref: `aiw://object/${index.toString(16).padStart(32, "0")}`,
     kind: "file",
-    name: `fixture-${String(index).padStart(5, "0")}.unknown`,
+    name: `fixture-${String(index).padStart(5, "0")}.ts`,
+    fileKind: "source",
+    language: "typescript",
     position: { x: index % 100, y: 0, z: Math.floor(index / 100) },
     bounds: { x: index % 100, z: Math.floor(index / 100), width: 1, depth: 1 },
   }),
@@ -24,9 +26,8 @@ for (let attempt = 0; attempt < 7; attempt += 1) {
   durations.push(performance.now() - started);
 }
 const selectionStarted = performance.now();
-const selectionIndex = prepared.groups.file.refs.indexOf(
-  objects.at(-1)?.ref ?? "",
-);
+const sourceGroup = prepared.groups["source-file-code-slab"];
+const selectionIndex = sourceGroup.refs.indexOf(objects.at(-1)?.ref ?? "");
 const selectionMs = performance.now() - selectionStarted;
 const sorted = [...durations].sort((left, right) => left - right);
 
@@ -35,7 +36,7 @@ process.stdout.write(
     {
       node: process.version,
       instances: prepared.total,
-      matrixFloats: prepared.groups.file.matrices.length,
+      matrixFloats: sourceGroup.matrices.length,
       semanticRows: boundedSemanticObjects(objects, 160).length,
       warmRunsMs: durations.map((duration) => Number(duration.toFixed(3))),
       medianPreparationMs: Number((sorted[3] ?? 0).toFixed(3)),

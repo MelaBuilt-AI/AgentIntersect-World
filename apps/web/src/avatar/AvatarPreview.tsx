@@ -5,6 +5,7 @@ import {
   type AvatarAction,
 } from "@agentintersect-world/avatar-system";
 import { lazy, Suspense } from "react";
+import { compactAvatarPreviewUses3d } from "./avatar-preview-policy.js";
 const AvatarScene = lazy(async () => {
   const module = await import("./AvatarScene.js");
   return { default: module.AvatarScene };
@@ -23,6 +24,7 @@ export function AvatarPreview({
   readonly action?: AvatarAction;
   readonly animate?: boolean;
 }) {
+  const optional3dReady = compactAvatarPreviewUses3d(compact);
   const forcedFallback =
     typeof window !== "undefined" &&
     (["off", "text"].includes(
@@ -38,14 +40,18 @@ export function AvatarPreview({
       <div className="avatar-nameplate" data-anchor="ATTACH_NAMEPLATE">
         {profile.agentName || "Name required"}
       </div>
-      {textOnly || forcedFallback ? (
+      {textOnly || forcedFallback || !optional3dReady ? (
         <div className="avatar-static-fallback">
           <img
             src={AVATAR_CONTACT_SHEET}
             alt="Rendered contact sheet fallback for the modular avatar kit"
           />
           <strong>
-            {forcedFallback ? "WebGL unavailable" : "Text-only mode"}
+            {forcedFallback
+              ? "WebGL unavailable"
+              : textOnly
+                ? "Text-only mode"
+                : "Compact static preview"}
           </strong>
         </div>
       ) : (
