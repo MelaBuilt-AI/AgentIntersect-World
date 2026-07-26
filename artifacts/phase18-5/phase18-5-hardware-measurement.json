@@ -1,6 +1,6 @@
 {
   "schema": "aiw.phase18-5.hardware-measurement/1",
-  "measuredAt": "2026-07-26T15:52:17-04:00",
+  "measuredAt": "2026-07-26T23:12:56.517Z",
   "authority": "hardware",
   "passed": true,
   "browser": {
@@ -16,7 +16,11 @@
   "observability": {
     "userLod": "LOD0",
     "agentLod": "LOD0",
-    "renderLoop": "continuous"
+    "renderLoop": "continuous",
+    "renderLoopMode": "continuous-native",
+    "cosmeticQuality": "full",
+    "renderDpr": "1",
+    "antialias": true
   },
   "sampling": {
     "warmupFrames": 45,
@@ -25,15 +29,15 @@
   },
   "metrics": {
     "cadence": {
-      "minMs": 8.2,
-      "medianMs": 8.3,
-      "p90Ms": 8.4,
-      "p95Ms": 8.4,
-      "maxMs": 8.5,
+      "minMs": 9,
+      "medianMs": 9.9,
+      "p90Ms": 10.1,
+      "p95Ms": 10.1,
+      "maxMs": 10.6,
       "samplesOverThreshold": 0
     },
     "renderWork": {
-      "p95Ms": 0.8
+      "p95Ms": 1
     },
     "longTasks": {
       "count": 0,
@@ -41,8 +45,8 @@
     }
   },
   "thresholds": {
-    "renderWorkP95Ms": 16.7,
     "cadenceP95Ms": 16.8,
+    "renderWorkP95Ms": 16.7,
     "longestTaskMs": 100
   },
   "productionInputs": {
@@ -50,7 +54,7 @@
       "sha256": "e1f598a7824f4c3829fee4567db9989e3041208c3a3890b206112599d9a55735"
     },
     "packages/renderer-r3f/src/world-room-canvas.tsx": {
-      "sha256": "fd33d30cdd4451d92d0dba12e412c7907799e62f7c73b3b3b209425e7014fea5"
+      "sha256": "0b5da7370ea66b3ca1fc4fbe10ec7f1d8eb1166e967e326b694d0f9bdf6d0c07"
     },
     "packages/renderer-r3f/src/index.ts": {
       "sha256": "c600a39901b9364f6b6991cc0a71f4d7179440851b105d400d3fae7aa9ba4a05"
@@ -64,15 +68,15 @@
   },
   "screenshot": {
     "path": "artifacts/phase18-5/browser-world-edge-hardware.png",
-    "sha256": "2fa4394984a682293febe5e7cbca978cbd74f85047a18760d0b0876792182172"
+    "sha256": "92b461f31f3ce801a6af4ab7ff9432c9a47fc684a779d269658bc79fedd10585"
   },
   "visualQa": {
     "passed": true,
     "notes": [
-      "Full LOD0 user and agent silhouettes are readable above the HUD at the normal World camera distance.",
-      "Authored face, hands/feet, clothing, fur, articulation panels, and circuit details remain visible after runtime distance LOD was disabled.",
-      "Semantic repository geometry is visible and the activity billboard does not overlap the avatar.",
-      "Transcript, composer, controls, and viewport composition remain contained with no visible clipping or wrapping regression."
+      "Fresh Microsoft Edge hardware capture shows both full LOD0 user and agent avatars visibly grounded above the HUD.",
+      "Native RTX rendering retained full cosmetics, DPR 1, antialiasing, and continuous-native cadence.",
+      "Semantic repository geometry is visible and the activity billboard does not overlap either avatar.",
+      "Transcript, composer, controls, and viewport composition remain contained with no visible clipping, wrapping, or washed-out-rendering blocker."
     ]
   }
 }

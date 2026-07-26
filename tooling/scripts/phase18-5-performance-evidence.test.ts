@@ -83,4 +83,42 @@ describe("Phase 18.5 performance evidence authority", () => {
       ]),
     );
   });
+
+  it("rejects generic non-Edge and non-RTX hardware evidence", () => {
+    const evidence = cloneEvidence(loadEvidence());
+    evidence.browser.name = "Chromium";
+    evidence.browser.version = "0";
+    evidence.browser.renderer = "ANGLE (Intel, Generic GPU, D3D11)";
+    const validation = validatePhase18_5HardwareEvidence(evidence);
+    expect(validation.passed).toBe(false);
+    expect(validation.errors).toEqual(
+      expect.arrayContaining([
+        "hardware evidence browser is not Microsoft Edge",
+        "hardware evidence browser version is invalid",
+        "hardware evidence renderer is not the approved NVIDIA RTX 5070 Ti D3D11 path",
+      ]),
+    );
+  });
+
+  it("rejects hardware evidence missing structured full-native policy", () => {
+    const evidence = cloneEvidence(loadEvidence());
+    const observability = evidence.observability as unknown as Record<
+      string,
+      unknown
+    >;
+    delete observability.cosmeticQuality;
+    delete observability.renderDpr;
+    delete observability.antialias;
+    delete observability.renderLoopMode;
+    const validation = validatePhase18_5HardwareEvidence(evidence);
+    expect(validation.passed).toBe(false);
+    expect(validation.errors).toEqual(
+      expect.arrayContaining([
+        "hardware evidence does not prove full cosmetic quality",
+        "hardware evidence does not prove DPR 1",
+        "hardware evidence does not prove antialiasing",
+        "hardware evidence does not prove continuous-native mode",
+      ]),
+    );
+  });
 });

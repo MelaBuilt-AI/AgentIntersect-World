@@ -49,9 +49,18 @@ export type WorldRoomActivity = {
 
 export type WorldRenderQuality = {
   readonly cosmeticQuality: "full" | "constrained";
-  readonly dpr: 1 | 0.5;
+  readonly dpr: 1 | 0.25;
   readonly antialias: boolean;
 };
+
+export type WorldRenderLoop = {
+  readonly frameloop: "always" | "demand";
+  readonly mode:
+    "continuous-native" | "continuous-constrained" | "demand-reduced-motion";
+  readonly recurringIntervalMs: 42 | null;
+};
+
+const CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS = 42 as const;
 
 const SOFTWARE_RENDERER_PATTERN =
   /swiftshader|llvmpipe|lavapipe|softpipe|software raster|microsoft basic render driver|software emulation/iu;
@@ -68,8 +77,67 @@ export function selectWorldRenderQuality(
       hardwareConcurrency > 0 &&
       hardwareConcurrency <= 2);
   return constrained
-    ? { cosmeticQuality: "constrained", dpr: 0.5, antialias: false }
+    ? { cosmeticQuality: "constrained", dpr: 0.25, antialias: false }
     : { cosmeticQuality: "full", dpr: 1, antialias: true };
+}
+
+export function selectWorldRenderLoop(
+  renderQuality: WorldRenderQuality,
+  reducedMotion: boolean,
+): WorldRenderLoop {
+  if (reducedMotion)
+    return {
+      frameloop: "demand",
+      mode: "demand-reduced-motion",
+      recurringIntervalMs: null,
+    };
+  return renderQuality.cosmeticQuality === "constrained"
+    ? {
+        frameloop: "demand",
+        mode: "continuous-constrained",
+        recurringIntervalMs: CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS,
+      }
+    : {
+        frameloop: "always",
+        mode: "continuous-native",
+        recurringIntervalMs: null,
+      };
+}
+
+export function startCooperativeWorldInvalidation({
+  invalidate,
+  scheduleTimeout = (callback, delayMs) =>
+    globalThis.setTimeout(callback, delayMs),
+  cancelTimeout = (handle) =>
+    globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>),
+}: {
+  readonly invalidate: () => void;
+  readonly scheduleTimeout?: (callback: () => void, delayMs: number) => unknown;
+  readonly cancelTimeout?: (handle: unknown) => void;
+}): () => void {
+  let active = true;
+  let activeHandle: unknown;
+  const schedule = () => {
+    activeHandle = scheduleTimeout(
+      tick,
+      CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS,
+    );
+  };
+  const tick = () => {
+    if (!active) return;
+    activeHandle = undefined;
+    invalidate();
+    if (active) schedule();
+  };
+  schedule();
+  return () => {
+    if (!active) return;
+    active = false;
+    if (activeHandle !== undefined) {
+      cancelTimeout(activeHandle);
+      activeHandle = undefined;
+    }
+  };
 }
 
 function detectWorldRenderer(): string | undefined {
@@ -240,7 +308,13 @@ export function applyWorldCanvasObservability(
 ): void {
   dataset.userAvatarLod = input.userLod;
   dataset.agentAvatarLod = input.agentLod;
-  dataset.renderLoop = input.reducedMotion ? "demand" : "continuous";
+  const renderLoop = selectWorldRenderLoop(
+    input.renderQuality,
+    input.reducedMotion,
+  );
+  dataset.renderLoop =
+    renderLoop.mode === "demand-reduced-motion" ? "demand" : "continuous";
+  dataset.renderLoopMode = renderLoop.mode;
   dataset.cosmeticQuality = input.renderQuality.cosmeticQuality;
   dataset.renderDpr = String(input.renderQuality.dpr);
 }
@@ -396,6 +470,15 @@ function InstanceGroup({
     return instance;
   }, [family, group]);
   return group.count > 0 ? <primitive object={mesh} /> : null;
+}
+
+function CooperativeWorldInvalidation() {
+  const { invalidate } = useThree();
+  useEffect(
+    () => startCooperativeWorldInvalidation({ invalidate }),
+    [invalidate],
+  );
+  return null;
 }
 
 function WorldRoomScene({
@@ -643,6 +726,7 @@ export function WorldRoomCanvas({
       detectWorldRenderer(),
     ),
   );
+  const renderLoop = selectWorldRenderLoop(renderQuality, reducedMotion);
   const [avatarReady, setAvatarReady] = useState({
     user: false,
     agent: false,
@@ -692,7 +776,10 @@ export function WorldRoomCanvas({
       data-agent-avatar-secondary={agentLayerState.secondary}
       data-user-avatar-lod={avatarLod.user}
       data-agent-avatar-lod={avatarLod.agent}
-      data-render-loop={reducedMotion ? "demand" : "continuous"}
+      data-render-loop={
+        renderLoop.mode === "demand-reduced-motion" ? "demand" : "continuous"
+      }
+      data-render-loop-mode={renderLoop.mode}
       data-cosmetic-quality={renderQuality.cosmeticQuality}
       data-render-dpr={renderQuality.dpr}
       data-avatar-render-ready={
@@ -700,13 +787,16 @@ export function WorldRoomCanvas({
       }
       camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46 }}
       dpr={renderQuality.dpr}
-      frameloop={reducedMotion ? "demand" : "always"}
+      frameloop={renderLoop.frameloop}
       gl={{
         antialias: renderQuality.antialias,
         powerPreference: "high-performance",
       }}
       onPointerMissed={() => undefined}
     >
+      {renderLoop.mode === "continuous-constrained" ? (
+        <CooperativeWorldInvalidation />
+      ) : null}
       <WorldRoomScene
         floor={floor}
         objects={objects}

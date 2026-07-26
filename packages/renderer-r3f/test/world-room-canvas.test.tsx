@@ -21,9 +21,30 @@ type RendererApi = {
     renderer?: string | null | undefined,
   ) => {
     readonly cosmeticQuality: "full" | "constrained";
-    readonly dpr: 1 | 0.5;
+    readonly dpr: 1 | 0.25;
     readonly antialias: boolean;
   };
+  readonly selectWorldRenderLoop: (
+    renderQuality: {
+      readonly cosmeticQuality: "full" | "constrained";
+      readonly dpr: 1 | 0.25;
+      readonly antialias: boolean;
+    },
+    reducedMotion: boolean,
+  ) => {
+    readonly frameloop: "always" | "demand";
+    readonly mode:
+      "continuous-native" | "continuous-constrained" | "demand-reduced-motion";
+    readonly recurringIntervalMs: 42 | null;
+  };
+  readonly startCooperativeWorldInvalidation: (input: {
+    readonly invalidate: () => void;
+    readonly scheduleTimeout?: (
+      callback: () => void,
+      delayMs: number,
+    ) => unknown;
+    readonly cancelTimeout?: (handle: unknown) => void;
+  }) => () => void;
   readonly applyWorldCanvasObservability: (
     dataset: DOMStringMap,
     input: {
@@ -32,7 +53,7 @@ type RendererApi = {
       readonly reducedMotion: boolean;
       readonly renderQuality: {
         readonly cosmeticQuality: "full" | "constrained";
-        readonly dpr: 1 | 0.5;
+        readonly dpr: 1 | 0.25;
         readonly antialias: boolean;
       };
     },
@@ -147,14 +168,14 @@ const dogAvatar: AvatarSelection = {
 };
 
 describe("Phase 18 shared World room canvas", () => {
-  it("selects constrained renderer cosmetics only for valid hardware concurrency at or below two cores", () => {
+  it("selects quarter-DPR constrained renderer cosmetics only for valid hardware concurrency at or below two cores", () => {
     expect(typeof api.selectWorldRenderQuality).toBe("function");
     if (!api.selectWorldRenderQuality) return;
 
     for (const hardwareConcurrency of [1, 2]) {
       expect(api.selectWorldRenderQuality(hardwareConcurrency)).toEqual({
         cosmeticQuality: "constrained",
-        dpr: 0.5,
+        dpr: 0.25,
         antialias: false,
       });
     }
@@ -166,7 +187,7 @@ describe("Phase 18 shared World room canvas", () => {
       ),
     ).toEqual({
       cosmeticQuality: "constrained",
-      dpr: 0.5,
+      dpr: 0.25,
       antialias: false,
     });
     expect(
@@ -197,6 +218,90 @@ describe("Phase 18 shared World room canvas", () => {
         antialias: true,
       });
     }
+  });
+
+  it("selects native, cooperative constrained, and reduced-motion render loops", () => {
+    expect(typeof api.selectWorldRenderLoop).toBe("function");
+    if (!api.selectWorldRenderLoop) return;
+    const full = { cosmeticQuality: "full", dpr: 1, antialias: true } as const;
+    const constrained = {
+      cosmeticQuality: "constrained",
+      dpr: 0.25,
+      antialias: false,
+    } as const;
+
+    expect(api.selectWorldRenderLoop(full, false)).toEqual({
+      frameloop: "always",
+      mode: "continuous-native",
+      recurringIntervalMs: null,
+    });
+    expect(api.selectWorldRenderLoop(constrained, false)).toEqual({
+      frameloop: "demand",
+      mode: "continuous-constrained",
+      recurringIntervalMs: 42,
+    });
+    for (const quality of [full, constrained]) {
+      expect(api.selectWorldRenderLoop(quality, true)).toEqual({
+        frameloop: "demand",
+        mode: "demand-reduced-motion",
+        recurringIntervalMs: null,
+      });
+    }
+  });
+
+  it("schedules one cooperative invalidation timeout at a time and stops idempotently", () => {
+    expect(typeof api.startCooperativeWorldInvalidation).toBe("function");
+    if (!api.startCooperativeWorldInvalidation) return;
+    const scheduled: {
+      readonly handle: { readonly id: number };
+      readonly callback: () => void;
+      readonly delayMs: number;
+    }[] = [];
+    const cancelled: unknown[] = [];
+    let invalidations = 0;
+    const stop = api.startCooperativeWorldInvalidation({
+      invalidate: () => {
+        invalidations += 1;
+      },
+      scheduleTimeout: (callback, delayMs) => {
+        const handle = { id: scheduled.length + 1 };
+        scheduled.push({ handle, callback, delayMs });
+        return handle;
+      },
+      cancelTimeout: (handle) => cancelled.push(handle),
+    });
+
+    expect(scheduled).toHaveLength(1);
+    expect(scheduled[0]?.delayMs).toBe(42);
+    scheduled[0]?.callback();
+    expect(invalidations).toBe(1);
+    expect(scheduled).toHaveLength(2);
+    expect(scheduled[1]?.delayMs).toBe(42);
+    stop();
+    stop();
+    expect(cancelled).toEqual([scheduled[1]?.handle]);
+    scheduled[1]?.callback();
+    expect(invalidations).toBe(1);
+    expect(scheduled).toHaveLength(2);
+  });
+
+  it("does not reschedule when invalidation stops the cooperative driver", () => {
+    expect(typeof api.startCooperativeWorldInvalidation).toBe("function");
+    if (!api.startCooperativeWorldInvalidation) return;
+    const callbacks: (() => void)[] = [];
+    let stop = () => undefined;
+    stop = api.startCooperativeWorldInvalidation({
+      invalidate: () => stop(),
+      scheduleTimeout: (callback) => {
+        callbacks.push(callback);
+        return callbacks.length;
+      },
+      cancelTimeout: () => undefined,
+    });
+
+    expect(callbacks).toHaveLength(1);
+    callbacks[0]?.();
+    expect(callbacks).toHaveLength(1);
   });
 
   it("grounds human, cat, and dog selections from canonical visible foot and paw bounds", () => {
@@ -423,7 +528,7 @@ describe("Phase 18 shared World room canvas", () => {
       reducedMotion: false,
       renderQuality: {
         cosmeticQuality: "constrained",
-        dpr: 0.5,
+        dpr: 0.25,
         antialias: false,
       },
     });
@@ -431,8 +536,9 @@ describe("Phase 18 shared World room canvas", () => {
       userAvatarLod: "LOD0",
       agentAvatarLod: "LOD0",
       renderLoop: "continuous",
+      renderLoopMode: "continuous-constrained",
       cosmeticQuality: "constrained",
-      renderDpr: "0.5",
+      renderDpr: "0.25",
     });
     const source = readFileSync(
       new URL("../src/world-room-canvas.tsx", import.meta.url),
@@ -441,6 +547,9 @@ describe("Phase 18 shared World room canvas", () => {
     expect(source).toContain(
       "applyWorldCanvasObservability(gl.domElement.dataset",
     );
+    expect(source).toContain("frameloop={renderLoop.frameloop}");
+    expect(source).toContain('renderLoop.mode === "continuous-constrained"');
+    expect(source).toContain("<CooperativeWorldInvalidation />");
   });
 
   it("keeps normal cadence independent from sparse explicit render samples", () => {

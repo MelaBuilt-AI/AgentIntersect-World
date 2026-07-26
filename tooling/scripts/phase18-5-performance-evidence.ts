@@ -31,6 +31,10 @@ export type Phase18_5HardwareEvidence = {
     userLod: string;
     agentLod: string;
     renderLoop: string;
+    renderLoopMode: string;
+    cosmeticQuality: string;
+    renderDpr: string;
+    antialias: boolean;
   };
   sampling: {
     warmupFrames: number;
@@ -74,6 +78,10 @@ const SOFTWARE_RENDERER_PATTERNS = [
   /software emulation/u,
 ];
 
+const EDGE_VERSION_PATTERN = /^\d+\.\d+\.\d+\.\d+$/u;
+const APPROVED_HARDWARE_RENDERER_PATTERN =
+  /nvidia geforce rtx 5070 ti.*(?:direct3d11|d3d11)/iu;
+
 const sha256 = (path: string): string =>
   createHash("sha256").update(readFileSync(path)).digest("hex");
 
@@ -108,8 +116,18 @@ export function validatePhase18_5HardwareEvidence(
   if (evidence.authority !== "hardware")
     errors.push("hardware evidence authority is not hardware");
   if (!evidence.passed) errors.push("hardware evidence is not marked passed");
+  if (evidence.browser?.name !== "Microsoft Edge")
+    errors.push("hardware evidence browser is not Microsoft Edge");
+  if (!EDGE_VERSION_PATTERN.test(evidence.browser?.version ?? ""))
+    errors.push("hardware evidence browser version is invalid");
   if (classifyPhase18_5Renderer(evidence.browser?.renderer) !== "hardware")
     errors.push("hardware evidence renderer is software-emulated");
+  if (
+    !APPROVED_HARDWARE_RENDERER_PATTERN.test(evidence.browser?.renderer ?? "")
+  )
+    errors.push(
+      "hardware evidence renderer is not the approved NVIDIA RTX 5070 Ti D3D11 path",
+    );
   if (evidence.browser?.errors?.length !== 0)
     errors.push("hardware browser errors are not empty");
   if (
@@ -119,6 +137,14 @@ export function validatePhase18_5HardwareEvidence(
     errors.push("hardware evidence does not prove both avatars at LOD0");
   if (evidence.observability?.renderLoop !== "continuous")
     errors.push("hardware evidence does not prove the continuous render loop");
+  if (evidence.observability?.renderLoopMode !== "continuous-native")
+    errors.push("hardware evidence does not prove continuous-native mode");
+  if (evidence.observability?.cosmeticQuality !== "full")
+    errors.push("hardware evidence does not prove full cosmetic quality");
+  if (evidence.observability?.renderDpr !== "1")
+    errors.push("hardware evidence does not prove DPR 1");
+  if (evidence.observability?.antialias !== true)
+    errors.push("hardware evidence does not prove antialiasing");
   if (
     evidence.thresholds?.renderWorkP95Ms !== 16.7 ||
     evidence.thresholds?.cadenceP95Ms !== 16.8 ||

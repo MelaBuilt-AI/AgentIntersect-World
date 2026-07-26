@@ -1045,6 +1045,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
       userLod: canvas?.dataset.userAvatarLod ?? null,
       agentLod: canvas?.dataset.agentAvatarLod ?? null,
       renderLoop: canvas?.dataset.renderLoop ?? null,
+      renderLoopMode: canvas?.dataset.renderLoopMode ?? null,
       semanticRows: document.querySelectorAll(
         ".world-room__repository-objects li",
       ).length,
@@ -1059,7 +1060,10 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
       inspection.hardwareConcurrency > 0 &&
       inspection.hardwareConcurrency <= 2);
   const expectedCosmeticQuality = constrainedCosmetics ? "constrained" : "full";
-  const expectedRenderDpr = constrainedCosmetics ? 0.5 : 1;
+  const expectedRenderDpr = constrainedCosmetics ? 0.25 : 1;
+  const expectedRenderLoopMode = constrainedCosmetics
+    ? "continuous-constrained"
+    : "continuous-native";
   await expect(
     page.locator('canvas[data-floor-state="repository"]'),
   ).toHaveAttribute("data-agent-avatar-action", "Idle");
@@ -1139,6 +1143,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
     inspection.userLod === "LOD0" &&
     inspection.agentLod === "LOD0" &&
     inspection.renderLoop === "continuous" &&
+    inspection.renderLoopMode === expectedRenderLoopMode &&
     inspection.semanticRows > 0;
   const passed =
     functionalPassed &&
@@ -1196,6 +1201,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
     userLod: "LOD0",
     agentLod: "LOD0",
     renderLoop: "continuous",
+    renderLoopMode: expectedRenderLoopMode,
   });
   expect(measurement).toMatchObject({
     hardwareConcurrency: inspection.hardwareConcurrency,
@@ -1227,6 +1233,10 @@ test("mobile keyboard/reduced-motion/forced-colors journey remains contained", a
   await expect(page.locator("canvas")).toHaveAttribute(
     "data-render-loop",
     "demand",
+  );
+  await expect(page.locator("canvas")).toHaveAttribute(
+    "data-render-loop-mode",
+    "demand-reduced-motion",
   );
   for (const selector of [
     ".world-room__semantic",
