@@ -988,7 +988,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
 }) => {
   // The journey includes full GLB loading plus a 120-frame measurement on
   // two-CPU software renderers. The frame budgets below remain unchanged.
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
