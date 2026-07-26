@@ -113,10 +113,10 @@ export function validatePhase18_5HardwareEvidence(
   if (evidence.browser?.errors?.length !== 0)
     errors.push("hardware browser errors are not empty");
   if (
-    evidence.observability?.userLod !== "LOD2" ||
-    evidence.observability?.agentLod !== "LOD2"
+    evidence.observability?.userLod !== "LOD0" ||
+    evidence.observability?.agentLod !== "LOD0"
   )
-    errors.push("hardware evidence does not prove both avatars at LOD2");
+    errors.push("hardware evidence does not prove both avatars at LOD0");
   if (evidence.observability?.renderLoop !== "continuous")
     errors.push("hardware evidence does not prove the continuous render loop");
   if (

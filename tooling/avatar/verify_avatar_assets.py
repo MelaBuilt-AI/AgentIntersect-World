@@ -82,10 +82,10 @@ def validate_hardware_evidence(evidence: dict) -> list[str]:
     if browser.get("errors") != []:
         errors.append("hardware browser errors are not empty")
     if (
-        observability.get("userLod") != "LOD2"
-        or observability.get("agentLod") != "LOD2"
+        observability.get("userLod") != "LOD0"
+        or observability.get("agentLod") != "LOD0"
     ):
-        errors.append("hardware evidence does not prove both avatars at LOD2")
+        errors.append("hardware evidence does not prove both avatars at LOD0")
     if observability.get("renderLoop") != "continuous":
         errors.append("hardware evidence does not prove the continuous render loop")
     if thresholds != {

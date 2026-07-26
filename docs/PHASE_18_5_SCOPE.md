@@ -101,6 +101,11 @@ The implementation must not:
   independent inspection.
 - Use explicit LOD0/LOD1/LOD2 assemblies with stable module signatures. Avoid
   per-avatar texture duplication.
+- Runtime distance-based avatar LOD selection is temporarily disabled following
+  direct operator visual acceptance on 2026-07-26: all avatar contexts render
+  LOD0 until the lower-detail assemblies preserve authored identity, clothing,
+  face, hands/feet, fur, and panel/circuit details at normal camera ranges. The
+  existing LOD1/LOD2 assets remain available for a later quality correction.
 
 ## Repository visual grammar
 

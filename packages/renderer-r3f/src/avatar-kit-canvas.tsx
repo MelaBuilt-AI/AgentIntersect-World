@@ -95,13 +95,14 @@ export type AvatarLayerState = {
 };
 
 export function avatarLodForDistance(
-  distance: number,
-  context: AvatarLodContext = "world",
+  _distance: number,
+  _context: AvatarLodContext = "world",
 ): AvatarLod {
-  if (context === "builder") return "LOD0";
-  if (context === "roster") return "LOD1";
-  if (!Number.isFinite(distance) || distance > 9) return "LOD2";
-  return distance > 6 ? "LOD1" : "LOD0";
+  void _distance;
+  void _context;
+  // Runtime LOD is intentionally disabled until lower-detail assemblies retain
+  // the authored avatar identity and cosmetic layers at normal camera ranges.
+  return "LOD0";
 }
 
 export function avatarSecondaryVisibility(lod: AvatarLod) {
@@ -438,9 +439,7 @@ function AvatarModel({
   readonly lodContext?: AvatarLodContext;
   readonly onLodChange?: ((lod: AvatarLod) => void) | undefined;
 }) {
-  const [lod, setLod] = useState<AvatarLod>(() =>
-    avatarLodForDistance(Number.POSITIVE_INFINITY, lodContext),
-  );
+  const lod = avatarLodForDistance(Number.POSITIVE_INFINITY, lodContext);
   const resolvedLayer = useMemo(
     () => layerState ?? legacyLayerState(action, animate),
     [action, animate, layerState],
@@ -568,12 +567,7 @@ function AvatarModel({
     [mixer],
   );
   useEffect(() => onLodChange?.(lod), [lod, onLodChange]);
-  useFrame(({ camera, clock }, delta) => {
-    const dx = camera.position.x - position[0];
-    const dy = camera.position.y - position[1];
-    const dz = camera.position.z - position[2];
-    const nextLod = avatarLodForDistance(Math.hypot(dx, dy, dz), lodContext);
-    if (nextLod !== lod) setLod(nextLod);
+  useFrame(({ clock }, delta) => {
     if (animate) mixer.update(Math.min(delta, 0.05));
     const pose = prepareAvatarLayerApplication(resolvedLayer);
     const applyStaticLayer = animate || !staticLayerApplied.current;

@@ -148,6 +148,20 @@ class Phase185VisualContractTest(unittest.TestCase):
         )
         self.assertIn("hardware cadence p95 exceeds 16.8 ms", errors)
 
+    def test_hardware_evidence_validation_rejects_non_authored_runtime_lod(self):
+        evidence = json.loads(
+            (
+                ROOT
+                / "artifacts/phase18-5/phase18-5-hardware-measurement.json"
+            ).read_text()
+        )
+        evidence["observability"]["agentLod"] = "LOD1"
+        errors = verify_avatar_assets.validate_hardware_evidence(evidence)
+        self.assertIn(
+            "hardware evidence does not prove both avatars at LOD0",
+            errors,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

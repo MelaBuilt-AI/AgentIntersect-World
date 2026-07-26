@@ -16,12 +16,25 @@ type AvatarSelection = {
 };
 
 type RendererApi = {
+  readonly selectWorldRenderQuality: (
+    hardwareConcurrency: number | null | undefined,
+    renderer?: string | null | undefined,
+  ) => {
+    readonly cosmeticQuality: "full" | "constrained";
+    readonly dpr: 1 | 0.5;
+    readonly antialias: boolean;
+  };
   readonly applyWorldCanvasObservability: (
     dataset: DOMStringMap,
     input: {
       readonly userLod: "LOD0" | "LOD1" | "LOD2";
       readonly agentLod: "LOD0" | "LOD1" | "LOD2";
       readonly reducedMotion: boolean;
+      readonly renderQuality: {
+        readonly cosmeticQuality: "full" | "constrained";
+        readonly dpr: 1 | 0.5;
+        readonly antialias: boolean;
+      };
     },
   ) => void;
   readonly prepareWorldActivityBubble: (input: {
@@ -134,6 +147,58 @@ const dogAvatar: AvatarSelection = {
 };
 
 describe("Phase 18 shared World room canvas", () => {
+  it("selects constrained renderer cosmetics only for valid hardware concurrency at or below two cores", () => {
+    expect(typeof api.selectWorldRenderQuality).toBe("function");
+    if (!api.selectWorldRenderQuality) return;
+
+    for (const hardwareConcurrency of [1, 2]) {
+      expect(api.selectWorldRenderQuality(hardwareConcurrency)).toEqual({
+        cosmeticQuality: "constrained",
+        dpr: 0.5,
+        antialias: false,
+      });
+    }
+
+    expect(
+      api.selectWorldRenderQuality(
+        16,
+        "ANGLE (Google, Vulkan (SwiftShader Device), SwiftShader driver)",
+      ),
+    ).toEqual({
+      cosmeticQuality: "constrained",
+      dpr: 0.5,
+      antialias: false,
+    });
+    expect(
+      api.selectWorldRenderQuality(
+        16,
+        "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti, D3D11)",
+      ),
+    ).toEqual({
+      cosmeticQuality: "full",
+      dpr: 1,
+      antialias: true,
+    });
+
+    for (const hardwareConcurrency of [
+      3,
+      8,
+      0,
+      -1,
+      1.5,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      null,
+      undefined,
+    ]) {
+      expect(api.selectWorldRenderQuality(hardwareConcurrency)).toEqual({
+        cosmeticQuality: "full",
+        dpr: 1,
+        antialias: true,
+      });
+    }
+  });
+
   it("grounds human, cat, and dog selections from canonical visible foot and paw bounds", () => {
     expect(typeof avatarApi.avatarGroundOffset).toBe("function");
     if (!avatarApi.avatarGroundOffset || !api.prepareWorldRoomScene) return;
@@ -226,16 +291,16 @@ describe("Phase 18 shared World room canvas", () => {
         distanceFromCamera([0, 0.701, 0]),
         "world",
       ),
-    ).toBe("LOD2");
+    ).toBe("LOD0");
     expect(
       avatarApi.avatarLodForDistance?.(
         distanceFromCamera([2.6, 0.697, 0]),
         "world",
       ),
-    ).toBe("LOD2");
+    ).toBe("LOD0");
   });
 
-  it("keeps both World avatars on LOD2 after the bounded 260ms forward journey", () => {
+  it("keeps both World avatars on LOD0 after the bounded 260ms forward journey", () => {
     expect(typeof api.calculateWorldCameraPose).toBe("function");
     expect(typeof avatarApi.avatarLodForDistance).toBe("function");
     if (!api.calculateWorldCameraPose || !avatarApi.avatarLodForDistance)
@@ -257,13 +322,13 @@ describe("Phase 18 shared World room canvas", () => {
         distanceFromCamera([userPosition.x, 0.701, userPosition.z]),
         "world",
       ),
-    ).toBe("LOD2");
+    ).toBe("LOD0");
     expect(
       avatarApi.avatarLodForDistance(
         distanceFromCamera([2.6, 0.697, 0]),
         "world",
       ),
-    ).toBe("LOD2");
+    ).toBe("LOD0");
   });
 
   it("continuously aligns only the controlled avatar with camera heading", () => {
@@ -337,7 +402,11 @@ describe("Phase 18 shared World room canvas", () => {
       "utf8",
     );
     expect(source).toContain("<AvatarKitWorldModel");
-    expect(source).toContain("dpr={1}");
+    expect(source).toContain(
+      "data-cosmetic-quality={renderQuality.cosmeticQuality}",
+    );
+    expect(source).toContain("data-render-dpr={renderQuality.dpr}");
+    expect(source).toContain("dpr={renderQuality.dpr}");
     expect(source).toContain("data-agent-avatar-action");
     expect(source).toContain("data-user-avatar-lod");
     expect(source).toContain("layerState={agentLayerState}");
@@ -349,14 +418,21 @@ describe("Phase 18 shared World room canvas", () => {
     if (!api.applyWorldCanvasObservability) return;
     const dataset = {} as DOMStringMap;
     api.applyWorldCanvasObservability(dataset, {
-      userLod: "LOD2",
-      agentLod: "LOD2",
+      userLod: "LOD0",
+      agentLod: "LOD0",
       reducedMotion: false,
+      renderQuality: {
+        cosmeticQuality: "constrained",
+        dpr: 0.5,
+        antialias: false,
+      },
     });
     expect({ ...dataset }).toMatchObject({
-      userAvatarLod: "LOD2",
-      agentAvatarLod: "LOD2",
+      userAvatarLod: "LOD0",
+      agentAvatarLod: "LOD0",
       renderLoop: "continuous",
+      cosmeticQuality: "constrained",
+      renderDpr: "0.5",
     });
     const source = readFileSync(
       new URL("../src/world-room-canvas.tsx", import.meta.url),

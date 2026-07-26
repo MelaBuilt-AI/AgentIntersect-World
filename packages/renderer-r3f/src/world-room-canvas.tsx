@@ -47,6 +47,47 @@ export type WorldRoomActivity = {
   readonly label: string;
 };
 
+export type WorldRenderQuality = {
+  readonly cosmeticQuality: "full" | "constrained";
+  readonly dpr: 1 | 0.5;
+  readonly antialias: boolean;
+};
+
+const SOFTWARE_RENDERER_PATTERN =
+  /swiftshader|llvmpipe|lavapipe|softpipe|software raster|microsoft basic render driver|software emulation/iu;
+
+export function selectWorldRenderQuality(
+  hardwareConcurrency: number | null | undefined,
+  renderer?: string | null | undefined,
+): WorldRenderQuality {
+  const constrained =
+    SOFTWARE_RENDERER_PATTERN.test(renderer ?? "") ||
+    (typeof hardwareConcurrency === "number" &&
+      Number.isFinite(hardwareConcurrency) &&
+      Number.isInteger(hardwareConcurrency) &&
+      hardwareConcurrency > 0 &&
+      hardwareConcurrency <= 2);
+  return constrained
+    ? { cosmeticQuality: "constrained", dpr: 0.5, antialias: false }
+    : { cosmeticQuality: "full", dpr: 1, antialias: true };
+}
+
+function detectWorldRenderer(): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  const probe = document.createElement("canvas");
+  const gl = probe.getContext("webgl2") ?? probe.getContext("webgl");
+  if (!gl) return undefined;
+  try {
+    const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = gl.getParameter(
+      debugInfo?.UNMASKED_RENDERER_WEBGL ?? gl.RENDERER,
+    ) as unknown;
+    return typeof renderer === "string" ? renderer : undefined;
+  } finally {
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+  }
+}
+
 const AVATARS = [
   { id: "user-avatar", position: [0, 0, 0] as const, scale: 0.82 },
   { id: "mr-fluff-avatar", position: [2.6, 0, 0] as const, scale: 0.82 },
@@ -194,11 +235,14 @@ export function applyWorldCanvasObservability(
     readonly userLod: AvatarLod;
     readonly agentLod: AvatarLod;
     readonly reducedMotion: boolean;
+    readonly renderQuality: WorldRenderQuality;
   },
 ): void {
   dataset.userAvatarLod = input.userLod;
   dataset.agentAvatarLod = input.agentLod;
   dataset.renderLoop = input.reducedMotion ? "demand" : "continuous";
+  dataset.cosmeticQuality = input.renderQuality.cosmeticQuality;
+  dataset.renderDpr = String(input.renderQuality.dpr);
 }
 
 export function prepareWorldActivityBubble({
@@ -369,6 +413,7 @@ function WorldRoomScene({
   reducedMotion,
   avatarReady,
   avatarLod,
+  renderQuality,
   onAvatarReady,
   onAvatarLodChange,
   onContextLost,
@@ -387,6 +432,7 @@ function WorldRoomScene({
   readonly reducedMotion: boolean;
   readonly avatarReady: Readonly<{ user: boolean; agent: boolean }>;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
+  readonly renderQuality: WorldRenderQuality;
   readonly onAvatarReady: (role: "user" | "agent") => void;
   readonly onAvatarLodChange: (role: "user" | "agent", lod: AvatarLod) => void;
   readonly onContextLost: () => void;
@@ -453,6 +499,7 @@ function WorldRoomScene({
       userLod: avatarLod.user,
       agentLod: avatarLod.agent,
       reducedMotion,
+      renderQuality,
     });
     invalidate();
   }, [
@@ -468,6 +515,7 @@ function WorldRoomScene({
     gl,
     invalidate,
     reducedMotion,
+    renderQuality,
     userAvatar,
     userAction,
     userPosition,
@@ -587,6 +635,14 @@ export function WorldRoomCanvas({
   readonly reducedMotion: boolean;
   readonly onContextLost: () => void;
 }) {
+  const [renderQuality] = useState(() =>
+    selectWorldRenderQuality(
+      typeof navigator === "undefined"
+        ? undefined
+        : navigator.hardwareConcurrency,
+      detectWorldRenderer(),
+    ),
+  );
   const [avatarReady, setAvatarReady] = useState({
     user: false,
     agent: false,
@@ -594,7 +650,7 @@ export function WorldRoomCanvas({
   const [avatarLod, setAvatarLod] = useState<{
     user: AvatarLod;
     agent: AvatarLod;
-  }>({ user: "LOD2", agent: "LOD2" });
+  }>({ user: "LOD0", agent: "LOD0" });
   const onAvatarReady = useCallback((role: "user" | "agent") => {
     setAvatarReady((current) =>
       current[role] ? current : { ...current, [role]: true },
@@ -637,13 +693,18 @@ export function WorldRoomCanvas({
       data-user-avatar-lod={avatarLod.user}
       data-agent-avatar-lod={avatarLod.agent}
       data-render-loop={reducedMotion ? "demand" : "continuous"}
+      data-cosmetic-quality={renderQuality.cosmeticQuality}
+      data-render-dpr={renderQuality.dpr}
       data-avatar-render-ready={
         avatarReady.user && avatarReady.agent ? "true" : "false"
       }
       camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46 }}
-      dpr={1}
+      dpr={renderQuality.dpr}
       frameloop={reducedMotion ? "demand" : "always"}
-      gl={{ antialias: true, powerPreference: "high-performance" }}
+      gl={{
+        antialias: renderQuality.antialias,
+        powerPreference: "high-performance",
+      }}
       onPointerMissed={() => undefined}
     >
       <WorldRoomScene
@@ -661,6 +722,7 @@ export function WorldRoomCanvas({
         reducedMotion={reducedMotion}
         avatarReady={avatarReady}
         avatarLod={avatarLod}
+        renderQuality={renderQuality}
         onAvatarReady={onAvatarReady}
         onAvatarLodChange={onAvatarLodChange}
         onContextLost={onContextLost}

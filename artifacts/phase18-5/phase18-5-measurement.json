@@ -1,28 +1,31 @@
 {
   "schema": "aiw.phase18-5.measurement/2",
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "hardwareConcurrency": 16,
+  "cosmeticQuality": "constrained",
+  "renderDpr": "0.5",
   "cadenceAuthority": "software-emulation",
   "cadenceAuthoritative": false,
   "samples": 120,
   "warmupFrames": 45,
   "cadenceSamples": 120,
   "renderSamples": 24,
-  "renderWorkP95Ms": 0.3999999910593033,
-  "cadenceP95Ms": 50,
-  "longestTaskMs": 49,
+  "renderWorkP95Ms": 0.7000000011175871,
+  "cadenceP95Ms": 33.30000000000109,
+  "longestTaskMs": 0,
   "cadenceDiagnostics": {
-    "minMs": 33.20000000000073,
-    "medianMs": 33.400000000001455,
-    "p90Ms": 50,
-    "p95Ms": 50,
-    "maxMs": 50.100000000000364,
-    "samplesOverThreshold": 120
+    "minMs": 16.5,
+    "medianMs": 16.69999999999891,
+    "p90Ms": 33.29999999999927,
+    "p95Ms": 33.30000000000109,
+    "maxMs": 33.400000000001455,
+    "samplesOverThreshold": 21
   },
   "longTaskDiagnostics": {
-    "count": 1,
-    "maxMs": 49,
-    "totalMs": 49,
-    "retainedLongestDurationsMs": [49]
+    "count": 0,
+    "maxMs": 0,
+    "totalMs": 0,
+    "retainedLongestDurationsMs": []
   },
   "thresholds": {
     "renderWorkP95Ms": 16.7,

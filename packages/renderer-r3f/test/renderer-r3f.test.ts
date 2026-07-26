@@ -61,7 +61,7 @@ describe("repository renderer preparation", () => {
     });
   });
 
-  it("uses deterministic avatar distance quality without losing the core semantic state", () => {
+  it("keeps full avatar detail at every distance while runtime LOD is disabled", () => {
     expect(
       [
         0,
@@ -73,9 +73,9 @@ describe("repository renderer preparation", () => {
         Number.NEGATIVE_INFINITY,
         Number.NaN,
       ].map((distance) => avatarLodForDistance(distance, "world")),
-    ).toEqual(["LOD0", "LOD0", "LOD1", "LOD1", "LOD2", "LOD2", "LOD2", "LOD2"]);
+    ).toEqual(["LOD0", "LOD0", "LOD0", "LOD0", "LOD0", "LOD0", "LOD0", "LOD0"]);
     expect(avatarLodForDistance(100, "builder")).toBe("LOD0");
-    expect(avatarLodForDistance(0, "roster")).toBe("LOD1");
+    expect(avatarLodForDistance(0, "roster")).toBe("LOD0");
     expect(avatarSecondaryVisibility("LOD2")).toEqual({
       fur: false,
       markings: false,

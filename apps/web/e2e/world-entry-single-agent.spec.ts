@@ -1031,8 +1031,11 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
     return {
       renderer: room?.dataset.renderer ?? null,
       unmaskedRenderer,
+      hardwareConcurrency: navigator.hardwareConcurrency,
       floor: room?.dataset.floorState ?? null,
       avatarReady: canvas?.dataset.avatarRenderReady ?? null,
+      cosmeticQuality: canvas?.dataset.cosmeticQuality ?? null,
+      renderDpr: canvas?.dataset.renderDpr ?? null,
       userSpecies: canvas?.dataset.userAvatarSpecies ?? null,
       agentSpecies: canvas?.dataset.agentAvatarSpecies ?? null,
       userAction: canvas?.dataset.userAvatarAction ?? null,
@@ -1047,6 +1050,16 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
       ).length,
     };
   });
+  const constrainedCosmetics =
+    /swiftshader|llvmpipe|lavapipe|softpipe|software raster|microsoft basic render driver|software emulation/iu.test(
+      inspection.unmaskedRenderer ?? "",
+    ) ||
+    (Number.isFinite(inspection.hardwareConcurrency) &&
+      Number.isInteger(inspection.hardwareConcurrency) &&
+      inspection.hardwareConcurrency > 0 &&
+      inspection.hardwareConcurrency <= 2);
+  const expectedCosmeticQuality = constrainedCosmetics ? "constrained" : "full";
+  const expectedRenderDpr = constrainedCosmetics ? 0.5 : 1;
   await expect(
     page.locator('canvas[data-floor-state="repository"]'),
   ).toHaveAttribute("data-agent-avatar-action", "Idle");
@@ -1089,6 +1102,9 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
   const measurement = {
     schema: "aiw.phase18-5.measurement/2",
     renderer: inspection.unmaskedRenderer,
+    hardwareConcurrency: inspection.hardwareConcurrency,
+    cosmeticQuality: inspection.cosmeticQuality,
+    renderDpr: inspection.renderDpr,
     cadenceAuthority,
     cadenceAuthoritative,
     samples: 120,
@@ -1118,8 +1134,10 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
     inspection.renderer === "webgl" &&
     inspection.floor === "repository" &&
     inspection.avatarReady === "true" &&
-    inspection.userLod === "LOD2" &&
-    inspection.agentLod === "LOD2" &&
+    inspection.cosmeticQuality === expectedCosmeticQuality &&
+    inspection.renderDpr === String(expectedRenderDpr) &&
+    inspection.userLod === "LOD0" &&
+    inspection.agentLod === "LOD0" &&
     inspection.renderLoop === "continuous" &&
     inspection.semanticRows > 0;
   const passed =
@@ -1166,15 +1184,23 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
     renderer: "webgl",
     floor: "repository",
     avatarReady: "true",
+    hardwareConcurrency: expect.any(Number),
+    cosmeticQuality: expectedCosmeticQuality,
+    renderDpr: String(expectedRenderDpr),
     userSpecies: "human",
     agentSpecies: "cat",
     userAction: "Idle",
     agentAction: "Celebrate",
     agentFace: "Smile",
     agentSecondary: "Celebrate",
-    userLod: "LOD2",
-    agentLod: "LOD2",
+    userLod: "LOD0",
+    agentLod: "LOD0",
     renderLoop: "continuous",
+  });
+  expect(measurement).toMatchObject({
+    hardwareConcurrency: inspection.hardwareConcurrency,
+    cosmeticQuality: expectedCosmeticQuality,
+    renderDpr: String(expectedRenderDpr),
   });
   expect(errors).toEqual([]);
   expect(measurement.renderWorkP95Ms).toBeLessThanOrEqual(16.7);
