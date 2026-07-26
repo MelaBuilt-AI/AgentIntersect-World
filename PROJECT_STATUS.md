@@ -1,25 +1,38 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-25
+Updated: 2026-07-26
 
 ## Current milestone
 
-**REVISED PHASE 18 FIRST-HAND RETESTED — CORRECTIONS REQUIRED NEXT SESSION**
+**PHASE 18.5 AUTHORIZED / NEXT UP / NOT STARTED — PHASE 18 REMAINS OPEN**
+
+On 2026-07-26 Aaron explicitly chose **Phase 18.5 — Avatar and World Visual Production** as the next-session implementation priority even though revised Phase 18 remains open. This sequencing decision does not accept, seal, waive, or delete any Phase 18 gate. The pending physical-mouse held-right camera test plus real in-World Hermes/other-enabled-single-agent chat/voice and bounded coding acceptance remain mandatory and must ultimately be confirmed against the integrated visual candidate.
+
+The Phase 18 interaction correction is privately delivered on clean `main` at `b1f488c23f53b5ba6b75ea84c44a44924c7b0a2b`; exact-SHA GitHub Actions run `30187070037`, job `89753560868`, passed under Node 24. Aaron has visually accepted the corrected harness-button placement but has not yet completed the physical-mouse camera test. The fixture-assisted browser remains explicitly non-live and cannot satisfy the newly expanded live-agent/coding gates.
+
+### Next priority — begin Phase 18.5 visual production
+
+1. Freeze `docs/PHASE_18_5_SCOPE.md` and the executable avatar/environment asset contract before production edits.
+2. Generate and present original high-resolution multi-view avatar/world concept candidates; obtain Aaron's visual direction approval before modeling the full kit.
+3. Build one complete human-plus-cat hero vertical slice using high-detail Blender sources, optimized runtime topology, PBR atlases/LODs, one modular superset rig, facial/ear/tail contracts, smooth locomotion, talking/listening, work, and gesture animation.
+4. Extend the accepted modular human/dog/cat family only after the hero slice is approved.
+5. Replace the box-only repository landscape with a truthful reusable semantic visual grammar driven by existing package/file/language/size/symbol/dependency/evidence metadata.
+6. Preserve skeleton-safe cloning, profile continuity/migration, instancing, lazy loading, low-spec/reduced-motion/no-WebGL semantics, accessibility, and local performance budgets.
+7. Run independent structural/runtime/visual proof and first-hand acceptance; do not claim completion from inventory counts or detached-part renders.
+
+Phase 18.5 implementation was **not started in the sequencing session**. No concept art, Blender source, GLB, animation, runtime code, dependency, provider, service, or repository asset changed before this status transition. Local ComfyUI was not installed/running during evaluation; any model/backend download or cloud use remains a separate approved provenance/setup gate.
+
+Revised Phase 19 (**Multi-Agent Constellation and Harness Breadth**) and revised Phase 20 (**Embodied Product Acceptance and Bounded Hardening**) remain not started and not authorized.
+
+## Historical Phase 18 correction baseline
+
+**REVISED PHASE 18 FIRST-HAND RETESTED — CORRECTIONS REQUIRED**
 
 The user authorized complete bounded revised Phase 18 implementation on 2026-07-25, then first-hand testing reopened it after observing nonfunctional ordinary World controls and no durable reply to `hi`. The bounded correction is implemented under `docs/PHASE_18_SCOPE.md`, `PHASE_18_REPORT.md`, and `artifacts/phase18/`. Fresh independent parent verification found and corrected forced-colors semantic overlap, misleading pointer-lock evidence, an oversized activity banner, and a stale headed-project contract. Final local product proof is green: focused World/renderer **16/16**, production World entry **7/7**, aggregate **114/114 files / 606/606 Vitest**, **20/20 builds**, smoke PASS, **52/52 flagged Playwright**, and **1/1 unflagged fail-closed Playwright**. Private commit `2a78ae335651756f1df3c97fe799db51490d5ab4` matched remote `main`, but exact-SHA run `30162706333` failed deterministically because the legacy Phase 11 measurement command built the newly flag-gated internal-dashboard tests without the required explicit developer flag. The RED-to-GREEN command correction, exact local Phase 11 lane, and complete follow-up aggregate are green. Private follow-up commit `b7e4a6706ec783eebfa96188b75ce2d54af11e50` matched remote `main` and passed exact-SHA GitHub Actions run `30163161342`, job `89691659661`, including Phase 10, avatar, corrected Phase 11, and full `pnpm check` gates. Final status-record commit `7162c68a88ff97a0a091ca42fc074b6e6a3eb9e2` matched remote `main` and passed exact-SHA run `30163449519`, job `89692382558`. Aaron then completed a clean native fixture-assisted retest: first launch, avatar creation, chat/transcript/status presentation, and repository-floor transformation worked, but avatar grounding, camera/avatar heading, hold-right-mouse controls, both mouse axes, transcript/composer alignment, constellation button spacing, and dynamic user-name addressing require correction. The authoritative list and screenshots are in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md` and `artifacts/phase18/user-retest/`. Phase 18 is not user accepted, sealed, released, deployed, or published. Phases 0–17 remain accepted historical foundations.
 
-Revised Phase 18 is **USER RETESTED / CORRECTIONS REQUIRED / NEXT-SESSION IMPLEMENTATION AUTHORIZED**. The corrected journey remains: clean or returning identity → explicit avatar creation/continuity → Single Agent Hermes/Mr Fluff → readiness-gated entry → continuously playable one-canvas World with grounded avatars, camera-aligned controlled-avatar heading, hold-right-mouse natural-direction look → durable transcript aligned responsively with the composer plus canonical overhead activity bubble → same-floor repository transformation.
+That first-hand retest authorized the seven-family correction backlog in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`. The corrections were subsequently implemented, reviewed, privately delivered, and exact-SHA-CI-verified. The current authority is the Phase 18.5 milestone and preserved Phase 18 gates recorded above—not this historical backlog.
 
-### Next priority — implement the Phase 18 acceptance backlog
-
-- Read and implement every item in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`; its four captures under `artifacts/phase18/user-retest/` are authoritative visual targets.
-- Add focused RED → GREEN regressions for grounding, camera/avatar heading, held-right-mouse lifecycle, both look directions, responsive transcript/composer alignment, responsive constellation spacing, and avatar-name-derived addressing.
-- Run independent diff/visual review, focused and complete pinned gates, private exact-SHA CI, and another clean native first-hand retest.
-- Treat fixture responses as fixture-backed. A live Hermes Sessions API exercise is a separate bounded follow-up and must prove dynamic user-name propagation before it can be called live continuity.
-- Do not call Phase 18 accepted or sealed until Aaron explicitly accepts the corrected experience.
-- Do not begin revised Phase 19 or Phase 20 during this testing session unless Aaron explicitly expands scope.
-
-Revised Phase 19 is **Multi-Agent Constellation and Harness Breadth**, not started or authorized. Revised Phase 20 is **Embodied Product Acceptance and Bounded Hardening**, not started or authorized; it carries forward the former Phase 18 acceptance purpose.
+Phase 18 remains not accepted or sealed. Fixture responses remain fixture-backed; they do not prove live Hermes continuity. Revised Phase 19 and Phase 20 remain not started and not authorized.
 
 The frozen normal-experience invariants are:
 
@@ -39,8 +52,8 @@ Normative details: `AgentIntersect_WorldDD.md` and `docs/WORLD_ENTRY_EXPERIENCE.
 - Phase 13 Discord → World continuity remains **FAIL/deferred under waiver** and was not retried.
 - Phase 15 remains **USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**; custom Mr Fluff voice remains deferred.
 - Phases 16 and 17 remain **USER ACCEPTED / SEALED / COMPLETE**.
-- Revised Phase 18’s prior candidate remains parent verified and exact-SHA CI green, but first-hand user retest found the concrete correction backlog; implementation/reverification/retest are next, while explicit user acceptance/sealing remains open. Revised Phases 19–20 remain not started and not authorized.
-- Provider promotion/activation, LAN setup UI, Hermes/OpenClaw/core/profile modification, original-AgentIntersect inspection/modification, further implementation beyond the frozen Phase 18 scope, package installation, persistent service startup, Phase 13 retry, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
+- Revised Phase 18's seven first-hand correction families are privately delivered and exact-SHA CI green; harness geometry is visually accepted, while the physical-mouse camera check and real in-World single-agent chat/voice/coding gates remain open. Phase 18 is not accepted or sealed.
+- Phase 18.5 visual production is the sole newly authorized next implementation milestone. Provider promotion/activation, LAN setup UI, Hermes/OpenClaw/core/profile modification, original-AgentIntersect inspection/modification, Phase 13 retry, revised Phase 19/20 work, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
 
 **Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 

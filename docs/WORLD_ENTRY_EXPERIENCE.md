@@ -278,13 +278,19 @@ The following are explicitly deferred:
 - LAN/different-PC setup UI;
 - custom Mr Fluff voice;
 - first-person camera toggle;
-- Multi Agent implementation until revised Phase 19;
-- OpenClaw/Codex/Claude connection breadth until revised Phase 19;
+- Multi Agent sequencing, broadcast, and targeting until revised Phase 19;
+- unsupported/unconfigured harness claims; each Single Agent harness shown enabled must instead pass Phase 18's live coding gate;
 - Phase 13 Discord → World continuity retry;
 - broad internal-dashboard redesign;
 - public rooms, unrelated users, cloud relay, release, publication, tags, deployment, public ingress, or visibility changes.
 
-## 17. Revised Phase 18 acceptance journey
+## 17. Phase 18.5 sequencing boundary
+
+Aaron explicitly authorized **Phase 18.5 — Avatar and World Visual Production** as the next milestone while leaving revised Phase 18 open. This does not waive the pending physical-mouse camera or real in-World single-agent chat/voice/coding gates. Phase 18.5 may replace avatar and repository rendering foundations first, but those Phase 18 gates must later pass against the integrated candidate. Phase 19 and Phase 20 remain closed.
+
+Phase 18.5 begins with `docs/PHASE_18_5_SCOPE.md` and an executable asset contract, followed by concept approval, one human-plus-cat hero slice, full modular avatar/animation production, truthful metadata-driven repository environment art, runtime optimization, independent proof, and first-hand visual acceptance. No Phase 18.5 implementation began during this sequencing documentation update.
+
+## 18. Revised Phase 18 acceptance journey
 
 The future Single-Agent Hermes magic slice passes only when all steps are observed in one production-boundary journey:
 
@@ -303,5 +309,8 @@ The future Single-Agent Hermes magic slice passes only when all steps are observ
 13. Verify keyboard, captions, reduced motion, forced colors, no-WebGL equivalence, mobile containment, and current/previous recovery.
 14. Verify the normal experience never links to or displays the internal dashboard.
 15. Verify no provider activation, external configuration, Phase 13 retry, original-project operation, release, publication, tag, deployment, public ingress, or visibility change occurred.
+16. Prove a real Hermes identity/session responds inside the normal World transcript through live chat or a truthfully enabled live voice path; fixture/canned output is insufficient.
+17. Have Hermes/Mr Fluff complete one bounded disposable-project feature as the sole connected agent while World truthfully shows progress, tools, chat/queue behavior, changes, tests/build, result, and cleanup.
+18. Repeat an equivalent bounded coding journey for every other Single Agent harness truthfully presented as enabled; unsupported harnesses remain grey and are not claimed.
 
-Completion of this journey requires a separately authorized implementation milestone, independent parent proof, and first-hand user acceptance.
+Completion of this journey requires the remaining production-boundary implementation/evidence, independent parent proof, and Aaron's explicit first-hand acceptance. Starting Phase 18.5 does not satisfy or waive any of these Phase 18 gates.
