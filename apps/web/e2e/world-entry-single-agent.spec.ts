@@ -986,6 +986,9 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
 test("Phase 18.5 integrates the avatar family and semantic repository kit", async ({
   page,
 }) => {
+  // The journey includes full GLB loading plus a 120-frame measurement on
+  // two-CPU software renderers. The frame budgets below remain unchanged.
+  test.setTimeout(60_000);
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
@@ -997,6 +1000,17 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
   await expect(
     page.getByRole("list", { name: "Repository floor objects" }),
   ).toContainText("source-file-code-slab");
+  const transcriptItems = page
+    .getByRole("log", { name: "Conversation and activity" })
+    .getByRole("listitem");
+  const transcriptItemCount = await transcriptItems.count();
+  const actionComposer = page.getByLabel("Message Mr Fluff");
+  await actionComposer.fill("Refresh Phase 18.5 action proof");
+  await actionComposer.press("Enter");
+  await expect(transcriptItems).toHaveCount(transcriptItemCount + 4);
+  await expect(
+    page.locator('canvas[data-floor-state="repository"]'),
+  ).toHaveAttribute("data-agent-avatar-action", "Celebrate");
   const inspection = await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>(
       'canvas[data-floor-state="repository"]',
@@ -1033,6 +1047,9 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit", asyn
       ).length,
     };
   });
+  await expect(
+    page.locator('canvas[data-floor-state="repository"]'),
+  ).toHaveAttribute("data-agent-avatar-action", "Idle");
   const frames = await measurePhase18_5Frames(page);
   const percentile = (values: readonly number[], fraction: number) =>
     [...values].sort((left, right) => left - right)[

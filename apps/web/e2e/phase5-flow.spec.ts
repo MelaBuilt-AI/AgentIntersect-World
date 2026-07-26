@@ -28,6 +28,9 @@ async function expectNoSeriousAxeViolations(page: Page) {
 test("first-open identify/avatar, durable harness, stable shell, Settings edit, and desktop evidence", async ({
   page,
 }) => {
+  // Screenshot-heavy full-quality proof can exceed the generic watchdog on
+  // two-CPU software renderers; every visual and interaction assertion remains.
+  test.setTimeout(60_000);
   await selectAvatarCosmeticQuality(page, "full");
   await page.goto("/internal/dashboard");
   await expect(page.getByTestId("identify-opening")).toBeVisible();

@@ -25,7 +25,9 @@ async function selectRadioWithKeyboard(page: Page, radio: Locator) {
 test("corrected 3D editor renders connected human, dog, and cat choices with activatable controls", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  // Full-quality GLB proof uses software rendering on two-CPU CI runners.
+  // Keep the product assertions strict while bounding only the outer watchdog.
+  test.setTimeout(120_000);
   await selectAvatarCosmeticQuality(page, "full");
   const errors: string[] = [];
   page.on("console", (message) => {
