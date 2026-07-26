@@ -456,22 +456,27 @@ describe("Phase 18 World entry experience", () => {
     }
   });
 
-  it("uses held right-button canvas look with complete release guards and no pointer lock", () => {
+  it("uses real held right-button canvas Pointer Lock with complete release guards", () => {
     const source = readFileSync(
       new URL("../src/world-entry/WorldRoom.tsx", import.meta.url),
       "utf8",
     );
     expect(source).toContain("event.button !== 2");
     expect(source).toContain("HTMLCanvasElement");
-    expect(source).toContain("setPointerCapture");
-    expect(source).toContain("releasePointerCapture");
+    expect(source).toContain("requestPointerLock");
+    expect(source).toContain("exitPointerLock");
+    expect(source).toContain("lookRequestPending");
+    expect(source).toContain("lookOwnsPointerLock");
+    expect(source).toContain('"pointerlockchange"');
+    expect(source).toContain('"pointerlockerror"');
+    expect(source).toContain('"mousemove"');
+    expect(source).not.toContain("setPointerCapture");
+    expect(source).not.toContain("releasePointerCapture");
     expect(source).toContain('"pointerup"');
+    expect(source).toContain('"pointercancel"');
     expect(source).toContain('"blur"');
     expect(source).toContain('"visibilitychange"');
     expect(source).toContain("onContextMenu");
-    expect(source).not.toMatch(
-      /requestPointerLock|pointerlockchange|pointerlockerror/u,
-    );
     expect(source).toContain("Hold right mouse");
   });
 
@@ -530,22 +535,22 @@ describe("Phase 18 World entry experience", () => {
     );
   });
 
-  it("places every harness outward with responsive radial constraints", () => {
+  it("places harness centers on endpoint rows with stronger desktop spread and mobile containment", () => {
     const styles = readFileSync(
       new URL("../src/styles.css", import.meta.url),
       "utf8",
     );
     expect(styles).toMatch(
-      /\.world-harness--openclaw\s*\{[^}]*top:\s*clamp\([^;]+;[^}]*left:\s*clamp\([^;]+;/su,
+      /\.world-harness--openclaw\s*\{[^}]*top:\s*11\.5%;[^}]*left:\s*clamp\(-11\.5rem,\s*-12vw,\s*-5rem\);[^}]*transform:\s*translateY\(-50%\);/su,
     );
     expect(styles).toMatch(
-      /\.world-harness--hermes\s*\{[^}]*top:\s*clamp\([^;]+;[^}]*right:\s*clamp\([^;]+;/su,
+      /\.world-harness--hermes\s*\{[^}]*top:\s*11\.5%;[^}]*right:\s*clamp\(-11\.5rem,\s*-12vw,\s*-5rem\);[^}]*transform:\s*translateY\(-50%\);/su,
     );
     expect(styles).toMatch(
-      /\.world-harness--claude\s*\{[^}]*bottom:\s*clamp\([^;]+;[^}]*left:\s*clamp\([^;]+;/su,
+      /\.world-harness--claude\s*\{[^}]*bottom:\s*11\.5%;[^}]*left:\s*clamp\(-11\.5rem,\s*-12vw,\s*-5rem\);[^}]*transform:\s*translateY\(50%\);/su,
     );
     expect(styles).toMatch(
-      /\.world-harness--codex\s*\{[^}]*right:\s*clamp\([^;]+;[^}]*bottom:\s*clamp\([^;]+;/su,
+      /\.world-harness--codex\s*\{[^}]*right:\s*clamp\(-11\.5rem,\s*-12vw,\s*-5rem\);[^}]*bottom:\s*11\.5%;[^}]*transform:\s*translateY\(50%\);/su,
     );
     expect(styles).toMatch(
       /@media \(max-width: 640px\)[\s\S]*\.world-harness--openclaw,[\s\S]*left:\s*-0\.5rem;/u,

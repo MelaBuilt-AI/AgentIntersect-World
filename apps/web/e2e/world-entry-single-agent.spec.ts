@@ -408,7 +408,10 @@ async function installWorldFixtures(page: Page) {
   });
 }
 
-async function expectOutwardConstellation(page: Page) {
+async function expectOutwardConstellation(
+  page: Page,
+  nativeAcceptance = false,
+) {
   const geometry = await page.evaluate(() => {
     const mark = document
       .querySelector<HTMLElement>(".world-entry-logo__mark")!
@@ -426,6 +429,8 @@ async function expectOutwardConstellation(page: Page) {
         right: bounds.right,
         top: bounds.top,
         bottom: bounds.bottom,
+        width: bounds.width,
+        height: bounds.height,
         x: bounds.left + bounds.width / 2,
         y: bounds.top + bounds.height / 2,
         radial:
@@ -439,6 +444,14 @@ async function expectOutwardConstellation(page: Page) {
       viewport: {
         width: document.documentElement.clientWidth,
         height: document.documentElement.clientHeight,
+      },
+      mark: {
+        left: mark.left,
+        right: mark.right,
+        top: mark.top,
+        bottom: mark.bottom,
+        width: mark.width,
+        height: mark.height,
       },
       center,
       openclaw: button(".world-harness--openclaw"),
@@ -467,6 +480,24 @@ async function expectOutwardConstellation(page: Page) {
   expect(geometry.claude.y).toBeGreaterThan(geometry.center.y);
   expect(geometry.codex.x).toBeGreaterThan(geometry.center.x);
   expect(geometry.codex.y).toBeGreaterThan(geometry.center.y);
+  if (nativeAcceptance) {
+    expect(geometry.viewport).toEqual({ width: 1912, height: 948 });
+    expect(geometry.mark.width).toBeCloseTo(620, 0);
+    expect(geometry.mark.height).toBeCloseTo(620, 0);
+    expect(geometry.mark.left - geometry.openclaw.x).toBeGreaterThanOrEqual(90);
+    expect(geometry.mark.left - geometry.claude.x).toBeGreaterThanOrEqual(90);
+    expect(geometry.hermes.x - geometry.mark.right).toBeGreaterThanOrEqual(90);
+    expect(geometry.codex.x - geometry.mark.right).toBeGreaterThanOrEqual(90);
+    const upperEndpointY = geometry.mark.top + geometry.mark.height * 0.115;
+    const lowerEndpointY = geometry.mark.top + geometry.mark.height * 0.885;
+    expect(Math.abs(geometry.openclaw.y - upperEndpointY)).toBeLessThanOrEqual(
+      1,
+    );
+    expect(Math.abs(geometry.hermes.y - upperEndpointY)).toBeLessThanOrEqual(1);
+    expect(Math.abs(geometry.claude.y - lowerEndpointY)).toBeLessThanOrEqual(1);
+    expect(Math.abs(geometry.codex.y - lowerEndpointY)).toBeLessThanOrEqual(1);
+  }
+  return geometry;
 }
 
 async function expectSharedHudBottomTrack(page: Page) {
@@ -686,6 +717,34 @@ async function completeJourney(
   }
 }
 
+test("native acceptance constellation aligns endpoint rows and moves outward", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1912, height: 948 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installWorldFixtures(page);
+  await page.goto("/");
+  await expect(page.locator(".world-entry-logo__name")).toHaveText("Aaron");
+  await page.getByRole("button", { name: /Single Agent/ }).click();
+  const geometry = await expectOutwardConstellation(page, true);
+  await expect(page.getByRole("button", { name: /hermes_/ })).toHaveClass(
+    /world-action--enabled/,
+  );
+  for (const harness of [/openclaw_/, /claude_/, /codex_/]) {
+    await expect(page.getByRole("button", { name: harness })).toHaveClass(
+      /world-action--unavailable/,
+    );
+  }
+  writeFileSync(
+    "/tmp/aiw-phase18-harness-geometry-1912x948.json",
+    `${JSON.stringify(geometry, null, 2)}\n`,
+  );
+  await page.screenshot({
+    path: "/tmp/aiw-phase18-harness-1912x948.png",
+  });
+});
+
 test("clean storage reaches the true identify_ opening and user avatar creator", async ({
   page,
 }) => {
@@ -895,10 +954,24 @@ test("held right-button canvas look follows both axes and clears every exit guar
         event.defaultPrevented,
       );
     });
+    window.addEventListener(
+      "pointerdown",
+      (event) => {
+        document.body.dataset.lastPointerId = String(event.pointerId);
+      },
+      true,
+    );
   });
+  const expectCanvasPointerLock = async (locked: boolean) =>
+    expect
+      .poll(() =>
+        canvas.evaluate((element) => document.pointerLockElement === element),
+      )
+      .toBe(locked);
 
   await page.mouse.click(center.x, center.y, { button: "left" });
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await expectCanvasPointerLock(false);
   await expect(canvas).toHaveAttribute(
     "data-camera-yaw",
     initialYaw.toFixed(3),
@@ -906,6 +979,7 @@ test("held right-button canvas look follows both axes and clears every exit guar
 
   await page.mouse.move(center.x, center.y);
   await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
   await expect(room).toHaveAttribute("data-mouse-look", "active");
   await page.mouse.move(center.x + 120, center.y - 80, { steps: 4 });
   await expect
@@ -932,6 +1006,7 @@ test("held right-button canvas look follows both axes and clears every exit guar
     "independent",
   );
   await page.mouse.up({ button: "right" });
+  await expectCanvasPointerLock(false);
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
   await expect(page.locator("body")).toHaveAttribute(
     "data-context-menu-prevented",
@@ -948,6 +1023,7 @@ test("held right-button canvas look follows both axes and clears every exit guar
 
   await page.mouse.move(center.x, center.y);
   await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
   await expect(room).toHaveAttribute("data-mouse-look", "active");
   await page.mouse.move(center.x - 60, center.y + 80, { steps: 4 });
   await expect
@@ -961,18 +1037,43 @@ test("held right-button canvas look follows both axes and clears every exit guar
   expect(leftYaw).toBeLessThan(rightYaw);
   expect(downPitch).toBeGreaterThan(upPitch);
   await page.mouse.up({ button: "right" });
+  await expectCanvasPointerLock(false);
   const releasedYaw = await canvas.getAttribute("data-camera-yaw");
   await page.mouse.move(center.x + 160, center.y);
   await expect(canvas).toHaveAttribute("data-camera-yaw", releasedYaw ?? "");
 
   await page.mouse.move(center.x, center.y);
   await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
   await expect(room).toHaveAttribute("data-mouse-look", "active");
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  await expectCanvasPointerLock(false);
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
   await page.mouse.up({ button: "right" });
 
   await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
+  await page.keyboard.press("Escape");
+  await expectCanvasPointerLock(false);
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
+
+  await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
+  await canvas.evaluate((element) => {
+    element.dispatchEvent(
+      new PointerEvent("pointercancel", {
+        bubbles: true,
+        pointerId: Number(document.body.dataset.lastPointerId),
+      }),
+    );
+  });
+  await expectCanvasPointerLock(false);
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
+
+  await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
   await expect(room).toHaveAttribute("data-mouse-look", "active");
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", {
@@ -981,6 +1082,7 @@ test("held right-button canvas look follows both axes and clears every exit guar
     });
     document.dispatchEvent(new Event("visibilitychange"));
   });
+  await expectCanvasPointerLock(false);
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
   await page.mouse.up({ button: "right" });
 
@@ -1014,6 +1116,18 @@ test("held right-button canvas look follows both axes and clears every exit guar
   expect(
     movementX * Math.sin(heading) + movementZ * -Math.cos(heading),
   ).toBeGreaterThan(0);
+
+  await canvas.evaluate((element) => {
+    Object.defineProperty(element, "requestPointerLock", {
+      configurable: true,
+      value: () => Promise.reject(new Error("fixture pointer lock rejection")),
+    });
+  });
+  await page.mouse.move(center.x, center.y);
+  await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(false);
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
 
   await page.screenshot({
     path: `${evidenceDirectory}/repository-floor-pointer-lock.png`,

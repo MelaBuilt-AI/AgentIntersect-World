@@ -489,27 +489,31 @@
 }
 
 .world-harness--openclaw {
-  top: clamp(4%, 5vw, 10%);
-  left: clamp(-8.5rem, -10vw, -4rem);
+  top: 11.5%;
+  left: clamp(-11.5rem, -12vw, -5rem);
   color: #ff6b6b;
+  transform: translateY(-50%);
 }
 
 .world-harness--hermes {
-  top: clamp(4%, 5vw, 10%);
-  right: clamp(-8.5rem, -10vw, -4rem);
+  top: 11.5%;
+  right: clamp(-11.5rem, -12vw, -5rem);
   color: #ffe066;
+  transform: translateY(-50%);
 }
 
 .world-harness--claude {
-  bottom: clamp(4%, 4vw, 9%);
-  left: clamp(-8.5rem, -10vw, -4rem);
+  bottom: 11.5%;
+  left: clamp(-11.5rem, -12vw, -5rem);
   color: #ff9f43;
+  transform: translateY(50%);
 }
 
 .world-harness--codex {
-  right: clamp(-8.5rem, -10vw, -4rem);
-  bottom: clamp(4%, 4vw, 9%);
+  right: clamp(-11.5rem, -12vw, -5rem);
+  bottom: 11.5%;
   color: #67e8f9;
+  transform: translateY(50%);
 }
 
 .world-harness.world-action--enabled {

@@ -60,7 +60,10 @@ export function WorldRoom({
   });
   const cameraRef = useRef(camera);
   const activeLookPointer = useRef<number | null>(null);
-  const deliberateRightGesture = useRef(Number.NEGATIVE_INFINITY);
+  const lookSurface = useRef<HTMLCanvasElement | null>(null);
+  const lookRequestPending = useRef(false);
+  const lookOwnsPointerLock = useRef(false);
+  const lookRequestSequence = useRef(0);
   const [mouseLookActive, setMouseLookActive] = useState(false);
   const noWebGL = forceNoWebGL || contextLost;
   useEffect(() => {
@@ -96,11 +99,18 @@ export function WorldRoom({
   }, []);
 
   const stopMouseLook = useCallback((updateState = true) => {
-    const room = roomRef.current;
-    const pointerId = activeLookPointer.current;
     activeLookPointer.current = null;
-    if (room && pointerId !== null && room.hasPointerCapture?.(pointerId))
-      room.releasePointerCapture(pointerId);
+    const surface = lookSurface.current;
+    const ownedLock = lookOwnsPointerLock.current;
+    lookOwnsPointerLock.current = false;
+    if (
+      surface &&
+      document.pointerLockElement === surface &&
+      (ownedLock || lookRequestPending.current)
+    ) {
+      lookRequestPending.current = false;
+      document.exitPointerLock();
+    }
     if (updateState) setMouseLookActive(false);
   }, []);
 
@@ -133,6 +143,52 @@ export function WorldRoom({
     const visibility = () => {
       if (document.visibilityState !== "visible") clear();
     };
+    const pointerLockChanged = () => {
+      const surface = lookSurface.current;
+      if (surface && document.pointerLockElement === surface) {
+        if (lookRequestPending.current) {
+          lookRequestPending.current = false;
+          if (activeLookPointer.current !== null) {
+            lookOwnsPointerLock.current = true;
+            setMouseLookActive(true);
+            return;
+          }
+          document.exitPointerLock();
+          setMouseLookActive(false);
+        }
+        return;
+      }
+      if (lookOwnsPointerLock.current) {
+        lookOwnsPointerLock.current = false;
+        activeLookPointer.current = null;
+        setMouseLookActive(false);
+      }
+    };
+    const pointerLockError = () => {
+      if (!lookRequestPending.current) return;
+      lookRequestPending.current = false;
+      lookOwnsPointerLock.current = false;
+      activeLookPointer.current = null;
+      setMouseLookActive(false);
+    };
+    const look = (event: MouseEvent) => {
+      if (
+        !lookOwnsPointerLock.current ||
+        document.pointerLockElement !== lookSurface.current ||
+        activeLookPointer.current === null
+      )
+        return;
+      if ((event.buttons & 2) === 0) {
+        stopMouseLook();
+        return;
+      }
+      setCamera((current) =>
+        applyWorldCameraLook(current, {
+          movementX: event.movementX,
+          movementY: event.movementY,
+        }),
+      );
+    };
     window.addEventListener("keydown", down, true);
     window.addEventListener("keyup", up, true);
     window.addEventListener("blur", clear);
@@ -140,6 +196,9 @@ export function WorldRoom({
     window.addEventListener("pointercancel", release, true);
     document.addEventListener("focusin", focus, true);
     document.addEventListener("visibilitychange", visibility);
+    document.addEventListener("pointerlockchange", pointerLockChanged);
+    document.addEventListener("pointerlockerror", pointerLockError);
+    document.addEventListener("mousemove", look);
     return () => {
       window.removeEventListener("keydown", down, true);
       window.removeEventListener("keyup", up, true);
@@ -148,6 +207,9 @@ export function WorldRoom({
       window.removeEventListener("pointercancel", release, true);
       document.removeEventListener("focusin", focus, true);
       document.removeEventListener("visibilitychange", visibility);
+      document.removeEventListener("pointerlockchange", pointerLockChanged);
+      document.removeEventListener("pointerlockerror", pointerLockError);
+      document.removeEventListener("mousemove", look);
       pressedKeys.current.clear();
       stopMouseLook(false);
     };
@@ -172,24 +234,48 @@ export function WorldRoom({
       onPointerDown={(event) => {
         if (event.button !== 2 || !(event.target instanceof HTMLCanvasElement))
           return;
-        activeLookPointer.current = event.pointerId;
-        deliberateRightGesture.current = event.timeStamp;
-        event.currentTarget.setPointerCapture(event.pointerId);
+        const surface = event.target;
+        const pointerId = event.pointerId;
+        const requestSequence = lookRequestSequence.current + 1;
+        lookRequestSequence.current = requestSequence;
+        activeLookPointer.current = pointerId;
+        lookSurface.current = surface;
+        lookRequestPending.current = true;
+        lookOwnsPointerLock.current = false;
+        setMouseLookActive(false);
+        event.preventDefault();
         event.currentTarget.focus({ preventScroll: true });
-        setMouseLookActive(true);
-      }}
-      onPointerMove={(event) => {
-        if (event.pointerId !== activeLookPointer.current) return;
-        if ((event.buttons & 2) === 0) {
-          stopMouseLook();
-          return;
+        try {
+          void Promise.resolve(surface.requestPointerLock())
+            .then(() => {
+              if (
+                lookRequestSequence.current === requestSequence &&
+                activeLookPointer.current !== pointerId &&
+                document.pointerLockElement === surface
+              ) {
+                lookRequestPending.current = false;
+                document.exitPointerLock();
+              }
+            })
+            .catch(() => {
+              if (
+                lookRequestSequence.current === requestSequence &&
+                lookRequestPending.current
+              ) {
+                lookRequestPending.current = false;
+                lookOwnsPointerLock.current = false;
+                if (activeLookPointer.current === pointerId) {
+                  activeLookPointer.current = null;
+                  setMouseLookActive(false);
+                }
+              }
+            });
+        } catch {
+          lookRequestPending.current = false;
+          lookOwnsPointerLock.current = false;
+          activeLookPointer.current = null;
+          setMouseLookActive(false);
         }
-        setCamera((current) =>
-          applyWorldCameraLook(current, {
-            movementX: event.movementX,
-            movementY: event.movementY,
-          }),
-        );
       }}
       onPointerUp={(event) => {
         if (event.pointerId === activeLookPointer.current) stopMouseLook();
@@ -198,18 +284,7 @@ export function WorldRoom({
         if (event.pointerId === activeLookPointer.current) stopMouseLook();
       }}
       onContextMenu={(event) => {
-        const pointerTarget = document.elementFromPoint(
-          event.clientX,
-          event.clientY,
-        );
-        if (
-          (event.target instanceof HTMLCanvasElement ||
-            pointerTarget instanceof HTMLCanvasElement) &&
-          event.timeStamp - deliberateRightGesture.current <= 1_000
-        ) {
-          event.preventDefault();
-          deliberateRightGesture.current = Number.NEGATIVE_INFINITY;
-        }
+        if (event.target === lookSurface.current) event.preventDefault();
       }}
     >
       <section
