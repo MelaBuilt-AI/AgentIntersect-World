@@ -67,12 +67,24 @@ test("corrected 3D editor renders connected human, dog, and cat choices with act
   await page.getByRole("radio", { name: "Long", exact: true }).check();
   await page.getByRole("radio", { name: "Cat curled", exact: true }).check();
   // Keep the live proof face unobscured; the evidence board proves the mask module.
-  await page.getByRole("radio", { name: "Solid", exact: true }).check();
-  await page.getByRole("radio", { name: "Hermes", exact: true }).check();
+  const solid = page.getByRole("radio", { name: "Solid", exact: true });
+  await solid.focus();
+  await page.keyboard.press("Space");
+  await expect(solid).toBeChecked();
+  const hermes = page.getByRole("radio", { name: "Hermes", exact: true });
+  await hermes.focus();
+  await page.keyboard.press("Space");
+  await expect(hermes).toBeChecked();
   await expectAvatarReady(preview, { species: "cat", shirt: "Hermes" });
   await preview.screenshot({ path: "/tmp/aiw-phase11-correction-cat.png" });
 
-  await page.getByRole("radio", { name: "OpenClaw", exact: true }).check();
+  const openClaw = page.getByRole("radio", {
+    name: "OpenClaw",
+    exact: true,
+  });
+  await openClaw.focus();
+  await page.keyboard.press("Space");
+  await expect(openClaw).toBeChecked();
   await expectAvatarReady(preview, { species: "cat", shirt: "OpenClaw" });
   await page.evaluate(() => window.scrollTo(0, 0));
   await preview.scrollIntoViewIfNeeded();

@@ -749,9 +749,11 @@ async function completeJourney(
     await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true");
     await expect(canvas).toHaveAttribute("data-user-position", "0,0");
     await page.keyboard.down("KeyW");
-    await page.waitForTimeout(260);
-    await page.keyboard.up("KeyW");
-    await expect(canvas).not.toHaveAttribute("data-user-position", "0,0");
+    try {
+      await expect(canvas).not.toHaveAttribute("data-user-position", "0,0");
+    } finally {
+      await page.keyboard.up("KeyW");
+    }
     const movedPosition = await canvas.getAttribute("data-user-position");
     await page.getByLabel("Message Mr Fluff").focus();
     await page.keyboard.press("KeyA");
