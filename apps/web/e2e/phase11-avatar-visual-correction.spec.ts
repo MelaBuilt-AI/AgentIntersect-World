@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { selectAvatarCosmeticQuality } from "./helpers.js";
 
@@ -14,6 +14,12 @@ async function expectAvatarReady(
   await expect(renderer).toHaveAttribute("data-avatar-shirt", selection.shirt);
   await expect(renderer).toHaveAttribute("data-avatar-render-ready", "true");
   await expect(renderer.locator("canvas")).toBeVisible();
+}
+
+async function selectRadioWithKeyboard(page: Page, radio: Locator) {
+  await radio.focus();
+  await page.keyboard.press("Space");
+  await expect(radio).toBeChecked();
 }
 
 test("corrected 3D editor renders connected human, dog, and cat choices with activatable controls", async ({
@@ -35,46 +41,65 @@ test("corrected 3D editor renders connected human, dog, and cat choices with act
   await preview.screenshot({ path: "/tmp/aiw-phase11-correction-human.png" });
 
   const dog = page.getByRole("radio", { name: "Dog", exact: true });
-  await dog.check();
-  await expect(dog).toBeChecked();
-  await page
-    .getByRole("group", { name: "Hands" })
-    .getByRole("radio", { name: "Paws", exact: true })
-    .check();
-  await page
-    .getByRole("group", { name: "Feet" })
-    .getByRole("radio", { name: "Paws", exact: true })
-    .check();
-  await page.getByRole("radio", { name: "Short", exact: true }).check();
-  await page.getByRole("radio", { name: "Dog curled", exact: true }).check();
-  await page.getByRole("radio", { name: "Muzzle", exact: true }).check();
-  await page.getByRole("radio", { name: "Claude", exact: true }).check();
+  await selectRadioWithKeyboard(page, dog);
+  await selectRadioWithKeyboard(
+    page,
+    page
+      .getByRole("group", { name: "Hands" })
+      .getByRole("radio", { name: "Paws", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page
+      .getByRole("group", { name: "Feet" })
+      .getByRole("radio", { name: "Paws", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page.getByRole("radio", { name: "Short", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page.getByRole("radio", { name: "Dog curled", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page.getByRole("radio", { name: "Muzzle", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page.getByRole("radio", { name: "Claude", exact: true }),
+  );
   await expectAvatarReady(preview, { species: "dog", shirt: "Claude" });
   await preview.screenshot({ path: "/tmp/aiw-phase11-correction-dog.png" });
 
   const cat = page.getByRole("radio", { name: "Cat", exact: true });
-  await cat.focus();
-  await page.keyboard.press("Space");
-  await expect(cat).toBeChecked();
-  await page
-    .getByRole("group", { name: "Hands" })
-    .getByRole("radio", { name: "Clawed paws", exact: true })
-    .check();
-  await page
-    .getByRole("group", { name: "Feet" })
-    .getByRole("radio", { name: "Clawed paws", exact: true })
-    .check();
-  await page.getByRole("radio", { name: "Long", exact: true }).check();
-  await page.getByRole("radio", { name: "Cat curled", exact: true }).check();
+  await selectRadioWithKeyboard(page, cat);
+  await selectRadioWithKeyboard(
+    page,
+    page
+      .getByRole("group", { name: "Hands" })
+      .getByRole("radio", { name: "Clawed paws", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page
+      .getByRole("group", { name: "Feet" })
+      .getByRole("radio", { name: "Clawed paws", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page.getByRole("radio", { name: "Long", exact: true }),
+  );
+  await selectRadioWithKeyboard(
+    page,
+    page.getByRole("radio", { name: "Cat curled", exact: true }),
+  );
   // Keep the live proof face unobscured; the evidence board proves the mask module.
   const solid = page.getByRole("radio", { name: "Solid", exact: true });
-  await solid.focus();
-  await page.keyboard.press("Space");
-  await expect(solid).toBeChecked();
+  await selectRadioWithKeyboard(page, solid);
   const hermes = page.getByRole("radio", { name: "Hermes", exact: true });
-  await hermes.focus();
-  await page.keyboard.press("Space");
-  await expect(hermes).toBeChecked();
+  await selectRadioWithKeyboard(page, hermes);
   await expectAvatarReady(preview, { species: "cat", shirt: "Hermes" });
   await preview.screenshot({ path: "/tmp/aiw-phase11-correction-cat.png" });
 
@@ -82,9 +107,7 @@ test("corrected 3D editor renders connected human, dog, and cat choices with act
     name: "OpenClaw",
     exact: true,
   });
-  await openClaw.focus();
-  await page.keyboard.press("Space");
-  await expect(openClaw).toBeChecked();
+  await selectRadioWithKeyboard(page, openClaw);
   await expectAvatarReady(preview, { species: "cat", shirt: "OpenClaw" });
   await page.evaluate(() => window.scrollTo(0, 0));
   await preview.scrollIntoViewIfNeeded();

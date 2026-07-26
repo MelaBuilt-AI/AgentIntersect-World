@@ -46,7 +46,8 @@
     "measure:phase17": "corepack pnpm@11.15.0 build && tsx tooling/scripts/measure-phase17.ts && xvfb-run -a playwright test apps/web/e2e/phase17-diagnostics-recovery.spec.ts --workers=1",
     "measure:phase18.5": "corepack pnpm@11.15.0 build && VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack pnpm@11.15.0 exec vite build apps/web --config apps/web/vite.config.ts && VITE_AIW_LOCAL_DEVELOPER_UI=1 xvfb-run -a playwright test apps/web/e2e/world-entry-single-agent.spec.ts --grep \"Phase 18.5 integrates\" --workers=1",
     "verify:fresh": "tsx tooling/scripts/verify-fresh.ts",
-    "check": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts && corepack pnpm@11.15.0 test:e2e"
+    "check:core": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts",
+    "check": "corepack pnpm@11.15.0 check:core && corepack pnpm@11.15.0 test:e2e"
   },
   "devDependencies": {
     "@agentintersect-world/repo-indexer": "workspace:*",

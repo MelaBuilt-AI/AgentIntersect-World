@@ -792,10 +792,9 @@ async function completeJourney(
       fullPage: true,
     });
 
-  await page
-    .getByLabel("Message Mr Fluff")
-    .fill("Please load the approved repository");
-  await page.getByRole("button", { name: "Send" }).click();
+  const messageComposer = page.getByLabel("Message Mr Fluff");
+  await messageComposer.fill("Please load the approved repository");
+  await messageComposer.press("Enter");
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
     "repository",
@@ -1213,7 +1212,11 @@ test("mobile keyboard/reduced-motion/forced-colors journey remains contained", a
       .slice(0, 10),
   );
   expect(overflow).toEqual([]);
-  await page.keyboard.press("Tab");
+  const messageComposer = page.getByLabel("Message Mr Fluff");
+  await messageComposer.focus();
+  await expect(messageComposer).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(messageComposer).not.toBeFocused();
   await expect(page.locator(":focus")).toBeVisible();
 });
 
@@ -1411,17 +1414,23 @@ test("held right-button canvas look follows both axes and clears every exit guar
     document.dispatchEvent(new Event("visibilitychange"));
   });
   await room.focus();
-  const positionBeforeForward = String(
+  const positionBeforeForwardValue = String(
     await canvas.getAttribute("data-user-position"),
-  )
+  );
+  const positionBeforeForward = positionBeforeForwardValue
     .split(",")
     .map(Number);
   await page.keyboard.down("KeyW");
-  await expect
-    .poll(() => canvas.getAttribute("data-user-avatar-action"))
-    .toMatch(/StartWalk|Walk/u);
-  await page.waitForTimeout(180);
-  await page.keyboard.up("KeyW");
+  try {
+    await expect
+      .poll(() => canvas.getAttribute("data-user-avatar-action"))
+      .toMatch(/StartWalk|Walk/u);
+    await expect
+      .poll(() => canvas.getAttribute("data-user-position"))
+      .not.toBe(positionBeforeForwardValue);
+  } finally {
+    await page.keyboard.up("KeyW");
+  }
   await expect(canvas).toHaveAttribute("data-user-avatar-action", "StopWalk");
   await expect
     .poll(() => canvas.getAttribute("data-user-avatar-action"))

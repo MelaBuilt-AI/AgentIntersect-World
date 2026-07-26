@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { parse } from "yaml";
 
 interface RootManifest {
   scripts: Record<string, string>;
@@ -124,29 +125,81 @@ describe("acceptance command graph", () => {
     expect(config.webServer).toHaveLength(2);
   });
 
-  it("installs pinned pnpm before the frozen CI acceptance sequence", async () => {
-    const workflow = await readProjectFile(".github/workflows/ci.yml");
-
-    expect(workflow).toContain("node-version: 24");
-    expect(workflow).not.toMatch(/cache:\s*pnpm/);
-
-    const requiredSequence = [
+  it("installs pinned pnpm before every isolated CI acceptance lane", async () => {
+    const workflowSource = await readProjectFile(".github/workflows/ci.yml");
+    const workflow = parse(workflowSource) as {
+      jobs: Record<
+        string,
+        {
+          strategy?: { matrix?: { shard?: string[] } };
+          steps: Array<{
+            run?: string;
+            uses?: string;
+            with?: { "node-version"?: number };
+          }>;
+        }
+      >;
+    };
+    const commands = (jobName: string) =>
+      workflow.jobs[jobName]?.steps.flatMap(({ run }) =>
+        run === undefined ? [] : [run],
+      ) ?? [];
+    const expectOrderedCommands = (
+      jobName: string,
+      requiredSequence: string[],
+    ) => {
+      const jobCommands = commands(jobName);
+      const positions = requiredSequence.map((required) =>
+        jobCommands.findIndex((command) => command.includes(required)),
+      );
+      expect(positions.every((position) => position >= 0)).toBe(true);
+      expect(positions).toEqual(
+        [...positions].sort((left, right) => left - right),
+      );
+    };
+    const pinnedBootstrap = [
       "corepack enable",
       "corepack prepare pnpm@11.15.0 --activate",
       "pnpm install --frozen-lockfile",
+    ];
+
+    expect(workflowSource).not.toMatch(/cache:\s*pnpm/);
+    for (const job of Object.values(workflow.jobs)) {
+      expect(job.steps).toContainEqual(
+        expect.objectContaining({
+          uses: "actions/setup-node@v7",
+          with: { "node-version": 24 },
+        }),
+      );
+    }
+    expectOrderedCommands("core", [...pinnedBootstrap, "pnpm check:core"]);
+    expectOrderedCommands("measurements", [
+      ...pinnedBootstrap,
       "pnpm exec playwright install --with-deps chromium",
       "pnpm measure:phase10",
       "pnpm avatar:verify",
       "pnpm measure:phase11",
-      "pnpm check",
-    ];
-    const positions = requiredSequence.map((command) =>
-      workflow.indexOf(command),
-    );
-
-    expect(positions.every((position) => position >= 0)).toBe(true);
-    expect(positions).toEqual(
-      [...positions].sort((left, right) => left - right),
-    );
+    ]);
+    expectOrderedCommands("e2e-flagged", [
+      ...pinnedBootstrap,
+      "pnpm exec playwright install --with-deps chromium",
+      "pnpm build",
+      "VITE_AIW_LOCAL_DEVELOPER_UI=1 pnpm exec vite build",
+      "VITE_AIW_LOCAL_DEVELOPER_UI=1 xvfb-run -a pnpm exec playwright test",
+      "--config playwright.config.ts",
+      "--shard=${{ matrix.shard }}",
+    ]);
+    expect(workflow.jobs["e2e-flagged"]?.strategy?.matrix?.shard).toEqual([
+      "1/2",
+      "2/2",
+    ]);
+    expectOrderedCommands("e2e-unflagged", [
+      ...pinnedBootstrap,
+      "pnpm exec playwright install --with-deps chromium",
+      "pnpm build",
+      "pnpm exec vite build apps/web",
+      "xvfb-run -a pnpm exec playwright test",
+      "--config playwright.unflagged.config.ts",
+    ]);
   });
 });
