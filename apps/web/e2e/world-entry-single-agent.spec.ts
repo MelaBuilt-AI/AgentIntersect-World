@@ -983,7 +983,7 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
   expect(errors).toEqual([]);
 });
 
-test("Phase 18.5 integrates the avatar family and semantic repository kit", async ({
+test("Phase 18.5 integrates the avatar family and semantic repository kit @phase18-5-performance", async ({
   page,
 }) => {
   // The journey includes full GLB loading plus a 120-frame measurement on
