@@ -37,6 +37,22 @@ type RendererApi = {
       "continuous-native" | "continuous-constrained" | "demand-reduced-motion";
     readonly recurringIntervalMs: 42 | null;
   };
+  readonly selectWorldAvatarMotion: (
+    renderQuality: {
+      readonly cosmeticQuality: "full" | "constrained";
+      readonly dpr: 1 | 0.25;
+      readonly antialias: boolean;
+    },
+    reducedMotion: boolean,
+  ) => {
+    readonly skeletal: boolean;
+    readonly lightweight: boolean;
+  };
+  readonly calculateLightweightAvatarOffset: (
+    elapsedSeconds: number,
+    phase: number,
+    enabled: boolean,
+  ) => number;
   readonly startCooperativeWorldInvalidation: (input: {
     readonly invalidate: () => void;
     readonly scheduleTimeout?: (
@@ -246,6 +262,49 @@ describe("Phase 18 shared World room canvas", () => {
         mode: "demand-reduced-motion",
         recurringIntervalMs: null,
       });
+    }
+  });
+
+  it("keeps native skeletal motion while using lightweight constrained animation", () => {
+    expect(typeof api.selectWorldAvatarMotion).toBe("function");
+    if (!api.selectWorldAvatarMotion) return;
+    const full = { cosmeticQuality: "full", dpr: 1, antialias: true } as const;
+    const constrained = {
+      cosmeticQuality: "constrained",
+      dpr: 0.25,
+      antialias: false,
+    } as const;
+
+    expect(api.selectWorldAvatarMotion(full, false)).toEqual({
+      skeletal: true,
+      lightweight: false,
+    });
+    expect(api.selectWorldAvatarMotion(constrained, false)).toEqual({
+      skeletal: false,
+      lightweight: true,
+    });
+    for (const quality of [full, constrained]) {
+      expect(api.selectWorldAvatarMotion(quality, true)).toEqual({
+        skeletal: false,
+        lightweight: false,
+      });
+    }
+  });
+
+  it("bounds and phase-shifts lightweight constrained avatar motion", () => {
+    expect(typeof api.calculateLightweightAvatarOffset).toBe("function");
+    if (!api.calculateLightweightAvatarOffset) return;
+    expect(api.calculateLightweightAvatarOffset(0, 0, true)).toBe(0);
+    expect(
+      api.calculateLightweightAvatarOffset(0, Math.PI / 2, true),
+    ).toBeCloseTo(0.015, 6);
+    expect(api.calculateLightweightAvatarOffset(12, Math.PI / 2, false)).toBe(
+      0,
+    );
+    for (const elapsedSeconds of [0, 0.25, 0.5, 1, 2]) {
+      expect(
+        Math.abs(api.calculateLightweightAvatarOffset(elapsedSeconds, 0, true)),
+      ).toBeLessThanOrEqual(0.015);
     }
   });
 
@@ -515,6 +574,11 @@ describe("Phase 18 shared World room canvas", () => {
     expect(source).toContain("data-agent-avatar-action");
     expect(source).toContain("data-user-avatar-lod");
     expect(source).toContain("layerState={agentLayerState}");
+    expect(source).toContain(
+      "selectWorldAvatarMotion(renderQuality, reducedMotion)",
+    );
+    expect(source).toContain("<LightweightAvatarMotion");
+    expect(source).toContain("animate={avatarMotion.skeletal}");
     expect(source).not.toContain("new BoxGeometry(0.9");
   });
 

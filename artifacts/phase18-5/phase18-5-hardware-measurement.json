@@ -1,6 +1,6 @@
 {
   "schema": "aiw.phase18-5.hardware-measurement/1",
-  "measuredAt": "2026-07-26T23:12:56.517Z",
+  "measuredAt": "2026-07-26T20:07:09-04:00",
   "authority": "hardware",
   "passed": true,
   "browser": {
@@ -32,12 +32,12 @@
       "minMs": 9,
       "medianMs": 9.9,
       "p90Ms": 10.1,
-      "p95Ms": 10.1,
+      "p95Ms": 10.2,
       "maxMs": 10.6,
       "samplesOverThreshold": 0
     },
     "renderWork": {
-      "p95Ms": 1
+      "p95Ms": 0.8
     },
     "longTasks": {
       "count": 0,
@@ -54,7 +54,7 @@
       "sha256": "e1f598a7824f4c3829fee4567db9989e3041208c3a3890b206112599d9a55735"
     },
     "packages/renderer-r3f/src/world-room-canvas.tsx": {
-      "sha256": "0b5da7370ea66b3ca1fc4fbe10ec7f1d8eb1166e967e326b694d0f9bdf6d0c07"
+      "sha256": "cd0477fa689eaa527433df80464ba95e994513cdd10e717920e190d84af707ab"
     },
     "packages/renderer-r3f/src/index.ts": {
       "sha256": "c600a39901b9364f6b6991cc0a71f4d7179440851b105d400d3fae7aa9ba4a05"
@@ -68,7 +68,7 @@
   },
   "screenshot": {
     "path": "artifacts/phase18-5/browser-world-edge-hardware.png",
-    "sha256": "92b461f31f3ce801a6af4ab7ff9432c9a47fc684a779d269658bc79fedd10585"
+    "sha256": "acb1c0d830274a1501ac874df8b6ce68c057d892bb85907ffecc6e355a8d423c"
   },
   "visualQa": {
     "passed": true,

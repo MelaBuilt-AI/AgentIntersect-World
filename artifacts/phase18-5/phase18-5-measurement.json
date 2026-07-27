@@ -10,22 +10,22 @@
   "warmupFrames": 45,
   "cadenceSamples": 120,
   "renderSamples": 24,
-  "renderWorkP95Ms": 1,
-  "cadenceP95Ms": 49.899999999999636,
-  "longestTaskMs": 0,
+  "renderWorkP95Ms": 1.1000000014901161,
+  "cadenceP95Ms": 50,
+  "longestTaskMs": 59,
   "cadenceDiagnostics": {
-    "minMs": 16.5,
+    "minMs": 16.599999999998545,
     "medianMs": 33.29999999999927,
-    "p90Ms": 33.400000000001455,
-    "p95Ms": 49.899999999999636,
+    "p90Ms": 49.899999999999636,
+    "p95Ms": 50,
     "maxMs": 50.100000000000364,
-    "samplesOverThreshold": 75
+    "samplesOverThreshold": 78
   },
   "longTaskDiagnostics": {
-    "count": 0,
-    "maxMs": 0,
-    "totalMs": 0,
-    "retainedLongestDurationsMs": []
+    "count": 1,
+    "maxMs": 59,
+    "totalMs": 59,
+    "retainedLongestDurationsMs": [59]
   },
   "thresholds": {
     "renderWorkP95Ms": 16.7,

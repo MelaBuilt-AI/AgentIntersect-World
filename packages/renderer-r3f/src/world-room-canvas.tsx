@@ -1,9 +1,17 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   BoxGeometry,
   CanvasTexture,
   GridHelper,
+  Group,
   InstancedMesh,
   LinearFilter,
   Matrix4,
@@ -102,6 +110,29 @@ export function selectWorldRenderLoop(
         mode: "continuous-native",
         recurringIntervalMs: null,
       };
+}
+
+export type WorldAvatarMotion = {
+  readonly skeletal: boolean;
+  readonly lightweight: boolean;
+};
+
+export function selectWorldAvatarMotion(
+  renderQuality: WorldRenderQuality,
+  reducedMotion: boolean,
+): WorldAvatarMotion {
+  if (reducedMotion) return { skeletal: false, lightweight: false };
+  return renderQuality.cosmeticQuality === "constrained"
+    ? { skeletal: false, lightweight: true }
+    : { skeletal: true, lightweight: false };
+}
+
+export function calculateLightweightAvatarOffset(
+  elapsedSeconds: number,
+  phase: number,
+  enabled: boolean,
+): number {
+  return enabled ? Math.sin(elapsedSeconds * 2.4 + phase) * 0.015 : 0;
 }
 
 export function startCooperativeWorldInvalidation({
@@ -481,6 +512,25 @@ function CooperativeWorldInvalidation() {
   return null;
 }
 
+function LightweightAvatarMotion({
+  phase,
+  children,
+}: {
+  readonly phase: number;
+  readonly children: ReactNode;
+}) {
+  const groupRef = useRef<Group>(null);
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.y = calculateLightweightAvatarOffset(
+      clock.elapsedTime,
+      phase,
+      true,
+    );
+  });
+  return <group ref={groupRef}>{children}</group>;
+}
+
 function WorldRoomScene({
   floor,
   objects,
@@ -522,6 +572,7 @@ function WorldRoomScene({
 }) {
   const { camera, gl, invalidate, scene } = useThree();
   const controlledAvatarYaw = calculateControlledAvatarYaw(cameraLook.yaw);
+  const avatarMotion = selectWorldAvatarMotion(renderQuality, reducedMotion);
   const prepared = useMemo(
     () => prepareRepositoryInstances(objects),
     [objects],
@@ -656,35 +707,70 @@ function WorldRoomScene({
           ))}
         </group>
       ) : null}
-      <AvatarKitWorldModel
-        asset="/assets/avatar/aiw-avatar-kit.glb"
-        role="user"
-        selection={userAvatar}
-        action={userAction}
-        layerState={userLayerState}
-        animate={!reducedMotion}
-        position={[userPosition.x, 0, userPosition.z]}
-        rotation={[0, controlledAvatarYaw, 0]}
-        scale={AVATARS[0].scale}
-        onReady={onAvatarReady}
-        onLodChange={onAvatarLodChange}
-      />
+      {avatarMotion.lightweight ? (
+        <LightweightAvatarMotion phase={0}>
+          <AvatarKitWorldModel
+            asset="/assets/avatar/aiw-avatar-kit.glb"
+            role="user"
+            selection={userAvatar}
+            action={userAction}
+            layerState={userLayerState}
+            animate={avatarMotion.skeletal}
+            position={[userPosition.x, 0, userPosition.z]}
+            rotation={[0, controlledAvatarYaw, 0]}
+            scale={AVATARS[0].scale}
+            onReady={onAvatarReady}
+            onLodChange={onAvatarLodChange}
+          />
+        </LightweightAvatarMotion>
+      ) : (
+        <AvatarKitWorldModel
+          asset="/assets/avatar/aiw-avatar-kit.glb"
+          role="user"
+          selection={userAvatar}
+          action={userAction}
+          layerState={userLayerState}
+          animate={avatarMotion.skeletal}
+          position={[userPosition.x, 0, userPosition.z]}
+          rotation={[0, controlledAvatarYaw, 0]}
+          scale={AVATARS[0].scale}
+          onReady={onAvatarReady}
+          onLodChange={onAvatarLodChange}
+        />
+      )}
       <AgentActivityBillboard
         activity={activity}
         reducedMotion={reducedMotion}
       />
-      <AvatarKitWorldModel
-        asset="/assets/avatar/aiw-avatar-kit.glb"
-        role="agent"
-        selection={agentAvatar}
-        action={agentAction}
-        layerState={agentLayerState}
-        animate={!reducedMotion}
-        position={AVATARS[1].position}
-        scale={AVATARS[1].scale}
-        onReady={onAvatarReady}
-        onLodChange={onAvatarLodChange}
-      />
+      {avatarMotion.lightweight ? (
+        <LightweightAvatarMotion phase={Math.PI}>
+          <AvatarKitWorldModel
+            asset="/assets/avatar/aiw-avatar-kit.glb"
+            role="agent"
+            selection={agentAvatar}
+            action={agentAction}
+            layerState={agentLayerState}
+            animate={avatarMotion.skeletal}
+            position={AVATARS[1].position}
+            scale={AVATARS[1].scale}
+            onReady={onAvatarReady}
+            onLodChange={onAvatarLodChange}
+          />
+        </LightweightAvatarMotion>
+      ) : (
+        <AvatarKitWorldModel
+          asset="/assets/avatar/aiw-avatar-kit.glb"
+          role="agent"
+          selection={agentAvatar}
+          action={agentAction}
+          layerState={agentLayerState}
+          animate={avatarMotion.skeletal}
+          position={AVATARS[1].position}
+          scale={AVATARS[1].scale}
+          onReady={onAvatarReady}
+          onLodChange={onAvatarLodChange}
+        />
+      )}
     </>
   );
 }
