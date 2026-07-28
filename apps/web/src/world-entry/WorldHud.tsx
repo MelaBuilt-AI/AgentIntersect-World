@@ -1,11 +1,151 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import type { WorldTranscriptItem } from "./world-chat-model.js";
+
+const inlineTokens = (text: string, keyPrefix: string): ReactNode[] => {
+  const tokens = text.split(/(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__)/gu);
+  return tokens.map((token, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (token.startsWith("`") && token.endsWith("`"))
+      return <code key={key}>{token.slice(1, -1)}</code>;
+    if (
+      (token.startsWith("**") && token.endsWith("**")) ||
+      (token.startsWith("__") && token.endsWith("__"))
+    )
+      return <strong key={key}>{token.slice(2, -2)}</strong>;
+    return token;
+  });
+};
+
+const blockStart = (line: string) =>
+  /^ {0,3}(?:```|#{1,3}\s+|[-*+]\s+|\d+[.)]\s+|>\s?)/u.test(line);
+
+function AssistantText({ text }: { readonly text: string }) {
+  const lines = text.replace(/\r\n?/gu, "\n").split("\n");
+  const blocks: ReactNode[] = [];
+  let index = 0;
+  while (index < lines.length) {
+    const line = lines[index] ?? "";
+    if (!line.trim()) {
+      index += 1;
+      continue;
+    }
+
+    const fence = /^ {0,3}```\s*([a-z0-9+#.-]{0,24}).*$/iu.exec(line);
+    if (fence) {
+      const code: string[] = [];
+      index += 1;
+      while (
+        index < lines.length &&
+        !/^ {0,3}```\s*$/u.test(lines[index] ?? "")
+      ) {
+        code.push(lines[index] ?? "");
+        index += 1;
+      }
+      if (index < lines.length) index += 1;
+      blocks.push(
+        <pre key={`block-${blocks.length}`}>
+          <code data-language={fence[1] || undefined}>{code.join("\n")}</code>
+        </pre>,
+      );
+      continue;
+    }
+
+    const heading = /^ {0,3}(#{1,3})\s+(.+)$/u.exec(line);
+    if (heading) {
+      const content = inlineTokens(
+        heading[2] ?? "",
+        `heading-${blocks.length}`,
+      );
+      const key = `block-${blocks.length}`;
+      blocks.push(
+        heading[1]?.length === 1 ? (
+          <h3 key={key}>{content}</h3>
+        ) : heading[1]?.length === 2 ? (
+          <h4 key={key}>{content}</h4>
+        ) : (
+          <h5 key={key}>{content}</h5>
+        ),
+      );
+      index += 1;
+      continue;
+    }
+
+    const unordered = /^ {0,3}[-*+]\s+(.+)$/u.exec(line);
+    if (unordered) {
+      const items: ReactNode[] = [];
+      while (index < lines.length) {
+        const item = /^ {0,3}[-*+]\s+(.+)$/u.exec(lines[index] ?? "");
+        if (!item) break;
+        items.push(
+          <li key={`item-${items.length}`}>
+            {inlineTokens(item[1] ?? "", `ul-${blocks.length}-${items.length}`)}
+          </li>,
+        );
+        index += 1;
+      }
+      blocks.push(<ul key={`block-${blocks.length}`}>{items}</ul>);
+      continue;
+    }
+
+    const ordered = /^ {0,3}\d+[.)]\s+(.+)$/u.exec(line);
+    if (ordered) {
+      const items: ReactNode[] = [];
+      while (index < lines.length) {
+        const item = /^ {0,3}\d+[.)]\s+(.+)$/u.exec(lines[index] ?? "");
+        if (!item) break;
+        items.push(
+          <li key={`item-${items.length}`}>
+            {inlineTokens(item[1] ?? "", `ol-${blocks.length}-${items.length}`)}
+          </li>,
+        );
+        index += 1;
+      }
+      blocks.push(<ol key={`block-${blocks.length}`}>{items}</ol>);
+      continue;
+    }
+
+    const quote = /^ {0,3}>\s?(.*)$/u.exec(line);
+    if (quote) {
+      const quoted: string[] = [];
+      while (index < lines.length) {
+        const part = /^ {0,3}>\s?(.*)$/u.exec(lines[index] ?? "");
+        if (!part) break;
+        quoted.push(part[1] ?? "");
+        index += 1;
+      }
+      blocks.push(
+        <blockquote key={`block-${blocks.length}`}>
+          {inlineTokens(quoted.join(" "), `quote-${blocks.length}`)}
+        </blockquote>,
+      );
+      continue;
+    }
+
+    const paragraph = [line];
+    index += 1;
+    while (
+      index < lines.length &&
+      Boolean(lines[index]?.trim()) &&
+      !blockStart(lines[index] ?? "")
+    ) {
+      paragraph.push(lines[index] ?? "");
+      index += 1;
+    }
+    blocks.push(
+      <p key={`block-${blocks.length}`}>
+        {inlineTokens(paragraph.join(" "), `paragraph-${blocks.length}`)}
+      </p>,
+    );
+  }
+  return <div className="world-transcript__assistant-content">{blocks}</div>;
+}
 
 export function WorldHud({
   recipient,
   status,
   busy,
+  queuedCount,
   message,
   transcript,
   pushToTalkAvailable,
@@ -15,6 +155,7 @@ export function WorldHud({
   readonly recipient: string;
   readonly status: string;
   readonly busy: boolean;
+  readonly queuedCount: number;
   readonly message: string;
   readonly transcript: readonly WorldTranscriptItem[];
   readonly pushToTalkAvailable: boolean;
@@ -22,7 +163,7 @@ export function WorldHud({
   readonly onSend: () => void;
 }) {
   const transcriptRef = useRef<HTMLDivElement>(null);
-  const sendUnavailable = busy || !message.trim();
+  const sendUnavailable = !message.trim();
   useEffect(() => {
     const rail = transcriptRef.current;
     if (rail) rail.scrollTop = rail.scrollHeight;
@@ -31,6 +172,7 @@ export function WorldHud({
     <div className="world-hud" data-testid="world-hud">
       <div className="world-hud__captions" aria-live="polite" role="status">
         <span>{status}</span>
+        {queuedCount > 0 ? <span>{queuedCount} queued</span> : null}
       </div>
       <div
         ref={transcriptRef}
@@ -60,7 +202,11 @@ export function WorldHud({
                         ? "Activity"
                         : "Error"}
                 </strong>
-                <span>{item.text}</span>
+                {item.kind === "assistant" ? (
+                  <AssistantText text={item.text} />
+                ) : (
+                  <span>{item.text}</span>
+                )}
               </li>
             ))}
           </ol>
@@ -69,6 +215,7 @@ export function WorldHud({
       <div className="world-hud__controls">
         <form
           className="world-chat"
+          aria-busy={busy}
           onSubmit={(event) => {
             event.preventDefault();
             if (!sendUnavailable) onSend();
@@ -82,7 +229,6 @@ export function WorldHud({
             aria-label={`Message ${recipient}`}
             value={message}
             maxLength={4_000}
-            disabled={busy}
             placeholder={`Message ${recipient}`}
             onChange={(event) => onMessage(event.target.value)}
           />
@@ -95,7 +241,7 @@ export function WorldHud({
             }
             disabled={sendUnavailable}
           >
-            {busy ? "Sending…" : "Send"}
+            Send
           </button>
         </form>
         <button

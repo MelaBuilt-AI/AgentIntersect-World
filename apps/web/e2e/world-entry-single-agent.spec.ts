@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 // @ts-expect-error -- Playwright E2E runs in Node; the web app tsconfig intentionally exposes only Vite types.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -336,7 +336,20 @@ function streamBody(requestText: string, userDisplayName: string) {
   ].join("");
 }
 
-async function installWorldFixtures(page: Page) {
+type WorldFixtureOptions = {
+  readonly history?: unknown;
+  readonly restoreStatus?: boolean;
+  readonly fulfillStream?: (
+    route: Route,
+    requestText: string,
+    userDisplayName: string,
+  ) => Promise<void>;
+};
+
+async function installWorldFixtures(
+  page: Page,
+  options: WorldFixtureOptions = {},
+) {
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
@@ -359,30 +372,42 @@ async function installWorldFixtures(page: Page) {
         },
       ];
     else if (pathname.endsWith("/agent-sessions/attach")) data = session;
+    else if (
+      options.restoreStatus &&
+      request.method() === "GET" &&
+      pathname.endsWith(`/agent-sessions/${session.sessionId}/status`)
+    )
+      data = session;
     else if (pathname.endsWith("/avatar-proposal")) data = proposal;
     else if (pathname.endsWith("/history"))
-      data = {
-        sessionId: session.sessionId,
-        continuity: "current",
-        messages: [],
-        transcriptAuthority: "hermes",
-        avatarConsent: null,
-      };
+      data =
+        options.history ??
+        ({
+          sessionId: session.sessionId,
+          continuity: "current",
+          messages: [],
+          transcriptAuthority: "hermes",
+          avatarConsent: null,
+        } as const);
     else if (pathname.endsWith("/avatar-consent")) data = { state: "accepted" };
     else if (pathname.endsWith("/stream")) {
       const body = request.postDataJSON() as {
         readonly text?: unknown;
         readonly context?: { readonly userDisplayName?: unknown };
       } | null;
+      const requestText = typeof body?.text === "string" ? body.text : "";
+      const userDisplayName =
+        typeof body?.context?.userDisplayName === "string"
+          ? body.context.userDisplayName
+          : "World user";
+      if (options.fulfillStream) {
+        await options.fulfillStream(route, requestText, userDisplayName);
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: "text/event-stream",
-        body: streamBody(
-          typeof body?.text === "string" ? body.text : "",
-          typeof body?.context?.userDisplayName === "string"
-            ? body.context.userDisplayName
-            : "World user",
-        ),
+        body: streamBody(requestText, userDisplayName),
       });
       return;
     } else if (
@@ -413,6 +438,21 @@ async function installWorldFixtures(page: Page) {
       body: JSON.stringify(envelope(data)),
     });
   });
+}
+
+async function enterFixtureWorld(page: Page) {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Single Agent/ }).click();
+  await page.getByRole("button", { name: /hermes_/ }).click();
+  await page.getByLabel("Agent name").fill("Mr Fluff");
+  await page.getByRole("button", { name: "Connect agent" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
+  ).toBeVisible();
+  await page.getByLabel("Required agent name").fill("Mr Fluff");
+  await page.getByRole("button", { name: "Accept and save avatar" }).click();
+  await page.getByRole("button", { name: "Enter World" }).click();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
 }
 
 async function expectOutwardConstellation(
@@ -839,6 +879,164 @@ async function completeJourney(
       fullPage: true,
     });
 }
+
+test("in-flight follow-ups remain editable and dispatch one at a time in FIFO order", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const streamRequests: string[] = [];
+  let releaseFirstStream = () => {};
+  const firstStreamGate = new Promise<void>((resolveGate) => {
+    releaseFirstStream = resolveGate;
+  });
+  await installWorldFixtures(page, {
+    fulfillStream: async (route, requestText) => {
+      streamRequests.push(requestText);
+      if (streamRequests.length === 1) await firstStreamGate;
+      await route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        body: streamBody(requestText, "Aaron").replaceAll(
+          "[fixture] Hello Aaron — Mr Fluff is here and ready.",
+          `[fixture] Reply to ${requestText}.`,
+        ),
+      });
+    },
+  });
+  await enterFixtureWorld(page);
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  const send = page.getByRole("button", { name: "Send" });
+  await composer.fill("first request");
+  await send.click();
+  await expect.poll(() => [...streamRequests]).toEqual(["first request"]);
+
+  await expect(composer).toBeEnabled();
+  await composer.fill("second follow-up");
+  await expect(send).toBeEnabled();
+  await expect(send).toHaveClass(/world-action--enabled/);
+  await send.click();
+
+  const transcript = page.getByRole("log", {
+    name: "Conversation and activity",
+  });
+  await expect(transcript).toContainText("Youfirst request");
+  await expect(transcript).toContainText("Yousecond follow-up");
+  await expect(page.locator(".world-hud__captions")).toContainText("1 queued");
+  expect(streamRequests).toEqual(["first request"]);
+
+  releaseFirstStream();
+  await expect
+    .poll(() => [...streamRequests])
+    .toEqual(["first request", "second follow-up"]);
+  await expect(transcript).toContainText(
+    "Mr Fluff[fixture] Reply to first request.",
+  );
+  await expect(transcript).toContainText(
+    "Mr Fluff[fixture] Reply to second follow-up.",
+  );
+  const transcriptItems = await transcript.locator("li").allTextContents();
+  const positions = [
+    "Youfirst request",
+    "Yousecond follow-up",
+    "Mr Fluff[fixture] Reply to first request.",
+    "Mr Fluff[fixture] Reply to second follow-up.",
+  ].map((text) => transcriptItems.indexOf(text));
+  expect(positions.every((position) => position >= 0)).toBe(true);
+  expect(positions).toEqual([...positions].sort((left, right) => left - right));
+  for (const text of [
+    "Youfirst request",
+    "Yousecond follow-up",
+    "Mr Fluff[fixture] Reply to first request.",
+    "Mr Fluff[fixture] Reply to second follow-up.",
+  ])
+    expect(transcriptItems.filter((item) => item === text)).toHaveLength(1);
+});
+
+test("ordinary refresh restores the accepted exact session and authoritative transcript directly into World", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await page.addInitScript(
+    ({ key, sessionId }) => localStorage.setItem(key, sessionId),
+    {
+      key: "aiw.agent-session.pointer.0.12",
+      sessionId: session.sessionId,
+    },
+  );
+  await installWorldFixtures(page, {
+    restoreStatus: true,
+    history: {
+      sessionId: session.sessionId,
+      continuity: "current",
+      messages: [
+        { role: "user", text: "Are you still live?" },
+        { role: "assistant", text: "Yes — this is the same exact session." },
+      ],
+      transcriptAuthority: "hermes",
+      avatarConsent: {
+        state: "accepted",
+        current: proposal,
+        previous: null,
+      },
+    },
+  });
+
+  for (let load = 0; load < 2; load += 1) {
+    if (load === 0) await page.goto("/");
+    else await page.reload();
+    await expect(page.locator("main.world-room")).toHaveAttribute(
+      "data-floor-state",
+      "blank",
+    );
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    const transcript = page.getByRole("log", {
+      name: "Conversation and activity",
+    });
+    await expect(transcript).toContainText("YouAre you still live?");
+    await expect(transcript).toContainText(
+      "Mr FluffYes — this is the same exact session.",
+    );
+    await expect(
+      page.getByRole("button", { name: "Connect agent" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: /Create .* avatar/ }),
+    ).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Enter World" })).toHaveCount(
+      0,
+    );
+    await expect(transcript.locator("li")).toHaveCount(2);
+  }
+});
+
+test("agent-name prompt replaces the completed session choice without overlap", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1419, height: 776 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installWorldFixtures(page);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: /Single Agent/ }).click();
+  await page.getByRole("button", { name: /hermes_/ }).click();
+
+  const prompt = page.locator(".world-agent-prompt");
+  await expect(prompt).toBeVisible();
+  await expect(page.getByLabel("Agent name")).toBeVisible();
+  await expect(page.locator(".world-entry-logo__session-choices")).toHaveCount(
+    0,
+  );
+  const promptBounds = await prompt.boundingBox();
+  expect(promptBounds).not.toBeNull();
+  expect(promptBounds?.y ?? -1).toBeGreaterThanOrEqual(0);
+  expect(
+    (promptBounds?.y ?? 0) + (promptBounds?.height ?? 0),
+  ).toBeLessThanOrEqual(776);
+});
 
 test("native acceptance constellation aligns endpoint rows and moves outward", async ({
   page,

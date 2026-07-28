@@ -10,6 +10,7 @@ export type NativeSession = {
   readonly id: string;
   readonly source: string;
   readonly title: string;
+  readonly displayName?: string;
   readonly messageCount?: number;
 };
 
@@ -67,6 +68,8 @@ export type SessionHistory = {
   readonly transcriptAuthority: "hermes";
   readonly avatarConsent: null | {
     readonly state: "accepted" | "declined" | "revoked";
+    readonly current?: AvatarProposal | null;
+    readonly previous?: AvatarProposal | null;
   };
 };
 
@@ -98,7 +101,7 @@ function utf8Bytes(value: string): number {
 
 async function consumeSse(
   body: ReadableStream<Uint8Array>,
-  signal: AbortSignal,
+  signal: AbortSignal | undefined,
   onEvent: (event: string, data: unknown) => Promise<void>,
 ): Promise<void> {
   const reader = body.getReader();
@@ -152,7 +155,7 @@ async function consumeSse(
   };
   try {
     while (true) {
-      if (signal.aborted) fail("World session stream disconnected.");
+      if (signal?.aborted) fail("World session stream disconnected.");
       const next = await reader.read();
       if (next.done) break;
       totalBytes += next.value.byteLength;
@@ -325,11 +328,7 @@ export class AgentSessionClient {
     readonly finalText: string;
     readonly deltas: readonly string[];
   }> {
-    const signal = AbortSignal.any(
-      [options.signal, AbortSignal.timeout(60_000)].filter(
-        (value): value is AbortSignal => value !== undefined,
-      ),
-    );
+    const signal = options.signal;
     let response: Response;
     try {
       response = await this.#fetcher(
@@ -347,7 +346,7 @@ export class AgentSessionClient {
               ? { context: { userDisplayName: options.userDisplayName } }
               : {}),
           }),
-          signal,
+          ...(signal ? { signal } : {}),
         },
       );
     } catch {

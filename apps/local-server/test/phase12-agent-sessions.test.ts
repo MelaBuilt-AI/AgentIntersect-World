@@ -319,6 +319,125 @@ describe("Phase 12 Hermes adapter and session gateway", () => {
     );
   });
 
+  it("exposes only the pinned native session under a separate configured agent identity", async () => {
+    const fixture = await fakeHermes();
+    const adapter = new HermesSessionAdapter({
+      baseUrl: fixture.baseUrl,
+      apiKey: "fixture-key",
+      profile: "default",
+      pluginCapabilityPath: fixture.pluginCapabilityPath,
+      pinnedSessionRef: "20260721_011618_330489c8",
+      agentDisplayName: "Mr Fluff",
+      fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("/api/sessions?limit=100"))
+          return new Response(
+            JSON.stringify({ data: [], limit: 100, offset: 0, total: 0 }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        return fetch(input, init);
+      },
+    } as never);
+
+    await expect(adapter.listSessions()).resolves.toEqual([
+      expect.objectContaining({
+        id: "20260721_011618_330489c8",
+        title: "Existing Discord lane",
+        displayName: "Mr Fluff",
+      }),
+    ]);
+    await expect(
+      adapter.attach("another-native-session"),
+    ).rejects.toMatchObject({
+      code: "not_found",
+    });
+    expect(
+      fixture.calls.some((call) =>
+        call.url.includes("/api/sessions/another-native-session"),
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects an obsolete persisted root before native Hermes dispatch when the configured pin changes", async () => {
+    const oldRootSessionRef = "20260721_011618_330489c8";
+    const pluginCapabilityPath = path.join(newRoot(), "capabilities.json");
+    fs.writeFileSync(
+      pluginCapabilityPath,
+      `${JSON.stringify({
+        schema: "aiw.hermes-plugin-capabilities/0.12",
+        plugin: "agentintersect-world",
+        version: "0.12.0",
+        sameSessionArbiter: "fcntl-turn-lock-v1",
+      })}\n`,
+      { mode: 0o600 },
+    );
+    const fetch = vi.fn(
+      async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith(`/${oldRootSessionRef}/messages`))
+          return Response.json({
+            object: "list",
+            session_id: oldRootSessionRef,
+            data: [],
+          });
+        if (
+          url.endsWith(`/${oldRootSessionRef}/chat/stream`) &&
+          init?.method === "POST"
+        ) {
+          const events = [
+            sseEvent("run.started", {
+              session_id: oldRootSessionRef,
+              seq: 1,
+            }),
+            sseEvent("message.started", {
+              session_id: oldRootSessionRef,
+              seq: 2,
+            }),
+            sseEvent("assistant.completed", {
+              session_id: oldRootSessionRef,
+              seq: 3,
+              content: "obsolete root accepted",
+            }),
+            sseEvent("run.completed", {
+              session_id: oldRootSessionRef,
+              seq: 4,
+              messages: [],
+              usage: {},
+            }),
+            sseEvent("done", {
+              session_id: oldRootSessionRef,
+              seq: 5,
+            }),
+          ].join("");
+          return new Response(events, {
+            headers: { "content-type": "text/event-stream" },
+          });
+        }
+        return new Response(null, { status: 404 });
+      },
+    ) as unknown as typeof globalThis.fetch;
+    const adapter = new HermesSessionAdapter({
+      baseUrl: "http://127.0.0.1:8000",
+      apiKey: "fixture-key",
+      profile: "default",
+      pluginCapabilityPath,
+      pinnedSessionRef: "20260728_120000_newroot",
+      agentDisplayName: "Mr Fluff",
+      fetch,
+    });
+
+    await expect(
+      adapter.sendText(oldRootSessionRef, "stale persisted turn", {
+        mode: "explore",
+        rootSessionRef: oldRootSessionRef,
+      }),
+    ).rejects.toMatchObject({
+      code: "not_found",
+      message: "Hermes session is not allowlisted",
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("binds an exact root only to the effective session proven by the Hermes messages resolver", async () => {
     const fixture = await fakeHermes({ compressionContinuation: true });
     const adapter = new HermesSessionAdapter({

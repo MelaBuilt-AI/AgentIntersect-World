@@ -1,14 +1,32 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-26
+Updated: 2026-07-28
 
 ## Current milestone
 
 **PHASE 18.5 VISUAL/HARDWARE PARENT ACCEPTED — COMPLETE LOCAL AND FRESH VERIFICATION GREEN — PRIVATE DELIVERY PENDING — PHASE 18 REMAINS OPEN**
 
-On 2026-07-26 Aaron explicitly chose **Phase 18.5 — Avatar and World Visual Production** as the next-session implementation priority even though revised Phase 18 remains open. This sequencing decision does not accept, seal, waive, or delete any Phase 18 gate. The pending physical-mouse held-right camera test plus real in-World Hermes/other-enabled-single-agent chat/voice and bounded coding acceptance remain mandatory and must ultimately be confirmed against the integrated visual candidate.
+On 2026-07-26 Aaron explicitly chose **Phase 18.5 — Avatar and World Visual Production** as the next-session implementation priority even though revised Phase 18 remains open. This sequencing decision does not accept, seal, waive, or delete any Phase 18 gate. At that checkpoint the physical-mouse held-right camera test plus real in-World Hermes/other-enabled-single-agent chat, voice, and bounded coding acceptance were still pending. The camera and bounded live-Hermes text gates later passed as recorded below; voice and bounded live coding remain mandatory before Phase 18 can be sealed.
 
-The Phase 18 interaction correction is privately delivered on clean `main` at `b1f488c23f53b5ba6b75ea84c44a44924c7b0a2b`; exact-SHA GitHub Actions run `30187070037`, job `89753560868`, passed under Node 24. Aaron has visually accepted the corrected harness-button placement but has not yet completed the physical-mouse camera test. The fixture-assisted browser remains explicitly non-live and cannot satisfy the newly expanded live-agent/coding gates.
+The Phase 18 interaction correction is privately delivered on clean `main` at `b1f488c23f53b5ba6b75ea84c44a44924c7b0a2b`; exact-SHA GitHub Actions run `30187070037`, job `89753560868`, passed under Node 24. Aaron visually accepted the corrected harness-button placement and subsequently completed the physical-mouse held-right camera test. The fixture-assisted browser remains explicitly non-live and cannot satisfy the live-agent, voice, or coding gates; the separate first-hand live-Hermes text acceptance below supplies the text evidence only.
+
+### 2026-07-28 live same-session conversation acceptance — FIFO / long-run / refresh / formatting / activity pass
+
+Aaron paused Phase 18.5 rendering closeout and manually completed a fresh normal `/` journey through a loopback-only authenticated Hermes Sessions API connected to the true active Discord lineage. World accepted `hi fluff are you live?`; the exact Mr Fluff run streamed truthful tool activity, and later ordinary assistant responses returned to the persistent World conversation box. Aaron directly observed those responses and confirmed the result. This proves the bounded ordinary Hermes same-session **text** round trip, but it does not by itself seal Phase 18.
+
+The earlier `prep end session` run remains useful historical failure evidence because it ended in `chat unavailable_` despite successful backend writes. Aaron has now first-hand accepted the bounded retest: the complete long/tool-heavy `prep end session` final response appeared inside World, and his screenshot shows the final delivered message. Long/tool-heavy World delivery therefore passes for this live exact-session candidate and must no longer be described as pending or failed.
+
+The bounded live correction removes the completed Single/Multi choice labels from the later agent-name prompt, separates AgentIntersect display identity from the immutable native Hermes session title, pins/fetches one exact native root fail-closed, returns authoritative history through the typed client, and adds a ref-backed single-flight FIFO follow-up queue. Aaron manually proved that he can type and submit while Mr Fluff is working, sees `1 queued`, and receives each queued turn exactly once after the active turn. Conversation immediacy therefore passes first-hand without introducing concurrent Hermes turns.
+
+Aaron's first refresh crossed back to agent selection/avatar/`Enter World`, while authoritative transcript history remained intact. Parent diagnosis against the exact live session proved that the rebuilt candidate restores a valid persisted pointer directly into World even when the live avatar-proposal endpoint returns 409, using the accepted authoritative-history proposal without changing native roots. Aaron has now manually refreshed the rebuilt live preview and confirmed that the chat remained present and the visible `prep end session` response restored in place. Direct exact-session refresh restoration therefore passes first-hand. Exact-session fail-closed behavior and no ambiguous auto-resend remain mandatory.
+
+The bounded UX correction now preserves the accepted FIFO/session behavior while adding safe React-only structured assistant-message formatting and truthful turn-level activity. It renders paragraphs, bounded headings, unordered/ordered lists, blockquotes, fenced/inline code, and strong emphasis without raw HTML execution or a new package. Short no-tool turns show `thinking`; after any tool starts the bubble remains `working` until the outer turn completes, with a bounded secondary `tool`, `terminal`, or `reading` indicator. Neither `tool.completed` nor `message.assistant-final` presents the whole turn as `done`; only terminal send completion does so, after any awaited repository-floor load.
+
+Parent verification for the formatting/activity candidate passed focused Vitest **51/51 across 4 files**, impacted web/renderer Vitest **189/189 across 42 files**, focused Playwright FIFO/refresh regressions **2/2**, monorepo typecheck **38/38 tasks**, production build **20/20 tasks**, an explicit Vite production build, and `git diff --check` under Node 24 and bounded memory. The rebuilt live preview serves the new bundle. A no-click exact-session proof restored directly into World through live status 200 / avatar proposal 409 / authoritative history 200, hydrated 42 transcript items, structurally rendered 19 assistant messages, and produced no executable script elements. Aaron manually confirmed that refresh preserved the chat, the `prep end session` response remained visible with clean formatting, and the real tool-chain bubble behaved perfectly: `thinking` progressed to continuous `working` with bounded activity detail and did not show `done` until the full turn completed. The complete refresh/formatting/activity UX slice therefore passes first-hand. Voice and bounded live coding remain open; Phase 18 remains unsealed; Phase 18.5 rendering remains paused; revised Phases 19–20 remain closed.
+
+Checkpoint verification note: the complete `check:core` command reached **665/666 tests passing** and failed closed only because the accepted activity-bubble edit changed `packages/renderer-r3f/src/world-room-canvas.tsx`, invalidating the checked-in Phase 18.5 native-hardware production-input fingerprint. The old metrics were not silently rebound. A fresh native hardware capture is required when Phase 18.5 resumes. This accepted live-Hermes checkpoint may be committed and tagged as a recovery point, but it is not a Phase 18.5 performance seal or release candidate.
+
+Evidence integrity was reconciled against the accepted candidate: `artifacts/phase18/world-entry-trace.zip` is the refreshed Phase 18 UI-regression trace, its ZIP structure and embedded network/snapshot resources passed bounded privacy and integrity inspection, and `artifacts/phase18/world-entry-trace.zip.sha256` now binds its SHA-256 `8014447d0b5097d5a33b4c6bf6177b155e841d048cff9363cab34edea89a9782`. The archive contains no credential-bearing headers or cookies, request bodies, query parameters, private absolute paths, or unsafe member paths. It is fixture-assisted UI evidence, not a substitute for the separate first-hand live-Hermes acceptance above.
 
 ### Current Phase 18.5 candidate
 
@@ -37,7 +55,7 @@ The user authorized complete bounded revised Phase 18 implementation on 2026-07-
 
 That first-hand retest authorized the seven-family correction backlog in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`. The corrections were subsequently implemented, reviewed, privately delivered, and exact-SHA-CI-verified. The current authority is the Phase 18.5 milestone and preserved Phase 18 gates recorded above—not this historical backlog.
 
-Phase 18 remains not accepted or sealed. Fixture responses remain fixture-backed; they do not prove live Hermes continuity. Revised Phase 19 and Phase 20 remain not started and not authorized.
+Phase 18 remains not accepted or sealed. Historical fixture responses remain fixture-backed, but the separate 2026-07-28 same-session Hermes text journey is genuine first-hand live evidence. Voice and bounded live coding remain open. Revised Phase 19 and Phase 20 remain not started and not authorized.
 
 The frozen normal-experience invariants are:
 
@@ -47,18 +65,18 @@ The frozen normal-experience invariants are:
 - Hermes/OpenClaw name misses type `agent not found_` and retry immediately without technical detail; Codex/Claude use the entered name as World identity.
 - World defaults to third-person behind the user. Only chat and push-to-talk persist. Unaddressed messages go to all; avatar click or `@name` targets one.
 - Opening is full-screen with the existing animated logo and no other content; all text is Consolas; typed labels animate character-by-character and finish with a blinking underscore; connection overlays pulse truthful singular/plural state.
-- Same-PC connection is invisible. LAN/different-PC setup UI and custom Mr Fluff voice remain deferred.
+- Historical 2026-07-28 baseline: same-PC Hermes ordinary text was first-hand proven while the first long tool-heavy attempt ended in `chat unavailable_`. The later bounded retest passed long/tool-heavy completion, FIFO follow-up delivery, and conversation immediacy first-hand. LAN/different-PC setup UI remains deferred; normal-World voice integration and bounded live coding are the remaining Phase 18 priorities.
 - Enabled actions are blue, unavailable actions grey; keyboard access, reduced motion, captions, responsive containment, and truthful current/previous state remain mandatory without admin chrome.
 
 Normative details: `AgentIntersect_WorldDD.md` and `docs/WORLD_ENTRY_EXPERIENCE.md`. The frozen implementation scope is `docs/PHASE_18_SCOPE.md`; the first-hand correction authority is `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`; the worker handoff is `PHASE_18_REPORT.md`; the originating plan is `.hermes/plans/2026-07-25_000842-world-entry-single-agent-magic-slice.md`.
 
 ### Closed gates
 
-- Phase 13 Discord → World continuity remains **FAIL/deferred under waiver** and was not retried.
+- Phase 13's historical Discord → World attempt remains failed evidence. The first 2026-07-28 long tool-heavy `prep end session` turn also remains historical failure evidence, but the later bounded exact-session retest delivered its final response exactly once and passed FIFO/reliability first-hand. Reliable conversation completion is no longer open for this checkpoint.
 - Phase 15 remains **USER ACCEPTED / SEALED / COMPLETE / PROVIDER STAGED AND UNACTIVATED**; custom Mr Fluff voice remains deferred.
 - Phases 16 and 17 remain **USER ACCEPTED / SEALED / COMPLETE**.
-- Revised Phase 18's seven first-hand correction families are privately delivered and exact-SHA CI green; harness geometry is visually accepted, while the physical-mouse camera check and real in-World single-agent chat/voice/coding gates remain open. Phase 18 is not accepted or sealed.
-- Phase 18.5 has an uncommitted visual/hardware-accepted implementation candidate with complete canonical and fresh-copy verification green. Authorized private delivery and exact-SHA CI remain pending. Provider promotion/activation, LAN setup UI, Hermes/OpenClaw/core/profile modification, original-AgentIntersect inspection/modification, Phase 13 retry, revised Phase 19/20 work, merge, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
+- Revised Phase 18's seven first-hand correction families are privately delivered and exact-SHA CI green; harness geometry and held-right camera behavior are accepted. Bounded ordinary and long/tool-heavy in-World Hermes replies, exact-session refresh, FIFO follow-ups, structured formatting, and truthful activity passed first-hand on 2026-07-28. Voice and bounded live coding remain open, so Phase 18 is not sealed.
+- Phase 18.5 has a preserved uncommitted runtime-impostor correction in its separate worktree and is paused by Aaron. The live acceptance worktree has a separate uncommitted correction candidate. The current same-session runtime uses one explicitly approved reversible default-Hermes plugin/API transaction with a verified rollback manifest; additional provider/profile/core changes remain closed. Provider promotion/activation, LAN setup UI, original-AgentIntersect inspection/modification, revised Phase 19/20 work, merge, release, publication, tagging, deployment, public ingress, and visibility changes remain closed unless separately authorized.
 
 **Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 

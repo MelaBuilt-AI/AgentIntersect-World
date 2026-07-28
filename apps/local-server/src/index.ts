@@ -125,6 +125,12 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
               pluginCapabilityPath: config.agentSessions.pluginCapabilityPath,
             }
           : {}),
+        ...(config.agentSessions.pinnedSessionRef
+          ? {
+              pinnedSessionRef: config.agentSessions.pinnedSessionRef,
+              agentDisplayName: config.agentSessions.agentDisplayName as string,
+            }
+          : {}),
       })
     : undefined;
   const agentAdapterRegistry = new AdapterRegistry(

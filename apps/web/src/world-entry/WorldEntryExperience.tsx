@@ -32,6 +32,13 @@ import {
 import { createWorldChatState, reduceWorldChat } from "./world-chat-model.js";
 
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
+const SESSION_POINTER_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+
+type PendingWorldMessage = {
+  readonly id: string;
+  readonly text: string;
+};
 
 function renderObjects(
   snapshot: WorldSnapshot,
@@ -116,17 +123,96 @@ export function WorldEntryExperience({
     undefined,
     createWorldChatState,
   );
+  const [restorePending, setRestorePending] = useState(true);
   const [chatBusy, setChatBusy] = useState(false);
+  const [queuedCount, setQueuedCount] = useState(0);
   const [objects, setObjects] = useState<readonly RepositoryRenderObject[]>([]);
   const connectAttempt = useRef(0);
+  const mounted = useRef(true);
+  const processingChat = useRef(false);
+  const pendingMessages = useRef<PendingWorldMessage[]>([]);
+  const nextMessageId = useRef(0);
 
   useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      pendingMessages.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const pointer = window.localStorage.getItem(SESSION_POINTER_KEY);
+    const finishWithoutRestore = (clearPointer: boolean) => {
+      if (!active) return;
+      if (clearPointer) window.localStorage.removeItem(SESSION_POINTER_KEY);
+      setRestorePending(false);
+    };
+    if (!pointer) {
+      finishWithoutRestore(false);
+      return () => {
+        active = false;
+      };
+    }
+    if (!SESSION_POINTER_PATTERN.test(pointer)) {
+      finishWithoutRestore(true);
+      return () => {
+        active = false;
+      };
+    }
+    void client
+      .restoreHermes(pointer)
+      .then((result) => {
+        if (!active) return;
+        if (
+          (result.status !== "connected" && result.status !== "recovered") ||
+          !result.avatarAccepted ||
+          !result.proposal ||
+          result.history.sessionId !== result.session.sessionId ||
+          result.history.transcriptAuthority !== "hermes" ||
+          result.history.avatarConsent?.state !== "accepted" ||
+          result.history.avatarConsent.current?.sessionId !==
+            result.session.sessionId ||
+          result.history.avatarConsent.current.proposalId !==
+            result.proposal.proposalId
+        ) {
+          finishWithoutRestore(true);
+          return;
+        }
+        setSession(result.session);
+        setProposal(result.proposal);
+        setAgentAvatar(avatarDraftFromProposal(result.proposal));
+        setStatus(
+          `agent connected · ${connectionLabel(result)} · avatar accepted`,
+        );
+        updateChat({
+          type: "RESTORE_HISTORY",
+          messages: result.history.messages,
+        });
+        dispatch({
+          type: "RESTORE_WORLD",
+          sessionId: result.session.sessionId,
+          continuity: result.continuity,
+          agentName: result.proposal.displayName,
+          avatarProfileId: result.proposal.proposalId,
+        });
+        setRestorePending(false);
+      })
+      .catch(() => finishWithoutRestore(true));
+    return () => {
+      active = false;
+    };
+  }, [client]);
+
+  useEffect(() => {
+    if (restorePending) return;
     const timer = window.setTimeout(
       () => dispatch({ type: "PRESENT_IDENTITY" }),
       reducedMotion ? 0 : 560,
     );
     return () => window.clearTimeout(timer);
-  }, [reducedMotion]);
+  }, [reducedMotion, restorePending]);
 
   const connect = async () => {
     const entered = agentName.trim();
@@ -160,6 +246,10 @@ export function WorldEntryExperience({
         ? avatarDraftFromProposal(result.proposal)
         : null,
     );
+    updateChat({
+      type: "RESTORE_HISTORY",
+      messages: result.history.messages,
+    });
     setStatus(`agent connected · ${connectionLabel(result)}`);
     window.localStorage.setItem(SESSION_POINTER_KEY, result.session.sessionId);
     dispatch({
@@ -225,65 +315,89 @@ export function WorldEntryExperience({
     );
   };
 
-  const streamCaption = (event: WorldAgentEvent) =>
-    updateChat({ type: "AGENT_EVENT", event });
-
-  const send = async () => {
-    if (!session || chatBusy || !message.trim()) return;
-    const text = message.trim();
-    setMessage("");
-    setChatBusy(true);
-    updateChat({
-      type: "SEND_STARTED",
-      id: `${Date.now()}-${chat.transcript.length}`,
-      text,
-    });
-    try {
-      const answer = await client.sendExactSession(session, text, {
-        userDisplayName: profile.agentName,
-        onEvent: streamCaption,
+  const loadRequestedRepository = async (text: string) => {
+    if (!repositoryRequest(text) || !mounted.current) return;
+    dispatch({ type: "REQUEST_REPOSITORY", request: text });
+    setStatus("Repository loading · blank floor preserved");
+    const result = await client.loadRepository(".");
+    if (!mounted.current) return;
+    if (result.status === "failed") {
+      dispatch({
+        type: "REPOSITORY_FAILED",
+        reason: result.message,
       });
-      updateChat({ type: "SEND_COMPLETED", text: answer.finalText });
-      if (repositoryRequest(text)) {
-        dispatch({ type: "REQUEST_REPOSITORY", request: text });
-        setStatus("Repository loading · blank floor preserved");
-        const result = await client.loadRepository(".");
-        if (result.status === "failed") {
-          dispatch({
-            type: "REPOSITORY_FAILED",
-            reason: result.message,
+      setStatus("Repository unavailable · blank floor preserved · Retry");
+      return;
+    }
+    const nextObjects = renderObjects(result.snapshot);
+    const repositoryCounts = {
+      packages: nextObjects.filter((object) => object.kind === "package")
+        .length,
+      directories: nextObjects.filter((object) => object.kind === "directory")
+        .length,
+      files: nextObjects.filter((object) => object.kind === "file").length,
+    };
+    const repositorySummary = `${repositoryCounts.packages} packages · ${repositoryCounts.directories} directories · ${repositoryCounts.files} files`;
+    setObjects(nextObjects);
+    dispatch({
+      type: "ACTIVATE_REPOSITORY",
+      generationId: result.generationId,
+      projectionTruth: result.status,
+    });
+    setStatus(
+      result.status === "previous-recovered"
+        ? `Repository floor · Previous / recovered · ${repositorySummary}`
+        : `Repository floor · Current · ${repositorySummary}`,
+    );
+  };
+
+  const processChatQueue = async () => {
+    if (processingChat.current || !session) return;
+    processingChat.current = true;
+    if (mounted.current) setChatBusy(true);
+    try {
+      while (mounted.current && pendingMessages.current.length > 0) {
+        const current = pendingMessages.current.shift();
+        if (!current) break;
+        setQueuedCount(pendingMessages.current.length);
+        updateChat({ type: "SEND_STARTED", id: current.id });
+        try {
+          const answer = await client.sendExactSession(session, current.text, {
+            userDisplayName: profile.agentName,
+            onEvent: (event: WorldAgentEvent) => {
+              if (mounted.current) updateChat({ type: "AGENT_EVENT", event });
+            },
           });
-          setStatus("Repository unavailable · blank floor preserved · Retry");
-        } else {
-          const nextObjects = renderObjects(result.snapshot);
-          const repositoryCounts = {
-            packages: nextObjects.filter((object) => object.kind === "package")
-              .length,
-            directories: nextObjects.filter(
-              (object) => object.kind === "directory",
-            ).length,
-            files: nextObjects.filter((object) => object.kind === "file")
-              .length,
-          };
-          const repositorySummary = `${repositoryCounts.packages} packages · ${repositoryCounts.directories} directories · ${repositoryCounts.files} files`;
-          setObjects(nextObjects);
-          dispatch({
-            type: "ACTIVATE_REPOSITORY",
-            generationId: result.generationId,
-            projectionTruth: result.status,
-          });
-          setStatus(
-            result.status === "previous-recovered"
-              ? `Repository floor · Previous / recovered · ${repositorySummary}`
-              : `Repository floor · Current · ${repositorySummary}`,
-          );
+          if (!mounted.current) return;
+          await loadRequestedRepository(current.text);
+          if (!mounted.current) return;
+          updateChat({ type: "SEND_COMPLETED", text: answer.finalText });
+        } catch {
+          if (mounted.current)
+            updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
         }
       }
-    } catch {
-      updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
     } finally {
-      setChatBusy(false);
+      processingChat.current = false;
+      if (mounted.current) {
+        setChatBusy(false);
+        setQueuedCount(pendingMessages.current.length);
+      }
     }
+  };
+
+  const send = () => {
+    const text = message.trim();
+    if (!session || !text) return;
+    const pending = {
+      id: `${Date.now()}-${nextMessageId.current++}`,
+      text,
+    };
+    setMessage("");
+    pendingMessages.current.push(pending);
+    setQueuedCount(pendingMessages.current.length);
+    updateChat({ type: "QUEUE_MESSAGE", ...pending });
+    void processChatQueue();
   };
 
   const inWorld =
@@ -320,6 +434,7 @@ export function WorldEntryExperience({
             recipient={activeProposal.displayName}
             status={status}
             busy={chatBusy || state.step === "repository_loading"}
+            queuedCount={queuedCount}
             message={message}
             transcript={chat.transcript}
             pushToTalkAvailable={false}
@@ -334,6 +449,15 @@ export function WorldEntryExperience({
       </div>
     );
   }
+
+  if (restorePending)
+    return (
+      <main className="world-experience world-experience--entry">
+        <div className="world-entry-overlay" role="status" aria-live="polite">
+          restoring agent
+        </div>
+      </main>
+    );
 
   if (state.step === "agent_avatar" && proposal)
     return (

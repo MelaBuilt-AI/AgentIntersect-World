@@ -55,7 +55,7 @@ export function WorldEntryLogo({
   readonly onSingle: () => void;
   readonly onHermes: () => void;
 }) {
-  const showSessions = stage !== "identity";
+  const showSessions = stage === "session" || stage === "constellation";
   const showHarnesses =
     stage === "constellation" || stage === "prompt" || stage === "ready";
   return (

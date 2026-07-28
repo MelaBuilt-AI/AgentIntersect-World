@@ -775,7 +775,7 @@
   outline-offset: 3px;
 }
 
-.world-transcript ol {
+.world-transcript > ol {
   display: grid;
   gap: 0.45rem;
   margin: 0;
@@ -816,6 +816,53 @@
 
 .world-transcript__item--error {
   border-inline-start-color: #fb7185;
+}
+
+.world-transcript__assistant-content {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.world-transcript__assistant-content :where(h3, h4, h5, p, ul, ol, blockquote) {
+  margin: 0;
+}
+
+.world-transcript__assistant-content :where(ul, ol) {
+  display: grid;
+  gap: 0.2rem;
+  padding-inline-start: 1.4rem;
+}
+
+.world-transcript__assistant-content blockquote {
+  border-inline-start: 3px solid rgba(255, 224, 102, 0.65);
+  padding-inline-start: 0.65rem;
+  color: #cbd5e1;
+}
+
+.world-transcript__assistant-content code {
+  border-radius: 0.25rem;
+  padding: 0.08rem 0.28rem;
+  color: #bae6fd;
+  background: rgba(2, 6, 23, 0.9);
+}
+
+.world-transcript__assistant-content pre {
+  max-width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.4rem;
+  padding: 0.65rem;
+  white-space: pre;
+  background: rgba(2, 6, 23, 0.9);
+}
+
+.world-transcript__assistant-content pre code {
+  padding: 0;
+  color: #e2e8f0;
+  overflow-wrap: normal;
+  background: transparent;
 }
 
 .world-hud__controls {

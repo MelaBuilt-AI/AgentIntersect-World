@@ -270,6 +270,9 @@ export function loadLocalServerConfig(
     environment.AIW_HERMES_PLUGIN_AVATAR_PROPOSAL_PATH?.trim();
   const pluginCapabilityPath =
     environment.AIW_HERMES_PLUGIN_CAPABILITY_PATH?.trim();
+  const pinnedSessionRef = environment.AIW_HERMES_NATIVE_SESSION_REF?.trim();
+  const agentDisplayName =
+    environment.AIW_HERMES_AGENT_DISPLAY_NAME?.normalize("NFC").trim();
   const designRepositoryRoot =
     environment.AIW_GUIDED_BUILD_REPOSITORY_ROOT?.trim();
   if (
@@ -288,6 +291,22 @@ export function loadLocalServerConfig(
       !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(hermesProfile))
   )
     throw new ConfigurationError("AIW_HERMES_PROFILE is invalid");
+  if (
+    agentSessionsEnabled &&
+    ((pinnedSessionRef === undefined) !== (agentDisplayName === undefined) ||
+      (pinnedSessionRef !== undefined &&
+        !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/.test(pinnedSessionRef)) ||
+      (agentDisplayName !== undefined &&
+        (agentDisplayName.length === 0 ||
+          agentDisplayName.length > 80 ||
+          [...agentDisplayName].some((character) => {
+            const code = character.codePointAt(0) ?? 0;
+            return code < 32 || code === 127;
+          }))))
+  )
+    throw new ConfigurationError(
+      "AIW_HERMES_NATIVE_SESSION_REF and AIW_HERMES_AGENT_DISPLAY_NAME must be valid and configured together",
+    );
   for (const [key, value] of [
     ["AIW_AGENT_SESSION_DATA_DIR", agentSessionDataDir],
     ["AIW_HERMES_PLUGIN_CAPABILITY_PATH", pluginCapabilityPath],
@@ -377,6 +396,12 @@ export function loadLocalServerConfig(
             dataDir: agentSessionDataDir,
             ...(pluginCapabilityPath ? { pluginCapabilityPath } : {}),
             ...(pluginAvatarProposalPath ? { pluginAvatarProposalPath } : {}),
+            ...(pinnedSessionRef
+              ? {
+                  pinnedSessionRef,
+                  agentDisplayName: agentDisplayName as string,
+                }
+              : {}),
             ...(designRepositoryRoot ? { designRepositoryRoot } : {}),
           },
         }

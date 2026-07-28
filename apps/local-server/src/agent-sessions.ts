@@ -23,6 +23,7 @@ export type AdapterSessionSummary = {
   readonly rootId?: string;
   readonly source: string;
   readonly title: string;
+  readonly displayName?: string;
   readonly messageCount?: number;
   readonly updatedAt?: number;
 };
@@ -460,6 +461,8 @@ type HermesAdapterOptions = {
   readonly apiKey: string;
   readonly profile: string;
   readonly pluginCapabilityPath?: string;
+  readonly pinnedSessionRef?: string;
+  readonly agentDisplayName?: string;
   readonly fetch?: typeof globalThis.fetch;
 };
 
@@ -607,6 +610,8 @@ export class HermesSessionAdapter implements AgentAdapter {
   readonly #baseUrl: string;
   readonly #apiKey: string;
   readonly #pluginCapabilityPath: string | undefined;
+  readonly #pinnedSessionRef: string | undefined;
+  readonly #agentDisplayName: string | undefined;
   readonly #fetch: typeof globalThis.fetch;
 
   constructor(options: HermesAdapterOptions) {
@@ -625,6 +630,29 @@ export class HermesSessionAdapter implements AgentAdapter {
       );
     this.#baseUrl = url.origin;
     this.#apiKey = options.apiKey;
+    const pinnedSessionRef = options.pinnedSessionRef?.trim();
+    const agentDisplayName = options.agentDisplayName?.normalize("NFC").trim();
+    const invalidDisplayName =
+      agentDisplayName !== undefined &&
+      (agentDisplayName.length === 0 ||
+        agentDisplayName.length > 80 ||
+        [...agentDisplayName].some((character) => {
+          const code = character.codePointAt(0) ?? 0;
+          return code < 32 || code === 127;
+        }));
+    if (
+      (options.pinnedSessionRef === undefined) !==
+        (options.agentDisplayName === undefined) ||
+      (pinnedSessionRef !== undefined &&
+        !isAdapterSessionRef(pinnedSessionRef)) ||
+      invalidDisplayName
+    )
+      throw new GatewayError(
+        "validation",
+        "Pinned Hermes session identity and agent display name must be valid and configured together",
+      );
+    this.#pinnedSessionRef = pinnedSessionRef;
+    this.#agentDisplayName = agentDisplayName;
     if (
       options.pluginCapabilityPath &&
       !path.isAbsolute(options.pluginCapabilityPath)
@@ -882,6 +910,49 @@ export class HermesSessionAdapter implements AgentAdapter {
   }
 
   async listSessions(): Promise<readonly AdapterSessionSummary[]> {
+    if (this.#pinnedSessionRef) {
+      const response = await this.#request(
+        `/api/sessions/${encodeURIComponent(this.#pinnedSessionRef)}`,
+      );
+      if (response.status === 404) return [];
+      if (!response.ok)
+        throw new GatewayError("upstream", "Hermes session is unavailable");
+      const body = await this.#json(
+        response,
+        "Hermes session response is invalid",
+      );
+      const value =
+        isRecord(body) && isRecord(body.session)
+          ? body.session
+          : isRecord(body)
+            ? body
+            : undefined;
+      if (!value || value.id !== this.#pinnedSessionRef)
+        throw new GatewayError(
+          "upstream",
+          "Hermes returned a different pinned session identity",
+        );
+      return [
+        {
+          id: this.#pinnedSessionRef,
+          source:
+            typeof value.source === "string"
+              ? value.source.slice(0, 64)
+              : "unknown",
+          title:
+            typeof value.title === "string"
+              ? value.title.slice(0, 160)
+              : "Untitled session",
+          displayName: this.#agentDisplayName as string,
+          ...(typeof value.message_count === "number"
+            ? { messageCount: value.message_count }
+            : {}),
+          ...(typeof value.updated_at === "number"
+            ? { updatedAt: value.updated_at }
+            : {}),
+        },
+      ];
+    }
     const response = await this.#request("/api/sessions?limit=100&offset=0");
     if (!response.ok)
       throw new GatewayError("upstream", "Hermes sessions are unavailable");
@@ -891,7 +962,7 @@ export class HermesSessionAdapter implements AgentAdapter {
     );
     if (!isRecord(body) || !Array.isArray(body.data))
       throw new GatewayError("upstream", "Hermes sessions response is invalid");
-    return body.data.slice(0, 100).flatMap((value) => {
+    const sessions = body.data.slice(0, 100).flatMap((value) => {
       if (!isRecord(value) || typeof value.id !== "string") return [];
       return [
         {
@@ -913,6 +984,7 @@ export class HermesSessionAdapter implements AgentAdapter {
         },
       ];
     });
+    return sessions;
   }
 
   async attach(sessionRef: string): Promise<AdapterSessionSummary> {
@@ -921,6 +993,8 @@ export class HermesSessionAdapter implements AgentAdapter {
         "validation",
         "Hermes session identity is invalid",
       );
+    if (this.#pinnedSessionRef && sessionRef !== this.#pinnedSessionRef)
+      throw new GatewayError("not_found", "Hermes session is not allowlisted");
     const response = await this.#request(
       `/api/sessions/${encodeURIComponent(sessionRef)}`,
     );
@@ -955,6 +1029,9 @@ export class HermesSessionAdapter implements AgentAdapter {
         typeof value.title === "string"
           ? value.title.slice(0, 160)
           : "Untitled session",
+      ...(this.#agentDisplayName
+        ? { displayName: this.#agentDisplayName }
+        : {}),
       ...(typeof value.message_count === "number"
         ? { messageCount: value.message_count }
         : {}),
@@ -982,6 +1059,8 @@ export class HermesSessionAdapter implements AgentAdapter {
         "validation",
         "Hermes root session identity is invalid",
       );
+    if (this.#pinnedSessionRef && rootSessionRef !== this.#pinnedSessionRef)
+      throw new GatewayError("not_found", "Hermes session is not allowlisted");
     const requestSessionRef =
       await this.#resolveEffectiveSession(rootSessionRef);
     const systemMessages: string[] = [];

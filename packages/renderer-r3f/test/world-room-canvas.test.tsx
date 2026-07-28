@@ -80,6 +80,7 @@ type RendererApi = {
         "idle" | "thinking" | "tool" | "coding" | "completed" | "failed";
       readonly icon: string;
       readonly label: string;
+      readonly detail: "" | "terminal" | "reading" | "tool";
     };
     readonly reducedMotion: boolean;
   }) => {
@@ -87,6 +88,7 @@ type RendererApi = {
     readonly icon: string;
     readonly label: string;
     readonly visualLabel: string;
+    readonly detailLabel: string;
     readonly scale: readonly [number, number, number];
     readonly visible: boolean;
     readonly animated: boolean;
@@ -522,15 +524,17 @@ describe("Phase 18 shared World room canvas", () => {
         activity: {
           state: "coding",
           icon: "</>",
-          label: "Mr Fluff is coding",
+          label: "Mr Fluff is working",
+          detail: "terminal",
         },
         reducedMotion: false,
       }),
     ).toEqual({
       anchor: [2.6, 3.25, 0],
       icon: "</>",
-      label: "Mr Fluff is coding",
-      visualLabel: "coding",
+      label: "Mr Fluff is working",
+      visualLabel: "working",
+      detailLabel: "terminal",
       scale: [1.65, 0.5, 1],
       visible: true,
       animated: true,
@@ -541,16 +545,22 @@ describe("Phase 18 shared World room canvas", () => {
           state: "completed",
           icon: "✓",
           label: "Mr Fluff completed the request",
+          detail: "",
         },
         reducedMotion: false,
       }),
-    ).toMatchObject({ visualLabel: "done", scale: [1.65, 0.5, 1] });
+    ).toMatchObject({
+      visualLabel: "done",
+      detailLabel: "",
+      scale: [1.65, 0.5, 1],
+    });
     expect(
       api.prepareWorldActivityBubble({
         activity: {
           state: "thinking",
           icon: "…",
           label: "Mr Fluff is thinking",
+          detail: "",
         },
         reducedMotion: true,
       }).animated,

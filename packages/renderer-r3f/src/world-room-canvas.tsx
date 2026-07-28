@@ -53,6 +53,7 @@ export type WorldRoomActivity = {
     "idle" | "thinking" | "tool" | "coding" | "completed" | "failed";
   readonly icon: string;
   readonly label: string;
+  readonly detail: "" | "terminal" | "reading" | "tool";
 };
 
 export type WorldRenderQuality = {
@@ -208,8 +209,8 @@ const activityVisualLabel = (state: WorldRoomActivity["state"]) =>
   ({
     idle: "idle",
     thinking: "thinking",
-    tool: "tool",
-    coding: "coding",
+    tool: "working",
+    coding: "working",
     completed: "done",
     failed: "attention",
   })[state];
@@ -363,6 +364,7 @@ export function prepareWorldActivityBubble({
     icon: activity.icon,
     label: activity.label,
     visualLabel: activityVisualLabel(activity.state),
+    detailLabel: activity.detail,
     visible: activity.state !== "idle",
     animated:
       !reducedMotion &&
@@ -399,7 +401,14 @@ function AgentActivityBillboard({
       context.font = "700 52px Consolas, monospace";
       context.fillText(activity.icon || "○", 28, 80);
       context.font = "32px Consolas, monospace";
-      context.fillText(descriptor.visualLabel, 122, 80, 354);
+      context.fillText(
+        `${descriptor.visualLabel}${
+          descriptor.detailLabel ? ` · ${descriptor.detailLabel}` : ""
+        }`,
+        122,
+        80,
+        354,
+      );
     }
     const texture = new CanvasTexture(surface);
     texture.minFilter = LinearFilter;
@@ -415,7 +424,13 @@ function AgentActivityBillboard({
     instance.scale.set(...descriptor.scale);
     instance.renderOrder = 50;
     return instance;
-  }, [activity, descriptor.anchor, descriptor.scale, descriptor.visualLabel]);
+  }, [
+    activity,
+    descriptor.anchor,
+    descriptor.detailLabel,
+    descriptor.scale,
+    descriptor.visualLabel,
+  ]);
   useEffect(
     () => () => {
       sprite.material.map?.dispose();

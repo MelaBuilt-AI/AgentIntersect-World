@@ -289,10 +289,20 @@ export function registerAgentSessionRoutes(
     },
     async (request, reply) => {
       const { sessionId } = request.params as { sessionId: string };
-      const controller = new AbortController();
       let ended = false;
+      let detached = false;
       const disconnect = () => {
-        if (!ended) controller.abort();
+        if (!ended) detached = true;
+      };
+      const writeIfAttached = async (event: string, data: unknown) => {
+        if (detached || reply.raw.destroyed || reply.raw.writableEnded) return;
+        try {
+          await writeSse(reply, event, data);
+        } catch (error) {
+          if (detached || reply.raw.destroyed || reply.raw.writableEnded)
+            return;
+          throw error;
+        }
       };
       request.raw.once("aborted", disconnect);
       reply.raw.once("close", disconnect);
@@ -309,34 +319,33 @@ export function registerAgentSessionRoutes(
           sessionId,
           request.body as never,
           {
-            signal: controller.signal,
-            onEvent: (event) => writeSse(reply, "world.event", event),
+            onEvent: (event) => writeIfAttached("world.event", event),
           },
         );
-        await writeSse(reply, "world.final", {
+        await writeIfAttached("world.final", {
           schema: "aiw.agent-stream-terminal/0.12",
           sessionId,
           status: "completed",
           finalText: result.finalText,
         });
-        await writeSse(reply, "world.done", {
+        await writeIfAttached("world.done", {
           schema: "aiw.agent-stream-terminal/0.12",
           sessionId,
           status: "completed",
         });
       } catch (error) {
-        if (controller.signal.aborted || reply.raw.destroyed) return;
+        if (detached || reply.raw.destroyed || reply.raw.writableEnded) return;
         const message =
           error instanceof GatewayError
             ? error.message.slice(0, 240)
             : "World session stream failed";
-        await writeSse(reply, "world.error", {
+        await writeIfAttached("world.error", {
           schema: "aiw.agent-stream-terminal/0.12",
           sessionId,
           status: "error",
           message,
         });
-        await writeSse(reply, "world.done", {
+        await writeIfAttached("world.done", {
           schema: "aiw.agent-stream-terminal/0.12",
           sessionId,
           status: "error",
@@ -345,7 +354,7 @@ export function registerAgentSessionRoutes(
         ended = true;
         request.raw.off("aborted", disconnect);
         reply.raw.off("close", disconnect);
-        if (!reply.raw.destroyed) reply.raw.end();
+        if (!reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
       }
     },
   );

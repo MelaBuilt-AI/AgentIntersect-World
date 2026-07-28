@@ -32,6 +32,7 @@ export type HermesConnectionResult =
       readonly session: WorldAgentSession;
       readonly proposal: AvatarProposal | null;
       readonly avatarAccepted: boolean;
+      readonly history: SessionHistory;
     }
   | {
       readonly status: "not_found";
@@ -128,11 +129,13 @@ export function resolveHermesDisplayName(
   if (!safeDisplayLabel(enteredName))
     return { status: "not_found", message: "agent not found_" };
   const normalized = normalizedDisplayName(enteredName);
-  const matches = sessions.filter(
-    (session) =>
-      safeDisplayLabel(session.title) &&
-      normalizedDisplayName(session.title) === normalized,
-  );
+  const matches = sessions.filter((session) => {
+    const identity = session.displayName ?? session.title;
+    return (
+      safeDisplayLabel(identity) &&
+      normalizedDisplayName(identity) === normalized
+    );
+  });
   return matches.length === 1
     ? { status: "matched", nativeSessionId: matches[0]!.id }
     : { status: "not_found", message: "agent not found_" };
@@ -157,6 +160,30 @@ function validAttachedSession(
     (session.continuity === "current" ||
       session.continuity === "previous-recovered")
   );
+}
+
+function resolveAvatarState(
+  sessionId: string,
+  liveProposal: AvatarProposal | null,
+  history: SessionHistory,
+): {
+  readonly proposal: AvatarProposal | null;
+  readonly avatarAccepted: boolean;
+} {
+  const acceptedHistoryProposal =
+    history.avatarConsent?.state === "accepted" &&
+    history.avatarConsent.current?.sessionId === sessionId
+      ? history.avatarConsent.current
+      : null;
+  const proposal = liveProposal ?? acceptedHistoryProposal;
+  return {
+    proposal,
+    avatarAccepted:
+      history.avatarConsent?.state === "accepted" &&
+      proposal?.sessionId === sessionId &&
+      (acceptedHistoryProposal === null ||
+        acceptedHistoryProposal.proposalId === proposal.proposalId),
+  };
 }
 
 const repositoryFailed = (): RepositoryLoadResult => ({
@@ -188,13 +215,43 @@ export function createWorldEntryClient(
       )
         return { status: "stale", message: "agent unavailable_" };
       try {
-        const session = await sessionClient.status(sessionId);
-        if (!validAttachedSession(session))
+        const persisted = await sessionClient.status(sessionId);
+        if (!validAttachedSession(persisted))
+          return { status: "stale", message: "agent unavailable_" };
+        const rootSessionRef =
+          typeof persisted.adapterRootSessionRef === "string"
+            ? persisted.adapterRootSessionRef
+            : persisted.adapterSessionRef;
+        const nativeSessions = await sessionClient.nativeSessions("hermes");
+        if (
+          !nativeSessions.some(
+            (nativeSession) => nativeSession.id === rootSessionRef,
+          )
+        )
+          return { status: "stale", message: "agent unavailable_" };
+        const session = await sessionClient.attach({
+          adapterId: "hermes",
+          adapterSessionRef: rootSessionRef,
+          profile: persisted.profile,
+          workspaceId: persisted.workspaceId,
+          repositoryRef: persisted.repositoryRef,
+          mode: "explore",
+        });
+        const refreshedRootSessionRef =
+          typeof session.adapterRootSessionRef === "string"
+            ? session.adapterRootSessionRef
+            : session.adapterSessionRef;
+        if (
+          !validAttachedSession(session) ||
+          session.sessionId !== sessionId ||
+          refreshedRootSessionRef !== rootSessionRef
+        )
           return { status: "stale", message: "agent unavailable_" };
         const [proposal, history] = await Promise.all([
           sessionClient.avatarProposal(session.sessionId).catch(() => null),
           sessionClient.history(session.sessionId),
         ]);
+        const avatar = resolveAvatarState(session.sessionId, proposal, history);
         return {
           status:
             session.continuity === "previous-recovered"
@@ -202,10 +259,8 @@ export function createWorldEntryClient(
               : "connected",
           continuity: session.continuity,
           session,
-          proposal,
-          avatarAccepted:
-            proposal?.sessionId === session.sessionId &&
-            history.avatarConsent?.state === "accepted",
+          ...avatar,
+          history,
         };
       } catch {
         return { status: "unavailable", message: "agent unavailable_" };
@@ -245,9 +300,7 @@ export function createWorldEntryClient(
               avatarConsent: null,
             })),
         ]);
-        const avatarAccepted =
-          proposal?.sessionId === session.sessionId &&
-          history.avatarConsent?.state === "accepted";
+        const avatar = resolveAvatarState(session.sessionId, proposal, history);
         return {
           status:
             session.continuity === "previous-recovered"
@@ -255,8 +308,8 @@ export function createWorldEntryClient(
               : "connected",
           continuity: session.continuity,
           session,
-          proposal,
-          avatarAccepted,
+          ...avatar,
+          history,
         };
       } catch {
         return { status: "unavailable", message: "agent unavailable_" };

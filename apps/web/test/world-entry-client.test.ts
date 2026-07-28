@@ -12,6 +12,7 @@ type ClientApi = {
       readonly id: string;
       readonly title: string;
       readonly source: string;
+      readonly displayName?: string;
     }[],
   ) =>
     | { readonly status: "matched"; readonly nativeSessionId: string }
@@ -19,6 +20,9 @@ type ClientApi = {
   readonly createWorldEntryClient: (
     ports: Readonly<Record<string, unknown>>,
   ) => {
+    readonly restoreHermes: (
+      sessionId: string,
+    ) => Promise<Readonly<Record<string, unknown>>>;
     readonly connectHermes: (
       name: string,
     ) => Promise<Readonly<Record<string, unknown>>>;
@@ -86,6 +90,23 @@ describe("Phase 18 World entry client composition", () => {
       status: "not_found",
       message: "agent not found_",
     });
+  });
+
+  it("resolves a configured agent identity without rewriting the native session title", () => {
+    if (!api.resolveHermesDisplayName) return;
+    const sessions = [
+      {
+        id: "exact-current-session",
+        title: "AgentIntersect Handoff Status #5",
+        source: "discord",
+        displayName: "Mr Fluff",
+      },
+    ];
+    expect(api.resolveHermesDisplayName(" mr fluff ", sessions)).toEqual({
+      status: "matched",
+      nativeSessionId: "exact-current-session",
+    });
+    expect(sessions[0]?.title).toBe("AgentIntersect Handoff Status #5");
   });
 
   it("derives bounded agent addressing context from each selected avatar name", () => {
@@ -184,6 +205,195 @@ describe("Phase 18 World entry client composition", () => {
     ).resolves.toEqual({
       status: "unavailable",
       message: "agent unavailable_",
+    });
+  });
+
+  it("restores an accepted avatar from authoritative history after native-session rotation", async () => {
+    if (!api.createWorldEntryClient) return;
+    const session = worldSession({
+      adapterSessionRef: "rotated-child-session",
+      adapterRootSessionRef: "pinned-root-session",
+    });
+    const acceptedProposal = {
+      schema: "aiw.avatar-proposal/0.12",
+      proposalId: "accepted-avatar-proposal",
+      sessionId: session.sessionId,
+      displayName: "Hermes",
+      species: "cat",
+      head: "cat",
+      hands: "paws",
+      feet: "paws",
+      fur: "short",
+      tail: "cat",
+      markings: "solid",
+      bodyColor: "charcoal",
+      shirt: "Hermes",
+      movementStyle: "shared-biped-core",
+      sourceDisclosure: "Stored World consent",
+      rationale: "Previously accepted by the operator",
+      createdAt: "2026-07-28T15:45:02.602Z",
+    };
+    const sessionClient = {
+      capabilities: vi.fn().mockResolvedValue([
+        {
+          adapterId: "hermes",
+          capabilities: { attach: true, sendText: true },
+          unavailable: {},
+        },
+      ]),
+      nativeSessions: vi.fn().mockResolvedValue([
+        {
+          id: "pinned-root-session",
+          title: "AgentIntersect Handoff Status #5",
+          source: "discord",
+          displayName: "Mr Fluff",
+        },
+      ]),
+      attach: vi.fn().mockResolvedValue(session),
+      avatarProposal: vi
+        .fn()
+        .mockRejectedValue(new Error("native session does not match")),
+      history: vi.fn().mockResolvedValue({
+        sessionId: session.sessionId,
+        continuity: "current",
+        messages: [],
+        transcriptAuthority: "hermes",
+        avatarConsent: {
+          state: "accepted",
+          current: acceptedProposal,
+          previous: null,
+        },
+      }),
+      avatarConsent: vi.fn(),
+      stream: vi.fn(),
+    };
+
+    const history = await sessionClient.history();
+    await expect(
+      api.createWorldEntryClient({ sessionClient }).connectHermes("Mr Fluff"),
+    ).resolves.toMatchObject({
+      status: "connected",
+      continuity: "current",
+      proposal: acceptedProposal,
+      avatarAccepted: true,
+      history,
+    });
+  });
+
+  it("rejects a persisted ready session when the currently exposed native root has changed", async () => {
+    if (!api.createWorldEntryClient) return;
+    const session = worldSession({
+      adapterSessionRef: "old-effective-session",
+      adapterRootSessionRef: "old-pinned-root",
+    });
+    const sessionClient = {
+      status: vi.fn().mockResolvedValue(session),
+      nativeSessions: vi.fn().mockResolvedValue([
+        {
+          id: "new-pinned-root",
+          title: "Current Hermes lane",
+          source: "cli",
+          displayName: "Mr Fluff",
+        },
+      ]),
+      attach: vi.fn(),
+      avatarProposal: vi.fn().mockResolvedValue(null),
+      history: vi.fn().mockResolvedValue({
+        sessionId: session.sessionId,
+        continuity: "current",
+        messages: [],
+        transcriptAuthority: "hermes",
+        avatarConsent: null,
+      }),
+    };
+
+    await expect(
+      api
+        .createWorldEntryClient({ sessionClient })
+        .restoreHermes(session.sessionId),
+    ).resolves.toEqual({
+      status: "stale",
+      message: "agent unavailable_",
+    });
+    expect(sessionClient.nativeSessions).toHaveBeenCalledWith("hermes");
+    expect(sessionClient.attach).not.toHaveBeenCalled();
+    expect(sessionClient.avatarProposal).not.toHaveBeenCalled();
+    expect(sessionClient.history).not.toHaveBeenCalled();
+  });
+
+  it("returns authoritative transcript history with a restored ready exact session", async () => {
+    if (!api.createWorldEntryClient) return;
+    const session = worldSession();
+    const acceptedProposal = {
+      schema: "aiw.avatar-proposal/0.12",
+      proposalId: "accepted-avatar-proposal",
+      sessionId: session.sessionId,
+      displayName: "Mr Fluff",
+      species: "cat",
+      head: "cat",
+      hands: "paws",
+      feet: "paws",
+      fur: "short",
+      tail: "cat",
+      markings: "tuxedo",
+      bodyColor: "charcoal",
+      shirt: "Hermes",
+      movementStyle: "shared-biped-core",
+      sourceDisclosure: "Stored World consent",
+      rationale: "Previously accepted by the operator",
+      createdAt: "2026-07-28T15:45:02.602Z",
+    };
+    const history = {
+      sessionId: session.sessionId,
+      continuity: "current",
+      messages: [
+        { role: "user", text: "Are you live?" },
+        { role: "assistant", text: "Yes, in the exact session." },
+      ],
+      transcriptAuthority: "hermes",
+      avatarConsent: {
+        state: "accepted",
+        current: acceptedProposal,
+        previous: null,
+      },
+    };
+    const sessionClient = {
+      status: vi.fn().mockResolvedValue(session),
+      nativeSessions: vi.fn().mockResolvedValue([
+        {
+          id: "native-1",
+          title: "Mr Fluff",
+          source: "cli",
+        },
+      ]),
+      attach: vi.fn().mockResolvedValue(session),
+      avatarProposal: vi
+        .fn()
+        .mockRejectedValue(new Error("409 current proposal unavailable")),
+      history: vi.fn().mockResolvedValue(history),
+    };
+
+    await expect(
+      api
+        .createWorldEntryClient({ sessionClient })
+        .restoreHermes(session.sessionId),
+    ).resolves.toMatchObject({
+      status: "connected",
+      session,
+      proposal: acceptedProposal,
+      avatarAccepted: true,
+      history,
+    });
+    expect(sessionClient.avatarProposal).toHaveBeenCalledWith(
+      session.sessionId,
+    );
+    expect(sessionClient.attach).toHaveBeenCalledWith({
+      adapterId: "hermes",
+      adapterSessionRef: "native-1",
+      profile: "default",
+      workspaceId: "world-entry",
+      repositoryRef: "current",
+      mode: "explore",
     });
   });
 

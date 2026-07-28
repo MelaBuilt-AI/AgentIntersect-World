@@ -48,14 +48,25 @@ describe("Phase 7 local-server configuration", () => {
         AIW_HERMES_API_URL: "http://192.168.1.2:8642",
       }),
     ).toThrow(/loopback/i);
+    expect(() =>
+      loadLocalServerConfig({
+        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_HERMES_API_KEY: "fixture-secret",
+        AIW_HERMES_NATIVE_SESSION_REF: "exact-session",
+      }),
+    ).toThrow(/configured together/i);
     const config = loadLocalServerConfig({
       AIW_AGENT_SESSIONS_ENABLED: "true",
       AIW_HERMES_API_KEY: "fixture-secret",
       AIW_AGENT_SESSION_DATA_DIR: "/tmp/aiw-agent-sessions",
+      AIW_HERMES_NATIVE_SESSION_REF: "exact-session",
+      AIW_HERMES_AGENT_DISPLAY_NAME: "Mr Fluff",
     });
     expect(config.agentSessions).toMatchObject({
       hermesApiUrl: "http://127.0.0.1:8642",
       hermesProfile: "default",
+      pinnedSessionRef: "exact-session",
+      agentDisplayName: "Mr Fluff",
     });
     expect(toSafeConfig(config).agentSessionsEnabled).toBe(true);
     expect(JSON.stringify(toSafeConfig(config))).not.toMatch(

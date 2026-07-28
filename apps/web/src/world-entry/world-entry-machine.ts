@@ -66,6 +66,13 @@ export type WorldEntryEvent =
       readonly sessionId: string;
       readonly continuity: "current" | "previous-recovered";
     }
+  | {
+      readonly type: "RESTORE_WORLD";
+      readonly sessionId: string;
+      readonly continuity: "current" | "previous-recovered";
+      readonly agentName: string;
+      readonly avatarProfileId: string;
+    }
   | { readonly type: "OPEN_AGENT_AVATAR" }
   | {
       readonly type: "ACCEPT_AGENT_AVATAR";
@@ -219,6 +226,30 @@ export function reduceWorldEntry(
             },
           }
         : state;
+    case "RESTORE_WORLD": {
+      const agentName = safeName(event.agentName);
+      return state.step === "returning_identity" &&
+        event.sessionId &&
+        agentName &&
+        event.avatarProfileId
+        ? {
+            ...state,
+            step: "world_blank",
+            selectedHarness: "hermes",
+            agentName,
+            connection: {
+              status: "connected",
+              sessionId: event.sessionId,
+              continuity: event.continuity,
+            },
+            agentAvatar: {
+              status: "accepted",
+              sessionId: event.sessionId,
+              profileId: event.avatarProfileId,
+            },
+          }
+        : state;
+    }
     case "OPEN_AGENT_AVATAR":
       return state.step === "agent_connected" &&
         state.connection.sessionId !== null

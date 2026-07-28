@@ -389,6 +389,7 @@ export function WorldRoom({
       >
         <span aria-hidden="true">{activity.icon || "○"}</span>
         <span>{activity.label}</span>
+        {activity.detail ? <span>· {activity.detail}</span> : null}
       </div>
       <section className="world-room__semantic" aria-label="World scene status">
         <h1>{floor === "blank" ? "Blank World room" : "Repository floor"}</h1>

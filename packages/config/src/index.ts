@@ -46,6 +46,8 @@ export type LocalServerConfig = {
     readonly dataDir: string;
     readonly pluginCapabilityPath?: string;
     readonly pluginAvatarProposalPath?: string;
+    readonly pinnedSessionRef?: string;
+    readonly agentDisplayName?: string;
     readonly designRepositoryRoot?: string;
   };
   readonly presentationSync: {

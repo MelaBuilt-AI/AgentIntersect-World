@@ -1,4 +1,7 @@
-import type { WorldAgentEvent } from "../sessions/session-client.js";
+import type {
+  SessionHistory,
+  WorldAgentEvent,
+} from "../sessions/session-client.js";
 
 export type WorldActivityState =
   "idle" | "thinking" | "tool" | "coding" | "completed" | "failed";
@@ -7,6 +10,7 @@ export type WorldActivity = {
   readonly state: WorldActivityState;
   readonly icon: "" | "…" | "◇" | "</>" | "✓" | "!";
   readonly label: string;
+  readonly detail: "" | "terminal" | "reading" | "tool";
 };
 
 export type WorldTranscriptItem = {
@@ -23,9 +27,17 @@ export type WorldChatState = {
 
 export type WorldChatAction =
   | {
-      readonly type: "SEND_STARTED";
+      readonly type: "RESTORE_HISTORY";
+      readonly messages: SessionHistory["messages"];
+    }
+  | {
+      readonly type: "QUEUE_MESSAGE";
       readonly id: string;
       readonly text: string;
+    }
+  | {
+      readonly type: "SEND_STARTED";
+      readonly id: string;
     }
   | { readonly type: "AGENT_EVENT"; readonly event: WorldAgentEvent }
   | { readonly type: "SEND_COMPLETED"; readonly text: string }
@@ -35,17 +47,47 @@ const IDLE: WorldActivity = {
   state: "idle",
   icon: "",
   label: "Mr Fluff is idle",
+  detail: "",
 };
 
-const codingTool = (toolName: string) =>
-  /(?:terminal|shell|bash|exec|command|code|write|edit|patch|git|test|build|lint|typescript|python)/iu.test(
-    toolName,
-  );
+const toolDetail = (toolName: string): Exclude<WorldActivity["detail"], ""> => {
+  const normalized = toolName.toLocaleLowerCase();
+  if (
+    /(?:^|[^a-z0-9])(?:terminal|shell|bash|exec|command|code|write|edit|patch|git|test|build|lint|python|typescript)(?:[^a-z0-9]|$)/u.test(
+      normalized,
+    )
+  )
+    return "terminal";
+  if (
+    /(?:^|[^a-z0-9])(?:read|get|search|find|list|snapshot|history|file-content|symbol|context|vision)(?:[^a-z0-9]|$)/u.test(
+      normalized,
+    )
+  )
+    return "reading";
+  return "tool";
+};
 
-const toolActivity = (toolName: string): WorldActivity =>
-  codingTool(toolName)
-    ? { state: "coding", icon: "</>", label: "Mr Fluff is coding" }
-    : { state: "tool", icon: "◇", label: "Mr Fluff is using a tool" };
+const toolActivity = (toolName: string): WorldActivity => {
+  const detail = toolDetail(toolName);
+  return {
+    state: detail === "terminal" ? "coding" : "tool",
+    icon: detail === "terminal" ? "</>" : "◇",
+    label: "Mr Fluff is working",
+    detail,
+  };
+};
+
+const thinkingActivity = (): WorldActivity => ({
+  state: "thinking",
+  icon: "…",
+  label: "Mr Fluff is thinking",
+  detail: "",
+});
+
+const preserveOuterActivity = (state: WorldChatState): WorldActivity =>
+  state.activity.state === "tool" || state.activity.state === "coding"
+    ? state.activity
+    : thinkingActivity();
 
 const append = (
   state: WorldChatState,
@@ -99,15 +141,28 @@ export function reduceWorldChat(
   state: WorldChatState,
   action: WorldChatAction,
 ): WorldChatState {
+  if (action.type === "RESTORE_HISTORY")
+    return {
+      activity: IDLE,
+      transcript: action.messages.slice(-200).map((message, index) => ({
+        id: `history-${index}`,
+        kind: message.role,
+        text: message.text,
+      })),
+      activeAssistantId: null,
+    };
+  if (action.type === "QUEUE_MESSAGE")
+    return append(state, {
+      id: `user-${action.id}`,
+      kind: "user",
+      text: action.text,
+    });
   if (action.type === "SEND_STARTED")
-    return append(
-      {
-        ...state,
-        activeAssistantId: `assistant-${action.id}`,
-      },
-      { id: `user-${action.id}`, kind: "user", text: action.text },
-      { state: "thinking", icon: "…", label: "Mr Fluff is thinking" },
-    );
+    return {
+      ...state,
+      activeAssistantId: `assistant-${action.id}`,
+      activity: thinkingActivity(),
+    };
   if (action.type === "SEND_FAILED")
     return append(
       { ...state, activeAssistantId: null },
@@ -116,7 +171,7 @@ export function reduceWorldChat(
         kind: "error",
         text: action.message,
       },
-      { state: "failed", icon: "!", label: "Mr Fluff failed" },
+      { state: "failed", icon: "!", label: "Mr Fluff failed", detail: "" },
     );
   if (action.type === "SEND_COMPLETED") {
     const completed = replaceAssistant(state, action.text);
@@ -127,6 +182,7 @@ export function reduceWorldChat(
         state: "completed",
         icon: "✓",
         label: "Mr Fluff completed the request",
+        detail: "",
       },
     };
   }
@@ -141,27 +197,24 @@ export function reduceWorldChat(
     const next = replaceAssistant(state, `${current?.text ?? ""}${text}`);
     return {
       ...next,
-      activity: {
-        state: "thinking",
-        icon: "…",
-        label: "Mr Fluff is typing",
-      },
+      activity: preserveOuterActivity(state),
     };
   }
   if (event.type === "message.assistant-final") {
     const next = replaceAssistant(state, String(event.payload.text));
     return {
       ...next,
-      activity: {
-        state: "completed",
-        icon: "✓",
-        label: "Mr Fluff completed the response",
-      },
+      activity: preserveOuterActivity(state),
     };
   }
   const toolName = String(event.payload.toolName);
-  const coding = codingTool(toolName);
-  const prefix = coding ? "Coding" : "Tool";
+  const detail = toolDetail(toolName);
+  const prefix =
+    detail === "terminal"
+      ? "Coding"
+      : detail === "reading"
+        ? "Reading"
+        : "Tool";
   if (event.type === "tool.started")
     return append(
       state,
@@ -180,11 +233,7 @@ export function reduceWorldChat(
         kind: "tool",
         text: `${prefix} completed · ${toolName}`,
       },
-      {
-        state: "completed",
-        icon: "✓",
-        label: `${toolName} completed`,
-      },
+      toolActivity(toolName),
     );
   return append(
     state,
@@ -193,6 +242,6 @@ export function reduceWorldChat(
       kind: "tool",
       text: `${prefix} failed · ${toolName}`,
     },
-    { state: "failed", icon: "!", label: `${toolName} failed` },
+    toolActivity(toolName),
   );
 }

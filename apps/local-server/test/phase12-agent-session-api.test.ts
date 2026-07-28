@@ -2,13 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   AdapterRegistry,
   AgentSessionGateway,
   AgentSessionStore,
-  GatewayError,
   type AgentAdapter,
 } from "../src/agent-sessions.js";
 import { createLocalServer } from "../src/server.js";
@@ -352,12 +351,13 @@ describe("Phase 12 local APIs", () => {
     }
   });
 
-  it("aborts the upstream turn on browser disconnect and releases exact-session busy state", async () => {
+  it("detaches a disconnected browser while preserving the turn, busy guard, and history", async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "aiw-phase12-abort-"));
     roots.push(root);
     let attempt = 0;
-    let sawAbort!: () => void;
-    const aborted = new Promise<void>((resolve) => (sawAbort = resolve));
+    let release!: () => void;
+    let firstStarted!: () => void;
+    const started = new Promise<void>((resolve) => (firstStarted = resolve));
     const manifest = {
       schema: "aiw.agent-capabilities/0.12",
       adapterId: "fixture",
@@ -397,16 +397,33 @@ describe("Phase 12 local APIs", () => {
       sendText: async (_ref, _text, context) => {
         attempt += 1;
         if (attempt > 1) return { finalText: "recovered", deltas: [] };
-        return new Promise((_resolve, reject) => {
+        firstStarted();
+        await new Promise<void>((resolve, reject) => {
+          release = resolve;
           context?.signal?.addEventListener(
             "abort",
-            () => {
-              sawAbort();
-              reject(new GatewayError("upstream", "cancelled"));
-            },
+            () => reject(new Error("cancelled")),
             { once: true },
           );
         });
+        const onEvent = (
+          context as {
+            onEvent?: (event: {
+              type: "assistant.delta";
+              text: string;
+              redaction: { applied: boolean; count: number };
+            }) => Promise<void>;
+          }
+        ).onEvent;
+        await onEvent?.({
+          type: "assistant.delta",
+          text: "canonical ",
+          redaction: { applied: false, count: 0 },
+        });
+        return {
+          finalText: "canonical detached reply",
+          deltas: ["canonical "],
+        };
       },
     };
     const registry = new AdapterRegistry([adapter]);
@@ -430,9 +447,10 @@ describe("Phase 12 local APIs", () => {
     try {
       const address = server.server.address();
       if (!address || typeof address === "string") throw new Error("address");
+      const origin = `http://127.0.0.1:${address.port}`;
       const controller = new AbortController();
       const response = await fetch(
-        `http://127.0.0.1:${address.port}/agent-sessions/${session.sessionId}/stream`,
+        `${origin}/agent-sessions/${session.sessionId}/stream`,
         {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -443,16 +461,42 @@ describe("Phase 12 local APIs", () => {
       expect(response.headers.get("content-type")).toMatch(
         /^text\/event-stream/,
       );
+      await started;
+      const bodyDone = response.text().catch(() => "");
       controller.abort();
-      await aborted;
       await new Promise<void>((resolve) => setImmediate(resolve));
+      const concurrent = await fetch(
+        `${origin}/agent-sessions/${session.sessionId}/messages`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: "too soon", binding: session }),
+        },
+      );
+      expect(concurrent.status).toBe(409);
+      await expect(concurrent.json()).resolves.toMatchObject({
+        error: { code: "conflict" },
+      });
+
+      release();
+      await vi.waitFor(() => {
+        expect(gateway.history(session.sessionId)).toEqual([
+          expect.objectContaining({ role: "user", text: "disconnect" }),
+          expect.objectContaining({
+            role: "assistant",
+            text: "canonical detached reply",
+          }),
+        ]);
+      });
+      await bodyDone;
       await expect(
         gateway.sendText(session.sessionId, {
-          text: "after disconnect",
+          text: "after completion",
           binding: session,
         }),
       ).resolves.toMatchObject({ finalText: "recovered" });
     } finally {
+      release();
       await server.close();
     }
   });

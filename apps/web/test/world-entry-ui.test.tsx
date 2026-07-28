@@ -41,6 +41,10 @@ const activityApi = activityModule as unknown as {
       | {
           readonly type: "SEND_STARTED";
           readonly id: string;
+        }
+      | {
+          readonly type: "QUEUE_MESSAGE";
+          readonly id: string;
           readonly text: string;
         }
       | { readonly type: "AGENT_EVENT"; readonly event: WorldAgentEvent }
@@ -177,8 +181,12 @@ describe("Phase 18 World entry experience", () => {
     });
     let state = activityApi.reduceWorldChat(
       activityApi.createWorldChatState(),
-      { type: "SEND_STARTED", id: "request-1", text: "hi" },
+      { type: "QUEUE_MESSAGE", id: "request-1", text: "hi" },
     );
+    state = activityApi.reduceWorldChat(state, {
+      type: "SEND_STARTED",
+      id: "request-1",
+    });
     expect(state.activity).toMatchObject({ state: "thinking", icon: "…" });
     state = activityApi.reduceWorldChat(state, {
       type: "AGENT_EVENT",
@@ -213,6 +221,66 @@ describe("Phase 18 World entry experience", () => {
       kind: "error",
       text: "chat unavailable_",
     });
+  });
+
+  it("keeps queued user turns visible without stealing the active assistant turn", () => {
+    if (!activityApi.createWorldChatState || !activityApi.reduceWorldChat)
+      return;
+    const event = (
+      sequence: number,
+      type: WorldAgentEvent["type"],
+      text: string,
+    ): WorldAgentEvent => ({
+      schema: "aiw.agent-event/0.12",
+      eventId: `${sequence}`,
+      sessionId: legacyCatProposal.sessionId,
+      sequence,
+      occurredAt: "2026-07-25T00:00:00.000Z",
+      correlationId: "correlation",
+      type,
+      payload: { text },
+      redaction: { applied: false, count: 0 },
+    });
+    let state = activityApi.reduceWorldChat(
+      activityApi.createWorldChatState(),
+      {
+        type: "QUEUE_MESSAGE",
+        id: "first",
+        text: "first",
+      },
+    );
+    state = activityApi.reduceWorldChat(state, {
+      type: "SEND_STARTED",
+      id: "first",
+    });
+    state = activityApi.reduceWorldChat(state, {
+      type: "QUEUE_MESSAGE",
+      id: "second",
+      text: "second",
+    });
+    state = activityApi.reduceWorldChat(state, {
+      type: "AGENT_EVENT",
+      event: event(1, "message.assistant-final", "first reply"),
+    });
+    state = activityApi.reduceWorldChat(state, {
+      type: "SEND_COMPLETED",
+      text: "first reply",
+    });
+    state = activityApi.reduceWorldChat(state, {
+      type: "SEND_STARTED",
+      id: "second",
+    });
+    state = activityApi.reduceWorldChat(state, {
+      type: "SEND_COMPLETED",
+      text: "second reply",
+    });
+
+    expect(state.transcript.map(({ kind, text }) => ({ kind, text }))).toEqual([
+      { kind: "user", text: "first" },
+      { kind: "user", text: "second" },
+      { kind: "assistant", text: "first reply" },
+      { kind: "assistant", text: "second reply" },
+    ]);
   });
 
   it("provides the returning identity and World composition", () => {
@@ -408,6 +476,85 @@ describe("Phase 18 World entry experience", () => {
     expect(hud).toContain('tabindex="0"');
     expect(hud).toContain("Hello from Mr Fluff.");
     expect(hud).toContain("Coding completed · terminal.exec");
+  });
+
+  it("renders bounded readable assistant structure and escapes raw HTML", () => {
+    if (!api.WorldHud) return;
+    const html = renderToStaticMarkup(
+      createElement(component(api.WorldHud), {
+        recipient: "Mr Fluff",
+        status: "Connected · Current",
+        busy: false,
+        queuedCount: 0,
+        message: "",
+        transcript: [
+          {
+            id: "assistant-structured",
+            kind: "assistant",
+            text: [
+              "# Session summary",
+              "",
+              "First paragraph with **strong context** and `inline code`.",
+              "",
+              "## Changes",
+              "- terminal status stayed working",
+              "- output stayed readable",
+              "",
+              "1. inspect",
+              "2. verify",
+              "",
+              "> Preserve the outer turn.",
+              "",
+              "```ts",
+              "const safe = '<script>alert(1)</script>';",
+              "```",
+              "",
+              "<script>alert('raw')</script>",
+            ].join("\n"),
+          },
+        ],
+        pushToTalkAvailable: false,
+        onMessage: () => undefined,
+        onSend: () => undefined,
+      }),
+    );
+
+    expect(html).toContain("<h3>Session summary</h3>");
+    expect(html).toContain("<h4>Changes</h4>");
+    expect(html).toContain("<p>First paragraph with ");
+    expect(html).toContain("<strong>strong context</strong>");
+    expect(html).toContain("<code>inline code</code>");
+    expect(html).toContain("<ul>");
+    expect(html).toContain("<ol>");
+    expect(html).toContain("<blockquote>");
+    expect(html).toContain("<pre><code");
+    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(html).toContain(
+      "&lt;script&gt;alert(&#x27;raw&#x27;)&lt;/script&gt;",
+    );
+    expect(html).not.toContain("<script>");
+    expect(
+      readFileSync(
+        new URL("../src/world-entry/WorldHud.tsx", import.meta.url),
+        "utf8",
+      ),
+    ).not.toContain("dangerouslySetInnerHTML");
+  });
+
+  it("keeps outer completion behind the awaited repository-floor step", () => {
+    const source = readFileSync(
+      new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),
+      "utf8",
+    );
+    const repositoryAwait = source.indexOf(
+      "await loadRequestedRepository(current.text)",
+    );
+    const outerCompletion = source.indexOf(
+      'updateChat({ type: "SEND_COMPLETED", text: answer.finalText })',
+      repositoryAwait,
+    );
+    expect(repositoryAwait).toBeGreaterThan(-1);
+    expect(outerCompletion).toBeGreaterThan(repositoryAwait);
   });
 
   it("fails the internal dashboard route closed unless both exact path and flag are present", () => {

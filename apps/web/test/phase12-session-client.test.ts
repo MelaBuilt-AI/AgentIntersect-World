@@ -64,8 +64,9 @@ describe("Phase 12 browser client", () => {
     ].join("");
     const bytes = new TextEncoder().encode(body);
     const chunks = Array.from(bytes, (byte) => new Uint8Array([byte]));
+    let observedSignal: AbortSignal | null | undefined;
     const fetcher = vi.fn(async (_input: string, init?: RequestInit) => {
-      expect(init?.signal).toBeInstanceOf(AbortSignal);
+      observedSignal = init?.signal;
       expect(JSON.parse(String(init?.body))).toMatchObject({
         text: "hello",
         context: { userDisplayName: "Aaron" },
@@ -101,6 +102,7 @@ describe("Phase 12 browser client", () => {
       userDisplayName: "Aaron",
       onEvent: (value) => observed.push(value),
     });
+    expect(observedSignal).toBeUndefined();
     expect(result.finalText).toBe("live reply");
     expect(observed).toHaveLength(5);
     expect(observed[1]).toMatchObject({
@@ -112,5 +114,45 @@ describe("Phase 12 browser client", () => {
       payload: { toolName: "terminal" },
     });
     expect(JSON.stringify(observed)).not.toMatch(/args|preview|RAW_|Bearer/i);
+  });
+
+  it("forwards explicit caller cancellation without installing its own signal", async () => {
+    const session = {
+      schema: "aiw.agent-session/0.12",
+      sessionId: "11111111-1111-4111-8111-111111111111",
+      adapterId: "hermes",
+      adapterSessionRef: "native",
+      profile: "default",
+      workspaceId: "ws_fixture",
+      repositoryRef: "repo_fixture",
+      mode: "explore",
+      permissionRevision: 0,
+      capabilitySnapshotHash: "a".repeat(64),
+      continuity: "current",
+      status: "ready",
+    } satisfies WorldAgentSession;
+    const controller = new AbortController();
+    let observedSignal: AbortSignal | null | undefined;
+    const fetcher = vi.fn(
+      async (_input: string, init?: RequestInit): Promise<Response> => {
+        observedSignal = init?.signal;
+        return new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(init.signal?.reason),
+            { once: true },
+          );
+        });
+      },
+    );
+    const client = new AgentSessionClient(fetcher as typeof fetch);
+    const pending = client.stream(session, "cancel me", {
+      signal: controller.signal,
+    });
+
+    controller.abort();
+
+    await expect(pending).rejects.toThrow("World session stream disconnected.");
+    expect(observedSignal).toBe(controller.signal);
   });
 });

@@ -105,18 +105,31 @@ Acceptance criteria:
 - Future live Hermes acceptance must prove the response can address the current user name dynamically; test at least `Aaron` and one different name.
 - Do not claim a live-agent pass from fixture output.
 
-## Live Hermes Follow-Up
+## Live Hermes Same-Session Conversation Acceptance — FIFO / LONG-RUN / REFRESH / FORMAT / ACTIVITY PASS
 
-A live-agent test is intentionally separate from this fixture-assisted UI run. The next suitable session may provision a bounded temporary product-facing Hermes Sessions API exercise after confirming the exact setup authority. It must use the normal `/` product path, preserve the user’s selected avatar name, exercise a real existing Hermes/Mr Fluff session, retain truthful event/transcript provenance, and clean up without provider/profile/core mutation unless separately authorized.
+On 2026-07-28 Aaron manually completed the separate live-agent test through the normal `/` product path. A loopback-only authenticated Hermes Sessions API exposed exactly one pinned native root under the independent AgentIntersect display identity `Mr Fluff` while preserving the native session title. World accepted `hi fluff are you live?`, streamed real tool-status events, and returned later ordinary assistant responses to the persistent conversation box. Aaron directly observed and celebrated those replies. This was the true active Discord lineage—not a fixture or copied snapshot—and it passes the bounded ordinary Single Agent Hermes same-session text round trip.
+
+The earlier `prep end session` attempt remains historical failure evidence because it ended in `chat unavailable_` after backend side effects. Aaron has now first-hand accepted the bounded retest: the long/tool-heavy final response appeared inside World, and his screenshot shows the final delivered handoff message. The complete browser → World → Hermes → World long-run delivery path therefore passes for this candidate.
+
+The conversation-immediacy correction uses a single-flight FIFO queue rather than disabling the composer while Hermes works, and hydrates authoritative user/assistant history from the exact session. Aaron accepted the queue first-hand: while the first health/time prompt was still running, he typed and submitted a second prompt, saw `1 queued`, and received the second prompt exactly once after the first. Browser refresh also preserved the visible chat history.
+
+Aaron's first refresh still returned through agent connection selection, agent-avatar creation, and `Enter World`. Parent live-shape diagnosis subsequently proved that the rebuilt candidate restores a valid exact-session pointer directly into World against the real persisted session, including the 409 live avatar-proposal path and accepted authoritative-history fallback. Aaron has now manually refreshed the rebuilt live preview and confirmed that the chat remained present with the `prep end session` response visible. Direct refresh restoration therefore passes first-hand. The path remains fail-closed: no silent native-root switch and no ambiguous in-flight resend.
+
+The formatting/activity correction is now implemented without a new dependency. Assistant messages use bounded React-only structure for paragraphs, headings, lists, blockquotes, fenced/inline code, and strong emphasis; raw HTML remains escaped. Activity remains `working` after tool completion/failure and assistant final events, with bounded `terminal`, `reading`, or `tool` detail, and becomes `done` only after the outer send plus awaited repository-floor work completes.
+
+Parent verification passed focused Vitest **51/51**, impacted web/renderer Vitest **189/189**, focused Playwright queue/refresh **2/2**, monorepo typecheck **38/38**, production build **20/20**, explicit Vite build, and diff hygiene under Node 24. The rebuilt preview is serving the new bundle. A no-click exact-session proof restored directly into World through the real status 200 / proposal 409 / history 200 path, hydrated 42 transcript items, and structurally rendered 19 assistant messages with no executable script elements. Aaron then manually confirmed that refresh preserved the chat and visible `prep end session` response, the formatting was clean, and the real tool-chain activity bubble worked perfectly without an intermediate `done`. Refresh, formatting, and truthful activity therefore pass first-hand; this bounded UX slice is accepted.
+
+Checkpoint caveat: a subsequent complete `check:core` run reached **665/666 tests passing** and failed only at the fail-closed Phase 18.5 native-hardware evidence validator because the accepted activity-bubble change altered `world-room-canvas.tsx`. The previous native metrics remain bound to the previous source fingerprint and were not rewritten. Phase 18.5 requires a fresh native hardware capture when resumed; the recovery checkpoint is not a Phase 18.5 performance seal.
+
+The adapter still advertises no voice input/output capability and push-to-talk remains unavailable. Voice remains after refresh and chat/activity acceptance and should reuse the already accepted Phase 15 consent/privacy/local-STT/optional-TTS contracts. The bounded live coding gate remains open.
 
 ## Required Next-Session Sequence
 
-1. Invoke `find handoff` and read this backlog before editing.
-2. Implement all seven corrections with focused RED → GREEN regressions.
-3. Run independent source/diff review, focused renderer/UI tests, production browser journeys at native and responsive sizes, and the complete pinned aggregate.
-4. Commit/push privately and require exact-SHA CI only after the corrected candidate is green.
-5. Launch another clean native-browser first-hand retest; use fixtures only with explicit labeling.
-6. If separately authorized and available, run the bounded live Hermes Sessions API exercise.
-7. Seal Phase 18 only after Aaron explicitly accepts the corrected experience.
+1. Preserve the accepted exact-session FIFO queue, authoritative transcript hydration, long/tool-heavy delivery, direct refresh, structured formatting, and truthful activity behavior.
+2. Preserve exact-session fail-closed behavior, single-flight FIFO delivery, and no ambiguous in-flight resend.
+3. Wire the accepted Phase 15 consent/privacy/local-STT/optional-TTS contracts into the normal same-session World path when that next slice is authorized.
+4. Preserve the bounded live coding gate as open until one disposable feature journey is proven through World.
+5. Commit/push privately and require exact-SHA CI only after the consolidated candidate and cleanup/rollback plan are green and Aaron authorizes delivery.
+6. Seal Phase 18 only after Aaron explicitly accepts the remaining voice and coding experience.
 
 Revised Phases 19–20 remain not started and unauthorized.

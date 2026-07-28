@@ -184,6 +184,43 @@ describe("Phase 18 World entry state machine", () => {
     });
   });
 
+  it("restores a proven accepted exact session directly into the blank World room", () => {
+    if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
+    const restored = api.reduceWorldEntry(
+      api.createReturningWorldEntryState({
+        profileId: "avatar_user",
+        name: "Mela",
+      }),
+      {
+        type: "RESTORE_WORLD",
+        sessionId: "world_current",
+        continuity: "current",
+        agentName: "Mr Fluff",
+        avatarProfileId: "avatar_mr_fluff",
+      },
+    );
+    expect(restored).toMatchObject({
+      step: "world_blank",
+      selectedHarness: "hermes",
+      agentName: "Mr Fluff",
+      connection: {
+        status: "connected",
+        sessionId: "world_current",
+        continuity: "current",
+      },
+      agentAvatar: {
+        status: "accepted",
+        sessionId: "world_current",
+        profileId: "avatar_mr_fluff",
+      },
+      world: {
+        sceneId: "world-room",
+        cameraId: "third-person-user",
+        floor: "blank",
+      },
+    });
+  });
+
   it("ignores animation as authority and activates only a successful current or disclosed recovered floor", () => {
     if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
     const initial = api.createReturningWorldEntryState({
