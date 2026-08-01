@@ -277,6 +277,111 @@ export const AgentAvatarProposalSchema = z
     sourceDisclosure: Utf8Bounded(1, 240),
     rationale: Utf8Bounded(1, 240),
     createdAt: z.string().datetime(),
+    avatarSource: z
+      .union([
+        z
+          .object({
+            kind: z.literal("imported"),
+            version: z.literal(2),
+            mode: z.literal("original"),
+            modelId: z.enum([
+              "cat-agent-01",
+              "cat-agent-02",
+              "cat-agent-03",
+              "cat-agent-04",
+              "cat-agent-05",
+              "cat-agent-06",
+              "cat-agent-07",
+              "dog-agent-01",
+              "dog-agent-02",
+              "dog-agent-03",
+              "dog-agent-04",
+              "dog-agent-05",
+              "robot-agent-01",
+              "robot-agent-02",
+              "robot-agent-03",
+              "robot-agent-04",
+              "robot-agent-05",
+            ]),
+          })
+          .strict(),
+        z
+          .object({
+            kind: z.literal("imported"),
+            version: z.literal(2),
+            mode: z.literal("modular"),
+            baseModelId: z.enum([
+              "cat-agent-01",
+              "cat-agent-02",
+              "cat-agent-03",
+              "cat-agent-04",
+              "cat-agent-05",
+              "cat-agent-06",
+              "cat-agent-07",
+              "dog-agent-01",
+              "dog-agent-02",
+              "dog-agent-03",
+              "dog-agent-04",
+              "dog-agent-05",
+              "robot-agent-01",
+              "robot-agent-02",
+              "robot-agent-03",
+              "robot-agent-04",
+              "robot-agent-05",
+            ]),
+            slots: z.record(
+              z.enum([
+                "head",
+                "torso",
+                "left-arm",
+                "right-arm",
+                "left-leg",
+                "right-leg",
+                "auxiliary",
+              ]),
+              z
+                .object({
+                  donorModelId: z.enum([
+                    "cat-agent-01",
+                    "cat-agent-02",
+                    "cat-agent-03",
+                    "cat-agent-04",
+                    "cat-agent-05",
+                    "cat-agent-06",
+                    "cat-agent-07",
+                    "dog-agent-01",
+                    "dog-agent-02",
+                    "dog-agent-03",
+                    "dog-agent-04",
+                    "dog-agent-05",
+                    "robot-agent-01",
+                    "robot-agent-02",
+                    "robot-agent-03",
+                    "robot-agent-04",
+                    "robot-agent-05",
+                    "user-male-01",
+                    "user-male-02",
+                    "user-male-03",
+                    "user-female-01",
+                    "user-female-02",
+                    "user-female-03",
+                  ]),
+                  regionId: z.enum([
+                    "head-weighted",
+                    "torso-weighted",
+                    "left-arm-weighted",
+                    "right-arm-weighted",
+                    "left-leg-weighted",
+                    "right-leg-weighted",
+                    "mixed-or-auxiliary",
+                  ]),
+                })
+                .strict(),
+            ),
+          })
+          .strict(),
+      ])
+      .optional(),
   })
   .strict();
 

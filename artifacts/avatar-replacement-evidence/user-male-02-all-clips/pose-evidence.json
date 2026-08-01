@@ -1,0 +1,239 @@
+{
+  "classificationStatus": "visual-verification-required",
+  "clips": [
+    {
+      "clipIndex": 0,
+      "frameRange": [1.0, 93.0],
+      "renderedFiles": [
+        "clip-00-sample-1.png",
+        "clip-00-sample-2.png",
+        "clip-00-sample-3.png"
+      ],
+      "sampleFrames": [24.0, 47.0, 70.0],
+      "sourceActionName": "NlaTrack"
+    },
+    {
+      "clipIndex": 1,
+      "frameRange": [1.0, 173.0],
+      "renderedFiles": [
+        "clip-01-sample-1.png",
+        "clip-01-sample-2.png",
+        "clip-01-sample-3.png"
+      ],
+      "sampleFrames": [44.0, 87.0, 130.0],
+      "sourceActionName": "NlaTrack.001"
+    },
+    {
+      "clipIndex": 2,
+      "frameRange": [1.0, 159.0],
+      "renderedFiles": [
+        "clip-02-sample-1.png",
+        "clip-02-sample-2.png",
+        "clip-02-sample-3.png"
+      ],
+      "sampleFrames": [40.5, 80.0, 119.5],
+      "sourceActionName": "NlaTrack.002"
+    },
+    {
+      "clipIndex": 3,
+      "frameRange": [1.0, 57.0],
+      "renderedFiles": [
+        "clip-03-sample-1.png",
+        "clip-03-sample-2.png",
+        "clip-03-sample-3.png"
+      ],
+      "sampleFrames": [15.0, 29.0, 43.0],
+      "sourceActionName": "NlaTrack.003"
+    },
+    {
+      "clipIndex": 4,
+      "frameRange": [1.0, 145.0],
+      "renderedFiles": [
+        "clip-04-sample-1.png",
+        "clip-04-sample-2.png",
+        "clip-04-sample-3.png"
+      ],
+      "sampleFrames": [37.0, 73.0, 109.0],
+      "sourceActionName": "NlaTrack.004"
+    },
+    {
+      "clipIndex": 5,
+      "frameRange": [1.0, 375.0],
+      "renderedFiles": [
+        "clip-05-sample-1.png",
+        "clip-05-sample-2.png",
+        "clip-05-sample-3.png"
+      ],
+      "sampleFrames": [94.5, 188.0, 281.5],
+      "sourceActionName": "NlaTrack.005"
+    },
+    {
+      "clipIndex": 6,
+      "frameRange": [1.0, 135.0],
+      "renderedFiles": [
+        "clip-06-sample-1.png",
+        "clip-06-sample-2.png",
+        "clip-06-sample-3.png"
+      ],
+      "sampleFrames": [34.5, 68.0, 101.5],
+      "sourceActionName": "NlaTrack.006"
+    },
+    {
+      "clipIndex": 7,
+      "frameRange": [0.0, 246.0],
+      "renderedFiles": [
+        "clip-07-sample-1.png",
+        "clip-07-sample-2.png",
+        "clip-07-sample-3.png"
+      ],
+      "sampleFrames": [61.5, 123.0, 184.5],
+      "sourceActionName": "NlaTrack.007"
+    },
+    {
+      "clipIndex": 8,
+      "frameRange": [1.0, 54.0],
+      "renderedFiles": [
+        "clip-08-sample-1.png",
+        "clip-08-sample-2.png",
+        "clip-08-sample-3.png"
+      ],
+      "sampleFrames": [14.25, 27.5, 40.75],
+      "sourceActionName": "NlaTrack.008"
+    },
+    {
+      "clipIndex": 9,
+      "frameRange": [0.0, 232.0],
+      "renderedFiles": [
+        "clip-09-sample-1.png",
+        "clip-09-sample-2.png",
+        "clip-09-sample-3.png"
+      ],
+      "sampleFrames": [58.0, 116.0, 174.0],
+      "sourceActionName": "NlaTrack.009"
+    },
+    {
+      "clipIndex": 10,
+      "frameRange": [1.0, 145.0],
+      "renderedFiles": [
+        "clip-10-sample-1.png",
+        "clip-10-sample-2.png",
+        "clip-10-sample-3.png"
+      ],
+      "sampleFrames": [37.0, 73.0, 109.0],
+      "sourceActionName": "NlaTrack.010"
+    },
+    {
+      "clipIndex": 11,
+      "frameRange": [1.0, 219.0],
+      "renderedFiles": [
+        "clip-11-sample-1.png",
+        "clip-11-sample-2.png",
+        "clip-11-sample-3.png"
+      ],
+      "sampleFrames": [55.5, 110.0, 164.5],
+      "sourceActionName": "NlaTrack.011"
+    },
+    {
+      "clipIndex": 12,
+      "frameRange": [1.0, 423.0],
+      "renderedFiles": [
+        "clip-12-sample-1.png",
+        "clip-12-sample-2.png",
+        "clip-12-sample-3.png"
+      ],
+      "sampleFrames": [106.5, 212.0, 317.5],
+      "sourceActionName": "NlaTrack.012"
+    },
+    {
+      "clipIndex": 13,
+      "frameRange": [1.0, 369.0],
+      "renderedFiles": [
+        "clip-13-sample-1.png",
+        "clip-13-sample-2.png",
+        "clip-13-sample-3.png"
+      ],
+      "sampleFrames": [93.0, 185.0, 277.0],
+      "sourceActionName": "NlaTrack.013"
+    },
+    {
+      "clipIndex": 14,
+      "frameRange": [1.0, 411.0],
+      "renderedFiles": [
+        "clip-14-sample-1.png",
+        "clip-14-sample-2.png",
+        "clip-14-sample-3.png"
+      ],
+      "sampleFrames": [103.5, 206.0, 308.5],
+      "sourceActionName": "NlaTrack.014"
+    },
+    {
+      "clipIndex": 15,
+      "frameRange": [1.0, 85.0],
+      "renderedFiles": [
+        "clip-15-sample-1.png",
+        "clip-15-sample-2.png",
+        "clip-15-sample-3.png"
+      ],
+      "sampleFrames": [22.0, 43.0, 64.0],
+      "sourceActionName": "NlaTrack.015"
+    },
+    {
+      "clipIndex": 16,
+      "frameRange": [0.0, 77.0],
+      "renderedFiles": [
+        "clip-16-sample-1.png",
+        "clip-16-sample-2.png",
+        "clip-16-sample-3.png"
+      ],
+      "sampleFrames": [19.25, 38.5, 57.75],
+      "sourceActionName": "NlaTrack.016"
+    },
+    {
+      "clipIndex": 17,
+      "frameRange": [1.0, 332.0],
+      "renderedFiles": [
+        "clip-17-sample-1.png",
+        "clip-17-sample-2.png",
+        "clip-17-sample-3.png"
+      ],
+      "sampleFrames": [83.75, 166.5, 249.25],
+      "sourceActionName": "NlaTrack.017"
+    },
+    {
+      "clipIndex": 18,
+      "frameRange": [0.0, 315.0],
+      "renderedFiles": [
+        "clip-18-sample-1.png",
+        "clip-18-sample-2.png",
+        "clip-18-sample-3.png"
+      ],
+      "sampleFrames": [78.75, 157.5, 236.25],
+      "sourceActionName": "NlaTrack.018"
+    },
+    {
+      "clipIndex": 19,
+      "frameRange": [1.0, 329.0],
+      "renderedFiles": [
+        "clip-19-sample-1.png",
+        "clip-19-sample-2.png",
+        "clip-19-sample-3.png"
+      ],
+      "sampleFrames": [83.0, 165.0, 247.0],
+      "sourceActionName": "NlaTrack.019"
+    },
+    {
+      "clipIndex": 20,
+      "frameRange": [1.0, 31.0],
+      "renderedFiles": [
+        "clip-20-sample-1.png",
+        "clip-20-sample-2.png",
+        "clip-20-sample-3.png"
+      ],
+      "sampleFrames": [8.5, 16.0, 23.5],
+      "sourceActionName": "NlaTrack.020"
+    }
+  ],
+  "modelId": "user-male-02",
+  "schema": "aiw.replacement-avatar-pose-evidence/1",
+  "sourceClipNamesPreserved": true
+}

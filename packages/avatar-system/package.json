@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./imported-avatar": {
+      "types": "./dist/imported-avatar.d.ts",
+      "import": "./dist/imported-avatar.js"
     }
   },
   "scripts": {

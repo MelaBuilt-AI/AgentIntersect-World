@@ -221,6 +221,85 @@ describe("Phase 18 World entry state machine", () => {
     });
   });
 
+  it("restores an accepted legacy exact session into explicit avatar migration without changing its attachment", () => {
+    if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
+    const restored = api.reduceWorldEntry(
+      api.createReturningWorldEntryState({
+        profileId: "avatar_user",
+        name: "Mela",
+      }),
+      {
+        type: "RESTORE_AGENT_AVATAR",
+        sessionId: "world_current",
+        continuity: "current",
+        agentName: "Mr Fluff",
+      },
+    );
+    expect(restored).toMatchObject({
+      step: "agent_avatar",
+      selectedHarness: "hermes",
+      agentName: "Mr Fluff",
+      connection: {
+        status: "connected",
+        sessionId: "world_current",
+        continuity: "current",
+      },
+      agentAvatar: {
+        status: "editing",
+        sessionId: "world_current",
+        profileId: null,
+      },
+    });
+    expect(api.canEnterWorld?.(restored)).toBe(false);
+  });
+
+  it("detaches only World presentation for logout/reset and returns Change Agent to an empty prompt", () => {
+    if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
+    const initial = api.createReturningWorldEntryState({
+      profileId: "avatar_user",
+      name: "Mela",
+    });
+    const world = api.reduceWorldEntry(initial, {
+      type: "RESTORE_WORLD",
+      sessionId: "world_current",
+      continuity: "current",
+      agentName: "Mr Fluff",
+      avatarProfileId: "avatar_mr_fluff",
+    });
+    const sessionEntry = api.reduceWorldEntry(world, {
+      type: "LEAVE_WORLD",
+      destination: "session_select",
+    });
+    expect(sessionEntry).toMatchObject({
+      step: "session_select",
+      user: initial.user,
+      selectedHarness: null,
+      agentName: "",
+      connection: {
+        status: "none",
+        sessionId: null,
+        continuity: "none",
+      },
+      world: { floor: "blank", generationId: null },
+      repository: { status: "idle", request: "", error: "" },
+    });
+    const agentPrompt = api.reduceWorldEntry(world, {
+      type: "LEAVE_WORLD",
+      destination: "agent_prompt",
+    });
+    expect(agentPrompt).toMatchObject({
+      step: "agent_prompt",
+      user: initial.user,
+      selectedHarness: "hermes",
+      agentName: "",
+      connection: {
+        status: "none",
+        sessionId: null,
+        continuity: "none",
+      },
+    });
+  });
+
   it("ignores animation as authority and activates only a successful current or disclosed recovered floor", () => {
     if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
     const initial = api.createReturningWorldEntryState({

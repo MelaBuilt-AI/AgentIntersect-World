@@ -12,10 +12,18 @@ declare module "three" {
     y: number;
     z: number;
   }
+  export class Quaternion {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  }
   export class Object3D {
+    uuid: string;
     parent: Object3D | null;
     position: Vector3;
     rotation: Euler;
+    quaternion: Quaternion;
     name: string;
     visible: boolean;
     userData: Record<string, unknown>;
@@ -165,6 +173,12 @@ declare module "three" {
   }
   export class KeyframeTrack {
     name: string;
+    times: ArrayLike<number>;
+    values: {
+      readonly length: number;
+      [index: number]: number;
+    };
+    getValueSize(): number;
   }
   export class AnimationAction {
     time: number;
@@ -177,10 +191,12 @@ declare module "three" {
     setEffectiveWeight(weight: number): this;
   }
   export class AnimationMixer {
+    time: number;
     constructor(root: Object3D);
     clipAction(clip: AnimationClip): AnimationAction;
     update(delta: number): void;
     stopAllAction(): this;
+    uncacheRoot(root: Object3D): void;
   }
 }
 

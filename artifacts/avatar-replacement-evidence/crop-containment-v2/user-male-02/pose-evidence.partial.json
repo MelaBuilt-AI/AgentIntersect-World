@@ -1,0 +1,109 @@
+{
+  "classificationStatus": "runtime-refused-until-visual-and-motion-verification",
+  "clips": [
+    {
+      "clipIndex": 3,
+      "frameRange": [
+        1.0,
+        57.0
+      ],
+      "renderedFiles": [
+        "clip-03-sample-1.png",
+        "clip-03-sample-2.png",
+        "clip-03-sample-3.png",
+        "clip-03-sample-4.png",
+        "clip-03-sample-5.png",
+        "clip-03-sample-6.png",
+        "clip-03-sample-7.png"
+      ],
+      "sampleFrames": [
+        8.0,
+        15.0,
+        22.0,
+        29.0,
+        36.0,
+        43.0,
+        50.0
+      ],
+      "sampleLabels": [
+        "sample-01 \u00b7 12.5%",
+        "sample-02 \u00b7 25.0%",
+        "sample-03 \u00b7 37.5%",
+        "sample-04 \u00b7 50.0%",
+        "sample-05 \u00b7 62.5%",
+        "sample-06 \u00b7 75.0%",
+        "sample-07 \u00b7 87.5%"
+      ],
+      "sampledUnionBounds": {
+        "maximum": [
+          0.951058,
+          1.0,
+          1.0
+        ],
+        "minimum": [
+          -0.951058,
+          -1.661462,
+          -1.0
+        ]
+      },
+      "sourceActionName": "NlaTrack.003"
+    },
+    {
+      "clipIndex": 20,
+      "frameRange": [
+        1.0,
+        31.0
+      ],
+      "renderedFiles": [
+        "clip-20-sample-1.png",
+        "clip-20-sample-2.png",
+        "clip-20-sample-3.png",
+        "clip-20-sample-4.png",
+        "clip-20-sample-5.png",
+        "clip-20-sample-6.png",
+        "clip-20-sample-7.png"
+      ],
+      "sampleFrames": [
+        4.75,
+        8.5,
+        12.25,
+        16.0,
+        19.75,
+        23.5,
+        27.25
+      ],
+      "sampleLabels": [
+        "sample-01 \u00b7 12.5%",
+        "sample-02 \u00b7 25.0%",
+        "sample-03 \u00b7 37.5%",
+        "sample-04 \u00b7 50.0%",
+        "sample-05 \u00b7 62.5%",
+        "sample-06 \u00b7 75.0%",
+        "sample-07 \u00b7 87.5%"
+      ],
+      "sampledUnionBounds": {
+        "maximum": [
+          0.951058,
+          1.0,
+          1.0
+        ],
+        "minimum": [
+          -0.951058,
+          -3.617238,
+          -1.0
+        ]
+      },
+      "sourceActionName": "NlaTrack.020"
+    }
+  ],
+  "completeModel": false,
+  "modelId": "user-male-02",
+  "motionEvidenceAuthority": "apps/web/public/assets/imported-avatars/manifest.json#assets/user-male-02/clips",
+  "renderedClipIndices": [
+    3,
+    20
+  ],
+  "samplesPerClip": 7,
+  "schema": "aiw.replacement-avatar-pose-evidence/2",
+  "sourceClipNamesPreserved": true
+}

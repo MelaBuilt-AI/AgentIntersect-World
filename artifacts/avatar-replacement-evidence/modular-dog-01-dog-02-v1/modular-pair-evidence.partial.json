@@ -1,0 +1,90 @@
+{
+  "activeRegion": "auxiliary",
+  "activeRegionFrames": [
+    {
+      "assembledBounds": {
+        "maximum": [
+          0.340552,
+          0.152348,
+          1.705388
+        ],
+        "minimum": [
+          -0.223436,
+          -0.642473,
+          0.003965
+        ]
+      },
+      "assembledHeightMeters": 1.701422,
+      "attachmentGapMeters": null,
+      "basePoseTraceSha256": "ab4c23085e1700f9998a5307bcfaf71903b3d5f111ecfa07ad94920a529eaad4",
+      "broadPhaseCollisionPairs": 0,
+      "collisionPairObjects": [],
+      "donorPoseTraceSha256": "23427e2b1c497d975df92c1a7a4e36d743bce1b4f4675007e39c1ef7312e1eea",
+      "file": "auxiliary-assembled-sample-1.png",
+      "groundErrorMeters": 0.003965,
+      "normalizedClipFraction": 0.25,
+      "sample": 1,
+      "sha256": "0dad9f3ee0a70128d0112b066b7c2218c172a68a1822fd91a3d678e009bc7ece"
+    },
+    {
+      "assembledBounds": {
+        "maximum": [
+          0.352495,
+          0.153253,
+          1.705474
+        ],
+        "minimum": [
+          -0.22131,
+          -0.65084,
+          0.004364
+        ]
+      },
+      "assembledHeightMeters": 1.701109,
+      "attachmentGapMeters": null,
+      "basePoseTraceSha256": "ee26d1e02996f6cb30755c796f3e129b67221beb91d2ff536adbdbf457af3249",
+      "broadPhaseCollisionPairs": 0,
+      "collisionPairObjects": [],
+      "donorPoseTraceSha256": "d19eccf845608719749fe50ef7375798ea4b7731b583a87e44d22f09577b8ffe",
+      "file": "auxiliary-assembled-sample-2.png",
+      "groundErrorMeters": 0.004364,
+      "normalizedClipFraction": 0.5,
+      "sample": 2,
+      "sha256": "30899d6f95372090d468b770a513f8d992db94703a8492c44b69785b9594d8ff"
+    },
+    {
+      "assembledBounds": {
+        "maximum": [
+          0.35058,
+          0.157122,
+          1.70482
+        ],
+        "minimum": [
+          -0.213672,
+          -0.669664,
+          0.004608
+        ]
+      },
+      "assembledHeightMeters": 1.700212,
+      "attachmentGapMeters": null,
+      "basePoseTraceSha256": "f6558b986d52c74d5dcb9f86ee240755e7b602fcc095cdd6c60511c230814a61",
+      "broadPhaseCollisionPairs": 0,
+      "collisionPairObjects": [],
+      "donorPoseTraceSha256": "541cda8427ed6cf6b1633437527d769b671fc719e388f34330ea740a4a59d0e4",
+      "file": "auxiliary-assembled-sample-3.png",
+      "groundErrorMeters": 0.004608,
+      "normalizedClipFraction": 0.75,
+      "sample": 3,
+      "sha256": "fde30b57af0340bc6c5a972426391dfb684936bdf2a7c23cf1eeb97ce6088213"
+    }
+  ],
+  "completedRegions": [
+    "head",
+    "torso",
+    "left-arm",
+    "right-arm",
+    "left-leg",
+    "right-leg"
+  ],
+  "schema": "aiw.modular-pair-evidence-partial/1",
+  "state": "partial"
+}

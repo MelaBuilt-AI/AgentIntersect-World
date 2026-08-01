@@ -1,4 +1,5 @@
 import * as clientModule from "../src/world-entry/world-entry-client.js";
+import { createModularImportedAvatarSource } from "@agentintersect-world/avatar-system/imported-avatar";
 import { describe, expect, it } from "vitest";
 import { vi } from "vitest";
 
@@ -156,6 +157,7 @@ describe("Phase 18 World entry client composition", () => {
       status: "connected",
       continuity: "current",
       avatarAccepted: false,
+      avatarSetup: "required",
     });
     expect(basePort.attach).toHaveBeenCalledWith({
       adapterId: "hermes",
@@ -276,8 +278,155 @@ describe("Phase 18 World entry client composition", () => {
       continuity: "current",
       proposal: acceptedProposal,
       avatarAccepted: true,
+      avatarSetup: "legacy-migration",
       history,
     });
+  });
+
+  it("restores only accepted original agent avatars as complete", async () => {
+    if (!api.createWorldEntryClient) return;
+    const session = worldSession({
+      adapterSessionRef: "rotated-child-session",
+      adapterRootSessionRef: "pinned-root-session",
+    });
+    const acceptedProposal = {
+      schema: "aiw.avatar-proposal/0.12",
+      proposalId: "accepted-imported-avatar",
+      sessionId: session.sessionId,
+      displayName: "Mr Fluff",
+      species: "cat",
+      head: "cat",
+      hands: "paws",
+      feet: "paws",
+      fur: "short",
+      tail: "cat",
+      markings: "solid",
+      bodyColor: "charcoal",
+      shirt: "Hermes",
+      movementStyle: "shared-biped-core",
+      sourceDisclosure: "Stored World consent",
+      rationale: "Explicitly selected by the operator",
+      createdAt: "2026-07-28T15:45:02.602Z",
+      avatarSource: {
+        kind: "imported",
+        version: 2,
+        mode: "original",
+        modelId: "robot-agent-01",
+      },
+    };
+    const sessionClient = {
+      capabilities: vi.fn().mockResolvedValue([
+        {
+          adapterId: "hermes",
+          capabilities: { attach: true, sendText: true },
+          unavailable: {},
+        },
+      ]),
+      nativeSessions: vi.fn().mockResolvedValue([
+        {
+          id: "pinned-root-session",
+          title: "Current Hermes lane",
+          source: "cli",
+          displayName: "Mr Fluff",
+        },
+      ]),
+      attach: vi.fn().mockResolvedValue(session),
+      avatarProposal: vi
+        .fn()
+        .mockRejectedValue(new Error("native session does not match")),
+      history: vi.fn().mockResolvedValue({
+        sessionId: session.sessionId,
+        continuity: "current",
+        messages: [],
+        transcriptAuthority: "hermes",
+        avatarConsent: {
+          state: "accepted",
+          current: acceptedProposal,
+          previous: null,
+        },
+      }),
+      avatarConsent: vi.fn(),
+      stream: vi.fn(),
+    };
+
+    await expect(
+      api.createWorldEntryClient({ sessionClient }).connectHermes("Mr Fluff"),
+    ).resolves.toMatchObject({
+      status: "connected",
+      proposal: {
+        proposalId: "accepted-imported-avatar",
+        avatarSource: {
+          kind: "imported",
+          version: 2,
+          mode: "original",
+          modelId: "robot-agent-01",
+        },
+      },
+      avatarAccepted: true,
+      avatarSetup: "complete",
+    });
+
+    const modularProposal = {
+      ...acceptedProposal,
+      proposalId: "accepted-modular-avatar",
+      avatarSource: createModularImportedAvatarSource("robot-agent-01"),
+    };
+    sessionClient.history.mockResolvedValue({
+      sessionId: session.sessionId,
+      continuity: "current",
+      messages: [],
+      transcriptAuthority: "hermes",
+      avatarConsent: {
+        state: "accepted",
+        current: modularProposal,
+        previous: null,
+      },
+    });
+    await expect(
+      api.createWorldEntryClient({ sessionClient }).connectHermes("Mr Fluff"),
+    ).resolves.toMatchObject({
+      status: "connected",
+      proposal: {
+        proposalId: "accepted-modular-avatar",
+        avatarSource: modularProposal.avatarSource,
+      },
+      avatarAccepted: true,
+      avatarSetup: "legacy-migration",
+    });
+  });
+
+  it("keeps unavailable names truthful and never fabricates or attaches another identity", async () => {
+    if (!api.createWorldEntryClient) return;
+    const sessionClient = {
+      capabilities: vi.fn().mockResolvedValue([
+        {
+          adapterId: "hermes",
+          capabilities: { attach: true, sendText: true },
+          unavailable: {},
+        },
+      ]),
+      nativeSessions: vi.fn().mockResolvedValue([
+        {
+          id: "only-native-session",
+          title: "Current Hermes lane",
+          source: "cli",
+          displayName: "Mr Fluff",
+        },
+      ]),
+      attach: vi.fn(),
+      avatarProposal: vi.fn(),
+      history: vi.fn(),
+      avatarConsent: vi.fn(),
+      stream: vi.fn(),
+    };
+
+    await expect(
+      api.createWorldEntryClient({ sessionClient }).connectHermes("Beans"),
+    ).resolves.toEqual({
+      status: "not_found",
+      message: "agent not found_",
+    });
+    expect(sessionClient.attach).not.toHaveBeenCalled();
   });
 
   it("rejects a persisted ready session when the currently exposed native root has changed", async () => {

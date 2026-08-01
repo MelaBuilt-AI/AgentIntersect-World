@@ -1,0 +1,106 @@
+{
+  "schema": "aiw.model-local-animation-evidence/1",
+  "recordedAt": "2026-07-31",
+  "agentFixtureLimitation": "The operator-relevant accepted Mr Fluff replacement model is not authoritatively identifiable from retained project evidence. robot-agent-05 is the deterministic browser fixture; protected live profile/session state was not inspected.",
+  "sourceMutation": false,
+  "mappings": [
+    {
+      "modelId": "user-male-02",
+      "sourceGlbSha256": "83e449040158b1e27e24a6bb8eb85ab9f1b0ca5f621114a76aa8b394179ea06e",
+      "sourceClip": {
+        "index": 5,
+        "name": "NlaTrack.005",
+        "durationSeconds": 15.625,
+        "channelCount": 123,
+        "targetCount": 41,
+        "hipTravelMagnitude": 0.138431
+      },
+      "semantic": "Idle",
+      "verdict": "PASS",
+      "evidence": [
+        "../user-male-02-all-clips/contact-sheet-clips-00-06.png",
+        "../user-male-02-all-clips/pose-evidence.json",
+        "../../../apps/web/public/assets/imported-avatars/manifest.json"
+      ],
+      "finding": "Three source-local samples and the full clip sheet show a natural upright low-motion stance with changing limb and body pose; the source-local channel inventory covers 41 targets and has bounded Hip travel."
+    },
+    {
+      "modelId": "user-male-02",
+      "sourceGlbSha256": "83e449040158b1e27e24a6bb8eb85ab9f1b0ca5f621114a76aa8b394179ea06e",
+      "sourceClip": {
+        "index": 3,
+        "name": "NlaTrack.003",
+        "durationSeconds": 2.375,
+        "channelCount": 123,
+        "targetCount": 41,
+        "hipTravelMagnitude": 1.609262
+      },
+      "semantic": "Walk",
+      "verdict": "PASS",
+      "evidence": [
+        "../crop-containment-v2/user-male-02/clips-03-and-20-seven-sample-containment.png",
+        "../user-male-02-all-clips/pose-evidence.json",
+        "../../../apps/web/public/assets/imported-avatars/manifest.json"
+      ],
+      "finding": "Seven source-local temporal samples show a complete alternating walking gait; accumulated Hip travel requires runtime-only in-place normalization."
+    },
+    {
+      "modelId": "user-male-02",
+      "sourceGlbSha256": "83e449040158b1e27e24a6bb8eb85ab9f1b0ca5f621114a76aa8b394179ea06e",
+      "sourceClip": {
+        "index": 20,
+        "name": "NlaTrack.020",
+        "durationSeconds": 1.291667,
+        "channelCount": 123,
+        "targetCount": 41,
+        "hipTravelMagnitude": 3.141321
+      },
+      "semantic": "Run",
+      "verdict": "PASS",
+      "evidence": [
+        "../crop-containment-v2/user-male-02/clips-03-and-20-seven-sample-containment.png",
+        "../user-male-02-all-clips/pose-evidence.json",
+        "../../../apps/web/public/assets/imported-avatars/manifest.json"
+      ],
+      "finding": "Seven source-local temporal samples show the faster, more airborne running gait; accumulated Hip travel requires runtime-only in-place normalization."
+    },
+    {
+      "modelId": "robot-agent-05",
+      "sourceGlbSha256": "f0bf5053f58e521d2b5cb4349ecaae0f4cfd984282a99186dcc02732bb6b3c7f",
+      "sourceClip": {
+        "index": 18,
+        "name": "NlaTrack.018",
+        "durationSeconds": 15.625,
+        "channelCount": 123,
+        "targetCount": 41,
+        "hipTravelMagnitude": 0.117917
+      },
+      "semantic": "Idle",
+      "verdict": "PASS",
+      "evidence": [
+        "robot-agent-05-idle/pose-evidence.partial.json",
+        "robot-agent-05-idle/clip-18-sample-1.png",
+        "robot-agent-05-idle/clip-18-sample-2.png",
+        "robot-agent-05-idle/clip-18-sample-3.png",
+        "robot-agent-05-idle/clip-18-sample-4.png",
+        "robot-agent-05-idle/clip-18-sample-5.png",
+        "robot-agent-05-idle/clip-18-sample-6.png",
+        "robot-agent-05-idle/clip-18-sample-7.png",
+        "../../../apps/web/public/assets/imported-avatars/manifest.json"
+      ],
+      "finding": "Seven source-local temporal samples directly inspected across the long clip show a natural upright robot stance with arms lowered and changing weight, arm, head, and body pose; it is not a T-pose."
+    }
+  ],
+  "refusals": [
+    {
+      "scope": "robot-agent-05 actions other than Idle",
+      "verdict": "EVIDENCE_REFUSED",
+      "fallback": "unverified-static-pose"
+    },
+    {
+      "scope": "all models/actions not listed in mappings",
+      "verdict": "EVIDENCE_REFUSED",
+      "fallback": "unverified-static-pose"
+    }
+  ]
+}

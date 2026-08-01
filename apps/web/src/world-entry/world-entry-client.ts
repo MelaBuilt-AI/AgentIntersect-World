@@ -17,6 +17,10 @@ import {
   type WorldAgentEvent,
   type WorldAgentSession,
 } from "../sessions/session-client.js";
+import {
+  importedAvatarAssetsForRole,
+  parseImportedAvatarSource,
+} from "@agentintersect-world/avatar-system/imported-avatar";
 import { getCurrentWorld } from "../world-client.js";
 
 export const WORLD_ENTRY_CLIENT_VERSION = "phase18";
@@ -32,6 +36,7 @@ export type HermesConnectionResult =
       readonly session: WorldAgentSession;
       readonly proposal: AvatarProposal | null;
       readonly avatarAccepted: boolean;
+      readonly avatarSetup: WorldEntryAvatarSetup;
       readonly history: SessionHistory;
     }
   | {
@@ -42,6 +47,9 @@ export type HermesConnectionResult =
       readonly status: "unavailable" | "stale";
       readonly message: "agent unavailable_";
     };
+
+export type WorldEntryAvatarSetup =
+  "required" | "legacy-migration" | "complete";
 
 export type RepositoryLoadResult =
   | {
@@ -169,6 +177,7 @@ function resolveAvatarState(
 ): {
   readonly proposal: AvatarProposal | null;
   readonly avatarAccepted: boolean;
+  readonly avatarSetup: WorldEntryAvatarSetup;
 } {
   const acceptedHistoryProposal =
     history.avatarConsent?.state === "accepted" &&
@@ -176,13 +185,25 @@ function resolveAvatarState(
       ? history.avatarConsent.current
       : null;
   const proposal = liveProposal ?? acceptedHistoryProposal;
+  const avatarAccepted =
+    acceptedHistoryProposal !== null &&
+    proposal?.sessionId === sessionId &&
+    acceptedHistoryProposal.proposalId === proposal.proposalId;
+  const parsedAvatarSource = parseImportedAvatarSource(proposal?.avatarSource);
+  const importedAgentSource =
+    parsedAvatarSource?.kind === "imported" &&
+    parsedAvatarSource.mode === "original" &&
+    importedAvatarAssetsForRole("agent").some(
+      (asset) => asset.id === parsedAvatarSource.modelId,
+    );
   return {
     proposal,
-    avatarAccepted:
-      history.avatarConsent?.state === "accepted" &&
-      proposal?.sessionId === sessionId &&
-      (acceptedHistoryProposal === null ||
-        acceptedHistoryProposal.proposalId === proposal.proposalId),
+    avatarAccepted,
+    avatarSetup: !avatarAccepted
+      ? "required"
+      : importedAgentSource
+        ? "complete"
+        : "legacy-migration",
   };
 }
 

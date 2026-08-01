@@ -1,0 +1,44 @@
+{
+  "schema": "aiw.replacement-avatar-visual-motion-classification/1",
+  "modelId": "cat-agent-01",
+  "sourceClipNamesPreserved": true,
+  "poseEvidence": "pose-evidence.json",
+  "motionEvidence": "apps/web/public/assets/imported-avatars/manifest.json#assets/cat-agent-01/clips",
+  "inspectionSheets": [
+    "complete-clips-00-to-06-seven-samples-each.png",
+    "complete-clips-07-to-13-seven-samples-each.png",
+    "complete-clips-14-to-20-seven-samples-each.png"
+  ],
+  "decisionRule": "A semantic name is verified only when the complete visual strip and deterministic motion/channel evidence independently agree. The current traces prove channel identity and motion magnitude, but do not encode semantic labels, affected-limb summaries, cadence, or a trusted name binding.",
+  "summary": {
+    "verified": 0,
+    "refused": 0,
+    "ambiguous": 21,
+    "runtimeActivationAllowed": false,
+    "runtimeState": "refused"
+  },
+  "clips": [
+    {"index": 0, "name": "NlaTrack", "candidate": null, "durationSeconds": 16.416667, "maximumRootHipPelvisTravel": 0.097708, "visualObservation": "repeated low crouch or kneel poses", "verdict": "ambiguous"},
+    {"index": 1, "name": "NlaTrack.001", "candidate": "Idle", "durationSeconds": 15.625, "maximumRootHipPelvisTravel": 0.131432, "visualObservation": "upright low-motion poses", "verdict": "ambiguous"},
+    {"index": 2, "name": "NlaTrack.002", "candidate": null, "durationSeconds": 5.625, "maximumRootHipPelvisTravel": 0.127885, "visualObservation": "upright shifting or hand gesture", "verdict": "ambiguous"},
+    {"index": 3, "name": "NlaTrack.003", "candidate": "Bow", "durationSeconds": 4.833333, "maximumRootHipPelvisTravel": 0.100808, "visualObservation": "upright-to-forward-bend sequence", "verdict": "ambiguous"},
+    {"index": 4, "name": "NlaTrack.004", "candidate": "Run", "durationSeconds": 1.291667, "maximumRootHipPelvisTravel": 2.982486, "visualObservation": "forward locomotion poses", "verdict": "ambiguous"},
+    {"index": 5, "name": "NlaTrack.005", "candidate": null, "durationSeconds": 2.25, "maximumRootHipPelvisTravel": 0.378157, "visualObservation": "wide upright stance with arm changes", "verdict": "ambiguous"},
+    {"index": 6, "name": "NlaTrack.006", "candidate": "Dance", "durationSeconds": 3.083333, "maximumRootHipPelvisTravel": 0.328635, "visualObservation": "rhythmic-looking lateral pose sequence", "verdict": "ambiguous"},
+    {"index": 7, "name": "NlaTrack.007", "candidate": "Cheer", "durationSeconds": 12.125, "maximumRootHipPelvisTravel": 0.084599, "visualObservation": "repeated overhead arm poses", "verdict": "ambiguous"},
+    {"index": 8, "name": "NlaTrack.008", "candidate": null, "durationSeconds": 4.833333, "maximumRootHipPelvisTravel": 0.004988, "visualObservation": "near-static hand-on-hip stance", "verdict": "ambiguous"},
+    {"index": 9, "name": "NlaTrack.009", "candidate": null, "durationSeconds": 5.625, "maximumRootHipPelvisTravel": 0.149545, "visualObservation": "upright-to-crouch sequence", "verdict": "ambiguous"},
+    {"index": 10, "name": "NlaTrack.010", "candidate": "Agree", "durationSeconds": 14.083333, "maximumRootHipPelvisTravel": 0.128927, "visualObservation": "subtle upright head or upper-body changes", "verdict": "ambiguous"},
+    {"index": 11, "name": "NlaTrack.011", "candidate": "Laugh", "durationSeconds": 12.833333, "maximumRootHipPelvisTravel": 0.586603, "visualObservation": "large crouch, arm-spread, and airborne-looking poses", "verdict": "ambiguous"},
+    {"index": 12, "name": "NlaTrack.012", "candidate": null, "durationSeconds": 6.625, "maximumRootHipPelvisTravel": 0.146253, "visualObservation": "repeated forward bend sequence", "verdict": "ambiguous"},
+    {"index": 13, "name": "NlaTrack.013", "candidate": null, "durationSeconds": 17.125, "maximumRootHipPelvisTravel": 0.053421, "visualObservation": "low-motion upright arm-crossed stance", "verdict": "ambiguous"},
+    {"index": 14, "name": "NlaTrack.014", "candidate": "Angry", "durationSeconds": 13.833333, "maximumRootHipPelvisTravel": 0.290426, "visualObservation": "bend, point, and lifted-leg action sequence", "verdict": "ambiguous"},
+    {"index": 15, "name": "NlaTrack.015", "candidate": null, "durationSeconds": 15.375, "maximumRootHipPelvisTravel": 0.175058, "visualObservation": "subtle upright shifting", "verdict": "ambiguous"},
+    {"index": 16, "name": "NlaTrack.016", "candidate": null, "durationSeconds": 7.208333, "maximumRootHipPelvisTravel": 0.003377, "visualObservation": "near-static low crouch or sit", "verdict": "ambiguous"},
+    {"index": 17, "name": "NlaTrack.017", "candidate": "Wave", "durationSeconds": 3.208333, "maximumRootHipPelvisTravel": 0.035998, "visualObservation": "one raised arm changes across the strip", "verdict": "ambiguous"},
+    {"index": 18, "name": "NlaTrack.018", "candidate": "Clap", "durationSeconds": 10.958333, "maximumRootHipPelvisTravel": 0.019627, "visualObservation": "hands remain near the torso with changes too small to prove contact cadence", "verdict": "ambiguous"},
+    {"index": 19, "name": "NlaTrack.019", "candidate": "Walk", "durationSeconds": 1.875, "maximumRootHipPelvisTravel": 1.509665, "visualObservation": "alternating forward locomotion poses", "verdict": "ambiguous"},
+    {"index": 20, "name": "NlaTrack.020", "candidate": "Jump", "durationSeconds": 3.541667, "maximumRootHipPelvisTravel": 0.211238, "visualObservation": "arms rise and the body appears airborne in middle samples", "verdict": "ambiguous"}
+  ],
+  "blocker": "The deterministic trace format cannot independently distinguish Idle from other low-motion clips or bind any anonymous source action to a semantic name. Contract-order activation stops at Idle; all downstream actions remain disabled."
+}

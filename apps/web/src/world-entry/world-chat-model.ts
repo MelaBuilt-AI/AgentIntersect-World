@@ -41,7 +41,8 @@ export type WorldChatAction =
     }
   | { readonly type: "AGENT_EVENT"; readonly event: WorldAgentEvent }
   | { readonly type: "SEND_COMPLETED"; readonly text: string }
-  | { readonly type: "SEND_FAILED"; readonly message: string };
+  | { readonly type: "SEND_FAILED"; readonly message: string }
+  | { readonly type: "RESET_PRESENTATION" };
 
 const IDLE: WorldActivity = {
   state: "idle",
@@ -141,6 +142,7 @@ export function reduceWorldChat(
   state: WorldChatState,
   action: WorldChatAction,
 ): WorldChatState {
+  if (action.type === "RESET_PRESENTATION") return createWorldChatState();
   if (action.type === "RESTORE_HISTORY")
     return {
       activity: IDLE,

@@ -1,3 +1,7 @@
+import type { AvatarMovementPhase } from "@agentintersect-world/avatar-system";
+
+import { isOperatorMovementKey } from "../world-actions/operator-navigation.js";
+
 const bounded = (value: number) => Math.max(-15, Math.min(15, value));
 const quantized = (value: number) => {
   const result = Math.round(value * 1_000) / 1_000;
@@ -8,6 +12,24 @@ export type WorldCameraLook = {
   readonly yaw: number;
   readonly pitch: number;
 };
+
+export function projectAvatarMovementPhaseFromKeys({
+  current,
+  previousKeys,
+  nextKeys,
+}: {
+  readonly current: AvatarMovementPhase;
+  readonly previousKeys: readonly string[];
+  readonly nextKeys: readonly string[];
+}): AvatarMovementPhase {
+  const previousMoving = previousKeys.some(isOperatorMovementKey);
+  const nextMoving = nextKeys.some(isOperatorMovementKey);
+  if (!nextMoving) return previousMoving ? "stopping" : current;
+  if (nextKeys.includes("shift")) return "sprinting";
+  if (!previousMoving || current === "idle" || current === "stopping")
+    return "starting";
+  return current === "starting" ? "starting" : "moving";
+}
 
 export function isEditableWorldTarget(target: unknown): boolean {
   if (!target || typeof target !== "object") return false;

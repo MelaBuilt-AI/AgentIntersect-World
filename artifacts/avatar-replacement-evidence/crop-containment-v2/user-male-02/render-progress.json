@@ -1,0 +1,15 @@
+{
+  "activeClipIndex": null,
+  "activeSampleIndex": null,
+  "completeModel": false,
+  "completedClipIndices": [
+    3,
+    20
+  ],
+  "completedFrames": 14,
+  "expectedFrames": 14,
+  "modelId": "user-male-02",
+  "schema": "aiw.replacement-avatar-render-progress/1",
+  "state": "partial-complete",
+  "updatedAtUnixSeconds": 1785468620.604
+}

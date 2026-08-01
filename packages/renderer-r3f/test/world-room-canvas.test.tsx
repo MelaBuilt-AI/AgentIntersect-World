@@ -654,8 +654,8 @@ describe("Phase 18 shared World room canvas", () => {
       ),
       "utf8",
     );
-    expect(source).toContain(
-      'if (movementPhase !== "starting" && movementPhase !== "moving") return;',
+    expect(source).toMatch(
+      /movementPhase !== "starting"\s*&&\s*movementPhase !== "moving"\s*&&\s*movementPhase !== "sprinting"/u,
     );
   });
 

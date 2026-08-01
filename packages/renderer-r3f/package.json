@@ -16,9 +16,17 @@
       "types": "./dist/avatar-kit-canvas.d.ts",
       "import": "./dist/avatar-kit-canvas.js"
     },
+    "./imported-avatar": {
+      "types": "./dist/imported-avatar-canvas.d.ts",
+      "import": "./dist/imported-avatar-canvas.js"
+    },
     "./world-room": {
       "types": "./dist/world-room-canvas.d.ts",
       "import": "./dist/world-room-canvas.js"
+    },
+    "./world-room-imported": {
+      "types": "./dist/world-room-imported-canvas.d.ts",
+      "import": "./dist/world-room-imported-canvas.js"
     }
   },
   "scripts": {

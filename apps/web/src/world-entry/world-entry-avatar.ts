@@ -10,6 +10,7 @@ import {
   type AvatarHead,
   type AvatarMarkings,
 } from "@agentintersect-world/avatar-system";
+import { parseImportedAvatarDraftForRole } from "@agentintersect-world/avatar-system/imported-avatar";
 
 import type { AvatarProposal } from "../sessions/session-client.js";
 
@@ -100,8 +101,11 @@ export function avatarDraftFromProposal(proposal: AvatarProposal): AvatarDraft {
     mappingConsent: false,
     agentRef: null,
     sourceDisclosure: "manual-local-input",
+    ...(proposal.avatarSource ? { avatarSource: proposal.avatarSource } : {}),
   };
-  const valid = parseAvatarDraft(draft);
+  const valid = proposal.avatarSource
+    ? parseImportedAvatarDraftForRole(draft, "agent")
+    : parseAvatarDraft(draft);
   if (!valid)
     throw new TypeError("Avatar proposal could not map to a valid draft.");
   return valid;
@@ -111,8 +115,9 @@ export function avatarProposalFromDraft(
   proposal: AvatarProposal,
   draft: AvatarDraft,
 ): AvatarProposal {
-  const valid = parseAvatarDraft(draft);
-  if (!valid) throw new TypeError("Only a valid avatar draft can be accepted.");
+  const valid = parseImportedAvatarDraftForRole(draft, "agent");
+  if (!valid)
+    throw new TypeError("Only a role-valid agent avatar can be accepted.");
   const head: AvatarProposal["head"] =
     valid.species === "cat"
       ? "cat"
@@ -145,5 +150,8 @@ export function avatarProposalFromDraft(
     markings: draftMarkingToLegacy[valid.markings],
     bodyColor: draftColorToLegacy[valid.bodyColor] ?? valid.bodyColor,
     shirt,
+    ...(valid.avatarSource?.kind === "imported"
+      ? { avatarSource: valid.avatarSource }
+      : {}),
   };
 }

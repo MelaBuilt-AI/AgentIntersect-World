@@ -1,3 +1,8 @@
+import type {
+  ImportedAvatarModularSource,
+  ImportedAvatarOriginalSource,
+} from "@agentintersect-world/avatar-system/imported-avatar";
+
 type ApiEnvelope<T> = { readonly ok: true; readonly data: T };
 
 export type SessionCapability = {
@@ -56,6 +61,8 @@ export type AvatarProposal = {
   readonly sourceDisclosure: string;
   readonly rationale: string;
   readonly createdAt: string;
+  readonly avatarSource?:
+    ImportedAvatarOriginalSource | ImportedAvatarModularSource;
 };
 
 export type SessionHistory = {

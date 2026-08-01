@@ -1,0 +1,18 @@
+{
+  "activeRegion": null,
+  "baseModelId": "dog-agent-01",
+  "completedRegions": [
+    "head",
+    "torso",
+    "left-arm",
+    "right-arm",
+    "left-leg",
+    "right-leg",
+    "auxiliary"
+  ],
+  "donorModelId": "dog-agent-02",
+  "overallVerdict": "REFUSED",
+  "schema": "aiw.modular-pair-evidence-progress/1",
+  "state": "complete",
+  "updatedAtUnixSeconds": 1785502075.781
+}

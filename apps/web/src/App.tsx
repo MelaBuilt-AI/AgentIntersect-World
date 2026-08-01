@@ -1,12 +1,15 @@
 import {
-  createAvatarProfile,
   deleteAvatarProfiles,
-  loadAvatarProfiles,
-  saveAvatarProfile,
   type AvatarDraft,
-  type AvatarLoadResult,
   type AvatarProfile,
 } from "@agentintersect-world/avatar-system";
+import {
+  createImportedAvatarProfile,
+  DEFAULT_IMPORTED_AVATAR_DRAFT,
+  loadImportedAvatarProfiles,
+  saveImportedAvatarProfile,
+  type ImportedAvatarLoadResult,
+} from "@agentintersect-world/avatar-system/imported-avatar";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import { IdentifyExperience } from "./avatar/IdentifyExperience.js";
@@ -20,31 +23,17 @@ const InternalDashboard = lazy(async () => {
 });
 
 const WORLD_ENTRY_TRANSITION_MS = 420;
-const emptyState = (): AvatarLoadResult => ({
+const emptyState = (): ImportedAvatarLoadResult => ({
   status: "unconfigured",
   current: null,
   previous: null,
-  draft: {
-    agentName: "",
-    species: "human",
-    head: "round",
-    hands: "hands",
-    feet: "feet",
-    fur: "none",
-    tail: "none",
-    markings: "solid",
-    bodyColor: "warm-light",
-    shirt: "Codex",
-    mappingConsent: false,
-    agentRef: null,
-    sourceDisclosure: "manual-local-input",
-  },
+  draft: DEFAULT_IMPORTED_AVATAR_DRAFT,
 });
 
-function initialAvatarState(): AvatarLoadResult {
+function initialAvatarState(): ImportedAvatarLoadResult {
   return typeof window === "undefined"
     ? emptyState()
-    : loadAvatarProfiles(window.localStorage);
+    : loadImportedAvatarProfiles(window.localStorage);
 }
 
 export function App() {
@@ -57,9 +46,9 @@ export function App() {
     import.meta.env.VITE_AIW_LOCAL_DEVELOPER_UI,
   );
   const save = (draft: AvatarDraft): AvatarProfile => {
-    const next = createAvatarProfile(draft, store.current);
-    const saved = saveAvatarProfile(window.localStorage, next);
-    setStore(loadAvatarProfiles(window.localStorage));
+    const next = createImportedAvatarProfile(draft, store.current);
+    const saved = saveImportedAvatarProfile(window.localStorage, next);
+    setStore(loadImportedAvatarProfiles(window.localStorage));
     return saved;
   };
   const completeIdentification = (draft: AvatarDraft) => {
@@ -69,7 +58,7 @@ export function App() {
   };
   const remove = () => {
     deleteAvatarProfiles(window.localStorage);
-    const next = loadAvatarProfiles(window.localStorage);
+    const next = loadImportedAvatarProfiles(window.localStorage);
     setStore(next);
     setIdentified(false);
   };
@@ -133,5 +122,7 @@ export function App() {
         />
       </Suspense>
     );
-  return <WorldEntryExperience profile={store.current} />;
+  return (
+    <WorldEntryExperience profile={store.current} onUserAvatarSave={save} />
+  );
 }

@@ -5,7 +5,7 @@ import type {
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import { useAuthorityState } from "../authority/use-authority.js";
-import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
+import { AvatarBuilderLoader } from "../avatar/AvatarBuilderLoader.js";
 import { AvatarPreview } from "../avatar/AvatarPreview.js";
 import {
   AvatarPerformanceFixture,
@@ -450,7 +450,7 @@ export function DashboardShell({
             </Suspense>
           )}
           {activePanel === "Settings" && (
-            <AvatarBuilder
+            <AvatarBuilderLoader
               key={`${profile.profileId}-${profile.updatedAt}`}
               initialProfile={profile}
               currentProfile={profile}

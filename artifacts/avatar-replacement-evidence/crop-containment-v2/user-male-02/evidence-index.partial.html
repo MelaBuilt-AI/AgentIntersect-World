@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Replacement avatar dense pose evidence</title>
+<style>
+body{margin:0;padding:1rem;background:#020617;color:#e2e8f0;font:14px Consolas,monospace}
+h1,h2{color:#93c5fd}.boundary{border:1px solid #60a5fa;padding:.75rem}
+.clip{margin:1rem 0;border:1px solid #334155;padding:.75rem}
+.strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(9rem,1fr);gap:.5rem;overflow-x:auto}
+figure{margin:0}img{display:block;width:100%;background:#0f172a}figcaption{padding:.35rem;overflow-wrap:anywhere}
+</style>
+<body>
+<h1 id="title"></h1>
+<p class="boundary" id="boundary"></p>
+<main id="clips"></main>
+<script type="application/json" id="evidence-data">{"classificationStatus": "runtime-refused-until-visual-and-motion-verification", "clips": [{"clipIndex": 3, "frameRange": [1.0, 57.0], "renderedFiles": ["clip-03-sample-1.png", "clip-03-sample-2.png", "clip-03-sample-3.png", "clip-03-sample-4.png", "clip-03-sample-5.png", "clip-03-sample-6.png", "clip-03-sample-7.png"], "sampleFrames": [8.0, 15.0, 22.0, 29.0, 36.0, 43.0, 50.0], "sampleLabels": ["sample-01 \u00b7 12.5%", "sample-02 \u00b7 25.0%", "sample-03 \u00b7 37.5%", "sample-04 \u00b7 50.0%", "sample-05 \u00b7 62.5%", "sample-06 \u00b7 75.0%", "sample-07 \u00b7 87.5%"], "sampledUnionBounds": {"maximum": [0.951058, 1.0, 1.0], "minimum": [-0.951058, -1.661462, -1.0]}, "sourceActionName": "NlaTrack.003"}, {"clipIndex": 20, "frameRange": [1.0, 31.0], "renderedFiles": ["clip-20-sample-1.png", "clip-20-sample-2.png", "clip-20-sample-3.png", "clip-20-sample-4.png", "clip-20-sample-5.png", "clip-20-sample-6.png", "clip-20-sample-7.png"], "sampleFrames": [4.75, 8.5, 12.25, 16.0, 19.75, 23.5, 27.25], "sampleLabels": ["sample-01 \u00b7 12.5%", "sample-02 \u00b7 25.0%", "sample-03 \u00b7 37.5%", "sample-04 \u00b7 50.0%", "sample-05 \u00b7 62.5%", "sample-06 \u00b7 75.0%", "sample-07 \u00b7 87.5%"], "sampledUnionBounds": {"maximum": [0.951058, 1.0, 1.0], "minimum": [-0.951058, -3.617238, -1.0]}, "sourceActionName": "NlaTrack.020"}], "completeModel": false, "modelId": "user-male-02", "motionEvidenceAuthority": "apps/web/public/assets/imported-avatars/manifest.json#assets/user-male-02/clips", "renderedClipIndices": [3, 20], "samplesPerClip": 7, "schema": "aiw.replacement-avatar-pose-evidence/2", "sourceClipNamesPreserved": true}</script>
+<script>
+const evidence=JSON.parse(document.getElementById("evidence-data").textContent);
+document.getElementById("title").textContent=`${evidence.modelId} · ${evidence.samplesPerClip} samples per clip`;
+document.getElementById("boundary").textContent=`${evidence.classificationStatus}. Motion authority: ${evidence.motionEvidenceAuthority}`;
+const clips=document.getElementById("clips");
+for(const clip of evidence.clips){
+  const section=document.createElement("section"); section.className="clip";
+  const heading=document.createElement("h2"); heading.textContent=`Clip ${String(clip.clipIndex).padStart(2,"0")} · ${clip.sourceActionName}`;
+  const strip=document.createElement("div"); strip.className="strip";
+  clip.renderedFiles.forEach((file,index)=>{
+    const figure=document.createElement("figure");
+    const image=document.createElement("img"); image.src=file; image.alt=`${heading.textContent} · ${clip.sampleLabels[index]}`;
+    const caption=document.createElement("figcaption"); caption.textContent=`${clip.sampleLabels[index]} · frame ${clip.sampleFrames[index]}`;
+    figure.append(image,caption); strip.append(figure);
+  });
+  section.append(heading,strip); clips.append(section);
+}
+</script>
+</body>
+</html>

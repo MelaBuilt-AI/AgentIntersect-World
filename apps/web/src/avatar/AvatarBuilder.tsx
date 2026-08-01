@@ -1,30 +1,27 @@
 import {
-  AVATAR_BODY_COLORS,
-  AVATAR_COLOR_HEX,
-  AVATAR_FEET,
-  AVATAR_FUR,
-  AVATAR_HANDS,
-  AVATAR_HEADS,
-  AVATAR_MARKINGS,
-  AVATAR_SHIRTS,
-  AVATAR_SHIRT_COLORS,
-  AVATAR_SPECIES,
-  AVATAR_TAILS,
-  avatarDraftFrom,
-  avatarProfileSummary,
-  exportAvatarProfile,
-  parseAvatarDraft,
   validateAgentName,
   type AvatarDraft,
-  type AvatarLoadResult,
   type AvatarProfile,
 } from "@agentintersect-world/avatar-system";
-import { useState } from "react";
+import {
+  CUSTOM_AVATAR_SOURCE,
+  createOriginalImportedAvatarSource,
+  exportImportedAvatarProfile,
+  importedAvatarAsset,
+  importedAvatarAssetsForRole,
+  importedAvatarProfileSummary,
+  parseImportedAvatarDraftForRole,
+  prepareAvatarBuilderDraft,
+  selectImportedAvatarModel,
+  selectImportedAvatarMode,
+  type AvatarBuilderRole,
+  type ImportedAvatarAssetId,
+} from "@agentintersect-world/avatar-system/imported-avatar";
+import { useId, useMemo, useState } from "react";
 import { AvatarPreview } from "./AvatarPreview.js";
 
-const label = (value: string) =>
-  value.replaceAll("-", " ").replace(/^./, (c) => c.toUpperCase());
 export function AvatarBuilder({
+  role = "user",
   initialProfile,
   currentProfile = null,
   previousProfile = null,
@@ -36,11 +33,21 @@ export function AvatarBuilder({
   saveLabel,
   saveDisabled = false,
   successMessage = "Avatar saved locally. Current and previous recovery updated.",
+  preserveInitialLegacy = false,
 }: {
+  readonly role?: AvatarBuilderRole;
   readonly initialProfile: AvatarDraft;
   readonly currentProfile?: AvatarProfile | null;
   readonly previousProfile?: AvatarProfile | null;
-  readonly storageStatus?: AvatarLoadResult["status"];
+  readonly storageStatus?:
+    | "unconfigured"
+    | "saved"
+    | "recovered-previous"
+    | "migrated-phase11"
+    | "migrated-unconfigured"
+    | "corrupt-unconfigured"
+    | "avatar-migration-required"
+    | "avatar-reselection-required";
   readonly onSave: (profile: AvatarDraft) => void;
   readonly onDelete?: () => void;
   readonly title?: string;
@@ -48,25 +55,85 @@ export function AvatarBuilder({
   readonly saveLabel?: string;
   readonly saveDisabled?: boolean;
   readonly successMessage?: string;
+  readonly preserveInitialLegacy?: boolean;
 }) {
-  const [draft, setDraft] = useState<AvatarDraft>(() =>
-    avatarDraftFrom(initialProfile),
+  const roleAssets = useMemo(() => importedAvatarAssetsForRole(role), [role]);
+  const previewTitleId = useId();
+  const roleLabel = role === "user" ? "User" : "Agent";
+  const preserveLegacy =
+    preserveInitialLegacy ||
+    currentProfile !== null ||
+    storageStatus === "migrated-phase11" ||
+    storageStatus === "migrated-unconfigured";
+  const initialBuilder = useMemo(
+    () => prepareAvatarBuilderDraft(initialProfile, role, preserveLegacy),
+    [initialProfile, preserveLegacy, role],
   );
+  const acceptedSource = currentProfile?.avatarSource;
+  const initialAcceptedImportedId =
+    acceptedSource?.kind === "imported" && acceptedSource.mode === "original"
+      ? acceptedSource.modelId
+      : null;
+  const [draft, setDraft] = useState<AvatarDraft>(() => initialBuilder.draft);
+  const [previewIntent, setPreviewIntent] = useState<
+    "accepted" | "preload" | "preview" | "confirmed"
+  >(initialAcceptedImportedId ? "accepted" : "preload");
+  const completeAvatarConfirmed =
+    previewIntent === "accepted" || previewIntent === "confirmed";
   const [textOnly, setTextOnly] = useState(
     typeof window !== "undefined" &&
       new URLSearchParams(window.location.search).get("avatar3d") === "text",
   );
+  const [previewAssetId, setPreviewAssetId] =
+    useState<ImportedAvatarAssetId | null>(() => {
+      if (initialBuilder.state === "reselection-required") return null;
+      const source = initialBuilder.draft.avatarSource;
+      if (source?.kind === "imported")
+        return source.mode === "original" ? source.modelId : source.baseModelId;
+      return roleAssets[0]?.id ?? null;
+    });
+  const [previewClipIndex, setPreviewClipIndex] = useState(0);
   const [result, setResult] = useState(
-    storageStatus === "migrated-unconfigured"
-      ? "Legacy appearance migrated. A valid name is required before save."
-      : storageStatus === "corrupt-unconfigured"
-        ? "Stored profile is invalid and was preserved. Save or delete to replace it."
-        : currentProfile
-          ? "Saved profile loaded."
-          : "Draft is unsaved.",
+    storageStatus === "avatar-reselection-required"
+      ? "The saved imported model was removed. Choose a replacement explicitly; the stored record was not rewritten."
+      : storageStatus === "avatar-migration-required"
+        ? "The saved modular avatar requires explicit complete-avatar conversion; the stored record was not rewritten."
+        : storageStatus === "migrated-unconfigured"
+          ? "Legacy appearance migrated. A valid name is required before save."
+          : storageStatus === "corrupt-unconfigured"
+            ? "Stored profile is invalid and was preserved. Save or delete to replace it."
+            : currentProfile
+              ? "Saved profile loaded."
+              : "Draft is unsaved.",
   );
   const name = validateAgentName(draft.agentName);
-  const valid = parseAvatarDraft(draft);
+  const valid = parseImportedAvatarDraftForRole(draft, role);
+  const source = draft.avatarSource ?? CUSTOM_AVATAR_SOURCE;
+  const importedSource = source.kind === "imported" ? source : undefined;
+  const dormantModularDraft = importedSource?.mode === "modular";
+  const imported = importedSource
+    ? importedAvatarAsset(
+        importedSource.mode === "original"
+          ? importedSource.modelId
+          : importedSource.baseModelId,
+      )
+    : undefined;
+  const previewAsset = previewAssetId
+    ? roleAssets.find((asset) => asset.id === previewAssetId)
+    : undefined;
+  const previewDraft = previewAsset
+    ? {
+        ...draft,
+        avatarSource: createOriginalImportedAvatarSource(previewAsset.id),
+      }
+    : draft;
+  const previewIsAccepted =
+    previewIntent === "accepted" &&
+    initialAcceptedImportedId === previewAsset?.id;
+  const previewIsConfirmedDraft =
+    previewIntent === "confirmed" && imported?.id === previewAsset?.id;
+  const saveBlocked =
+    !valid || saveDisabled || dormantModularDraft || !completeAvatarConfirmed;
   const update = <K extends keyof AvatarDraft>(
     key: K,
     value: AvatarDraft[K],
@@ -74,65 +141,40 @@ export function AvatarBuilder({
     setDraft((current) => ({ ...current, [key]: value }));
     setResult("Draft is unsaved.");
   };
-  const chooseSpecies = (species: AvatarDraft["species"]) =>
-    setDraft((current) => ({
-      ...current,
-      species,
-      head: AVATAR_HEADS[species][0],
-      tail:
-        species === "human"
-          ? "none"
-          : current.tail.startsWith(`${species}-`)
-            ? current.tail
-            : "none",
-    }));
-  const choices = <T extends string>(
-    groupLabel: string,
-    name: string,
-    values: readonly T[],
-    selected: T,
-    set: (value: T) => void,
-    colors?: Readonly<Record<string, string>>,
-  ) => (
-    <fieldset className="avatar-option-group">
-      <legend>{groupLabel}</legend>
-      <div className="avatar-choice-grid">
-        {values.map((value) => {
-          const id = `${name}-${value}`;
-          return (
-            <label
-              key={value}
-              htmlFor={id}
-              style={
-                colors
-                  ? ({
-                      "--choice-color": colors[value],
-                    } as React.CSSProperties)
-                  : undefined
-              }
-            >
-              <input
-                id={id}
-                type="radio"
-                name={name}
-                value={value}
-                checked={selected === value}
-                onChange={() => set(value)}
-              />
-              <span>{label(value)}</span>
-            </label>
-          );
-        })}
-      </div>
-    </fieldset>
-  );
+  const chooseImportedAsset = (assetId: ImportedAvatarAssetId) => {
+    setPreviewAssetId(assetId);
+    setPreviewClipIndex(0);
+    setPreviewIntent("preview");
+    setResult("Preview changed. Use Complete Avatar to select it.");
+  };
+  const useCompleteAvatar = () => {
+    if (!previewAsset) {
+      setResult("Choose a role-valid complete avatar preview first.");
+      return;
+    }
+    setDraft((current) =>
+      selectImportedAvatarMode(
+        selectImportedAvatarModel(current, role, previewAsset.id),
+        "original",
+      ),
+    );
+    setPreviewIntent("confirmed");
+    setResult("Complete avatar selected. Save to persist this choice.");
+  };
   const save = () => {
-    if (!valid) {
-      setResult(
-        name.ok
-          ? "Save blocked: one or more selections is invalid."
-          : `Save blocked: ${name.reason}`,
-      );
+    if (saveBlocked) {
+      if (dormantModularDraft)
+        setResult(
+          "Save blocked: use Complete Avatar to select the full original GLB.",
+        );
+      else if (!completeAvatarConfirmed)
+        setResult("Use Complete Avatar before saving.");
+      else if (!valid)
+        setResult(
+          name.ok
+            ? "Save blocked: one or more selections is invalid."
+            : `Save blocked: ${name.reason}`,
+        );
       return;
     }
     onSave(valid);
@@ -163,88 +205,102 @@ export function AvatarBuilder({
               : name.reason}
           </small>
         </fieldset>
-        <fieldset>
+        <fieldset className="avatar-source-picker">
           <legend>
-            <b>2</b> Species/head
+            <b>2</b> Imported model
           </legend>
-          {choices(
-            "Species",
-            "avatar-species",
-            AVATAR_SPECIES,
-            draft.species,
-            chooseSpecies,
-          )}
-          {choices(
-            "Head",
-            "avatar-head",
-            AVATAR_HEADS[draft.species],
-            draft.head as never,
-            (head) => update("head", head),
-          )}
+          {source.kind === "custom" ? (
+            <aside className="avatar-legacy-notice" role="status">
+              <strong>Preserved legacy profile</strong>
+              <p>
+                Accepted legacy appearance remains unchanged until save. The
+                visual complete-avatar preload is only a preview; choose a card
+                to begin migration.
+              </p>
+            </aside>
+          ) : null}
+          <div className="imported-avatar-catalog__summary">
+            <strong>{roleLabel} originals</strong>
+            <span> · {roleAssets.length} stance cards</span>
+          </div>
+          <div
+            className="imported-avatar-options"
+            aria-label={`${roleLabel} avatar stance cards (${roleAssets.length} available)`}
+            data-avatar-card-count={roleAssets.length}
+          >
+            {roleAssets.map((asset) => (
+              <button
+                key={asset.id}
+                type="button"
+                className="imported-avatar-option"
+                aria-pressed={
+                  previewIntent !== "preload" && previewAssetId === asset.id
+                }
+                aria-label={`Open ${asset.label} 3D preview`}
+                onClick={() => chooseImportedAsset(asset.id)}
+              >
+                <img
+                  src={asset.thumbnailUrl}
+                  alt={`${asset.label} stance`}
+                  loading="lazy"
+                />
+                <strong>{asset.label}</strong>
+              </button>
+            ))}
+          </div>
+          {previewAsset ? (
+            <>
+              <div className="avatar-actions">
+                <button
+                  type="button"
+                  className="primary-action"
+                  onClick={useCompleteAvatar}
+                >
+                  Use Complete Avatar
+                </button>
+              </div>
+              <p role="status">
+                {dormantModularDraft
+                  ? "This dormant modular draft cannot be saved. Use Complete Avatar to select the full original GLB."
+                  : previewIsAccepted
+                    ? "The accepted complete avatar uses the full original GLB."
+                    : previewIsConfirmedDraft
+                      ? "The selected complete avatar uses the full original GLB. Save to accept this draft."
+                      : "Preview only. Use Complete Avatar to select it; nothing is saved or accepted yet."}
+              </p>
+              <label className="imported-animation-control">
+                Source clip preview (unlabeled)
+                <select
+                  aria-label="Source clip preview"
+                  value={previewClipIndex}
+                  onChange={(event) =>
+                    setPreviewClipIndex(Number(event.target.value))
+                  }
+                >
+                  {previewAsset.clips.map((clip, index) => (
+                    <option key={`${index}:${clip}`} value={index}>
+                      Clip {index + 1} — {clip}
+                    </option>
+                  ))}
+                </select>
+                <small>
+                  {previewAsset.clips.length} anonymous source clips. Semantic
+                  labels remain pending visual verification and are not saved
+                  here.
+                </small>
+              </label>
+            </>
+          ) : null}
         </fieldset>
         <fieldset>
           <legend>
-            <b>3</b> Body parts
-          </legend>
-          {choices("Hands", "avatar-hands", AVATAR_HANDS, draft.hands, (v) =>
-            update("hands", v),
-          )}
-          {choices("Feet", "avatar-feet", AVATAR_FEET, draft.feet, (v) =>
-            update("feet", v),
-          )}
-          {choices("Fur", "avatar-fur", AVATAR_FUR, draft.fur, (v) =>
-            update("fur", v),
-          )}
-          {choices(
-            "Tail",
-            "avatar-tail",
-            AVATAR_TAILS.filter(
-              (v) => v === "none" || v.startsWith(`${draft.species}-`),
-            ),
-            draft.tail,
-            (v) => update("tail", v),
-          )}
-        </fieldset>
-        <fieldset>
-          <legend>
-            <b>4</b> Color/markings
-          </legend>
-          {choices(
-            "Body color",
-            "avatar-color",
-            AVATAR_BODY_COLORS,
-            draft.bodyColor,
-            (v) => update("bodyColor", v),
-            AVATAR_COLOR_HEX,
-          )}
-          {choices(
-            "Markings",
-            "avatar-markings",
-            AVATAR_MARKINGS,
-            draft.markings,
-            (v) => update("markings", v),
-          )}
-        </fieldset>
-        <fieldset>
-          <legend>
-            <b>5</b> Tee shirt
-          </legend>
-          {choices(
-            "Tee shirt",
-            "avatar-shirt",
-            AVATAR_SHIRTS,
-            draft.shirt,
-            (v) => update("shirt", v),
-            AVATAR_SHIRT_COLORS,
-          )}
-        </fieldset>
-        <fieldset>
-          <legend>
-            <b>6</b> Review and save
+            <b>3</b> Review and save
           </legend>
           <p data-testid="avatar-semantic-summary">
             <strong>{draft.agentName || "Name required"}</strong> —{" "}
-            {avatarProfileSummary(draft)}
+            {source.kind === "imported" && !completeAvatarConfirmed
+              ? `No complete avatar selected${previewAsset ? ` (previewing ${previewAsset.label})` : ""}`
+              : importedAvatarProfileSummary(draft)}
           </p>
           <label className="avatar-consent">
             <input type="checkbox" checked={false} disabled /> Automatic Phase 6
@@ -278,7 +334,7 @@ export function AvatarBuilder({
               className="primary-action"
               type="button"
               onClick={save}
-              disabled={!valid || saveDisabled}
+              disabled={saveBlocked}
             >
               {saveLabel ??
                 `Save avatar${currentProfile ? " changes" : " and enter World"}`}
@@ -287,7 +343,7 @@ export function AvatarBuilder({
               <button
                 type="button"
                 onClick={() => {
-                  const value = exportAvatarProfile(currentProfile);
+                  const value = exportImportedAvatarProfile(currentProfile);
                   setResult(
                     `Export preview ready (${new TextEncoder().encode(value).byteLength} bytes).`,
                   );
@@ -319,7 +375,32 @@ export function AvatarBuilder({
           <strong>Result:</strong> {result}
         </div>
       </div>
-      <AvatarPreview profile={draft} textOnly={textOnly} />
+      <aside
+        className="avatar-builder__preview"
+        aria-labelledby={previewTitleId}
+        data-testid="avatar-preview-panel"
+      >
+        <header>
+          <span className="terminal-kicker">actual_glb_preview_</span>
+          <h2 id={previewTitleId}>Complete avatar preview</h2>
+          <p>
+            {previewAsset
+              ? previewIsAccepted
+                ? `${previewAsset.label} is your accepted complete avatar and is previewed from its actual GLB.`
+                : previewIsConfirmedDraft
+                  ? `${previewAsset.label} is selected in this unsaved draft and previewed from its actual GLB.`
+                  : `${previewAsset.label} is previewed from its actual GLB. It is not selected, saved, or accepted.`
+              : "Choose a role-valid stance card to load its actual GLB. Re-selection remains required."}
+          </p>
+        </header>
+        <AvatarPreview
+          profile={previewDraft}
+          textOnly={textOnly}
+          previewClipIndex={previewClipIndex}
+          load3d={previewAsset !== undefined}
+          showFallbackImage={false}
+        />
+      </aside>
     </section>
   );
 }

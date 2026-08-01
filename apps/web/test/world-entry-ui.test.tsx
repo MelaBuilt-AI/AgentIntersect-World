@@ -2,6 +2,7 @@ import * as appModule from "../src/App.js";
 import * as agentAvatarModule from "../src/world-entry/world-entry-avatar.js";
 import * as appSurfaceModule from "../src/world-entry/app-surface.js";
 import * as experienceModule from "../src/world-entry/WorldEntryExperience.js";
+import { AvatarBuilder } from "../src/avatar/AvatarBuilder.js";
 import * as activityModule from "../src/world-entry/world-chat-model.js";
 import * as roomModule from "../src/world-entry/world-navigation-model.js";
 import {
@@ -49,7 +50,8 @@ const activityApi = activityModule as unknown as {
         }
       | { readonly type: "AGENT_EVENT"; readonly event: WorldAgentEvent }
       | { readonly type: "SEND_COMPLETED"; readonly text: string }
-      | { readonly type: "SEND_FAILED"; readonly message: string },
+      | { readonly type: "SEND_FAILED"; readonly message: string }
+      | { readonly type: "RESET_PRESENTATION" },
   ) => ReturnType<NonNullable<typeof activityApi.createWorldChatState>>;
 };
 const agentAvatarApi = agentAvatarModule as unknown as {
@@ -78,6 +80,11 @@ const roomApi = roomModule as unknown as {
     input: { readonly movementX: number; readonly movementY: number },
   ) => { readonly yaw: number; readonly pitch: number };
   readonly isEditableWorldTarget?: (target: unknown) => boolean;
+  readonly projectAvatarMovementPhaseFromKeys?: (input: {
+    readonly current: "idle" | "starting" | "moving" | "sprinting" | "stopping";
+    readonly previousKeys: readonly string[];
+    readonly nextKeys: readonly string[];
+  }) => "idle" | "starting" | "moving" | "sprinting" | "stopping";
 };
 
 const component = (value: unknown): ComponentType<Record<string, unknown>> =>
@@ -157,6 +164,39 @@ describe("Phase 18 World entry experience", () => {
         tagName: "INPUT",
       }),
     ).toBe(true);
+  });
+
+  it("projects held movement and Shift through walk, run, walk, and stop", () => {
+    expect(typeof roomApi.projectAvatarMovementPhaseFromKeys).toBe("function");
+    const project = roomApi.projectAvatarMovementPhaseFromKeys;
+    if (!project) return;
+    const starting = project({
+      current: "idle",
+      previousKeys: [],
+      nextKeys: ["w"],
+    });
+    const sprinting = project({
+      current: "moving",
+      previousKeys: ["w"],
+      nextKeys: ["w", "shift"],
+    });
+    const walking = project({
+      current: sprinting,
+      previousKeys: ["w", "shift"],
+      nextKeys: ["w"],
+    });
+    const stopping = project({
+      current: walking,
+      previousKeys: ["w"],
+      nextKeys: [],
+    });
+    expect([starting, sprinting, walking, stopping, "idle"]).toEqual([
+      "starting",
+      "sprinting",
+      "moving",
+      "stopping",
+      "idle",
+    ]);
   });
 
   it("retains ordered transcript activity and classifies canonical tool lifecycle truth", () => {
@@ -281,6 +321,10 @@ describe("Phase 18 World entry experience", () => {
       { kind: "assistant", text: "first reply" },
       { kind: "assistant", text: "second reply" },
     ]);
+    state = activityApi.reduceWorldChat(state, {
+      type: "RESET_PRESENTATION",
+    });
+    expect(state).toEqual(activityApi.createWorldChatState());
   });
 
   it("provides the returning identity and World composition", () => {
@@ -331,15 +375,46 @@ describe("Phase 18 World entry experience", () => {
         busy: false,
         error: "",
         onAccept: () => undefined,
+        AvatarBuilderComponent: AvatarBuilder,
       }),
     );
     expect(html).toContain("Create Mr Fluff’s avatar");
     expect(html).toContain('class="avatar-builder"');
     expect(html).toContain('data-testid="avatar-preview"');
-    expect(html).toContain("Loading optional 3D preview");
+    expect(html).toContain("Cat Agent 1");
+    expect(html).toContain('aria-label="Open Cat Agent 1 3D preview"');
+    expect(html).toContain('aria-label="Open Robot Agent 5 3D preview"');
+    expect(html).not.toContain('aria-label="Open User Male 1 3D preview"');
+    expect(html).not.toContain("Custom Kit");
     expect(html).toContain("Accept and save avatar");
     expect(html).not.toContain("ᓚᘏᗢ");
     expect(html).not.toContain("world-agent-avatar__preview");
+    expect(html).not.toContain("Enter World");
+  });
+
+  it("labels an accepted legacy proposal as an explicit migration gate", () => {
+    if (!api.WorldEntryAgentAvatar) return;
+    const html = renderToStaticMarkup(
+      createElement(component(api.WorldEntryAgentAvatar), {
+        proposal: legacyCatProposal,
+        mode: "migrate",
+        busy: false,
+        error: "",
+        onAccept: () => undefined,
+        AvatarBuilderComponent: AvatarBuilder,
+      }),
+    );
+    expect(html).toContain("Change Mr Fluff’s avatar");
+    expect(html).toContain("accepted legacy avatar");
+    expect(html).toContain("remains unchanged until explicit save");
+    expect(html).toContain("not selected, saved, or accepted");
+    expect(html).toContain('data-avatar-source="imported"');
+    expect(html).toContain('data-avatar-imported-id="cat-agent-01"');
+    expect(html).toContain('aria-label="Open Cat Agent 1 3D preview"');
+    expect(html).toContain('aria-label="Open Robot Agent 5 3D preview"');
+    expect(html).toContain(
+      '<button class="primary-action" type="button" disabled="">Accept and save avatar</button>',
+    );
     expect(html).not.toContain("Enter World");
   });
 

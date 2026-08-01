@@ -1,0 +1,12 @@
+{
+  "activeModelId": null,
+  "completedModelIds": [
+    "cat-agent-01"
+  ],
+  "schema": "aiw.replacement-avatar-pose-catalog-progress/1",
+  "selectedModelIds": [
+    "cat-agent-01"
+  ],
+  "state": "complete",
+  "updatedAtUnixSeconds": 1785470518.637
+}

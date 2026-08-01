@@ -332,7 +332,7 @@ describe("authoritative avatar animation", () => {
       ),
     ).toEqual(["Idle", "Think", "Explain", "Work", "Celebrate", "Error"]);
     expect(
-      ["starting", "moving", "stopping", "idle"].map((movement) =>
+      ["starting", "moving", "sprinting", "stopping", "idle"].map((movement) =>
         projectWorldAvatarAction({
           role: "user",
           activity: "coding",
@@ -340,7 +340,7 @@ describe("authoritative avatar animation", () => {
           terminalElapsedMs: 0,
         }),
       ),
-    ).toEqual(["StartWalk", "Walk", "StopWalk", "Idle"]);
+    ).toEqual(["StartWalk", "Walk", "Run", "StopWalk", "Idle"]);
     expect(
       projectWorldAvatarAction({
         role: "agent",

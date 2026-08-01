@@ -1,8 +1,199 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-07-28
+Updated: 2026-08-01
 
 ## Current milestone
+
+### 2026-08-01 complete-avatar blank-screen correction — reported blockers OPERATOR ACCEPTED
+
+Aaron authorized one bounded remediation after the 2026-07-31 manual operator
+failure. The proven root cause was an invalid transition between two intentional
+validation levels: the Builder permits an empty required name while the operator is
+still choosing an avatar, but `selectImportedAvatarModel()` parsed that in-progress
+draft with the stricter persistable-profile parser. Clicking `Use Complete Avatar`
+before entering a name therefore threw `TypeError: Invalid replacement avatar draft`
+inside React's state updater and unmounted the root.
+
+The production correction is one line: complete-avatar selection now uses the existing
+in-progress Builder parser. Final profile/Save validation remains strict. Focused unit
+and browser regressions first failed RED with the exact exception/page error, then
+passed GREEN. Independent parent proof passed the corrected direct causal probe while
+keeping the empty-name draft non-persistable, impacted Vitest 29/29, TypeScript 38/38,
+serial functional Vitest 709/709 excluding only the deliberately stale Phase 18.5
+hardware-evidence validator, the isolated 23-asset intake 4/4, production build 20/20,
+targeted ESLint/Prettier/diff hygiene, and the built-browser blank-screen regression
+1/1. The unfiltered suite honestly passed 715/716; its sole failure was the expected
+fail-closed Phase 18.5 production-input fingerprint, which was not rebound while that
+phase remains paused.
+
+A fresh matching disposable candidate was served at `http://127.0.0.1:45181/` with
+backend `127.0.0.1:43771`. Owner receipts bound the listeners to candidate PIDs 495073
+and 495023 respectively; direct/frontend/proxied health was 200/200/200. The candidate
+used a byte-verified clone of exactly the two previously accepted World-session files
+and a fixture-assisted proposal projection; the seed and protected services remained
+unchanged. Read-only proof found one Hermes capability, exactly one native `Mr Fluff`,
+ready/current status, 50 bounded message projections, 2,790 events without body
+inspection, a valid `aiw.avatar-proposal/0.12`, and unchanged fixture hashes.
+
+Aaron then first-hand confirmed both reported blockers are fixed: clicking `Use
+Complete Avatar` with no name entered no longer blanks the page, and refresh correctly
+shows the preloaded 3D avatar instead of the old modular avatar sheet before any card is
+clicked. This is an operator **PASS** for those exact two correction targets. Save,
+consent persistence, and World animation were not separately retested in this verdict
+and are not newly re-claimed. After verdict capture, owner-checked cleanup stopped both
+candidate processes, removed the exact disposable state root, proved `43771/45181`
+closed, and preserved protected `3770/5173/8642/18789` under their original identities.
+
+The accepted feature snapshot is locally checkpointed on the dedicated
+`checkpoint/imported-avatar-models-accepted-2026-08-01` branch. Git LFS/CI plumbing
+is isolated in parent commit `f87ef398b2a7962a54ffd512fd210bf7b19e4d00`; the
+feature commit deliberately does not embed its own SHA, which is bound by the external
+checkpoint receipt. The final feature boundary contains exactly 413 reviewed paths,
+including 23 GLBs represented by verified LFS pointers and 308 canonical evidence
+files, while 199 exact partial/superseded evidence and plan paths remain untracked with
+zero unstaged tracked changes. Final parent proof passed candidate-source formatting,
+lint, TypeScript 38/38, architecture 11/11, deterministic 23-asset inspection, intake
+5/5, functional Vitest 710/710 excluding only the separately recorded paused hardware
+validator, production build 20/20, relevant Playwright 9/9, `git diff --check`, LFS
+`fsck`, normalization of 46 inherited runtime-data executable bits to `0644`, staged
+added-line secret/private-path scanning, and visual review of all 311 staged images
+through ten contact sheets. A machine-specific source-inventory default found during staged review was removed with RED→GREEN coverage, and stale browser tests
+were aligned with the accepted preview → `Use Complete Avatar` → save contract.
+
+The frozen Phase 18.5 validator remains truthfully RED only for its two known production
+input fingerprint mismatches; evidence was not rebound and the phase remains paused.
+Aaron explicitly confirmed private-storage rights for the user-provided local assets;
+the manifest continues to report supplied license status `not-stated`. Protected
+`3770/5173/8642/18789` remain under their preserved identities and candidate
+`43771/45181` remain closed. No push, merge, tag, release, deployment, publication,
+public ingress, provider/profile activation, protected-service mutation,
+original-AgentIntersect edit, Phase 18.5 resumption, or Phase 19–20 work occurred or is
+authorized.
+
+### 2026-07-31 complete-avatar closeout — manual operator acceptance FAILED
+
+Aaron first-hand tested the matching disposable current-repository candidate at
+`http://127.0.0.1:45181/`. Selecting an avatar and activating `Use Complete Avatar`
+caused the product to transition to a blank screen. Refresh did not recover the
+flow: selecting an avatar and trying `Use Complete Avatar` again produced the same
+blank-screen result. This is an authoritative manual **FAIL** at the explicit
+complete-avatar selection transition; accepted/Save/consent restoration and World
+animation could not be reached from this path. No screenshot or video accompanied
+the report. The failure is frozen as evidence. At that moment no remediation or
+source-code change had started; Aaron subsequently authorized the bounded correction.
+At verdict capture, the owner-checked candidate
+pair matched its recorded process identities. The validated cleanup subsequently
+stopped candidate backend `43771` and frontend `45181`, removed both candidate tmux
+sessions, and removed only the exact disposable state root. Protected
+`3770/5173/8642/18789` remained unchanged under their recorded PIDs.
+
+The bounded closeout corrected both authoritative operator REDs without enabling
+cross-model modular composition or performing delivery:
+
+1. First-load and refresh now show an actual role-valid GLB in a separate preview.
+   The preload is explicitly not selected, saved, or accepted; stance artwork never
+   replaces the 3D panel. Card activation changes preview only. `Use Complete
+Avatar` performs the draft selection, and Save remains disabled until that
+   explicit confirmation. Preserved custom/legacy, dormant modular, removed, and
+   role-invalid persisted states remain fail-closed without rewriting stored bytes.
+2. `user-male-02` now uses only its own verified `Idle`, `Walk`, and `Run` clips;
+   `robot-agent-05` uses only its own verified non-T-pose `Idle`. Each rendered root
+   retains its own scene clone, skeleton, source-local clip, mixer, and action.
+   Runtime clips are cloned before root/Hip travel normalization, transitions use
+   bounded 0.22-second crossfades, and unresolved model/actions remain explicit
+   `EVIDENCE_REFUSED` static fallbacks.
+3. The heavy avatar builder now loads behind a dedicated lazy boundary. The exact
+   production entry is 404.18 kB decimal, below the enforced 409,600-byte ceiling;
+   the renderer remains nested behind Builder -> AvatarPreview -> AvatarScene.
+
+Independent parent verification after one bounded review correction passed source
+immutability 69/69, focused blocker regressions 56/56, lint, typecheck 38/38,
+architecture 11/11, build 20/20, broad Vitest 708/708, isolated Playwright 3/3,
+Prettier, and `git diff --check`. A fresh broad read-only Codex review found three
+consent/hydration blockers; the focused correction fixed them, and a fresh targeted
+re-review returned `PASS` with no remaining frozen blocker.
+
+Manual operator acceptance has **not** yet been claimed. The exact built artifact was
+briefly served loopback-only at `http://127.0.0.1:4183/`; read-only checks through
+Vite's preview proxy reached the protected local API at `3770`, found one Hermes
+capability, and found exactly one native `Mr Fluff` session (`AgentIntersect Handoff
+Status #5`). No clicks or consent actions were automated. Historical protocol
+evidence says protected `3770` may reject the newer imported-avatar consent schema,
+so this was not treated as a safe write-capable acceptance pair. The `4183` preview
+and temporary HTTP probe were stopped at handoff. The next session must use a
+matching disposable candidate backend/state pair before any consent mutation; do not
+POST imported-avatar consent to protected `3770`.
+
+The branch remains intentionally dirty, unstaged, uncommitted, and not commit-ready:
+611 porcelain paths (30 tracked modifications, 581 untracked), zero staged, porcelain
+SHA-256 `e5f1ca4963c3c32ab738d62ad7e7c5310511cedccef440902d1900bb57af8b35` before
+this status-only update. Protected `3770/5173/8642/18789` retained their original
+PIDs. No commit, push, merge, tag, release, deployment, publication, public ingress,
+provider/profile activation, protected-service mutation, original-AgentIntersect
+edit, Phase 18.5 resumption, or Phase 19–20 work occurred or is authorized.
+
+### 2026-07-29 imported-avatar migration and Escape menu — user accepted
+
+Aaron first-hand accepted the corrected normal-product candidate at `http://127.0.0.1:5181/`:
+
+1. Saving an imported Mr Fluff avatar succeeded.
+2. Refresh restored the saved imported avatar, proving persistence in the candidate World-session store.
+3. The normal-World Escape menu and its bounded actions worked well first-hand.
+4. Unknown native agent names remain unavailable rather than being fabricated; the live Hermes authority currently exposes only `Mr Fluff`.
+
+The final live blocker was client/backend protocol skew, not the imported-avatar model or builder. The candidate frontend had initially proxied to the protected older `3770` backend, whose strict compiled `aiw.avatar-proposal/0.12` schema predates `avatarSource`. The paired candidate backend on disposable port `3771`, using an isolated validated copy of the accepted World-session store and the real Hermes Sessions API on `8642`, accepted imported consent and returned the selected asset from authoritative history. The disposable `5181` preview was repointed to that matching candidate backend; protected `3770/5173` remained untouched.
+
+Independent parent verification for the corrected slice passed focused unit/UI tests **75/75**, formatting, ESLint, typecheck **38/38 tasks**, architecture **11/11**, production build **20/20 tasks**, imported-avatar plus Escape-menu Playwright **8/8**, and `git diff --check`. The broader implementation worker also passed **703/703** functional tests excluding the deliberately frozen Phase 18.5 validator. No commit, push, merge, release, deployment, publication, protected-service restart, or sibling-worktree mutation occurred.
+
+### 2026-07-30 23-model continuation — functionally green, visual acceptance still red
+
+Aaron authorized a second bounded Codex continuation through original-avatar presentation, semantic evidence, animation, and evidence-gated modularity, with a two-hour hard limit and immediate safe pause instead of questions at any blocker. The continuation preserved the exact inherited 168-path baseline, protected services, branch, HEAD, and zero staged paths.
+
+Completed continuation work:
+
+- the user and agent builders now state their truthful six/17 stance-card counts, name a distinct `Selected 3D preview` panel, expose actual-GLB readiness/loading/fallback truth, and retain explicit `Use Original`;
+- the imported-World camera distance changed only from 10.1 m to 7.2 m, increasing deterministic projected 1.435 m avatar height from 148.629 px to 203.785 px without changing source GLBs, skeletons, binds, or normalization;
+- a deterministic all-23 dense-evidence plan now requires seven samples per anonymous clip, names the three 22-clip variants, links each strip to manifest motion traces, and keeps runtime classification refused;
+- `user-male-02` has a complete 21-clip × seven-sample set (147 PNGs), JSON, an offline viewer, and a full-page evidence capture; the first slow cat render was stopped safely after three frames and does not claim completion;
+- no semantic mapping, Space Jump, slash gesture, agent cue, modular donor, slot, or cross-model combination was enabled. Own-skeleton and seam-evidence gates remain unchanged.
+
+Worker verification passed 121 files / 694 functional tests excluding only the frozen Phase 18.5 validator, 4 files / 37 impacted tests, imported-avatar Playwright 3/3, typecheck 38/38, architecture 11/11, build 20/20, intake, formatting/lint, Python compilation, and diff hygiene. Independent parent proof reran the exact impacted 4 files / 37 tests and matching isolated Playwright 3/3, plus Python compilation and `git diff --check`.
+
+Parent pixel inspection remains authoritative **RED**:
+
+- the user capture proves all six cards, selected User Female 3, and a separate actual-GLB preview, but the result panel visibly covers explanatory copy;
+- the agent capture states 17 cards and shows Robot Agent 5 in the preview, but the selected card is offscreen and the result panel obscures the catalog, so selected-card-plus-preview is not proven together;
+- the World capture shows both models larger but still small, static T-poses with unconvincing grounding;
+- the dense sheet is a substantial evidence improvement, but clips 03 and 20 are visibly cropped and static samples alone do not justify semantic labels.
+
+The dirty worktree is therefore **PARTIAL-SAFE-PAUSE**, unstaged, uncommitted, not commit-ready, and not user accepted. It now has 327 porcelain paths: the same 28 tracked modifications plus 299 untracked paths. All 168 inherited paths remain; 159 continuation paths were added (158 evidence files and `tooling/avatar/render_replacement_pose_catalog.py`). The next coherent work is to correct the visible builder overlap/selection composition, World scale/grounding/static presentation, and evidence-camera clipping; then bound the slow-family renderer and finish one convincing slow-family seven-sample model before any semantic or modular activation.
+
+### Historical next-session model and modular-rig preparation — direction completed by the 23-model intake
+
+Aaron will gather the remaining desired avatar models before the next session and intends to put them into a consistent **T-pose/rest-pose baseline** so their rigs are more comparable and better suited to future modular-part work. The next session should begin with intake and compatibility evaluation, not immediate cross-model part swapping:
+
+- preserve every source model unchanged and record provenance/license/role before conversion;
+- normalize candidate copies to a documented T-pose/rest pose, coordinate system, scale, orientation, bone naming, and export contract;
+- compare skeleton hierarchy, rest transforms, inverse-bind matrices, skin weights, scale, sockets, and animation semantics before assigning compatibility classes;
+- permit modular-part interchange only where complete compatibility evidence exists; otherwise retain explicit refusal or require an authored retarget/remesh path;
+- update the deterministic manifest/intake pipeline and add RED-to-GREEN structural/runtime tests before normal World integration.
+
+This next-session direction does not resume the separate Phase 18.5 evidence lane, authorize revised Phases 19–20, or authorize commit/push/release/deployment. No remaining-model intake, T-pose conversion, rig edit, or modular-part implementation was started in this session.
+
+### Historical 2026-07-28 imported-model implementation baseline
+
+Aaron first-hand accepted the isolated `experiment/imported-avatar-models` preview and chose the three imported GLB avatars as the new embodiment baseline. The verified semantic animation correction now drives model-specific Idle/Walk/Run clips from authoritative World movement, cross-fades transitions, maps Shift+movement to Run, and removes cumulative Hip travel from cloned World-runtime clips so gameplay position remains authoritative.
+
+The bounded imported-model avatar-builder implementation candidate was independently parent verified in the isolated dirty worktree and was later user accepted after the live protocol-pairing correction recorded above:
+
+1. `docs/IMPORTED_AVATAR_BUILDER_SCOPE.md` freezes the registry, role, legacy migration, intake, compatibility, persistence, animation, and non-goal decisions.
+2. One validated imported-model registry drives normal selection and runtime routing. `user-male` is the sole normal user choice; `cat-agent` and `futuristic-robot` are the agent choices. New user and agent drafts default deterministically to `user-male` and `cat-agent`.
+3. Generated/custom avatars are preserved as legacy runtime/profile state but absent from normal new-avatar controls. A saved legacy profile previews unchanged, is labeled clearly, and migrates only after explicit role-valid imported selection and save.
+4. The repository-owned manifest now records role/lifecycle visibility, per-model semantic clips, preview/World transforms, stable segments, hierarchy/rest/inverse-bind fingerprints, compatibility class, provenance, honest `not-stated` license status, fallback policy, and GLB/thumbnail hashes. The deterministic `--check` path does not depend on the unavailable original Pictures sources.
+5. Same-model stable-part isolation remains available. All current cross-model pairs are explicitly refused because no complete skeleton/rest/bind/scale/socket/skin-weight proof exists.
+6. Legacy and imported profiles survive local hydration and exact-session transport; imported models route through normal World rendering after reload. Same-model hidden-part state is resolved from the repository manifest and applied in normal World rendering rather than being lost after the builder. Creator-preview clips remain separate from World semantic actions, and the accepted Idle/Walk/Run, Shift-Run, 0.22-second crossfade, runtime-only Hip normalization, source immutability, and safe Idle fallback remain intact.
+7. Independent parent inspection found and corrected two bounded defects through RED-to-GREEN tests: saved segmentation state had not reached normal World rendering, and manifest-load failure could retrigger the segmentation inventory effect. The historical implementation baseline passed focused impacted Vitest **101/101 across 9 files**, functional Vitest **696/696 across 120 files** with only the deliberately excluded frozen Phase 18.5 validator, typecheck **38/38 tasks**, architecture **11/11**, production build **20/20**, full Prettier and ESLint, deterministic intake, imported-avatar Playwright **3/3**, and `git diff --check`. The later avatar-routing/Escape correction and user acceptance supersede this baseline's pending-review state.
+8. The final automated World screenshot showed the full user model plus the intentionally isolated robot segment, readable HUD/composer, and no clipping or overlap. Aaron later accepted save, refresh persistence, and the Escape menu first-hand. No commit, push, merge, tag, release, deployment, publication, public ingress, sibling-worktree change, or original-AgentIntersect change is authorized or claimed.
 
 **PHASE 18.5 VISUAL/HARDWARE PARENT ACCEPTED — COMPLETE LOCAL AND FRESH VERIFICATION GREEN — PRIVATE DELIVERY PENDING — PHASE 18 REMAINS OPEN**
 
@@ -257,6 +448,18 @@ Phase 5 completed the balanced vertical slice recorded in `PHASE_5_REPORT.md`, `
 
 ## Closeout status
 
+## Imported-avatar replacement — PARTIAL, SAFE PAUSE AFTER CONTINUATION
+
+The deterministic 23-model original-avatar slice remains functionally green: six user originals and seventeen agent originals, immutable/hash-bound source intake, stance cards, separately activated actual-GLB preview, explicit `Use Original`, v2 persistence/consent, stale-ID re-selection, no-3D zero-load behavior, and complete-original World routing.
+
+The continuation improved truthful builder observability, reduced the imported-World camera distance from 10.1 m to 7.2 m, and added a repeatable dense semantic-evidence pipeline. The pipeline plans seven samples per clip for all 23 models and explicitly identifies all three 22-clip variants. One full representative (`user-male-02`) now has 147 labeled frames, evidence JSON, an offline strip viewer, and a full-page capture. Runtime semantic classification remains refused.
+
+Worker verification passed 121 files / 694 functional tests excluding only the unchanged frozen Phase 18.5 validator, 4 files / 37 impacted tests, imported-avatar Playwright 3/3, typecheck 38/38, architecture 11/11, build 20/20, intake, formatting/lint, Python compilation, and diff hygiene. Independent parent proof reran 4 files / 37 tests and isolated matching Playwright 3/3, plus Python compilation and `git diff --check`.
+
+Parent visual QA is still **RED**. The user builder proves six cards plus a distinct preview but has result-copy overlap. The agent capture does not show the selected Robot Agent 5 card and preview together, and its result panel obscures the catalog. World models remain small static T-poses with unconvincing grounding. The dense representative has visible clipping in clips 03 and 20 and cannot establish semantic names. These are explicit blockers, not accepted visuals.
+
+No semantic mapping, Idle/Walk/Run activation, Space Jump, local gesture command, agent cue, modular donor/slot, layered renderer, or cross-model combination was enabled. Every own-skeleton, rest/inverse-bind, region-isolation, and seam gate remains fail-closed. The current 327-path worktree (28 tracked modifications, 299 untracked, zero staged) is not commit-ready or user accepted. No commit, push, merge, tag, release, deployment, publication, protected-service mutation, Phase 18.5 resumption, or Phase 19–20 work occurred.
+
 **Phase 17 — USER ACCEPTED / SEALED / COMPLETE**
 
 The bounded corrected Phase 17 slice passed independent parent inspection,
@@ -331,3 +534,143 @@ The Phase 13 hybrid performance contract remains inherited: main-thread render-w
 - Add SIGINT/SIGTERM cleanup for externally interrupted `verify:fresh` runs.
 
 Historical items should be revisited only when their affected surfaces are deliberately touched.
+
+## 2026-07-31 bounded 23-model continuation — partial safe pause
+
+The directly authorized continuation verified the exact inherited baseline and
+protected listeners, corrected builder composition, improved static imported
+World framing/grounding/refusal truth for user/cat/dog/robot families, and made
+the Blender evidence path bounded, cancellable, descendant-safe, and explicit
+about partial versus complete output. Focused RED→GREEN checks and isolated
+browser pixels cover those changes; this is worker evidence only, not parent or
+user acceptance.
+
+`cat-agent-01` now has one complete bounded slow-family artifact: all 21 source
+clips, seven samples per clip, 147/147 contained frames, deterministic manifest
+traces, an offline viewer, three inspected grouped sheets, and an exact
+per-clip classification ledger. All 21 verdicts remain `ambiguous`. The pixels
+suggest several actions, but the deterministic trace format does not encode an
+independent semantic binding, affected-limb discriminator, or cadence. Runtime
+activation therefore stops at `Idle`; no semantic action, jump, gesture, cue,
+crossfade, or source clip was enabled or mutated.
+
+The worker safely paused at the first semantic-evidence blocker before the
+00:05 no-new-slice cutoff. Item 7 was not started: weight-based region purity is
+not seam/gap, attachment, animated sibling-root, or compatibility proof.
+Own-skeleton modular rendering remains disabled and no whole donor substitutes
+for a slot. Items 1–6 are complete in their evidence/refusal sense; item 7 is
+blocked pending a coherent evidence-generation slice. The current verdict is
+`PARTIAL_SAFE_PAUSE`; parent verification and user acceptance remain pending.
+
+### Parent correction — catalog cancellation truth
+
+Parent verification found one bounded correctness defect in the evidence
+catalog: direct SIGTERM bypassed Blender process-group cleanup and interrupted
+progress finalization, while a reused model output could retain stale
+`pose-evidence.json` and `evidence-index.html` after a failed rerun.
+
+The narrow correction is GREEN through an executable fake-Blender integration
+suite. Before each model attempt, full-completion manifest/index truth is
+invalidated without touching partial evidence. SIGTERM is converted to a
+catchable catalog cancellation, the active model process group receives bounded
+TERM→KILL escalation even when its leader exits before a TERM-resistant
+descendant, and `catalog-progress.json` is atomically finalized as
+`interrupted` with reason `signal-cancelled-SIGTERM` while retaining the active
+model. Timeout, Ctrl+C, renderer-failure, partial-only, and fresh-success paths
+remain fail-closed.
+
+The focused executable suite passes 4/4, complete imported-avatar intake passes
+4/4, Python compilation passes for both render scripts and the integration
+test, and `git diff --check` passes. No Blender evidence was rerun; no semantic,
+modular, protected-service, Git delivery, or other continuation work occurred.
+This correction passed independent parent verification in the frozen 553-path
+baseline.
+
+## 2026-07-31 avatar replacement items 1–7 — item 7 evidence REFUSED
+
+The freshly authorized continuation preserved the parent-verified items 1–6
+and completed item 7 at its frozen evidence boundary. The sole evaluated pair
+was `dog-agent-01` as base plus `dog-agent-02` as donor: both are in the same
+dog-agent family, share the 41-joint hierarchy class and 1.75 m target height,
+and have near-identical wrapper scales, while their distinct rest-pose and
+inverse-bind hashes require two unchanged sibling roots. No second pair was
+tried and no threshold was weakened.
+
+The bounded evidence procedure retained one rest assembly and three animated
+samples for each of head, torso, left arm, right arm, left leg, right leg, and
+auxiliary. Blue pixels are the complementary base meshes; orange pixels are
+only the selected donor-region meshes. Both models retain their own root,
+skinned meshes, armature, inverse binds, and anonymous source-local clip 00.
+The manifest records exact source membership, uniform normalization, complete
+frame bounds, conservative world-AABB collision pairs, attachment gaps, seam
+variation, pose-trace hashes, per-pixel hashes, partial/completion state, and
+per-region `PASS`/`REFUSED` truth.
+
+No region passed every gate. At rest, head/torso/right arm/left leg/right leg
+measure 17/6/1/10/6 conservative collision pairs. Left arm is collision-free
+at rest with a 0.017122 m attachment gap, but its own-skeleton animated samples
+separate by as much as 4.539550 m and fail seam stability. Auxiliary has no
+isolated donor part. The diagonal animated pixels visibly preserve rather than
+hide that divergence. Item 7 is therefore complete as evidence-backed
+`REFUSED`: `passingRegions` is empty, modular World rendering remains disabled,
+and no donor GLB, whole-donor fallback, foreign skeleton, rebind, semantic clip
+mapping, or modular runtime path was activated.
+
+Retained authority is
+`artifacts/avatar-replacement-evidence/modular-dog-01-dog-02-v1/`.
+`modular-pair-evidence.json` SHA-256 is
+`f8da8aed7fc51434ed39e3a62e54937709496182241d42ed1ebc8699c94bf2f3`;
+the offline viewer SHA-256 is
+`65a385f5dff2c128d2dae096a9ed8bd6edd31bb9b66b1c4437bde40eb6ef0c0b`;
+the inspected full-page contact sheet SHA-256 is
+`ec93c70d328b8360669db064a75aa07d99d3f03d173683031f59d06356cf881f`.
+
+Worker proof passed 8/8 Python evidence/catalog cancellation integration tests,
+26/26 imported-avatar Vitest tests, deterministic intake/source checking with
+69 files and zero copy mismatches, root typecheck 38/38, architecture 11/11,
+production build 20/20, and isolated imported-avatar Playwright 3/3. Python
+compilation, lint, and `git diff --check` also passed.
+
+Independent parent verification reran the same 8/8 Python tests, 4 files / 26
+Vitest tests, deterministic source intake, root lint, typecheck 38/38,
+architecture 11/11, build 20/20, and isolated Playwright 3/3. Parent pixel
+inspection confirmed all seven region rows, complete rest assemblies, distinct
+blue base/orange donor pixels, and the animated multi-meter separations that
+support refusal. Parent found one closeout-only defect: `PROJECT_STATUS.md`
+failed Prettier. The same Codex thread formatted only this file; parent retest
+then passed Prettier and `git diff --check` without changing the path set.
+
+The post-slice worktree is 589 porcelain paths: the inherited 553 plus exactly
+36 new item-7 paths, with 28 tracked modifications, 561 untracked, and zero
+staged. Verification refreshed eight inherited browser screenshots and touched
+the inherited untracked `apps/web/test/imported-avatar-ui.test.tsx`; no inherited
+path was removed, no status code changed, and deterministic intake reconfirmed
+that source assets were unchanged. Parent verification is complete; user
+first-hand acceptance remains pending. No Git delivery, service mutation,
+semantic/modular activation, later-phase work, or original-AgentIntersect work
+occurred.
+
+## 2026-07-31 product rebaseline — complete avatars active, modular deferred
+
+The operator selected complete imported avatars as the active product path for
+both users and agents. Cross-model modular composition is retained only as a
+possible later feature with no roadmap commitment. The rejected
+`dog-agent-01`/`dog-agent-02` evidence, versioned modular data shape, and
+fail-closed World refusal remain dormant compatibility/research material; they
+are not current acceptance requirements.
+
+The normal builder now exposes one `Use Complete Avatar` action and no mode
+switch, donor palette, slot controls, disabled modular button, or “verification
+pending” modular copy. User-facing summaries say `Complete`. A dormant modular
+profile remains parseable but cannot be saved until the operator explicitly
+converts it to the complete base avatar. No modular runtime renderer, rebinding,
+foreign-skeleton animation, or silent complete-donor substitution was enabled.
+
+The behavior was developed RED → GREEN. Final verification passed the four-file
+imported-avatar suite at 27/27 tests, root lint, typecheck 38/38, architecture
+11/11, production build 20/20, and the isolated imported-avatar browser suite at
+3/3 journeys. Refreshed desktop and mobile evidence shows the complete-avatar
+CTA, full user/agent GLB previews, no modular controls, and no horizontal
+clipping. The canonical avatar scope was rebaselined and the older builder scope
+marked historical. No commit, staging, push, release, deployment, later-phase
+work, protected-service mutation, or original-AgentIntersect edit was performed.

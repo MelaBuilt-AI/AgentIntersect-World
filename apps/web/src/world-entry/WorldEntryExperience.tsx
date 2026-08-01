@@ -10,6 +10,7 @@ import type {
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
+import { AvatarBuilderLoader } from "../avatar/AvatarBuilderLoader.js";
 import type {
   AvatarProposal,
   WorldAgentEvent,
@@ -21,6 +22,7 @@ import {
 } from "./world-entry-client.js";
 import { avatarDraftFromProposal } from "./world-entry-avatar.js";
 import { WorldEntryAgentAvatar } from "./WorldEntryAgentAvatar.js";
+import { WorldEscapeMenu } from "./WorldEscapeMenu.js";
 import { WorldEntryLogo, WorldTypeLine } from "./WorldEntryLogo.js";
 import { WorldHud } from "./WorldHud.js";
 import { WorldRoom } from "./WorldRoom.js";
@@ -30,6 +32,12 @@ import {
   reduceWorldEntry,
 } from "./world-entry-machine.js";
 import { createWorldChatState, reduceWorldChat } from "./world-chat-model.js";
+import {
+  DEFAULT_WORLD_DISPLAY_PREFERENCES,
+  loadWorldDisplayPreferences,
+  saveWorldDisplayPreferences,
+  type WorldDisplayPreferences,
+} from "./world-escape-menu-model.js";
 
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
 const SESSION_POINTER_PATTERN =
@@ -92,10 +100,12 @@ export function WorldEntryExperience({
   profile,
   client: providedClient,
   forceNoWebGL = false,
+  onUserAvatarSave,
 }: {
   readonly profile: AvatarProfile;
   readonly client?: WorldEntryClient;
   readonly forceNoWebGL?: boolean;
+  readonly onUserAvatarSave?: (draft: AvatarDraft) => AvatarProfile | void;
 }) {
   const reducedMotion = useReducedMotion();
   const client = useMemo(
@@ -114,6 +124,12 @@ export function WorldEntryExperience({
   const [session, setSession] = useState<WorldAgentSession | null>(null);
   const [proposal, setProposal] = useState<AvatarProposal | null>(null);
   const [agentAvatar, setAgentAvatar] = useState<AvatarDraft | null>(null);
+  const [agentAvatarMode, setAgentAvatarMode] = useState<
+    "create" | "migrate" | "change"
+  >("create");
+  const [avatarTarget, setAvatarTarget] = useState<"user" | "agent" | null>(
+    null,
+  );
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [status, setStatus] = useState("Restored user avatar · Current");
   const [error, setError] = useState("");
@@ -127,11 +143,18 @@ export function WorldEntryExperience({
   const [chatBusy, setChatBusy] = useState(false);
   const [queuedCount, setQueuedCount] = useState(0);
   const [objects, setObjects] = useState<readonly RepositoryRenderObject[]>([]);
+  const [preferences, setPreferences] = useState<WorldDisplayPreferences>(() =>
+    typeof window === "undefined"
+      ? DEFAULT_WORLD_DISPLAY_PREFERENCES
+      : loadWorldDisplayPreferences(window.localStorage),
+  );
   const connectAttempt = useRef(0);
   const mounted = useRef(true);
   const processingChat = useRef(false);
   const pendingMessages = useRef<PendingWorldMessage[]>([]);
   const nextMessageId = useRef(0);
+  const presentationGeneration = useRef(0);
+  const activeChatAbort = useRef<AbortController | null>(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -182,21 +205,35 @@ export function WorldEntryExperience({
         }
         setSession(result.session);
         setProposal(result.proposal);
-        setAgentAvatar(avatarDraftFromProposal(result.proposal));
-        setStatus(
-          `agent connected · ${connectionLabel(result)} · avatar accepted`,
-        );
         updateChat({
           type: "RESTORE_HISTORY",
           messages: result.history.messages,
         });
-        dispatch({
-          type: "RESTORE_WORLD",
-          sessionId: result.session.sessionId,
-          continuity: result.continuity,
-          agentName: result.proposal.displayName,
-          avatarProfileId: result.proposal.proposalId,
-        });
+        if (result.avatarSetup === "complete") {
+          setAgentAvatar(avatarDraftFromProposal(result.proposal));
+          setStatus(
+            `agent connected · ${connectionLabel(result)} · avatar accepted`,
+          );
+          dispatch({
+            type: "RESTORE_WORLD",
+            sessionId: result.session.sessionId,
+            continuity: result.continuity,
+            agentName: result.proposal.displayName,
+            avatarProfileId: result.proposal.proposalId,
+          });
+        } else {
+          setAgentAvatar(null);
+          setAgentAvatarMode("migrate");
+          setStatus(
+            `agent connected · ${connectionLabel(result)} · avatar change required`,
+          );
+          dispatch({
+            type: "RESTORE_AGENT_AVATAR",
+            sessionId: result.session.sessionId,
+            continuity: result.continuity,
+            agentName: result.proposal.displayName,
+          });
+        }
         setRestorePending(false);
       })
       .catch(() => finishWithoutRestore(true));
@@ -242,9 +279,12 @@ export function WorldEntryExperience({
     setSession(result.session);
     setProposal(result.proposal);
     setAgentAvatar(
-      result.avatarAccepted && result.proposal
+      result.avatarSetup === "complete" && result.proposal
         ? avatarDraftFromProposal(result.proposal)
         : null,
+    );
+    setAgentAvatarMode(
+      result.avatarSetup === "legacy-migration" ? "migrate" : "create",
     );
     updateChat({
       type: "RESTORE_HISTORY",
@@ -260,7 +300,7 @@ export function WorldEntryExperience({
     window.setTimeout(
       () => {
         dispatch({ type: "OPEN_AGENT_AVATAR" });
-        if (result.avatarAccepted && result.proposal)
+        if (result.avatarSetup === "complete" && result.proposal)
           dispatch({
             type: "ACCEPT_AGENT_AVATAR",
             sessionId: result.session.sessionId,
@@ -275,6 +315,7 @@ export function WorldEntryExperience({
   const acceptAvatar = async (
     acceptedProposal: AvatarProposal,
     acceptedDraft: AvatarDraft,
+    returnToWorld = false,
   ) => {
     if (
       !session ||
@@ -299,6 +340,10 @@ export function WorldEntryExperience({
           : "Current"
       } · avatar accepted`,
     );
+    if (returnToWorld) {
+      setAvatarTarget(null);
+      return;
+    }
     dispatch({
       type: "ACCEPT_AGENT_AVATAR",
       sessionId: session.sessionId,
@@ -353,33 +398,45 @@ export function WorldEntryExperience({
 
   const processChatQueue = async () => {
     if (processingChat.current || !session) return;
+    const generation = presentationGeneration.current;
     processingChat.current = true;
     if (mounted.current) setChatBusy(true);
     try {
-      while (mounted.current && pendingMessages.current.length > 0) {
+      while (
+        mounted.current &&
+        presentationGeneration.current === generation &&
+        pendingMessages.current.length > 0
+      ) {
         const current = pendingMessages.current.shift();
         if (!current) break;
         setQueuedCount(pendingMessages.current.length);
         updateChat({ type: "SEND_STARTED", id: current.id });
+        const controller = new AbortController();
+        activeChatAbort.current = controller;
         try {
           const answer = await client.sendExactSession(session, current.text, {
+            signal: controller.signal,
             userDisplayName: profile.agentName,
             onEvent: (event: WorldAgentEvent) => {
               if (mounted.current) updateChat({ type: "AGENT_EVENT", event });
             },
           });
-          if (!mounted.current) return;
+          if (!mounted.current || presentationGeneration.current !== generation)
+            return;
           await loadRequestedRepository(current.text);
           if (!mounted.current) return;
           updateChat({ type: "SEND_COMPLETED", text: answer.finalText });
         } catch {
-          if (mounted.current)
+          if (mounted.current && presentationGeneration.current === generation)
             updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
+        } finally {
+          if (activeChatAbort.current === controller)
+            activeChatAbort.current = null;
         }
       }
     } finally {
       processingChat.current = false;
-      if (mounted.current) {
+      if (mounted.current && presentationGeneration.current === generation) {
         setChatBusy(false);
         setQueuedCount(pendingMessages.current.length);
       }
@@ -400,6 +457,34 @@ export function WorldEntryExperience({
     void processChatQueue();
   };
 
+  const updatePreferences = (next: WorldDisplayPreferences) => {
+    setPreferences(next);
+    saveWorldDisplayPreferences(window.localStorage, next);
+  };
+
+  const leaveWorld = (destination: "session_select" | "agent_prompt") => {
+    presentationGeneration.current += 1;
+    activeChatAbort.current?.abort();
+    activeChatAbort.current = null;
+    connectAttempt.current += 1;
+    pendingMessages.current = [];
+    processingChat.current = false;
+    window.localStorage.removeItem(SESSION_POINTER_KEY);
+    setSession(null);
+    setProposal(null);
+    setAgentAvatar(null);
+    setAvatarTarget(null);
+    setAgentName("");
+    setMessage("");
+    setObjects([]);
+    setChatBusy(false);
+    setQueuedCount(0);
+    setError("");
+    setStatus("Restored user avatar · Current");
+    updateChat({ type: "RESET_PRESENTATION" });
+    dispatch({ type: "LEAVE_WORLD", destination });
+  };
+
   const inWorld =
     state.step === "world_entering" ||
     state.step === "world_blank" ||
@@ -416,6 +501,52 @@ export function WorldEntryExperience({
       );
     const activeProposal = proposal;
     const activeAgentAvatar = agentAvatar;
+    if (avatarTarget === "user")
+      return (
+        <main className="world-experience world-experience--avatar">
+          <AvatarBuilderLoader
+            role="user"
+            initialProfile={profile}
+            currentProfile={profile}
+            title={`Change ${profile.agentName}’s avatar`}
+            intro="Choose the role-valid user avatar, then save it locally and return to this World."
+            saveLabel="Save user avatar"
+            successMessage="User avatar saved locally."
+            onSave={(draft) => {
+              onUserAvatarSave?.(draft);
+              setAvatarTarget(null);
+            }}
+          />
+          <button
+            type="button"
+            className="world-avatar-cancel world-action--enabled"
+            onClick={() => setAvatarTarget(null)}
+          >
+            Cancel avatar change
+          </button>
+        </main>
+      );
+    if (avatarTarget === "agent")
+      return (
+        <main className="world-experience world-experience--avatar">
+          <WorldEntryAgentAvatar
+            proposal={activeProposal}
+            mode="change"
+            busy={avatarBusy}
+            error={error}
+            onAccept={(acceptedProposal, acceptedDraft) =>
+              void acceptAvatar(acceptedProposal, acceptedDraft, true)
+            }
+          />
+          <button
+            type="button"
+            className="world-avatar-cancel world-action--enabled"
+            onClick={() => setAvatarTarget(null)}
+          >
+            Cancel avatar change
+          </button>
+        </main>
+      );
     return (
       <div className="world-experience world-experience--room">
         <WorldRoom
@@ -428,6 +559,7 @@ export function WorldEntryExperience({
           userAvatar={profile}
           agentAvatar={activeAgentAvatar}
           activity={chat.activity}
+          showControlHints={preferences.showControlHints}
         />
         {state.step !== "world_entering" ? (
           <WorldHud
@@ -446,6 +578,18 @@ export function WorldEntryExperience({
             Entering World
           </div>
         )}
+        {state.step !== "world_entering" ? (
+          <WorldEscapeMenu
+            userName={profile.agentName}
+            agentName={activeProposal.displayName}
+            preferences={preferences}
+            onPreferences={updatePreferences}
+            onLogout={() => leaveWorld("session_select")}
+            onResetSession={() => leaveWorld("session_select")}
+            onChangeAvatar={setAvatarTarget}
+            onChangeAgent={() => leaveWorld("agent_prompt")}
+          />
+        ) : null}
       </div>
     );
   }
@@ -464,6 +608,7 @@ export function WorldEntryExperience({
       <main className="world-experience world-experience--avatar">
         <WorldEntryAgentAvatar
           proposal={proposal}
+          mode={agentAvatarMode}
           busy={avatarBusy}
           error={error}
           onAccept={(acceptedProposal, acceptedDraft) =>

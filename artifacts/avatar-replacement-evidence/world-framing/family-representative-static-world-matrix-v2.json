@@ -1,0 +1,70 @@
+{
+  "schema": "aiw.avatar-world-framing-evidence/2",
+  "generatedAt": "2026-07-30T23:18:14-04:00",
+  "authority": {
+    "manifest": "apps/web/public/assets/imported-avatars/manifest.json",
+    "method": "wrapper-only-bounds-normalization",
+    "units": "world-meter",
+    "handedness": "right-handed",
+    "upAxis": "+Y",
+    "forwardAxis": "+Z",
+    "sourceGlbsModified": false
+  },
+  "worldComposition": {
+    "cameraFovDegrees": 46,
+    "previousCameraDistance": 7.2,
+    "cameraDistance": 5.2,
+    "viewport": [1600, 1000],
+    "normalizedSourceHeight": 1.75,
+    "worldInstanceScale": 1,
+    "renderedHeightMeters": 1.75,
+    "projectedPixelHeight": 343.42,
+    "cameraPositionAtDefaultPitch": [0, 3.323, 4.885],
+    "cameraTargetAtDefaultPitch": [1, 0.7, 0],
+    "groundingPresentation": "wrapper-ground-offset-plus-visible-floor-ring",
+    "semanticState": "unverified-static-pose",
+    "semanticAnimationAccepted": false
+  },
+  "representatives": [
+    {
+      "family": "user",
+      "modelId": "user-male-01",
+      "sourceBoundsMin": [-0.456939, 0, -0.087083],
+      "sourceBoundsMax": [0.45694, 1, 0.08708],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/world-static-unverified-user-male-01-and-robot-agent-05-grounded-framing.png"
+    },
+    {
+      "family": "cat",
+      "modelId": "cat-agent-01",
+      "sourceBoundsMin": [-0.389924, 0, -0.179413],
+      "sourceBoundsMax": [0.389923, 1, 0.179409],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/world-static-unverified-user-male-01-and-cat-agent-01-grounded-framing.png"
+    },
+    {
+      "family": "dog",
+      "modelId": "dog-agent-01",
+      "sourceBoundsMin": [-0.417813, 0, -0.190796],
+      "sourceBoundsMax": [0.417819, 0.999999, 0.190796],
+      "uniformScale": 1.75000175,
+      "groundOffsetY": 0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/world-static-unverified-user-male-01-and-dog-agent-01-grounded-framing.png"
+    },
+    {
+      "family": "robot",
+      "modelId": "robot-agent-05",
+      "sourceBoundsMin": [-0.499999, 0, -0.139907],
+      "sourceBoundsMax": [0.500001, 1, 0.139924],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/world-static-unverified-user-male-01-and-robot-agent-05-grounded-framing.png"
+    }
+  ]
+}

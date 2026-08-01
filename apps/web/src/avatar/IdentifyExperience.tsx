@@ -5,7 +5,7 @@ import type {
 } from "@agentintersect-world/avatar-system";
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
-import { AvatarBuilder } from "./AvatarBuilder.js";
+import { AvatarBuilderLoader } from "./AvatarBuilderLoader.js";
 
 const IDENTIFY_TRANSITION_MS = 360;
 export function IdentifyExperience({
@@ -16,7 +16,10 @@ export function IdentifyExperience({
 }: {
   readonly initialProfile: AvatarDraft;
   readonly previousProfile: AvatarProfile | null;
-  readonly storageStatus: AvatarLoadResult["status"];
+  readonly storageStatus:
+    | AvatarLoadResult["status"]
+    | "avatar-migration-required"
+    | "avatar-reselection-required";
   readonly onComplete: (profile: AvatarDraft) => void;
 }) {
   const reducedMotion = useReducedMotion();
@@ -34,7 +37,8 @@ export function IdentifyExperience({
   if (stage === "appearance")
     return (
       <main className="identify-shell identify-shell--builder">
-        <AvatarBuilder
+        <AvatarBuilderLoader
+          role="user"
           initialProfile={initialProfile}
           currentProfile={null}
           previousProfile={previousProfile}

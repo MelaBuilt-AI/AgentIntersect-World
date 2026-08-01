@@ -1,0 +1,78 @@
+{
+  "schema": "aiw.avatar-world-framing-evidence/1",
+  "generatedAt": "2026-07-30T21:04:00-04:00",
+  "authority": {
+    "manifest": "apps/web/public/assets/imported-avatars/manifest.json",
+    "method": "wrapper-only-bounds-normalization",
+    "units": "world-meter",
+    "handedness": "right-handed",
+    "upAxis": "+Y",
+    "forwardAxis": "+Z",
+    "sourceGlbsModified": false
+  },
+  "worldComposition": {
+    "cameraFovDegrees": 46,
+    "previousCameraDistance": 10.1,
+    "cameraDistance": 7.2,
+    "viewport": [1600, 1000],
+    "normalizedSourceHeight": 1.75,
+    "worldInstanceScale": 0.82,
+    "renderedHeightMeters": 1.435,
+    "projectedPixelHeight": 203.785,
+    "semanticState": "unverified-static-pose",
+    "semanticAnimationAccepted": false
+  },
+  "representatives": [
+    {
+      "family": "user-male",
+      "modelId": "user-male-01",
+      "sourceBoundsMin": [-0.456939, 0.0, -0.087083],
+      "sourceBoundsMax": [0.45694, 1.0, 0.08708],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0.0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/builder-user-six-cards-user-male-01-glb-ready.png"
+    },
+    {
+      "family": "user-female",
+      "modelId": "user-female-03",
+      "sourceBoundsMin": [-0.406066, 0.0, -0.098822],
+      "sourceBoundsMax": [0.406068, 1.0, 0.098825],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0.0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/builder-user-six-cards-user-female-03-glb-ready.png"
+    },
+    {
+      "family": "cat-agent",
+      "modelId": "cat-agent-01",
+      "sourceBoundsMin": [-0.389924, 0.0, -0.179413],
+      "sourceBoundsMax": [0.389923, 1.0, 0.179409],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0.0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/builder-agent-seventeen-cards-cat-agent-01-glb-ready.png"
+    },
+    {
+      "family": "dog-agent",
+      "modelId": "dog-agent-01",
+      "sourceBoundsMin": [-0.417813, 0.0, -0.190796],
+      "sourceBoundsMax": [0.417819, 0.999999, 0.190796],
+      "uniformScale": 1.75000175,
+      "groundOffsetY": 0.0,
+      "yawRadians": 0,
+      "visualEvidence": null,
+      "evidenceBoundary": "deterministic manifest measurement only"
+    },
+    {
+      "family": "robot-agent",
+      "modelId": "robot-agent-05",
+      "sourceBoundsMin": [-0.499999, 0.0, -0.139907],
+      "sourceBoundsMax": [0.500001, 1.0, 0.139924],
+      "uniformScale": 1.75,
+      "groundOffsetY": 0.0,
+      "yawRadians": 0,
+      "visualEvidence": "browser-original-flow/builder-agent-seventeen-cards-robot-agent-05-glb-ready.png"
+    }
+  ]
+}

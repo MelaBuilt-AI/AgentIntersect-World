@@ -56,7 +56,7 @@ describe("production startup chunk boundaries", () => {
     expect(entry).toBeDefined();
     expect(entry?.dynamicImports).toEqual(
       expect.arrayContaining([
-        "src/avatar/AvatarScene.tsx",
+        "src/avatar/AvatarBuilder.tsx",
         "src/shell/DashboardShell.tsx",
       ]),
     );
@@ -76,7 +76,15 @@ describe("production startup chunk boundaries", () => {
       "src/presentation/PresentationPanelLoader.tsx",
     );
     expect(manifest).toHaveProperty("src/repository/RepositoryWorldPanel.tsx");
+    expect(manifest).toHaveProperty("src/avatar/AvatarBuilder.tsx");
     expect(manifest).toHaveProperty("src/avatar/AvatarScene.tsx");
+    const previewChunk = manifest[
+      "src/avatar/AvatarBuilder.tsx"
+    ]?.imports?.find((key) => key.includes("AvatarPreview"));
+    expect(previewChunk).toBeDefined();
+    expect(manifest[previewChunk!]?.dynamicImports).toContain(
+      "src/avatar/AvatarScene.tsx",
+    );
     expect(manifest["src/avatar/AvatarScene.tsx"]?.imports ?? []).not.toContain(
       "src/repository/RepositoryWorldPanel.tsx",
     );

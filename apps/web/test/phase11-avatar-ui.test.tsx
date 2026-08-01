@@ -17,31 +17,32 @@ const profile = createAvatarProfile(
   "avatar_0123456789abcdef0123456789abcdef",
 );
 describe("Phase 11 semantic avatar UI", () => {
-  it("renders the six numbered, fully labeled, name-gated editor sections", () => {
+  it("renders the three numbered, role-filtered, name-gated imported editor sections", () => {
     const html = renderToStaticMarkup(
       <AvatarBuilder initialProfile={DEFAULT_AVATAR_DRAFT} onSave={vi.fn()} />,
     );
     for (const text of [
       "1</b> Name",
-      "2</b> Species/head",
-      "3</b> Body parts",
-      "4</b> Color/markings",
-      "5</b> Tee shirt",
-      "6</b> Review and save",
-      "Codex",
-      "Claude",
-      "Hermes",
-      "OpenClaw",
+      "2</b> Imported model",
+      "3</b> Review and save",
+      "User Male 1",
+      "anonymous source clips",
+      "Use Complete Avatar",
       "Text-only mode",
       "Automatic Phase 6 roster label mapping is off",
     ])
       expect(html).toContain(text);
     expect(html).toContain("disabled");
     expect(html).not.toMatch(/SECRET_CANARY|\/home\//);
-    expect(html).toContain('<fieldset class="avatar-option-group"');
-    expect(html).toContain("<legend>Hands</legend>");
-    expect(html).toContain('id="avatar-species-dog"');
-    expect(html).toContain('for="avatar-species-dog"');
+    expect(html).toContain('class="imported-avatar-option"');
+    expect(html).toContain('aria-label="Open User Male 1 3D preview"');
+    expect(html).toContain("Loading User Male 1 GLB");
+    expect(html).toContain("previewed from its actual GLB");
+    expect(html).not.toContain("Stance-card preview");
+    expect(html).not.toContain("Modular (verification pending)");
+    expect(html).not.toContain("Custom Kit");
+    expect(html).not.toContain("Species/head");
+    expect(html).not.toContain("Body parts");
     expect(html).not.toMatch(/<label[^>]*>(?:(?!<\/label>).)*<label/s);
   });
   it("keeps generated geometry, fitted labels, connections, and action signatures structural", () => {

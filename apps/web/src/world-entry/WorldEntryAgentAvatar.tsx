@@ -1,6 +1,10 @@
 import type { AvatarDraft } from "@agentintersect-world/avatar-system";
+import type { ComponentType } from "react";
 
-import { AvatarBuilder } from "../avatar/AvatarBuilder.js";
+import {
+  AvatarBuilderLoader,
+  type AvatarBuilderProps,
+} from "../avatar/AvatarBuilderLoader.js";
 import type { AvatarProposal } from "../sessions/session-client.js";
 import {
   avatarDraftFromProposal,
@@ -9,26 +13,47 @@ import {
 
 export function WorldEntryAgentAvatar({
   proposal,
+  mode = "create",
   busy,
   error,
   onAccept,
+  AvatarBuilderComponent,
 }: {
   readonly proposal: AvatarProposal;
+  readonly mode?: "create" | "migrate" | "change";
   readonly busy: boolean;
   readonly error: string;
   readonly onAccept: (proposal: AvatarProposal, draft: AvatarDraft) => void;
+  readonly AvatarBuilderComponent?: ComponentType<AvatarBuilderProps>;
 }) {
   const initialDraft = avatarDraftFromProposal(proposal);
+  const migrating = mode === "migrate";
+  const changing = mode === "change";
   return (
     <section
       className="world-agent-avatar world-agent-avatar--builder"
       aria-busy={busy}
     >
-      <AvatarBuilder
+      <AvatarBuilderLoader
+        {...(AvatarBuilderComponent
+          ? { component: AvatarBuilderComponent }
+          : {})}
         key={proposal.proposalId}
+        role="agent"
         initialProfile={initialDraft}
-        title="Create Mr Fluff’s avatar"
-        intro="Edit this exact connected agent’s modular appearance, then deliberately accept and save it to the current session."
+        preserveInitialLegacy={migrating || changing}
+        title={
+          migrating || changing
+            ? `Change ${proposal.displayName}’s avatar`
+            : `Create ${proposal.displayName}’s avatar`
+        }
+        intro={
+          migrating
+            ? "The accepted legacy avatar remains unchanged until explicit save. The first role-valid replacement GLB is visually preloaded only; choose one of the 17 originals, then save the migration to this exact connected session."
+            : changing
+              ? "Choose a role-valid imported avatar, then explicitly save it to this exact connected session."
+              : "Choose a role-valid imported avatar, then deliberately accept and save it to this exact connected session."
+        }
         saveLabel={busy ? "Saving avatar…" : "Accept and save avatar"}
         saveDisabled={busy}
         successMessage="Avatar submitted for exact-session acceptance."

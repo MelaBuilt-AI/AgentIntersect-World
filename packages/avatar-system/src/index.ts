@@ -750,7 +750,8 @@ export const projectAvatarLayerState = composeAvatarAnimationState;
 
 export type AvatarWorldActivity =
   "idle" | "thinking" | "tool" | "coding" | "completed" | "failed" | string;
-export type AvatarMovementPhase = "idle" | "starting" | "moving" | "stopping";
+export type AvatarMovementPhase =
+  "idle" | "starting" | "moving" | "sprinting" | "stopping";
 
 export function projectWorldAvatarAction(input: {
   readonly role: "user" | "agent";
@@ -763,6 +764,7 @@ export function projectWorldAvatarAction(input: {
       {
         starting: "StartWalk",
         moving: "Walk",
+        sprinting: "Run",
         stopping: "StopWalk",
         idle: "Idle",
       } as const

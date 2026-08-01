@@ -73,6 +73,12 @@ export type WorldEntryEvent =
       readonly agentName: string;
       readonly avatarProfileId: string;
     }
+  | {
+      readonly type: "RESTORE_AGENT_AVATAR";
+      readonly sessionId: string;
+      readonly continuity: "current" | "previous-recovered";
+      readonly agentName: string;
+    }
   | { readonly type: "OPEN_AGENT_AVATAR" }
   | {
       readonly type: "ACCEPT_AGENT_AVATAR";
@@ -88,6 +94,10 @@ export type WorldEntryEvent =
       readonly generationId: string;
       readonly projectionTruth:
         "current" | "previous-recovered" | "unavailable";
+    }
+  | {
+      readonly type: "LEAVE_WORLD";
+      readonly destination: "session_select" | "agent_prompt";
     }
   | { readonly type: "ANIMATION_FINISHED" };
 
@@ -250,6 +260,27 @@ export function reduceWorldEntry(
           }
         : state;
     }
+    case "RESTORE_AGENT_AVATAR": {
+      const agentName = safeName(event.agentName);
+      return state.step === "returning_identity" && event.sessionId && agentName
+        ? {
+            ...state,
+            step: "agent_avatar",
+            selectedHarness: "hermes",
+            agentName,
+            connection: {
+              status: "connected",
+              sessionId: event.sessionId,
+              continuity: event.continuity,
+            },
+            agentAvatar: {
+              status: "editing",
+              sessionId: event.sessionId,
+              profileId: null,
+            },
+          }
+        : state;
+    }
     case "OPEN_AGENT_AVATAR":
       return state.step === "agent_connected" &&
         state.connection.sessionId !== null
@@ -344,6 +375,21 @@ export function reduceWorldEntry(
             },
           }
         : state;
+    case "LEAVE_WORLD": {
+      if (
+        state.step !== "world_entering" &&
+        state.step !== "world_blank" &&
+        state.step !== "repository_loading" &&
+        state.step !== "world_repository"
+      )
+        return state;
+      const detached = createReturningWorldEntryState(state.user);
+      return {
+        ...detached,
+        step: event.destination,
+        selectedHarness: event.destination === "agent_prompt" ? "hermes" : null,
+      };
+    }
     case "ANIMATION_FINISHED":
       return state;
   }
