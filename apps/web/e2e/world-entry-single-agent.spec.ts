@@ -736,7 +736,9 @@ async function completeJourney(
   ) {
     await expect(page.getByTestId("avatar-preview")).toBeVisible();
     await expect(
-      page.locator('.avatar-kit-canvas[data-avatar-render-ready="true"]'),
+      page.locator(
+        '.imported-avatar-canvas[data-avatar-render-ready="true"][data-avatar-imported-id="cat-agent-01"]',
+      ),
     ).toBeVisible();
     await page.screenshot({
       path: `${evidenceDirectory}/mr-fluff-avatar-desktop.png`,
@@ -787,6 +789,15 @@ async function completeJourney(
       "independent",
     );
     await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true");
+    await expect(canvas).toHaveAttribute("data-user-avatar-source", "custom");
+    await expect(canvas).toHaveAttribute(
+      "data-agent-avatar-source",
+      "imported",
+    );
+    await expect(canvas).toHaveAttribute(
+      "data-agent-avatar-imported-id",
+      "cat-agent-01",
+    );
     await expect(canvas).toHaveAttribute("data-user-position", "0,0");
     await page.keyboard.down("KeyW");
     try {

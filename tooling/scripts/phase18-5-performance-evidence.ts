@@ -106,9 +106,10 @@ export function readPhase18_5HardwareEvidence(
   ) as Phase18_5HardwareEvidence;
 }
 
-export function validatePhase18_5HardwareEvidence(
+function validatePhase18_5EvidenceIntegrity(
   evidence: Phase18_5HardwareEvidence,
-  workspaceRoot = process.cwd(),
+  workspaceRoot: string,
+  compareCurrentInputs: boolean,
 ): Phase18_5HardwareEvidenceValidation {
   const errors: string[] = [];
   if (evidence.schema !== "aiw.phase18-5.hardware-measurement/1")
@@ -177,15 +178,32 @@ export function validatePhase18_5HardwareEvidence(
   if (evidence.visualQa?.passed !== true)
     errors.push("hardware visual QA is not marked passed");
 
-  for (const relativePath of PHASE18_5_PRODUCTION_INPUTS) {
-    const absolutePath = resolve(workspaceRoot, relativePath);
-    const recorded = evidence.productionInputs?.[relativePath]?.sha256;
-    if (
-      !existsSync(absolutePath) ||
-      typeof recorded !== "string" ||
-      recorded !== sha256(absolutePath)
-    )
-      errors.push(`production input fingerprint mismatch: ${relativePath}`);
+  const fingerprints = evidence.productionInputs;
+  const fingerprintKeys =
+    fingerprints && typeof fingerprints === "object"
+      ? Object.keys(fingerprints).sort()
+      : [];
+  if (
+    JSON.stringify(fingerprintKeys) !==
+    JSON.stringify([...PHASE18_5_PRODUCTION_INPUTS].sort())
+  )
+    errors.push(
+      "historical production input fingerprint keys differ from the frozen contract",
+    );
+  for (const relativePath of fingerprintKeys) {
+    const recorded = fingerprints?.[relativePath]?.sha256;
+    if (typeof recorded !== "string" || !/^[a-f0-9]{64}$/u.test(recorded))
+      errors.push(
+        `historical production input fingerprint is invalid: ${relativePath}`,
+      );
+  }
+  if (compareCurrentInputs) {
+    for (const relativePath of PHASE18_5_PRODUCTION_INPUTS) {
+      const absolutePath = resolve(workspaceRoot, relativePath);
+      const recorded = fingerprints?.[relativePath]?.sha256;
+      if (!existsSync(absolutePath) || recorded !== sha256(absolutePath))
+        errors.push(`production input fingerprint mismatch: ${relativePath}`);
+    }
   }
 
   const screenshotPath = evidence.screenshot?.path;
@@ -201,4 +219,18 @@ export function validatePhase18_5HardwareEvidence(
     errors.push("hardware screenshot fingerprint mismatch");
 
   return { passed: errors.length === 0, errors };
+}
+
+export function validatePhase18_5HistoricalEvidence(
+  evidence: Phase18_5HardwareEvidence,
+  workspaceRoot = process.cwd(),
+): Phase18_5HardwareEvidenceValidation {
+  return validatePhase18_5EvidenceIntegrity(evidence, workspaceRoot, false);
+}
+
+export function validatePhase18_5HardwareEvidence(
+  evidence: Phase18_5HardwareEvidence,
+  workspaceRoot = process.cwd(),
+): Phase18_5HardwareEvidenceValidation {
+  return validatePhase18_5EvidenceIntegrity(evidence, workspaceRoot, true);
 }

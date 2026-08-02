@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import struct
 import sys
 from pathlib import Path
@@ -61,7 +62,7 @@ def classify_renderer(renderer: object) -> str:
     return "hardware"
 
 
-def validate_hardware_evidence(evidence: dict) -> list[str]:
+def _validate_evidence_integrity(evidence: dict, compare_current: bool) -> list[str]:
     errors: list[str] = []
     browser = evidence.get("browser", {})
     observability = evidence.get("observability", {})
@@ -77,8 +78,20 @@ def validate_hardware_evidence(evidence: dict) -> list[str]:
         errors.append("hardware evidence authority is not hardware")
     if evidence.get("passed") is not True:
         errors.append("hardware evidence is not marked passed")
+    if browser.get("name") != "Microsoft Edge":
+        errors.append("hardware evidence browser is not Microsoft Edge")
+    if not re.fullmatch(r"\d+\.\d+\.\d+\.\d+", str(browser.get("version", ""))):
+        errors.append("hardware evidence browser version is invalid")
     if classify_renderer(browser.get("renderer")) != "hardware":
         errors.append("hardware evidence renderer is software-emulated")
+    if not re.search(
+        r"nvidia geforce rtx 5070 ti.*(?:direct3d11|d3d11)",
+        str(browser.get("renderer", "")),
+        re.IGNORECASE,
+    ):
+        errors.append(
+            "hardware evidence renderer is not the approved NVIDIA RTX 5070 Ti D3D11 path"
+        )
     if browser.get("errors") != []:
         errors.append("hardware browser errors are not empty")
     if (
@@ -88,6 +101,14 @@ def validate_hardware_evidence(evidence: dict) -> list[str]:
         errors.append("hardware evidence does not prove both avatars at LOD0")
     if observability.get("renderLoop") != "continuous":
         errors.append("hardware evidence does not prove the continuous render loop")
+    if observability.get("renderLoopMode") != "continuous-native":
+        errors.append("hardware evidence does not prove continuous-native mode")
+    if observability.get("cosmeticQuality") != "full":
+        errors.append("hardware evidence does not prove full cosmetic quality")
+    if observability.get("renderDpr") != "1":
+        errors.append("hardware evidence does not prove DPR 1")
+    if observability.get("antialias") is not True:
+        errors.append("hardware evidence does not prove antialiasing")
     if thresholds != {
         "renderWorkP95Ms": 16.7,
         "cadenceP95Ms": 16.8,
@@ -121,13 +142,27 @@ def validate_hardware_evidence(evidence: dict) -> list[str]:
         errors.append("hardware visual QA is not marked passed")
 
     fingerprints = evidence.get("productionInputs", {})
-    for relative_path in PRODUCTION_INPUTS:
-        path = ROOT / relative_path
-        recorded = fingerprints.get(relative_path, {}).get("sha256")
-        if not path.is_file() or recorded != sha(path):
-            errors.append(
-                f"production input fingerprint mismatch: {relative_path}"
-            )
+    fingerprint_keys = set(fingerprints) if isinstance(fingerprints, dict) else set()
+    if fingerprint_keys != set(PRODUCTION_INPUTS):
+        errors.append(
+            "historical production input fingerprint keys differ from the frozen contract"
+        )
+    if isinstance(fingerprints, dict):
+        for relative_path, entry in fingerprints.items():
+            recorded = entry.get("sha256") if isinstance(entry, dict) else None
+            if not isinstance(recorded, str) or not re.fullmatch(r"[a-f0-9]{64}", recorded):
+                errors.append(
+                    f"historical production input fingerprint is invalid: {relative_path}"
+                )
+    if compare_current:
+        for relative_path in PRODUCTION_INPUTS:
+            path = ROOT / relative_path
+            entry = fingerprints.get(relative_path, {}) if isinstance(fingerprints, dict) else {}
+            recorded = entry.get("sha256") if isinstance(entry, dict) else None
+            if not path.is_file() or recorded != sha(path):
+                errors.append(
+                    f"production input fingerprint mismatch: {relative_path}"
+                )
 
     screenshot = evidence.get("screenshot", {})
     screenshot_path = screenshot.get("path")
@@ -143,6 +178,14 @@ def validate_hardware_evidence(evidence: dict) -> list[str]:
     return errors
 
 
+def validate_historical_evidence(evidence: dict) -> list[str]:
+    return _validate_evidence_integrity(evidence, compare_current=False)
+
+
+def validate_hardware_evidence(evidence: dict) -> list[str]:
+    return _validate_evidence_integrity(evidence, compare_current=True)
+
+
 def parse_glb(path: Path):
     raw = path.read_bytes()
     magic, version, length = struct.unpack_from("<4sII", raw, 0)
@@ -155,7 +198,7 @@ def parse_glb(path: Path):
     return raw, document, 20 + chunk_len + 8
 
 
-def main() -> int:
+def main(compatibility_only: bool = False) -> int:
     contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     blend_inspection = json.loads(BLEND_INSPECTION.read_text(encoding="utf-8"))
@@ -335,6 +378,7 @@ def main() -> int:
         else {}
     )
     hardware_evidence_errors = validate_hardware_evidence(hardware_evidence)
+    historical_evidence_errors = validate_historical_evidence(hardware_evidence)
     measurement = (
         json.loads(measurement_path.read_text(encoding="utf-8"))
         if measurement_path.is_file()
@@ -445,6 +489,7 @@ def main() -> int:
         "textureBudget": sum(path.stat().st_size for path in texture_paths)
         <= contract["budgets"]["avatarTexturePayloadBytes"],
         "manifestHashes": manifest_hashes,
+        "historicalEvidenceIntegrity": not historical_evidence_errors,
         "browserEvidenceCurrent": browser_evidence_current,
         "inventory": (
             sum(len(heads) for heads in manifest["heads"].values())
@@ -455,7 +500,12 @@ def main() -> int:
     }
     result = {
         "schema": "aiw.avatar-runtime-inspection/0.18.5",
-        "passed": all(checks.values()),
+        "mode": "compatibility-only" if compatibility_only else "current-native",
+        "passed": all(
+            value
+            for name, value in checks.items()
+            if not compatibility_only or name != "browserEvidenceCurrent"
+        ),
         "checks": checks,
         "counts": {
             "nodes": len(nodes),
@@ -492,19 +542,28 @@ def main() -> int:
             "softwareCadencePassed": measurement.get("cadencePassed"),
             "hardwareEvidencePassed": not hardware_evidence_errors,
             "hardwareEvidenceErrors": hardware_evidence_errors,
+            "historicalEvidenceIntegrityPassed": not historical_evidence_errors,
+            "historicalEvidenceIntegrityErrors": historical_evidence_errors,
+            "currentNativeEvidenceStatus": (
+                "historical-non-gating" if compatibility_only else "gating"
+            ),
         },
         "missingEvidence": [
             str(path.relative_to(ROOT)) for path in evidence_paths if not path.is_file()
         ],
     }
-    write_json_if_changed(GLB_INSPECTION, result)
+    if not compatibility_only:
+        write_json_if_changed(GLB_INSPECTION, result)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["passed"] else 2
 
 
 if __name__ == "__main__":
     try:
-        raise SystemExit(main())
+        arguments = sys.argv[1:]
+        if arguments not in ([], ["--compatibility-only"]):
+            raise ValueError("usage: verify_avatar_assets.py [--compatibility-only]")
+        raise SystemExit(main(compatibility_only=arguments == ["--compatibility-only"]))
     except (KeyError, ValueError, OSError, json.JSONDecodeError) as error:
         print(f"avatar verification failed: {error}", file=sys.stderr)
         raise SystemExit(2)

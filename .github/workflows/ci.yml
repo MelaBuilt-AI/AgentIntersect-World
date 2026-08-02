@@ -18,6 +18,8 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@11.15.0 --activate
       - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:imported-avatar-current-inputs
+      - run: pnpm avatar:verify:compatibility
       - run: pnpm check:core
 
   measurements:
@@ -35,7 +37,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm measure:phase10
-      - run: pnpm avatar:verify
       - run: pnpm measure:phase11
 
   e2e-flagged:
@@ -66,32 +67,6 @@ jobs:
           --config playwright.config.ts
           --grep-invert @phase18-5-performance
           --shard=${{ matrix.shard }}
-
-  e2e-phase18-5:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          lfs: true
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - run: corepack enable
-      - run: corepack prepare pnpm@11.15.0 --activate
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm build
-      - run: >-
-          VITE_AIW_LOCAL_DEVELOPER_UI=1
-          pnpm exec vite build apps/web --config apps/web/vite.config.ts
-      - run: >-
-          VITE_AIW_LOCAL_DEVELOPER_UI=1
-          xvfb-run -a pnpm exec playwright test
-          apps/web/e2e/world-entry-single-agent.spec.ts
-          --config playwright.config.ts
-          --workers=1
-          --grep @phase18-5-performance
 
   e2e-unflagged:
     runs-on: ubuntu-latest

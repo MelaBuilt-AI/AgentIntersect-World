@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   classifyPhase18_5Renderer,
+  validatePhase18_5HistoricalEvidence,
   validatePhase18_5HardwareEvidence,
   type Phase18_5HardwareEvidence,
 } from "./phase18-5-performance-evidence.js";
@@ -20,7 +21,7 @@ const cloneEvidence = (
   evidence: Phase18_5HardwareEvidence,
 ): Phase18_5HardwareEvidence => structuredClone(evidence);
 
-describe("Phase 18.5 performance evidence authority", () => {
+describe("historical Phase 18.5 performance evidence authority", () => {
   it("classifies hardware and common software-emulation renderers", () => {
     expect(
       classifyPhase18_5Renderer(
@@ -41,9 +42,30 @@ describe("Phase 18.5 performance evidence authority", () => {
     }
   });
 
-  it("accepts the canonical current hardware evidence", () => {
-    const validation = validatePhase18_5HardwareEvidence(loadEvidence());
-    expect(validation).toEqual({ passed: true, errors: [] });
+  it("accepts the internally intact July 26 record as historical", () => {
+    expect(validatePhase18_5HistoricalEvidence(loadEvidence())).toEqual({
+      passed: true,
+      errors: [],
+    });
+    expect(validatePhase18_5HardwareEvidence(loadEvidence()).passed).toBe(
+      false,
+    );
+  });
+
+  it("rejects malformed historical fingerprints and screenshot drift", () => {
+    const evidence = cloneEvidence(loadEvidence());
+    delete evidence.productionInputs["packages/renderer-r3f/src/index.ts"];
+    evidence.productionInputs["unexpected.ts"] = { sha256: "A".repeat(64) };
+    evidence.screenshot.sha256 = "0".repeat(64);
+    const validation = validatePhase18_5HistoricalEvidence(evidence);
+    expect(validation.passed).toBe(false);
+    expect(validation.errors).toEqual(
+      expect.arrayContaining([
+        "historical production input fingerprint keys differ from the frozen contract",
+        "historical production input fingerprint is invalid: unexpected.ts",
+        "hardware screenshot fingerprint mismatch",
+      ]),
+    );
   });
 
   it("fails closed when a production input fingerprint drifts", () => {

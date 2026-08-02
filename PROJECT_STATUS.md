@@ -4,6 +4,23 @@ Updated: 2026-08-01
 
 ## Current milestone
 
+### 2026-08-01 Phase 18.5 Option 2 split — SELECTED; CURRENT IMPORTED ACCEPTANCE INPUT CONTRACT AUTHORIZED
+
+Aaron selected the bounded Option 2 architecture on 2026-08-01 local / 2026-08-02
+UTC. Durable repository visual grammar, semantic DOM/no-WebGL/reduced-motion/
+context-loss truth, and the shared measurement methodology with unchanged
+thresholds remain Phase 18.5. Generated modular-avatar product acceptance and
+the July 26 native results remain historical for their exact inputs; the old kit,
+base/migrated profiles, and mixed imported/custom sessions remain supported
+compatibility paths. Current imported-avatar acceptance is a separately versioned
+track governed by `docs/PHASE_18_5_OPTION_2_SCOPE.md`.
+
+The current automatic policy for this bounded track is deterministic functional
+and input-contract proof only. Native evidence remains explicit/manual and absent
+until separately approved. No historical evidence rewrite or rebind, compatibility
+sunset, gesture inference, deferred movement/intake/browser repair, Phase 19/20
+work, dependency change, or external delivery is authorized.
+
 ### 2026-08-01 complete-avatar semantic closeout and agent movement — TECHNICALLY VERIFIED; HUMAN GESTURE REVIEW OPEN
 
 Aaron's first-hand animation run remains the authoritative trigger: Walk and Run

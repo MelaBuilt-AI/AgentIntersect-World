@@ -47,7 +47,22 @@ describe("Phase 18.5 full-gate regression policies", () => {
     expect(compactAvatarPreviewUses3d(true)).toBe(false);
   });
 
-  it("runs the strict Phase 18.5 performance journey once in an isolated CI browser", () => {
+  it("binds the current journey to imported readiness and truthful model identity", () => {
+    const journey = readFileSync(
+      new URL("../e2e/world-entry-single-agent.spec.ts", import.meta.url),
+      "utf8",
+    );
+    expect(journey).not.toContain(".avatar-kit-canvas");
+    expect(journey).toContain(
+      '.imported-avatar-canvas[data-avatar-render-ready="true"][data-avatar-imported-id="cat-agent-01"]',
+    );
+    expect(journey).toMatch(/"data-agent-avatar-source"\s*,\s*"imported"/u);
+    expect(journey).toMatch(
+      /"data-agent-avatar-imported-id"\s*,\s*"cat-agent-01"/u,
+    );
+  });
+
+  it("separates automatic current-input proof from manual historical native evidence", () => {
     const tag = "@phase18-5-performance";
     const workflow = readFileSync(
       new URL("../../../.github/workflows/ci.yml", import.meta.url),
@@ -57,6 +72,9 @@ describe("Phase 18.5 full-gate regression policies", () => {
       new URL("../e2e/world-entry-single-agent.spec.ts", import.meta.url),
       "utf8",
     );
+    const rootPackage = JSON.parse(
+      readFileSync(new URL("../../../package.json", import.meta.url), "utf8"),
+    ) as { readonly scripts?: Readonly<Record<string, string>> };
     type WorkflowStep = { readonly run?: unknown };
     type WorkflowJob = { readonly steps?: readonly WorkflowStep[] };
     const jobs = (
@@ -71,25 +89,27 @@ describe("Phase 18.5 full-gate regression policies", () => {
         typeof step.run === "string" ? [step.run] : [],
       );
     const flaggedRuns = runs("e2e-flagged");
-    const dedicatedRuns = runs("e2e-phase18-5");
     const unflaggedRuns = runs("e2e-unflagged");
-    const dedicatedBrowserRun = dedicatedRuns.find((run) =>
-      run.includes("playwright test"),
+    const allAutomaticRuns = Object.values(jobs).flatMap((job) =>
+      (job.steps ?? []).flatMap((step) =>
+        typeof step.run === "string" ? [step.run] : [],
+      ),
     );
 
     expect(journey.split(tag)).toHaveLength(2);
     expect(
       flaggedRuns.filter((run) => run.includes(`--grep-invert ${tag}`)),
     ).toHaveLength(1);
-    expect(dedicatedRuns).toContain("pnpm build");
-    expect(dedicatedBrowserRun).toContain("VITE_AIW_LOCAL_DEVELOPER_UI=1");
-    expect(dedicatedBrowserRun).toContain("xvfb-run -a");
-    expect(dedicatedBrowserRun).toContain(
-      "apps/web/e2e/world-entry-single-agent.spec.ts",
+    expect(runs("core")).toContain(
+      "pnpm verify:imported-avatar-current-inputs",
     );
-    expect(dedicatedBrowserRun).toContain("--config playwright.config.ts");
-    expect(dedicatedBrowserRun).toContain("--workers=1");
-    expect(dedicatedBrowserRun).toContain(`--grep ${tag}`);
+    expect(runs("core")).toContain("pnpm avatar:verify:compatibility");
+    expect(jobs["e2e-phase18-5"]).toBeUndefined();
+    expect(allAutomaticRuns).not.toContain("pnpm avatar:verify");
+    expect(allAutomaticRuns.join(" ")).not.toContain("pnpm measure:phase18.5");
+    expect(rootPackage.scripts?.["measure:phase18.5"]).toContain(
+      "@phase18-5-performance",
+    );
     expect(unflaggedRuns.join(" ")).not.toContain(tag);
 
     const taggedWorkflowRuns = Object.entries(jobs).flatMap(([jobName, job]) =>
@@ -99,9 +119,8 @@ describe("Phase 18.5 full-gate regression policies", () => {
           : [],
       ),
     );
-    expect(taggedWorkflowRuns.map(({ jobName }) => jobName).sort()).toEqual([
+    expect(taggedWorkflowRuns.map(({ jobName }) => jobName)).toEqual([
       "e2e-flagged",
-      "e2e-phase18-5",
     ]);
   });
 });

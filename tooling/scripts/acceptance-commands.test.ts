@@ -172,12 +172,16 @@ describe("acceptance command graph", () => {
         }),
       );
     }
-    expectOrderedCommands("core", [...pinnedBootstrap, "pnpm check:core"]);
+    expectOrderedCommands("core", [
+      ...pinnedBootstrap,
+      "pnpm verify:imported-avatar-current-inputs",
+      "pnpm avatar:verify:compatibility",
+      "pnpm check:core",
+    ]);
     expectOrderedCommands("measurements", [
       ...pinnedBootstrap,
       "pnpm exec playwright install --with-deps chromium",
       "pnpm measure:phase10",
-      "pnpm avatar:verify",
       "pnpm measure:phase11",
     ]);
     expectOrderedCommands("e2e-flagged", [

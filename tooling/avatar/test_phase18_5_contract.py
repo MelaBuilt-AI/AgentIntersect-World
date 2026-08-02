@@ -117,17 +117,30 @@ class Phase185VisualContractTest(unittest.TestCase):
                 "software-emulation",
             )
 
-    def test_hardware_evidence_and_production_fingerprints_are_current(self):
+    def test_july_26_hardware_evidence_is_intrinsically_historical(self):
         evidence = json.loads(
             (
                 ROOT
                 / "artifacts/phase18-5/phase18-5-hardware-measurement.json"
             ).read_text()
         )
-        self.assertEqual(
-            verify_avatar_assets.validate_hardware_evidence(evidence),
-            [],
+        self.assertEqual(verify_avatar_assets.validate_historical_evidence(evidence), [])
+        self.assertNotEqual(verify_avatar_assets.validate_hardware_evidence(evidence), [])
+
+    def test_historical_evidence_rejects_bad_fingerprint_shape_and_screenshot(self):
+        evidence = json.loads(verify_avatar_assets.HARDWARE_EVIDENCE.read_text())
+        evidence["productionInputs"].pop("packages/renderer-r3f/src/index.ts")
+        evidence["productionInputs"]["unexpected.ts"] = {"sha256": "A" * 64}
+        evidence["screenshot"]["sha256"] = "0" * 64
+        errors = verify_avatar_assets.validate_historical_evidence(evidence)
+        self.assertIn(
+            "historical production input fingerprint keys differ from the frozen contract",
+            errors,
         )
+        self.assertIn(
+            "historical production input fingerprint is invalid: unexpected.ts", errors
+        )
+        self.assertIn("hardware screenshot fingerprint mismatch", errors)
 
     def test_hardware_evidence_validation_fails_on_drift_and_threshold(self):
         evidence = json.loads(

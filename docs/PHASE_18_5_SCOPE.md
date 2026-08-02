@@ -2,6 +2,14 @@
 
 Status: **FROZEN / AUTHORIZED FOR IMPLEMENTATION**
 
+> **Current disposition (2026-08-01 local / 2026-08-02 UTC):** Aaron selected
+> [Option 2](./PHASE_18_5_OPTION_2_SCOPE.md). This document and its generated
+> modular-avatar/native results remain historical authority for their exact
+> inputs. Durable repository visual production, fallback/accessibility truth,
+> measurement methodology, and unchanged thresholds remain Phase 18.5. Current
+> imported-avatar acceptance is a separate versioned track; do not treat the
+> historical five-input or July 26 native record as current-product proof.
+
 Frozen: 2026-07-26
 Branch: `phase/18.5-visual-production`
 Base commit: `998068811cbb6a8770bd50c04bb6cc8268db167c`
