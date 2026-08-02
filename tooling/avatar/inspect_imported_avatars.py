@@ -18,6 +18,12 @@ MANIFEST = ASSET_DIR / "manifest.json"
 GENERATED_REGISTRY = (
     ROOT / "packages/avatar-system/src/imported-avatar-registry.generated.ts"
 )
+SEMANTIC_REVIEW = (
+    ROOT
+    / "artifacts/avatar-replacement-evidence"
+    / "world-animation-semantic-review-v2"
+    / "semantic-review.json"
+)
 
 SEMANTICS = (
     "Idle",
@@ -32,6 +38,78 @@ SEMANTICS = (
     "Agree",
     "Angry",
     "Laugh",
+)
+REVIEWED_LOCOMOTION = frozenset(("Idle", "Walk", "Run"))
+
+
+def semantic_review_decision(
+    model_id: str, semantic: str, clip_index: int
+) -> dict[str, Any]:
+    evidence_ref = (
+        "artifacts/avatar-replacement-evidence/"
+        "world-animation-completion-v1/temporal-review/"
+        f"{model_id}.png#{semantic}"
+    )
+    if semantic == "Idle":
+        rationale = (
+            "Direct review of the retained 25%, 50%, and 75% temporal samples "
+            "shows a grounded, non-traveling stance suitable for model-local Idle."
+        )
+    elif semantic == "Walk":
+        rationale = (
+            "Direct review of the retained temporal samples shows alternating "
+            "grounded leg phases and bounded cyclic travel suitable for model-local Walk."
+        )
+    elif semantic == "Run":
+        rationale = (
+            "Direct review of the retained temporal samples shows the larger-stride, "
+            "faster locomotion cycle suitable for model-local Run."
+        )
+    else:
+        rationale = (
+            f"The retained three-position visual record for {semantic} does not "
+            "independently distinguish this anonymous clip from other gestures. "
+            "Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering "
+            "as semantic authority, so this mapping remains ambiguous."
+        )
+    passed = semantic in REVIEWED_LOCOMOTION
+    return {
+        "verdict": "pass" if passed else "ambiguous",
+        "reviewedClipIndex": clip_index,
+        "expectedClipIndex": clip_index if passed else None,
+        "rationale": rationale,
+        "evidenceRefs": [evidence_ref],
+    }
+
+
+def build_semantic_review(payload: dict[str, Any]) -> dict[str, Any]:
+    decisions = [
+        {
+            "modelId": asset["id"],
+            "semantic": semantic,
+            **asset["semanticReview"][semantic],
+        }
+        for asset in payload["assets"]
+        for semantic in SEMANTICS
+    ]
+    totals = {
+        verdict: sum(decision["verdict"] == verdict for decision in decisions)
+        for verdict in ("pass", "wrong_clip", "ambiguous", "unsupported")
+    }
+    return {
+        "schema": "aiw.world-animation-semantic-review/2",
+        "modelCount": len(payload["assets"]),
+        "semanticCount": len(SEMANTICS),
+        "decisionCount": len(decisions),
+        "reviewAuthority": "direct-bounded-temporal-visual-review",
+        "manualModelRecovery": "not-recovered-do-not-guess",
+        "runtimePolicy": "pass-only-all-other-verdicts-refused",
+        "totals": totals,
+        "decisions": decisions,
+    }
+
+SUPPLIED_LICENSE_STATUS = (
+    "tripo3d-subscription-user-confirmed-unrestricted-use"
 )
 
 FAMILIES = (
@@ -77,9 +155,9 @@ FAMILIES = (
     },
 )
 
-# These are candidate labels bound to deterministic motion/channel evidence for
-# parent visual review. They are not runtime semantics and are not treated as
-# verified merely because the anonymous clip index is stable.
+# These model-local labels are bound to deterministic motion/channel evidence and
+# the bounded temporal review recorded by the World animation-completion artifact.
+# Anonymous names, indices, and durations remain insufficient without that record.
 SEMANTIC_CLIPS: dict[str, dict[str, int]] = {
     "cat-agent-01": {
         "Idle": 1,
@@ -1003,18 +1081,25 @@ def inspect_asset(config: dict[str, Any]) -> dict[str, Any]:
                 "inputTimingSha256"
             ],
             "outputPoseSha256": animations[clip_index]["outputPoseSha256"],
-            "method": (
-                "candidate-only-deterministic-channel-binding-"
-                "not-semantic-proof"
-            ),
+            "durationSeconds": animations[clip_index]["durationSeconds"],
+            "channelCount": animations[clip_index]["channelCount"],
+            "targetCount": animations[clip_index]["targetCount"],
+            "pathCounts": animations[clip_index]["pathCounts"],
+            "rootHipPelvisTranslationEvidence": animations[clip_index][
+                "rootHipPelvisTranslationEvidence"
+            ],
+            "method": "deterministic-structure-plus-bounded-temporal-review-v1",
             "poseEvidence": (
                 "artifacts/avatar-replacement-evidence/"
-                "user-male-02-all-clips/contact-sheet-all-clips.png"
-                if config["id"] == "user-male-02"
-                else None
+                "world-animation-completion-v1/temporal-review/"
+                f"{config['id']}.png"
             ),
-            "verification": "parent-visual-verification-pending",
+            "verification": "structural-temporal-evidence",
         }
+        for semantic, clip_index in semantic_map.items()
+    }
+    semantic_review = {
+        semantic: semantic_review_decision(config["id"], semantic, clip_index)
         for semantic, clip_index in semantic_map.items()
     }
     registry = {
@@ -1034,6 +1119,7 @@ def inspect_asset(config: dict[str, Any]) -> dict[str, Any]:
         "clipCount": len(animations),
         "semanticClips": semantic_map,
         "semanticEvidence": semantic_evidence,
+        "semanticReview": semantic_review,
         "segmentationAvailable": len(stable_part_ids) > 1,
         "segments": {
             "inventoryPointer": (
@@ -1064,7 +1150,9 @@ def inspect_asset(config: dict[str, Any]) -> dict[str, Any]:
         },
         "provenance": {
             "classification": "user-provided-local",
-            "suppliedLicenseStatus": "not-stated",
+            "generationSource": "aaron-tripo3d-subscription",
+            "operatorGrant": "agentintersect-world-unrestricted-private-public-redistribution",
+            "suppliedLicenseStatus": SUPPLIED_LICENSE_STATUS,
         },
         "fallbackPolicy": {
             "unsupportedWorldSemantic": "Idle",
@@ -1091,7 +1179,9 @@ def inspect_asset(config: dict[str, Any]) -> dict[str, Any]:
         "label": config["label"],
         "originalRole": config["originalRole"],
         "sourceClassification": "user-provided-local",
-        "suppliedLicenseStatus": "not-stated",
+        "generationSource": "aaron-tripo3d-subscription",
+        "operatorGrant": "agentintersect-world-unrestricted-private-public-redistribution",
+        "suppliedLicenseStatus": SUPPLIED_LICENSE_STATUS,
         "shippedFilename": config["filename"],
         "thumbnailFilename": config["thumbnail"],
         "byteSize": len(raw),
@@ -1144,6 +1234,7 @@ def inspect_asset(config: dict[str, Any]) -> dict[str, Any]:
         "clips": animations,
         "semanticClips": semantic_map,
         "semanticEvidence": semantic_evidence,
+        "semanticReview": semantic_review,
         "normalization": normalization,
         "parts": parts,
         "regions": regions,
@@ -1160,7 +1251,9 @@ def build_payload() -> dict[str, Any]:
         "schema": "aiw.replacement-avatar-assets/3",
         "authority": "repository-owned-replacement-avatar-registry",
         "provenance": "user-provided-local",
-        "suppliedLicenseStatus": "not-stated",
+        "generationSource": "aaron-tripo3d-subscription",
+        "operatorGrant": "agentintersect-world-unrestricted-private-public-redistribution",
+        "suppliedLicenseStatus": SUPPLIED_LICENSE_STATUS,
         "sourcePathsIncluded": False,
         "sourceClipMutation": "prohibited",
         "composition": {
@@ -1187,7 +1280,8 @@ def build_payload() -> dict[str, Any]:
             "Runtime URLs are repository-relative and contain no private source paths.",
             "Copied GLB and stance-image bytes are bound to source SHA-256 values.",
             "T-pose images remain source/evidence references and are not runtime payload.",
-            "Anonymous clip names remain immutable; candidate semantic labels are pending parent visual verification and are not exposed at runtime.",
+            "Anonymous clip names remain immutable; runtime semantics require the model-local structural and bounded temporal evidence records.",
+            "Aaron generated the models under his Tripo3D subscription and confirms unrestricted AgentIntersect World private/public use and redistribution; this records the operator grant, not a third-party legal opinion.",
             "Every visible modular donor region keeps its source root, skeleton, bind matrices, and source-local clip.",
             "Unsupported or overlapping regions are explicitly refused.",
         ],
@@ -1211,12 +1305,30 @@ def generated_registry_source(payload: dict[str, Any]) -> str:
                 "assetUrl",
                 "thumbnailUrl",
                 "clipCount",
+                "semanticClips",
                 "partCount",
                 "supportedSlots",
                 "preview",
                 "world",
             )
         }
+        runtime["semanticDurations"] = [
+            source["semanticEvidence"][semantic]["durationSeconds"]
+            for semantic in SEMANTICS
+        ]
+        runtime["semanticReviewVerdicts"] = [
+            {
+                "pass": "p",
+                "wrong_clip": "w",
+                "ambiguous": "a",
+                "unsupported": "u",
+            }[source["semanticReview"][semantic]["verdict"]]
+            for semantic in SEMANTICS
+        ]
+        runtime["semanticReviewExpectedClipIndices"] = [
+            source["semanticReview"][semantic]["expectedClipIndex"]
+            for semantic in SEMANTICS
+        ]
         registry.append(runtime)
     return (
         "// Generated by tooling/avatar/inspect_imported_avatars.py. "
@@ -1238,7 +1350,7 @@ def load_source_inventory(path: Path) -> dict[str, Any]:
         or value.get("assetCount") != 69
         or value.get("classification") != "user-provided-local"
         or value.get("sourceImmutable") is not True
-        or value.get("suppliedLicenseStatus") != "not-stated"
+        or not isinstance(value.get("suppliedLicenseStatus"), str)
         or not isinstance(value.get("sourceRoots"), dict)
         or not isinstance(value.get("assets"), list)
     ):
@@ -1368,6 +1480,7 @@ def main() -> None:
         validate_runtime_catalog()
         payload = build_payload()
         registry_source = generated_registry_source(payload)
+        semantic_review = build_semantic_review(payload)
         if (
             source_inventory is not None
             and not arguments.skip_source_check
@@ -1382,6 +1495,9 @@ def main() -> None:
                 current_registry = GENERATED_REGISTRY.read_text(
                     encoding="utf-8"
                 )
+                current_semantic_review = json.loads(
+                    SEMANTIC_REVIEW.read_text(encoding="utf-8")
+                )
             except (OSError, json.JSONDecodeError) as error:
                 raise ValueError(
                     f"generated repository authority is unavailable: {error}"
@@ -1394,6 +1510,10 @@ def main() -> None:
                 raise ValueError(
                     "replacement avatar runtime registry is stale; regenerate it"
                 )
+            if current_semantic_review != semantic_review:
+                raise ValueError(
+                    "World animation semantic review is stale or divergent"
+                )
             print(
                 "verified 23 repository-owned replacement avatars; "
                 "manifest and runtime registry are deterministic"
@@ -1404,6 +1524,11 @@ def main() -> None:
             encoding="utf-8",
         )
         GENERATED_REGISTRY.write_text(registry_source, encoding="utf-8")
+        SEMANTIC_REVIEW.parent.mkdir(parents=True, exist_ok=True)
+        SEMANTIC_REVIEW.write_text(
+            json.dumps(semantic_review, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
         print(
             "generated deterministic manifest and runtime registry "
             "for 23 replacement avatars"

@@ -18,6 +18,7 @@ const avatarApi = avatarKitModule as typeof avatarKitModule & {
   readonly makeImportedAvatarClipInPlace?: (
     clip: AnimationClip,
     travelThreshold?: number,
+    normalizeVerticalTravel?: boolean,
   ) => AnimationClip;
   readonly IMPORTED_AVATAR_CROSSFADE_SECONDS?: number;
   readonly advanceImportedAvatarMixer?: (
@@ -35,6 +36,10 @@ const avatarApi = avatarKitModule as typeof avatarKitModule & {
       play(): unknown;
     },
   ) => unknown;
+  readonly configureImportedAvatarAction?: <Action>(
+    action: Action,
+    oneShot: boolean,
+  ) => Action;
 };
 const importedWorldApi = worldRoomModule as typeof worldRoomModule & {
   readonly calculateWorldCameraPose?: (input: {
@@ -190,6 +195,84 @@ describe("experimental imported avatar renderer routing", () => {
     expect(idle.duration).toBe(1);
   });
 
+  it("normalizes cumulative horizontal Root Hip and Pelvis travel while preserving vertical motion and sources", () => {
+    expect(typeof avatarApi.makeImportedAvatarClipInPlace).toBe("function");
+    if (!avatarApi.makeImportedAvatarClipInPlace) return;
+    const source = new AnimationClip("travel", 1, [
+      new VectorKeyframeTrack(
+        "Root.position",
+        [0, 0.5, 1],
+        [0, 0, 0, 1, 0.5, 2, 2, 0, 4],
+      ),
+      new VectorKeyframeTrack(
+        "Armature|Hip.position",
+        [0, 0.5, 1],
+        [5, 1, 2, 6, 1.5, 3, 7, 1, 4],
+      ),
+      new VectorKeyframeTrack(
+        "Rig/Pelvis.position",
+        [0, 0.5, 1],
+        [2, 2, 8, 3, 2.5, 9, 4, 2, 10],
+      ),
+    ]);
+    const before = source.tracks.map((track) => Array.from(track.values));
+    const normalized = avatarApi.makeImportedAvatarClipInPlace(source, 0.25);
+    expect(source.tracks.map((track) => Array.from(track.values))).toEqual(
+      before,
+    );
+    for (const track of normalized.tracks) {
+      expect(track.values[0]).toBeCloseTo(track.values[6]!);
+      expect(track.values[2]).toBeCloseTo(track.values[8]!);
+    }
+    expect(normalized.tracks[0]!.values[4]).toBe(0.5);
+    expect(normalized.tracks[1]!.values[4]).toBe(1.5);
+    expect(normalized.tracks[2]!.values[4]).toBe(2.5);
+  });
+
+  it("normalizes cumulative vertical locomotion travel without mutating the source or flattening one-shots by default", () => {
+    expect(typeof avatarApi.makeImportedAvatarClipInPlace).toBe("function");
+    if (!avatarApi.makeImportedAvatarClipInPlace) return;
+    const source = new AnimationClip("run", 1, [
+      new VectorKeyframeTrack(
+        "Armature|Hip.position",
+        [0, 0.5, 1],
+        [0, -0.5, 0, 0.05, -2, 0.1, 0.1, -3.5, 0.2],
+      ),
+    ]);
+    const before = Array.from(source.tracks[0]!.values);
+    const oneShot = avatarApi.makeImportedAvatarClipInPlace(source, 0.25);
+    expect(oneShot.tracks[0]!.values[1]).toBe(-0.5);
+    expect(oneShot.tracks[0]!.values[7]).toBe(-3.5);
+
+    const locomotion = avatarApi.makeImportedAvatarClipInPlace(
+      source,
+      0.25,
+      true,
+    );
+    expect(locomotion.tracks[0]!.values[1]).toBeCloseTo(0);
+    expect(locomotion.tracks[0]!.values[7]).toBeCloseTo(0);
+    expect(locomotion.tracks[0]!.values[4]).toBeCloseTo(0);
+    expect(Array.from(source.tracks[0]!.values)).toEqual(before);
+  });
+
+  it("configures one-shots to play once and locomotion to repeat", () => {
+    expect(typeof avatarApi.configureImportedAvatarAction).toBe("function");
+    const configure = avatarApi.configureImportedAvatarAction!;
+    const action = {
+      clampWhenFinished: false,
+      setLoop: vi.fn().mockReturnThis(),
+    };
+    expect(configure(action, true)).toBe(action);
+    expect(action.setLoop).toHaveBeenCalledWith(expect.any(Number), 1);
+    expect(action.clampWhenFinished).toBe(true);
+    configure(action, false);
+    expect(action.setLoop).toHaveBeenLastCalledWith(
+      expect.any(Number),
+      Infinity,
+    );
+    expect(action.clampWhenFinished).toBe(false);
+  });
+
   it("uses the shared 0.22-second crossfade for semantic clip transitions", () => {
     const source = readFileSync(
       new URL("../src/imported-avatar-animation.ts", import.meta.url),
@@ -264,6 +347,10 @@ describe("experimental imported avatar renderer routing", () => {
     expect(modelSource).toContain("actionTime");
     expect(modelSource).toContain("boneQuaternion");
     expect(modelSource).toContain("sourceAssetId: selection.assetId");
+    expect(modelSource).toContain('"L_Thigh"');
+    expect(modelSource.indexOf('"L_Thigh"')).toBeLessThan(
+      modelSource.indexOf('"Head"'),
+    );
     expect(modelSource).toContain(
       "const sourceClip = gltf.animations[clipIndex]",
     );
@@ -271,6 +358,25 @@ describe("experimental imported avatar renderer routing", () => {
     expect(worldSource).toContain("data-agent-avatar-mixer-time");
     expect(worldSource).toContain("data-user-avatar-bone-quaternion");
     expect(worldSource).toContain("data-agent-avatar-bone-quaternion");
+  });
+
+  it("does not restart the active action when parent completion callback identity changes", () => {
+    const modelSource = readFileSync(
+      new URL("../src/imported-avatar-canvas.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(modelSource).toContain(
+      "const onOneShotCompleteRef = useRef(onOneShotComplete)",
+    );
+    expect(modelSource).toContain(
+      "onOneShotCompleteRef.current = onOneShotComplete",
+    );
+    expect(modelSource).toContain(
+      "onOneShotCompleteRef.current?.(resolvedSemantic)",
+    );
+    expect(modelSource).not.toContain(
+      "if (event.action === next) onOneShotComplete(resolvedSemantic)",
+    );
   });
 
   it("clones intact by default, hides only allowlisted part IDs, and restores all", () => {

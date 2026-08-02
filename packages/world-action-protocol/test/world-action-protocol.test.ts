@@ -59,6 +59,14 @@ describe("aiw.world-action/0.13", () => {
       },
       { kind: "clear", scope: "presentation" },
       { kind: "cancel", targetType: "batch", targetId: ids[0] },
+      {
+        kind: "move-agent",
+        schema: "aiw.agent-movement/1",
+        actorId: "agent-session-1",
+        source: "agent-autonomous",
+        speed: 4,
+        target: { kind: "relative", direction: "forward", distance: 3 },
+      },
     ];
     for (const action of actions) {
       expect(
@@ -75,6 +83,56 @@ describe("aiw.world-action/0.13", () => {
         actions: [{ kind: "run-command", target }],
       }).success,
     ).toBe(false);
+  });
+
+  it("validates bounded browser-safe agent movement targets and rejects transform authority", () => {
+    const validTargets = [
+      { kind: "coordinate", x: 2, z: -3, stoppingRadius: 0.5 },
+      { kind: "relative", direction: "right", distance: 4 },
+      { kind: "follow-user", stoppingRadius: 1.5 },
+      {
+        kind: "repository-object",
+        objectId: "aiw://object/file-1",
+        layoutGeneration: "layout-generation-a",
+        stoppingRadius: 1,
+      },
+    ];
+    for (const movementTarget of validTargets)
+      expect(
+        WorldActionProposalSchema.safeParse({
+          actions: [
+            {
+              kind: "move-agent",
+              schema: "aiw.agent-movement/1",
+              actorId: "agent-session-1",
+              source: "user-directed",
+              speed: 4,
+              target: movementTarget,
+            },
+          ],
+        }).success,
+      ).toBe(true);
+    for (const invalid of [
+      { kind: "coordinate", x: Number.NaN, z: 0 },
+      { kind: "relative", direction: "forward", distance: 101 },
+      { kind: "follow-user", stoppingRadius: 0 },
+      { kind: "repository-object", objectId: "mesh-4", layoutGeneration: "x" },
+    ])
+      expect(
+        WorldActionProposalSchema.safeParse({
+          actions: [
+            {
+              kind: "move-agent",
+              schema: "aiw.agent-movement/1",
+              actorId: "agent-session-1",
+              source: "agent-autonomous",
+              speed: 4,
+              target: invalid,
+              rendererTransform: [1, 2, 3],
+            },
+          ],
+        }).success,
+      ).toBe(false);
   });
 
   it("enforces 1-8 actions, UTF-8 size, and adapter-owned identity/TTL", () => {

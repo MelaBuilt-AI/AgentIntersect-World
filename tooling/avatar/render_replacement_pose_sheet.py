@@ -26,6 +26,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--samples", type=int, default=7)
+    parser.add_argument("--resolution", type=int, default=240)
     parser.add_argument("--clip-index", action="append", type=int, default=[])
     parser.add_argument("--frame-timeout-seconds", type=float, default=90)
     return parser.parse_args(arguments)
@@ -195,11 +196,13 @@ def main() -> None:
     scene.render.engine = "BLENDER_WORKBENCH"
     scene.display.shading.light = "STUDIO"
     scene.display.shading.color_type = "MATERIAL"
-    scene.display.shading.show_shadows = True
-    scene.display.shading.show_cavity = True
+    scene.display.shading.show_shadows = False
+    scene.display.shading.show_cavity = False
     scene.display.shading.cavity_type = "WORLD"
-    scene.render.resolution_x = 240
-    scene.render.resolution_y = 240
+    if arguments.resolution < 96 or arguments.resolution > 480:
+        raise RuntimeError("resolution must be between 96 and 480")
+    scene.render.resolution_x = arguments.resolution
+    scene.render.resolution_y = arguments.resolution
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
     scene.render.film_transparent = False
@@ -371,3 +374,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    bpy.ops.wm.quit_blender()

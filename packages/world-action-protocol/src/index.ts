@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const WORLD_ACTION_PROTOCOL = "aiw.world-action/0.13" as const;
+export const AGENT_MOVEMENT_PROTOCOL = "aiw.agent-movement/1" as const;
 export const WORLD_ACTION_LIMITS = Object.freeze({
   minimumBatchActions: 1,
   maximumBatchActions: 8,
@@ -19,6 +20,10 @@ export const WORLD_ACTION_LIMITS = Object.freeze({
   maximumTraceEdges: 512,
   maximumConfirmedHops: 24,
   maximumVisibleTimelineRows: 50,
+  maximumAgentMovementDistance: 30,
+  maximumAgentMovementSpeed: 12,
+  minimumAgentStoppingRadius: 0.25,
+  maximumAgentStoppingRadius: 5,
 });
 
 const byteLength = (value: string) => {
@@ -114,6 +119,70 @@ const CancelSchema = z
   })
   .strict();
 
+const FiniteWorldCoordinateSchema = z.number().finite().min(-15).max(15);
+const StoppingRadiusSchema = z
+  .number()
+  .finite()
+  .min(WORLD_ACTION_LIMITS.minimumAgentStoppingRadius)
+  .max(WORLD_ACTION_LIMITS.maximumAgentStoppingRadius)
+  .optional();
+export const AgentMovementTargetSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      kind: z.literal("coordinate"),
+      x: FiniteWorldCoordinateSchema,
+      z: FiniteWorldCoordinateSchema,
+      stoppingRadius: StoppingRadiusSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("relative"),
+      direction: z.enum(["forward", "backward", "left", "right"]),
+      distance: z
+        .number()
+        .finite()
+        .positive()
+        .max(WORLD_ACTION_LIMITS.maximumAgentMovementDistance),
+      stoppingRadius: StoppingRadiusSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("follow-user"),
+      stoppingRadius: z
+        .number()
+        .finite()
+        .min(WORLD_ACTION_LIMITS.minimumAgentStoppingRadius)
+        .max(WORLD_ACTION_LIMITS.maximumAgentStoppingRadius),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("repository-object"),
+      objectId: WorldObjectRefSchema,
+      layoutGeneration: GenerationSchema,
+      stoppingRadius: StoppingRadiusSchema,
+    })
+    .strict(),
+]);
+export type AgentMovementTarget = z.infer<typeof AgentMovementTargetSchema>;
+
+const MoveAgentSchema = z
+  .object({
+    kind: z.literal("move-agent"),
+    schema: z.literal(AGENT_MOVEMENT_PROTOCOL),
+    actorId: OpaqueRefSchema,
+    source: z.enum(["user-directed", "agent-autonomous"]),
+    speed: z
+      .number()
+      .finite()
+      .positive()
+      .max(WORLD_ACTION_LIMITS.maximumAgentMovementSpeed),
+    target: AgentMovementTargetSchema,
+  })
+  .strict();
+
 export const WorldActionIntentSchema = z.discriminatedUnion("kind", [
   NavigateSchema,
   FocusSchema,
@@ -127,6 +196,7 @@ export const WorldActionIntentSchema = z.discriminatedUnion("kind", [
   EvidenceSchema,
   ClearSchema,
   CancelSchema,
+  MoveAgentSchema,
 ]);
 
 export const WorldActionProposalSchema = z
@@ -210,6 +280,7 @@ export const WorldActionEnvelopeSchema = z
     if (
       value.actions.some(
         (action) =>
+          action.kind !== "move-agent" &&
           "target" in action &&
           action.target.repositoryRef !== value.repositoryRef,
       )

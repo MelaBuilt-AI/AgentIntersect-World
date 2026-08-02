@@ -45,7 +45,37 @@ export function isEditableWorldTarget(target: unknown): boolean {
     tagName === "input" ||
     tagName === "textarea" ||
     tagName === "select" ||
+    tagName === "button" ||
+    tagName === "a" ||
     candidate.isContentEditable === true
+  );
+}
+
+export function shouldConsumeWorldJump({
+  key,
+  repeat,
+  target,
+  worldActive,
+  dialogOpen,
+  escapeMenuOpen,
+  oneShotActive,
+}: {
+  readonly key: string;
+  readonly repeat: boolean;
+  readonly target: unknown;
+  readonly worldActive: boolean;
+  readonly dialogOpen: boolean;
+  readonly escapeMenuOpen: boolean;
+  readonly oneShotActive: boolean;
+}): boolean {
+  return (
+    (key === " " || key === "Spacebar") &&
+    !repeat &&
+    worldActive &&
+    !dialogOpen &&
+    !escapeMenuOpen &&
+    !oneShotActive &&
+    !isEditableWorldTarget(target)
   );
 }
 

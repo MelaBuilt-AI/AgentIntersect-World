@@ -362,9 +362,11 @@ describe("replacement imported avatar creator", () => {
       assetId: "user-male-01",
       assetUrl: "/assets/imported-avatars/user-male-01.glb",
       resolvedClip: {
-        clipIndex: -1,
-        clipName: "unverified-static-pose",
+        clipIndex: 15,
+        clipName: "NlaTrack.015",
         locomotion: "Idle",
+        semantic: "Idle",
+        verification: "semantic-review-pass",
       },
     });
     expect(
@@ -376,7 +378,7 @@ describe("replacement imported avatar creator", () => {
     ).toBeUndefined();
   });
 
-  it("routes only each model's evidence-backed World action and keeps refusals observable", () => {
+  it("routes each model's evidence-backed World actions", () => {
     expect(
       worldImportedAvatarSelection(
         importedDraft("user-male-02"),
@@ -439,9 +441,11 @@ describe("replacement imported avatar creator", () => {
       ),
     ).toMatchObject({
       resolvedClip: {
-        clipIndex: -1,
-        clipName: "unverified-static-pose",
-        locomotion: "Idle",
+        clipIndex: 20,
+        clipName: "NlaTrack.020",
+        locomotion: "Walk",
+        semantic: "Walk",
+        verification: "semantic-review-pass",
       },
     });
   });
@@ -514,7 +518,8 @@ describe("replacement imported avatar creator", () => {
             asset.registry as unknown as {
               provenance: { suppliedLicenseStatus: string };
             }
-          ).provenance.suppliedLicenseStatus === "not-stated",
+          ).provenance.suppliedLicenseStatus ===
+            "tripo3d-subscription-user-confirmed-unrestricted-use",
       ),
     ).toBe(true);
 

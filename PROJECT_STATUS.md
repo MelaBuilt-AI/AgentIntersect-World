@@ -4,6 +4,68 @@ Updated: 2026-08-01
 
 ## Current milestone
 
+### 2026-08-01 complete-avatar semantic closeout and agent movement — TECHNICALLY VERIFIED; HUMAN GESTURE REVIEW OPEN
+
+Aaron's first-hand animation run remains the authoritative trigger: Walk and Run
+were correct, while Jump, `/dance`, and `/laugh` exposed semantic contradictions.
+The closeout therefore does not preserve the old structural 276/276 claim as
+semantic acceptance. Deterministic investigation found no authoritative source,
+provider metadata, glTF field, export record, or retained evidence that maps the
+anonymous gesture clips to their intended meanings. The semantic authority now
+records 69 reviewed locomotion passes and 207 ambiguous gesture decisions across
+23 models; every unresolved gesture fails closed at runtime rather than using a
+plausible substitute.
+
+Actor-local animation arbitration and bounded World-owned agent movement are
+implemented. Locomotion cancels that actor's one-shot, a newer valid slash or
+stationary cue supersedes the older generation, stale completion callbacks cannot
+clear newer state, and a cancelled action does not resume. Validated movement
+supports bounded coordinates, relative directions, follow/approach, interruption,
+user-directed priority over autonomy, truthful arrival/refusal/cancellation, and
+a stable repository-object seam that fails closed when identity or layout
+resolution is stale or unavailable. The normal product projects exact local
+`/agent move`, `/agent follow`, and `/agent stop` commands through the existing
+validated proposal/interrupt authority instead of parsing arbitrary assistant
+prose into transforms.
+
+Independent Node 24 parent proof passed Python 15/15, the real loopback Chromium
+annotation viewer 1/1, required Vitest 4 files / 30 tests, functional Vitest
+125/125 files / 738/738 tests excluding only the separately paused Phase 18.5
+fingerprint validator, TypeScript 38/38, architecture 11/11, build 20/20,
+ESLint, targeted Prettier, deterministic 23/23 GLB inspection, Git LFS `fsck`,
+diff hygiene, and durable-text safety. One initial 10-second Vitest timeout was
+classified as ambient I/O pressure: the underlying inspector passed five direct
+runs, the exact isolated test passed three consecutive runs under the original
+timeout, and the unchanged required four-file command then passed 30/30.
+
+The generated human-review package remains at 0/207 and contains 23 deterministic
+one-model batches covering all 417 raw non-locomotion clips exactly once. It
+supports full-document checkpoints and resume without embedding reviewer answers,
+semantic hints, or fabricated progress. Strict validation and proposal generation
+remain impossible until all 207 decisions are complete and independently reviewed.
+No semantic annotation was performed during the technical closeout.
+
+The private checkpoint candidate intentionally excludes the same 199 inherited
+partial/superseded evidence and operational-plan paths from the prior accepted
+checkpoint boundary. The current checkpoint is technically ready for private Git
+delivery, but it is not a release candidate or a semantic-acceptance seal. The
+existing GitHub Actions workflow consumes the frozen Phase 18.5 hardware evidence in
+three fail-closed jobs: `core` runs the unfiltered validator, `measurements` runs
+`avatar:verify`, and `e2e-phase18-5` validates the same evidence on software-renderer
+runners. Those jobs are expected to remain red after push until Phase 18.5 is
+separately resumed and remeasured or a separately approved CI-policy change preserves
+it as an explicit manual lane. The unaffected functional and browser lanes remain the
+checkpoint readiness signal. Exact-SHA workflow results belong in the external
+delivery receipt rather than a self-referential status commit.
+
+The prior failed disposable candidate was owner-checked and cleaned. Candidate
+ports `45181/43771` remain closed, protected `3770/5173/8642/18789` retain their
+preserved identities, and no mutating worker or temporary annotation server
+remains. Fresh first-hand testing of the unresolved gestures and the new agent
+movement experience is still pending. No PR, merge, tag, release, publication,
+deployment, Phase 18.5 evidence rebind, or Phase 19–20 work is authorized by this
+checkpoint.
+
 ### 2026-08-01 complete-avatar blank-screen correction — reported blockers OPERATOR ACCEPTED
 
 Aaron authorized one bounded remediation after the 2026-07-31 manual operator
@@ -62,8 +124,9 @@ were aligned with the accepted preview → `Use Complete Avatar` → save contra
 
 The frozen Phase 18.5 validator remains truthfully RED only for its two known production
 input fingerprint mismatches; evidence was not rebound and the phase remains paused.
-Aaron explicitly confirmed private-storage rights for the user-provided local assets;
-the manifest continues to report supplied license status `not-stated`. Protected
+Aaron's later 2026-08-01 clarification supersedes the narrower private-storage
+statement: the repository manifest records
+`tripo3d-subscription-user-confirmed-unrestricted-use`. Protected
 `3770/5173/8642/18789` remain under their preserved identities and candidate
 `43771/45181` remain closed. No push, merge, tag, release, deployment, publication,
 public ingress, provider/profile activation, protected-service mutation,
@@ -189,7 +252,7 @@ The bounded imported-model avatar-builder implementation candidate was independe
 1. `docs/IMPORTED_AVATAR_BUILDER_SCOPE.md` freezes the registry, role, legacy migration, intake, compatibility, persistence, animation, and non-goal decisions.
 2. One validated imported-model registry drives normal selection and runtime routing. `user-male` is the sole normal user choice; `cat-agent` and `futuristic-robot` are the agent choices. New user and agent drafts default deterministically to `user-male` and `cat-agent`.
 3. Generated/custom avatars are preserved as legacy runtime/profile state but absent from normal new-avatar controls. A saved legacy profile previews unchanged, is labeled clearly, and migrates only after explicit role-valid imported selection and save.
-4. The repository-owned manifest now records role/lifecycle visibility, per-model semantic clips, preview/World transforms, stable segments, hierarchy/rest/inverse-bind fingerprints, compatibility class, provenance, honest `not-stated` license status, fallback policy, and GLB/thumbnail hashes. The deterministic `--check` path does not depend on the unavailable original Pictures sources.
+4. The repository-owned manifest records role/lifecycle visibility, per-model semantic clips, preview/World transforms, stable segments, hierarchy/rest/inverse-bind fingerprints, compatibility class, provenance, the later-corrected `tripo3d-subscription-user-confirmed-unrestricted-use` operator-grant value, fallback policy, and GLB/thumbnail hashes. The deterministic `--check` path does not depend on the unavailable original Pictures sources.
 5. Same-model stable-part isolation remains available. All current cross-model pairs are explicitly refused because no complete skeleton/rest/bind/scale/socket/skin-weight proof exists.
 6. Legacy and imported profiles survive local hydration and exact-session transport; imported models route through normal World rendering after reload. Same-model hidden-part state is resolved from the repository manifest and applied in normal World rendering rather than being lost after the builder. Creator-preview clips remain separate from World semantic actions, and the accepted Idle/Walk/Run, Shift-Run, 0.22-second crossfade, runtime-only Hip normalization, source immutability, and safe Idle fallback remain intact.
 7. Independent parent inspection found and corrected two bounded defects through RED-to-GREEN tests: saved segmentation state had not reached normal World rendering, and manifest-load failure could retrigger the segmentation inventory effect. The historical implementation baseline passed focused impacted Vitest **101/101 across 9 files**, functional Vitest **696/696 across 120 files** with only the deliberately excluded frozen Phase 18.5 validator, typecheck **38/38 tasks**, architecture **11/11**, production build **20/20**, full Prettier and ESLint, deterministic intake, imported-avatar Playwright **3/3**, and `git diff --check`. The later avatar-routing/Escape correction and user acceptance supersede this baseline's pending-review state.
@@ -303,7 +366,7 @@ Normative details: `AgentIntersect_WorldDD.md` and `docs/WORLD_ENTRY_EXPERIENCE.
 - The implementation adds strict `aiw.tool-event/0.14` and `aiw.code-explanation/0.14` contracts, an attested World-owned disposable fixture service, exact single-use approval and atomic edit, real focused-test and loopback-preview adapters, bounded recovery/replay persistence, and one accessible ten-step Activity lane that leaves Phase 12 chat and Phase 13 presentation independently usable.
 - Worker and independent parent verification are green: focused Phase 14 conformance 35/35; metadata correction regression 23/23; authoritative `pnpm check` with 34/34 typecheck tasks, 11/11 architecture tests, 473/473 Vitest, 18/18 builds, smoke, and 40/40 Playwright; Storybook; zero-vulnerability production audit; machine-readable performance evidence; inspected desktop/mobile screenshots plus retained trace; and a clean rerun of 412-file fresh-copy verification with the same 473 tests and 40 browser tests green again.
 - Actual acceptance used real `node --test` and a real OS-assigned loopback preview port. Each owned process tree was stopped and awaited, each port and disposable copy was proved closed/removed, and all final manifest-pinned tracked fixture hashes remained unchanged.
-- The failed Phase 13 Discord → World continuity path remains deferred and was neither invoked nor simulated. `/home/mela_ai/AgentIntersect` and Hermes core/profile were not inspected or modified.
+- The failed Phase 13 Discord → World continuity path remains deferred and was neither invoked nor simulated. The protected `AgentIntersect` sibling checkout and Hermes core/profile were not inspected or modified.
 - Parent Mr Fluff independently inspected the implementation and retained captures, found and fixed one Phase 13/14 runtime-metadata mismatch through RED→GREEN TDD, reran real-process/browser/full/fresh-copy proof, verified fixture hashes plus cleanup, and closed private exact-SHA CI. No tag, release, publication, deployment, public ingress, or visibility change occurred.
 
 ## Completed Phase 4 surface
@@ -674,3 +737,83 @@ CTA, full user/agent GLB previews, no modular controls, and no horizontal
 clipping. The canonical avatar scope was rebaselined and the older builder scope
 marked historical. No commit, staging, push, release, deployment, later-phase
 work, protected-service mutation, or original-AgentIntersect edit was performed.
+
+## 2026-08-01 semantic correction and agent movement — technical partial safe pause
+
+The retained browser/profile records did not identify the manually tested model;
+no model ID was guessed or special-cased. A deterministic semantic review v2 now
+contains all 276 model/semantic decisions. Direct temporal review supports 69
+locomotion mappings (`Idle`, `Walk`, `Run` for 23 models); the other 207 gesture
+mappings are `ambiguous`. Runtime accepts only `pass` with the reviewed expected
+clip index and refuses every missing, divergent, `wrong_clip`, `ambiguous`, or
+`unsupported` decision. Consequently the reported Jump/Dance/Laugh mismatch
+class cannot play a wrong substitute, but no gesture is ready for visual
+acceptance without stronger semantic evidence.
+
+Actor-local animation generations now make movement cancel one-shots, make the
+latest valid slash or stationary agent cue win, ignore stale completions, return
+stopped actors to model-local Idle, and prevent cancelled actions from resuming.
+Recognized slash commands remain local-only; unknown slash text remains ordinary
+chat.
+
+World-owned agent movement now validates versioned coordinate, relative,
+follow/approach-user, and stable repository-object requests. It owns position,
+heading, velocity, destination, source, and state; integrates bounded elapsed
+time; drives model-local Walk/Run; cancels cues; returns Idle on arrival or
+cancellation; and emits truthful lifecycle states. Explicit user direction
+preempts/suspends autonomy, same-priority requests replace older work, and
+autonomy resumes only after explicit priority releases. Repository targets fail
+closed on missing/stale authoritative IDs or approach points, and free-form
+assistant prose cannot mutate transforms.
+
+Technical verification passed deterministic avatar checks (23 models / 276
+decisions), focused behavior (9 files / 106 tests), architecture (11/11), lint,
+typecheck (38/38 tasks), the serial functional suite excluding only the paused
+Phase 18.5 validator (124 files / 734 tests), production build (20/20 tasks),
+and production-static Playwright (4/4). The browser proof found and then fixed an HTTP-origin
+`crypto.randomUUID` incompatibility with a tested `getRandomValues` fallback.
+
+Verdict is `PARTIAL_SAFE_PAUSE`: directed/autonomous movement is technically
+ready for parent verification, while 207 gesture semantics remain safely
+refused. Parent owns fresh candidate proof; Aaron has not visually accepted this
+work. No commit, push, merge, tag, release, publication, deployment, protected
+listener mutation, Phase 18.5 resumption, or Phase 19–20 work occurred.
+
+### 2026-08-01 parent correction — normal-World movement command path
+
+Parent inspection found that the movement authority was not reachable from the
+normal HUD and that the prior production-static journey did not prove movement.
+The correction adds an exact, case-insensitive, outer-whitespace-trimmed local
+grammar: `/agent move <x> <z>`, `/agent move
+<forward|backward|left|right> <distance>`, `/agent follow [stoppingRadius]`,
+and `/agent stop`. Bounds remain the protocol bounds: coordinates `-15..15`,
+distance `>0..30`, and stopping radius `0.25..5` (default `1.5`). Recognized
+malformed or unsafe `/agent` commands remain local and visibly refused. Unknown
+slash strings and ordinary text remain chat.
+
+Valid movement commands build a schema-validated `aiw.world-action/0.13`
+proposal containing `aiw.agent-movement/1`, the selected session ID as actor,
+source `user-directed`, speed `4`, and the parsed target, then POST through the
+existing proposal route. Stop POSTs `{reason:"cancel"}` through the existing
+interrupt route and cancels renderer movement only after server success. No
+command mutates transforms or reaches Hermes/chat directly. Minimal HUD status
+now reports requested, accepted, moving, arrived, cancelled/Idle, refused, and
+target-stale truth.
+
+RED captured 2/10 parser tests failing on the absent parser and a transport
+suite failing to load the absent module. Focused GREEN is 6 files / 57 tests;
+deterministic avatar checks remain 23 models / 276 decisions; typecheck is
+38/38, lint is clean, production build is 20/20, and architecture passes its
+checker plus 11/11 tests when invoked without the sandbox-blocked `tsx` IPC
+wrapper. The full serial suite reached 116 passing files / 705 passing tests,
+but 33 tests in 9 files failed only where this restricted worker sandbox denied
+loopback listeners or child processes (`EPERM`). The rebuilt production-static
+suite lists 4 journeys including the mounted movement journey, but Chromium
+could not launch: `sandbox_host_linux.cc:41 ... Operation not permitted`; all
+4 journeys therefore remain unexecuted in this worker environment.
+
+Movement correction verdict is `PARTIAL_SAFE_PAUSE` until the parent reruns the
+full suite and the mounted production-static movement journey in the supported
+environment. Semantic gesture verdict remains the separate
+`PARTIAL_SAFE_PAUSE`: 69 locomotion passes and 207 ambiguous gestures fail
+closed. Aaron has not accepted either item.

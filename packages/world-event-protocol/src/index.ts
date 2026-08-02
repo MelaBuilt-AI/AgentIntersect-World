@@ -6,6 +6,105 @@ export const WORLD_EVENT_PROTOCOL = {
   phase: "normalized-read-replay",
 } as const;
 
+export const AGENT_MOVEMENT_EVENT_PROTOCOL =
+  "aiw.agent-movement-event/1" as const;
+export type ActorMovementEvent = {
+  readonly schema: typeof AGENT_MOVEMENT_EVENT_PROTOCOL;
+  readonly actorId: string;
+  readonly requestId: string;
+  readonly source: "user-directed" | "agent-autonomous";
+  readonly state:
+    | "requested"
+    | "accepted"
+    | "moving"
+    | "arrived"
+    | "cancelled"
+    | "refused"
+    | "target-stale";
+  readonly targetKind:
+    "coordinate" | "relative" | "follow-user" | "repository-object";
+  readonly position?: { readonly x: number; readonly z: number };
+  readonly heading?: number;
+  readonly speed?: number;
+  readonly reason?: string;
+};
+
+export function parseActorMovementEvent(value: unknown): ActorMovementEvent {
+  const record =
+    value !== null && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  const allowed = new Set([
+    "schema",
+    "actorId",
+    "requestId",
+    "source",
+    "state",
+    "targetKind",
+    "position",
+    "heading",
+    "speed",
+    "reason",
+  ]);
+  const identifier = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
+  const states = new Set([
+    "requested",
+    "accepted",
+    "moving",
+    "arrived",
+    "cancelled",
+    "refused",
+    "target-stale",
+  ]);
+  const targets = new Set([
+    "coordinate",
+    "relative",
+    "follow-user",
+    "repository-object",
+  ]);
+  const position = record?.position as Record<string, unknown> | undefined;
+  const validPosition =
+    position === undefined ||
+    (position !== null &&
+      typeof position === "object" &&
+      !Array.isArray(position) &&
+      Object.keys(position).length === 2 &&
+      typeof position.x === "number" &&
+      Number.isFinite(position.x) &&
+      Math.abs(position.x) <= 15 &&
+      typeof position.z === "number" &&
+      Number.isFinite(position.z) &&
+      Math.abs(position.z) <= 15);
+  if (
+    !record ||
+    Object.keys(record).some((key) => !allowed.has(key)) ||
+    record.schema !== AGENT_MOVEMENT_EVENT_PROTOCOL ||
+    typeof record.actorId !== "string" ||
+    !identifier.test(record.actorId) ||
+    typeof record.requestId !== "string" ||
+    !identifier.test(record.requestId) ||
+    (record.source !== "user-directed" &&
+      record.source !== "agent-autonomous") ||
+    typeof record.state !== "string" ||
+    !states.has(record.state) ||
+    typeof record.targetKind !== "string" ||
+    !targets.has(record.targetKind) ||
+    !validPosition ||
+    (record.heading !== undefined &&
+      (typeof record.heading !== "number" ||
+        !Number.isFinite(record.heading))) ||
+    (record.speed !== undefined &&
+      (typeof record.speed !== "number" ||
+        !Number.isFinite(record.speed) ||
+        record.speed < 0 ||
+        record.speed > 12)) ||
+    (record.reason !== undefined &&
+      (typeof record.reason !== "string" || record.reason.length > 160))
+  )
+    throw new TypeError("Invalid movement event");
+  return record as ActorMovementEvent;
+}
+
 export type EventSourceKind =
   "daemon-state" | "dashboard-snapshot" | "dashboard-feed" | "dashboard-sse";
 

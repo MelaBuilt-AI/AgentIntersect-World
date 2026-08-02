@@ -5,6 +5,7 @@ import * as experienceModule from "../src/world-entry/WorldEntryExperience.js";
 import { AvatarBuilder } from "../src/avatar/AvatarBuilder.js";
 import * as activityModule from "../src/world-entry/world-chat-model.js";
 import * as roomModule from "../src/world-entry/world-navigation-model.js";
+import * as worldRoomModule from "../src/world-entry/WorldRoom.js";
 import {
   parseAvatarDraft,
   type AvatarDraft,
@@ -331,7 +332,7 @@ describe("Phase 18 World entry experience", () => {
     expect(typeof api.WorldEntryExperience).toBe("function");
     expect(typeof api.WorldEntryLogo).toBe("function");
     expect(typeof api.WorldEntryAgentAvatar).toBe("function");
-    expect(typeof api.WorldRoom).toBe("function");
+    expect(typeof worldRoomModule.WorldRoom).toBe("function");
     expect(typeof api.WorldHud).toBe("function");
   });
 
@@ -451,9 +452,9 @@ describe("Phase 18 World entry experience", () => {
   });
 
   it("keeps one semantic World state, two visible avatars, minimal HUD, and unavailable adjacent PTT", () => {
-    if (!api.WorldRoom || !api.WorldHud) return;
+    if (!api.WorldHud) return;
     const room = renderToStaticMarkup(
-      createElement(component(api.WorldRoom), {
+      createElement(component(worldRoomModule.WorldRoom), {
         floor: "repository",
         objects: [
           {

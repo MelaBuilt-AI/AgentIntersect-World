@@ -21,6 +21,7 @@
     "@agentintersect-world/sync-yjs": "workspace:*",
     "@agentintersect-world/ui": "workspace:*",
     "@agentintersect-world/voice": "workspace:*",
+    "@agentintersect-world/world-action-protocol": "workspace:*",
     "@agentintersect-world/world-schema": "workspace:*",
     "@tanstack/react-query": "5.101.2",
     "react": "19.2.7",

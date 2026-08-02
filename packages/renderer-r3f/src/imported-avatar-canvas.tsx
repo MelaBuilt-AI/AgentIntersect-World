@@ -14,13 +14,16 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import {
   advanceImportedAvatarMixer,
+  configureImportedAvatarAction,
   crossfadeImportedAvatarAction,
   IMPORTED_AVATAR_CROSSFADE_SECONDS,
   makeImportedAvatarClipInPlace,
+  type ImportedAvatarLoopAction,
 } from "./imported-avatar-animation.js";
 
 export {
   advanceImportedAvatarMixer,
+  configureImportedAvatarAction,
   crossfadeImportedAvatarAction,
   IMPORTED_AVATAR_CROSSFADE_SECONDS,
   makeImportedAvatarClipInPlace,
@@ -35,6 +38,11 @@ export type ImportedAvatarResolvedClip = {
   readonly clipIndex: number;
   readonly clipName: string;
   readonly locomotion: "Idle" | "Walk" | "Run";
+  readonly semantic: string;
+  readonly oneShot: boolean;
+  readonly durationSeconds: number;
+  readonly verification: "semantic-review-pass" | "evidence-refused";
+  readonly error: string;
 };
 
 export type ImportedAvatarAnimationSample = {
@@ -47,6 +55,9 @@ export type ImportedAvatarAnimationSample = {
   readonly sequence: number;
   readonly boneName: string;
   readonly boneQuaternion: readonly [number, number, number, number];
+  readonly semantic: string;
+  readonly oneShot: boolean;
+  readonly progression: "playing";
 };
 
 export type ImportedAvatarRenderSelection = {
@@ -98,6 +109,7 @@ function ImportedAvatarModel({
   scale,
   semanticAction,
   onAnimationSample,
+  onOneShotComplete,
 }: {
   readonly gltf: GLTF;
   readonly selection:
@@ -109,6 +121,7 @@ function ImportedAvatarModel({
   readonly semanticAction?: string | undefined;
   readonly onAnimationSample?:
     ((sample: ImportedAvatarAnimationSample) => void) | undefined;
+  readonly onOneShotComplete?: ((semantic: string) => void) | undefined;
 }) {
   const selectionKey = [
     selection.assetId,
@@ -128,6 +141,8 @@ function ImportedAvatarModel({
     semanticAction && "resolvedClip" in selection
       ? selection.resolvedClip
       : undefined;
+  const resolvedOneShot = resolvedWorldClip?.oneShot ?? false;
+  const resolvedSemantic = resolvedWorldClip?.semantic ?? "preview";
   const clipIndex =
     resolvedWorldClip?.clipIndex ??
     ("clipIndex" in selection ? selection.clipIndex : -1);
@@ -139,20 +154,39 @@ function ImportedAvatarModel({
   let clip = sourceClip;
   if (sourceClip && resolvedWorldClip) {
     const cached = worldClips.get(clipIndex);
-    clip = cached ?? makeImportedAvatarClipInPlace(sourceClip);
+    clip =
+      cached ??
+      makeImportedAvatarClipInPlace(
+        sourceClip,
+        0.25,
+        !resolvedWorldClip.oneShot,
+      );
     if (!cached) worldClips.set(clipIndex, clip);
   }
   const activeAction = useRef<AnimationAction | null>(null);
+  const onOneShotCompleteRef = useRef(onOneShotComplete);
   const lastSampleTime = useRef(Number.NEGATIVE_INFINITY);
   const sampleSequence = useRef(0);
   const sampledBone = useMemo(
     () =>
-      ["LeftUpLeg", "RightUpLeg", "LeftArm", "RightArm", "Spine", "Head", "Hip"]
+      [
+        "L_Thigh",
+        "R_Thigh",
+        "L_Upperarm",
+        "R_Upperarm",
+        "Spine02",
+        "Spine01",
+        "Head",
+        "Hip",
+      ]
         .map((name) => scene.getObjectByName(name))
         .find((candidate) => candidate !== undefined),
     [scene],
   );
   const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    onOneShotCompleteRef.current = onOneShotComplete;
+  }, [onOneShotComplete]);
   useEffect(() => {
     const previous = activeAction.current;
     if (!clip) {
@@ -162,6 +196,10 @@ function ImportedAvatarModel({
       return;
     }
     const next = mixer.clipAction(clip);
+    configureImportedAvatarAction(
+      next as unknown as ImportedAvatarLoopAction,
+      resolvedOneShot,
+    );
     if (animate) {
       next.paused = false;
       crossfadeImportedAvatarAction(previous, next);
@@ -174,7 +212,24 @@ function ImportedAvatarModel({
     activeAction.current = next;
     mixer.update(0);
     invalidate();
-  }, [animate, clip, invalidate, mixer]);
+    if (!resolvedOneShot) return;
+    const finished = (event: { readonly action: AnimationAction }) => {
+      if (event.action === next)
+        onOneShotCompleteRef.current?.(resolvedSemantic);
+    };
+    const eventMixer = mixer as unknown as {
+      addEventListener(
+        type: "finished",
+        listener: (event: { readonly action: AnimationAction }) => void,
+      ): void;
+      removeEventListener(
+        type: "finished",
+        listener: (event: { readonly action: AnimationAction }) => void,
+      ): void;
+    };
+    eventMixer.addEventListener("finished", finished);
+    return () => eventMixer.removeEventListener("finished", finished);
+  }, [animate, clip, invalidate, mixer, resolvedOneShot, resolvedSemantic]);
   useEffect(
     () => () => {
       activeAction.current?.stop();
@@ -214,6 +269,9 @@ function ImportedAvatarModel({
         sampledBone.quaternion.z,
         sampledBone.quaternion.w,
       ],
+      semantic: resolvedWorldClip.semantic,
+      oneShot: resolvedWorldClip.oneShot,
+      progression: "playing",
     });
   });
   return (
@@ -261,6 +319,8 @@ export function ImportedAvatarWorldModel({
   onReady,
   onLodChange,
   onAnimationSample,
+  onOneShotComplete,
+  animationGeneration,
 }: {
   readonly role: "user" | "agent";
   readonly selection: ImportedAvatarWorldSelection;
@@ -276,6 +336,10 @@ export function ImportedAvatarWorldModel({
   readonly onAnimationSample?:
     | ((role: "user" | "agent", sample: ImportedAvatarAnimationSample) => void)
     | undefined;
+  readonly onOneShotComplete?:
+    | ((role: "user" | "agent", semantic: string, generation: number) => void)
+    | undefined;
+  readonly animationGeneration: number;
 }) {
   const gltf = useLoader(GLTFLoader, selection.assetUrl);
   const resolvedRotation: readonly [number, number, number] = [
@@ -300,6 +364,9 @@ export function ImportedAvatarWorldModel({
         rotation={resolvedRotation}
         scale={selection.scale * scale}
         onAnimationSample={(sample) => onAnimationSample?.(role, sample)}
+        onOneShotComplete={(semantic) =>
+          onOneShotComplete?.(role, semantic, animationGeneration)
+        }
       />
       <ImportedAvatarRenderReady
         selectionKey={selectionKey}

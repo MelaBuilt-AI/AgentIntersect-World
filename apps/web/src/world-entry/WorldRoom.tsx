@@ -10,6 +10,7 @@ import {
   type AvatarMovementPhase,
 } from "@agentintersect-world/avatar-system";
 import {
+  Component,
   lazy,
   Suspense,
   useCallback,
@@ -17,18 +18,38 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 
 import { isOperatorMovementKey } from "../world-actions/operator-navigation.js";
-import type { WorldActivity } from "./world-chat-model.js";
+import {
+  completeAvatarOneShot,
+  createAvatarAnimationState,
+  setAvatarLocomotion,
+  triggerAvatarOneShot,
+  type AvatarAnimationState,
+  type AvatarOneShotSemantic,
+  type WorldActivity,
+} from "./world-chat-model.js";
 import {
   applyWorldCameraLook,
   isEditableWorldTarget,
   moveWorldPosition,
   projectAvatarMovementPhaseFromKeys,
+  shouldConsumeWorldJump,
   type WorldCameraLook,
 } from "./world-navigation-model.js";
 import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
+import {
+  advanceAgentMovement,
+  cancelAgentMovement,
+  createAgentMovementState,
+  requestAgentMovement,
+  type AgentMovementEvent,
+  type AgentMovementRequest,
+  type AgentMovementState,
+  type RepositoryApproachPoint,
+} from "./world-agent-movement-model.js";
 
 const WorldRoomCanvas = lazy(async () => {
   const module = await import("@agentintersect-world/renderer-r3f/world-room");
@@ -40,6 +61,25 @@ const ImportedWorldRoomCanvas = lazy(async () => {
   return { default: module.WorldRoomCanvas };
 });
 
+class WorldCanvasErrorBoundary extends Component<
+  { readonly children: ReactNode; readonly onError: () => void },
+  { readonly failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onError();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 export function WorldRoom({
   floor,
   objects,
@@ -50,6 +90,13 @@ export function WorldRoom({
   userAvatar,
   agentAvatar,
   activity,
+  userCue,
+  agentCue,
+  agentActorId,
+  agentMovementRequest,
+  agentMovementCancellationGeneration = 0,
+  layoutGeneration = "blank-world",
+  onAgentMovementEvent,
   showControlHints = true,
 }: {
   readonly floor: "blank" | "repository";
@@ -61,6 +108,29 @@ export function WorldRoom({
   readonly userAvatar: AvatarDraft;
   readonly agentAvatar: AvatarDraft;
   readonly activity: WorldActivity;
+  readonly userCue?:
+    | {
+        readonly sequence: number;
+        readonly semantic: AvatarOneShotSemantic;
+        readonly source: "local-command";
+      }
+    | null
+    | undefined;
+  readonly agentCue?:
+    | {
+        readonly sequence: number;
+        readonly semantic: AvatarOneShotSemantic;
+        readonly source: "visible-text" | "application-event";
+      }
+    | null
+    | undefined;
+  readonly agentActorId?: string | undefined;
+  readonly agentMovementRequest?: AgentMovementRequest | null | undefined;
+  readonly agentMovementCancellationGeneration?: number | undefined;
+  readonly layoutGeneration?: string | undefined;
+  readonly onAgentMovementEvent?:
+    | ((event: AgentMovementEvent, position: { x: number; z: number }) => void)
+    | undefined;
   readonly showControlHints?: boolean;
 }) {
   const roomRef = useRef<HTMLElement>(null);
@@ -69,9 +139,27 @@ export function WorldRoom({
   const [contextLost, setContextLost] = useState(
     () => forceNoWebGL || !resolveWebGLCapability().available,
   );
+  const [rendererFailure, setRendererFailure] = useState<
+    "context-lost" | "load-or-render-error" | null
+  >(null);
   const [userPosition, setUserPosition] = useState({ x: 0, z: 0 });
+  const resolvedAgentActorId = agentActorId ?? "agent-local";
+  const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
+    createAgentMovementState(resolvedAgentActorId, { x: 2.5, z: 1 }),
+  );
+  const agentMovementRef = useRef(agentMovement);
+  const handledAgentMovementRequest = useRef<string | null>(null);
+  const handledAgentMovementCancellation = useRef(0);
+  const onAgentMovementEventRef = useRef(onAgentMovementEvent);
   const [movementPhase, setMovementPhase] =
     useState<AvatarMovementPhase>("idle");
+  const [userAnimation, setUserAnimation] = useState<AvatarAnimationState>(() =>
+    createAvatarAnimationState(),
+  );
+  const [agentAnimation, setAgentAnimation] = useState<AvatarAnimationState>(
+    () => createAvatarAnimationState(),
+  );
+  const userAnimationRef = useRef(userAnimation);
   const [expiredTerminalActivity, setExpiredTerminalActivity] =
     useState<WorldActivity | null>(null);
   const [camera, setCamera] = useState<WorldCameraLook>({
@@ -91,6 +179,140 @@ export function WorldRoom({
     (agentAvatar.avatarSource?.kind === "imported" &&
       agentAvatar.avatarSource.mode === "modular");
   const noWebGL = forceNoWebGL || contextLost || modularUnsupported;
+  useEffect(() => {
+    userAnimationRef.current = userAnimation;
+  }, [userAnimation]);
+  useEffect(() => {
+    agentMovementRef.current = agentMovement;
+  }, [agentMovement]);
+  useEffect(() => {
+    onAgentMovementEventRef.current = onAgentMovementEvent;
+  }, [onAgentMovementEvent]);
+  useEffect(() => {
+    if (!userCue) return;
+    const timer = window.setTimeout(
+      () =>
+        setUserAnimation((current) =>
+          triggerAvatarOneShot(
+            current,
+            userCue.semantic,
+            userCue.source,
+            reducedMotion,
+          ),
+        ),
+      0,
+    );
+    return () => window.clearTimeout(timer);
+  }, [reducedMotion, userCue]);
+  useEffect(() => {
+    if (!agentCue) return;
+    const timer = window.setTimeout(
+      () =>
+        setAgentAnimation((current) =>
+          agentMovementRef.current.movementState === "moving"
+            ? current
+            : triggerAvatarOneShot(
+                current,
+                agentCue.semantic,
+                agentCue.source,
+                reducedMotion,
+              ),
+        ),
+      0,
+    );
+    return () => window.clearTimeout(timer);
+  }, [agentCue, reducedMotion]);
+  const agentMovementContext = useMemo(
+    () => ({
+      bounds: { minX: -15, maxX: 15, minZ: -15, maxZ: 15 },
+      userPosition,
+      layoutGeneration,
+      resolveRepositoryObject: (
+        objectId: string,
+      ): RepositoryApproachPoint | null => {
+        const object = objects.find(({ ref }) => ref === objectId);
+        return object
+          ? {
+              objectId,
+              layoutGeneration,
+              position: { x: object.position.x, z: object.position.z },
+              hidden: false,
+              reachable: true,
+            }
+          : null;
+      },
+    }),
+    [layoutGeneration, objects, userPosition],
+  );
+  const agentMovementContextRef = useRef(agentMovementContext);
+  useEffect(() => {
+    agentMovementContextRef.current = agentMovementContext;
+  }, [agentMovementContext]);
+  useEffect(() => {
+    if (
+      !agentMovementRequest ||
+      handledAgentMovementRequest.current === agentMovementRequest.requestId
+    )
+      return;
+    handledAgentMovementRequest.current = agentMovementRequest.requestId;
+    const result = requestAgentMovement(
+      agentMovementRef.current,
+      agentMovementRequest,
+      agentMovementContextRef.current,
+    );
+    agentMovementRef.current = result.state;
+    setAgentMovement(result.state);
+    setAgentAnimation((current) =>
+      setAvatarLocomotion(current, result.state.animationSemantic),
+    );
+    for (const movementEvent of result.events)
+      onAgentMovementEventRef.current?.(movementEvent, result.state.position);
+  }, [agentMovementRequest]);
+  useEffect(() => {
+    if (
+      agentMovementCancellationGeneration <=
+      handledAgentMovementCancellation.current
+    )
+      return;
+    handledAgentMovementCancellation.current =
+      agentMovementCancellationGeneration;
+    const result = cancelAgentMovement(
+      agentMovementRef.current,
+      "user-directed-stop",
+      agentMovementContextRef.current,
+    );
+    agentMovementRef.current = result.state;
+    setAgentMovement(result.state);
+    setAgentAnimation((current) => setAvatarLocomotion(current, "Idle"));
+    for (const movementEvent of result.events)
+      onAgentMovementEventRef.current?.(movementEvent, result.state.position);
+  }, [agentMovementCancellationGeneration]);
+  useEffect(() => {
+    if (agentMovement.movementState !== "moving") return;
+    let frame = 0;
+    let previousFrame: number | null = null;
+    const tick = (timestamp: number) => {
+      const elapsedSeconds =
+        previousFrame === null ? 0 : (timestamp - previousFrame) / 1_000;
+      previousFrame = timestamp;
+      const result = advanceAgentMovement(
+        agentMovementRef.current,
+        elapsedSeconds,
+        agentMovementContextRef.current,
+      );
+      agentMovementRef.current = result.state;
+      setAgentMovement(result.state);
+      setAgentAnimation((current) =>
+        setAvatarLocomotion(current, result.state.animationSemantic),
+      );
+      for (const movementEvent of result.events)
+        onAgentMovementEventRef.current?.(movementEvent, result.state.position);
+      if (result.state.movementState === "moving")
+        frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [agentMovement.generation, agentMovement.movementState]);
   useEffect(() => {
     cameraRef.current = camera;
   }, [camera]);
@@ -164,6 +386,28 @@ export function WorldRoom({
     const down = (event: KeyboardEvent) => {
       if (isEditableWorldTarget(event.target)) return;
       const key = event.key.toLocaleLowerCase();
+      const dialogOpen = Boolean(
+        document.querySelector('[role="dialog"], dialog[open]'),
+      );
+      if (
+        shouldConsumeWorldJump({
+          key: event.key,
+          repeat: event.repeat,
+          target: event.target,
+          worldActive:
+            document.visibilityState === "visible" &&
+            roomRef.current?.isConnected === true,
+          dialogOpen,
+          escapeMenuOpen: dialogOpen,
+          oneShotActive: userAnimationRef.current.oneShot !== null,
+        })
+      ) {
+        event.preventDefault();
+        setUserAnimation((current) =>
+          triggerAvatarOneShot(current, "Jump", "space", reducedMotion),
+        );
+        return;
+      }
       if (key === "escape" && activeLookPointer.current !== null) {
         stopMouseLook();
         return;
@@ -296,20 +540,53 @@ export function WorldRoom({
       activeKeys.clear();
       stopMouseLook(false);
     };
-  }, [stopMouseLook]);
+  }, [reducedMotion, stopMouseLook]);
 
-  const userAction = projectWorldAvatarAction({
+  const projectedUserAction = projectWorldAvatarAction({
     role: "user",
     activity: activity.state,
     movement: movementPhase,
     terminalElapsedMs: 0,
   });
-  const agentAction = projectWorldAvatarAction({
+  const projectedAgentAction = projectWorldAvatarAction({
     role: "agent",
     activity: activity.state,
-    movement: "idle",
+    movement:
+      agentMovement.animationSemantic === "Run"
+        ? "sprinting"
+        : agentMovement.movementState === "moving"
+          ? "moving"
+          : "idle",
     terminalElapsedMs: expiredTerminalActivity === activity ? 2201 : 0,
   });
+  const userLocomotion =
+    projectedUserAction === "StartWalk" || projectedUserAction === "Walk"
+      ? "Walk"
+      : projectedUserAction === "Run"
+        ? "Run"
+        : "Idle";
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () =>
+        setUserAnimation((current) =>
+          setAvatarLocomotion(current, userLocomotion),
+        ),
+      0,
+    );
+    return () => window.clearTimeout(timer);
+  }, [userLocomotion]);
+  const userUsesImported =
+    userAvatar.avatarSource?.kind === "imported" &&
+    userAvatar.avatarSource.mode === "original";
+  const agentUsesImported =
+    agentAvatar.avatarSource?.kind === "imported" &&
+    agentAvatar.avatarSource.mode === "original";
+  const userAction = userUsesImported
+    ? userAnimation.semantic
+    : projectedUserAction;
+  const agentAction = agentUsesImported
+    ? agentAnimation.semantic
+    : projectedAgentAction;
   const userImportedAvatar = worldImportedAvatarSelection(
     userAvatar,
     userAction,
@@ -325,20 +602,92 @@ export function WorldRoom({
   const staticPoseRefused =
     userImportedClip?.clipName === "unverified-static-pose" ||
     agentImportedClip?.clipName === "unverified-static-pose";
+  const userOneShot = userAnimation.oneShot;
+  const agentOneShot = agentAnimation.oneShot;
+  const userOneShotDuration = userImportedClip?.durationSeconds ?? 0;
+  const agentOneShotDuration = agentImportedClip?.durationSeconds ?? 0;
+  const userOneShotVerified =
+    userImportedClip?.verification === "semantic-review-pass";
+  const agentOneShotVerified =
+    agentImportedClip?.verification === "semantic-review-pass";
+  useEffect(() => {
+    const active = [
+      [
+        "user",
+        userOneShot,
+        userOneShotDuration,
+        userOneShotVerified,
+        userAnimation.generation,
+      ] as const,
+      [
+        "agent",
+        agentOneShot,
+        agentOneShotDuration,
+        agentOneShotVerified,
+        agentAnimation.generation,
+      ] as const,
+    ];
+    const timers = active.flatMap(
+      ([role, oneShot, duration, verified, generation]) => {
+        if (!oneShot) return [];
+        const delay =
+          reducedMotion || noWebGL || !verified
+            ? 0
+            : Math.ceil((duration + 0.44) * 1_000);
+        return [
+          window.setTimeout(() => {
+            if (role === "user")
+              setUserAnimation((current) =>
+                completeAvatarOneShot(current, generation),
+              );
+            else
+              setAgentAnimation((current) =>
+                completeAvatarOneShot(current, generation),
+              );
+          }, delay),
+        ];
+      },
+    );
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [
+    agentOneShot,
+    agentOneShotDuration,
+    agentOneShotVerified,
+    noWebGL,
+    reducedMotion,
+    userOneShot,
+    userOneShotDuration,
+    userOneShotVerified,
+    userAnimation.generation,
+    agentAnimation.generation,
+  ]);
+  const completeImportedOneShot = useCallback(
+    (role: "user" | "agent", generation: number) => {
+      if (role === "user")
+        setUserAnimation((current) =>
+          completeAvatarOneShot(current, generation),
+        );
+      else
+        setAgentAnimation((current) =>
+          completeAvatarOneShot(current, generation),
+        );
+    },
+    [],
+  );
   const userLayerState = useMemo(
     () =>
       projectAvatarLayerState({
-        action: userAction,
+        action: projectedUserAction,
         reducedMotion,
         speechShape: null,
         gaze: "camera",
       }),
-    [reducedMotion, userAction],
+    [projectedUserAction, reducedMotion],
   );
   const agentLayerState = useMemo(
     () =>
       projectAvatarLayerState({
-        action: agentAction,
+        action: projectedAgentAction,
         reducedMotion,
         speechShape: null,
         gaze:
@@ -348,7 +697,7 @@ export function WorldRoom({
               ? "operator"
               : "camera",
       }),
-    [activity.state, agentAction, reducedMotion],
+    [activity.state, projectedAgentAction, reducedMotion],
   );
 
   return (
@@ -372,6 +721,11 @@ export function WorldRoom({
       data-user-avatar-rendered-clip-index={userImportedClip?.clipIndex}
       data-user-avatar-rendered-clip={userImportedClip?.clipName}
       data-user-avatar-locomotion={userImportedClip?.locomotion}
+      data-user-avatar-semantic={userAnimation.semantic}
+      data-user-avatar-cue-source={userAnimation.cueSource}
+      data-user-avatar-animation-progression={userAnimation.progression}
+      data-user-avatar-animation-verification={userImportedClip?.verification}
+      data-user-avatar-animation-error={userImportedClip?.error}
       data-agent-avatar-species={agentAvatar.species}
       data-agent-avatar-shirt={agentAvatar.shirt}
       data-agent-avatar-source={
@@ -386,13 +740,25 @@ export function WorldRoom({
       data-agent-avatar-rendered-clip-index={agentImportedClip?.clipIndex}
       data-agent-avatar-rendered-clip={agentImportedClip?.clipName}
       data-agent-avatar-locomotion={agentImportedClip?.locomotion}
+      data-agent-avatar-semantic={agentAnimation.semantic}
+      data-agent-avatar-cue-source={agentAnimation.cueSource}
+      data-agent-avatar-animation-progression={agentAnimation.progression}
+      data-agent-avatar-animation-verification={agentImportedClip?.verification}
+      data-agent-avatar-animation-error={agentImportedClip?.error}
+      data-agent-movement-state={agentMovement.movementState}
+      data-agent-movement-source={agentMovement.source ?? "none"}
+      data-agent-movement-request={agentMovement.activeRequest?.requestId ?? ""}
+      data-agent-position-x={agentMovement.position.x}
+      data-agent-position-z={agentMovement.position.z}
+      data-agent-heading={agentMovement.heading}
+      data-agent-velocity={`${agentMovement.velocity.x},${agentMovement.velocity.z}`}
       data-mouse-look={mouseLookActive ? "active" : "idle"}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       data-user-avatar-action={userAction}
       data-agent-avatar-action={agentAction}
       tabIndex={0}
-      aria-label="AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move and Shift to sprint."
+      aria-label="AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move, Shift to sprint, and Space to jump."
       onPointerDown={(event) => {
         if (event.button !== 2 || !(event.target instanceof HTMLCanvasElement))
           return;
@@ -456,7 +822,7 @@ export function WorldRoom({
           role="status"
         >
           <span>Hold right mouse on canvas: look · release: stop</span>
-          <span>WASD / arrows: move · Shift: sprint</span>
+          <span>WASD / arrows: move · Shift: sprint · Space: jump</span>
           <strong>
             {mouseLookActive ? "Mouse look active" : "Mouse look idle"}
           </strong>
@@ -521,49 +887,71 @@ export function WorldRoom({
           <p role="status">
             {modularUnsupported
               ? "Modular 3D avatar refused: layered donor-region rendering is pending verification. No complete donor or custom avatar was substituted."
-              : "Semantic scene active. Movement, avatars, chat, and repository state remain available."}
+              : rendererFailure === "load-or-render-error"
+                ? "3D avatar loading or rendering failed. Semantic scene active; movement, chat, and repository state remain available."
+                : rendererFailure === "context-lost"
+                  ? "3D renderer context became unavailable. Semantic scene active; movement, chat, and repository state remain available."
+                  : "Semantic scene active. Movement, avatars, chat, and repository state remain available."}
           </p>
         ) : null}
       </section>
       {!noWebGL ? (
         <div className="world-room__canvas-host" aria-hidden="true">
-          <Suspense fallback={null}>
-            {userImportedAvatar || agentImportedAvatar ? (
-              <ImportedWorldRoomCanvas
-                floor={floor}
-                objects={objects}
-                userPosition={userPosition}
-                camera={camera}
-                activity={activity}
-                userAvatar={userAvatar}
-                agentAvatar={agentAvatar}
-                userImportedAvatar={userImportedAvatar}
-                agentImportedAvatar={agentImportedAvatar}
-                userAction={userAction}
-                agentAction={agentAction}
-                userLayerState={userLayerState}
-                agentLayerState={agentLayerState}
-                reducedMotion={reducedMotion}
-                onContextLost={() => setContextLost(true)}
-              />
-            ) : (
-              <WorldRoomCanvas
-                floor={floor}
-                objects={objects}
-                userPosition={userPosition}
-                camera={camera}
-                activity={activity}
-                userAvatar={userAvatar}
-                agentAvatar={agentAvatar}
-                userAction={userAction}
-                agentAction={agentAction}
-                userLayerState={userLayerState}
-                agentLayerState={agentLayerState}
-                reducedMotion={reducedMotion}
-                onContextLost={() => setContextLost(true)}
-              />
-            )}
-          </Suspense>
+          <WorldCanvasErrorBoundary
+            onError={() => {
+              setRendererFailure("load-or-render-error");
+              setContextLost(true);
+            }}
+          >
+            <Suspense fallback={null}>
+              {userImportedAvatar || agentImportedAvatar ? (
+                <ImportedWorldRoomCanvas
+                  floor={floor}
+                  objects={objects}
+                  userPosition={userPosition}
+                  camera={camera}
+                  activity={activity}
+                  userAvatar={userAvatar}
+                  agentAvatar={agentAvatar}
+                  userImportedAvatar={userImportedAvatar}
+                  agentImportedAvatar={agentImportedAvatar}
+                  userAction={userAction}
+                  agentAction={agentAction}
+                  userAnimationGeneration={userAnimation.generation}
+                  agentAnimationGeneration={agentAnimation.generation}
+                  agentPosition={agentMovement.position}
+                  agentHeading={agentMovement.heading}
+                  userLayerState={userLayerState}
+                  agentLayerState={agentLayerState}
+                  reducedMotion={reducedMotion}
+                  onImportedOneShotComplete={completeImportedOneShot}
+                  onContextLost={() => {
+                    setRendererFailure("context-lost");
+                    setContextLost(true);
+                  }}
+                />
+              ) : (
+                <WorldRoomCanvas
+                  floor={floor}
+                  objects={objects}
+                  userPosition={userPosition}
+                  camera={camera}
+                  activity={activity}
+                  userAvatar={userAvatar}
+                  agentAvatar={agentAvatar}
+                  userAction={userAction}
+                  agentAction={agentAction}
+                  userLayerState={userLayerState}
+                  agentLayerState={agentLayerState}
+                  reducedMotion={reducedMotion}
+                  onContextLost={() => {
+                    setRendererFailure("context-lost");
+                    setContextLost(true);
+                  }}
+                />
+              )}
+            </Suspense>
+          </WorldCanvasErrorBoundary>
         </div>
       ) : null}
     </main>

@@ -1,17 +1,42 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const EVIDENCE_DIR = fileURLToPath(
-  new URL(
-    "../../../artifacts/avatar-replacement-evidence/browser-original-flow/",
-    import.meta.url,
-  ),
-);
+const EVIDENCE_DIR =
+  process.env.AIW_PLAYWRIGHT_EVIDENCE_DIR ??
+  fileURLToPath(
+    new URL(
+      "../../../artifacts/avatar-replacement-evidence/world-animation-completion-v1/browser/",
+      import.meta.url,
+    ),
+  );
+const STATIC_PRODUCTION_ORIGIN = "http://aiw.local";
+const WEB_DIST = fileURLToPath(new URL("../dist/", import.meta.url));
 
 test.beforeAll(() => {
   mkdirSync(EVIDENCE_DIR, { recursive: true });
+});
+
+test.beforeEach(async ({ page }) => {
+  await page.route(`${STATIC_PRODUCTION_ORIGIN}/**`, async (route) => {
+    const requestUrl = new URL(route.request().url());
+    const pathname = decodeURIComponent(requestUrl.pathname);
+    const filePath =
+      pathname === "/"
+        ? resolve(WEB_DIST, "index.html")
+        : resolve(WEB_DIST, `.${pathname}`);
+    if (!filePath.startsWith(WEB_DIST)) {
+      await route.fulfill({ status: 404, body: "not found" });
+      return;
+    }
+    try {
+      await route.fulfill({ status: 200, path: filePath });
+    } catch {
+      await route.fulfill({ status: 404, body: "not found" });
+    }
+  });
 });
 
 const apiEnvelope = (data: unknown) => ({
@@ -223,22 +248,27 @@ test("six stance cards open a separate GLB preview and persist a complete avatar
     fullPage: true,
   });
   await page.setViewportSize({ width: 1600, height: 1000 });
-  await page
-    .getByRole("button", { name: "Save avatar and enter World" })
-    .click();
+  const saveAvatar = page.getByRole("button", {
+    name: "Save avatar and enter World",
+  });
+  await expect(saveAvatar).toBeEnabled();
+  await saveAvatar.click();
 
-  const source = await page.evaluate(() => {
-    const envelope = JSON.parse(
-      localStorage.getItem("aiw.avatar.profile.0.18.5") ?? "null",
-    );
-    return envelope?.current?.avatarSource;
-  });
-  expect(source).toEqual({
-    kind: "imported",
-    version: 2,
-    mode: "original",
-    modelId: "user-female-03",
-  });
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const envelope = JSON.parse(
+          localStorage.getItem("aiw.avatar.profile.0.18.5") ?? "null",
+        );
+        return envelope?.current?.avatarSource;
+      }),
+    )
+    .toEqual({
+      kind: "imported",
+      version: 2,
+      mode: "original",
+      modelId: "user-female-03",
+    });
   expect([
     ...new Set(importedRequests.filter((path) => path.endsWith(".glb"))),
   ]).toEqual([
@@ -308,10 +338,10 @@ test("text-only selection loads no GLB and stale removed IDs require re-selectio
   expect(glbRequests).toEqual([]);
 });
 
-test("seventeen agent stance cards open and transport an explicit original", async ({
+test("seventeen agent stances and mounted user-directed movement work in production", async ({
   page,
 }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   const session = {
     schema: "aiw.agent-session/0.12",
@@ -382,6 +412,82 @@ test("seventeen agent stance cards open and transport an explicit original", asy
     );
   });
   let acceptedProposal: Record<string, unknown> | null = null;
+  const streamedTexts: string[] = [];
+  const movementProposals: Record<string, unknown>[] = [];
+  const movementLifecyclePosts: {
+    readonly pathname: string;
+    readonly body: Record<string, unknown>;
+  }[] = [];
+  const autonomousAction = {
+    kind: "move-agent",
+    schema: "aiw.agent-movement/1",
+    actionId: "66666666-6666-4666-8666-666666666666",
+    actorId: session.sessionId,
+    source: "agent-autonomous",
+    speed: 1,
+    target: { kind: "coordinate", x: -10, z: 1 },
+  } as const;
+  let activeMovementAction: Record<string, unknown> | null = null;
+  await page.route("**/world-actions/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const method = request.method();
+    if (method === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          protocol: "aiw.world-action/0.13",
+          actions: [],
+          executions: activeMovementAction
+            ? [
+                {
+                  accepted: true,
+                  envelope: {
+                    protocol: "aiw.world-action/0.13",
+                    envelopeId: "77777777-7777-4777-8777-777777777777",
+                    sessionId: session.sessionId,
+                    actions: [activeMovementAction],
+                  },
+                },
+              ]
+            : [],
+        }),
+      });
+      return;
+    }
+    const body = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+    if (method === "POST" && pathname.endsWith("/proposals")) {
+      movementProposals.push(body);
+      const proposedAction = (body.actions as Record<string, unknown>[])[0]!;
+      activeMovementAction = {
+        ...proposedAction,
+        actionId: "88888888-8888-4888-8888-888888888888",
+      };
+      await route.fulfill({
+        status: 202,
+        contentType: "application/json",
+        body: JSON.stringify({
+          accepted: true,
+          envelope: {
+            protocol: "aiw.world-action/0.13",
+            envelopeId: "99999999-9999-4999-8999-999999999999",
+            sessionId: session.sessionId,
+            actions: [activeMovementAction],
+          },
+        }),
+      });
+      return;
+    }
+    movementLifecyclePosts.push({ pathname, body });
+    if (method === "POST" && pathname.endsWith("/interrupt"))
+      activeMovementAction = null;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ actions: [] }),
+    });
+  });
   await page.route("**/api/**", async (route) => {
     const pathname = new URL(route.request().url()).pathname;
     let data: unknown;
@@ -427,6 +533,44 @@ test("seventeen agent stance cards open and transport an explicit original", asy
       };
       acceptedProposal = body.proposal ?? null;
       data = { state: "accepted" };
+    } else if (pathname.endsWith("/stream")) {
+      const body = route.request().postDataJSON() as {
+        readonly text?: unknown;
+      } | null;
+      const requestText = typeof body?.text === "string" ? body.text : "";
+      streamedTexts.push(requestText);
+      const event = (name: string, value: unknown) =>
+        `event: ${name}\ndata: ${JSON.stringify(value)}\n\n`;
+      const finalText = "Hello from the visible agent response.";
+      await route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        body: [
+          event("world.event", {
+            schema: "aiw.agent-event/0.12",
+            eventId: "44444444-4444-4444-8444-444444444444",
+            sessionId: session.sessionId,
+            sequence: 1,
+            occurredAt: "2026-08-01T00:00:00.000Z",
+            correlationId: "55555555-5555-4555-8555-555555555555",
+            type: "message.assistant-final",
+            payload: { text: finalText },
+            redaction: { applied: false, count: 0 },
+          }),
+          event("world.final", {
+            schema: "aiw.agent-stream-terminal/0.12",
+            sessionId: session.sessionId,
+            status: "completed",
+            finalText,
+          }),
+          event("world.done", {
+            schema: "aiw.agent-stream-terminal/0.12",
+            sessionId: session.sessionId,
+            status: "completed",
+          }),
+        ].join(""),
+      });
+      return;
     } else {
       await route.fulfill({ status: 404, body: "fixture route missing" });
       return;
@@ -443,6 +587,9 @@ test("seventeen agent stance cards open and transport an explicit original", asy
   await page.getByRole("button", { name: /hermes_/u }).click();
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Change Mr Fluff’s avatar" }),
+  ).toBeVisible({ timeout: 20_000 });
   await expect(
     page.getByRole("button", { name: /Open .* 3D preview/u }),
   ).toHaveCount(17);
@@ -535,6 +682,38 @@ test("seventeen agent stance cards open and transport an explicit original", asy
     page.getByText("Static source pose · animation semantics unverified"),
   ).toHaveCount(0);
   await expect(page.getByPlaceholder("Message Mr Fluff")).toBeVisible();
+  const productionManifest = JSON.parse(
+    readFileSync(
+      resolve(WEB_DIST, "assets/imported-avatars/manifest.json"),
+      "utf8",
+    ),
+  ) as {
+    readonly assets: readonly {
+      readonly semanticClips: Readonly<Record<string, number>>;
+      readonly semanticEvidence: Readonly<
+        Record<string, { readonly verification: string }>
+      >;
+      readonly semanticReview: Readonly<
+        Record<string, { readonly verdict: string }>
+      >;
+    }[];
+  };
+  expect(productionManifest.assets).toHaveLength(23);
+  expect(
+    productionManifest.assets.every(
+      (asset) =>
+        Object.keys(asset.semanticClips).length === 12 &&
+        Object.values(asset.semanticEvidence).every(
+          ({ verification }) => verification === "structural-temporal-evidence",
+        ) &&
+        Object.values(asset.semanticReview).filter(
+          ({ verdict }) => verdict === "pass",
+        ).length === 3 &&
+        Object.values(asset.semanticReview).filter(
+          ({ verdict }) => verdict === "ambiguous",
+        ).length === 9,
+    ),
+  ).toBe(true);
   await page.setViewportSize({ width: 1920, height: 1080 });
 
   const readAnimationSnapshot = async (state: string) => {
@@ -630,6 +809,138 @@ test("seventeen agent stance cards open and transport an explicit original", asy
     path: `${EVIDENCE_DIR}/world-motion-user-male-02-and-robot-agent-05-idle-grounded-framing.png`,
   });
 
+  const room = page.locator(".world-room");
+  const chatInput = page.getByPlaceholder("Message Mr Fluff");
+  await chatInput.fill("  /DaNcE  ");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
+  await expect(worldCanvas).toHaveAttribute(
+    "data-user-avatar-rendered-clip",
+    "NlaTrack.005",
+  );
+  await expect(worldCanvas).toHaveAttribute(
+    "data-user-avatar-animation-verification",
+    "semantic-review-pass",
+  );
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/world-one-shot-user-dance-refused-idle.png`,
+  });
+  expect(streamedTexts).toEqual([]);
+  await expect(page.getByText("/DaNcE", { exact: false })).toHaveCount(0);
+
+  await room.focus();
+  await page.keyboard.press("Space");
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
+  await expect(worldCanvas).toHaveAttribute(
+    "data-user-avatar-rendered-clip",
+    "NlaTrack.005",
+  );
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/world-one-shot-user-jump-refused-idle.png`,
+  });
+
+  await chatInput.fill("hello");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
+  await expect(worldCanvas).toHaveAttribute(
+    "data-agent-avatar-rendered-clip",
+    "NlaTrack.018",
+  );
+  await page.screenshot({
+    path: `${EVIDENCE_DIR}/world-one-shot-agent-wave-refused-idle.png`,
+  });
+  expect(streamedTexts).toEqual(["hello"]);
+
+  activeMovementAction = autonomousAction;
+  const autonomousStartX = Number(
+    await room.getAttribute("data-agent-position-x"),
+  );
+  await expect(room).toHaveAttribute(
+    "data-agent-movement-source",
+    "agent-autonomous",
+    { timeout: 10_000 },
+  );
+  await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
+  await expect
+    .poll(async () => Number(await room.getAttribute("data-agent-position-x")))
+    .toBeLessThan(autonomousStartX - 0.1);
+
+  const chatCountBeforeDirection = streamedTexts.length;
+  await chatInput.fill("  /AgEnT MoVe 10 1  ");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect
+    .poll(() => movementProposals.length, { timeout: 10_000 })
+    .toBe(1);
+  expect(movementProposals[0]).toEqual({
+    actions: [
+      {
+        kind: "move-agent",
+        schema: "aiw.agent-movement/1",
+        actorId: session.sessionId,
+        source: "user-directed",
+        speed: 4,
+        target: { kind: "coordinate", x: 10, z: 1 },
+      },
+    ],
+    ttlMs: 30_000,
+  });
+  expect(streamedTexts).toHaveLength(chatCountBeforeDirection);
+  await expect(room).toHaveAttribute(
+    "data-agent-movement-source",
+    "user-directed",
+    {
+      timeout: 10_000,
+    },
+  );
+  await expect(room).toHaveAttribute(
+    "data-agent-movement-request",
+    "88888888-8888-4888-8888-888888888888",
+  );
+  await expect(room).toHaveAttribute(
+    "data-agent-avatar-cue-source",
+    "locomotion",
+  );
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", /Walk|Run/u);
+  const directedStartX = Number(
+    await room.getAttribute("data-agent-position-x"),
+  );
+  await expect
+    .poll(async () => Number(await room.getAttribute("data-agent-position-x")))
+    .toBeGreaterThan(directedStartX + 0.1);
+  await expect
+    .poll(
+      () =>
+        movementLifecyclePosts.some(
+          ({ pathname, body }) =>
+            pathname.endsWith("/transition") && body.event === "arrived",
+        ),
+      { timeout: 10_000 },
+    )
+    .toBe(true);
+
+  const proposalCountBeforeRefusal = movementProposals.length;
+  await chatInput.fill("/agent move 16 0");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.locator(".world-hud__captions")).toContainText(
+    "agent movement refused",
+  );
+  expect(movementProposals).toHaveLength(proposalCountBeforeRefusal);
+  expect(streamedTexts).toHaveLength(chatCountBeforeDirection);
+
+  await chatInput.fill("/agent stop");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect
+    .poll(() =>
+      movementLifecyclePosts.some(
+        ({ pathname, body }) =>
+          pathname.endsWith("/interrupt") && body.reason === "cancel",
+      ),
+    )
+    .toBe(true);
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle");
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
+  expect(streamedTexts).toHaveLength(chatCountBeforeDirection);
+
   await page.locator(".world-room").focus();
   await page.keyboard.down("w");
   await expect(worldCanvas).toHaveAttribute(
@@ -638,6 +949,8 @@ test("seventeen agent stance cards open and transport an explicit original", asy
   );
   await page.waitForTimeout(360);
   motionTrace.push(await readAnimationSnapshot("walk"));
+  expect(motionTrace.at(-1)!.user.actionTime).toBeGreaterThan(0.2);
+  expect(motionTrace.at(-1)!.user.boneName).toBe("L_Thigh");
   await page.screenshot({
     path: `${EVIDENCE_DIR}/world-motion-user-male-02-walk-robot-agent-05-idle.png`,
   });
@@ -649,6 +962,8 @@ test("seventeen agent stance cards open and transport an explicit original", asy
   );
   await page.waitForTimeout(360);
   motionTrace.push(await readAnimationSnapshot("run"));
+  expect(motionTrace.at(-1)!.user.actionTime).toBeGreaterThan(0.2);
+  expect(motionTrace.at(-1)!.user.boneName).toBe("L_Thigh");
   await page.screenshot({
     path: `${EVIDENCE_DIR}/world-motion-user-male-02-run-robot-agent-05-idle.png`,
   });
@@ -704,9 +1019,15 @@ test("seventeen agent stance cards open and transport an explicit original", asy
       },
     );
     await page.evaluate(() => window.scrollTo(0, 0));
-    await expect(
-      page.getByText("Static source pose · animation semantics unverified"),
-    ).toBeVisible();
+    await expect(page.locator(".world-room")).toHaveAttribute(
+      "data-agent-avatar-animation-verification",
+      "semantic-review-pass",
+    );
+    await expect(worldCanvas).toHaveAttribute(
+      "data-agent-avatar-animation-source-id",
+      modelId,
+      { timeout: 20_000 },
+    );
     await page.screenshot({
       path: `${EVIDENCE_DIR}/${screenshotName}`,
     });
@@ -715,11 +1036,11 @@ test("seventeen agent stance cards open and transport an explicit original", asy
   await changeAgentAndCapture(
     "Open Cat Agent 1 3D preview",
     "cat-agent-01",
-    "world-static-unverified-user-male-02-and-cat-agent-01-grounded-framing.png",
+    "world-animated-user-male-02-and-cat-agent-01-grounded-framing.png",
   );
   await changeAgentAndCapture(
     "Open Dog Agent 1 3D preview",
     "dog-agent-01",
-    "world-static-unverified-user-male-02-and-dog-agent-01-grounded-framing.png",
+    "world-animated-user-male-02-and-dog-agent-01-grounded-framing.png",
   );
 });

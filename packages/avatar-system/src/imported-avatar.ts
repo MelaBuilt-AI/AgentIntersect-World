@@ -39,6 +39,15 @@ export const IMPORTED_AVATAR_SEMANTICS = [
 ] as const;
 export type ImportedAvatarSemantic = (typeof IMPORTED_AVATAR_SEMANTICS)[number];
 export type ImportedAvatarLocomotion = "Idle" | "Walk" | "Run";
+export type ImportedAvatarSemanticReviewVerdict =
+  "pass" | "wrong_clip" | "ambiguous" | "unsupported";
+export type ImportedAvatarSemanticReviewDecision = {
+  readonly verdict: ImportedAvatarSemanticReviewVerdict;
+  readonly reviewedClipIndex: number;
+  readonly expectedClipIndex: number | null;
+  readonly rationale: string;
+  readonly evidenceRefs: readonly string[];
+};
 export type AvatarBuilderRole = "user" | "agent";
 export const IMPORTED_AVATAR_SLOT_IDS = [
   "head",
@@ -111,6 +120,20 @@ export type ImportedAvatarAsset = {
   readonly thumbnailUrl: string;
   readonly clipCount: number;
   readonly clips: readonly string[];
+  readonly semanticClips: Readonly<
+    Record<
+      ImportedAvatarSemantic,
+      {
+        readonly clipIndex: number;
+        readonly clipName: string;
+        readonly durationSeconds: number;
+        readonly verification: "structural-temporal-evidence";
+      }
+    >
+  >;
+  readonly semanticReview: Readonly<
+    Record<ImportedAvatarSemantic, ImportedAvatarSemanticReviewDecision>
+  >;
   readonly segments: {
     readonly partCount: number;
     readonly regions: Readonly<
@@ -135,7 +158,8 @@ export type ResolvedImportedAvatarWorldClip = {
   readonly semantic: ImportedAvatarSemantic;
   readonly locomotion: ImportedAvatarLocomotion;
   readonly oneShot: boolean;
-  readonly verification: "evidence-backed-pass";
+  readonly durationSeconds: number;
+  readonly verification: "semantic-review-pass";
 };
 
 declare module "./index.js" {
@@ -206,6 +230,151 @@ export function validateImportedAvatarRegistry(
         (candidate.clipCount as number) !== 22)
     )
       return registryError(`${id} clip inventory and evidence are required`);
+    const semanticDurations = Array.isArray(candidate.semanticDurations)
+      ? candidate.semanticDurations
+      : undefined;
+    const semanticEvidence = isRecord(candidate.semanticEvidence)
+      ? candidate.semanticEvidence
+      : undefined;
+    const compactSemanticEvidence =
+      semanticDurations?.length === IMPORTED_AVATAR_SEMANTICS.length;
+    const manifestSemanticEvidence =
+      semanticEvidence !== undefined &&
+      exactKeys(semanticEvidence, IMPORTED_AVATAR_SEMANTICS);
+    const semanticReview = isRecord(candidate.semanticReview)
+      ? candidate.semanticReview
+      : undefined;
+    const semanticReviewVerdicts = Array.isArray(
+      candidate.semanticReviewVerdicts,
+    )
+      ? candidate.semanticReviewVerdicts
+      : undefined;
+    const semanticReviewExpectedClipIndices = Array.isArray(
+      candidate.semanticReviewExpectedClipIndices,
+    )
+      ? candidate.semanticReviewExpectedClipIndices
+      : undefined;
+    const compactSemanticReview =
+      semanticReviewVerdicts?.length === IMPORTED_AVATAR_SEMANTICS.length &&
+      semanticReviewExpectedClipIndices?.length ===
+        IMPORTED_AVATAR_SEMANTICS.length;
+    const manifestSemanticReview =
+      semanticReview !== undefined &&
+      exactKeys(semanticReview, IMPORTED_AVATAR_SEMANTICS);
+    if (
+      !isRecord(candidate.semanticClips) ||
+      !exactKeys(candidate.semanticClips, IMPORTED_AVATAR_SEMANTICS) ||
+      (!compactSemanticReview && !manifestSemanticReview) ||
+      (!compactSemanticEvidence && !manifestSemanticEvidence)
+    )
+      return registryError(`${id} semantic evidence table is incomplete`);
+    const mappedIndices = new Set<number>();
+    const semanticClips = {} as Record<
+      ImportedAvatarSemantic,
+      ImportedAvatarAsset["semanticClips"][ImportedAvatarSemantic]
+    >;
+    const normalizedSemanticReview = {} as Record<
+      ImportedAvatarSemantic,
+      ImportedAvatarSemanticReviewDecision
+    >;
+    for (const [
+      semanticIndex,
+      semantic,
+    ] of IMPORTED_AVATAR_SEMANTICS.entries()) {
+      const clipIndex = candidate.semanticClips[semantic];
+      const evidence = manifestSemanticEvidence
+        ? semanticEvidence[semantic]
+        : undefined;
+      const durationSeconds = compactSemanticEvidence
+        ? semanticDurations?.[semanticIndex]
+        : isRecord(evidence)
+          ? evidence.durationSeconds
+          : undefined;
+      const detailedReview = manifestSemanticReview
+        ? semanticReview[semantic]
+        : undefined;
+      const encodedVerdict = compactSemanticReview
+        ? semanticReviewVerdicts?.[semanticIndex]
+        : undefined;
+      const verdict = manifestSemanticReview
+        ? isRecord(detailedReview)
+          ? detailedReview.verdict
+          : undefined
+        : (
+            {
+              p: "pass",
+              w: "wrong_clip",
+              a: "ambiguous",
+              u: "unsupported",
+            } as const
+          )[encodedVerdict as "p" | "w" | "a" | "u"];
+      const expectedClipIndex = manifestSemanticReview
+        ? isRecord(detailedReview)
+          ? detailedReview.expectedClipIndex
+          : undefined
+        : semanticReviewExpectedClipIndices?.[semanticIndex];
+      if (
+        !Number.isInteger(clipIndex) ||
+        (clipIndex as number) < 0 ||
+        (clipIndex as number) >= (candidate.clipCount as number) ||
+        !Number.isFinite(durationSeconds) ||
+        (durationSeconds as number) <= 0 ||
+        (manifestSemanticEvidence &&
+          (!isRecord(evidence) ||
+            evidence.clipIndex !== clipIndex ||
+            typeof evidence.clipName !== "string" ||
+            !Number.isInteger(evidence.channelCount) ||
+            (evidence.channelCount as number) <= 0 ||
+            !Number.isInteger(evidence.targetCount) ||
+            (evidence.targetCount as number) <= 0 ||
+            evidence.verification !== "structural-temporal-evidence")) ||
+        !["pass", "wrong_clip", "ambiguous", "unsupported"].includes(
+          verdict as string,
+        ) ||
+        (manifestSemanticReview &&
+          (!isRecord(detailedReview) ||
+            detailedReview.reviewedClipIndex !== clipIndex ||
+            typeof detailedReview.rationale !== "string" ||
+            detailedReview.rationale.length <= 20 ||
+            !Array.isArray(detailedReview.evidenceRefs) ||
+            detailedReview.evidenceRefs.length === 0 ||
+            detailedReview.evidenceRefs.some(
+              (reference) =>
+                typeof reference !== "string" || reference.length === 0,
+            ))) ||
+        (verdict === "pass"
+          ? expectedClipIndex !== clipIndex
+          : expectedClipIndex !== null)
+      )
+        return registryError(`${id} ${semantic} semantic evidence is invalid`);
+      if (mappedIndices.has(clipIndex as number))
+        return registryError(`${id} semantic mappings are ambiguous`);
+      mappedIndices.add(clipIndex as number);
+      semanticClips[semantic] = {
+        clipIndex: clipIndex as number,
+        clipName: isRecord(evidence)
+          ? (evidence.clipName as string)
+          : clipIndex === 0
+            ? "NlaTrack"
+            : `NlaTrack.${String(clipIndex).padStart(3, "0")}`,
+        durationSeconds: durationSeconds as number,
+        verification: "structural-temporal-evidence",
+      };
+      normalizedSemanticReview[semantic] = {
+        verdict: verdict as ImportedAvatarSemanticReviewVerdict,
+        reviewedClipIndex: clipIndex as number,
+        expectedClipIndex: expectedClipIndex as number | null,
+        rationale: manifestSemanticReview
+          ? ((detailedReview as Record<string, unknown>).rationale as string)
+          : "See the deterministic model-wide semantic review artifact for the reviewed rationale.",
+        evidenceRefs: manifestSemanticReview
+          ? ((detailedReview as Record<string, unknown>)
+              .evidenceRefs as readonly string[])
+          : [
+              "artifacts/avatar-replacement-evidence/world-animation-semantic-review-v2/semantic-review.json",
+            ],
+      };
+    }
     if (
       !Number.isInteger(candidate.partCount) ||
       (candidate.partCount as number) <= 0 ||
@@ -229,7 +398,10 @@ export function validateImportedAvatarRegistry(
       ]),
     ) as Record<ImportedAvatarSlotId, ImportedAvatarRegion>;
     normalized.push({
-      ...(candidate as unknown as Omit<ImportedAvatarAsset, "clips">),
+      ...(candidate as unknown as Omit<
+        ImportedAvatarAsset,
+        "clips" | "semanticClips"
+      >),
       clips: Array.from(
         { length: candidate.clipCount as number },
         (_, index) =>
@@ -237,6 +409,8 @@ export function validateImportedAvatarRegistry(
             ? "NlaTrack"
             : `NlaTrack.${String(index).padStart(3, "0")}`,
       ),
+      semanticClips,
+      semanticReview: normalizedSemanticReview,
       segments: {
         partCount: candidate.partCount as number,
         regions,
@@ -832,23 +1006,44 @@ export function resolveImportedAvatarWorldClip(
         : action === "Idle" || action === "Walk" || action === "Run"
           ? action
           : undefined;
-  const clipIndex =
-    assetId === "user-male-02" && locomotion
-      ? { Idle: 5, Walk: 3, Run: 20 }[locomotion]
-      : assetId === "robot-agent-05" && locomotion === "Idle"
-        ? 18
-        : undefined;
-  if (!locomotion || clipIndex === undefined)
-    throw new TypeError("Evidence refused");
+  const semantic = IMPORTED_AVATAR_SEMANTICS.includes(
+    action as ImportedAvatarSemantic,
+  )
+    ? (action as ImportedAvatarSemantic)
+    : locomotion;
+  const asset = importedAvatarAsset(assetId);
+  const mapping = semantic ? asset?.semanticClips[semantic] : undefined;
+  const review = semantic ? asset?.semanticReview[semantic] : undefined;
+  if (!asset || !semantic || !mapping || !review)
+    throw new TypeError("Semantic review refused: missing mapping");
+  if (
+    review.verdict !== "pass" ||
+    review.expectedClipIndex !== mapping.clipIndex
+  )
+    throw new TypeError(`Semantic review refused: ${review.verdict}`);
+  const oneShot =
+    semantic !== "Idle" && semantic !== "Walk" && semantic !== "Run";
   return {
     assetId,
-    clipIndex,
-    clipName: `NlaTrack.${clipIndex < 10 ? "00" : "0"}${clipIndex}`,
-    semantic: locomotion,
-    locomotion,
-    oneShot: false,
-    verification: "evidence-backed-pass",
+    clipIndex: mapping.clipIndex,
+    clipName: mapping.clipName,
+    semantic,
+    locomotion: locomotion ?? "Idle",
+    oneShot,
+    durationSeconds: mapping.durationSeconds,
+    verification: "semantic-review-pass",
   };
+}
+
+export function importedAvatarSemanticReview(
+  assetId: ImportedAvatarAssetId | string,
+  semantic: ImportedAvatarSemantic,
+): ImportedAvatarSemanticReviewDecision {
+  const asset = importedAvatarAsset(assetId);
+  const decision = asset?.semanticReview[semantic];
+  if (!decision)
+    throw new TypeError("Semantic review refused: missing decision");
+  return decision;
 }
 
 export function importedAvatarProfileSummary(value: AvatarDraft): string {

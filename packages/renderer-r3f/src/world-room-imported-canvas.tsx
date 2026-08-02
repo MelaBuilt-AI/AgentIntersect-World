@@ -395,9 +395,11 @@ export function prepareWorldActivityBubble({
 function AgentActivityBillboard({
   activity,
   reducedMotion,
+  position,
 }: {
   readonly activity: WorldRoomActivity;
   readonly reducedMotion: boolean;
+  readonly position: readonly [number, number, number];
 }) {
   const descriptor = prepareWorldActivityBubble({ activity, reducedMotion });
   const spriteRef = useRef<Sprite>(null);
@@ -438,7 +440,7 @@ function AgentActivityBillboard({
       }),
     );
     instance.name = `mr-fluff-activity-${activity.state}`;
-    instance.position.set(...descriptor.anchor);
+    instance.position.set(position[0], descriptor.anchor[1], position[2]);
     instance.scale.set(...descriptor.scale);
     instance.renderOrder = 50;
     return instance;
@@ -448,6 +450,7 @@ function AgentActivityBillboard({
     descriptor.detailLabel,
     descriptor.scale,
     descriptor.visualLabel,
+    position,
   ]);
   useEffect(
     () => () => {
@@ -610,6 +613,8 @@ function WorldAvatarModel({
   onReady,
   onLodChange,
   onAnimationSample,
+  onOneShotComplete,
+  animationGeneration,
 }: {
   readonly role: "user" | "agent";
   readonly selection: AvatarSelection;
@@ -626,6 +631,11 @@ function WorldAvatarModel({
     role: "user" | "agent",
     sample: ImportedAvatarAnimationSample,
   ) => void;
+  readonly onOneShotComplete: (
+    role: "user" | "agent",
+    generation: number,
+  ) => void;
+  readonly animationGeneration: number;
 }) {
   return imported ? (
     <ImportedAvatarWorldModel
@@ -639,6 +649,10 @@ function WorldAvatarModel({
       onReady={onReady}
       onLodChange={onLodChange}
       onAnimationSample={onAnimationSample}
+      animationGeneration={animationGeneration}
+      onOneShotComplete={(completedRole, _semantic, generation) =>
+        onOneShotComplete(completedRole, generation)
+      }
     />
   ) : (
     <AvatarKitWorldModel
@@ -678,6 +692,11 @@ function WorldRoomScene({
   onAvatarReady,
   onAvatarLodChange,
   onImportedAnimationSample,
+  onImportedOneShotComplete,
+  userAnimationGeneration,
+  agentAnimationGeneration,
+  agentPosition,
+  agentHeading,
   onContextLost,
 }: {
   readonly floor: WorldRoomFloor;
@@ -703,6 +722,14 @@ function WorldRoomScene({
     role: "user" | "agent",
     sample: ImportedAvatarAnimationSample,
   ) => void;
+  readonly onImportedOneShotComplete: (
+    role: "user" | "agent",
+    generation: number,
+  ) => void;
+  readonly userAnimationGeneration: number;
+  readonly agentAnimationGeneration: number;
+  readonly agentPosition: Readonly<{ x: number; z: number }>;
+  readonly agentHeading: number;
   readonly onContextLost: () => void;
 }) {
   const { camera, gl, invalidate, scene } = useThree();
@@ -710,6 +737,10 @@ function WorldRoomScene({
   const avatarMotion = selectWorldAvatarMotion(renderQuality, reducedMotion);
   const userImportedClip = userImportedAvatar?.resolvedClip;
   const agentImportedClip = agentImportedAvatar?.resolvedClip;
+  const agentWorldPosition = useMemo(
+    () => [agentPosition.x, 0, agentPosition.z] as const,
+    [agentPosition.x, agentPosition.z],
+  );
   const userAnimationEnabled = selectWorldImportedAvatarMotion(
     reducedMotion,
     userImportedClip?.clipIndex,
@@ -919,6 +950,8 @@ function WorldRoomScene({
             onReady={onAvatarReady}
             onLodChange={onAvatarLodChange}
             onAnimationSample={onImportedAnimationSample}
+            onOneShotComplete={onImportedOneShotComplete}
+            animationGeneration={userAnimationGeneration}
           />
         </LightweightAvatarMotion>
       ) : (
@@ -937,16 +970,19 @@ function WorldRoomScene({
           onReady={onAvatarReady}
           onLodChange={onAvatarLodChange}
           onAnimationSample={onImportedAnimationSample}
+          onOneShotComplete={onImportedOneShotComplete}
+          animationGeneration={userAnimationGeneration}
         />
       )}
       <AgentActivityBillboard
         activity={activity}
         reducedMotion={reducedMotion}
+        position={agentWorldPosition}
       />
       {agentImportedAvatar ? (
         <ImportedAvatarGroundingMarker
           role="agent"
-          position={AVATARS[1].position}
+          position={agentWorldPosition}
         />
       ) : null}
       {avatarMotion.lightweight ? (
@@ -958,7 +994,8 @@ function WorldRoomScene({
             action={agentAction}
             layerState={agentLayerState}
             animate={agentAnimationEnabled}
-            position={AVATARS[1].position}
+            position={agentWorldPosition}
+            rotation={[0, agentHeading, 0]}
             scale={
               agentImportedAvatar
                 ? IMPORTED_WORLD_AVATAR_SCALE
@@ -967,6 +1004,8 @@ function WorldRoomScene({
             onReady={onAvatarReady}
             onLodChange={onAvatarLodChange}
             onAnimationSample={onImportedAnimationSample}
+            onOneShotComplete={onImportedOneShotComplete}
+            animationGeneration={agentAnimationGeneration}
           />
         </LightweightAvatarMotion>
       ) : (
@@ -977,13 +1016,16 @@ function WorldRoomScene({
           action={agentAction}
           layerState={agentLayerState}
           animate={agentAnimationEnabled}
-          position={AVATARS[1].position}
+          position={agentWorldPosition}
+          rotation={[0, agentHeading, 0]}
           scale={
             agentImportedAvatar ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale
           }
           onReady={onAvatarReady}
           onLodChange={onAvatarLodChange}
           onAnimationSample={onImportedAnimationSample}
+          onOneShotComplete={onImportedOneShotComplete}
+          animationGeneration={agentAnimationGeneration}
         />
       )}
     </>
@@ -1005,6 +1047,11 @@ export function WorldRoomCanvas({
   userLayerState,
   agentLayerState,
   reducedMotion,
+  onImportedOneShotComplete,
+  userAnimationGeneration,
+  agentAnimationGeneration,
+  agentPosition,
+  agentHeading,
   onContextLost,
 }: {
   readonly floor: WorldRoomFloor;
@@ -1021,6 +1068,14 @@ export function WorldRoomCanvas({
   readonly userLayerState: AvatarLayerState;
   readonly agentLayerState: AvatarLayerState;
   readonly reducedMotion: boolean;
+  readonly onImportedOneShotComplete: (
+    role: "user" | "agent",
+    generation: number,
+  ) => void;
+  readonly userAnimationGeneration: number;
+  readonly agentAnimationGeneration: number;
+  readonly agentPosition: Readonly<{ x: number; z: number }>;
+  readonly agentHeading: number;
   readonly onContextLost: () => void;
 }) {
   const userImportedClip = userImportedAvatar?.resolvedClip;
@@ -1085,6 +1140,11 @@ export function WorldRoomCanvas({
       data-user-avatar-rendered-clip={userImportedClip?.clipName ?? userAction}
       data-user-avatar-rendered-clip-index={userImportedClip?.clipIndex ?? ""}
       data-user-avatar-locomotion={userImportedClip?.locomotion ?? ""}
+      data-user-avatar-semantic={userImportedClip?.semantic ?? userAction}
+      data-user-avatar-animation-verification={
+        userImportedClip?.verification ?? "custom"
+      }
+      data-user-avatar-animation-error={userImportedClip?.error ?? ""}
       data-user-avatar-part-inventory-count={
         userImportedAvatar?.parts?.length ?? 0
       }
@@ -1103,6 +1163,11 @@ export function WorldRoomCanvas({
       }
       data-agent-avatar-rendered-clip-index={agentImportedClip?.clipIndex ?? ""}
       data-agent-avatar-locomotion={agentImportedClip?.locomotion ?? ""}
+      data-agent-avatar-semantic={agentImportedClip?.semantic ?? agentAction}
+      data-agent-avatar-animation-verification={
+        agentImportedClip?.verification ?? "custom"
+      }
+      data-agent-avatar-animation-error={agentImportedClip?.error ?? ""}
       data-user-avatar-animation-source-id={
         userAnimationSample?.sourceAssetId ?? ""
       }
@@ -1110,6 +1175,9 @@ export function WorldRoomCanvas({
       data-user-avatar-mixer-time={userAnimationSample?.mixerTime ?? ""}
       data-user-avatar-action-time={userAnimationSample?.actionTime ?? ""}
       data-user-avatar-animation-sequence={userAnimationSample?.sequence ?? ""}
+      data-user-avatar-animation-progression={
+        userAnimationSample?.progression ?? "pending"
+      }
       data-user-avatar-bone-name={userAnimationSample?.boneName ?? ""}
       data-user-avatar-bone-quaternion={
         userAnimationSample?.boneQuaternion.join(",") ?? ""
@@ -1122,6 +1190,9 @@ export function WorldRoomCanvas({
       data-agent-avatar-action-time={agentAnimationSample?.actionTime ?? ""}
       data-agent-avatar-animation-sequence={
         agentAnimationSample?.sequence ?? ""
+      }
+      data-agent-avatar-animation-progression={
+        agentAnimationSample?.progression ?? "pending"
       }
       data-agent-avatar-bone-name={agentAnimationSample?.boneName ?? ""}
       data-agent-avatar-bone-quaternion={
@@ -1191,6 +1262,11 @@ export function WorldRoomCanvas({
         onAvatarReady={onAvatarReady}
         onAvatarLodChange={onAvatarLodChange}
         onImportedAnimationSample={onImportedAnimationSample}
+        onImportedOneShotComplete={onImportedOneShotComplete}
+        userAnimationGeneration={userAnimationGeneration}
+        agentAnimationGeneration={agentAnimationGeneration}
+        agentPosition={agentPosition}
+        agentHeading={agentHeading}
         onContextLost={onContextLost}
       />
     </Canvas>

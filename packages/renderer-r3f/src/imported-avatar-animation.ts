@@ -1,4 +1,11 @@
-import type { AnimationClip, AnimationMixer, KeyframeTrack } from "three";
+import {
+  type AnimationClip,
+  type AnimationMixer,
+  type KeyframeTrack,
+} from "three";
+
+const LOOP_ONCE = 2200;
+const LOOP_REPEAT = 2201;
 
 export const IMPORTED_AVATAR_CROSSFADE_SECONDS = 0.22;
 
@@ -9,6 +16,19 @@ export type ImportedAvatarCrossfadeAction = {
   fadeIn(seconds: number): unknown;
   play(): unknown;
 };
+
+export type ImportedAvatarLoopAction = {
+  clampWhenFinished: boolean;
+  setLoop(mode: number, repetitions: number): unknown;
+};
+
+export function configureImportedAvatarAction<
+  Action extends ImportedAvatarLoopAction,
+>(action: Action, oneShot: boolean): Action {
+  action.clampWhenFinished = oneShot;
+  action.setLoop(oneShot ? LOOP_ONCE : LOOP_REPEAT, oneShot ? 1 : Infinity);
+  return action;
+}
 
 export function advanceImportedAvatarMixer(
   mixer: AnimationMixer,
@@ -45,11 +65,11 @@ type VectorPositionTrack = KeyframeTrack & {
   readonly getValueSize: () => number;
 };
 
-const isHipPositionTrack = (track: KeyframeTrack): boolean => {
+const isWorldTravelPositionTrack = (track: KeyframeTrack): boolean => {
   const name = track.name.toLocaleLowerCase();
   return (
-    (/(^|[^a-z])hip([^a-z]|$)/u.test(name) ||
-      /hip(?:\]|\})?\.position$/u.test(name)) &&
+    (/(^|[^a-z])(root|hip|pelvis)([^a-z]|$)/u.test(name) ||
+      /(?:root|hip|pelvis)(?:\]|\})?\.position$/u.test(name)) &&
     /(?:\.|\]|\/|:|\|)position$/u.test(name)
   );
 };
@@ -59,7 +79,7 @@ const vectorPositionTrack = (
 ): VectorPositionTrack | undefined => {
   const candidate = track as Partial<VectorPositionTrack>;
   if (
-    !isHipPositionTrack(track) ||
+    !isWorldTravelPositionTrack(track) ||
     typeof candidate.getValueSize !== "function" ||
     candidate.getValueSize() !== 3 ||
     !candidate.times ||
@@ -74,48 +94,52 @@ const vectorPositionTrack = (
 export function makeImportedAvatarClipInPlace(
   source: AnimationClip,
   travelThreshold = 0.25,
+  normalizeVerticalTravel = false,
 ): AnimationClip {
   const clip = source.clone();
-  const track = clip.tracks
+  for (const track of clip.tracks
     .map(vectorPositionTrack)
-    .find((candidate) => candidate !== undefined);
-  if (!track) return clip;
-
-  const lastFrame = track.times.length - 1;
-  const firstTime = Number(track.times[0]);
-  const lastTime = Number(track.times[lastFrame]);
-  if (
-    !Number.isFinite(firstTime) ||
-    !Number.isFinite(lastTime) ||
-    lastTime <= firstTime
-  )
-    return clip;
-
-  const deltas = [0, 1, 2].map(
-    (axis) =>
-      Number(track.values[lastFrame * 3 + axis]) - Number(track.values[axis]),
-  );
-  if (deltas.some((delta) => !Number.isFinite(delta))) return clip;
-  const dominantAxis = deltas.reduce(
-    (best, _, axis) =>
-      Math.abs(deltas[axis] ?? 0) > Math.abs(deltas[best] ?? 0) ? axis : best,
-    0,
-  );
-  const displacement = deltas[dominantAxis] ?? 0;
-  if (Math.abs(displacement) <= Math.max(0, travelThreshold)) return clip;
-
-  for (let frame = 0; frame < track.times.length; frame += 1) {
-    const time = Number(track.times[frame]);
-    const valueIndex = frame * 3 + dominantAxis;
-    const currentValue = track.values[valueIndex];
+    .filter((candidate) => candidate !== undefined)) {
+    const lastFrame = track.times.length - 1;
+    const firstTime = Number(track.times[0]);
+    const lastTime = Number(track.times[lastFrame]);
     if (
-      !Number.isFinite(time) ||
-      typeof currentValue !== "number" ||
-      !Number.isFinite(currentValue)
+      !Number.isFinite(firstTime) ||
+      !Number.isFinite(lastTime) ||
+      lastTime <= firstTime
     )
-      return source.clone();
-    const progress = (time - firstTime) / (lastTime - firstTime);
-    track.values[valueIndex] = currentValue - displacement * progress;
+      continue;
+    const axes: readonly (0 | 1 | 2)[] = normalizeVerticalTravel
+      ? [0, 1, 2]
+      : [0, 2];
+    for (const axis of axes) {
+      const firstValue = Number(track.values[axis]);
+      const displacement =
+        Number(track.values[lastFrame * 3 + axis]) - firstValue;
+      const removeTravel =
+        Number.isFinite(displacement) &&
+        Math.abs(displacement) > Math.max(0, travelThreshold);
+      const restBaselineVertical = normalizeVerticalTravel && axis === 1;
+      if (!Number.isFinite(firstValue) || !Number.isFinite(displacement))
+        return source.clone();
+      if (!removeTravel && !restBaselineVertical) continue;
+      for (let frame = 0; frame < track.times.length; frame += 1) {
+        const time = Number(track.times[frame]);
+        const valueIndex = frame * 3 + axis;
+        const currentValue = track.values[valueIndex];
+        if (
+          !Number.isFinite(time) ||
+          typeof currentValue !== "number" ||
+          !Number.isFinite(currentValue)
+        )
+          return source.clone();
+        const progress = (time - firstTime) / (lastTime - firstTime);
+        track.values[valueIndex] =
+          currentValue -
+          (removeTravel ? displacement * progress : 0) -
+          (restBaselineVertical ? firstValue : 0);
+      }
+    }
   }
   return clip;
 }

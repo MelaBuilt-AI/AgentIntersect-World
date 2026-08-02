@@ -1,0 +1,4918 @@
+{
+  "lockedLocomotionCount": 69,
+  "manifestCanonicalSha256": "dc82de7c80e37ed70335dd49445fa304031aab56052f97cdc8840aaead12b6e7",
+  "modelCount": 23,
+  "models": [
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-01.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 3.083333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 14.083333,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 12.833333,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 3.208333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 1,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 19,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 4,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-01",
+      "sourceGlbSha256": "92cfc38bf44186c4ab9abd4612a07c7ce9204cba2207cb03eed698bec8f7616d",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-02.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 0,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 8,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 17,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-02",
+      "sourceGlbSha256": "cc528c0685f2e93e3f1bf1cfed29180066a298b888598f4caa832cf5d9075c66",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-03.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 10.833333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 18,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 3,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 0,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-03",
+      "sourceGlbSha256": "92b38d2faf78a981b213c00b31b4afb7dc2a10b46a9a274ff6fa9f14efbd87fd",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-04.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 2.916667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 18,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 15,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 13,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-04",
+      "sourceGlbSha256": "847fef9ac944ea4c6b04731b1415e342dd4b5c3037ac9eb758ac65b22e32493c",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-05.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 14.083333,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 3.083333,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 10.833333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.019"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 6,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 13,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 20,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-05",
+      "sourceGlbSha256": "5bc1dadf146d44cffd0d2511182741eda60b4f7be7ab6646f067e2fa54f43ed4",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-06.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 12.291667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 14.083333,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 13.666667,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 1.791667,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 9.125,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 3.083333,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 21,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.021"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 20,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 18,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 14,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-06",
+      "sourceGlbSha256": "32f16cbc0a445ae1d1417dffe527c57292d87af1d1619a5ff6c44ddc862e51bf",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/cat-agent-07.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 8.708333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 8,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 18,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 3,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "cat-agent-07",
+      "sourceGlbSha256": "490542acb76ab5ef174e1044e02bf1214b9110cdc322b573a09faa114e7bea0e",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/dog-agent-01.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 13.666667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.019"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 9,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 1,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 20,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "dog-agent-01",
+      "sourceGlbSha256": "bca6f9bc536c9916131af4d0f02fcb851400b94386abc2fec4bde5f6e96e41ab",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/dog-agent-02.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 2.916667,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.019"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 14,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 8,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 20,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "dog-agent-02",
+      "sourceGlbSha256": "12c2f5cbacf32f3f5fee12dfc5dedb01ea5d05a9762859623cf16586dbf4982c",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/dog-agent-03.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 5.75,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 12.833333,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 1,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 16,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 5,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "dog-agent-03",
+      "sourceGlbSha256": "3734877f7f2be04d3069fd4ee758bcfefb84fe8cba6f513f886ef68d12034e9b",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/dog-agent-04.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 13.666667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 3.208333,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 14,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 0,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 1,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "dog-agent-04",
+      "sourceGlbSha256": "645b458c37498269a7d5705809070bc9defce4e8479ab975844487967dd51e25",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/dog-agent-05.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 12.291667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 19,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 15,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 9,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "dog-agent-05",
+      "sourceGlbSha256": "99c769f94f3b51af1bf5ab453a6c90980f3a139a33b06921caf855f51e6002d8",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/robot-agent-01.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 5.75,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 12.833333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 12.291667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 2,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 13,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 4,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "robot-agent-01",
+      "sourceGlbSha256": "0d74a25ca98d9104102c1a6b145f5ff06736389fdafb238209bb8c90ebbbf9ce",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/robot-agent-02.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 3.208333,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 3.625,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 10.833333,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.020"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 21,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.021"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 5,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 15,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 17,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "robot-agent-02",
+      "sourceGlbSha256": "fd3dda0e764dda2616d014b730faa9e97c27a03841a190a24b3fb8a55f2e2a56",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/robot-agent-03.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 13.666667,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 12.833333,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 6,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 11,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 4,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "robot-agent-03",
+      "sourceGlbSha256": "d6901d4a2c0e976e6f6a4dfcc2ba535674f261dd514ca5f3d54588ee6165e026",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/robot-agent-04.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 13.666667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 14,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 11,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 1,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "robot-agent-04",
+      "sourceGlbSha256": "5218e6eea25ffc7131ad08939ecafd843e91f59da0afd099c6d3c6899003003d",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/robot-agent-05.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 5.75,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 18.541667,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 4.833333,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 12.291667,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.019"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 18,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 20,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 9,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "robot-agent-05",
+      "sourceGlbSha256": "f0bf5053f58e521d2b5cb4349ecaae0f4cfd984282a99186dcc02732bb6b3c7f",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/user-female-01.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 8.666667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 9,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 7,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 17,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "user-female-01",
+      "sourceGlbSha256": "4c93295ec0c5e640da62a0a28b4a7bd997c1794e2c428b6709bec17f8ab56ef9",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/user-female-02.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 10.833333,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 12,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 11,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 2,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "user-female-02",
+      "sourceGlbSha256": "19f2f086efab6b0999fc46b29d4f85766f7b0bf2fb253e1e0ba13d37bc3a0f6d",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/user-female-03.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 10.833333,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 8,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 11,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 12,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "user-female-03",
+      "sourceGlbSha256": "13bd0fdce7b2294fbf961156bb8613bbef05ac150f8154733e77d7c919eef27d",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/user-male-01.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 5,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.005"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 2.625,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 2.916667,
+          "sourceName": "NlaTrack.020"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 21,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.021"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 15,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 2,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 18,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "user-male-01",
+      "sourceGlbSha256": "24a456be65823e735ed8713af6da23989fc4e10e7b789dc69dc79d316fd9e6d7",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/user-male-02.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 0,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 2,
+          "durationSeconds": 6.625,
+          "sourceName": "NlaTrack.002"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 5.625,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 10.25,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 9.666667,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 9.125,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 3.541667,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 3.208333,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 13.125,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 13.708333,
+          "sourceName": "NlaTrack.019"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 5,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 3,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 20,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "user-male-02",
+      "sourceGlbSha256": "83e449040158b1e27e24a6bb8eb85ab9f1b0ca5f621114a76aa8b394179ea06e",
+      "unsupportedSemantics": []
+    },
+    {
+      "assetPath": "apps/web/public/assets/imported-avatars/user-male-03.glb",
+      "clips": [
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 1,
+          "durationSeconds": 13.833333,
+          "sourceName": "NlaTrack.001"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 3,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.003"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 4,
+          "durationSeconds": 2.25,
+          "sourceName": "NlaTrack.004"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 6,
+          "durationSeconds": 7.208333,
+          "sourceName": "NlaTrack.006"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 7,
+          "durationSeconds": 4.5,
+          "sourceName": "NlaTrack.007"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 8,
+          "durationSeconds": 4.041667,
+          "sourceName": "NlaTrack.008"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 9,
+          "durationSeconds": 15.375,
+          "sourceName": "NlaTrack.009"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 10,
+          "durationSeconds": 12.833333,
+          "sourceName": "NlaTrack.010"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 11,
+          "durationSeconds": 17.125,
+          "sourceName": "NlaTrack.011"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 12,
+          "durationSeconds": 12.125,
+          "sourceName": "NlaTrack.012"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 13,
+          "durationSeconds": 6.041667,
+          "sourceName": "NlaTrack.013"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 14,
+          "durationSeconds": 17.625,
+          "sourceName": "NlaTrack.014"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 15,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.015"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 16,
+          "durationSeconds": 3.875,
+          "sourceName": "NlaTrack.016"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 17,
+          "durationSeconds": 2.833333,
+          "sourceName": "NlaTrack.017"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 18,
+          "durationSeconds": 10.958333,
+          "sourceName": "NlaTrack.018"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 19,
+          "durationSeconds": 5.291667,
+          "sourceName": "NlaTrack.019"
+        },
+        {
+          "annotation": {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": ""
+          },
+          "clipIndex": 20,
+          "durationSeconds": 16.416667,
+          "sourceName": "NlaTrack.020"
+        }
+      ],
+      "lockedLocomotion": [
+        {
+          "clipIndex": 2,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Idle"
+          ],
+          "semantic": "Idle"
+        },
+        {
+          "clipIndex": 5,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Walk"
+          ],
+          "semantic": "Walk"
+        },
+        {
+          "clipIndex": 0,
+          "evidenceReferences": [
+            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Run"
+          ],
+          "semantic": "Run"
+        }
+      ],
+      "modelId": "user-male-03",
+      "sourceGlbSha256": "56d5239307b3ed1f81631caf7562c83d7e6fb57e239a3c2ecba2afff0db6ea3c",
+      "unsupportedSemantics": []
+    }
+  ],
+  "progress": {
+    "remainingDecisionCount": 207,
+    "resolvedDecisionCount": 0
+  },
+  "rawNonLocomotionClipCount": 417,
+  "reviewer": {
+    "name": "",
+    "reviewedAt": ""
+  },
+  "schema": "aiw.avatar-gesture-annotation/1",
+  "semanticReviewCanonicalSha256": "26860a4977eda4589afa98921aa9c7b43ab3cb0d19c440891f84dfd9445acc19",
+  "semanticReviewSchema": "aiw.world-animation-semantic-review/2",
+  "states": [
+    "unsupported",
+    "uncertain"
+  ],
+  "unresolvedDecisionCount": 207,
+  "vocabulary": [
+    "Jump",
+    "Dance",
+    "Clap",
+    "Cheer",
+    "Wave",
+    "Bow",
+    "Agree",
+    "Angry",
+    "Laugh"
+  ]
+}

@@ -15,11 +15,14 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { IdentifyExperience } from "./avatar/IdentifyExperience.js";
 import { useReducedMotion } from "./motion/use-reduced-motion.js";
 import { resolveAppSurface } from "./world-entry/app-surface.js";
-import { WorldEntryExperience } from "./world-entry/WorldEntryExperience.js";
 
 const InternalDashboard = lazy(async () => {
   const module = await import("./shell/DashboardShell.js");
   return { default: module.DashboardShell };
+});
+const WorldEntryExperience = lazy(async () => {
+  const module = await import("./world-entry/WorldEntryExperience.js");
+  return { default: module.WorldEntryExperience };
 });
 
 const WORLD_ENTRY_TRANSITION_MS = 420;
@@ -123,6 +126,14 @@ export function App() {
       </Suspense>
     );
   return (
-    <WorldEntryExperience profile={store.current} onUserAvatarSave={save} />
+    <Suspense
+      fallback={
+        <main className="internal-unavailable" role="status">
+          Loading AgentIntersect World…
+        </main>
+      }
+    >
+      <WorldEntryExperience profile={store.current} onUserAvatarSave={save} />
+    </Suspense>
   );
 }

@@ -2,6 +2,253 @@ import type {
   SessionHistory,
   WorldAgentEvent,
 } from "../sessions/session-client.js";
+import type { ImportedAvatarSemantic } from "@agentintersect-world/avatar-system/imported-avatar";
+import {
+  AgentMovementTargetSchema,
+  type AgentMovementTarget,
+} from "@agentintersect-world/world-action-protocol";
+
+export type AvatarOneShotSemantic = Exclude<
+  ImportedAvatarSemantic,
+  "Idle" | "Walk" | "Run"
+>;
+export type AvatarLocomotionSemantic = "Idle" | "Walk" | "Run";
+export type AvatarAnimationState = {
+  readonly locomotion: AvatarLocomotionSemantic;
+  readonly semantic: ImportedAvatarSemantic;
+  readonly oneShot: AvatarOneShotSemantic | null;
+  readonly cueSource: string;
+  readonly progression:
+    "locomotion" | "playing-once" | "returned" | "reduced-motion-completed";
+  readonly generation: number;
+};
+
+const LOCAL_AVATAR_COMMANDS = Object.freeze({
+  "/dance": "Dance",
+  "/clap": "Clap",
+  "/cheer": "Cheer",
+  "/wave": "Wave",
+  "/bow": "Bow",
+  "/agree": "Agree",
+  "/angry": "Angry",
+  "/laugh": "Laugh",
+} satisfies Readonly<Record<string, AvatarOneShotSemantic>>);
+
+export function resolveLocalAvatarCommand(
+  text: string,
+): AvatarOneShotSemantic | null {
+  const command = text.trim().toLocaleLowerCase();
+  return (
+    LOCAL_AVATAR_COMMANDS[command as keyof typeof LOCAL_AVATAR_COMMANDS] ?? null
+  );
+}
+
+export type AgentDirectionCommand =
+  | { readonly kind: "not-agent-command" }
+  | { readonly kind: "movement"; readonly target: AgentMovementTarget }
+  | { readonly kind: "stop" }
+  | { readonly kind: "refused"; readonly message: string };
+
+const AGENT_DIRECTION_REFUSAL =
+  "agent movement refused · use /agent move <x> <z>, /agent move <direction> <distance>, /agent follow [radius], or /agent stop";
+const STRICT_FINITE_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/u;
+
+const parseFiniteNumber = (value: string): number | null => {
+  if (!STRICT_FINITE_NUMBER.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+export function parseAgentDirectionCommand(
+  text: string,
+): AgentDirectionCommand {
+  const tokens = text.trim().split(/\s+/u);
+  if (tokens[0]?.toLocaleLowerCase() !== "/agent")
+    return { kind: "not-agent-command" };
+  const command = tokens[1]?.toLocaleLowerCase();
+  if (command === "stop" && tokens.length === 2) return { kind: "stop" };
+  if (command === "follow" && (tokens.length === 2 || tokens.length === 3)) {
+    const stoppingRadius =
+      tokens.length === 2 ? 1.5 : parseFiniteNumber(tokens[2]!);
+    if (stoppingRadius !== null) {
+      const target = AgentMovementTargetSchema.safeParse({
+        kind: "follow-user",
+        stoppingRadius,
+      });
+      if (target.success) return { kind: "movement", target: target.data };
+    }
+    return { kind: "refused", message: AGENT_DIRECTION_REFUSAL };
+  }
+  if (command === "move" && tokens.length === 4) {
+    const direction = tokens[2]!.toLocaleLowerCase();
+    const distance = parseFiniteNumber(tokens[3]!);
+    if (
+      distance !== null &&
+      ["forward", "backward", "left", "right"].includes(direction)
+    ) {
+      const target = AgentMovementTargetSchema.safeParse({
+        kind: "relative",
+        direction,
+        distance,
+      });
+      if (target.success) return { kind: "movement", target: target.data };
+    }
+    const x = parseFiniteNumber(tokens[2]!);
+    const z = parseFiniteNumber(tokens[3]!);
+    if (x !== null && z !== null) {
+      const target = AgentMovementTargetSchema.safeParse({
+        kind: "coordinate",
+        x,
+        z,
+      });
+      if (target.success) return { kind: "movement", target: target.data };
+    }
+  }
+  return { kind: "refused", message: AGENT_DIRECTION_REFUSAL };
+}
+
+export function classifyWorldMessage(text: string):
+  | {
+      readonly kind: "local-animation";
+      readonly semantic: AvatarOneShotSemantic;
+    }
+  | {
+      readonly kind: "local-agent-movement";
+      readonly target: AgentMovementTarget;
+    }
+  | { readonly kind: "local-agent-stop" }
+  | { readonly kind: "local-refusal"; readonly message: string }
+  | { readonly kind: "remote-chat"; readonly text: string } {
+  const semantic = resolveLocalAvatarCommand(text);
+  if (semantic) return { kind: "local-animation", semantic };
+  const direction = parseAgentDirectionCommand(text);
+  if (direction.kind === "movement")
+    return { kind: "local-agent-movement", target: direction.target };
+  if (direction.kind === "stop") return { kind: "local-agent-stop" };
+  if (direction.kind === "refused")
+    return { kind: "local-refusal", message: direction.message };
+  return { kind: "remote-chat", text: text.trim() };
+}
+
+const cuePattern = (terms: string) =>
+  new RegExp(`(?:^|[^a-z0-9])(?:${terms})(?=$|[^a-z0-9])`, "iu");
+
+const AGENT_TEXT_CUES: readonly {
+  readonly semantic: AvatarOneShotSemantic;
+  readonly pattern: RegExp;
+}[] = [
+  { semantic: "Wave", pattern: cuePattern("hello|hi|welcome") },
+  {
+    semantic: "Agree",
+    pattern: cuePattern("agree|yes|correct|sounds[ -]+good"),
+  },
+  { semantic: "Cheer", pattern: cuePattern("done|complete|success|great") },
+  { semantic: "Laugh", pattern: cuePattern("haha|lol|laugh") },
+  { semantic: "Bow", pattern: cuePattern("apology|apologize|apologies|sorry") },
+  { semantic: "Angry", pattern: cuePattern("failure|failed|error") },
+  {
+    semantic: "Clap",
+    pattern: cuePattern(
+      "applause|applaud|congratulation|congratulations|congrats",
+    ),
+  },
+  { semantic: "Dance", pattern: cuePattern("dance|dancing") },
+  { semantic: "Angry", pattern: cuePattern("angry|anger") },
+];
+
+export function projectAgentAnimationCue(
+  input:
+    | { readonly type: "visible-text"; readonly text: string }
+    | {
+        readonly type: "application-event";
+        readonly event: "completed" | "failed";
+      },
+): {
+  readonly semantic: AvatarOneShotSemantic;
+  readonly source: "visible-text" | "application-event";
+} | null {
+  if (input.type === "application-event")
+    return {
+      semantic: input.event === "completed" ? "Cheer" : "Angry",
+      source: "application-event",
+    };
+  const cue = AGENT_TEXT_CUES.find(({ pattern }) => pattern.test(input.text));
+  return cue ? { semantic: cue.semantic, source: "visible-text" } : null;
+}
+
+export function createAvatarAnimationState(
+  locomotion: AvatarLocomotionSemantic = "Idle",
+): AvatarAnimationState {
+  return {
+    locomotion,
+    semantic: locomotion,
+    oneShot: null,
+    cueSource: "locomotion",
+    progression: "locomotion",
+    generation: 0,
+  };
+}
+
+export function triggerAvatarOneShot(
+  state: AvatarAnimationState,
+  semantic: AvatarOneShotSemantic,
+  source: string,
+  reducedMotion: boolean,
+): AvatarAnimationState {
+  const generation = state.generation + 1;
+  if (reducedMotion)
+    return {
+      ...state,
+      semantic: state.locomotion,
+      oneShot: null,
+      cueSource: source,
+      progression: "reduced-motion-completed",
+      generation,
+    };
+  return {
+    ...state,
+    semantic,
+    oneShot: semantic,
+    cueSource: source,
+    progression: "playing-once",
+    generation,
+  };
+}
+
+export function completeAvatarOneShot(
+  state: AvatarAnimationState,
+  generation: number,
+): AvatarAnimationState {
+  if (!state.oneShot || generation !== state.generation) return state;
+  return {
+    ...state,
+    semantic: state.locomotion,
+    oneShot: null,
+    progression: "returned",
+  };
+}
+
+export function setAvatarLocomotion(
+  state: AvatarAnimationState,
+  locomotion: AvatarLocomotionSemantic,
+): AvatarAnimationState {
+  if (
+    state.locomotion === locomotion &&
+    state.oneShot === null &&
+    state.semantic === locomotion &&
+    state.progression === "locomotion"
+  )
+    return state;
+  const cancelled = state.oneShot !== null;
+  return {
+    locomotion,
+    semantic: locomotion,
+    oneShot: null,
+    cueSource: "locomotion",
+    progression: "locomotion",
+    generation: state.generation + (cancelled ? 1 : 0),
+  };
+}
 
 export type WorldActivityState =
   "idle" | "thinking" | "tool" | "coding" | "completed" | "failed";
@@ -23,6 +270,12 @@ export type WorldChatState = {
   readonly activity: WorldActivity;
   readonly transcript: readonly WorldTranscriptItem[];
   readonly activeAssistantId: string | null;
+  readonly animationCue: {
+    readonly sequence: number;
+    readonly semantic: AvatarOneShotSemantic;
+    readonly source: "visible-text" | "application-event";
+  } | null;
+  readonly nextAnimationCueSequence: number;
 };
 
 export type WorldChatAction =
@@ -100,6 +353,21 @@ const append = (
   transcript: [...state.transcript, item].slice(-200),
 });
 
+const withAnimationCue = (
+  state: WorldChatState,
+  cue: ReturnType<typeof projectAgentAnimationCue>,
+): WorldChatState =>
+  cue
+    ? {
+        ...state,
+        animationCue: {
+          sequence: state.nextAnimationCueSequence,
+          ...cue,
+        },
+        nextAnimationCueSequence: state.nextAnimationCueSequence + 1,
+      }
+    : state;
+
 const replaceAssistant = (
   state: WorldChatState,
   text: string,
@@ -135,6 +403,8 @@ export function createWorldChatState(): WorldChatState {
     activity: IDLE,
     transcript: [],
     activeAssistantId: null,
+    animationCue: null,
+    nextAnimationCueSequence: 1,
   };
 }
 
@@ -152,6 +422,8 @@ export function reduceWorldChat(
         text: message.text,
       })),
       activeAssistantId: null,
+      animationCue: null,
+      nextAnimationCueSequence: 1,
     };
   if (action.type === "QUEUE_MESSAGE")
     return append(state, {
@@ -166,27 +438,40 @@ export function reduceWorldChat(
       activity: thinkingActivity(),
     };
   if (action.type === "SEND_FAILED")
-    return append(
-      { ...state, activeAssistantId: null },
-      {
-        id: `error-${state.transcript.length}`,
-        kind: "error",
-        text: action.message,
-      },
-      { state: "failed", icon: "!", label: "Mr Fluff failed", detail: "" },
+    return withAnimationCue(
+      append(
+        { ...state, activeAssistantId: null },
+        {
+          id: `error-${state.transcript.length}`,
+          kind: "error",
+          text: action.message,
+        },
+        { state: "failed", icon: "!", label: "Mr Fluff failed", detail: "" },
+      ),
+      projectAgentAnimationCue({
+        type: "application-event",
+        event: "failed",
+      }),
     );
   if (action.type === "SEND_COMPLETED") {
     const completed = replaceAssistant(state, action.text);
-    return {
-      ...completed,
-      activeAssistantId: null,
-      activity: {
-        state: "completed",
-        icon: "✓",
-        label: "Mr Fluff completed the request",
-        detail: "",
+    return withAnimationCue(
+      {
+        ...completed,
+        activeAssistantId: null,
+        activity: {
+          state: "completed",
+          icon: "✓",
+          label: "Mr Fluff completed the request",
+          detail: "",
+        },
       },
-    };
+      projectAgentAnimationCue({ type: "visible-text", text: action.text }) ??
+        projectAgentAnimationCue({
+          type: "application-event",
+          event: "completed",
+        }),
+    );
   }
 
   const { event } = action;
@@ -228,22 +513,34 @@ export function reduceWorldChat(
       toolActivity(toolName),
     );
   if (event.type === "tool.completed")
-    return append(
+    return withAnimationCue(
+      append(
+        state,
+        {
+          id: `tool-${event.eventId}`,
+          kind: "tool",
+          text: `${prefix} completed · ${toolName}`,
+        },
+        toolActivity(toolName),
+      ),
+      projectAgentAnimationCue({
+        type: "application-event",
+        event: "completed",
+      }),
+    );
+  return withAnimationCue(
+    append(
       state,
       {
         id: `tool-${event.eventId}`,
         kind: "tool",
-        text: `${prefix} completed · ${toolName}`,
+        text: `${prefix} failed · ${toolName}`,
       },
       toolActivity(toolName),
-    );
-  return append(
-    state,
-    {
-      id: `tool-${event.eventId}`,
-      kind: "tool",
-      text: `${prefix} failed · ${toolName}`,
-    },
-    toolActivity(toolName),
+    ),
+    projectAgentAnimationCue({
+      type: "application-event",
+      event: "failed",
+    }),
   );
 }

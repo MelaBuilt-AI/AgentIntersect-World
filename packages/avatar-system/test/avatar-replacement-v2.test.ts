@@ -26,6 +26,15 @@ const replacementIds = [
 ] as const;
 
 type ReplacementApi = typeof replacement & {
+  readonly importedAvatarSemanticReview?: (
+    assetId: string,
+    semantic: replacement.ImportedAvatarSemantic,
+  ) => {
+    readonly verdict: "pass" | "wrong_clip" | "ambiguous" | "unsupported";
+    readonly expectedClipIndex: number | null;
+    readonly rationale: string;
+    readonly evidenceRefs: readonly string[];
+  };
   readonly createModularImportedAvatarSource?: (
     baseModelId: string,
   ) => replacement.AvatarSourceSelection;
@@ -42,6 +51,78 @@ type ReplacementApi = typeof replacement & {
 const api = replacement as ReplacementApi;
 
 describe("replacement avatar source version 2", () => {
+  it("requires explicit model-wide semantic review and fails closed for every non-pass decision", () => {
+    expect(typeof api.importedAvatarSemanticReview).toBe("function");
+    const review = api.importedAvatarSemanticReview!;
+    const decisions = replacement.IMPORTED_AVATAR_ASSET_IDS.flatMap((assetId) =>
+      replacement.IMPORTED_AVATAR_SEMANTICS.map((semantic) => ({
+        assetId,
+        semantic,
+        decision: review(assetId, semantic),
+      })),
+    );
+    expect(decisions).toHaveLength(23 * 12);
+    for (const { assetId, semantic, decision } of decisions) {
+      expect(decision.rationale.length).toBeGreaterThan(20);
+      expect(decision.evidenceRefs.length).toBeGreaterThan(0);
+      if (decision.verdict === "pass") {
+        expect(decision.expectedClipIndex).toBeTypeOf("number");
+        expect(
+          replacement.resolveImportedAvatarWorldClip(assetId, semantic),
+        ).toMatchObject({
+          semantic,
+          clipIndex: decision.expectedClipIndex,
+          verification: "semantic-review-pass",
+        });
+      } else {
+        expect(decision.expectedClipIndex).toBeNull();
+        expect(() =>
+          replacement.resolveImportedAvatarWorldClip(assetId, semantic),
+        ).toThrow(/semantic review refused/iu);
+      }
+    }
+  });
+
+  it("resolves only the 69 reviewed model-local locomotion mappings", () => {
+    const resolved = replacement.IMPORTED_AVATAR_ASSET_IDS.flatMap((assetId) =>
+      replacement.IMPORTED_AVATAR_SEMANTICS.flatMap((semantic) => {
+        try {
+          return [
+            replacement.resolveImportedAvatarWorldClip(assetId, semantic),
+          ];
+        } catch {
+          return [];
+        }
+      }),
+    );
+
+    expect(resolved).toHaveLength(23 * 3);
+    for (const assetId of replacement.IMPORTED_AVATAR_ASSET_IDS) {
+      const asset = replacement.importedAvatarAsset(assetId)!;
+      const table = resolved.filter((entry) => entry.assetId === assetId);
+      expect(table).toHaveLength(3);
+      expect(new Set(table.map((entry) => entry.clipIndex))).toHaveLength(3);
+      expect(table.map((entry) => entry.semantic)).toEqual([
+        "Idle",
+        "Walk",
+        "Run",
+      ]);
+      expect(
+        table.every(
+          (entry) =>
+            entry.clipIndex >= 0 &&
+            entry.clipIndex < asset.clipCount &&
+            entry.clipName === asset.clips[entry.clipIndex] &&
+            entry.verification === "semantic-review-pass" &&
+            entry.oneShot ===
+              !(["Idle", "Walk", "Run"] as const).includes(
+                entry.semantic as "Idle" | "Walk" | "Run",
+              ),
+        ),
+      ).toBe(true);
+    }
+  });
+
   it("resolves only evidence-backed source-local locomotion clips per complete model", () => {
     expect(
       ["Idle", "Walk", "Run"].map((action) =>
@@ -54,7 +135,7 @@ describe("replacement avatar source version 2", () => {
         clipName: "NlaTrack.005",
         semantic: "Idle",
         locomotion: "Idle",
-        verification: "evidence-backed-pass",
+        verification: "semantic-review-pass",
       }),
       expect.objectContaining({
         assetId: "user-male-02",
@@ -62,7 +143,7 @@ describe("replacement avatar source version 2", () => {
         clipName: "NlaTrack.003",
         semantic: "Walk",
         locomotion: "Walk",
-        verification: "evidence-backed-pass",
+        verification: "semantic-review-pass",
       }),
       expect.objectContaining({
         assetId: "user-male-02",
@@ -70,7 +151,7 @@ describe("replacement avatar source version 2", () => {
         clipName: "NlaTrack.020",
         semantic: "Run",
         locomotion: "Run",
-        verification: "evidence-backed-pass",
+        verification: "semantic-review-pass",
       }),
     ]);
     expect(
@@ -82,27 +163,30 @@ describe("replacement avatar source version 2", () => {
         clipName: "NlaTrack.018",
         semantic: "Idle",
         locomotion: "Idle",
-        verification: "evidence-backed-pass",
+        verification: "semantic-review-pass",
       }),
     );
   });
 
-  it("maps bounded locomotion transitions locally and refuses every unproven model/action", () => {
+  it("maps bounded locomotion transitions locally and refuses unknown semantics", () => {
     expect(
       replacement.resolveImportedAvatarWorldClip("user-male-02", "StartWalk"),
     ).toMatchObject({ clipIndex: 3, locomotion: "Walk" });
     expect(
       replacement.resolveImportedAvatarWorldClip("user-male-02", "StopWalk"),
     ).toMatchObject({ clipIndex: 5, locomotion: "Idle" });
-    expect(() =>
+    expect(
       replacement.resolveImportedAvatarWorldClip("user-male-01", "Idle"),
-    ).toThrow(/evidence refused/iu);
-    expect(() =>
+    ).toMatchObject({ semantic: "Idle", oneShot: false });
+    expect(
       replacement.resolveImportedAvatarWorldClip("robot-agent-05", "Walk"),
-    ).toThrow(/evidence refused/iu);
+    ).toMatchObject({ semantic: "Walk", oneShot: false });
     expect(() =>
-      replacement.resolveImportedAvatarWorldClip("cat-agent-01", "Idle"),
-    ).toThrow(/evidence refused/iu);
+      replacement.resolveImportedAvatarWorldClip("cat-agent-01", "Dance"),
+    ).toThrow(/semantic review refused/iu);
+    expect(() =>
+      replacement.resolveImportedAvatarWorldClip("cat-agent-01", "Teleport"),
+    ).toThrow(/semantic review refused/iu);
   });
 
   it("exposes exactly 23 replacement IDs with six user and seventeen agent originals", () => {

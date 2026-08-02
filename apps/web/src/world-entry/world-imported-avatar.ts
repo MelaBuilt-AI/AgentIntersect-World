@@ -14,7 +14,7 @@ import type {
 
 export function worldImportedAvatarSelection(
   avatar: AvatarDraft,
-  action: AvatarAction,
+  action: AvatarAction | string,
   role: AvatarBuilderRole,
   parts?: readonly ImportedAvatarPart[],
 ): ImportedAvatarWorldSelection | undefined {
@@ -32,12 +32,22 @@ export function worldImportedAvatarSelection(
       clipIndex: resolved.clipIndex,
       clipName: resolved.clipName,
       locomotion: resolved.locomotion,
+      semantic: resolved.semantic,
+      oneShot: resolved.oneShot,
+      durationSeconds: resolved.durationSeconds,
+      verification: resolved.verification,
+      error: "",
     };
   } catch {
     resolvedClip = {
       clipIndex: -1,
       clipName: "unverified-static-pose",
       locomotion: "Idle",
+      semantic: "Idle",
+      oneShot: false,
+      durationSeconds: 0,
+      verification: "evidence-refused",
+      error: "missing-or-invalid-model-local-semantic-mapping",
     };
   }
   return {

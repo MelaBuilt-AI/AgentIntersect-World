@@ -88,6 +88,51 @@ describe("durable World Action service", () => {
     ],
   };
 
+  it("binds movement to the selected actor and prevents agent authority from claiming user direction", async () => {
+    const service = new WorldActionService(temporary(), {
+      now: () => Date.parse("2026-07-21T12:00:20.000Z"),
+    });
+    const directed = {
+      actions: [
+        {
+          kind: "move-agent" as const,
+          schema: "aiw.agent-movement/1" as const,
+          actorId: sessionId,
+          source: "user-directed" as const,
+          speed: 4,
+          target: { kind: "coordinate" as const, x: 4, z: 0 },
+        },
+      ],
+    };
+    const accepted = await service.propose(sessionId, directed, context);
+    expect(accepted).toMatchObject({
+      accepted: true,
+      outcomes: [{ kind: "move-agent", state: "path-planned" }],
+    });
+    expect(service.movementExecutions(sessionId)).toHaveLength(1);
+    await expect(
+      service.propose(sessionId, directed, context, {
+        requestId: "10000000-0000-4000-8000-000000000099",
+        sequence: 1,
+        createdAt: "2026-07-21T12:00:00.000Z",
+      }),
+    ).resolves.toEqual({ accepted: false, reason: "invalid" });
+    await expect(
+      service.propose(
+        sessionId,
+        {
+          actions: [
+            {
+              ...directed.actions[0],
+              actorId: "00000000-0000-4000-8000-000000000002",
+            },
+          ],
+        },
+        context,
+      ),
+    ).resolves.toEqual({ accepted: false, reason: "binding-mismatch" });
+  });
+
   it("keeps helper ordering private while assigning World-owned envelope authority", async () => {
     const service = new WorldActionService(temporary(), {
       now: () => Date.parse("2026-07-21T12:00:20.000Z"),

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   AVATAR_ACTIONS,
@@ -8,9 +8,11 @@ import {
   AVATAR_HEADS,
   AVATAR_LODS,
   AVATAR_PROFILE_STORAGE_KEY,
+  DEFAULT_AVATAR_DRAFT,
   LEGACY_PHASE11_AVATAR_PROFILE_STORAGE_KEY,
   LEGACY_AVATAR_PROFILE_STORAGE_KEY,
   composeAvatarAnimationState,
+  createAvatarProfile,
   avatarProfileSummary,
   deleteAvatarProfiles,
   exportAvatarProfile,
@@ -60,6 +62,25 @@ const profile = (name = "Codex"): AvatarProfile => ({
 });
 
 describe("aiw.avatar/0.18.5 strict profile", () => {
+  it("creates a browser-safe profile ID when randomUUID is unavailable", () => {
+    vi.stubGlobal("crypto", {
+      getRandomValues: (bytes: Uint8Array) => {
+        bytes.fill(0xab);
+        return bytes;
+      },
+    });
+    try {
+      expect(
+        createAvatarProfile({
+          ...DEFAULT_AVATAR_DRAFT,
+          agentName: "HTTP Browser",
+        }).profileId,
+      ).toBe("avatar_abababababab4bababababababababab");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("exposes the frozen option and action sets", () => {
     expect(Object.values(AVATAR_HEADS).flat()).toHaveLength(12);
     expect(AVATAR_BODY_COLORS).toHaveLength(12);

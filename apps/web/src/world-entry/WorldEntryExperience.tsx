@@ -7,7 +7,15 @@ import type {
   WorldObject,
   WorldSnapshot,
 } from "@agentintersect-world/world-schema";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
 import { AvatarBuilderLoader } from "../avatar/AvatarBuilderLoader.js";
@@ -25,13 +33,25 @@ import { WorldEntryAgentAvatar } from "./WorldEntryAgentAvatar.js";
 import { WorldEscapeMenu } from "./WorldEscapeMenu.js";
 import { WorldEntryLogo, WorldTypeLine } from "./WorldEntryLogo.js";
 import { WorldHud } from "./WorldHud.js";
-import { WorldRoom } from "./WorldRoom.js";
 import {
   canEnterWorld,
   createReturningWorldEntryState,
   reduceWorldEntry,
 } from "./world-entry-machine.js";
-import { createWorldChatState, reduceWorldChat } from "./world-chat-model.js";
+import {
+  classifyWorldMessage,
+  createWorldChatState,
+  reduceWorldChat,
+  type AvatarOneShotSemantic,
+} from "./world-chat-model.js";
+import type {
+  AgentMovementEvent,
+  AgentMovementRequest,
+} from "./world-agent-movement-model.js";
+import {
+  postUserDirectedMovement,
+  postUserDirectedStop,
+} from "./world-agent-direction.js";
 import {
   DEFAULT_WORLD_DISPLAY_PREFERENCES,
   loadWorldDisplayPreferences,
@@ -42,6 +62,10 @@ import {
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
 const SESSION_POINTER_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const LazyWorldRoom = lazy(async () => {
+  const module = await import("./WorldRoom.js");
+  return { default: module.WorldRoom };
+});
 
 type PendingWorldMessage = {
   readonly id: string;
@@ -142,7 +166,19 @@ export function WorldEntryExperience({
   const [restorePending, setRestorePending] = useState(true);
   const [chatBusy, setChatBusy] = useState(false);
   const [queuedCount, setQueuedCount] = useState(0);
+  const [userAnimationCue, setUserAnimationCue] = useState<{
+    readonly sequence: number;
+    readonly semantic: AvatarOneShotSemantic;
+    readonly source: "local-command";
+  } | null>(null);
   const [objects, setObjects] = useState<readonly RepositoryRenderObject[]>([]);
+  const [layoutGeneration, setLayoutGeneration] = useState("blank-world");
+  const [agentMovementRequest, setAgentMovementRequest] =
+    useState<AgentMovementRequest | null>(null);
+  const [
+    agentMovementCancellationGeneration,
+    setAgentMovementCancellationGeneration,
+  ] = useState(0);
   const [preferences, setPreferences] = useState<WorldDisplayPreferences>(() =>
     typeof window === "undefined"
       ? DEFAULT_WORLD_DISPLAY_PREFERENCES
@@ -153,8 +189,10 @@ export function WorldEntryExperience({
   const processingChat = useRef(false);
   const pendingMessages = useRef<PendingWorldMessage[]>([]);
   const nextMessageId = useRef(0);
+  const nextUserAnimationCue = useRef(1);
   const presentationGeneration = useRef(0);
   const activeChatAbort = useRef<AbortController | null>(null);
+  const processedMovementActions = useRef(new Set<string>());
 
   useEffect(() => {
     mounted.current = true;
@@ -384,6 +422,7 @@ export function WorldEntryExperience({
     };
     const repositorySummary = `${repositoryCounts.packages} packages · ${repositoryCounts.directories} directories · ${repositoryCounts.files} files`;
     setObjects(nextObjects);
+    setLayoutGeneration(result.generationId);
     dispatch({
       type: "ACTIVATE_REPOSITORY",
       generationId: result.generationId,
@@ -443,14 +482,57 @@ export function WorldEntryExperience({
     }
   };
 
-  const send = () => {
-    const text = message.trim();
-    if (!session || !text) return;
+  const send = async () => {
+    if (!session || !message.trim()) return;
+    const classified = classifyWorldMessage(message);
+    setMessage("");
+    if (classified.kind === "local-animation") {
+      setUserAnimationCue({
+        sequence: nextUserAnimationCue.current++,
+        semantic: classified.semantic,
+        source: "local-command",
+      });
+      return;
+    }
+    if (classified.kind === "local-refusal") {
+      setStatus(classified.message);
+      return;
+    }
+    if (classified.kind === "local-agent-movement") {
+      setStatus("agent movement requested · user-directed");
+      try {
+        await postUserDirectedMovement(
+          fetch,
+          session.sessionId,
+          classified.target,
+        );
+        if (mounted.current)
+          setStatus("agent movement accepted · user-directed");
+      } catch {
+        if (mounted.current) setStatus("agent movement refused · unavailable");
+      }
+      return;
+    }
+    if (classified.kind === "local-agent-stop") {
+      setStatus("agent movement cancellation requested");
+      try {
+        await postUserDirectedStop(fetch, session.sessionId);
+        if (mounted.current) {
+          setAgentMovementRequest(null);
+          setAgentMovementCancellationGeneration((current) => current + 1);
+          setStatus("agent movement cancelled · Idle");
+        }
+      } catch {
+        if (mounted.current)
+          setStatus("agent movement stop refused · unavailable");
+      }
+      return;
+    }
+    const text = classified.text;
     const pending = {
       id: `${Date.now()}-${nextMessageId.current++}`,
       text,
     };
-    setMessage("");
     pendingMessages.current.push(pending);
     setQueuedCount(pendingMessages.current.length);
     updateChat({ type: "QUEUE_MESSAGE", ...pending });
@@ -476,7 +558,12 @@ export function WorldEntryExperience({
     setAvatarTarget(null);
     setAgentName("");
     setMessage("");
+    setUserAnimationCue(null);
     setObjects([]);
+    setLayoutGeneration("blank-world");
+    setAgentMovementRequest(null);
+    setAgentMovementCancellationGeneration(0);
+    processedMovementActions.current.clear();
     setChatBusy(false);
     setQueuedCount(0);
     setError("");
@@ -490,6 +577,95 @@ export function WorldEntryExperience({
     state.step === "world_blank" ||
     state.step === "repository_loading" ||
     state.step === "world_repository";
+  const movementSessionId = inWorld ? session?.sessionId : undefined;
+  useEffect(() => {
+    if (!movementSessionId) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const response = await fetch(`/world-actions/${movementSessionId}`);
+        if (!response.ok || !active) return;
+        const body = (await response.json()) as {
+          readonly executions?: readonly {
+            readonly envelope?: {
+              readonly actions?: readonly Record<string, unknown>[];
+            };
+          }[];
+        };
+        for (const execution of body.executions ?? [])
+          for (const action of execution.envelope?.actions ?? []) {
+            if (
+              action.kind !== "move-agent" ||
+              action.schema !== "aiw.agent-movement/1" ||
+              typeof action.actionId !== "string" ||
+              processedMovementActions.current.has(action.actionId)
+            )
+              continue;
+            const candidate = {
+              schema: action.schema,
+              requestId: action.actionId,
+              actorId: action.actorId,
+              source: action.source,
+              speed: action.speed,
+              target: action.target,
+            } as AgentMovementRequest;
+            processedMovementActions.current.add(action.actionId);
+            setAgentMovementRequest(candidate);
+          }
+      } catch {
+        // Movement capability remains truthful through the existing action status.
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 500);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [movementSessionId]);
+
+  const reportAgentMovementEvent = (
+    movementEvent: AgentMovementEvent,
+    position: { readonly x: number; readonly z: number },
+  ) => {
+    if (!movementSessionId) return;
+    if (movementEvent.state === "moving")
+      setStatus(`agent moving · ${movementEvent.source}`);
+    else if (movementEvent.state === "arrived") setStatus("agent arrived");
+    else if (movementEvent.state === "cancelled")
+      setStatus("agent movement cancelled · Idle");
+    else if (movementEvent.state === "target-stale")
+      setStatus("agent movement target stale");
+    else if (movementEvent.state === "refused")
+      setStatus("agent movement refused");
+    const actionUrl = `/world-actions/${movementSessionId}/actions/${movementEvent.requestId}`;
+    if (movementEvent.state === "moving" || movementEvent.state === "arrived")
+      void fetch(`${actionUrl}/transition`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event: movementEvent.state,
+          ...(movementEvent.state === "arrived"
+            ? { actorPosition: position }
+            : {}),
+        }),
+      }).catch(() => undefined);
+    else if (movementEvent.state === "cancelled")
+      void fetch(`${actionUrl}/cancel`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      }).catch(() => undefined);
+    else if (
+      movementEvent.state === "refused" ||
+      movementEvent.state === "target-stale"
+    )
+      void fetch(`${actionUrl}/transition`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ event: "blocked" }),
+      }).catch(() => undefined);
+  };
   if (inWorld) {
     if (!proposal || !agentAvatar)
       return (
@@ -549,18 +725,35 @@ export function WorldEntryExperience({
       );
     return (
       <div className="world-experience world-experience--room">
-        <WorldRoom
-          floor={state.world.floor}
-          objects={objects}
-          reducedMotion={reducedMotion}
-          forceNoWebGL={forceNoWebGL}
-          userName={profile.agentName}
-          agentName={activeProposal.displayName}
-          userAvatar={profile}
-          agentAvatar={activeAgentAvatar}
-          activity={chat.activity}
-          showControlHints={preferences.showControlHints}
-        />
+        <Suspense
+          fallback={
+            <p className="world-entry-overlay" role="status">
+              Loading World
+            </p>
+          }
+        >
+          <LazyWorldRoom
+            floor={state.world.floor}
+            objects={objects}
+            reducedMotion={reducedMotion}
+            forceNoWebGL={forceNoWebGL}
+            userName={profile.agentName}
+            agentName={activeProposal.displayName}
+            userAvatar={profile}
+            agentAvatar={activeAgentAvatar}
+            activity={chat.activity}
+            userCue={userAnimationCue}
+            agentCue={chat.animationCue}
+            agentActorId={movementSessionId}
+            agentMovementRequest={agentMovementRequest}
+            agentMovementCancellationGeneration={
+              agentMovementCancellationGeneration
+            }
+            layoutGeneration={layoutGeneration}
+            onAgentMovementEvent={reportAgentMovementEvent}
+            showControlHints={preferences.showControlHints}
+          />
+        </Suspense>
         {state.step !== "world_entering" ? (
           <WorldHud
             recipient={activeProposal.displayName}
@@ -724,4 +917,3 @@ export function WorldEntryExperience({
 export { WorldEntryAgentAvatar } from "./WorldEntryAgentAvatar.js";
 export { WorldEntryLogo } from "./WorldEntryLogo.js";
 export { WorldHud } from "./WorldHud.js";
-export { WorldRoom } from "./WorldRoom.js";

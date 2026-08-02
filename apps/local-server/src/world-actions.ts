@@ -263,7 +263,10 @@ export class WorldActionService {
     } catch {
       return { accepted: false, reason: "invalid" };
     }
-    const resolved = await resolver.prevalidate(parsed.actions);
+    const repositoryActions = parsed.actions.filter(
+      (action) => action.kind !== "move-agent",
+    );
+    const resolved = await resolver.prevalidate(repositoryActions);
     if (!resolved.ok) return { accepted: false, reason: resolved.reason };
     const sourceStreamId = sourceAuthority
       ? (sourceAuthority.sourceStreamId ??
@@ -276,6 +279,35 @@ export class WorldActionService {
       (!sourceStreamId || !/^[0-9a-f]{64}$/.test(sourceStreamId))
     )
       return { accepted: false, reason: "invalid" };
+    if (
+      sourceAuthority &&
+      parsed.actions.some(
+        (action) =>
+          action.kind === "move-agent" && action.source === "user-directed",
+      )
+    )
+      return { accepted: false, reason: "invalid" };
+    if (
+      parsed.actions.some(
+        (action) =>
+          action.kind === "move-agent" && action.actorId !== sessionId,
+      )
+    )
+      return { accepted: false, reason: "binding-mismatch" };
+    if (
+      parsed.actions.some(
+        (action) =>
+          action.kind === "move-agent" && action.source === "agent-autonomous",
+      ) &&
+      this.#actions.some(
+        (record) =>
+          record.sessionId === sessionId &&
+          record.outcome.kind === "move-agent" &&
+          record.outcome.reason === "user-directed" &&
+          activeStates.has(record.outcome.state),
+      )
+    )
+      return { accepted: false, reason: "user-directed-active" };
     if (
       sourceAuthority &&
       (this.#sources.some(
@@ -437,6 +469,28 @@ export class WorldActionService {
       }));
   }
 
+  movementExecutions(sessionId: string): readonly WorldActionProposalResult[] {
+    const grouped = new Map<string, StoredAction[]>();
+    for (const record of this.#actions) {
+      if (
+        record.sessionId !== sessionId ||
+        record.outcome.kind !== "move-agent" ||
+        !activeStates.has(record.outcome.state)
+      )
+        continue;
+      const records = grouped.get(record.envelope.batchId) ?? [];
+      records.push(record);
+      grouped.set(record.envelope.batchId, records);
+    }
+    return [...grouped.values()].map((records) => ({
+      accepted: true,
+      envelope: records[0]!.envelope,
+      outcomes: records.map(({ outcome }) => outcome),
+      superseded: [],
+      paths: {},
+    }));
+  }
+
   isBatchExecutable(sessionId: string, batchId: string): boolean {
     return this.#actions.some(
       (record) =>
@@ -495,23 +549,35 @@ export class WorldActionService {
     } else if (event === "arrived") {
       if (record.outcome.state !== "moving")
         throw new Error("Arrival requires active movement");
-      const target = record.outcome.requestedTarget
-        ? context.positions.get(record.outcome.requestedTarget)
-        : undefined;
-      if (
-        !target ||
-        !context.actorPosition ||
-        !isInsideInteractionZone(
-          context.actorPosition,
-          target,
-          target.interactionRadius,
+      if (record.outcome.kind === "move-agent") {
+        if (
+          !context.actorPosition ||
+          !Number.isFinite(context.actorPosition.x) ||
+          !Number.isFinite(context.actorPosition.z) ||
+          Math.abs(context.actorPosition.x) > 15 ||
+          Math.abs(context.actorPosition.z) > 15
         )
-      ) {
-        throw new Error(
-          "Arrival requires physical entry into the interaction zone",
-        );
+          throw new Error("Agent movement arrival is outside World bounds");
+        outcome = { ...record.outcome, state: "arrived", arrived: true };
+      } else {
+        const target = record.outcome.requestedTarget
+          ? context.positions.get(record.outcome.requestedTarget)
+          : undefined;
+        if (
+          !target ||
+          !context.actorPosition ||
+          !isInsideInteractionZone(
+            context.actorPosition,
+            target,
+            target.interactionRadius,
+          )
+        ) {
+          throw new Error(
+            "Arrival requires physical entry into the interaction zone",
+          );
+        }
+        outcome = { ...record.outcome, state: "arrived", arrived: true };
       }
-      outcome = { ...record.outcome, state: "arrived", arrived: true };
     } else if (event === "blocked") {
       if (
         record.outcome.state !== "path-planned" &&
@@ -668,6 +734,17 @@ export class WorldActionService {
     }[],
     context: WorldActionContext,
   ): WorldActionOutcome {
+    if (action.kind === "move-agent")
+      return {
+        actionId: action.actionId,
+        requestedTarget: null,
+        kind: action.kind,
+        state: "path-planned",
+        attention: false,
+        arrived: false,
+        continuity: "current",
+        reason: action.source,
+      } as WorldActionOutcome;
     const target = "target" in action ? action.target : null;
     if (!target) {
       return {

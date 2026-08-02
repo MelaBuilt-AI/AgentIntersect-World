@@ -185,6 +185,9 @@ importers:
       "@agentintersect-world/voice":
         specifier: workspace:*
         version: link:../../packages/voice
+      "@agentintersect-world/world-action-protocol":
+        specifier: workspace:*
+        version: link:../../packages/world-action-protocol
       "@agentintersect-world/world-schema":
         specifier: workspace:*
         version: link:../../packages/world-schema

@@ -71,6 +71,7 @@ const allowedWorkspaceDependencies: Readonly<
     "@agentintersect-world/sync-yjs",
     "@agentintersect-world/ui",
     "@agentintersect-world/voice",
+    "@agentintersect-world/world-action-protocol",
     "@agentintersect-world/world-schema",
   ],
   "@agentintersect-world/world-event-protocol": [],

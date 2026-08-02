@@ -47,7 +47,10 @@ export function registerWorldActionRoutes(
                 "Structured World Actions are unavailable; persistent chat and manual navigation remain available.",
             },
         actions: service.timeline(request.params.sessionId),
-        executions: imported.filter((result) => result.accepted),
+        executions: [
+          ...service.movementExecutions(request.params.sessionId),
+          ...imported.filter((result) => result.accepted),
+        ],
       });
     },
   );

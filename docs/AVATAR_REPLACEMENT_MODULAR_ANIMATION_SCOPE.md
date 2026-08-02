@@ -1,10 +1,121 @@
 # Avatar Replacement — Complete-Avatar Path and Deferred Research
 
-Status: complete-avatar selection active; modular composition deferred
+Status: complete-avatar animation manual correction required; agent movement authorized next; modular composition deferred
 
 Frozen: 2026-07-30
 
 Rebaselined: 2026-07-31
+
+## Manual animation failure and next-session authority — 2026-08-01
+
+Aaron's first-hand manual test supersedes the prior technical-green semantic
+claim. The tested avatar animates, and Walk and Run are accepted as correct.
+The animation slice is nevertheless **manual FAIL** because Jump appeared to
+use Angry, `/dance` appeared to use Turn, and `/laugh` appeared to use Dance.
+Aaron reasonably expects more mismatches. Structural validity, clip duration,
+channel motion, triptych differences, and 276/276 resolver coverage therefore
+do not establish semantic correctness. Every one of the 23 x 12 mappings must
+receive explicit semantic review; wrong, ambiguous, unsupported, or unreviewed
+mappings fail closed rather than substituting a plausible-looking clip.
+
+The next implementation session is authorized to correct these mappings and
+add actor-local animation precedence:
+
+- movement immediately cancels that same actor's active one-shot and selects
+  model-local Walk/Run;
+- a newer valid slash command immediately cancels the prior user one-shot and
+  starts the latest command;
+- a newer agent cue may replace a prior stationary agent cue, while agent
+  movement cancels the cue and remains authoritative;
+- stale completion callbacks from cancelled/replaced actions cannot clear or
+  restore older state;
+- cancelled one-shots never resume when movement stops; the actor returns to
+  model-local Idle.
+
+Aaron also authorizes agent movement as next-session product scope. World must
+own authoritative agent position and movement state. Agents must be able to
+follow explicit user directions about where to go, choose bounded movement
+through validated agent-AI World actions, and eventually target stable
+repository-object IDs once those objects and authoritative approach points
+exist. Explicit user direction outranks autonomous movement. Unsafe,
+unreachable, stale, or missing targets fail visibly without renderer-only
+position mutation. Repository-object targeting remains a tested future seam
+until stable object identity/layout authority exists.
+
+The actionable implementation order, exact paths, tests, and verification are
+frozen in
+`.hermes/plans/2026-08-01_113554-avatar-semantic-correction-and-agent-movement.md`.
+No correction or agent-movement implementation started in this end-session
+turn. Phase 18.5 remains paused; Phases 19-20, Git delivery, release, and
+publication remain closed.
+
+## Complete-avatar animation-completion addendum — 2026-08-01
+
+Aaron explicitly authorizes completion of the already-specified World animation
+surface for complete original avatars before any later product milestone. This
+is a functionality-first RED-to-GREEN vertical slice. Modular composition
+remains deferred.
+
+Acceptance is frozen as follows:
+
+- All 23 selectable avatars resolve evidence-reviewed, model-local clip indices
+  for `Idle`, `Walk`, `Run`, `Jump`, `Dance`, `Clap`, `Cheer`, `Wave`, `Bow`,
+  `Agree`, `Angry`, and `Laugh` from their own GLB, skeleton, and root. Runtime
+  authority requires deterministic structural checks plus bounded direct
+  visual/temporal evidence for every one of the 23 x 12 mappings. Missing or
+  ambiguous mappings fail closed as `EVIDENCE_REFUSED`; labels, stable indices,
+  durations, or cross-model correspondence alone remain insufficient.
+- Every user avatar animates evidence-backed `Idle`, `Walk`, and `Run` from
+  authoritative World movement. `StartWalk` and `StopWalk` map into that state,
+  Shift selects `Run`, transitions use crossfades bounded to 0.22 seconds, and
+  cloned runtime clips remove Hip/root travel only at runtime so World position
+  remains authoritative and cached source clips remain immutable.
+- Every agent avatar has a verified non-T-pose `Idle`. If the current World
+  exposes authoritative agent locomotion, verified model-local `Walk` and `Run`
+  are mapped too; this authorization does not add autonomous navigation.
+- Space triggers exactly one user `Jump` only while the active World owns
+  keyboard input. Repeat and re-entry are suppressed. Space is neither consumed
+  nor animated in `input`, `textarea`, `select`, contenteditable, setup, dialog,
+  Escape-menu, or inactive modes.
+- `/dance`, `/clap`, `/cheer`, `/wave`, `/bow`, `/agree`, `/angry`, and `/laugh`
+  are exact local-only commands after outer-whitespace trimming and
+  case-insensitive matching. Recognized commands animate locally and never enter
+  Hermes, FIFO, or chat transport; unknown slash text remains ordinary chat.
+- Visible agent text/application events project deterministic one-shot cues by
+  the ordered table already frozen below. The UI and observability describe the
+  result as a projection, never as inferred emotion or intent.
+- One-shots play once, reject re-entry, and crossfade cleanly to current
+  locomotion or `Idle`. Reduced-motion completion remains truthful and cannot
+  trap one-shot state.
+- Bounded DOM/debug observability exposes participant/model, current semantic,
+  cue source, resolved model-local clip index and name, action/mixer progression,
+  and refusal/error truth without private paths. Loading, WebGL, and
+  missing-mapping failures stay explicit; a static T-pose is never reported as
+  completed animation. Normal World UI remains the minimal chat/push-to-talk
+  surface rather than gaining an admin panel.
+
+The evidence deliverable is a new bounded tree under
+`artifacts/avatar-replacement-evidence/world-animation-completion-v1/`. It must
+identify all 276 model/action mappings, expose duration/channel/motion evidence,
+and provide reviewable representative temporal samples or production-browser
+motion/contact-sheet evidence without creating an unbounded frame corpus.
+
+Source and usage authority is also corrected by Aaron in this addendum. The
+models were generated by Aaron under his Tripo3D subscription and provided
+locally. Aaron explicitly confirms unrestricted use for AgentIntersect World,
+including private use, public use, and redistribution. Intake classification
+remains `user-provided-local`; the canonical machine value for the supplied
+usage status is
+`tripo3d-subscription-user-confirmed-unrestricted-use`. This records the
+operator's generation source and grant without asserting an independent
+third-party legal opinion. Model bytes must not change.
+
+Non-goals remain: cross-model clip reuse, retargeting, rebinding, donor
+composition, GLB or mesh/source mutation, autonomous agent navigation, modular
+composition, broad asset production, Phase 18.5 resumption or evidence rebind,
+Phases 19-20, voice/live-coding expansion, provider/profile/Hermes changes,
+protected-service changes, dependency changes, original-AgentIntersect or
+sibling-worktree changes, and every Git/external delivery action.
 
 ## Operator-correction addendum — 2026-07-31
 
@@ -146,8 +257,12 @@ registry. They are never requested or retained as fallback models.
 
 - The five supplied source folders are read-only input. Intake never modifies,
   renames, rewrites, deletes, or emits generated sidecars into them.
-- Provenance is recorded only as `user-provided-local`. License status is
-  `not-stated`; no license or usage grant is invented.
+- Intake provenance remains `user-provided-local`. Aaron generated the models
+  under his Tripo3D subscription and explicitly confirms unrestricted use for
+  AgentIntersect World, including private/public use and redistribution. The
+  stable supplied-usage value is
+  `tripo3d-subscription-user-confirmed-unrestricted-use`; this records Aaron's
+  grant without inventing an independent third-party legal opinion.
 - Every supplied GLB and matching stance image is copied byte-for-byte into the
   product under its stable sanitized ID. The stance image is the card thumbnail.
   T-pose images remain source/evidence references and are not runtime payload.
@@ -306,15 +421,20 @@ Change Avatar without relaxing native-session preservation.
 
 ## Semantic clips, motion evidence, and immutability
 
-Every asset has its own evidence-backed map for:
+Every asset has an explicit model-local candidate map and semantic-review
+decision for:
 
 `Idle`, `Walk`, `Run`, `Jump`, `Dance`, `Clap`, `Cheer`, `Wave`, `Bow`,
 `Agree`, `Angry`, and `Laugh`.
 
-- Anonymous clip labels are never semantically assigned from index or duration
-  alone. Classification uses deterministic sampled pose/motion/channel evidence
-  plus a labeled representative pose-strip/contact sheet for parent visual
-  verification.
+- Anonymous clip labels are never semantically accepted from index or duration
+  alone. The v2 review records exactly 23 × 12 decisions with expected clip
+  index, rationale, and evidence references. Direct bounded temporal review
+  supports only `Idle`, `Walk`, and `Run` for all 23 models (69 `pass`). The
+  remaining 207 gesture decisions are `ambiguous`; none is treated as accepted.
+- Runtime resolution requires a `pass` decision whose expected clip index still
+  matches the generated candidate map. `wrong_clip`, `ambiguous`, `unsupported`,
+  missing, and divergent decisions all fail closed without playing a substitute.
 - Any cross-model index correspondence is recorded only after the sampled
   evidence proves the same motion class. The three 22-clip variants are mapped
   explicitly; extra clips never shift mappings by assumption.
@@ -324,15 +444,18 @@ Every asset has its own evidence-backed map for:
   bounded crossfades. Original mode resolves one action on one root. Modular mode
   resolves the requested semantic independently through each visible donor’s
   model-local map and starts/crossfades corresponding actions together.
-- One-shots (`Jump` and the eight expression actions) ignore re-entry, play once,
-  and cleanly return through a bounded crossfade to current locomotion or Idle.
-  Missing/invalid mappings produce an observable truthful fallback without a
-  repeated fetch or action loop.
+- Valid one-shots use actor-local generations. A newer one-shot replaces an
+  older one for that actor, locomotion cancels it immediately, and stale
+  completion callbacks are no-ops. Stopping movement returns to model-local
+  Idle; a cancelled one-shot never resumes. At this checkpoint all nine gesture
+  classes remain review-refused, so the renderer truthfully stays on Idle rather
+  than playing an ambiguous clip.
 
 ## Global input ownership and local slash commands
 
-- `Space` triggers exactly one user `Jump` only while the active World room owns
-  keyboard input. Repeats and re-entry while jumping are ignored.
+- `Space` requests user `Jump` only while the active World room owns keyboard
+  input. Until Jump receives a review `pass`, that request is immediately
+  refused back to model-local Idle.
 - Space is inert in `input`, `textarea`, `select`, and contenteditable targets;
   avatar/identity/session/agent setup; dialogs; the Escape menu; and any other
   inactive mode. `preventDefault()` occurs only when World consumes the key.
@@ -340,12 +463,19 @@ Every asset has its own evidence-backed map for:
 - The exact case-insensitive, outer-whitespace-trimmed local-only commands are:
   `/dance`, `/clap`, `/cheer`, `/wave`, `/bow`, `/agree`, `/angry`, and
   `/laugh`.
-- A recognized command triggers its corresponding user one-shot, is omitted
-  from visible remote chat/FIFO submission, and is never sent to Hermes or any
-  agent. It may be acknowledged locally through animation observability.
-- An unknown slash-prefixed string remains ordinary user text because the
-  existing World has no truthful command-error convention. Ordinary chat,
-  FIFO/recovery, targeting, and transport remain unchanged.
+- A recognized command requests its corresponding local user one-shot, is
+  omitted from visible remote chat/FIFO submission, and is never sent to Hermes
+  or any agent. Current ambiguous gesture decisions fail closed to Idle.
+- An otherwise unknown slash-prefixed string remains ordinary user text.
+  Ordinary chat, FIFO/recovery, targeting, and transport remain unchanged.
+- The normal World HUD also recognizes only this exact case-insensitive,
+  outer-whitespace-trimmed movement grammar: `/agent move <x> <z>`, `/agent
+move <forward|backward|left|right> <distance>`, `/agent follow
+[stoppingRadius]`, and `/agent stop`.
+- Recognized valid movement commands are local-only inputs to the validated
+  World action proposal/interrupt routes and never enter chat. Recognized
+  malformed or unsafe `/agent` commands are visibly refused locally. Other
+  unknown slash strings remain chat.
 
 ## Deterministic agent expression cues
 
@@ -368,6 +498,37 @@ is reachable. Observability labels the result as a deterministic visible-text
 or application-event cue, not a model emotion or model-generated inner state.
 After one-shot completion the agent returns to its current truthful activity
 locomotion/Idle projection.
+
+## World-owned agent movement
+
+- Versioned browser-safe movement actions accept bounded coordinates, relative
+  direction/distance, follow/approach-user targets, and stable repository object
+  IDs with layout generations. Validation rejects non-finite values, actor or
+  source mismatch, excessive speed/distance/stopping radius, out-of-bounds
+  destinations, and stale/hidden/unreachable repository targets.
+- World owns each agent's position, heading, velocity, destination, source,
+  movement state, and request generation. Integration clamps elapsed time and
+  drives model-local Walk/Run from authoritative velocity, cancelling any cue;
+  arrival or cancellation selects Idle.
+- `user-directed` movement outranks `agent-autonomous`. New same-priority work
+  cancels prior work. Explicit movement suspends autonomy, which may resume only
+  after the explicit priority releases. Free-form assistant prose never mutates
+  transforms.
+- Repository targets resolve only through stable object IDs and current
+  authoritative approach points. Missing/stale targets return `target-stale`;
+  labels, mesh indices, and transient renderer coordinates are never accepted.
+- Movement observability reports only requested/accepted/moving/arrived/
+  cancelled/refused/target-stale state plus bounded movement fields; it excludes
+  transcript and filesystem content.
+- The production-static movement journey mounts the normal entry experience,
+  injects an accepted autonomous action through the real polling boundary,
+  submits a HUD `/agent move` command, validates the proposal body and exact
+  actor/source, observes autonomous-to-user preemption and changing DOM position,
+  checks locomotion/cue cancellation and lifecycle arrival, refuses an unsafe
+  coordinate locally, and submits `/agent stop` to reach Idle without chat
+  delivery. Its 2026-08-01 worker execution is pending because the restricted
+  worker sandbox denied Chromium launch; parent supported-environment proof is
+  still required.
 
 ## Accessibility, fallback, loading, and performance
 

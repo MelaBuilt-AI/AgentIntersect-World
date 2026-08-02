@@ -1,6 +1,9 @@
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
+import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
+
+const execFileAsync = promisify(execFile);
 
 describe("imported avatar deterministic intake", () => {
   const repositoryRoot = new URL("../..", import.meta.url);
@@ -12,8 +15,8 @@ describe("imported avatar deterministic intake", () => {
     ...Array.from({ length: 3 }, (_, index) => `user-female-0${index + 1}`),
   ];
 
-  it("checks exactly 23 repository-owned replacement assets without private source folders", () => {
-    const output = execFileSync(
+  it("checks exactly 23 repository-owned replacement assets without private source folders", async () => {
+    const { stdout: output } = await execFileAsync(
       "python3",
       ["tooling/avatar/inspect_imported_avatars.py", "--check"],
       {
@@ -75,15 +78,29 @@ describe("imported avatar deterministic intake", () => {
         "utf8",
       ),
     ) as {
+      readonly suppliedLicenseStatus: string;
       readonly assets: readonly {
         readonly id: string;
         readonly sourceSha256: string;
         readonly sha256: string;
         readonly byteSize: number;
         readonly originalRole: string;
+        readonly suppliedLicenseStatus: string;
+        readonly sourceClassification: string;
       }[];
     };
     expect(manifest.assets.map((asset) => asset.id)).toEqual(replacementIds);
+    expect(manifest.suppliedLicenseStatus).toBe(
+      "tripo3d-subscription-user-confirmed-unrestricted-use",
+    );
+    expect(
+      manifest.assets.every(
+        (asset) =>
+          asset.suppliedLicenseStatus ===
+            "tripo3d-subscription-user-confirmed-unrestricted-use" &&
+          asset.sourceClassification === "user-provided-local",
+      ),
+    ).toBe(true);
     expect(
       manifest.assets.every(
         (asset) =>
@@ -98,16 +115,36 @@ describe("imported avatar deterministic intake", () => {
     );
   });
 
-  it("plans dense runtime-refused pose evidence for all 23 models and explicit variants", () => {
-    const plan = JSON.parse(
-      execFileSync(
-        "python3",
-        ["tooling/avatar/render_replacement_pose_catalog.py", "--dry-run"],
-        {
-          cwd: repositoryRoot,
-          encoding: "utf8",
-        },
+  it("keeps dense review evidence out of the browser runtime registry", () => {
+    const registry = readFileSync(
+      new URL(
+        "packages/avatar-system/src/imported-avatar-registry.generated.ts",
+        repositoryRoot,
       ),
+      "utf8",
+    );
+    expect(registry).toContain('"semanticDurations"');
+    expect(registry).toContain('"semanticReviewVerdicts"');
+    expect(registry).toContain('"semanticReviewExpectedClipIndices"');
+    expect(registry).not.toContain('"rationale"');
+    expect(registry).not.toContain('"semanticEvidence"');
+    expect(registry).not.toContain('"motionChannelSha256"');
+    expect(registry).not.toContain('"rootHipPelvisTranslationEvidence"');
+    expect(registry).not.toContain('"visualEvidence"');
+  });
+
+  it("plans dense runtime-refused pose evidence for all 23 models and explicit variants", async () => {
+    const plan = JSON.parse(
+      (
+        await execFileAsync(
+          "python3",
+          ["tooling/avatar/render_replacement_pose_catalog.py", "--dry-run"],
+          {
+            cwd: repositoryRoot,
+            encoding: "utf8",
+          },
+        )
+      ).stdout,
     ) as {
       readonly schema: string;
       readonly samplesPerClip: number;

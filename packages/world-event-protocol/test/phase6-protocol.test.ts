@@ -5,6 +5,7 @@ import {
   normalizeObservation,
   projectEvents,
   stableEventOrder,
+  parseActorMovementEvent,
 } from "../src/index.js";
 
 const observedAt = "2026-07-19T12:00:02.000Z";
@@ -19,6 +20,29 @@ const event = {
 };
 
 describe("Phase 6 normalized event protocol", () => {
+  it("validates bounded movement lifecycle events without transcript or filesystem fields", () => {
+    const parsed = parseActorMovementEvent({
+      schema: "aiw.agent-movement-event/1",
+      actorId: "agent-session-1",
+      requestId: "request-1",
+      source: "user-directed",
+      state: "moving",
+      targetKind: "coordinate",
+      position: { x: 1, z: -2 },
+      heading: 0.5,
+      speed: 4,
+    });
+    expect(parsed).toMatchObject({ state: "moving", speed: 4 });
+    expect(() =>
+      parseActorMovementEvent({
+        ...parsed,
+        transcript: "private prompt",
+      }),
+    ).toThrow(/invalid movement event/iu);
+    expect(() =>
+      parseActorMovementEvent({ ...parsed, position: { x: Infinity, z: 0 } }),
+    ).toThrow(/invalid movement event/iu);
+  });
   it("reuses deterministic fallback event and animation IDs", () => {
     const first = normalizeObservation({
       source: "dashboard-feed",

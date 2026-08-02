@@ -411,10 +411,16 @@ export function createAvatarProfile(
       : draftValue,
   );
   if (!draft) throw new TypeError("Invalid aiw.avatar/0.18.5 draft");
-  const id =
-    previous?.profileId ??
-    profileId ??
-    `avatar_${globalThis.crypto.randomUUID().replaceAll("-", "")}`;
+  const cryptoApi = globalThis.crypto;
+  const generatedProfileId = () => {
+    if (typeof cryptoApi.randomUUID === "function")
+      return `avatar_${cryptoApi.randomUUID().replaceAll("-", "")}`;
+    const bytes = cryptoApi.getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+    bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+    return `avatar_${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+  };
+  const id = previous?.profileId ?? profileId ?? generatedProfileId();
   const candidate = {
     schema: AVATAR_SCHEMA,
     profileId: id,

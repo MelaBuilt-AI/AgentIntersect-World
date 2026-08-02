@@ -1,0 +1,153 @@
+{
+  "schema": "aiw.browser-model-local-motion-trace/1",
+  "userModel": "user-male-02",
+  "agentModel": "robot-agent-05",
+  "crossfadeSeconds": 0.22,
+  "samples": [
+    {
+      "state": "idle-1",
+      "capturedAt": 19407.700000047684,
+      "user": {
+        "sourceAssetId": "user-male-02",
+        "mixerRoot": "6d104877-aa1e-4054-b026-cdf314e14d25",
+        "mixerTime": 0.1,
+        "actionTime": 0.05,
+        "sequence": 1,
+        "clip": "NlaTrack.005",
+        "clipIndex": 5,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9992175541757854,-0.028362865172354756,-0.00019787299774047973,0.027563644713317122"
+      },
+      "agent": {
+        "sourceAssetId": "robot-agent-05",
+        "mixerRoot": "5e889f59-86de-42c5-a379-1e7d3be27c95",
+        "mixerTime": 0.1,
+        "actionTime": 0.05,
+        "sequence": 1,
+        "clip": "NlaTrack.018",
+        "clipIndex": 18,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9997689836725573,-0.01483507645948126,-0.0010265360531121954,-0.015519255672113192"
+      },
+      "worldPosition": "0,0"
+    },
+    {
+      "state": "idle-2",
+      "capturedAt": 19546.700000047684,
+      "user": {
+        "sourceAssetId": "user-male-02",
+        "mixerRoot": "6d104877-aa1e-4054-b026-cdf314e14d25",
+        "mixerTime": 0.2402999999523163,
+        "actionTime": 0.1902999999523163,
+        "sequence": 2,
+        "clip": "NlaTrack.005",
+        "clipIndex": 5,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9987971691029631,0.01650394174091797,-0.0017977267092418078,0.04613677545753627"
+      },
+      "agent": {
+        "sourceAssetId": "robot-agent-05",
+        "mixerRoot": "5e889f59-86de-42c5-a379-1e7d3be27c95",
+        "mixerTime": 0.2402999999523163,
+        "actionTime": 0.1902999999523163,
+        "sequence": 2,
+        "clip": "NlaTrack.018",
+        "clipIndex": 18,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9992212867599294,0.025335141572177866,-0.0008954150369044369,0.030234896368237608"
+      },
+      "worldPosition": "0,0"
+    },
+    {
+      "state": "walk",
+      "capturedAt": 32894.90000003576,
+      "user": {
+        "sourceAssetId": "user-male-02",
+        "mixerRoot": "6d104877-aa1e-4054-b026-cdf314e14d25",
+        "mixerTime": 13.379700000047688,
+        "actionTime": 0.3685999999642373,
+        "sequence": 92,
+        "clip": "NlaTrack.003",
+        "clipIndex": 3,
+        "locomotion": "Walk",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9779461542583063,-0.009480591002671733,-0.00829489494886889,0.20847693513531954"
+      },
+      "agent": {
+        "sourceAssetId": "robot-agent-05",
+        "mixerRoot": "5e889f59-86de-42c5-a379-1e7d3be27c95",
+        "mixerTime": 13.379700000047688,
+        "actionTime": 0.7195999999642371,
+        "sequence": 92,
+        "clip": "NlaTrack.018",
+        "clipIndex": 18,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9991150474241963,0.02746857779899315,-0.0008655883871335191,0.031841011306030065"
+      },
+      "worldPosition": "0,-2.3"
+    },
+    {
+      "state": "run",
+      "capturedAt": 33425.80000001192,
+      "user": {
+        "sourceAssetId": "user-male-02",
+        "mixerRoot": "6d104877-aa1e-4054-b026-cdf314e14d25",
+        "mixerTime": 13.893400000035765,
+        "actionTime": 0.3655999999642373,
+        "sequence": 96,
+        "clip": "NlaTrack.020",
+        "clipIndex": 20,
+        "locomotion": "Run",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "-0.9255929673133159,-0.08805706481078243,-0.014615281145356974,0.3678448192684701"
+      },
+      "agent": {
+        "sourceAssetId": "robot-agent-05",
+        "mixerRoot": "5e889f59-86de-42c5-a379-1e7d3be27c95",
+        "mixerTime": 13.893400000035765,
+        "actionTime": 1.2332999999523155,
+        "sequence": 96,
+        "clip": "NlaTrack.018",
+        "clipIndex": 18,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "-0.9999972567360482,-0.0016116968399572148,0.0009238406659350744,-0.001426699722464782"
+      },
+      "worldPosition": "0,-7.891"
+    },
+    {
+      "state": "returned-idle",
+      "capturedAt": 33922.10000002384,
+      "user": {
+        "sourceAssetId": "user-male-02",
+        "mixerRoot": "6d104877-aa1e-4054-b026-cdf314e14d25",
+        "mixerTime": 14.40110000002384,
+        "actionTime": 0.38119999998807913,
+        "sequence": 100,
+        "clip": "NlaTrack.005",
+        "clipIndex": 5,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9981534026719965,0.03197529900199466,-0.0023091036401697413,0.05159489343362869"
+      },
+      "agent": {
+        "sourceAssetId": "robot-agent-05",
+        "mixerRoot": "5e889f59-86de-42c5-a379-1e7d3be27c95",
+        "mixerTime": 14.40110000002384,
+        "actionTime": 1.7409999999403944,
+        "sequence": 100,
+        "clip": "NlaTrack.018",
+        "clipIndex": 18,
+        "locomotion": "Idle",
+        "boneName": "L_Thigh",
+        "boneQuaternion": "0.9984693402127893,-0.03291728368249361,-0.0033091430065177235,0.04432243971811074"
+      },
+      "worldPosition": "0,-8.69"
+    }
+  ]
+}
