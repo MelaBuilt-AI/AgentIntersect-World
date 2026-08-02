@@ -2,6 +2,7 @@ import * as appModule from "../src/App.js";
 import * as agentAvatarModule from "../src/world-entry/world-entry-avatar.js";
 import * as appSurfaceModule from "../src/world-entry/app-surface.js";
 import * as experienceModule from "../src/world-entry/WorldEntryExperience.js";
+import * as restoreModule from "../src/world-entry/world-entry-restore.js";
 import { AvatarBuilder } from "../src/avatar/AvatarBuilder.js";
 import * as activityModule from "../src/world-entry/world-chat-model.js";
 import * as roomModule from "../src/world-entry/world-navigation-model.js";
@@ -29,6 +30,11 @@ type UiApi = {
 };
 
 const api = experienceModule as unknown as Partial<UiApi>;
+const restoreApi = restoreModule as unknown as {
+  readonly resolveWorldEntryRestore?: (
+    result: Readonly<Record<string, unknown>>,
+  ) => "clear" | "world" | "avatar-create" | "avatar-migrate";
+};
 const activityApi = activityModule as unknown as {
   readonly createWorldChatState?: () => {
     readonly activity: { readonly state: string; readonly icon: string };
@@ -390,7 +396,12 @@ describe("Phase 18 World entry experience", () => {
     expect(html).toContain("Accept and save avatar");
     expect(html).not.toContain("ᓚᘏᗢ");
     expect(html).not.toContain("world-agent-avatar__preview");
-    expect(html).not.toContain("Enter World");
+    expect(html).toContain(
+      '<button type="button" class="world-enter-action world-enter-action--avatar-gate world-action--unavailable" disabled="" aria-describedby="agent-avatar-entry-gate">Enter World</button>',
+    );
+    expect(html).toContain(
+      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
+    );
   });
 
   it("labels an accepted legacy proposal as an explicit migration gate", () => {
@@ -416,7 +427,48 @@ describe("Phase 18 World entry experience", () => {
     expect(html).toContain(
       '<button class="primary-action" type="button" disabled="">Accept and save avatar</button>',
     );
-    expect(html).not.toContain("Enter World");
+    expect(html).toContain('aria-describedby="agent-avatar-entry-gate"');
+    expect(html).toContain(
+      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
+    );
+  });
+
+  it("restores exact connected sessions with pending avatar consent into the explicit avatar gate", () => {
+    expect(typeof restoreApi.resolveWorldEntryRestore).toBe("function");
+    if (!restoreApi.resolveWorldEntryRestore) return;
+    const sessionId = legacyCatProposal.sessionId;
+    const pending = {
+      status: "connected",
+      continuity: "current",
+      session: { sessionId },
+      proposal: legacyCatProposal,
+      avatarAccepted: false,
+      avatarSetup: "required",
+      history: {
+        sessionId,
+        continuity: "current",
+        messages: [],
+        transcriptAuthority: "hermes",
+        avatarConsent: null,
+      },
+    };
+
+    expect(restoreApi.resolveWorldEntryRestore(pending)).toBe("avatar-create");
+    expect(
+      restoreApi.resolveWorldEntryRestore({
+        ...pending,
+        history: { ...pending.history, sessionId: "other-session" },
+      }),
+    ).toBe("clear");
+    expect(
+      restoreApi.resolveWorldEntryRestore({
+        ...pending,
+        history: {
+          ...pending.history,
+          continuity: "previous-recovered",
+        },
+      }),
+    ).toBe("clear");
   });
 
   it("adapts representative legacy proposals into strict drafts and exact session-bound payloads", () => {

@@ -14,10 +14,12 @@ import {
   type ImportedAvatarAssetId,
 } from "@agentintersect-world/avatar-system/imported-avatar";
 import { readFileSync } from "node:fs";
+import { Children, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { AvatarBuilder } from "../src/avatar/AvatarBuilder.js";
+import { AvatarPreview } from "../src/avatar/AvatarPreview.js";
 import {
   parseImportedAvatarManifest,
   validateImportedAvatarManifest,
@@ -58,6 +60,34 @@ const agentProposal: AvatarProposal = {
 };
 
 describe("replacement imported avatar creator", () => {
+  it("keeps imported renderer dependencies stable while only the avatar name changes", () => {
+    const avatarSource = createOriginalImportedAvatarSource("user-male-01");
+    type ChildContainer = ReactElement<{ children: ReactNode }>;
+    type SceneElement = ReactElement<{
+      importedParts: readonly unknown[];
+      hiddenPartIds: readonly string[];
+    }>;
+    const renderScene = (agentName: string) => {
+      const preview = AvatarPreview({
+        profile: {
+          ...DEFAULT_IMPORTED_AVATAR_DRAFT,
+          agentName,
+          avatarSource,
+        },
+      }) as ChildContainer;
+      const previewChildren = Children.toArray(preview.props.children);
+      const suspense = previewChildren[1] as ChildContainer;
+      const errorBoundary = suspense.props.children as ChildContainer;
+      return errorBoundary.props.children as SceneElement;
+    };
+
+    const first = renderScene("A").props;
+    const second = renderScene("Avatar Name").props;
+
+    expect(first.importedParts).toBe(second.importedParts);
+    expect(first.hiddenPartIds).toBe(second.hiddenPartIds);
+  });
+
   it("shows six user and seventeen agent stance-card buttons", () => {
     const render = (role: "user" | "agent") =>
       renderToStaticMarkup(

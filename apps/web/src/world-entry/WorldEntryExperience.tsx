@@ -58,6 +58,7 @@ import {
   saveWorldDisplayPreferences,
   type WorldDisplayPreferences,
 } from "./world-escape-menu-model.js";
+import { resolveWorldEntryRestore } from "./world-entry-restore.js";
 
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
 const SESSION_POINTER_PATTERN =
@@ -226,17 +227,11 @@ export function WorldEntryExperience({
       .restoreHermes(pointer)
       .then((result) => {
         if (!active) return;
+        const disposition = resolveWorldEntryRestore(result);
         if (
+          disposition === "clear" ||
           (result.status !== "connected" && result.status !== "recovered") ||
-          !result.avatarAccepted ||
-          !result.proposal ||
-          result.history.sessionId !== result.session.sessionId ||
-          result.history.transcriptAuthority !== "hermes" ||
-          result.history.avatarConsent?.state !== "accepted" ||
-          result.history.avatarConsent.current?.sessionId !==
-            result.session.sessionId ||
-          result.history.avatarConsent.current.proposalId !==
-            result.proposal.proposalId
+          !result.proposal
         ) {
           finishWithoutRestore(true);
           return;
@@ -247,7 +242,7 @@ export function WorldEntryExperience({
           type: "RESTORE_HISTORY",
           messages: result.history.messages,
         });
-        if (result.avatarSetup === "complete") {
+        if (disposition === "world") {
           setAgentAvatar(avatarDraftFromProposal(result.proposal));
           setStatus(
             `agent connected · ${connectionLabel(result)} · avatar accepted`,
@@ -261,9 +256,15 @@ export function WorldEntryExperience({
           });
         } else {
           setAgentAvatar(null);
-          setAgentAvatarMode("migrate");
+          setAgentAvatarMode(
+            disposition === "avatar-migrate" ? "migrate" : "create",
+          );
           setStatus(
-            `agent connected · ${connectionLabel(result)} · avatar change required`,
+            `agent connected · ${connectionLabel(result)} · ${
+              disposition === "avatar-migrate"
+                ? "avatar change required"
+                : "avatar acceptance required"
+            }`,
           );
           dispatch({
             type: "RESTORE_AGENT_AVATAR",

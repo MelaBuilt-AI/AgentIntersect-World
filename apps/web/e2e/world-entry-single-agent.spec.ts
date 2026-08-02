@@ -687,7 +687,7 @@ async function completeJourney(
   userDisplayName = "Aaron",
 ) {
   await seedConfiguredAvatar(page, userDisplayName);
-  await installWorldFixtures(page);
+  await installWorldFixtures(page, { restoreStatus: true });
   await page.goto("/");
   await expect(page.locator(".world-entry-logo__name")).toHaveText(
     userDisplayName,
@@ -726,9 +726,28 @@ async function completeJourney(
   await expect(
     page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Enter World" })).toHaveCount(
-    0,
-  );
+  const blockedEnterWorld = page.getByRole("button", { name: "Enter World" });
+  await expect(blockedEnterWorld).toBeDisabled();
+  await expect(
+    page.getByText(
+      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
+    ),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Enter World" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText(
+      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Use Complete Avatar" }),
+  ).toBeEnabled();
   if (
     evidence === "desktop" ||
     evidence === "large-desktop" ||
@@ -746,6 +765,7 @@ async function completeJourney(
     });
   }
   await page.getByLabel("Required agent name").fill("Mr Fluff");
+  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await page.getByRole("button", { name: "Accept and save avatar" }).click();
   const enterWorld = page.getByRole("button", { name: "Enter World" });
   await expect(enterWorld).toBeEnabled();

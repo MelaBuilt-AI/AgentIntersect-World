@@ -1,8 +1,47 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-01
+Updated: 2026-08-02
 
 ## Current milestone
+
+### 2026-08-02 imported-avatar acceptance corrections — TECHNICALLY VERIFIED; OPERATOR RETEST PENDING
+
+Aaron first-hand tested private candidate
+`b8e787b49813d939f998cccec6a19ede1a57501c` and reported two authoritative
+manual acceptance failures. Typing each character of the user-avatar name reset
+the active 3D preview to its T-pose, repeatedly interrupting its animation. After
+attaching Hermes / Mr Fluff, the product reported `agent connected` but exposed no
+Enter World control; refreshing still did not expose one. No screenshot or video
+accompanied the report. The failed disposable state was hash-frozen and retained,
+only the two owner-validated candidate services were stopped, and protected
+services remained untouched.
+
+The animation reset was caused by fresh empty `importedParts` and `hiddenPartIds`
+arrays being created on every `AvatarPreview` render. Name input therefore changed
+renderer dependency identity, rebuilding the imported scene/mixer and restarting
+its clip. Module-stable empty defaults now preserve renderer identity when only the
+name changes. The World-entry dead end retained explicit avatar consent but made it
+invisible: pre-consent Enter World was absent, and refresh rejected a healthy exact
+session solely because consent was pending. The avatar gate now shows a prominent
+disabled Enter World control with the exact `Use Complete Avatar` then `Accept and
+save avatar` unlock steps. Refresh resumes pending avatar creation only when the
+proposal, session, authoritative history, transcript authority, and continuity all
+bind exactly; mismatches continue to fail closed.
+
+Focused regressions failed RED for changing renderer dependencies, the absent
+entry gate, pending-session refresh, and continuity mismatch before passing GREEN.
+Impacted Vitest passed 56/56 before the final fail-closed hardening. Final
+`check:core` passed Prettier, ESLint, TypeScript 38/38, architecture 11/11,
+functional Vitest 127 files / 752 tests, builds 20/20, and smoke. The rebuilt
+non-evidence Playwright journey passed 1/1 in 10.6 seconds, including disabled gate,
+refresh-before-consent, explicit complete-avatar selection, enabled Enter World,
+and full fixture-backed World entry. Historical evidence was not run, rewritten,
+or rebound.
+
+No operator PASS is claimed yet. A fresh disposable matching candidate must be
+relaunched for first-hand retest of both reported failures. No PR, merge, tag,
+release, publication, deployment, visibility change, gesture inference, Phase
+18.5 evidence recapture, or Phase 19–20 work is authorized by this correction.
 
 ### 2026-08-01 Phase 18.5 Option 2 split — SELECTED; CURRENT IMPORTED ACCEPTANCE INPUT CONTRACT AUTHORIZED
 

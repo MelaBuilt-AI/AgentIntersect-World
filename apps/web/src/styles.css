@@ -610,6 +610,35 @@
   width: min(100%, 92rem);
 }
 
+.world-agent-avatar__entry-gate {
+  position: sticky;
+  top: 0;
+  z-index: 11;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  width: min(100%, 88rem);
+  margin: 0 auto 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  border-radius: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: rgba(3, 9, 20, 0.96);
+  backdrop-filter: blur(0.5rem);
+}
+
+.world-enter-action--avatar-gate {
+  position: static;
+  min-width: 10rem;
+  transform: none;
+}
+
+.world-agent-avatar__entry-gate p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
 .world-agent-avatar--builder > .world-entry-error {
   width: min(100% - 2rem, 88rem);
   margin: 0 auto 1rem;

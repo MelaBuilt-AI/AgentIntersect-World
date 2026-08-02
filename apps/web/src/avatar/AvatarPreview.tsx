@@ -10,6 +10,10 @@ import {
 import type { ImportedAvatarPart } from "@agentintersect-world/renderer-r3f/imported-avatar";
 import { Component, lazy, Suspense, type ReactNode } from "react";
 import { compactAvatarPreviewUses3d } from "./avatar-preview-policy.js";
+
+const EMPTY_IMPORTED_AVATAR_PARTS: readonly ImportedAvatarPart[] = [];
+const EMPTY_HIDDEN_IMPORTED_PART_IDS: readonly string[] = [];
+
 const AvatarScene = lazy(async () => {
   const module = await import("./AvatarScene.js");
   return { default: module.AvatarScene };
@@ -51,8 +55,8 @@ export function AvatarPreview({
   previewClipIndex = 0,
   load3d = true,
   showFallbackImage = true,
-  importedParts = [],
-  hiddenPartIds = [],
+  importedParts = EMPTY_IMPORTED_AVATAR_PARTS,
+  hiddenPartIds = EMPTY_HIDDEN_IMPORTED_PART_IDS,
 }: {
   readonly profile: AvatarDraft;
   readonly compact?: boolean;
