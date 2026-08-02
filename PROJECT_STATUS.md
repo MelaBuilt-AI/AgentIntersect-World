@@ -4,6 +4,38 @@ Updated: 2026-08-02
 
 ## Current milestone
 
+### 2026-08-02 proposal-aligned manual retest — ENTER WORLD PASS; REFRESH RESTORATION FAIL
+
+Aaron first-hand tested private candidate
+`65bb618299190f6f1c2998d88a875e6c643fd855` on the fresh proposal-aligned
+manual lane. The previously missing Enter World path is now **PASS**: Mr Fluff
+connected, the Enter World control returned, and Aaron entered World with both
+his avatar and Mr Fluff visible. Refresh durability is **FAIL**: refreshing from
+World returned to the agent-connection screen and required Mr Fluff avatar setup
+again. Repeating that setup allowed Aaron to re-enter World successfully.
+
+The candidate therefore has a mixed criterion-level verdict and remains an
+overall manual **FAIL** while accepted-session/avatar restoration across refresh
+is broken. No screenshot or video accompanied the report. No diagnosis,
+remediation, source edit, consent weakening, or replacement candidate has been
+authorized or started. The disposable failure state at
+`/tmp/aiw-phase18-5-option2-user-acceptance-final` was hash-frozen with a
+seven-entry manifest and retained read-only. Only the exact owner-validated
+`43779/45189` candidate tmux sessions/listeners were stopped; protected
+`3770/5173/8642/18789` retained their recorded owners. The next session must
+reconstruct that retained state read-only, sanitize only the minimum shape needed
+for a causal RED regression, and fix refresh restoration without rebinding a
+stale proposal or synthesizing avatar consent.
+
+Exact-SHA GitHub Actions run `30755164679` remains red but introduced zero new
+normalized test failures: unflagged E2E passed, core repeated the inherited
+10-second imported-avatar intake timeout, measurements repeated the inherited
+Phase 11 save expectation, flagged shard 1 repeated the same eight failures, and
+flagged shard 2 improved from 15 failures to 14. This CI result does not override
+the first-hand refresh FAIL. No PR, merge, tag, release, publication, deployment,
+visibility change, Phase 18.5 evidence recapture, or Phase 19–20 work is
+authorized.
+
 ### 2026-08-02 imported-avatar acceptance corrections — PARTIAL PASS; ENTER WORLD STILL OPERATOR FAIL
 
 Aaron first-hand tested private candidate
