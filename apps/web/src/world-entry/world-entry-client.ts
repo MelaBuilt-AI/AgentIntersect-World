@@ -322,6 +322,8 @@ export function createWorldEntryClient(
             })),
         ]);
         const avatar = resolveAvatarState(session.sessionId, proposal, history);
+        if (avatar.proposal === null)
+          return { status: "unavailable", message: "agent unavailable_" };
         return {
           status:
             session.continuity === "previous-recovered"

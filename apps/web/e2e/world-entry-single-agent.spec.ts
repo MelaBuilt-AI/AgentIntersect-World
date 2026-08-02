@@ -78,6 +78,7 @@ const session = {
   mode: "explore",
   permissionRevision: 0,
   capabilitySnapshotHash: "a".repeat(64),
+  avatarProfileRef: null,
   continuity: "current",
   status: "ready",
 } as const;
