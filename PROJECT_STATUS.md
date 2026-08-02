@@ -4,7 +4,7 @@ Updated: 2026-08-02
 
 ## Current milestone
 
-### 2026-08-02 imported-avatar acceptance corrections — TECHNICALLY VERIFIED; OPERATOR RETEST PENDING
+### 2026-08-02 imported-avatar acceptance corrections — PARTIAL PASS; ENTER WORLD STILL OPERATOR FAIL
 
 Aaron first-hand tested private candidate
 `b8e787b49813d939f998cccec6a19ede1a57501c` and reported two authoritative
@@ -38,10 +38,31 @@ refresh-before-consent, explicit complete-avatar selection, enabled Enter World,
 and full fixture-backed World entry. Historical evidence was not run, rewritten,
 or rebound.
 
-No operator PASS is claimed yet. A fresh disposable matching candidate must be
-relaunched for first-hand retest of both reported failures. No PR, merge, tag,
-release, publication, deployment, visibility change, gesture inference, Phase
-18.5 evidence recapture, or Phase 19–20 work is authorized by this correction.
+The corrected implementation was independently reviewed with no blockers, committed
+and privately pushed as `92eb5c71f5d7be95e20e5aff8fdd2702cba00086`, and
+relaunched from a clean exact-SHA production build. Aaron's first-hand correction
+retest is authoritative: typing the name no longer resets the imported avatar to
+T-pose, so that defect is **PASS**. After adding Mr Fluff, however, no Enter World
+button was visible. The World-entry correction is therefore still **FAIL** despite
+the isolated fixture-backed browser journey passing locally.
+
+The failed disposable state is retained at
+`/tmp/aiw-phase18-5-option2-user-acceptance-fix` with a hash-only manifest and
+failure receipt under
+`/home/mela_ai/.hermes/runs/aiw-phase18-5-option2-integration-20260802T123857Z/`.
+Only the two owner-validated candidate sessions/listeners on `43771/45181` were
+stopped; protected `3770/5173/8642/18789` remained unchanged. The next session must
+reproduce the real missing-button path against this frozen state before editing,
+then add the smallest causal regression and correct the implementation. Do not
+infer acceptance from the existing fixture test.
+
+Exact-SHA GitHub Actions run `30751132142` remained red. Unflagged E2E passed; core
+reproduced the known 10-second imported-avatar intake timeout; Phase 11 retained its
+stale name-only expectation; flagged shard 1 retained the same eight failures; and
+flagged shard 2 moved from 16 failures to 15 with one broad-suite click timeout
+substituting for two removed failures. This is not green CI and not a manual PASS.
+No PR, merge, tag, release, publication, deployment, visibility change, gesture
+inference, Phase 18.5 evidence recapture, or Phase 19–20 work is authorized.
 
 ### 2026-08-01 Phase 18.5 Option 2 split — SELECTED; CURRENT IMPORTED ACCEPTANCE INPUT CONTRACT AUTHORIZED
 
