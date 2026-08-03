@@ -4,6 +4,33 @@ Updated: 2026-08-03
 
 ## Current milestone
 
+### 2026-08-03 pre-voice animation, autonomous movement, and code-visual assets — USER-ORDERED NEXT; NOT STARTED
+
+Aaron explicitly changed the remaining roadmap order. Before normal-World voice,
+bounded live coding, or the later Phase 18–20 progression, complete these three
+milestones in sequence:
+
+1. Correct avatar animation semantics. The current user-authoritative truth is
+   that user `Idle`, `Walk`, and `Run` are correct; Space/`Jump` is incorrect;
+   and `/dance`, `/clap`, `/cheer`, `/wave`, `/bow`, `/agree`, `/angry`, and
+   `/laugh` do not yet trigger the correct animations. Structural clip resolution
+   and the 69-pass/207-ambiguous record are not semantic acceptance.
+2. Focus solely on autonomous agent movement after animation correction. An
+   agent must be able to decide to move through validated World-owned intent,
+   traverse truthfully, and play the correct `Idle`/`Walk`/`Run`/`Jump` or
+   supported stationary gesture animation while preserving operator priority,
+   cancellation, arrival, and refusal truth.
+3. Ingest and integrate Aaron's 26 already-labeled assets for code, repository
+   structures, and agent-coding actions. Preserve and hash the originals, bind
+   every user label in a deterministic manifest/pipeline, and use the resulting
+   runtime assets as truthful World visuals for repository structure and coding
+   activity.
+
+The implementation checklist, acceptance gates, and explicit deferrals are
+canonical in `docs/PRE_VOICE_ANIMATION_MOVEMENT_AND_CODE_VISUALS.md`. This
+sequencing record does not itself implement or accept any item, seal Phase 18 or
+Phase 18.5, begin Phase 19/20, or authorize release/publication/deployment.
+
 ### 2026-08-03 Hermes chat and repeated-refresh correction — MANUAL PASS; PRIVATE DELIVERY AUTHORIZED
 
 The accepted correction closes the conversation-triggered World restoration and detached-turn
