@@ -1,8 +1,155 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-02
+Updated: 2026-08-03
 
 ## Current milestone
+
+### 2026-08-03 Hermes chat and repeated-refresh correction — MANUAL PASS; PRIVATE DELIVERY AUTHORIZED
+
+The accepted correction closes the conversation-triggered World restoration and detached-turn
+failure. The local-server message route now aborts the active upstream Hermes turn when its
+browser request disconnects, allowing the exact session to recover rather than remaining busy.
+Avatar proposal identity is stable across volatile source timestamps, and World restoration
+continues to prefer the explicitly accepted exact-session avatar when the live proposal still
+represents that accepted identity. Native-session binding, authoritative transcript history,
+and explicit avatar consent remain strict.
+
+The causal route regression first failed RED, then passed GREEN. Independent parent proof passed
+the focused route regression 1/1, Phase 12 coverage 41/41, impacted World-entry coverage 44/44,
+Hermes plugin conformance 2/2, formatting, lint, local-server typecheck/build, production proposal
+parser, earliest real avatar-proposal route, matching frontend/backend preview, and diff hygiene.
+The fresh candidate began with zero pre-attached sessions and zero synthesized consents.
+
+Aaron's first-hand acceptance is **PASS** and exceeded the minimum journey. He completed normal
+first-launch setup for his avatar and Mr Fluff, entered World, and confirmed a refresh preserved
+the active current World/session/avatar. He then completed three Hermes question/answer turns,
+refreshing after every answer; the same World and session remained active and the authoritative
+chat persisted after every refresh. The retained checksummed store contains one ready/current
+session, one explicit consent, three user messages, three assistant messages, and 48 events;
+current and previous snapshots are byte-identical.
+
+The sanitized verdict and state manifest are retained at
+`/home/mela_ai/.hermes/runs/aiw-chat-manual-retest-20260803T161953Z/manual-verdict.json` and
+`post-interaction-state-manifest.json`. The receipt-bound stopper closed only candidate ports
+`46116/46117/46127`, removed all candidate tmux sessions, retained the accepted state root
+byte-for-byte, and preserved protected `3770/5173/8642/18789` identities plus both earlier failed
+generations. Aaron authorized one private branch commit and push after this PASS. Exact commit,
+remote-ref, and CI receipts remain external to avoid a self-referential status commit. No PR,
+merge, tag, release, publication, deployment, visibility change, or Phase 19–20 work is
+authorized.
+
+### Earlier 2026-08-03 post-message restoration retest — REFRESH PASS; HERMES CHAT/REPLY FAIL
+
+Aaron first-hand tested the fresh isolated corrected candidate. Initial Hermes connection,
+explicit avatar acceptance, and World entry succeeded. Refreshing before any message
+returned directly to the same World experience, so pre-message restoration is **PASS**.
+
+Aaron then sent `hi fluff` through the in-World chat, but no Hermes response arrived.
+Refreshing after that attempt again returned directly into World, so post-attempt World
+restoration is also **PASS**. A second chat attempt after that refresh showed
+`chat unavailable_`. The required completed Hermes text turn is therefore **FAIL**, and
+authoritative transcript durability after a completed turn is **UNTESTED** because no
+reply completed. The overall candidate verdict remains **MANUAL FAIL**. No screenshot or
+video accompanied the report, and Mr Fluff did not automate or independently reproduce
+the browser interaction.
+
+The post-trigger candidate root was hash-frozen before cleanup: 7 entries / 3 files,
+zero symlinks, aggregate SHA-256
+`5078a69e8d24be7ced108cf7511476fc844c1bbaa2c3166825963b3c5be4aec5`, with manifest
+`/home/mela_ai/.hermes/runs/aiw-post-message-refresh-retest-20260803T133530Z/manual-verdict-chat-unavailable-state-manifest.json`.
+Safe bridge telemetry at freeze time reported strict parser acceptance, two distinct
+ready adapter references, zero mirrored updates, and two rejected updates. That is
+retained evidence, not a causal diagnosis. The generation-specific owner-validating
+stopper then closed candidate ports `43817/45227`, removed all four fresh tmux session
+names, preserved the failed root byte-for-byte, and re-attested protected
+`3770/5173/8642/18789` identities. The three non-status production files remained
+byte-identical to the pre-test baseline; only this verdict record intentionally changed.
+
+No diagnosis, remediation, source correction, replacement candidate, staging, commit,
+push, PR, merge, tag, release, publication, deployment, visibility change, or later-phase
+work is authorized by this verdict. The next bounded step, if Aaron authorizes it, is a
+read-only reconstruction of the retained post-trigger state followed by one exact
+chat-send/reply RED regression and causal tracing without weakening native-session,
+accepted-history, or avatar-consent authority.
+
+### 2026-08-03 corrected-candidate connect retest — MANUAL FAIL; CANDIDATE HARNESS TIMESTAMP DEFECT PROVEN
+
+Aaron first-hand reported that Mr Fluff was unavailable at agent connect on the fresh
+isolated candidate at `http://127.0.0.1:45217/` (backend `43807`). This is an
+authoritative manual **FAIL** at agent connection; World entry, pre-message refresh,
+real Hermes text, and post-message refresh were not reached. No screenshot or video
+accompanied the report.
+
+Read-only diagnosis independently preserved the visible result. The candidate web and
+backend remained healthy, Hermes discovery returned exactly one Discord root, and the
+connect attempt created one ready local session. The session's avatar-proposal endpoint
+returned HTTP 500. Direct invocation of the production `readPluginAvatarProposal`
+parser against the candidate-private proposal reproduced one causal schema error:
+`createdAt` used a `+00:00` suffix generated by the candidate bridge, while the strict
+proposal schema requires a UTC `Z` timestamp. Native root/effective identity and the
+private proposal hash otherwise aligned. This is a candidate-only harness defect; it
+does not establish a defect in the technically verified production post-message
+identity correction.
+
+A second harness caveat remains for the next run: after connect, two persisted state
+envelopes exposed the same ready adapter reference, but the bridge counted them as two
+independent matches and rejected later mirroring. A replacement lane must de-duplicate
+identical ready adapter references while still refusing zero or multiple distinct
+matches. It must not weaken exact effective-session identity, root Discord provenance,
+accepted-history/transcript authority, or explicit avatar consent.
+
+The authorized two-hour run expired before either harness correction was applied.
+The failed lane was therefore hash-frozen before cleanup: 7 entries / 3 files, no
+symlinks, with receipt
+`/home/mela_ai/.hermes/runs/aiw-post-message-refresh-fix-20260803T000130/manual-verdict-connect-unavailable-v2-state-manifest.json`.
+The owner-validating stopper closed only candidate ports `43807/45217`, removed the
+three `aiw-postmsg2-candidate-*` tmux sessions, retained the failed root at
+`/tmp/aiw-post-message-refresh-candidate-20260803T043632Z`, and re-attested protected
+`3770/5173/8642/18789` identities. No stage, commit, push, PR, merge, tag, release,
+publication, deployment, visibility change, or later-phase work occurred.
+
+The production correction remains unstaged and uncommitted at base HEAD
+`ba09fb6cce64ba0e7bb427418b704409ebb6a9b0`. Its causal post-message regression,
+focused World-entry suite, standalone proposal-identity harness, Hermes plugin
+conformance (2/2), canonical core gate, targeted production-shaped Playwright case,
+and pre-manual candidate technical smoke all exited successfully. Those technical
+results do not override this manual connect FAIL, and the correction has not yet
+received a valid end-to-end operator verdict.
+
+The next session must obtain fresh authorization, correct and test the candidate
+harness first (strict `Z` timestamp plus identical-ref de-duplication), use a new state
+root/ports/tmux names, require avatar-proposal HTTP 200 before opening the browser, and
+then repeat the complete operator journey. Do not reuse this failed lane or infer Git
+delivery authority from a future PASS.
+
+### 2026-08-02 conversation-triggered refresh retest — PRE-MESSAGE RESTORE PASS; POST-MESSAGE RESTORE FAIL
+
+Aaron first-hand tested the uncommitted two-file refresh-restoration candidate at
+base HEAD `ba09fb6cce64ba0e7bb427418b704409ebb6a9b0`. Entering World with Mr
+Fluff and refreshing before any conversation restored Aaron directly into the
+same World session and state. That pre-message restoration criterion is **PASS**.
+
+After Aaron talked to Mr Fluff once, refreshing returned to agent connection and
+required both Mr Fluff reconnection and Mr Fluff avatar setup again. Re-entering
+World without another conversation restored correctly on refresh; talking to Mr
+Fluff again and then refreshing reproduced the same reset. The authoritative
+manual boundary is therefore conversation-triggered: no-message refresh restores,
+while refresh after at least one Hermes text interaction is **FAIL**. The candidate
+remains an overall manual **FAIL**.
+
+No screenshot or video accompanied the report, and Mr Fluff did not independently
+reproduce the browser interaction. No diagnosis, remediation, source edit, consent
+weakening, replacement candidate, stage, commit, push, PR, merge, tag, release,
+publication, deployment, visibility change, or later-phase work is authorized by
+this verdict. The failed candidate state is hash-frozen with redacted path hashes at
+`/home/mela_ai/.hermes/runs/aiw-refresh-restoration-20260802T175536Z/manual-verdict-post-message-refresh-fail-state-manifest.json`
+and retained for read-only diagnosis. The owner-validated stopper closed only
+candidate ports `43783/45193`, removed both candidate tmux sessions, retained the
+state root, and re-attested protected `3770/5173/8642/18789` identities. The next
+bounded step, if Aaron authorizes remediation, is to reproduce the post-message
+refresh transition causally, add one exact RED regression, trace the
+interaction-created state change, and correct it without weakening exact-session
+or avatar-consent authority.
 
 ### 2026-08-02 proposal-aligned manual retest — ENTER WORLD PASS; REFRESH RESTORATION FAIL
 

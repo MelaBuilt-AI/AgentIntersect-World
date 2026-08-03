@@ -291,8 +291,12 @@ export function registerAgentSessionRoutes(
       const { sessionId } = request.params as { sessionId: string };
       let ended = false;
       let detached = false;
+      const turn = new AbortController();
       const disconnect = () => {
-        if (!ended) detached = true;
+        if (!ended) {
+          detached = true;
+          turn.abort();
+        }
       };
       const writeIfAttached = async (event: string, data: unknown) => {
         if (detached || reply.raw.destroyed || reply.raw.writableEnded) return;
@@ -320,6 +324,7 @@ export function registerAgentSessionRoutes(
           request.body as never,
           {
             onEvent: (event) => writeIfAttached("world.event", event),
+            signal: turn.signal,
           },
         );
         await writeIfAttached("world.final", {

@@ -351,12 +351,13 @@ describe("Phase 12 local APIs", () => {
     }
   });
 
-  it("detaches a disconnected browser while preserving the turn, busy guard, and history", async () => {
+  it("aborts a disconnected browser turn so the exact session can retry", async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "aiw-phase12-abort-"));
     roots.push(root);
     let attempt = 0;
     let release!: () => void;
     let firstStarted!: () => void;
+    let upstreamAborted = false;
     const started = new Promise<void>((resolve) => (firstStarted = resolve));
     const manifest = {
       schema: "aiw.agent-capabilities/0.12",
@@ -402,7 +403,10 @@ describe("Phase 12 local APIs", () => {
           release = resolve;
           context?.signal?.addEventListener(
             "abort",
-            () => reject(new Error("cancelled")),
+            () => {
+              upstreamAborted = true;
+              reject(new Error("cancelled"));
+            },
             { once: true },
           );
         });
@@ -464,29 +468,8 @@ describe("Phase 12 local APIs", () => {
       await started;
       const bodyDone = response.text().catch(() => "");
       controller.abort();
-      await new Promise<void>((resolve) => setImmediate(resolve));
-      const concurrent = await fetch(
-        `${origin}/agent-sessions/${session.sessionId}/messages`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: "too soon", binding: session }),
-        },
-      );
-      expect(concurrent.status).toBe(409);
-      await expect(concurrent.json()).resolves.toMatchObject({
-        error: { code: "conflict" },
-      });
-
-      release();
       await vi.waitFor(() => {
-        expect(gateway.history(session.sessionId)).toEqual([
-          expect.objectContaining({ role: "user", text: "disconnect" }),
-          expect.objectContaining({
-            role: "assistant",
-            text: "canonical detached reply",
-          }),
-        ]);
+        expect(upstreamAborted).toBe(true);
       });
       await bodyDone;
       await expect(
@@ -495,6 +478,11 @@ describe("Phase 12 local APIs", () => {
           binding: session,
         }),
       ).resolves.toMatchObject({ finalText: "recovered" });
+      expect(gateway.history(session.sessionId)).toEqual([
+        expect.objectContaining({ role: "user", text: "disconnect" }),
+        expect.objectContaining({ role: "user", text: "after completion" }),
+        expect.objectContaining({ role: "assistant", text: "recovered" }),
+      ]);
     } finally {
       release();
       await server.close();

@@ -184,7 +184,14 @@ function resolveAvatarState(
     history.avatarConsent.current?.sessionId === sessionId
       ? history.avatarConsent.current
       : null;
-  const proposal = liveProposal ?? acceptedHistoryProposal;
+  const liveProposalMatchesAccepted =
+    liveProposal !== null &&
+    acceptedHistoryProposal !== null &&
+    liveProposal.sessionId === sessionId &&
+    liveProposal.proposalId === acceptedHistoryProposal.proposalId;
+  const proposal = liveProposalMatchesAccepted
+    ? acceptedHistoryProposal
+    : (liveProposal ?? acceptedHistoryProposal);
   const avatarAccepted =
     acceptedHistoryProposal !== null &&
     proposal?.sessionId === sessionId &&
