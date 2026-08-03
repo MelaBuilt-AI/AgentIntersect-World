@@ -374,6 +374,9 @@ test("Settings stays product-facing and Change Avatar selects the exact role and
 test("Reset confirms while Logout and Change Agent clear only the browser attachment", async ({
   page,
 }) => {
+  // Three full restore/detach cycles can exceed the generic 30-second watchdog
+  // on two-CPU software-rendered CI; every state and mutation assertion remains.
+  test.setTimeout(60_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   const fixture = await installSessionFixture(page);
