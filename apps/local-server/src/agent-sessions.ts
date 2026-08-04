@@ -47,6 +47,7 @@ export type AdapterTurnContext = {
   readonly mode: SessionMode;
   readonly rootSessionRef?: string;
   readonly userDisplayName?: string;
+  readonly worldActionActorId?: string;
   readonly onEvent?: (event: AdapterTurnEvent) => Promise<void> | void;
   readonly signal?: AbortSignal;
 };
@@ -1066,7 +1067,13 @@ export class HermesSessionAdapter implements AgentAdapter {
     const systemMessages: string[] = [];
     if (context?.mode === "explore")
       systemMessages.push(
-        "AgentIntersect World Explore mode is read-only. Do not invoke tools that create, edit, delete, execute, install, approve, submit, signal, or otherwise mutate state. Explain or inspect using read-only capabilities only; if mutation is required, say it is unavailable in Explore mode.",
+        context.worldActionActorId
+          ? "AgentIntersect World Explore mode keeps repository and system authority read-only. Do not use tools that create, edit, delete, execute, install, approve, or otherwise mutate repository or system state. The separately declared propose_world_action movement helper is the only presentation-state exception."
+          : "AgentIntersect World Explore mode is read-only. Do not invoke tools that create, edit, delete, execute, install, approve, submit, signal, or otherwise mutate state. Explain or inspect using read-only capabilities only; if mutation is required, say it is unavailable in Explore mode.",
+      );
+    if (context?.worldActionActorId)
+      systemMessages.push(
+        `AgentIntersect World movement authority is available through propose_world_action for actorId ${context.worldActionActorId}. When the user directly asks you to move, call propose_world_action with exactly one move-agent action using schema aiw.agent-movement/1, that exact actorId, source agent-autonomous, speed 4 (or speed 8 only when the user asks for fast movement), and a coordinate or relative target. When the user asks you to follow them, use the same action fields with target {"kind":"follow-user","stoppingRadius":1.5}. A proposed tool receipt is not arrival; do not claim arrival. Ordinary non-movement conversation must remain ordinary chat.`,
       );
     if (context?.userDisplayName !== undefined) {
       const userDisplayName = context.userDisplayName.normalize("NFC").trim();
@@ -1481,6 +1488,9 @@ export class AgentSessionGateway {
             persisted.adapterRootSessionRef ?? persisted.adapterSessionRef,
           ...(request.context
             ? { userDisplayName: request.context.userDisplayName }
+            : {}),
+          ...(manifest.capabilities.worldActions
+            ? { worldActionActorId: persisted.sessionId }
             : {}),
           ...(options.signal ? { signal: options.signal } : {}),
           onEvent: async (event) => {

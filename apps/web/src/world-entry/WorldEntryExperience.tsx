@@ -49,6 +49,7 @@ import type {
   AgentMovementRequest,
 } from "./world-agent-movement-model.js";
 import {
+  parseAgentMovementAuthoritySnapshot,
   postUserDirectedMovement,
   postUserDirectedStop,
 } from "./world-agent-direction.js";
@@ -176,10 +177,12 @@ export function WorldEntryExperience({
   const [layoutGeneration, setLayoutGeneration] = useState("blank-world");
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
-  const [
-    agentMovementCancellationGeneration,
-    setAgentMovementCancellationGeneration,
-  ] = useState(0);
+  const [agentMovementControl, setAgentMovementControl] = useState<{
+    readonly sequence: number;
+    readonly requestId: string;
+    readonly state: "cancelled" | "interrupted";
+    readonly reason: string;
+  } | null>(null);
   const [preferences, setPreferences] = useState<WorldDisplayPreferences>(() =>
     typeof window === "undefined"
       ? DEFAULT_WORLD_DISPLAY_PREFERENCES
@@ -194,6 +197,8 @@ export function WorldEntryExperience({
   const presentationGeneration = useRef(0);
   const activeChatAbort = useRef<AbortController | null>(null);
   const processedMovementActions = useRef(new Set<string>());
+  const processedMovementOutcomes = useRef(new Map<string, string>());
+  const nextMovementControl = useRef(1);
 
   useEffect(() => {
     mounted.current = true;
@@ -520,7 +525,13 @@ export function WorldEntryExperience({
         await postUserDirectedStop(fetch, session.sessionId);
         if (mounted.current) {
           setAgentMovementRequest(null);
-          setAgentMovementCancellationGeneration((current) => current + 1);
+          if (agentMovementRequest)
+            setAgentMovementControl({
+              sequence: nextMovementControl.current++,
+              requestId: agentMovementRequest.requestId,
+              state: "interrupted",
+              reason: "user-directed-stop",
+            });
           setStatus("agent movement cancelled · Idle");
         }
       } catch {
@@ -563,8 +574,9 @@ export function WorldEntryExperience({
     setObjects([]);
     setLayoutGeneration("blank-world");
     setAgentMovementRequest(null);
-    setAgentMovementCancellationGeneration(0);
+    setAgentMovementControl(null);
     processedMovementActions.current.clear();
+    processedMovementOutcomes.current.clear();
     setChatBusy(false);
     setQueuedCount(0);
     setError("");
@@ -584,37 +596,70 @@ export function WorldEntryExperience({
     let active = true;
     const load = async () => {
       try {
-        const response = await fetch(`/world-actions/${movementSessionId}`);
-        if (!response.ok || !active) return;
-        const body = (await response.json()) as {
-          readonly executions?: readonly {
-            readonly envelope?: {
-              readonly actions?: readonly Record<string, unknown>[];
-            };
-          }[];
-        };
-        for (const execution of body.executions ?? [])
-          for (const action of execution.envelope?.actions ?? []) {
-            if (
-              action.kind !== "move-agent" ||
-              action.schema !== "aiw.agent-movement/1" ||
-              typeof action.actionId !== "string" ||
-              processedMovementActions.current.has(action.actionId)
-            )
-              continue;
-            const candidate = {
-              schema: action.schema,
-              requestId: action.actionId,
-              actorId: action.actorId,
-              source: action.source,
-              speed: action.speed,
-              target: action.target,
-            } as AgentMovementRequest;
-            processedMovementActions.current.add(action.actionId);
-            setAgentMovementRequest(candidate);
+        const response = await fetch(`/api/world-actions/${movementSessionId}`);
+        if (!response.ok || !active) {
+          if (active)
+            setStatus(
+              `agent movement refused · authority unavailable (${response.status})`,
+            );
+          return;
+        }
+        const snapshot = parseAgentMovementAuthoritySnapshot(
+          await response.json(),
+          movementSessionId,
+        );
+        if (snapshot.capabilityRefusal)
+          setStatus(`agent movement refused · ${snapshot.capabilityRefusal}`);
+        for (const [outcomeIndex, outcome] of snapshot.outcomes.entries()) {
+          if (
+            processedMovementOutcomes.current.get(outcome.requestId) ===
+            outcome.state
+          )
+            continue;
+          processedMovementOutcomes.current.set(
+            outcome.requestId,
+            outcome.state,
+          );
+          const detail = outcome.reason ? ` · ${outcome.reason}` : "";
+          if (outcomeIndex === 0) {
+            if (outcome.state === "intent") setStatus(`agent intent${detail}`);
+            else if (outcome.state === "moving")
+              setStatus(`agent moving${detail}`);
+            else if (outcome.state === "arrived") setStatus("agent arrived");
+            else if (outcome.state === "refused")
+              setStatus(`agent movement refused${detail}`);
+            else if (outcome.state === "cancelled")
+              setStatus(`agent movement cancelled${detail} · Idle`);
+            else setStatus(`agent movement interrupted${detail} · Idle`);
           }
+          if (
+            outcome.state === "refused" ||
+            outcome.state === "cancelled" ||
+            outcome.state === "interrupted"
+          )
+            setAgentMovementControl({
+              sequence: nextMovementControl.current++,
+              requestId: outcome.requestId,
+              state:
+                outcome.state === "cancelled" ? "cancelled" : "interrupted",
+              reason: outcome.reason ?? outcome.state,
+            });
+        }
+        for (const candidate of snapshot.requests) {
+          if (processedMovementActions.current.has(candidate.requestId))
+            continue;
+          processedMovementActions.current.add(candidate.requestId);
+          setStatus(
+            `agent intent · ${
+              candidate.source === "agent-autonomous"
+                ? "autonomous"
+                : "user-directed"
+            }`,
+          );
+          setAgentMovementRequest(candidate);
+        }
       } catch {
-        // Movement capability remains truthful through the existing action status.
+        if (active) setStatus("agent movement refused · authority unavailable");
       }
     };
     void load();
@@ -634,12 +679,14 @@ export function WorldEntryExperience({
       setStatus(`agent moving · ${movementEvent.source}`);
     else if (movementEvent.state === "arrived") setStatus("agent arrived");
     else if (movementEvent.state === "cancelled")
-      setStatus("agent movement cancelled · Idle");
+      setStatus(`agent movement cancelled · ${movementEvent.reason} · Idle`);
+    else if (movementEvent.state === "interrupted")
+      setStatus(`agent movement interrupted · ${movementEvent.reason} · Idle`);
     else if (movementEvent.state === "target-stale")
-      setStatus("agent movement target stale");
+      setStatus(`agent movement target stale · ${movementEvent.reason}`);
     else if (movementEvent.state === "refused")
-      setStatus("agent movement refused");
-    const actionUrl = `/world-actions/${movementSessionId}/actions/${movementEvent.requestId}`;
+      setStatus(`agent movement refused · ${movementEvent.reason}`);
+    const actionUrl = `/api/world-actions/${movementSessionId}/actions/${movementEvent.requestId}`;
     if (movementEvent.state === "moving" || movementEvent.state === "arrived")
       void fetch(`${actionUrl}/transition`, {
         method: "POST",
@@ -747,9 +794,7 @@ export function WorldEntryExperience({
             agentCue={chat.animationCue}
             agentActorId={movementSessionId}
             agentMovementRequest={agentMovementRequest}
-            agentMovementCancellationGeneration={
-              agentMovementCancellationGeneration
-            }
+            agentMovementControl={agentMovementControl}
             layoutGeneration={layoutGeneration}
             onAgentMovementEvent={reportAgentMovementEvent}
             showControlHints={preferences.showControlHints}

@@ -36,102 +36,102 @@
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Jump"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Jump"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 5,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 20,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 5,
       "semantic": "Jump",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Dance"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Dance"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 11,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 6,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 11,
       "semantic": "Dance",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Clap"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Clap"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 18,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 18 for Clap; the preserved sanitized operator receipt is the semantic authority.",
       "reviewedClipIndex": 18,
       "semantic": "Clap",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Cheer"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Cheer"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 7,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
       "reviewedClipIndex": 7,
       "semantic": "Cheer",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Wave"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Wave"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 2,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 17,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 2 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 2,
       "semantic": "Wave",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Bow"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Bow"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 3,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 3 for Bow; the preserved sanitized operator receipt is the semantic authority.",
       "reviewedClipIndex": 3,
       "semantic": "Bow",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Agree"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Agree"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 17,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 10,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 17,
       "semantic": "Agree",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Angry"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Angry"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 12,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 14,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 12 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 12,
       "semantic": "Angry",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Laugh"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Laugh"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 9,
       "modelId": "cat-agent-01",
-      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 11,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 9 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 9,
       "semantic": "Laugh",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
@@ -2280,102 +2280,102 @@
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Jump"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Jump"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 6,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 19,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 6 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 6,
       "semantic": "Jump",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Dance"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Dance"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 20,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 1,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 20 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 20,
       "semantic": "Dance",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Clap"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Clap"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 13,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 13 for Clap; the preserved sanitized operator receipt is the semantic authority.",
       "reviewedClipIndex": 13,
       "semantic": "Clap",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Cheer"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Cheer"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 17,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
       "reviewedClipIndex": 17,
       "semantic": "Cheer",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Wave"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Wave"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 7,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 11,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 7,
       "semantic": "Wave",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Bow"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Bow"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 4,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 4 for Bow; the preserved sanitized operator receipt is the semantic authority.",
       "reviewedClipIndex": 4,
       "semantic": "Bow",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Agree"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Agree"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 11,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 14,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 11,
       "semantic": "Agree",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Angry"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Angry"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 19,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 9,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 19 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 19,
       "semantic": "Angry",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Laugh"
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Laugh"
       ],
-      "expectedClipIndex": null,
+      "expectedClipIndex": 5,
       "modelId": "user-male-01",
-      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-      "reviewedClipIndex": 12,
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 5,
       "semantic": "Laugh",
-      "verdict": "ambiguous"
+      "verdict": "pass"
     },
     {
       "evidenceRefs": [
@@ -3038,15 +3038,15 @@
       "verdict": "ambiguous"
     }
   ],
-  "manualModelRecovery": "not-recovered-do-not-guess",
+  "manualModelRecovery": "operator-identified-active-models-only",
   "modelCount": 23,
-  "reviewAuthority": "direct-bounded-temporal-visual-review",
+  "reviewAuthority": "direct-bounded-temporal-and-operator-review",
   "runtimePolicy": "pass-only-all-other-verdicts-refused",
   "schema": "aiw.world-animation-semantic-review/2",
   "semanticCount": 12,
   "totals": {
-    "ambiguous": 207,
-    "pass": 69,
+    "ambiguous": 189,
+    "pass": 87,
     "unsupported": 0,
     "wrong_clip": 0
   }

@@ -1,30 +1,59 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-03
+Updated: 2026-08-04
 
 ## Current milestone
 
-### 2026-08-03 pre-voice animation, autonomous movement, and code-visual assets — USER-ORDERED NEXT; NOT STARTED
+### 2026-08-04 pre-voice animation, autonomous movement, and code-visual assets — MILESTONES 1–2 OPERATOR ACCEPTED; MILESTONE 3 AWAITING SCOPE CONFIRMATION
 
 Aaron explicitly changed the remaining roadmap order. Before normal-World voice,
 bounded live coding, or the later Phase 18–20 progression, complete these three
 milestones in sequence:
 
-1. Correct avatar animation semantics. The current user-authoritative truth is
-   that user `Idle`, `Walk`, and `Run` are correct; Space/`Jump` is incorrect;
-   and `/dance`, `/clap`, `/cheer`, `/wave`, `/bow`, `/agree`, `/angry`, and
-   `/laugh` do not yet trigger the correct animations. Structural clip resolution
-   and the 69-pass/207-ambiguous record are not semantic acceptance.
+1. Avatar animation semantics are accepted for the reviewed `user-male-01` and
+   `cat-agent-01` models: `Idle`, `Walk`, `Run`, Space/`Jump`, `/dance`, `/clap`,
+   `/cheer`, `/wave`, `/bow`, `/agree`, `/angry`, and `/laugh`. Unreviewed models
+   remain fail-closed for unsupported or unaccepted semantics.
 2. Focus solely on autonomous agent movement after animation correction. An
    agent must be able to decide to move through validated World-owned intent,
    traverse truthfully, and play the correct `Idle`/`Walk`/`Run`/`Jump` or
    supported stationary gesture animation while preserving operator priority,
    cancellation, arrival, and refusal truth.
 3. Ingest and integrate Aaron's 26 already-labeled assets for code, repository
-   structures, and agent-coding actions. Preserve and hash the originals, bind
-   every user label in a deterministic manifest/pipeline, and use the resulting
-   runtime assets as truthful World visuals for repository structure and coding
-   activity.
+   structures, and agent-coding actions from `C:\Codex\repository-visual-assets`.
+   This path is recorded only; do not inspect or process it until Milestone 3 is
+   explicitly authorized. At Milestone 3 start, preserve and hash the originals, bind every
+   user label in a deterministic manifest/pipeline, and use the resulting runtime
+   assets as truthful World visuals for repository structure and coding activity.
+
+Aaron returned first-hand `animation pass` at 2026-08-03 17:46 EDT. Milestone 1
+is accepted. Its exact `user-male-01` and `cat-agent-01` mappings, sanitized
+operator receipts, fail-closed unreviewed models, and reusable developer-only
+direct-playback route remain retained.
+
+Aaron's earlier corrected retest remains the authoritative historical mixed FAIL:
+follow/stop and distance-scaled directional movement passed, while forward facing,
+conversational move/follow authority, and visible Run selection failed. The bounded
+correction then passed independent technical verification and was reversibly activated
+in the default Hermes profile at installed SHA-256
+`463e40a540759a875228903565ca3de576804d9e9e2ae8f7a38fec22a6483e6e`.
+
+Aaron returned first-hand `movement pass` at 2026-08-04 16:14 EDT. He observed Mr
+Fluff move autonomously when asked, follow when asked, face the real forward/back
+travel direction, transition through Walk/Run/Idle truthfully, and pass `/` chat
+activation plus ArrowUp/ArrowDown prompt history. His complete-checklist statement
+also accepts both distance sets, gradual non-teleport displacement, and scoped stop
+with no resumption. Milestone 2 is accepted. The sanitized criterion-level verdict is
+retained at
+`/home/mela_ai/.hermes/runs/aiw-m2-movement-retest-20260804T134639Z/manual-verdict.json`.
+No screenshot or video accompanied the report, and Mr Fluff did not automate the
+browser interaction.
+
+Milestone 3 is now the next ordered milestone but remains behind an explicit scope
+confirmation. Do not inspect, hash, convert, or integrate
+`C:\\Codex\\repository-visual-assets` until Aaron authorizes Milestone 3 start. This
+acceptance does not authorize staging, commit, push, PR, merge, tag, release,
+publication, deployment, provider activation, public visibility, or Phase 19/20 work.
 
 The implementation checklist, acceptance gates, and explicit deferrals are
 canonical in `docs/PRE_VOICE_ANIMATION_MOVEMENT_AND_CODE_VISUALS.md`. This

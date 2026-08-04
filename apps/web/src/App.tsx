@@ -24,6 +24,10 @@ const WorldEntryExperience = lazy(async () => {
   const module = await import("./world-entry/WorldEntryExperience.js");
   return { default: module.WorldEntryExperience };
 });
+const AvatarAnimationReview = lazy(async () => {
+  const module = await import("./avatar/AvatarAnimationReview.js");
+  return { default: module.AvatarAnimationReview };
+});
 
 const WORLD_ENTRY_TRANSITION_MS = 420;
 const emptyState = (): ImportedAvatarLoadResult => ({
@@ -39,15 +43,13 @@ function initialAvatarState(): ImportedAvatarLoadResult {
     : loadImportedAvatarProfiles(window.localStorage);
 }
 
-export function App() {
+type AppSurface = ReturnType<typeof resolveAppSurface>;
+
+function ProfileApp({ surface }: { readonly surface: AppSurface }) {
   const reducedMotion = useReducedMotion();
   const [store, setStore] = useState(initialAvatarState);
   const [identified, setIdentified] = useState(store.current !== null);
   const [enteringWorld, setEnteringWorld] = useState(false);
-  const surface = resolveAppSurface(
-    typeof window === "undefined" ? "/" : window.location.pathname,
-    import.meta.env.VITE_AIW_LOCAL_DEVELOPER_UI,
-  );
   const save = (draft: AvatarDraft): AvatarProfile => {
     const next = createImportedAvatarProfile(draft, store.current);
     const saved = saveImportedAvatarProfile(window.localStorage, next);
@@ -136,4 +138,34 @@ export function App() {
       <WorldEntryExperience profile={store.current} onUserAvatarSave={save} />
     </Suspense>
   );
+}
+
+export function App() {
+  const surface = resolveAppSurface(
+    typeof window === "undefined" ? "/" : window.location.pathname,
+    import.meta.env.VITE_AIW_LOCAL_DEVELOPER_UI,
+  );
+  if (surface === "internal-avatar-review")
+    return (
+      <Suspense
+        fallback={
+          <main className="internal-unavailable" role="status">
+            Loading avatar animation review…
+          </main>
+        }
+      >
+        <AvatarAnimationReview />
+      </Suspense>
+    );
+  if (surface === "internal-unavailable")
+    return (
+      <main className="internal-unavailable">
+        <section role="status" aria-live="polite">
+          <span className="terminal-kicker">local only_</span>
+          <h1>Internal dashboard unavailable</h1>
+          <p>This route requires the explicit local developer UI flag.</p>
+        </section>
+      </main>
+    );
+  return <ProfileApp surface={surface} />;
 }

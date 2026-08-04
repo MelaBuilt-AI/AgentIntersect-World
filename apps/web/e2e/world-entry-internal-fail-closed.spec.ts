@@ -17,3 +17,16 @@ test("direct internal dashboard access fails closed without the developer flag",
     }),
   ).toHaveCount(0);
 });
+
+test("direct avatar animation review access fails closed without the developer flag", async ({
+  page,
+}) => {
+  await page.goto("/internal/avatar-animation-review");
+  await expect(
+    page.getByRole("heading", { name: "Internal dashboard unavailable" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Avatar animation review" }),
+  ).toHaveCount(0);
+  await expect(page.getByTestId("review-canvas")).toHaveCount(0);
+});

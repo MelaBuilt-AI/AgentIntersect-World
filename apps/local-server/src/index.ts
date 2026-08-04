@@ -232,7 +232,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                   const session = agentSessionGateway.status(sessionId);
                   const selection = server.currentRepositorySelection();
                   if (
-                    !selection ||
+                    selection &&
                     session.repositoryRef !== selection.snapshot.repositoryRef
                   )
                     return null;
@@ -244,6 +244,38 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                     manifest.capabilities.worldActions &&
                     capabilitySnapshotHash(manifest) ===
                       session.capabilitySnapshotHash;
+                  if (!selection) {
+                    const worldGeneration = "blank-world";
+                    const layoutGeneration = "blank-world";
+                    return {
+                      binding: {
+                        sessionId,
+                        adapterSessionRef: session.adapterSessionRef,
+                        repositoryRef: "aiw://object/blank-world",
+                        worldGeneration,
+                        layoutGeneration,
+                        graphGeneration: null,
+                        capabilitySnapshotHash: session.capabilitySnapshotHash,
+                      },
+                      worldActionsEnabled,
+                      targets: [],
+                      navigationMesh: buildNavigationMesh({
+                        worldGeneration,
+                        layoutGeneration,
+                        navigationBounds: {
+                          x: -15,
+                          z: -15,
+                          width: 30,
+                          depth: 30,
+                        },
+                        avatarRadius: 0.35,
+                        clearance: 0.15,
+                        obstacles: [],
+                      }),
+                      positions: new Map(),
+                      relationships: [],
+                    };
+                  }
                   const objects = selection.snapshot.objects;
                   const minimumX = Math.min(
                     ...objects.map(({ bounds }) => bounds.x),

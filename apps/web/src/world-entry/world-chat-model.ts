@@ -34,6 +34,88 @@ const LOCAL_AVATAR_COMMANDS = Object.freeze({
   "/laugh": "Laugh",
 } satisfies Readonly<Record<string, AvatarOneShotSemantic>>);
 
+export type WorldChatInputHistory = {
+  readonly entries: readonly string[];
+  readonly index: number | null;
+  readonly draft: string;
+};
+
+export function createWorldChatInputHistory(): WorldChatInputHistory {
+  return { entries: [], index: null, draft: "" };
+}
+
+export function recordWorldChatSubmission(
+  history: WorldChatInputHistory,
+  message: string,
+): WorldChatInputHistory {
+  if (!message.trim()) return history;
+  return {
+    entries: [message, ...history.entries].slice(0, 5),
+    index: null,
+    draft: "",
+  };
+}
+
+export function recallWorldChatHistory(
+  history: WorldChatInputHistory,
+  direction: "up" | "down",
+  currentMessage: string,
+): { readonly history: WorldChatInputHistory; readonly message: string } {
+  if (history.entries.length === 0) return { history, message: currentMessage };
+  if (direction === "up") {
+    const index =
+      history.index === null
+        ? 0
+        : Math.min(history.index + 1, history.entries.length - 1);
+    const draft = history.index === null ? currentMessage : history.draft;
+    return {
+      history: { ...history, index, draft },
+      message: history.entries[index]!,
+    };
+  }
+  if (history.index === null) return { history, message: currentMessage };
+  if (history.index > 0) {
+    const index = history.index - 1;
+    return {
+      history: { ...history, index },
+      message: history.entries[index]!,
+    };
+  }
+  return {
+    history: { ...history, index: null },
+    message: history.draft,
+  };
+}
+
+export function shouldConsumeWorldChatShortcut({
+  key,
+  target,
+  worldActive,
+  dialogOpen,
+}: {
+  readonly key: string;
+  readonly target: unknown;
+  readonly worldActive: boolean;
+  readonly dialogOpen: boolean;
+}): boolean {
+  if (key !== "/" || !worldActive || dialogOpen) return false;
+  if (!target || typeof target !== "object") return true;
+  const candidate = target as {
+    readonly tagName?: unknown;
+    readonly isContentEditable?: unknown;
+  };
+  const tagName =
+    typeof candidate.tagName === "string"
+      ? candidate.tagName.toLocaleLowerCase()
+      : "";
+  return (
+    tagName !== "input" &&
+    tagName !== "textarea" &&
+    tagName !== "select" &&
+    candidate.isContentEditable !== true
+  );
+}
+
 export function resolveLocalAvatarCommand(
   text: string,
 ): AvatarOneShotSemantic | null {
@@ -130,32 +212,6 @@ export function classifyWorldMessage(text: string):
   return { kind: "remote-chat", text: text.trim() };
 }
 
-const cuePattern = (terms: string) =>
-  new RegExp(`(?:^|[^a-z0-9])(?:${terms})(?=$|[^a-z0-9])`, "iu");
-
-const AGENT_TEXT_CUES: readonly {
-  readonly semantic: AvatarOneShotSemantic;
-  readonly pattern: RegExp;
-}[] = [
-  { semantic: "Wave", pattern: cuePattern("hello|hi|welcome") },
-  {
-    semantic: "Agree",
-    pattern: cuePattern("agree|yes|correct|sounds[ -]+good"),
-  },
-  { semantic: "Cheer", pattern: cuePattern("done|complete|success|great") },
-  { semantic: "Laugh", pattern: cuePattern("haha|lol|laugh") },
-  { semantic: "Bow", pattern: cuePattern("apology|apologize|apologies|sorry") },
-  { semantic: "Angry", pattern: cuePattern("failure|failed|error") },
-  {
-    semantic: "Clap",
-    pattern: cuePattern(
-      "applause|applaud|congratulation|congratulations|congrats",
-    ),
-  },
-  { semantic: "Dance", pattern: cuePattern("dance|dancing") },
-  { semantic: "Angry", pattern: cuePattern("angry|anger") },
-];
-
 export function projectAgentAnimationCue(
   input:
     | { readonly type: "visible-text"; readonly text: string }
@@ -172,8 +228,7 @@ export function projectAgentAnimationCue(
       semantic: input.event === "completed" ? "Cheer" : "Angry",
       source: "application-event",
     };
-  const cue = AGENT_TEXT_CUES.find(({ pattern }) => pattern.test(input.text));
-  return cue ? { semantic: cue.semantic, source: "visible-text" } : null;
+  return null;
 }
 
 export function createAvatarAnimationState(

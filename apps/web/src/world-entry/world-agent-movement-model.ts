@@ -15,20 +15,20 @@ export type AgentMovementTarget =
       readonly kind: "coordinate";
       readonly x: number;
       readonly z: number;
-      readonly stoppingRadius?: number;
+      readonly stoppingRadius?: number | undefined;
     }
   | {
       readonly kind: "relative";
       readonly direction: "forward" | "backward" | "left" | "right";
       readonly distance: number;
-      readonly stoppingRadius?: number;
+      readonly stoppingRadius?: number | undefined;
     }
   | { readonly kind: "follow-user"; readonly stoppingRadius: number }
   | {
       readonly kind: "repository-object";
       readonly objectId: string;
       readonly layoutGeneration: string;
-      readonly stoppingRadius?: number;
+      readonly stoppingRadius?: number | undefined;
     };
 export type AgentMovementRequest = {
   readonly schema: typeof AGENT_MOVEMENT_SCHEMA;
@@ -44,6 +44,7 @@ export type AgentMovementEventState =
   | "moving"
   | "arrived"
   | "cancelled"
+  | "interrupted"
   | "refused"
   | "target-stale";
 export type AgentMovementEvent = {
@@ -70,6 +71,7 @@ export type AgentMovementState = {
   readonly generation: number;
   readonly activeRequest: ActiveMovement | null;
   readonly suspendedAutonomy: AgentMovementRequest | null;
+  readonly terminalRequestIds: readonly string[];
 };
 export type RepositoryApproachPoint = {
   readonly objectId: string;
@@ -85,6 +87,10 @@ export type AgentMovementContext = {
   readonly resolveRepositoryObject: (
     objectId: string,
   ) => RepositoryApproachPoint | null;
+  readonly canOccupy?: (
+    position: WorldPoint,
+    targetObjectId: string | null,
+  ) => boolean;
 };
 export type AgentMovementResult = {
   readonly state: AgentMovementState;
@@ -96,6 +102,8 @@ const MAX_SPEED = 12;
 const MIN_STOPPING_RADIUS = 0.25;
 const MAX_STOPPING_RADIUS = 5;
 const MAX_ELAPSED_SECONDS = 0.1;
+const MAX_TERMINAL_REQUESTS = 128;
+const RUN_REMAINING_DISTANCE = 6;
 const idPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
 const objectPattern = /^aiw:\/\/object\/[A-Za-z0-9][A-Za-z0-9._:-]*$/u;
 const finitePoint = (point: WorldPoint) =>
@@ -124,6 +132,15 @@ const event = (
   ...(reason ? { reason } : {}),
 });
 
+const movementAnimation = (
+  speed: number,
+  distance: number,
+  stoppingRadius: number,
+): "Walk" | "Run" =>
+  speed > 6 || distance - stoppingRadius > RUN_REMAINING_DISTANCE
+    ? "Run"
+    : "Walk";
+
 export function createAgentMovementState(
   actorId: string,
   position: WorldPoint,
@@ -142,6 +159,20 @@ export function createAgentMovementState(
     generation: 0,
     activeRequest: null,
     suspendedAutonomy: null,
+    terminalRequestIds: [],
+  };
+}
+
+function recordTerminalRequest(
+  state: AgentMovementState,
+  requestId: string,
+): AgentMovementState {
+  if (state.terminalRequestIds.includes(requestId)) return state;
+  return {
+    ...state,
+    terminalRequestIds: [...state.terminalRequestIds, requestId].slice(
+      -MAX_TERMINAL_REQUESTS,
+    ),
   };
 }
 
@@ -238,6 +269,11 @@ export function requestAgentMovement(
   context: AgentMovementContext,
 ): AgentMovementResult {
   const requested = event(request, "requested");
+  if (state.terminalRequestIds.includes(request.requestId))
+    return {
+      state,
+      events: [requested, event(request, "refused", "request-terminal")],
+    };
   const error = requestError(request);
   if (error || request.actorId !== state.actorId)
     return {
@@ -249,8 +285,8 @@ export function requestAgentMovement(
     request.source === "agent-autonomous"
   )
     return {
-      state: { ...state, suspendedAutonomy: request },
-      events: [requested, event(request, "accepted", "held-by-user-priority")],
+      state,
+      events: [requested, event(request, "refused", "user-directed-active")],
     };
   const resolved = resolveDestination(state, request, context);
   if ("stale" in resolved)
@@ -266,24 +302,29 @@ export function requestAgentMovement(
   const cancelled = state.activeRequest
     ? [event(state.activeRequest, "cancelled", "superseded")]
     : [];
-  const suspendedAutonomy =
-    request.source === "user-directed" &&
-    state.activeRequest?.source === "agent-autonomous"
-      ? state.activeRequest
-      : state.suspendedAutonomy;
+  const nextBase = state.activeRequest
+    ? recordTerminalRequest(state, state.activeRequest.requestId)
+    : state;
   const activeRequest: ActiveMovement = {
     ...request,
     stoppingRadius: resolved.stoppingRadius,
   };
   const next: AgentMovementState = {
-    ...state,
+    ...nextBase,
     destination: resolved.destination,
     source: request.source,
     movementState: "moving",
-    animationSemantic: request.speed > 6 ? "Run" : "Walk",
+    animationSemantic: movementAnimation(
+      request.speed,
+      Math.hypot(
+        resolved.destination.x - state.position.x,
+        resolved.destination.z - state.position.z,
+      ),
+      resolved.stoppingRadius,
+    ),
     generation: state.generation + 1,
     activeRequest,
-    suspendedAutonomy,
+    suspendedAutonomy: null,
     velocity: { x: 0, z: 0 },
   };
   return {
@@ -309,17 +350,30 @@ function idleState(state: AgentMovementState): AgentMovementState {
   };
 }
 
-function resumeAutonomy(
+function finishMovement(
   state: AgentMovementState,
-  context: AgentMovementContext,
+  request: ActiveMovement,
+  terminalState: "arrived" | "cancelled" | "refused" | "target-stale",
+  reason?: string,
 ): AgentMovementResult {
-  const pending = state.suspendedAutonomy;
-  if (!pending) return { state, events: [] };
-  return requestAgentMovement(
-    { ...state, suspendedAutonomy: null },
-    pending,
-    context,
-  );
+  return {
+    state: recordTerminalRequest(idleState(state), request.requestId),
+    events: [event(request, terminalState, reason)],
+  };
+}
+
+export function interruptAgentMovement(
+  state: AgentMovementState,
+  requestId: string,
+  reason: string,
+  outcome: "cancelled" | "interrupted" = "interrupted",
+): AgentMovementResult {
+  const request = state.activeRequest;
+  if (!request || request.requestId !== requestId) return { state, events: [] };
+  return {
+    state: recordTerminalRequest(idleState(state), request.requestId),
+    events: [event(request, outcome, reason)],
+  };
 }
 
 export function advanceAgentMovement(
@@ -329,26 +383,27 @@ export function advanceAgentMovement(
 ): AgentMovementResult {
   const request = state.activeRequest;
   if (!request || !state.destination) return { state, events: [] };
-  const destination =
+  let destination =
     request.target.kind === "follow-user"
       ? context.userPosition
       : state.destination;
+  let stoppingRadius = request.stoppingRadius;
+  if (request.target.kind === "repository-object") {
+    const resolved = resolveDestination(state, request, context);
+    if ("stale" in resolved)
+      return finishMovement(state, request, "target-stale", resolved.stale);
+    if ("refused" in resolved)
+      return finishMovement(state, request, "refused", resolved.refused);
+    destination = resolved.destination;
+    stoppingRadius = resolved.stoppingRadius;
+  }
   if (!inside(destination, context.bounds))
-    return cancelAgentMovement(state, "destination-invalidated", context);
+    return finishMovement(state, request, "refused", "destination-invalidated");
   const dx = destination.x - state.position.x;
   const dz = destination.z - state.position.z;
   const distance = Math.hypot(dx, dz);
-  if (distance <= request.stoppingRadius) {
-    const arrived = idleState({ ...state, destination });
-    const resumed =
-      request.source === "user-directed"
-        ? resumeAutonomy(arrived, context)
-        : { state: arrived, events: [] };
-    return {
-      state: resumed.state,
-      events: [event(request, "arrived"), ...resumed.events],
-    };
-  }
+  if (distance <= stoppingRadius)
+    return finishMovement({ ...state, destination }, request, "arrived");
   const elapsed = Math.max(
     0,
     Math.min(
@@ -356,10 +411,7 @@ export function advanceAgentMovement(
       MAX_ELAPSED_SECONDS,
     ),
   );
-  const step = Math.min(
-    request.speed * elapsed,
-    distance - request.stoppingRadius,
-  );
+  const step = Math.min(request.speed * elapsed, distance - stoppingRadius);
   const ux = dx / distance;
   const uz = dz / distance;
   const position = {
@@ -368,12 +420,27 @@ export function advanceAgentMovement(
   };
   if (!inside(position, context.bounds))
     return cancelAgentMovement(state, "world-bounds", context);
+  if (
+    context.canOccupy &&
+    !context.canOccupy(
+      position,
+      request.target.kind === "repository-object"
+        ? request.target.objectId
+        : null,
+    )
+  )
+    return finishMovement(state, request, "refused", "static-collision");
   return {
     state: {
       ...state,
       position,
       destination,
-      heading: Math.atan2(ux, -uz),
+      heading: Math.atan2(ux, uz),
+      animationSemantic: movementAnimation(
+        request.speed,
+        Math.hypot(destination.x - position.x, destination.z - position.z),
+        stoppingRadius,
+      ),
       velocity:
         elapsed > 0
           ? { x: ux * request.speed, z: uz * request.speed }
@@ -390,13 +457,10 @@ export function cancelAgentMovement(
 ): AgentMovementResult {
   const request = state.activeRequest;
   if (!request) return { state: idleState(state), events: [] };
-  const cancelled = idleState(state);
-  const resumed =
-    request.source === "user-directed" && reason === "policy-release"
-      ? resumeAutonomy(cancelled, context)
-      : { state: cancelled, events: [] };
+  const cancelled = recordTerminalRequest(idleState(state), request.requestId);
+  void context;
   return {
-    state: resumed.state,
-    events: [event(request, "cancelled", reason), ...resumed.events],
+    state: cancelled,
+    events: [event(request, "cancelled", reason)],
   };
 }

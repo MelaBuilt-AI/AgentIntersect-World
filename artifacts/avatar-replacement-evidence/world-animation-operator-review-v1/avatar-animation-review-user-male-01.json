@@ -1,0 +1,234 @@
+{
+  "schema": "aiw.avatar-animation-review/1",
+  "version": 1,
+  "authority": "operator-semantic-review-only",
+  "modelId": "user-male-01",
+  "role": "user",
+  "manifestSha256": "335d862006a811c44818dbda8607342b2ab27318e9a713ddf2fa83cd3a41adaa",
+  "sourceGlbSha256": "24a456be65823e735ed8713af6da23989fc4e10e7b789dc69dc79d316fd9e6d7",
+  "clips": [
+    {
+      "index": 0,
+      "name": "NlaTrack",
+      "durationSeconds": 6.625,
+      "inputTimingSha256": "44f4cb55736aea4db90974a79f0a10f42836adb888457f1c0ab48b96eca68ab6",
+      "motionChannelSha256": "ea389477d4fc760c25f316e3574c0dbd6995bc1c575e3c793cd35941e51ca5ab",
+      "outputPoseSha256": "d1b4db03ffb8e30124d0fb842b013faef8fdd8966912626a716c14a99be53706"
+    },
+    {
+      "index": 1,
+      "name": "NlaTrack.001",
+      "durationSeconds": 3.875,
+      "inputTimingSha256": "6556c15be989bc1ecc20ff53538118615ceccc3fa0acb36abd6d347a06f74ca3",
+      "motionChannelSha256": "7661360afe3c9ca095d4f9299a770cc3a5ea4546e5a41fcee23109b8712edeb4",
+      "outputPoseSha256": "98048b1be12412d03611530d9d310eb62f00a2341af7f3bd782c4d8ac3f82479"
+    },
+    {
+      "index": 2,
+      "name": "NlaTrack.002",
+      "durationSeconds": 2.375,
+      "inputTimingSha256": "9d6abcd78c30031700e17eee6e16561f8c87bd678717c49bb2a748f243d0e81a",
+      "motionChannelSha256": "bd87a67a7545948c0124f07c0a2c0c59b51b96c86ed5627f85a27e79dee70030",
+      "outputPoseSha256": "acc3e95714c856d22d3fb37d6dc082235ee5e10a5a70e8a0ece8476e81dcd713"
+    },
+    {
+      "index": 3,
+      "name": "NlaTrack.003",
+      "durationSeconds": 15.375,
+      "inputTimingSha256": "8967c5590b6ac1de0dc0d50546e4004e1e448f27a04833b6da5daedb165ff01d",
+      "motionChannelSha256": "75157f6d54dc0f5e5db9ff9eebe4aee6853f4f046d087955c2821afe5369aae1",
+      "outputPoseSha256": "c3873755ec506f649a43f4a54a7b12a81559b30a6e1da6bb17fc4f49868b81d3"
+    },
+    {
+      "index": 4,
+      "name": "NlaTrack.004",
+      "durationSeconds": 6.041667,
+      "inputTimingSha256": "203d02abb3298b873f36857e39a2fb714efdea01e6ece440c9da1a6f5a036080",
+      "motionChannelSha256": "16da3e91eabd6b20da9d6864583b120d10a289a92e730e3b3cc4351137764b95",
+      "outputPoseSha256": "24305f6773585c87568a1747110eb8f265f4a4a67ac8675fd6fa4266d134d850"
+    },
+    {
+      "index": 5,
+      "name": "NlaTrack.005",
+      "durationSeconds": 5.625,
+      "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
+      "motionChannelSha256": "46b3e975ad4f47a102b0017869057474924b5c70868cd79926f4027ecf547fb2",
+      "outputPoseSha256": "b9f70522fd51e15f29592e738693b6311c01a54896421d424d53887f89a48f6a"
+    },
+    {
+      "index": 6,
+      "name": "NlaTrack.006",
+      "durationSeconds": 2.25,
+      "inputTimingSha256": "773a998b2ac178b69045f6e10400c2a72a9a7b30063736bcdba6fcfca72ad574",
+      "motionChannelSha256": "2beac383f7b92b58ec0167f8776eef837049f430e2af7a776a322c328ce82ff6",
+      "outputPoseSha256": "86097dd4b6c549f9c6af53a130bee7e37aec3d8c032d94dd36614453e4e8a6a9"
+    },
+    {
+      "index": 7,
+      "name": "NlaTrack.007",
+      "durationSeconds": 2.833333,
+      "inputTimingSha256": "6b3a5c1a21b551af06f7d9dddbefbdccf6f1693e0d6d7eced295c8fca214e6eb",
+      "motionChannelSha256": "e7fdea8d656e4a89182a2198e2158e139606938083e687e9a4e251d10f11bd0c",
+      "outputPoseSha256": "4df2667297b6c24c5213957125121d741162c5eb3dfe5d90b74182b489f8d667"
+    },
+    {
+      "index": 8,
+      "name": "NlaTrack.008",
+      "durationSeconds": 16.416667,
+      "inputTimingSha256": "b68d93fe4773e03d842ecd56953e6bcd5651fd2b58825beca92a30374a274a65",
+      "motionChannelSha256": "531246c6a081eb6387197fbdf64e3407ba2b9c7d206c3b8b125d75d90d0c67d4",
+      "outputPoseSha256": "dd9865df4b11c4944849ba5becabd2e1bee142a9fdcca00760fe465102a81007"
+    },
+    {
+      "index": 9,
+      "name": "NlaTrack.009",
+      "durationSeconds": 13.833333,
+      "inputTimingSha256": "a145fbd5893d22da0ed6b0236be3b811f36158703eec33e68471e911df44b62a",
+      "motionChannelSha256": "f9d04ac7d1f88aaeb17c270fec5ab32c2b9dba8abb1ad9bb4919e5dc41a31ec3",
+      "outputPoseSha256": "37e4a168a2ea04e353e4337db3c64c53ab2c416fd3a50110f088efd5ba1dcc99"
+    },
+    {
+      "index": 10,
+      "name": "NlaTrack.010",
+      "durationSeconds": 7.208333,
+      "inputTimingSha256": "d77baf93e8cda1ad231213e0776368c869a333ac235288a824c0e3c05fcf0997",
+      "motionChannelSha256": "20efeb206c52ebd196c5d172c04b01a226b88c1d706dcef4e3db20a6b721b094",
+      "outputPoseSha256": "f735ad746ea516061e23483c9476b29093791316f54c1762cd832b4b1bf456b2"
+    },
+    {
+      "index": 11,
+      "name": "NlaTrack.011",
+      "durationSeconds": 4.041667,
+      "inputTimingSha256": "952c3d67b6fa24bbc88b6ba65934571ad2c13f408eb1dba613077b97cd006c49",
+      "motionChannelSha256": "2419a32ebdb24d322dcdb822935cb85e7695593b8361388d098ce10f95dd5704",
+      "outputPoseSha256": "db6abbc9e5d6cb381cd61606ce8b074e08984f0d70aece241c0488876cabc3b1"
+    },
+    {
+      "index": 12,
+      "name": "NlaTrack.012",
+      "durationSeconds": 17.625,
+      "inputTimingSha256": "34ced9d53007d11e2e577b7482f89a12c02630842948801bb6e199f9588a9d76",
+      "motionChannelSha256": "66ba0b69e7e1815d9cee9d1a938d2ffa5327ddcc3c19b01a67cf3c9e9b3472f3",
+      "outputPoseSha256": "e7f10f9be0ef640f7b379fd2e132aa7ab8ea51309910436858338a8d79d50424"
+    },
+    {
+      "index": 13,
+      "name": "NlaTrack.013",
+      "durationSeconds": 13.708333,
+      "inputTimingSha256": "184f68aacab03a716d69f62626d86e678331709fc2fc918e26073b18a5fb65b2",
+      "motionChannelSha256": "fd5f70e649f5d5f2db3d8d2ec9978792aa7e1c6ac9e77d10a87e63a6364e6c2b",
+      "outputPoseSha256": "f2c8519147d0e979d302994d34843f151eff05bed995d08380ac2be286afd0dd"
+    },
+    {
+      "index": 14,
+      "name": "NlaTrack.014",
+      "durationSeconds": 6.041667,
+      "inputTimingSha256": "203d02abb3298b873f36857e39a2fb714efdea01e6ece440c9da1a6f5a036080",
+      "motionChannelSha256": "2bbbf16894e85e4eaf290c5b9a83029dd20a60b81d8bc6c9de11217d2606bebe",
+      "outputPoseSha256": "1ae37dc40ce7368b415a20c7620a3656e9e025d7452ba6659f61ae88df68f733"
+    },
+    {
+      "index": 15,
+      "name": "NlaTrack.015",
+      "durationSeconds": 15.625,
+      "inputTimingSha256": "07f74171637da70c3ae9fd48cc35ec36281e29424c0c3dc0c36c9375523af468",
+      "motionChannelSha256": "3f27c39681ef540bcdd0410b0d9b5a856d1e0b91245eb34d9d3d542397bbe18f",
+      "outputPoseSha256": "a1775991141bbe25b4f898af6e119c3343750cb85d4181dc78e3ac416cdc75b6"
+    },
+    {
+      "index": 16,
+      "name": "NlaTrack.016",
+      "durationSeconds": 2.625,
+      "inputTimingSha256": "a4abbb6f7de8ff6de7f5bdc469e4c4eca940683cdf64a604d40fb3562b07b20d",
+      "motionChannelSha256": "a4c5e4986b1700c63f19bb4bfaa4d291617dd3ef1ab7864d87dd8107ac6c4879",
+      "outputPoseSha256": "2ee68adce388b22c79492760cb75835b9900e9f2e25bef7e092a9f3e5da3f96f"
+    },
+    {
+      "index": 17,
+      "name": "NlaTrack.017",
+      "durationSeconds": 9.666667,
+      "inputTimingSha256": "d5fc22fa4f0f7028051913a32e70d98f029630e42dc8dc46c990598532bcd30e",
+      "motionChannelSha256": "7aa15890e2ce33194f0c13dcdecbedd0c3584b092ffb01a4593e001167eb5fed",
+      "outputPoseSha256": "e326b3a94840c9b08ea12f6764b360351486e23fc00e789e7e7ade255842725a"
+    },
+    {
+      "index": 18,
+      "name": "NlaTrack.018",
+      "durationSeconds": 1.291667,
+      "inputTimingSha256": "d8d0177c81b4c20fb6bd599053c50bd78480a69315d80064a9612852508acf94",
+      "motionChannelSha256": "6d1a753a595c806165cf3f1e198e25ce207f6387344f9fe27151c58f8aef705a",
+      "outputPoseSha256": "5c786f864fc05701ada2da94cac2c2473176de4c2569aceaa5f16835daa2f1b2"
+    },
+    {
+      "index": 19,
+      "name": "NlaTrack.019",
+      "durationSeconds": 3.541667,
+      "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
+      "motionChannelSha256": "b3a9860ce0815995ec3f6d78dc46df5b272d3d75f42ebd5155e2ab8d01ffa602",
+      "outputPoseSha256": "735566d480187dc3e27a7aa7e96342c15747028a1dac4243736e64a284790553"
+    },
+    {
+      "index": 20,
+      "name": "NlaTrack.020",
+      "durationSeconds": 2.916667,
+      "inputTimingSha256": "becb1f62407622db54e4c23dadedb44378e503a6467bd4d0ea6ac0cf93fa5fb0",
+      "motionChannelSha256": "4f0e1382d03577048fe53a1c217e9abae0c548aa098b3040c0416ffd548ae2e9",
+      "outputPoseSha256": "f1edb82348ec7299208a666669bae5346306a0e9c6322d4677a7eaa9c01d9d3e"
+    },
+    {
+      "index": 21,
+      "name": "NlaTrack.021",
+      "durationSeconds": 17.125,
+      "inputTimingSha256": "4a73d68b551695604635eb1e697079fbb01e5f3a4adc1e901df2e618c64f2c5a",
+      "motionChannelSha256": "c557269bbaeb4869d36ebfa0a5536430f489be37b2c7fd02c04b71820f439cb3",
+      "outputPoseSha256": "a2b77d5b816f34a62017a2f577d026c8c876efd488727379ffb768091b8001aa"
+    }
+  ],
+  "verdicts": [
+    {
+      "semantic": "Jump",
+      "verdict": "selected",
+      "clipIndex": 6
+    },
+    {
+      "semantic": "Dance",
+      "verdict": "selected",
+      "clipIndex": 20
+    },
+    {
+      "semantic": "Clap",
+      "verdict": "selected",
+      "clipIndex": 13
+    },
+    {
+      "semantic": "Cheer",
+      "verdict": "selected",
+      "clipIndex": 17
+    },
+    {
+      "semantic": "Wave",
+      "verdict": "selected",
+      "clipIndex": 7
+    },
+    {
+      "semantic": "Bow",
+      "verdict": "selected",
+      "clipIndex": 4
+    },
+    {
+      "semantic": "Agree",
+      "verdict": "selected",
+      "clipIndex": 11
+    },
+    {
+      "semantic": "Angry",
+      "verdict": "selected",
+      "clipIndex": 19
+    },
+    {
+      "semantic": "Laugh",
+      "verdict": "selected",
+      "clipIndex": 5
+    }
+  ]
+}

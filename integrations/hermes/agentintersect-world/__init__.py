@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import fcntl
 import threading
@@ -194,6 +195,81 @@ def _validate_action(value: object) -> dict[str, Any]:
         except (ValueError, AttributeError) as error:
             raise ValueError("Cancellation target ID is invalid") from error
         output.update({"targetType": value["targetType"], "targetId": target_id})
+    elif kind == "move-agent":
+        allowed = {"kind", "schema", "actorId", "source", "speed", "target"}
+        actor_id = value.get("actorId")
+        speed = value.get("speed")
+        target = value.get("target")
+        if value.get("schema") != "aiw.agent-movement/1":
+            raise ValueError("Agent movement schema is invalid")
+        if (
+            not isinstance(actor_id, str)
+            or not 1 <= len(actor_id) <= 256
+            or actor_id[0] not in _SAFE_TOOL
+            or any(character not in _SAFE_TOOL for character in actor_id)
+        ):
+            raise ValueError("Agent movement actor is invalid")
+        if value.get("source") != "agent-autonomous":
+            raise ValueError("Plugin movement source is invalid")
+        if (
+            not isinstance(speed, (int, float))
+            or isinstance(speed, bool)
+            or not math.isfinite(speed)
+            or speed <= 0
+            or speed > 12
+        ):
+            raise ValueError("Agent movement speed is invalid")
+        if not isinstance(target, dict) or not isinstance(target.get("kind"), str):
+            raise ValueError("Agent movement target is invalid")
+        target_kind = target["kind"]
+        if target_kind == "relative":
+            target_allowed = {"kind", "direction", "distance", "stoppingRadius"}
+            distance = target.get("distance")
+            if target.get("direction") not in {"forward", "backward", "left", "right"}:
+                raise ValueError("Agent movement direction is invalid")
+            if (
+                not isinstance(distance, (int, float))
+                or isinstance(distance, bool)
+                or not math.isfinite(distance)
+                or distance <= 0
+                or distance > 30
+            ):
+                raise ValueError("Agent movement distance is invalid")
+        elif target_kind == "coordinate":
+            target_allowed = {"kind", "x", "z", "stoppingRadius"}
+            for coordinate in (target.get("x"), target.get("z")):
+                if (
+                    not isinstance(coordinate, (int, float))
+                    or isinstance(coordinate, bool)
+                    or not math.isfinite(coordinate)
+                    or coordinate < -15
+                    or coordinate > 15
+                ):
+                    raise ValueError("Agent movement coordinate is invalid")
+        elif target_kind == "follow-user":
+            target_allowed = {"kind", "stoppingRadius"}
+        else:
+            raise ValueError("Agent movement target kind is invalid")
+        if set(target) - target_allowed or "kind" not in target:
+            raise ValueError("Agent movement target contains an unknown field")
+        radius = target.get("stoppingRadius")
+        if radius is not None and (
+            not isinstance(radius, (int, float))
+            or isinstance(radius, bool)
+            or not math.isfinite(radius)
+            or radius < 0.25
+            or radius > 5
+        ):
+            raise ValueError("Agent movement stopping radius is invalid")
+        if target_kind == "follow-user" and radius is None:
+            raise ValueError("Agent follow stopping radius is required")
+        output.update({
+            "schema": value["schema"],
+            "actorId": actor_id,
+            "source": value["source"],
+            "speed": speed,
+            "target": target,
+        })
     else:
         raise ValueError("World Action kind is not allowlisted")
     if set(value) != allowed:

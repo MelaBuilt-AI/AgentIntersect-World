@@ -1,6 +1,12 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
-import type { WorldTranscriptItem } from "./world-chat-model.js";
+import {
+  createWorldChatInputHistory,
+  recallWorldChatHistory,
+  recordWorldChatSubmission,
+  shouldConsumeWorldChatShortcut,
+  type WorldTranscriptItem,
+} from "./world-chat-model.js";
 
 const inlineTokens = (text: string, keyPrefix: string): ReactNode[] => {
   const tokens = text.split(/(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__)/gu);
@@ -163,11 +169,39 @@ export function WorldHud({
   readonly onSend: () => void;
 }) {
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const inputHistory = useRef(createWorldChatInputHistory());
   const sendUnavailable = !message.trim();
   useEffect(() => {
     const rail = transcriptRef.current;
     if (rail) rail.scrollTop = rail.scrollHeight;
   }, [transcript]);
+  useEffect(() => {
+    const focusChat = (event: KeyboardEvent) => {
+      if (
+        !shouldConsumeWorldChatShortcut({
+          key: event.key,
+          target: event.target,
+          worldActive: document.visibilityState === "visible",
+          dialogOpen: Boolean(
+            document.querySelector('[role="dialog"], dialog[open]'),
+          ),
+        })
+      )
+        return;
+      const input = inputRef.current;
+      if (!input) return;
+      event.preventDefault();
+      input.focus({ preventScroll: true });
+      if (message.length === 0) onMessage("/");
+      window.requestAnimationFrame(() => {
+        const end = input.value.length;
+        input.setSelectionRange(end, end);
+      });
+    };
+    window.addEventListener("keydown", focusChat, true);
+    return () => window.removeEventListener("keydown", focusChat, true);
+  }, [message, onMessage]);
   return (
     <div className="world-hud" data-testid="world-hud">
       <div className="world-hud__captions" aria-live="polite" role="status">
@@ -218,19 +252,57 @@ export function WorldHud({
           aria-busy={busy}
           onSubmit={(event) => {
             event.preventDefault();
-            if (!sendUnavailable) onSend();
+            if (!sendUnavailable) {
+              inputHistory.current = recordWorldChatSubmission(
+                inputHistory.current,
+                message,
+              );
+              onSend();
+            }
           }}
         >
           <label className="sr-only" htmlFor="world-chat-message">
             Message {recipient}
           </label>
           <input
+            ref={inputRef}
             id="world-chat-message"
             aria-label={`Message ${recipient}`}
             value={message}
             maxLength={4_000}
             placeholder={`Message ${recipient}`}
-            onChange={(event) => onMessage(event.target.value)}
+            onChange={(event) => {
+              if (inputHistory.current.index !== null)
+                inputHistory.current = {
+                  ...inputHistory.current,
+                  index: null,
+                  draft: event.target.value,
+                };
+              onMessage(event.target.value);
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+              const direction = event.key === "ArrowUp" ? "up" : "down";
+              if (
+                inputHistory.current.entries.length === 0 ||
+                (direction === "down" && inputHistory.current.index === null)
+              )
+                return;
+              event.preventDefault();
+              const recalled = recallWorldChatHistory(
+                inputHistory.current,
+                direction,
+                message,
+              );
+              inputHistory.current = recalled.history;
+              onMessage(recalled.message);
+              window.requestAnimationFrame(() => {
+                const input = inputRef.current;
+                if (!input) return;
+                const end = input.value.length;
+                input.setSelectionRange(end, end);
+              });
+            }}
           />
           <button
             type="submit"

@@ -72,7 +72,11 @@ const app = appSurfaceModule as unknown as {
   readonly resolveAppSurface?: (
     path: string,
     developerFlag: string | undefined,
-  ) => "world-entry" | "internal-dashboard" | "internal-unavailable";
+  ) =>
+    | "world-entry"
+    | "internal-dashboard"
+    | "internal-avatar-review"
+    | "internal-unavailable";
 };
 const roomApi = roomModule as unknown as {
   readonly moveWorldPosition?: (input: {
@@ -695,6 +699,12 @@ describe("Phase 18 World entry experience", () => {
     expect(app.resolveAppSurface("/internal/dashboard", "1")).toBe(
       "internal-dashboard",
     );
+    expect(
+      app.resolveAppSurface("/internal/avatar-animation-review", undefined),
+    ).toBe("internal-unavailable");
+    expect(
+      app.resolveAppSurface("/internal/avatar-animation-review", "1"),
+    ).toBe("internal-avatar-review");
     expect(app.resolveAppSurface("/", "1")).toBe("world-entry");
   });
 

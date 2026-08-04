@@ -2724,29 +2724,29 @@
           ]
         },
         "semanticClips": {
-          "Agree": 10,
-          "Angry": 14,
+          "Agree": 17,
+          "Angry": 12,
           "Bow": 3,
           "Cheer": 7,
           "Clap": 18,
-          "Dance": 6,
+          "Dance": 11,
           "Idle": 1,
-          "Jump": 20,
-          "Laugh": 11,
+          "Jump": 5,
+          "Laugh": 9,
           "Run": 4,
           "Walk": 19,
-          "Wave": 17
+          "Wave": 2
         },
         "semanticEvidence": {
           "Agree": {
             "channelCount": 123,
-            "clipIndex": 10,
-            "clipName": "NlaTrack.010",
-            "durationSeconds": 14.083333,
-            "inputTimingSha256": "808714cfd73a5b8e0d8e90b82e1f9d0835e4c10238f59b771e47051162b48a75",
+            "clipIndex": 17,
+            "clipName": "NlaTrack.017",
+            "durationSeconds": 3.208333,
+            "inputTimingSha256": "fa70e95433b04b2c577a48aad297406c28dae18ba16d5855512b1019fe23b7c7",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "1699c86339949fc24d5047f87450a66d922ac8028d9b06e424fd72f26d428d03",
-            "outputPoseSha256": "9907fb035bb82fb6e09be49a1de156f33f456d055df0505450649f4e8958653d",
+            "motionChannelSha256": "8bf2a29c8cbaeb9176afcb6b88528299ff1d28fa15bebab04f093de5b8f7d7e9",
+            "outputPoseSha256": "00c549efc20630e6e82000170dea0f57e1bf09fe4032ca09b774a9b49fcd47f5",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -2775,22 +2775,22 @@
               },
               {
                 "max": [
-                  0.128223,
-                  -0.036112,
-                  0.506732
+                  0.03373,
+                  -0.03468,
+                  0.516555
                 ],
                 "min": [
-                  0.004065,
-                  -0.069839,
-                  0.498399
+                  0.003845,
+                  -0.054129,
+                  0.511611
                 ],
                 "span": [
-                  0.124158,
-                  0.033727,
-                  0.008333
+                  0.029885,
+                  0.019449,
+                  0.004944
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.128927
+                "travelMagnitude": 0.035998
               },
               {
                 "max": [
@@ -2817,13 +2817,13 @@
           },
           "Angry": {
             "channelCount": 123,
-            "clipIndex": 14,
-            "clipName": "NlaTrack.014",
-            "durationSeconds": 13.833333,
-            "inputTimingSha256": "a145fbd5893d22da0ed6b0236be3b811f36158703eec33e68471e911df44b62a",
+            "clipIndex": 12,
+            "clipName": "NlaTrack.012",
+            "durationSeconds": 6.625,
+            "inputTimingSha256": "44f4cb55736aea4db90974a79f0a10f42836adb888457f1c0ab48b96eca68ab6",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "865d6aa89e4daa98f7df22371578a9f170b397b2e7e6a4b6cf85da1da768f317",
-            "outputPoseSha256": "be465509ba3daecabae23ed96a0c7d47dd3dd859d8857bac6212d00ad93ba812",
+            "motionChannelSha256": "e40e5d35d42b1400b6f69a18e060f118006511f525c78d2ced7884bab3a647b8",
+            "outputPoseSha256": "70562e8efc5782678161218340874f274625dfeb43ec0464ef1a339b69602a61",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -2852,22 +2852,22 @@
               },
               {
                 "max": [
-                  0.126904,
-                  0.058855,
-                  0.511131
+                  0.071998,
+                  0.034037,
+                  0.510706
                 ],
                 "min": [
-                  -0.108625,
-                  -0.109689,
-                  0.489528
+                  0.002673,
+                  -0.084605,
+                  0.460622
                 ],
                 "span": [
-                  0.235529,
-                  0.168543,
-                  0.021603
+                  0.069324,
+                  0.118642,
+                  0.050083
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.290426
+                "travelMagnitude": 0.146253
               },
               {
                 "max": [
@@ -3125,13 +3125,13 @@
           },
           "Dance": {
             "channelCount": 123,
-            "clipIndex": 6,
-            "clipName": "NlaTrack.006",
-            "durationSeconds": 3.083333,
-            "inputTimingSha256": "d4023331f41f2f0ecce338d5bd55ef47811b55e9f2581794e9724a87d074d1c7",
+            "clipIndex": 11,
+            "clipName": "NlaTrack.011",
+            "durationSeconds": 12.833333,
+            "inputTimingSha256": "762884faa5d525703febcd67f67b486c5e232dafe9ab101053ba7ec685342a29",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "e9b08cb1e1c60555d846bde27f7e8c4ec70eaebee4602119f27c728941d31813",
-            "outputPoseSha256": "4532a3e02840d2c1470c5bb1af8d9ffa867684ecbf57c379419c733d7d509a91",
+            "motionChannelSha256": "c0a194c03c6faa1e97a32b58cb3a8e0c6986567049f8811a0370467970163177",
+            "outputPoseSha256": "640cdf505ff6601b3039d764507acc54999a8ef57d9646aad2bfa5dc5c1ead99",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -3160,27 +3160,27 @@
               },
               {
                 "max": [
-                  0.008458,
-                  0.141068,
-                  0.470798
+                  0.138133,
+                  0.025384,
+                  0.52823
                 ],
                 "min": [
-                  -0.242323,
-                  -0.065033,
-                  0.419493
+                  -0.356252,
+                  -0.250378,
+                  0.374474
                 ],
                 "span": [
-                  0.25078,
-                  0.206101,
-                  0.051305
+                  0.494386,
+                  0.275762,
+                  0.153756
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.328635
+                "travelMagnitude": 0.586603
               },
               {
                 "max": [
                   -0.0,
-                  -0.0,
+                  0.0,
                   -0.0
                 ],
                 "min": [
@@ -3279,13 +3279,13 @@
           },
           "Jump": {
             "channelCount": 123,
-            "clipIndex": 20,
-            "clipName": "NlaTrack.020",
-            "durationSeconds": 3.541667,
-            "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
+            "clipIndex": 5,
+            "clipName": "NlaTrack.005",
+            "durationSeconds": 2.25,
+            "inputTimingSha256": "773a998b2ac178b69045f6e10400c2a72a9a7b30063736bcdba6fcfca72ad574",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "efae4e50ea9ea8be287ff77ad960d54a1b60d5b196ca8188b4d1a7c5df949097",
-            "outputPoseSha256": "fb21c45d9a0e11358e623bd4aef42a6dd22b9e98e435ea1611d97d38aa642a17",
+            "motionChannelSha256": "82e5f70ada98451b869a48b1f2ee22b9e05d7b73fd983fef2f59550b4d6798e9",
+            "outputPoseSha256": "ed5150af8a4cb00c4d15aa847df62d8410208a10c829d4c0e339d47445c85090",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -3314,27 +3314,27 @@
               },
               {
                 "max": [
-                  0.014962,
-                  0.032637,
-                  0.518026
+                  0.080705,
+                  -0.042134,
+                  0.7119
                 ],
                 "min": [
-                  -0.07503,
-                  -0.136546,
-                  0.429145
+                  -0.042042,
+                  -0.253605,
+                  0.423428
                 ],
                 "span": [
-                  0.089992,
-                  0.169184,
-                  0.088882
+                  0.122747,
+                  0.211472,
+                  0.288472
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.211238
+                "travelMagnitude": 0.378157
               },
               {
                 "max": [
-                  0.0,
-                  0.0,
+                  -0.0,
+                  -0.0,
                   -0.0
                 ],
                 "min": [
@@ -3356,13 +3356,13 @@
           },
           "Laugh": {
             "channelCount": 123,
-            "clipIndex": 11,
-            "clipName": "NlaTrack.011",
-            "durationSeconds": 12.833333,
-            "inputTimingSha256": "762884faa5d525703febcd67f67b486c5e232dafe9ab101053ba7ec685342a29",
+            "clipIndex": 9,
+            "clipName": "NlaTrack.009",
+            "durationSeconds": 5.625,
+            "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "c0a194c03c6faa1e97a32b58cb3a8e0c6986567049f8811a0370467970163177",
-            "outputPoseSha256": "640cdf505ff6601b3039d764507acc54999a8ef57d9646aad2bfa5dc5c1ead99",
+            "motionChannelSha256": "c3ed731c99fc4cc682081a34039ba21c545422b1d70ea8d026675132c02835db",
+            "outputPoseSha256": "2f511985938e155d38ec0fa0a686223afdd4123e64fceec4aa46e22d9bb34a30",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -3391,22 +3391,22 @@
               },
               {
                 "max": [
-                  0.138133,
-                  0.025384,
-                  0.52823
+                  0.029205,
+                  -0.04622,
+                  0.503215
                 ],
                 "min": [
-                  -0.356252,
-                  -0.250378,
-                  0.374474
+                  -0.052921,
+                  -0.132948,
+                  0.41323
                 ],
                 "span": [
-                  0.494386,
-                  0.275762,
-                  0.153756
+                  0.082126,
+                  0.086728,
+                  0.089986
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.586603
+                "travelMagnitude": 0.149545
               },
               {
                 "max": [
@@ -3587,13 +3587,13 @@
           },
           "Wave": {
             "channelCount": 123,
-            "clipIndex": 17,
-            "clipName": "NlaTrack.017",
-            "durationSeconds": 3.208333,
-            "inputTimingSha256": "fa70e95433b04b2c577a48aad297406c28dae18ba16d5855512b1019fe23b7c7",
+            "clipIndex": 2,
+            "clipName": "NlaTrack.002",
+            "durationSeconds": 5.625,
+            "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "8bf2a29c8cbaeb9176afcb6b88528299ff1d28fa15bebab04f093de5b8f7d7e9",
-            "outputPoseSha256": "00c549efc20630e6e82000170dea0f57e1bf09fe4032ca09b774a9b49fcd47f5",
+            "motionChannelSha256": "dca774a12689c1f6552060b60f69699a2d8379a1fc9a0b8af78a2a048e46c69b",
+            "outputPoseSha256": "4eb3e12caaf5bca9ff7ec08818f5920e8ba9c13a5dca7f89e58dfabaf7b97752",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -3622,28 +3622,28 @@
               },
               {
                 "max": [
-                  0.03373,
-                  -0.03468,
-                  0.516555
+                  0.125441,
+                  -0.043635,
+                  0.50643
                 ],
                 "min": [
-                  0.003845,
-                  -0.054129,
-                  0.511611
+                  0.00459,
+                  -0.082131,
+                  0.49007
                 ],
                 "span": [
-                  0.029885,
-                  0.019449,
-                  0.004944
+                  0.120851,
+                  0.038496,
+                  0.016361
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.035998
+                "travelMagnitude": 0.127885
               },
               {
                 "max": [
-                  0.0,
-                  0.0,
-                  -0.0
+                  -0.0,
+                  -0.0,
+                  0.0
                 ],
                 "min": [
                   -0.0,
@@ -3666,57 +3666,57 @@
         "semanticReview": {
           "Agree": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Agree"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Agree"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 10,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 17,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 17,
+            "verdict": "pass"
           },
           "Angry": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Angry"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Angry"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 14,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 12,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 12 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 12,
+            "verdict": "pass"
           },
           "Bow": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Bow"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Bow"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+            "expectedClipIndex": 3,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 3 for Bow; the preserved sanitized operator receipt is the semantic authority.",
             "reviewedClipIndex": 3,
-            "verdict": "ambiguous"
+            "verdict": "pass"
           },
           "Cheer": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Cheer"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Cheer"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+            "expectedClipIndex": 7,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
             "reviewedClipIndex": 7,
-            "verdict": "ambiguous"
+            "verdict": "pass"
           },
           "Clap": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Clap"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Clap"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+            "expectedClipIndex": 18,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 18 for Clap; the preserved sanitized operator receipt is the semantic authority.",
             "reviewedClipIndex": 18,
-            "verdict": "ambiguous"
+            "verdict": "pass"
           },
           "Dance": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Dance"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Dance"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 6,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 11,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 11,
+            "verdict": "pass"
           },
           "Idle": {
             "evidenceRefs": [
@@ -3729,21 +3729,21 @@
           },
           "Jump": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Jump"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Jump"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 20,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 5,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 5,
+            "verdict": "pass"
           },
           "Laugh": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Laugh"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Laugh"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 11,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 9,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 9 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 9,
+            "verdict": "pass"
           },
           "Run": {
             "evidenceRefs": [
@@ -3765,12 +3765,12 @@
           },
           "Wave": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Wave"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Wave"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 17,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 2,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 2 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 2,
+            "verdict": "pass"
           }
         },
         "skeleton": {
@@ -3819,29 +3819,29 @@
         }
       ],
       "semanticClips": {
-        "Agree": 10,
-        "Angry": 14,
+        "Agree": 17,
+        "Angry": 12,
         "Bow": 3,
         "Cheer": 7,
         "Clap": 18,
-        "Dance": 6,
+        "Dance": 11,
         "Idle": 1,
-        "Jump": 20,
-        "Laugh": 11,
+        "Jump": 5,
+        "Laugh": 9,
         "Run": 4,
         "Walk": 19,
-        "Wave": 17
+        "Wave": 2
       },
       "semanticEvidence": {
         "Agree": {
           "channelCount": 123,
-          "clipIndex": 10,
-          "clipName": "NlaTrack.010",
-          "durationSeconds": 14.083333,
-          "inputTimingSha256": "808714cfd73a5b8e0d8e90b82e1f9d0835e4c10238f59b771e47051162b48a75",
+          "clipIndex": 17,
+          "clipName": "NlaTrack.017",
+          "durationSeconds": 3.208333,
+          "inputTimingSha256": "fa70e95433b04b2c577a48aad297406c28dae18ba16d5855512b1019fe23b7c7",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "1699c86339949fc24d5047f87450a66d922ac8028d9b06e424fd72f26d428d03",
-          "outputPoseSha256": "9907fb035bb82fb6e09be49a1de156f33f456d055df0505450649f4e8958653d",
+          "motionChannelSha256": "8bf2a29c8cbaeb9176afcb6b88528299ff1d28fa15bebab04f093de5b8f7d7e9",
+          "outputPoseSha256": "00c549efc20630e6e82000170dea0f57e1bf09fe4032ca09b774a9b49fcd47f5",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -3870,22 +3870,22 @@
             },
             {
               "max": [
-                0.128223,
-                -0.036112,
-                0.506732
+                0.03373,
+                -0.03468,
+                0.516555
               ],
               "min": [
-                0.004065,
-                -0.069839,
-                0.498399
+                0.003845,
+                -0.054129,
+                0.511611
               ],
               "span": [
-                0.124158,
-                0.033727,
-                0.008333
+                0.029885,
+                0.019449,
+                0.004944
               ],
               "target": "Hip",
-              "travelMagnitude": 0.128927
+              "travelMagnitude": 0.035998
             },
             {
               "max": [
@@ -3912,13 +3912,13 @@
         },
         "Angry": {
           "channelCount": 123,
-          "clipIndex": 14,
-          "clipName": "NlaTrack.014",
-          "durationSeconds": 13.833333,
-          "inputTimingSha256": "a145fbd5893d22da0ed6b0236be3b811f36158703eec33e68471e911df44b62a",
+          "clipIndex": 12,
+          "clipName": "NlaTrack.012",
+          "durationSeconds": 6.625,
+          "inputTimingSha256": "44f4cb55736aea4db90974a79f0a10f42836adb888457f1c0ab48b96eca68ab6",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "865d6aa89e4daa98f7df22371578a9f170b397b2e7e6a4b6cf85da1da768f317",
-          "outputPoseSha256": "be465509ba3daecabae23ed96a0c7d47dd3dd859d8857bac6212d00ad93ba812",
+          "motionChannelSha256": "e40e5d35d42b1400b6f69a18e060f118006511f525c78d2ced7884bab3a647b8",
+          "outputPoseSha256": "70562e8efc5782678161218340874f274625dfeb43ec0464ef1a339b69602a61",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -3947,22 +3947,22 @@
             },
             {
               "max": [
-                0.126904,
-                0.058855,
-                0.511131
+                0.071998,
+                0.034037,
+                0.510706
               ],
               "min": [
-                -0.108625,
-                -0.109689,
-                0.489528
+                0.002673,
+                -0.084605,
+                0.460622
               ],
               "span": [
-                0.235529,
-                0.168543,
-                0.021603
+                0.069324,
+                0.118642,
+                0.050083
               ],
               "target": "Hip",
-              "travelMagnitude": 0.290426
+              "travelMagnitude": 0.146253
             },
             {
               "max": [
@@ -4220,13 +4220,13 @@
         },
         "Dance": {
           "channelCount": 123,
-          "clipIndex": 6,
-          "clipName": "NlaTrack.006",
-          "durationSeconds": 3.083333,
-          "inputTimingSha256": "d4023331f41f2f0ecce338d5bd55ef47811b55e9f2581794e9724a87d074d1c7",
+          "clipIndex": 11,
+          "clipName": "NlaTrack.011",
+          "durationSeconds": 12.833333,
+          "inputTimingSha256": "762884faa5d525703febcd67f67b486c5e232dafe9ab101053ba7ec685342a29",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "e9b08cb1e1c60555d846bde27f7e8c4ec70eaebee4602119f27c728941d31813",
-          "outputPoseSha256": "4532a3e02840d2c1470c5bb1af8d9ffa867684ecbf57c379419c733d7d509a91",
+          "motionChannelSha256": "c0a194c03c6faa1e97a32b58cb3a8e0c6986567049f8811a0370467970163177",
+          "outputPoseSha256": "640cdf505ff6601b3039d764507acc54999a8ef57d9646aad2bfa5dc5c1ead99",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -4255,27 +4255,27 @@
             },
             {
               "max": [
-                0.008458,
-                0.141068,
-                0.470798
+                0.138133,
+                0.025384,
+                0.52823
               ],
               "min": [
-                -0.242323,
-                -0.065033,
-                0.419493
+                -0.356252,
+                -0.250378,
+                0.374474
               ],
               "span": [
-                0.25078,
-                0.206101,
-                0.051305
+                0.494386,
+                0.275762,
+                0.153756
               ],
               "target": "Hip",
-              "travelMagnitude": 0.328635
+              "travelMagnitude": 0.586603
             },
             {
               "max": [
                 -0.0,
-                -0.0,
+                0.0,
                 -0.0
               ],
               "min": [
@@ -4374,13 +4374,13 @@
         },
         "Jump": {
           "channelCount": 123,
-          "clipIndex": 20,
-          "clipName": "NlaTrack.020",
-          "durationSeconds": 3.541667,
-          "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
+          "clipIndex": 5,
+          "clipName": "NlaTrack.005",
+          "durationSeconds": 2.25,
+          "inputTimingSha256": "773a998b2ac178b69045f6e10400c2a72a9a7b30063736bcdba6fcfca72ad574",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "efae4e50ea9ea8be287ff77ad960d54a1b60d5b196ca8188b4d1a7c5df949097",
-          "outputPoseSha256": "fb21c45d9a0e11358e623bd4aef42a6dd22b9e98e435ea1611d97d38aa642a17",
+          "motionChannelSha256": "82e5f70ada98451b869a48b1f2ee22b9e05d7b73fd983fef2f59550b4d6798e9",
+          "outputPoseSha256": "ed5150af8a4cb00c4d15aa847df62d8410208a10c829d4c0e339d47445c85090",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -4409,27 +4409,27 @@
             },
             {
               "max": [
-                0.014962,
-                0.032637,
-                0.518026
+                0.080705,
+                -0.042134,
+                0.7119
               ],
               "min": [
-                -0.07503,
-                -0.136546,
-                0.429145
+                -0.042042,
+                -0.253605,
+                0.423428
               ],
               "span": [
-                0.089992,
-                0.169184,
-                0.088882
+                0.122747,
+                0.211472,
+                0.288472
               ],
               "target": "Hip",
-              "travelMagnitude": 0.211238
+              "travelMagnitude": 0.378157
             },
             {
               "max": [
-                0.0,
-                0.0,
+                -0.0,
+                -0.0,
                 -0.0
               ],
               "min": [
@@ -4451,13 +4451,13 @@
         },
         "Laugh": {
           "channelCount": 123,
-          "clipIndex": 11,
-          "clipName": "NlaTrack.011",
-          "durationSeconds": 12.833333,
-          "inputTimingSha256": "762884faa5d525703febcd67f67b486c5e232dafe9ab101053ba7ec685342a29",
+          "clipIndex": 9,
+          "clipName": "NlaTrack.009",
+          "durationSeconds": 5.625,
+          "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "c0a194c03c6faa1e97a32b58cb3a8e0c6986567049f8811a0370467970163177",
-          "outputPoseSha256": "640cdf505ff6601b3039d764507acc54999a8ef57d9646aad2bfa5dc5c1ead99",
+          "motionChannelSha256": "c3ed731c99fc4cc682081a34039ba21c545422b1d70ea8d026675132c02835db",
+          "outputPoseSha256": "2f511985938e155d38ec0fa0a686223afdd4123e64fceec4aa46e22d9bb34a30",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -4486,22 +4486,22 @@
             },
             {
               "max": [
-                0.138133,
-                0.025384,
-                0.52823
+                0.029205,
+                -0.04622,
+                0.503215
               ],
               "min": [
-                -0.356252,
-                -0.250378,
-                0.374474
+                -0.052921,
+                -0.132948,
+                0.41323
               ],
               "span": [
-                0.494386,
-                0.275762,
-                0.153756
+                0.082126,
+                0.086728,
+                0.089986
               ],
               "target": "Hip",
-              "travelMagnitude": 0.586603
+              "travelMagnitude": 0.149545
             },
             {
               "max": [
@@ -4682,13 +4682,13 @@
         },
         "Wave": {
           "channelCount": 123,
-          "clipIndex": 17,
-          "clipName": "NlaTrack.017",
-          "durationSeconds": 3.208333,
-          "inputTimingSha256": "fa70e95433b04b2c577a48aad297406c28dae18ba16d5855512b1019fe23b7c7",
+          "clipIndex": 2,
+          "clipName": "NlaTrack.002",
+          "durationSeconds": 5.625,
+          "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "8bf2a29c8cbaeb9176afcb6b88528299ff1d28fa15bebab04f093de5b8f7d7e9",
-          "outputPoseSha256": "00c549efc20630e6e82000170dea0f57e1bf09fe4032ca09b774a9b49fcd47f5",
+          "motionChannelSha256": "dca774a12689c1f6552060b60f69699a2d8379a1fc9a0b8af78a2a048e46c69b",
+          "outputPoseSha256": "4eb3e12caaf5bca9ff7ec08818f5920e8ba9c13a5dca7f89e58dfabaf7b97752",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -4717,28 +4717,28 @@
             },
             {
               "max": [
-                0.03373,
-                -0.03468,
-                0.516555
+                0.125441,
+                -0.043635,
+                0.50643
               ],
               "min": [
-                0.003845,
-                -0.054129,
-                0.511611
+                0.00459,
+                -0.082131,
+                0.49007
               ],
               "span": [
-                0.029885,
-                0.019449,
-                0.004944
+                0.120851,
+                0.038496,
+                0.016361
               ],
               "target": "Hip",
-              "travelMagnitude": 0.035998
+              "travelMagnitude": 0.127885
             },
             {
               "max": [
-                0.0,
-                0.0,
-                -0.0
+                -0.0,
+                -0.0,
+                0.0
               ],
               "min": [
                 -0.0,
@@ -4761,57 +4761,57 @@
       "semanticReview": {
         "Agree": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Agree"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Agree"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 10,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 17,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 17,
+          "verdict": "pass"
         },
         "Angry": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Angry"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Angry"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 14,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 12,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 12 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 12,
+          "verdict": "pass"
         },
         "Bow": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Bow"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Bow"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+          "expectedClipIndex": 3,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 3 for Bow; the preserved sanitized operator receipt is the semantic authority.",
           "reviewedClipIndex": 3,
-          "verdict": "ambiguous"
+          "verdict": "pass"
         },
         "Cheer": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Cheer"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Cheer"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+          "expectedClipIndex": 7,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
           "reviewedClipIndex": 7,
-          "verdict": "ambiguous"
+          "verdict": "pass"
         },
         "Clap": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Clap"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Clap"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+          "expectedClipIndex": 18,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 18 for Clap; the preserved sanitized operator receipt is the semantic authority.",
           "reviewedClipIndex": 18,
-          "verdict": "ambiguous"
+          "verdict": "pass"
         },
         "Dance": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Dance"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Dance"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 6,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 11,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 11,
+          "verdict": "pass"
         },
         "Idle": {
           "evidenceRefs": [
@@ -4824,21 +4824,21 @@
         },
         "Jump": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Jump"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Jump"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 20,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 5,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 5,
+          "verdict": "pass"
         },
         "Laugh": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Laugh"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Laugh"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 11,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 9,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 9 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 9,
+          "verdict": "pass"
         },
         "Run": {
           "evidenceRefs": [
@@ -4860,12 +4860,12 @@
         },
         "Wave": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Wave"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Wave"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 17,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 2,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 2 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 2,
+          "verdict": "pass"
         }
       },
       "sha256": "92cfc38bf44186c4ab9abd4612a07c7ce9204cba2207cb03eed698bec8f7616d",
@@ -105334,29 +105334,29 @@
           ]
         },
         "semanticClips": {
-          "Agree": 14,
-          "Angry": 9,
+          "Agree": 11,
+          "Angry": 19,
           "Bow": 4,
           "Cheer": 17,
           "Clap": 13,
-          "Dance": 1,
+          "Dance": 20,
           "Idle": 15,
-          "Jump": 19,
-          "Laugh": 12,
+          "Jump": 6,
+          "Laugh": 5,
           "Run": 18,
           "Walk": 2,
-          "Wave": 11
+          "Wave": 7
         },
         "semanticEvidence": {
           "Agree": {
             "channelCount": 123,
-            "clipIndex": 14,
-            "clipName": "NlaTrack.014",
-            "durationSeconds": 6.041667,
-            "inputTimingSha256": "203d02abb3298b873f36857e39a2fb714efdea01e6ece440c9da1a6f5a036080",
+            "clipIndex": 11,
+            "clipName": "NlaTrack.011",
+            "durationSeconds": 4.041667,
+            "inputTimingSha256": "952c3d67b6fa24bbc88b6ba65934571ad2c13f408eb1dba613077b97cd006c49",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "2bbbf16894e85e4eaf290c5b9a83029dd20a60b81d8bc6c9de11217d2606bebe",
-            "outputPoseSha256": "1ae37dc40ce7368b415a20c7620a3656e9e025d7452ba6659f61ae88df68f733",
+            "motionChannelSha256": "2419a32ebdb24d322dcdb822935cb85e7695593b8361388d098ce10f95dd5704",
+            "outputPoseSha256": "db6abbc9e5d6cb381cd61606ce8b074e08984f0d70aece241c0488876cabc3b1",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -105385,31 +105385,31 @@
               },
               {
                 "max": [
-                  0.003249,
-                  0.009496,
-                  0.488781
+                  0.027296,
+                  0.026885,
+                  0.507831
                 ],
                 "min": [
-                  -0.001641,
-                  0.007701,
-                  0.488699
+                  -0.004038,
+                  0.006576,
+                  0.502654
                 ],
                 "span": [
-                  0.00489,
-                  0.001795,
-                  8.2e-05
+                  0.031334,
+                  0.020309,
+                  0.005177
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.00521
+                "travelMagnitude": 0.037697
               },
               {
                 "max": [
                   0.0,
                   -0.0,
-                  0.0
+                  -0.0
                 ],
                 "min": [
-                  0.0,
+                  -0.0,
                   -0.0,
                   -0.0
                 ],
@@ -105427,13 +105427,13 @@
           },
           "Angry": {
             "channelCount": 123,
-            "clipIndex": 9,
-            "clipName": "NlaTrack.009",
-            "durationSeconds": 13.833333,
-            "inputTimingSha256": "a145fbd5893d22da0ed6b0236be3b811f36158703eec33e68471e911df44b62a",
+            "clipIndex": 19,
+            "clipName": "NlaTrack.019",
+            "durationSeconds": 3.541667,
+            "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "f9d04ac7d1f88aaeb17c270fec5ab32c2b9dba8abb1ad9bb4919e5dc41a31ec3",
-            "outputPoseSha256": "37e4a168a2ea04e353e4337db3c64c53ab2c416fd3a50110f088efd5ba1dcc99",
+            "motionChannelSha256": "b3a9860ce0815995ec3f6d78dc46df5b272d3d75f42ebd5155e2ab8d01ffa602",
+            "outputPoseSha256": "735566d480187dc3e27a7aa7e96342c15747028a1dac4243736e64a284790553",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -105462,22 +105462,22 @@
               },
               {
                 "max": [
-                  0.124443,
-                  0.124538,
-                  0.502153
+                  0.007569,
+                  0.097166,
+                  0.509352
                 ],
                 "min": [
-                  -0.121463,
-                  -0.051431,
-                  0.479598
+                  -0.086388,
+                  -0.079472,
+                  0.416554
                 ],
                 "span": [
-                  0.245906,
-                  0.175969,
-                  0.022554
+                  0.093957,
+                  0.176637,
+                  0.092798
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.303222
+                "travelMagnitude": 0.220545
               },
               {
                 "max": [
@@ -105735,13 +105735,13 @@
           },
           "Dance": {
             "channelCount": 123,
-            "clipIndex": 1,
-            "clipName": "NlaTrack.001",
-            "durationSeconds": 3.875,
-            "inputTimingSha256": "6556c15be989bc1ecc20ff53538118615ceccc3fa0acb36abd6d347a06f74ca3",
+            "clipIndex": 20,
+            "clipName": "NlaTrack.020",
+            "durationSeconds": 2.916667,
+            "inputTimingSha256": "becb1f62407622db54e4c23dadedb44378e503a6467bd4d0ea6ac0cf93fa5fb0",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "7661360afe3c9ca095d4f9299a770cc3a5ea4546e5a41fcee23109b8712edeb4",
-            "outputPoseSha256": "98048b1be12412d03611530d9d310eb62f00a2341af7f3bd782c4d8ac3f82479",
+            "motionChannelSha256": "4f0e1382d03577048fe53a1c217e9abae0c548aa098b3040c0416ffd548ae2e9",
+            "outputPoseSha256": "f1edb82348ec7299208a666669bae5346306a0e9c6322d4677a7eaa9c01d9d3e",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -105770,22 +105770,22 @@
               },
               {
                 "max": [
-                  0.000928,
-                  0.210514,
-                  0.460043
+                  0.082678,
+                  0.072971,
+                  0.401261
                 ],
                 "min": [
-                  -0.261958,
-                  -0.004887,
-                  0.404953
+                  -0.053566,
+                  4.8e-05,
+                  0.390967
                 ],
                 "span": [
-                  0.262885,
-                  0.215401,
-                  0.05509
+                  0.136244,
+                  0.072923,
+                  0.010294
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.344298
+                "travelMagnitude": 0.154874
               },
               {
                 "max": [
@@ -105889,13 +105889,13 @@
           },
           "Jump": {
             "channelCount": 123,
-            "clipIndex": 19,
-            "clipName": "NlaTrack.019",
-            "durationSeconds": 3.541667,
-            "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
+            "clipIndex": 6,
+            "clipName": "NlaTrack.006",
+            "durationSeconds": 2.25,
+            "inputTimingSha256": "773a998b2ac178b69045f6e10400c2a72a9a7b30063736bcdba6fcfca72ad574",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "b3a9860ce0815995ec3f6d78dc46df5b272d3d75f42ebd5155e2ab8d01ffa602",
-            "outputPoseSha256": "735566d480187dc3e27a7aa7e96342c15747028a1dac4243736e64a284790553",
+            "motionChannelSha256": "2beac383f7b92b58ec0167f8776eef837049f430e2af7a776a322c328ce82ff6",
+            "outputPoseSha256": "86097dd4b6c549f9c6af53a130bee7e37aec3d8c032d94dd36614453e4e8a6a9",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -105924,28 +105924,28 @@
               },
               {
                 "max": [
-                  0.007569,
-                  0.097166,
-                  0.509352
+                  0.076209,
+                  0.019101,
+                  0.711767
                 ],
                 "min": [
-                  -0.086388,
-                  -0.079472,
-                  0.416554
+                  -0.051946,
+                  -0.201688,
+                  0.410586
                 ],
                 "span": [
-                  0.093957,
-                  0.176637,
-                  0.092798
+                  0.128155,
+                  0.220788,
+                  0.301181
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.220545
+                "travelMagnitude": 0.394818
               },
               {
                 "max": [
                   0.0,
                   -0.0,
-                  0.0
+                  -0.0
                 ],
                 "min": [
                   0.0,
@@ -105966,13 +105966,13 @@
           },
           "Laugh": {
             "channelCount": 123,
-            "clipIndex": 12,
-            "clipName": "NlaTrack.012",
-            "durationSeconds": 17.625,
-            "inputTimingSha256": "34ced9d53007d11e2e577b7482f89a12c02630842948801bb6e199f9588a9d76",
+            "clipIndex": 5,
+            "clipName": "NlaTrack.005",
+            "durationSeconds": 5.625,
+            "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "66ba0b69e7e1815d9cee9d1a938d2ffa5327ddcc3c19b01a67cf3c9e9b3472f3",
-            "outputPoseSha256": "e7f10f9be0ef640f7b379fd2e132aa7ab8ea51309910436858338a8d79d50424",
+            "motionChannelSha256": "46b3e975ad4f47a102b0017869057474924b5c70868cd79926f4027ecf547fb2",
+            "outputPoseSha256": "b9f70522fd51e15f29592e738693b6311c01a54896421d424d53887f89a48f6a",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -106001,22 +106001,22 @@
               },
               {
                 "max": [
-                  0.125823,
-                  0.025387,
-                  0.497571
+                  0.022439,
+                  0.014834,
+                  0.493888
                 ],
                 "min": [
-                  -0.003832,
-                  -0.010019,
-                  0.48886
+                  -0.063305,
+                  -0.075714,
+                  0.399938
                 ],
                 "span": [
-                  0.129655,
-                  0.035406,
-                  0.008711
+                  0.085744,
+                  0.090549,
+                  0.09395
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.134684
+                "travelMagnitude": 0.156134
               },
               {
                 "max": [
@@ -106197,13 +106197,13 @@
           },
           "Wave": {
             "channelCount": 123,
-            "clipIndex": 11,
-            "clipName": "NlaTrack.011",
-            "durationSeconds": 4.041667,
-            "inputTimingSha256": "952c3d67b6fa24bbc88b6ba65934571ad2c13f408eb1dba613077b97cd006c49",
+            "clipIndex": 7,
+            "clipName": "NlaTrack.007",
+            "durationSeconds": 2.833333,
+            "inputTimingSha256": "6b3a5c1a21b551af06f7d9dddbefbdccf6f1693e0d6d7eced295c8fca214e6eb",
             "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-            "motionChannelSha256": "2419a32ebdb24d322dcdb822935cb85e7695593b8361388d098ce10f95dd5704",
-            "outputPoseSha256": "db6abbc9e5d6cb381cd61606ce8b074e08984f0d70aece241c0488876cabc3b1",
+            "motionChannelSha256": "e7fdea8d656e4a89182a2198e2158e139606938083e687e9a4e251d10f11bd0c",
+            "outputPoseSha256": "4df2667297b6c24c5213957125121d741162c5eb3dfe5d90b74182b489f8d667",
             "pathCounts": {
               "rotation": 41,
               "scale": 41,
@@ -106232,22 +106232,22 @@
               },
               {
                 "max": [
-                  0.027296,
-                  0.026885,
-                  0.507831
+                  0.000255,
+                  0.010481,
+                  0.493693
                 ],
                 "min": [
-                  -0.004038,
-                  0.006576,
-                  0.502654
+                  -0.019234,
+                  -1.203675,
+                  0.472187
                 ],
                 "span": [
-                  0.031334,
-                  0.020309,
-                  0.005177
+                  0.019489,
+                  1.214155,
+                  0.021506
                 ],
                 "target": "Hip",
-                "travelMagnitude": 0.037697
+                "travelMagnitude": 1.214502
               },
               {
                 "max": [
@@ -106276,57 +106276,57 @@
         "semanticReview": {
           "Agree": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Agree"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Agree"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 14,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 11,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 11,
+            "verdict": "pass"
           },
           "Angry": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Angry"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Angry"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 9,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 19,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 19 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 19,
+            "verdict": "pass"
           },
           "Bow": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Bow"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Bow"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+            "expectedClipIndex": 4,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 4 for Bow; the preserved sanitized operator receipt is the semantic authority.",
             "reviewedClipIndex": 4,
-            "verdict": "ambiguous"
+            "verdict": "pass"
           },
           "Cheer": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Cheer"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Cheer"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+            "expectedClipIndex": 17,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
             "reviewedClipIndex": 17,
-            "verdict": "ambiguous"
+            "verdict": "pass"
           },
           "Clap": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Clap"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Clap"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+            "expectedClipIndex": 13,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 13 for Clap; the preserved sanitized operator receipt is the semantic authority.",
             "reviewedClipIndex": 13,
-            "verdict": "ambiguous"
+            "verdict": "pass"
           },
           "Dance": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Dance"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Dance"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 1,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 20,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 20 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 20,
+            "verdict": "pass"
           },
           "Idle": {
             "evidenceRefs": [
@@ -106339,21 +106339,21 @@
           },
           "Jump": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Jump"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Jump"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 19,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 6,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 6 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 6,
+            "verdict": "pass"
           },
           "Laugh": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Laugh"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Laugh"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 12,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 5,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 5,
+            "verdict": "pass"
           },
           "Run": {
             "evidenceRefs": [
@@ -106375,12 +106375,12 @@
           },
           "Wave": {
             "evidenceRefs": [
-              "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Wave"
+              "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Wave"
             ],
-            "expectedClipIndex": null,
-            "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-            "reviewedClipIndex": 11,
-            "verdict": "ambiguous"
+            "expectedClipIndex": 7,
+            "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+            "reviewedClipIndex": 7,
+            "verdict": "pass"
           }
         },
         "skeleton": {
@@ -106431,29 +106431,29 @@
         }
       ],
       "semanticClips": {
-        "Agree": 14,
-        "Angry": 9,
+        "Agree": 11,
+        "Angry": 19,
         "Bow": 4,
         "Cheer": 17,
         "Clap": 13,
-        "Dance": 1,
+        "Dance": 20,
         "Idle": 15,
-        "Jump": 19,
-        "Laugh": 12,
+        "Jump": 6,
+        "Laugh": 5,
         "Run": 18,
         "Walk": 2,
-        "Wave": 11
+        "Wave": 7
       },
       "semanticEvidence": {
         "Agree": {
           "channelCount": 123,
-          "clipIndex": 14,
-          "clipName": "NlaTrack.014",
-          "durationSeconds": 6.041667,
-          "inputTimingSha256": "203d02abb3298b873f36857e39a2fb714efdea01e6ece440c9da1a6f5a036080",
+          "clipIndex": 11,
+          "clipName": "NlaTrack.011",
+          "durationSeconds": 4.041667,
+          "inputTimingSha256": "952c3d67b6fa24bbc88b6ba65934571ad2c13f408eb1dba613077b97cd006c49",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "2bbbf16894e85e4eaf290c5b9a83029dd20a60b81d8bc6c9de11217d2606bebe",
-          "outputPoseSha256": "1ae37dc40ce7368b415a20c7620a3656e9e025d7452ba6659f61ae88df68f733",
+          "motionChannelSha256": "2419a32ebdb24d322dcdb822935cb85e7695593b8361388d098ce10f95dd5704",
+          "outputPoseSha256": "db6abbc9e5d6cb381cd61606ce8b074e08984f0d70aece241c0488876cabc3b1",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -106482,31 +106482,31 @@
             },
             {
               "max": [
-                0.003249,
-                0.009496,
-                0.488781
+                0.027296,
+                0.026885,
+                0.507831
               ],
               "min": [
-                -0.001641,
-                0.007701,
-                0.488699
+                -0.004038,
+                0.006576,
+                0.502654
               ],
               "span": [
-                0.00489,
-                0.001795,
-                8.2e-05
+                0.031334,
+                0.020309,
+                0.005177
               ],
               "target": "Hip",
-              "travelMagnitude": 0.00521
+              "travelMagnitude": 0.037697
             },
             {
               "max": [
                 0.0,
                 -0.0,
-                0.0
+                -0.0
               ],
               "min": [
-                0.0,
+                -0.0,
                 -0.0,
                 -0.0
               ],
@@ -106524,13 +106524,13 @@
         },
         "Angry": {
           "channelCount": 123,
-          "clipIndex": 9,
-          "clipName": "NlaTrack.009",
-          "durationSeconds": 13.833333,
-          "inputTimingSha256": "a145fbd5893d22da0ed6b0236be3b811f36158703eec33e68471e911df44b62a",
+          "clipIndex": 19,
+          "clipName": "NlaTrack.019",
+          "durationSeconds": 3.541667,
+          "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "f9d04ac7d1f88aaeb17c270fec5ab32c2b9dba8abb1ad9bb4919e5dc41a31ec3",
-          "outputPoseSha256": "37e4a168a2ea04e353e4337db3c64c53ab2c416fd3a50110f088efd5ba1dcc99",
+          "motionChannelSha256": "b3a9860ce0815995ec3f6d78dc46df5b272d3d75f42ebd5155e2ab8d01ffa602",
+          "outputPoseSha256": "735566d480187dc3e27a7aa7e96342c15747028a1dac4243736e64a284790553",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -106559,22 +106559,22 @@
             },
             {
               "max": [
-                0.124443,
-                0.124538,
-                0.502153
+                0.007569,
+                0.097166,
+                0.509352
               ],
               "min": [
-                -0.121463,
-                -0.051431,
-                0.479598
+                -0.086388,
+                -0.079472,
+                0.416554
               ],
               "span": [
-                0.245906,
-                0.175969,
-                0.022554
+                0.093957,
+                0.176637,
+                0.092798
               ],
               "target": "Hip",
-              "travelMagnitude": 0.303222
+              "travelMagnitude": 0.220545
             },
             {
               "max": [
@@ -106832,13 +106832,13 @@
         },
         "Dance": {
           "channelCount": 123,
-          "clipIndex": 1,
-          "clipName": "NlaTrack.001",
-          "durationSeconds": 3.875,
-          "inputTimingSha256": "6556c15be989bc1ecc20ff53538118615ceccc3fa0acb36abd6d347a06f74ca3",
+          "clipIndex": 20,
+          "clipName": "NlaTrack.020",
+          "durationSeconds": 2.916667,
+          "inputTimingSha256": "becb1f62407622db54e4c23dadedb44378e503a6467bd4d0ea6ac0cf93fa5fb0",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "7661360afe3c9ca095d4f9299a770cc3a5ea4546e5a41fcee23109b8712edeb4",
-          "outputPoseSha256": "98048b1be12412d03611530d9d310eb62f00a2341af7f3bd782c4d8ac3f82479",
+          "motionChannelSha256": "4f0e1382d03577048fe53a1c217e9abae0c548aa098b3040c0416ffd548ae2e9",
+          "outputPoseSha256": "f1edb82348ec7299208a666669bae5346306a0e9c6322d4677a7eaa9c01d9d3e",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -106867,22 +106867,22 @@
             },
             {
               "max": [
-                0.000928,
-                0.210514,
-                0.460043
+                0.082678,
+                0.072971,
+                0.401261
               ],
               "min": [
-                -0.261958,
-                -0.004887,
-                0.404953
+                -0.053566,
+                4.8e-05,
+                0.390967
               ],
               "span": [
-                0.262885,
-                0.215401,
-                0.05509
+                0.136244,
+                0.072923,
+                0.010294
               ],
               "target": "Hip",
-              "travelMagnitude": 0.344298
+              "travelMagnitude": 0.154874
             },
             {
               "max": [
@@ -106986,13 +106986,13 @@
         },
         "Jump": {
           "channelCount": 123,
-          "clipIndex": 19,
-          "clipName": "NlaTrack.019",
-          "durationSeconds": 3.541667,
-          "inputTimingSha256": "96a3f0a3c3948393a1ab4fe67e385ce74aac6e17d6fb8c47632c75e4a7199f40",
+          "clipIndex": 6,
+          "clipName": "NlaTrack.006",
+          "durationSeconds": 2.25,
+          "inputTimingSha256": "773a998b2ac178b69045f6e10400c2a72a9a7b30063736bcdba6fcfca72ad574",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "b3a9860ce0815995ec3f6d78dc46df5b272d3d75f42ebd5155e2ab8d01ffa602",
-          "outputPoseSha256": "735566d480187dc3e27a7aa7e96342c15747028a1dac4243736e64a284790553",
+          "motionChannelSha256": "2beac383f7b92b58ec0167f8776eef837049f430e2af7a776a322c328ce82ff6",
+          "outputPoseSha256": "86097dd4b6c549f9c6af53a130bee7e37aec3d8c032d94dd36614453e4e8a6a9",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -107021,28 +107021,28 @@
             },
             {
               "max": [
-                0.007569,
-                0.097166,
-                0.509352
+                0.076209,
+                0.019101,
+                0.711767
               ],
               "min": [
-                -0.086388,
-                -0.079472,
-                0.416554
+                -0.051946,
+                -0.201688,
+                0.410586
               ],
               "span": [
-                0.093957,
-                0.176637,
-                0.092798
+                0.128155,
+                0.220788,
+                0.301181
               ],
               "target": "Hip",
-              "travelMagnitude": 0.220545
+              "travelMagnitude": 0.394818
             },
             {
               "max": [
                 0.0,
                 -0.0,
-                0.0
+                -0.0
               ],
               "min": [
                 0.0,
@@ -107063,13 +107063,13 @@
         },
         "Laugh": {
           "channelCount": 123,
-          "clipIndex": 12,
-          "clipName": "NlaTrack.012",
-          "durationSeconds": 17.625,
-          "inputTimingSha256": "34ced9d53007d11e2e577b7482f89a12c02630842948801bb6e199f9588a9d76",
+          "clipIndex": 5,
+          "clipName": "NlaTrack.005",
+          "durationSeconds": 5.625,
+          "inputTimingSha256": "440ab614d6b686c8823dae7ce4f97c841c158d8b557ea464b160b0b7e34c64ab",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "66ba0b69e7e1815d9cee9d1a938d2ffa5327ddcc3c19b01a67cf3c9e9b3472f3",
-          "outputPoseSha256": "e7f10f9be0ef640f7b379fd2e132aa7ab8ea51309910436858338a8d79d50424",
+          "motionChannelSha256": "46b3e975ad4f47a102b0017869057474924b5c70868cd79926f4027ecf547fb2",
+          "outputPoseSha256": "b9f70522fd51e15f29592e738693b6311c01a54896421d424d53887f89a48f6a",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -107098,22 +107098,22 @@
             },
             {
               "max": [
-                0.125823,
-                0.025387,
-                0.497571
+                0.022439,
+                0.014834,
+                0.493888
               ],
               "min": [
-                -0.003832,
-                -0.010019,
-                0.48886
+                -0.063305,
+                -0.075714,
+                0.399938
               ],
               "span": [
-                0.129655,
-                0.035406,
-                0.008711
+                0.085744,
+                0.090549,
+                0.09395
               ],
               "target": "Hip",
-              "travelMagnitude": 0.134684
+              "travelMagnitude": 0.156134
             },
             {
               "max": [
@@ -107294,13 +107294,13 @@
         },
         "Wave": {
           "channelCount": 123,
-          "clipIndex": 11,
-          "clipName": "NlaTrack.011",
-          "durationSeconds": 4.041667,
-          "inputTimingSha256": "952c3d67b6fa24bbc88b6ba65934571ad2c13f408eb1dba613077b97cd006c49",
+          "clipIndex": 7,
+          "clipName": "NlaTrack.007",
+          "durationSeconds": 2.833333,
+          "inputTimingSha256": "6b3a5c1a21b551af06f7d9dddbefbdccf6f1693e0d6d7eced295c8fca214e6eb",
           "method": "deterministic-structure-plus-bounded-temporal-review-v1",
-          "motionChannelSha256": "2419a32ebdb24d322dcdb822935cb85e7695593b8361388d098ce10f95dd5704",
-          "outputPoseSha256": "db6abbc9e5d6cb381cd61606ce8b074e08984f0d70aece241c0488876cabc3b1",
+          "motionChannelSha256": "e7fdea8d656e4a89182a2198e2158e139606938083e687e9a4e251d10f11bd0c",
+          "outputPoseSha256": "4df2667297b6c24c5213957125121d741162c5eb3dfe5d90b74182b489f8d667",
           "pathCounts": {
             "rotation": 41,
             "scale": 41,
@@ -107329,22 +107329,22 @@
             },
             {
               "max": [
-                0.027296,
-                0.026885,
-                0.507831
+                0.000255,
+                0.010481,
+                0.493693
               ],
               "min": [
-                -0.004038,
-                0.006576,
-                0.502654
+                -0.019234,
+                -1.203675,
+                0.472187
               ],
               "span": [
-                0.031334,
-                0.020309,
-                0.005177
+                0.019489,
+                1.214155,
+                0.021506
               ],
               "target": "Hip",
-              "travelMagnitude": 0.037697
+              "travelMagnitude": 1.214502
             },
             {
               "max": [
@@ -107373,57 +107373,57 @@
       "semanticReview": {
         "Agree": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Agree"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Agree"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 14,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 11,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 11,
+          "verdict": "pass"
         },
         "Angry": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Angry"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Angry"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 9,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 19,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 19 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 19,
+          "verdict": "pass"
         },
         "Bow": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Bow"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Bow"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+          "expectedClipIndex": 4,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 4 for Bow; the preserved sanitized operator receipt is the semantic authority.",
           "reviewedClipIndex": 4,
-          "verdict": "ambiguous"
+          "verdict": "pass"
         },
         "Cheer": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Cheer"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Cheer"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+          "expectedClipIndex": 17,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
           "reviewedClipIndex": 17,
-          "verdict": "ambiguous"
+          "verdict": "pass"
         },
         "Clap": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Clap"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Clap"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+          "expectedClipIndex": 13,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 13 for Clap; the preserved sanitized operator receipt is the semantic authority.",
           "reviewedClipIndex": 13,
-          "verdict": "ambiguous"
+          "verdict": "pass"
         },
         "Dance": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Dance"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Dance"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 1,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 20,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 20 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 20,
+          "verdict": "pass"
         },
         "Idle": {
           "evidenceRefs": [
@@ -107436,21 +107436,21 @@
         },
         "Jump": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Jump"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Jump"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 19,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 6,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 6 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 6,
+          "verdict": "pass"
         },
         "Laugh": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Laugh"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Laugh"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 12,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 5,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 5,
+          "verdict": "pass"
         },
         "Run": {
           "evidenceRefs": [
@@ -107472,12 +107472,12 @@
         },
         "Wave": {
           "evidenceRefs": [
-            "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Wave"
+            "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Wave"
           ],
-          "expectedClipIndex": null,
-          "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
-          "reviewedClipIndex": 11,
-          "verdict": "ambiguous"
+          "expectedClipIndex": 7,
+          "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+          "reviewedClipIndex": 7,
+          "verdict": "pass"
         }
       },
       "sha256": "24a456be65823e735ed8713af6da23989fc4e10e7b789dc69dc79d316fd9e6d7",

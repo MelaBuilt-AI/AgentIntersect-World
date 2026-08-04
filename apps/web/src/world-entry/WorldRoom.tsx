@@ -42,8 +42,8 @@ import {
 import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
 import {
   advanceAgentMovement,
-  cancelAgentMovement,
   createAgentMovementState,
+  interruptAgentMovement,
   requestAgentMovement,
   type AgentMovementEvent,
   type AgentMovementRequest,
@@ -94,7 +94,7 @@ export function WorldRoom({
   agentCue,
   agentActorId,
   agentMovementRequest,
-  agentMovementCancellationGeneration = 0,
+  agentMovementControl,
   layoutGeneration = "blank-world",
   onAgentMovementEvent,
   showControlHints = true,
@@ -126,7 +126,15 @@ export function WorldRoom({
     | undefined;
   readonly agentActorId?: string | undefined;
   readonly agentMovementRequest?: AgentMovementRequest | null | undefined;
-  readonly agentMovementCancellationGeneration?: number | undefined;
+  readonly agentMovementControl?:
+    | {
+        readonly sequence: number;
+        readonly requestId: string;
+        readonly state: "cancelled" | "interrupted";
+        readonly reason: string;
+      }
+    | null
+    | undefined;
   readonly layoutGeneration?: string | undefined;
   readonly onAgentMovementEvent?:
     | ((event: AgentMovementEvent, position: { x: number; z: number }) => void)
@@ -149,7 +157,7 @@ export function WorldRoom({
   );
   const agentMovementRef = useRef(agentMovement);
   const handledAgentMovementRequest = useRef<string | null>(null);
-  const handledAgentMovementCancellation = useRef(0);
+  const handledAgentMovementControl = useRef(0);
   const onAgentMovementEventRef = useRef(onAgentMovementEvent);
   const [movementPhase, setMovementPhase] =
     useState<AvatarMovementPhase>("idle");
@@ -231,16 +239,68 @@ export function WorldRoom({
         objectId: string,
       ): RepositoryApproachPoint | null => {
         const object = objects.find(({ ref }) => ref === objectId);
+        const from = agentMovementRef.current.position;
+        const clearance = 0.6;
+        const candidates = object
+          ? [
+              {
+                x: object.bounds.x - clearance,
+                z: Math.max(
+                  object.bounds.z,
+                  Math.min(object.bounds.z + object.bounds.depth, from.z),
+                ),
+              },
+              {
+                x: object.bounds.x + object.bounds.width + clearance,
+                z: Math.max(
+                  object.bounds.z,
+                  Math.min(object.bounds.z + object.bounds.depth, from.z),
+                ),
+              },
+              {
+                x: Math.max(
+                  object.bounds.x,
+                  Math.min(object.bounds.x + object.bounds.width, from.x),
+                ),
+                z: object.bounds.z - clearance,
+              },
+              {
+                x: Math.max(
+                  object.bounds.x,
+                  Math.min(object.bounds.x + object.bounds.width, from.x),
+                ),
+                z: object.bounds.z + object.bounds.depth + clearance,
+              },
+            ].sort(
+              (left, right) =>
+                Math.hypot(left.x - from.x, left.z - from.z) -
+                  Math.hypot(right.x - from.x, right.z - from.z) ||
+                left.x - right.x ||
+                left.z - right.z,
+            )
+          : [];
         return object
           ? {
               objectId,
               layoutGeneration,
-              position: { x: object.position.x, z: object.position.z },
+              position: candidates[0]!,
               hidden: false,
               reachable: true,
             }
           : null;
       },
+      canOccupy: (
+        position: { readonly x: number; readonly z: number },
+        targetObjectId: string | null,
+      ) =>
+        objects.every(
+          (object) =>
+            object.ref === targetObjectId ||
+            position.x <= object.bounds.x - 0.45 ||
+            position.x >= object.bounds.x + object.bounds.width + 0.45 ||
+            position.z <= object.bounds.z - 0.45 ||
+            position.z >= object.bounds.z + object.bounds.depth + 0.45,
+        ),
     }),
     [layoutGeneration, objects, userPosition],
   );
@@ -270,23 +330,23 @@ export function WorldRoom({
   }, [agentMovementRequest]);
   useEffect(() => {
     if (
-      agentMovementCancellationGeneration <=
-      handledAgentMovementCancellation.current
+      !agentMovementControl ||
+      agentMovementControl.sequence <= handledAgentMovementControl.current
     )
       return;
-    handledAgentMovementCancellation.current =
-      agentMovementCancellationGeneration;
-    const result = cancelAgentMovement(
+    handledAgentMovementControl.current = agentMovementControl.sequence;
+    const result = interruptAgentMovement(
       agentMovementRef.current,
-      "user-directed-stop",
-      agentMovementContextRef.current,
+      agentMovementControl.requestId,
+      agentMovementControl.reason,
+      agentMovementControl.state,
     );
     agentMovementRef.current = result.state;
     setAgentMovement(result.state);
     setAgentAnimation((current) => setAvatarLocomotion(current, "Idle"));
     for (const movementEvent of result.events)
       onAgentMovementEventRef.current?.(movementEvent, result.state.position);
-  }, [agentMovementCancellationGeneration]);
+  }, [agentMovementControl]);
   useEffect(() => {
     if (agentMovement.movementState !== "moving") return;
     let frame = 0;

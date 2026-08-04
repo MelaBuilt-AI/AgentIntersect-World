@@ -20,6 +20,10 @@
       "types": "./dist/imported-avatar-canvas.d.ts",
       "import": "./dist/imported-avatar-canvas.js"
     },
+    "./imported-avatar-review": {
+      "types": "./dist/imported-avatar-review-canvas.d.ts",
+      "import": "./dist/imported-avatar-review-canvas.js"
+    },
     "./world-room": {
       "types": "./dist/world-room-canvas.d.ts",
       "import": "./dist/world-room-canvas.js"

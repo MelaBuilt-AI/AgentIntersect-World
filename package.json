@@ -30,6 +30,7 @@
     "avatar:evidence:phase18.5": "node tooling/avatar/build_phase18_5_evidence.mjs",
     "avatar:verify": "python3 tooling/avatar/verify_avatar_assets.py",
     "avatar:verify:compatibility": "python3 tooling/avatar/verify_avatar_assets.py --compatibility-only",
+    "avatar:review": "corepack pnpm@11.15.0 build:packages && VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack pnpm@11.15.0 exec vite build apps/web --config apps/web/vite.config.ts && corepack pnpm@11.15.0 exec vite preview apps/web --config apps/web/vite.config.ts --host 127.0.0.1 --port 45184 --strictPort",
     "measure:phase11": "corepack pnpm@11.15.0 build && VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack pnpm@11.15.0 exec vite build apps/web --config apps/web/vite.config.ts && VITE_AIW_LOCAL_DEVELOPER_UI=1 playwright test apps/web/e2e/phase11-avatar-journey.spec.ts",
     "measure:phase13": "corepack pnpm@11.15.0 --filter @agentintersect-world/navigation build && tsx tooling/scripts/measure-phase13.ts && xvfb-run -a playwright test apps/web/e2e/phase13-world-action-journey.spec.ts --workers=1",
     "measure:phase14": "corepack pnpm@11.15.0 --filter @agentintersect-world/tool-protocol build && tsx tooling/scripts/measure-phase14.ts && xvfb-run -a playwright test apps/web/e2e/phase14-tool-journey.spec.ts --workers=1",

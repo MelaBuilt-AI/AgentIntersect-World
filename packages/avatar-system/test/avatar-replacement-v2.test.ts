@@ -51,6 +51,58 @@ type ReplacementApi = typeof replacement & {
 const api = replacement as ReplacementApi;
 
 describe("replacement avatar source version 2", () => {
+  it("resolves Aaron's exact operator-reviewed one-shots for the two active models", () => {
+    const accepted = {
+      "user-male-01": {
+        Jump: 6,
+        Dance: 20,
+        Clap: 13,
+        Cheer: 17,
+        Wave: 7,
+        Bow: 4,
+        Agree: 11,
+        Angry: 19,
+        Laugh: 5,
+      },
+      "cat-agent-01": {
+        Jump: 5,
+        Dance: 11,
+        Clap: 18,
+        Cheer: 7,
+        Wave: 2,
+        Bow: 3,
+        Agree: 17,
+        Angry: 12,
+        Laugh: 9,
+      },
+    } as const;
+
+    for (const [modelId, mappings] of Object.entries(accepted)) {
+      for (const [semantic, clipIndex] of Object.entries(mappings)) {
+        expect(
+          replacement.resolveImportedAvatarWorldClip(modelId, semantic),
+        ).toMatchObject({
+          assetId: modelId,
+          semantic,
+          clipIndex,
+          oneShot: true,
+          verification: "semantic-review-pass",
+        });
+      }
+    }
+  });
+
+  it("keeps every unreviewed model fail-closed for non-locomotion semantics", () => {
+    for (const modelId of replacement.IMPORTED_AVATAR_ASSET_IDS) {
+      if (modelId === "user-male-01" || modelId === "cat-agent-01") continue;
+      for (const semantic of replacement.IMPORTED_AVATAR_SEMANTICS.slice(3)) {
+        expect(() =>
+          replacement.resolveImportedAvatarWorldClip(modelId, semantic),
+        ).toThrow(/semantic review refused/iu);
+      }
+    }
+  });
+
   it("requires explicit model-wide semantic review and fails closed for every non-pass decision", () => {
     expect(typeof api.importedAvatarSemanticReview).toBe("function");
     const review = api.importedAvatarSemanticReview!;
@@ -83,7 +135,7 @@ describe("replacement avatar source version 2", () => {
     }
   });
 
-  it("resolves only the 69 reviewed model-local locomotion mappings", () => {
+  it("resolves 69 locomotion plus only the 18 operator-reviewed one-shots", () => {
     const resolved = replacement.IMPORTED_AVATAR_ASSET_IDS.flatMap((assetId) =>
       replacement.IMPORTED_AVATAR_SEMANTICS.flatMap((semantic) => {
         try {
@@ -96,17 +148,18 @@ describe("replacement avatar source version 2", () => {
       }),
     );
 
-    expect(resolved).toHaveLength(23 * 3);
+    expect(resolved).toHaveLength(23 * 3 + 18);
     for (const assetId of replacement.IMPORTED_AVATAR_ASSET_IDS) {
       const asset = replacement.importedAvatarAsset(assetId)!;
       const table = resolved.filter((entry) => entry.assetId === assetId);
-      expect(table).toHaveLength(3);
-      expect(new Set(table.map((entry) => entry.clipIndex))).toHaveLength(3);
-      expect(table.map((entry) => entry.semantic)).toEqual([
-        "Idle",
-        "Walk",
-        "Run",
-      ]);
+      const operatorReviewed =
+        assetId === "user-male-01" || assetId === "cat-agent-01";
+      expect(table).toHaveLength(operatorReviewed ? 12 : 3);
+      expect(table.map((entry) => entry.semantic)).toEqual(
+        operatorReviewed
+          ? replacement.IMPORTED_AVATAR_SEMANTICS
+          : ["Idle", "Walk", "Run"],
+      );
       expect(
         table.every(
           (entry) =>
@@ -181,9 +234,9 @@ describe("replacement avatar source version 2", () => {
     expect(
       replacement.resolveImportedAvatarWorldClip("robot-agent-05", "Walk"),
     ).toMatchObject({ semantic: "Walk", oneShot: false });
-    expect(() =>
+    expect(
       replacement.resolveImportedAvatarWorldClip("cat-agent-01", "Dance"),
-    ).toThrow(/semantic review refused/iu);
+    ).toMatchObject({ semantic: "Dance", clipIndex: 11, oneShot: true });
     expect(() =>
       replacement.resolveImportedAvatarWorldClip("cat-agent-01", "Teleport"),
     ).toThrow(/semantic review refused/iu);

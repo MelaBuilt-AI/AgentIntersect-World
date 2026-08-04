@@ -37,6 +37,50 @@ def load_plugin(plugin_dir: Path):
 
 
 class PluginConformanceTest(unittest.TestCase):
+    def test_world_action_tool_accepts_bounded_move_and_follow_proposals(self):
+        with tempfile.TemporaryDirectory(prefix="aiw-hermes-movement-") as temporary:
+            home = Path(temporary)
+            with patch.dict(os.environ, {"HERMES_HOME": str(home)}):
+                plugin = load_plugin(Path(__file__).parent / "agentintersect-world")
+                context = Context()
+                plugin.register(context)
+                helper, _metadata = context.tools["propose_world_action"]
+                context.hooks["pre_llm_call"](session_id="movement-session")
+                move = json.loads(helper({"actions": [{
+                    "kind": "move-agent",
+                    "schema": "aiw.agent-movement/1",
+                    "actorId": "11111111-1111-4111-8111-111111111111",
+                    "source": "agent-autonomous",
+                    "speed": 4,
+                    "target": {
+                        "kind": "relative",
+                        "direction": "forward",
+                        "distance": 5,
+                    },
+                }]}))
+                follow = json.loads(helper({"actions": [{
+                    "kind": "move-agent",
+                    "schema": "aiw.agent-movement/1",
+                    "actorId": "11111111-1111-4111-8111-111111111111",
+                    "source": "agent-autonomous",
+                    "speed": 4,
+                    "target": {"kind": "follow-user", "stoppingRadius": 1.5},
+                }]}))
+                context.hooks["post_llm_call"](session_id="movement-session")
+
+            self.assertEqual(move["status"], "proposed")
+            self.assertEqual(follow["status"], "proposed")
+            proposals = [
+                json.loads(candidate.read_text("utf-8"))
+                for candidate in (
+                    home / "agentintersect-world" / "world-action-proposals"
+                ).glob("*.json")
+            ]
+            self.assertEqual(
+                {proposal["actions"][0]["target"]["kind"] for proposal in proposals},
+                {"relative", "follow-user"},
+            )
+
     def test_world_action_source_sequence_survives_reload_and_is_atomic(self):
         with tempfile.TemporaryDirectory(prefix="aiw-hermes-action-source-") as temporary:
             home = Path(temporary)

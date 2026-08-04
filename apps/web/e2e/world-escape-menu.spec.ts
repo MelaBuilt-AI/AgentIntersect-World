@@ -186,6 +186,276 @@ async function openRestoredWorld(page: Page) {
   await page.locator(".world-room").focus();
 }
 
+async function installAutonomousMovementFixture(page: Page) {
+  type MovementState = "path-planned" | "moving" | "arrived" | "interrupted";
+  let sequence = 0;
+  let movement: {
+    readonly action: Record<string, unknown>;
+    readonly envelope: Record<string, unknown>;
+    state: MovementState;
+    reason: string;
+    offered: boolean;
+  } | null = null;
+  const lifecycle: Array<{
+    readonly pathname: string;
+    readonly body: Record<string, unknown>;
+  }> = [];
+  const activate = (input: {
+    readonly actionId: string;
+    readonly x: number;
+    readonly speed: number;
+  }) => {
+    sequence += 1;
+    const action = {
+      kind: "move-agent",
+      schema: "aiw.agent-movement/1",
+      actionId: input.actionId,
+      actorId: sessionId,
+      source: "agent-autonomous",
+      speed: input.speed,
+      target: { kind: "coordinate", x: input.x, z: 1 },
+    };
+    movement = {
+      action,
+      state: "path-planned",
+      reason: "agent-autonomous",
+      offered: true,
+      envelope: {
+        schema: "aiw.world-action/0.13",
+        requestId: `${String(sequence).padStart(8, "0")}-0000-4000-8000-000000000001`,
+        batchId: `${String(sequence).padStart(8, "0")}-0000-4000-8000-000000000002`,
+        sessionId,
+        adapterSessionRef: "native-mr-fluff",
+        repositoryRef: "aiw://object/repository-a",
+        worldGeneration: "world-a",
+        layoutGeneration: "blank-world",
+        graphGeneration: null,
+        capabilitySnapshotHash: "a".repeat(64),
+        sequence,
+        createdAt: "2026-08-03T20:00:00.000Z",
+        expiresAt: "2026-08-03T20:00:30.000Z",
+        actions: [action],
+      },
+    };
+  };
+  await page.route("**/api/world-actions/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    if (request.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          protocol: "aiw.world-action/0.13",
+          capability: { enabled: true },
+          actions: movement
+            ? [
+                {
+                  actionId: movement.action.actionId,
+                  kind: "move-agent",
+                  state: movement.state,
+                  reason: movement.reason,
+                },
+              ]
+            : [],
+          executions:
+            movement?.offered === true
+              ? [{ accepted: true, envelope: movement.envelope }]
+              : [],
+        }),
+      });
+      return;
+    }
+    const body = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+    lifecycle.push({ pathname, body });
+    if (movement && pathname.endsWith("/transition")) {
+      if (body.event === "moving") movement.state = "moving";
+      if (body.event === "arrived") {
+        movement.state = "arrived";
+        movement.offered = false;
+      }
+    } else if (movement && pathname.endsWith("/interrupt")) {
+      movement.state = "interrupted";
+      movement.reason = "cancel";
+      movement.offered = false;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ actions: [] }),
+    });
+  });
+  return {
+    activate,
+    lifecycle,
+    reofferTerminalRequest: () => {
+      if (movement) movement.offered = true;
+    },
+  };
+}
+
+test("validated autonomous movement walks, arrives, runs, and remains interrupted", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90_000);
+  const errors = capturePageErrors(page);
+  await installWorldState(page);
+  await installSessionFixture(page);
+  const authority = await installAutonomousMovementFixture(page);
+  authority.activate({
+    actionId: "66666666-6666-4666-8666-666666666666",
+    x: -2,
+    speed: 4,
+  });
+  await page.goto("/");
+  await openRestoredWorld(page);
+  const room = page.locator(".world-room");
+
+  const startX = Number(await room.getAttribute("data-agent-position-x"));
+  await expect(room).toHaveAttribute(
+    "data-agent-movement-source",
+    "agent-autonomous",
+    { timeout: 10_000 },
+  );
+  await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Walk");
+  await expect(room).toHaveAttribute(
+    "data-agent-avatar-rendered-clip-index",
+    "19",
+  );
+  await expect
+    .poll(async () => Number(await room.getAttribute("data-agent-position-x")))
+    .toBeLessThan(startX - 0.2);
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle", {
+    timeout: 10_000,
+  });
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
+  await expect(room).toHaveAttribute(
+    "data-agent-avatar-rendered-clip-index",
+    "1",
+  );
+  await expect(page.locator(".world-hud__captions")).toContainText(
+    "agent arrived",
+  );
+
+  authority.activate({
+    actionId: "77777777-7777-4777-8777-777777777777",
+    x: 10,
+    speed: 8,
+  });
+  await expect(room).toHaveAttribute("data-agent-movement-state", "moving", {
+    timeout: 10_000,
+  });
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Run");
+  await expect(room).toHaveAttribute(
+    "data-agent-avatar-rendered-clip-index",
+    "4",
+  );
+  const runningX = Number(await room.getAttribute("data-agent-position-x"));
+  await expect
+    .poll(async () => Number(await room.getAttribute("data-agent-position-x")))
+    .toBeGreaterThan(runningX + 0.2);
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  await composer.fill("/agent stop");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle");
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
+  await expect
+    .poll(() =>
+      authority.lifecycle.some(
+        ({ pathname, body }) =>
+          pathname.endsWith("/interrupt") && body.reason === "cancel",
+      ),
+    )
+    .toBe(true);
+  const interruptedX = await room.getAttribute("data-agent-position-x");
+  authority.reofferTerminalRequest();
+  await page.waitForTimeout(700);
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle");
+  await expect(room).toHaveAttribute("data-agent-position-x", interruptedX!);
+
+  const screenshot = testInfo.outputPath("autonomous-agent-movement.png");
+  await page.screenshot({ path: screenshot, fullPage: true });
+  await testInfo.attach("autonomous-agent-movement", {
+    path: screenshot,
+    contentType: "image/png",
+  });
+  expect(errors).toEqual([]);
+});
+
+test("accepted user model plays exact Space and local gesture clips without transport", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90_000);
+  const errors = capturePageErrors(page);
+  await installWorldState(page);
+  const fixture = await installSessionFixture(page);
+  await page.goto("/");
+  await openRestoredWorld(page);
+  const room = page.locator(".world-room");
+  await expect(room).toHaveAttribute(
+    "data-user-avatar-imported-id",
+    "user-male-01",
+  );
+  await expect(room).toHaveAttribute(
+    "data-agent-avatar-imported-id",
+    "cat-agent-01",
+  );
+
+  await page.keyboard.press("Space");
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Jump");
+  await expect(room).toHaveAttribute(
+    "data-user-avatar-rendered-clip-index",
+    "6",
+  );
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  const accepted = [
+    ["dance", "Dance", "20"],
+    ["clap", "Clap", "13"],
+    ["cheer", "Cheer", "17"],
+    ["wave", "Wave", "7"],
+    ["bow", "Bow", "4"],
+    ["agree", "Agree", "11"],
+    ["angry", "Angry", "19"],
+    ["laugh", "Laugh", "5"],
+  ] as const;
+  for (const [command, semantic, clipIndex] of accepted) {
+    await composer.fill(`/${command}`);
+    await page.getByRole("button", { name: "Send" }).click();
+    await expect(room).toHaveAttribute("data-user-avatar-semantic", semantic);
+    await expect(room).toHaveAttribute(
+      "data-user-avatar-rendered-clip-index",
+      clipIndex,
+    );
+  }
+  expect(fixture.mutationPaths).toEqual([]);
+
+  await room.focus();
+  await page.keyboard.down("w");
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Walk");
+  await expect(room).toHaveAttribute(
+    "data-user-avatar-rendered-clip-index",
+    "2",
+  );
+  await page.keyboard.up("w");
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
+  await expect(room).toHaveAttribute(
+    "data-user-avatar-rendered-clip-index",
+    "15",
+  );
+  const screenshot = testInfo.outputPath(
+    "accepted-runtime-animation-clips.png",
+  );
+  await page.screenshot({ path: screenshot, fullPage: true });
+  await testInfo.attach("accepted-runtime-animation-clips", {
+    path: screenshot,
+    contentType: "image/png",
+  });
+  expect(errors).toEqual([]);
+});
+
 test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
   page,
 }) => {
@@ -297,6 +567,94 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test("slash focuses active World chat and submitted history restores its draft", async ({
+  page,
+}) => {
+  const errors = capturePageErrors(page);
+  await installWorldState(page);
+  await installSessionFixture(page);
+  await installAutonomousMovementFixture(page);
+  await page.goto("/");
+  await openRestoredWorld(page);
+
+  const room = page.locator(".world-room");
+  const composer = page.getByLabel("Message Mr Fluff");
+  expect(
+    await room.evaluate((element) => {
+      const event = new KeyboardEvent("keydown", {
+        key: "/",
+        bubbles: true,
+        cancelable: true,
+      });
+      element.dispatchEvent(event);
+      return event.defaultPrevented;
+    }),
+  ).toBe(true);
+  await expect(composer).toBeFocused();
+  await expect(composer).toHaveValue("/");
+
+  await composer.fill("existing draft");
+  await room.focus();
+  await page.keyboard.press("/");
+  await expect(composer).toBeFocused();
+  await expect(composer).toHaveValue("existing draft");
+  await page.keyboard.press("/");
+  await expect(composer).toHaveValue("existing draft/");
+
+  await room.focus();
+  await page.keyboard.press("Escape");
+  const menu = page.getByRole("dialog", { name: "World menu" });
+  await expect(menu).toBeVisible();
+  const settings = page.getByRole("button", { name: "Settings" });
+  await expect(settings).toBeFocused();
+  expect(
+    await settings.evaluate((element) => {
+      const event = new KeyboardEvent("keydown", {
+        key: "/",
+        bubbles: true,
+        cancelable: true,
+      });
+      element.dispatchEvent(event);
+      return event.defaultPrevented;
+    }),
+  ).toBe(false);
+  await expect(settings).toBeFocused();
+  await page.keyboard.press("Escape");
+
+  for (const submission of [
+    "/wave",
+    "/bow",
+    "/clap",
+    "/clap",
+    "/laugh",
+    "/dance",
+  ]) {
+    await composer.fill(submission);
+    await composer.press("Enter");
+  }
+  await composer.fill("unsent draft");
+  for (const expected of ["/dance", "/laugh", "/clap", "/clap", "/bow"]) {
+    await composer.press("ArrowUp");
+    await expect(composer).toHaveValue(expected);
+  }
+  await composer.press("ArrowUp");
+  await expect(composer).toHaveValue("/bow");
+  for (const expected of [
+    "/clap",
+    "/clap",
+    "/laugh",
+    "/dance",
+    "unsent draft",
+  ]) {
+    await composer.press("ArrowDown");
+    await expect(composer).toHaveValue(expected);
+  }
+  expect(
+    await composer.evaluate((input: HTMLInputElement) => input.selectionStart),
+  ).toBe("unsent draft".length);
   expect(errors).toEqual([]);
 });
 

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
-import type { ImportedAvatarSemantic } from "@agentintersect-world/avatar-system/imported-avatar";
+import {
+  resolveImportedAvatarWorldClip,
+  type ImportedAvatarSemantic,
+} from "@agentintersect-world/avatar-system/imported-avatar";
 import * as chatModule from "../src/world-entry/world-chat-model.js";
 import * as navigationModule from "../src/world-entry/world-navigation-model.js";
 
@@ -90,6 +93,39 @@ const navigation = navigationModule as typeof navigationModule & {
 };
 
 describe("complete-avatar World animation controls", () => {
+  it("routes Space and every local slash action through the accepted model-local clips", () => {
+    const accepted = {
+      "user-male-01": [6, 20, 13, 17, 7, 4, 11, 19, 5],
+      "cat-agent-01": [5, 11, 18, 7, 2, 3, 17, 12, 9],
+    } as const;
+    const semantics = [
+      "Jump",
+      "Dance",
+      "Clap",
+      "Cheer",
+      "Wave",
+      "Bow",
+      "Agree",
+      "Angry",
+      "Laugh",
+    ] as const;
+
+    for (const [modelId, clips] of Object.entries(accepted)) {
+      expect(
+        semantics.map(
+          (semantic) =>
+            resolveImportedAvatarWorldClip(modelId, semantic).clipIndex,
+        ),
+      ).toEqual(clips);
+    }
+    for (const semantic of semantics.slice(1)) {
+      const classified = animation.classifyWorldMessage!(
+        `/${semantic.toLocaleLowerCase()}`,
+      );
+      expect(classified).toEqual({ kind: "local-animation", semantic });
+    }
+  });
+
   it("parses only the exact bounded local agent direction grammar", () => {
     expect(typeof animation.parseAgentDirectionCommand).toBe("function");
     const parse = animation.parseAgentDirectionCommand!;
@@ -178,7 +214,7 @@ describe("complete-avatar World animation controls", () => {
     expect(resolve("ordinary chat")).toBeNull();
   });
 
-  it("uses the frozen boundary-aware cue order and reaches every agent one-shot", () => {
+  it("refuses prose-derived agent gestures and accepts validated application events", () => {
     expect(typeof animation.projectAgentAnimationCue).toBe("function");
     const project = animation.projectAgentAnimationCue!;
     expect(
@@ -186,7 +222,7 @@ describe("complete-avatar World animation controls", () => {
         type: "visible-text",
         text: "Hello, yes: complete—haha; sorry; congratulations; dance; angry.",
       }),
-    ).toEqual({ semantic: "Wave", source: "visible-text" });
+    ).toBeNull();
     expect(
       [
         "hello there",
@@ -199,14 +235,14 @@ describe("complete-avatar World animation controls", () => {
         "let us dance",
       ].map((text) => project({ type: "visible-text", text })?.semantic),
     ).toEqual([
-      "Wave",
-      "Agree",
-      "Cheer",
-      "Laugh",
-      "Bow",
-      "Angry",
-      "Clap",
-      "Dance",
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
     ]);
     expect(project({ type: "visible-text", text: "high fidelity" })).toBeNull();
     expect(project({ type: "application-event", event: "completed" })).toEqual({
@@ -316,7 +352,7 @@ describe("complete-avatar World animation controls", () => {
     });
   });
 
-  it("projects reducer-visible agent text before application-event fallback", () => {
+  it("projects validated application events without deriving semantics from assistant prose", () => {
     let state = chatModule.createWorldChatState();
     state = chatModule.reduceWorldChat(state, {
       type: "SEND_COMPLETED",
@@ -324,8 +360,8 @@ describe("complete-avatar World animation controls", () => {
     });
     expect(state.animationCue).toMatchObject({
       sequence: 1,
-      semantic: "Wave",
-      source: "visible-text",
+      semantic: "Cheer",
+      source: "application-event",
     });
     state = chatModule.reduceWorldChat(state, {
       type: "SEND_FAILED",

@@ -428,6 +428,29 @@ test("seventeen agent stances and mounted user-directed movement work in product
     target: { kind: "coordinate", x: -10, z: 1 },
   } as const;
   let activeMovementAction: Record<string, unknown> | null = null;
+  const movementEnvelope = (action: Record<string, unknown>) => {
+    const autonomous = action.actionId === autonomousAction.actionId;
+    return {
+      schema: "aiw.world-action/0.13",
+      requestId: autonomous
+        ? "77777777-7777-4777-8777-777777777771"
+        : "99999999-9999-4999-8999-999999999991",
+      batchId: autonomous
+        ? "77777777-7777-4777-8777-777777777772"
+        : "99999999-9999-4999-8999-999999999992",
+      sessionId: session.sessionId,
+      adapterSessionRef: session.adapterSessionRef,
+      repositoryRef: "aiw://object/repository-a",
+      worldGeneration: "world-a",
+      layoutGeneration: "blank-world",
+      graphGeneration: null,
+      capabilitySnapshotHash: "a".repeat(64),
+      sequence: autonomous ? 1 : 2,
+      createdAt: "2026-08-03T20:00:00.000Z",
+      expiresAt: "2026-08-03T20:00:30.000Z",
+      actions: [action],
+    };
+  };
   await page.route("**/world-actions/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
@@ -443,12 +466,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
             ? [
                 {
                   accepted: true,
-                  envelope: {
-                    protocol: "aiw.world-action/0.13",
-                    envelopeId: "77777777-7777-4777-8777-777777777777",
-                    sessionId: session.sessionId,
-                    actions: [activeMovementAction],
-                  },
+                  envelope: movementEnvelope(activeMovementAction),
                 },
               ]
             : [],
@@ -469,12 +487,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
         contentType: "application/json",
         body: JSON.stringify({
           accepted: true,
-          envelope: {
-            protocol: "aiw.world-action/0.13",
-            envelopeId: "99999999-9999-4999-8999-999999999999",
-            sessionId: session.sessionId,
-            actions: [activeMovementAction],
-          },
+          envelope: movementEnvelope(activeMovementAction),
         }),
       });
       return;

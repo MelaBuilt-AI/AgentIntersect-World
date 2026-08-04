@@ -40,15 +40,53 @@ SEMANTICS = (
     "Laugh",
 )
 REVIEWED_LOCOMOTION = frozenset(("Idle", "Walk", "Run"))
+OPERATOR_REVIEWED_ONE_SHOTS: dict[str, dict[str, int]] = {
+    "user-male-01": {
+        "Jump": 6,
+        "Dance": 20,
+        "Clap": 13,
+        "Cheer": 17,
+        "Wave": 7,
+        "Bow": 4,
+        "Agree": 11,
+        "Angry": 19,
+        "Laugh": 5,
+    },
+    "cat-agent-01": {
+        "Jump": 5,
+        "Dance": 11,
+        "Clap": 18,
+        "Cheer": 7,
+        "Wave": 2,
+        "Bow": 3,
+        "Agree": 17,
+        "Angry": 12,
+        "Laugh": 9,
+    },
+}
 
 
 def semantic_review_decision(
     model_id: str, semantic: str, clip_index: int
 ) -> dict[str, Any]:
+    operator_clip_index = OPERATOR_REVIEWED_ONE_SHOTS.get(model_id, {}).get(
+        semantic
+    )
+    operator_reviewed = operator_clip_index is not None
+    if operator_reviewed and operator_clip_index != clip_index:
+        raise ValueError(
+            f"operator receipt mapping diverged for {model_id} {semantic}"
+        )
     evidence_ref = (
         "artifacts/avatar-replacement-evidence/"
-        "world-animation-completion-v1/temporal-review/"
-        f"{model_id}.png#{semantic}"
+        "world-animation-operator-review-v1/"
+        f"avatar-animation-review-{model_id}.json#{semantic}"
+        if operator_reviewed
+        else (
+            "artifacts/avatar-replacement-evidence/"
+            "world-animation-completion-v1/temporal-review/"
+            f"{model_id}.png#{semantic}"
+        )
     )
     if semantic == "Idle":
         rationale = (
@@ -65,6 +103,12 @@ def semantic_review_decision(
             "Direct review of the retained temporal samples shows the larger-stride, "
             "faster locomotion cycle suitable for model-local Run."
         )
+    elif operator_reviewed:
+        rationale = (
+            "Aaron directly reviewed this model-local source clip and selected "
+            f"clip {operator_clip_index} for {semantic}; the preserved sanitized "
+            "operator receipt is the semantic authority."
+        )
     else:
         rationale = (
             f"The retained three-position visual record for {semantic} does not "
@@ -72,7 +116,7 @@ def semantic_review_decision(
             "Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering "
             "as semantic authority, so this mapping remains ambiguous."
         )
-    passed = semantic in REVIEWED_LOCOMOTION
+    passed = semantic in REVIEWED_LOCOMOTION or operator_reviewed
     return {
         "verdict": "pass" if passed else "ambiguous",
         "reviewedClipIndex": clip_index,
@@ -101,8 +145,8 @@ def build_semantic_review(payload: dict[str, Any]) -> dict[str, Any]:
         "modelCount": len(payload["assets"]),
         "semanticCount": len(SEMANTICS),
         "decisionCount": len(decisions),
-        "reviewAuthority": "direct-bounded-temporal-visual-review",
-        "manualModelRecovery": "not-recovered-do-not-guess",
+        "reviewAuthority": "direct-bounded-temporal-and-operator-review",
+        "manualModelRecovery": "operator-identified-active-models-only",
         "runtimePolicy": "pass-only-all-other-verdicts-refused",
         "totals": totals,
         "decisions": decisions,
@@ -163,15 +207,15 @@ SEMANTIC_CLIPS: dict[str, dict[str, int]] = {
         "Idle": 1,
         "Walk": 19,
         "Run": 4,
-        "Jump": 20,
-        "Dance": 6,
+        "Jump": 5,
+        "Dance": 11,
         "Clap": 18,
         "Cheer": 7,
-        "Wave": 17,
+        "Wave": 2,
         "Bow": 3,
-        "Agree": 10,
-        "Angry": 14,
-        "Laugh": 11,
+        "Agree": 17,
+        "Angry": 12,
+        "Laugh": 9,
     },
     "cat-agent-02": {
         "Idle": 0,
@@ -401,15 +445,15 @@ SEMANTIC_CLIPS: dict[str, dict[str, int]] = {
         "Idle": 15,
         "Walk": 2,
         "Run": 18,
-        "Jump": 19,
-        "Dance": 1,
+        "Jump": 6,
+        "Dance": 20,
         "Clap": 13,
         "Cheer": 17,
-        "Wave": 11,
+        "Wave": 7,
         "Bow": 4,
-        "Agree": 14,
-        "Angry": 9,
-        "Laugh": 12,
+        "Agree": 11,
+        "Angry": 19,
+        "Laugh": 5,
     },
     "user-male-02": {
         "Idle": 5,
