@@ -24,14 +24,9 @@ test("Phase 11 name-gated text-only editor saves, reopens, exports, and deletes 
   });
   await expect(save).toBeDisabled();
   await page.getByLabel("Required agent name").fill("  Cafe\u0301  ");
+  await expect(save).toBeDisabled();
+  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await expect(save).toBeEnabled();
-  await page.getByText("Dog", { exact: true }).click();
-  await page.getByText("Husky", { exact: true }).click();
-  await page.getByText("Paws", { exact: true }).first().click();
-  await page.getByText("Short", { exact: true }).click();
-  await page.getByText("Dog curled", { exact: true }).click();
-  await page.getByText("Mask", { exact: true }).click();
-  await page.getByText("Claude", { exact: true }).click();
   await save.click();
   await expect(page.getByTestId("world-hero")).toBeVisible();
   await openPanel(page, "Settings");

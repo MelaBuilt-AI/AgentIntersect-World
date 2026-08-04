@@ -429,6 +429,8 @@ test("seventeen agent stances and mounted user-directed movement work in product
   } as const;
   let activeMovementAction: Record<string, unknown> | null = null;
   const movementEnvelope = (action: Record<string, unknown>) => {
+    const createdAt = new Date();
+    const expiresAt = new Date(createdAt.getTime() + 30_000);
     const autonomous = action.actionId === autonomousAction.actionId;
     return {
       schema: "aiw.world-action/0.13",
@@ -446,8 +448,8 @@ test("seventeen agent stances and mounted user-directed movement work in product
       graphGeneration: null,
       capabilitySnapshotHash: "a".repeat(64),
       sequence: autonomous ? 1 : 2,
-      createdAt: "2026-08-03T20:00:00.000Z",
-      expiresAt: "2026-08-03T20:00:30.000Z",
+      createdAt: createdAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
       actions: [action],
     };
   };
@@ -503,6 +505,10 @@ test("seventeen agent stances and mounted user-directed movement work in product
   });
   await page.route("**/api/**", async (route) => {
     const pathname = new URL(route.request().url()).pathname;
+    if (pathname.includes("/world-actions/")) {
+      await route.fallback();
+      return;
+    }
     let data: unknown;
     if (pathname.endsWith("/agent-sessions/capabilities"))
       data = [
@@ -702,6 +708,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
     ),
   ) as {
     readonly assets: readonly {
+      readonly id: string;
       readonly semanticClips: Readonly<Record<string, number>>;
       readonly semanticEvidence: Readonly<
         Record<string, { readonly verification: string }>
@@ -713,19 +720,22 @@ test("seventeen agent stances and mounted user-directed movement work in product
   };
   expect(productionManifest.assets).toHaveLength(23);
   expect(
-    productionManifest.assets.every(
-      (asset) =>
+    productionManifest.assets.every((asset) => {
+      const fullyReviewed =
+        asset.id === "cat-agent-01" || asset.id === "user-male-01";
+      return (
         Object.keys(asset.semanticClips).length === 12 &&
         Object.values(asset.semanticEvidence).every(
           ({ verification }) => verification === "structural-temporal-evidence",
         ) &&
         Object.values(asset.semanticReview).filter(
           ({ verdict }) => verdict === "pass",
-        ).length === 3 &&
+        ).length === (fullyReviewed ? 12 : 3) &&
         Object.values(asset.semanticReview).filter(
           ({ verdict }) => verdict === "ambiguous",
-        ).length === 9,
-    ),
+        ).length === (fullyReviewed ? 0 : 9)
+      );
+    }),
   ).toBe(true);
   await page.setViewportSize({ width: 1920, height: 1080 });
 

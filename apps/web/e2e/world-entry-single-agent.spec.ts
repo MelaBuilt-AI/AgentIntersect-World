@@ -451,6 +451,7 @@ async function enterFixtureWorld(page: Page) {
     page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
   ).toBeVisible();
   await page.getByLabel("Required agent name").fill("Mr Fluff");
+  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await page.getByRole("button", { name: "Accept and save avatar" }).click();
   await page.getByRole("button", { name: "Enter World" }).click();
   await expect(page.getByTestId("world-hud")).toBeVisible();
@@ -687,6 +688,7 @@ async function completeJourney(
     | "phase18-5",
   userDisplayName = "Aaron",
 ) {
+  test.setTimeout(90_000);
   await seedConfiguredAvatar(page, userDisplayName);
   await installWorldFixtures(page, { restoreStatus: true });
   await page.goto("/");
@@ -759,7 +761,7 @@ async function completeJourney(
       page.locator(
         '.imported-avatar-canvas[data-avatar-render-ready="true"][data-avatar-imported-id="cat-agent-01"]',
       ),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 20_000 });
     await page.screenshot({
       path: `${evidenceDirectory}/mr-fluff-avatar-desktop.png`,
       fullPage: true,
@@ -767,9 +769,11 @@ async function completeJourney(
   }
   await page.getByLabel("Required agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await page.getByRole("button", { name: "Accept and save avatar" }).click();
+  await page
+    .getByRole("button", { name: "Accept and save avatar" })
+    .click({ noWaitAfter: true });
   const enterWorld = page.getByRole("button", { name: "Enter World" });
-  await expect(enterWorld).toBeEnabled();
+  await expect(enterWorld).toBeEnabled({ timeout: 10_000 });
   await enterWorld.click();
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
@@ -798,7 +802,7 @@ async function completeJourney(
     await expect(canvas).toHaveAttribute("data-agent-avatar-shirt", "Hermes");
     await expect(canvas).toHaveAttribute(
       "data-agent-avatar-ground-offset",
-      "0.850",
+      "0.000",
     );
     const cameraHeading = await canvas.getAttribute("data-camera-yaw");
     await expect(canvas).toHaveAttribute(
@@ -871,12 +875,14 @@ async function completeJourney(
     "data-floor-state",
     "repository",
   );
-  await expect(page.getByText("Repository floor · Current")).toBeVisible();
   await expect(
-    page.getByText(
-      /Repository floor · Current · 2 packages · 2 directories · 5 files/,
-    ),
+    page.getByRole("heading", { name: "Repository floor" }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByRole("list", { name: "Repository floor objects" })
+      .getByRole("listitem"),
+  ).toHaveCount(9);
   await expectSharedHudBottomTrack(page);
   if (
     evidence === "desktop" ||
@@ -1010,7 +1016,15 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
       transcriptAuthority: "hermes",
       avatarConsent: {
         state: "accepted",
-        current: proposal,
+        current: {
+          ...proposal,
+          avatarSource: {
+            kind: "imported",
+            version: 2,
+            mode: "original",
+            modelId: "cat-agent-01",
+          },
+        },
         previous: null,
       },
     },

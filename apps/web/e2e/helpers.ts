@@ -23,6 +23,7 @@ export async function enterDashboard(
   if (await identify.isVisible().catch(() => false)) {
     await page.getByRole("button", { name: "Create Avatar" }).click();
     await page.getByLabel("Required agent name").fill("Codex");
+    await page.getByRole("button", { name: "Use Complete Avatar" }).click();
     await page
       .getByRole("button", { name: "Save avatar and enter World" })
       .click();

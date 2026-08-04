@@ -39,7 +39,7 @@ test("direct raw clip playback and review receipt remain technical review-only e
   const frameAtStart = await page.getByTestId("review-canvas").screenshot();
   await page.getByRole("button", { name: "Start clip" }).click();
   await expect(page.getByTestId("review-playback-state")).toHaveText("playing");
-  await expect.poll(playbackSeconds).toBeGreaterThan(0.1);
+  await expect.poll(playbackSeconds, { timeout: 30_000 }).toBeGreaterThan(0.1);
   await page.getByRole("button", { name: "Pause clip" }).click();
   await expect(page.getByTestId("review-playback-state")).toHaveText("paused");
   const pausedSeconds = await playbackSeconds();

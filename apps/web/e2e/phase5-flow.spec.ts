@@ -48,8 +48,7 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
     maxDiffPixelRatio: CROSS_RUN_VISUAL_DIFF_RATIO,
   });
   await page.getByLabel("Required agent name").fill("Codex");
-  await page.getByText("Dog", { exact: true }).click();
-  await page.getByText("Husky", { exact: true }).click();
+  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await page
     .getByRole("button", { name: "Save avatar and enter World" })
     .click();
@@ -115,7 +114,10 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
   await expect(
     page.getByRole("heading", { name: "Edit avatar appearance" }),
   ).toBeVisible();
-  await page.getByText("Human", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Open User Female 3 3D preview" })
+    .click();
+  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await page.getByRole("button", { name: "Save avatar changes" }).click();
   await expect(page.getByText(/Avatar profile updated locally/)).toBeVisible();
   await page.getByRole("button", { name: "Close Settings panel" }).click();
@@ -214,6 +216,7 @@ test("reduced motion skips transitions and completes typewriter immediately", as
   await expect(page.getByTestId("identify-transition")).toHaveCount(0);
   await expect(page.getByTestId("avatar-preview")).toBeVisible();
   await page.getByLabel("Required agent name").fill("Codex");
+  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await page
     .getByRole("button", { name: "Save avatar and enter World" })
     .click();
@@ -248,9 +251,11 @@ test("keyboard-only navigation searches, selects, focuses, closes, and edits Set
   const settings = page.getByRole("button", { name: "Settings", exact: true });
   await settings.focus();
   await page.keyboard.press("Enter");
-  const dog = page.getByRole("radio", { name: "Dog", exact: true });
-  await dog.focus();
-  await page.keyboard.press("Space");
+  const completeAvatar = page.getByRole("button", {
+    name: "Use Complete Avatar",
+  });
+  await completeAvatar.focus();
+  await page.keyboard.press("Enter");
   const save = page.getByRole("button", {
     name: "Save avatar changes",
   });

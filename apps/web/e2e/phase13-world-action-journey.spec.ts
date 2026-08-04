@@ -564,6 +564,7 @@ test("Phase 13 retains a short tour-equivalent control video", async ({
   if (await identify.isVisible()) {
     await page.getByRole("button", { name: "Create Avatar" }).click();
     await page.getByLabel("Required agent name").fill("Codex");
+    await page.getByRole("button", { name: "Use Complete Avatar" }).click();
     await page
       .getByRole("button", { name: "Save avatar and enter World" })
       .click();
