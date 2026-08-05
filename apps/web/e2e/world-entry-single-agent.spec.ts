@@ -900,17 +900,23 @@ async function completeJourney(
 
   const messageComposer = page.getByLabel("Message Mr Fluff");
   const sendMessage = page.getByRole("button", { name: "Send" });
-  await expect(page.locator("form.world-chat")).toHaveAttribute(
-    "aria-busy",
-    "false",
-    { timeout: 60_000 },
-  );
+  const chatForm = page.locator("form.world-chat");
+  await expect(chatForm).toHaveAttribute("aria-busy", "false", {
+    timeout: 60_000,
+  });
   await messageComposer.fill("Please load the approved repository");
   await expect(sendMessage).toBeEnabled();
   await sendMessage.click();
   await expect(transcript).toContainText(
     "YouPlease load the approved repository",
   );
+  await expect(transcript).toContainText(
+    "Mr Fluff[fixture] The repository floor is ready.",
+    { timeout: 60_000 },
+  );
+  await expect(chatForm).toHaveAttribute("aria-busy", "false", {
+    timeout: 120_000,
+  });
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
     "repository",
@@ -1632,6 +1638,10 @@ test("held right-button canvas look follows both axes and clears every exit guar
       )
       .toBe(locked);
 
+  await page.evaluate(() => {
+    if (document.pointerLockElement) document.exitPointerLock();
+  });
+  await expectCanvasPointerLock(false);
   await page.mouse.click(center.x, center.y, { button: "left" });
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
   await expectCanvasPointerLock(false);
