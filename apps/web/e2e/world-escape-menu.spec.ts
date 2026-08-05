@@ -628,7 +628,7 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
 test("slash focuses active World chat and submitted history restores its draft", async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);

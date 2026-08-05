@@ -727,17 +727,20 @@ async function completeJourney(
       fullPage: true,
     });
   if (evidence === "mobile")
-    await page.screenshot({
+    await page.locator("main").screenshot({
       path: `${evidenceDirectory}/returning-identity-mobile.png`,
-      fullPage: true,
     });
 
   await page.getByRole("button", { name: /Single Agent/ }).click();
   await expectOutwardConstellation(page);
-  if (evidence === "desktop" || evidence === "mobile")
+  if (evidence === "desktop")
     await page.screenshot({
-      path: `${evidenceDirectory}/constellation-outward-${evidence}.png`,
+      path: `${evidenceDirectory}/constellation-outward-desktop.png`,
       fullPage: true,
+    });
+  if (evidence === "mobile")
+    await page.locator("main").screenshot({
+      path: `${evidenceDirectory}/constellation-outward-mobile.png`,
     });
   await page.getByRole("button", { name: /hermes_/ }).click();
   await page.getByLabel("Agent name").fill("Missing Agent");
@@ -897,9 +900,17 @@ async function completeJourney(
 
   const messageComposer = page.getByLabel("Message Mr Fluff");
   const sendMessage = page.getByRole("button", { name: "Send" });
+  await expect(page.locator("form.world-chat")).toHaveAttribute(
+    "aria-busy",
+    "false",
+    { timeout: 60_000 },
+  );
   await messageComposer.fill("Please load the approved repository");
   await expect(sendMessage).toBeEnabled();
   await sendMessage.click();
+  await expect(transcript).toContainText(
+    "YouPlease load the approved repository",
+  );
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
     "repository",
@@ -938,10 +949,15 @@ async function completeJourney(
           : evidence === "mobile"
             ? "repository-floor-mobile.png"
             : "no-webgl-semantic.png";
-    await page.screenshot({
-      path: `${evidenceDirectory}/${output}`,
-      fullPage: true,
-    });
+    if (evidence === "mobile")
+      await page.locator("main").screenshot({
+        path: `${evidenceDirectory}/${output}`,
+      });
+    else
+      await page.screenshot({
+        path: `${evidenceDirectory}/${output}`,
+        fullPage: true,
+      });
   }
   if (evidence === "phase18-5")
     await page.screenshot({
