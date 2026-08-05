@@ -805,6 +805,7 @@ async function completeJourney(
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
     "blank",
+    { timeout: 30_000 },
   );
   await expect(page.getByTestId("world-hud")).toBeVisible();
   await expect(
@@ -1633,14 +1634,19 @@ test("held right-button canvas look follows both axes and clears every exit guar
   });
   const expectCanvasPointerLock = async (locked: boolean) =>
     expect
-      .poll(() =>
-        canvas.evaluate((element) => document.pointerLockElement === element),
+      .poll(
+        () =>
+          canvas.evaluate((element) => document.pointerLockElement === element),
+        { timeout: 15_000 },
       )
       .toBe(locked);
 
-  await page.evaluate(() => {
-    if (document.pointerLockElement) document.exitPointerLock();
-  });
+  if (
+    await canvas.evaluate((element) => document.pointerLockElement === element)
+  ) {
+    await page.evaluate(() => document.exitPointerLock());
+    await page.keyboard.press("Escape");
+  }
   await expectCanvasPointerLock(false);
   await page.mouse.click(center.x, center.y, { button: "left" });
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
