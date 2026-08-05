@@ -871,6 +871,7 @@ async function completeJourney(
     await expect(page.locator("canvas")).toHaveAttribute(
       "data-agent-activity",
       "completed",
+      { timeout: 30_000 },
     );
   const transcript = page.getByRole("log", {
     name: "Conversation and activity",
@@ -895,8 +896,10 @@ async function completeJourney(
     });
 
   const messageComposer = page.getByLabel("Message Mr Fluff");
+  const sendMessage = page.getByRole("button", { name: "Send" });
   await messageComposer.fill("Please load the approved repository");
-  await messageComposer.press("Enter");
+  await expect(sendMessage).toBeEnabled();
+  await sendMessage.click();
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
     "repository",

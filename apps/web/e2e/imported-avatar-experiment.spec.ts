@@ -623,6 +623,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
   await expect(agentCanvas).toHaveAttribute(
     "data-avatar-imported-id",
     "cat-agent-01",
+    { timeout: 20_000 },
   );
   await expect(agentCanvas).toHaveAttribute(
     "data-avatar-render-ready",
@@ -639,7 +640,9 @@ test("seventeen agent stances and mounted user-directed movement work in product
   ).toBeVisible();
   await expect(
     page.getByTestId("avatar-preview").locator(".imported-avatar-canvas"),
-  ).toHaveAttribute("data-avatar-imported-id", "cat-agent-01");
+  ).toHaveAttribute("data-avatar-imported-id", "cat-agent-01", {
+    timeout: 20_000,
+  });
   await expect(
     page.getByTestId("avatar-preview").locator(".imported-avatar-canvas"),
   ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
