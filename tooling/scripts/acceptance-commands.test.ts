@@ -194,8 +194,10 @@ describe("acceptance command graph", () => {
       "--shard=${{ matrix.shard }}",
     ]);
     expect(workflow.jobs["e2e-flagged"]?.strategy?.matrix?.shard).toEqual([
-      "1/2",
-      "2/2",
+      "1/4",
+      "2/4",
+      "3/4",
+      "4/4",
     ]);
     expectOrderedCommands("e2e-unflagged", [
       ...pinnedBootstrap,

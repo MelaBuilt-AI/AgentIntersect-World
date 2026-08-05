@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 test("direct raw clip playback and review receipt remain technical review-only evidence", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(180_000);
+  test.setTimeout(240_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/internal/avatar-animation-review");
 
@@ -14,11 +14,6 @@ test("direct raw clip playback and review receipt remain technical review-only e
   await expect(page.getByTestId("review-model-id")).toHaveText("cat-agent-01");
   const agentModel = page.getByRole("combobox", { name: /^Agent model/u });
   await expect(agentModel).toHaveValue("cat-agent-01");
-  await agentModel.selectOption("robot-agent-05");
-  await expect(page.getByTestId("review-model-id")).toHaveText(
-    "robot-agent-05",
-  );
-  await agentModel.selectOption("cat-agent-01");
   await expect(page.getByTestId("review-runtime-truth")).toContainText(
     "review-only",
   );

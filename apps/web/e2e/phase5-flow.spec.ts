@@ -129,6 +129,24 @@ test("first-open identify/avatar, durable harness, stable shell, Settings edit, 
     "data-cosmetic-quality",
     "full",
   );
+  const heroAvatar = hero.getByTestId("avatar-preview");
+  await expect(heroAvatar).toHaveAttribute(
+    "data-avatar-imported-id",
+    "user-female-03",
+  );
+  await expect(heroAvatar).toHaveAttribute(
+    "data-avatar-preview-state",
+    "static-compact",
+  );
+  await expect
+    .poll(() =>
+      heroAvatar
+        .locator("img")
+        .evaluate(
+          (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+        ),
+    )
+    .toBe(true);
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(page).toHaveScreenshot("phase5-dashboard-desktop.png", {
     animations: "disabled",

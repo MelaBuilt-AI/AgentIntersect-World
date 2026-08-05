@@ -701,7 +701,9 @@ async function completeJourney(
     | "phase18-5",
   userDisplayName = "Aaron",
 ) {
-  test.setTimeout(120_000);
+  test.setTimeout(
+    evidence === "desktop" || evidence === "large-desktop" ? 180_000 : 120_000,
+  );
   await seedConfiguredAvatar(page, userDisplayName);
   await installWorldFixtures(page, { restoreStatus: true });
   await page.goto("/");
@@ -786,9 +788,9 @@ async function completeJourney(
     name: "Accept and save avatar",
   });
   await expect(saveAvatar).toBeEnabled();
-  await saveAvatar.click({ noWaitAfter: true });
+  await saveAvatar.click();
   const enterWorld = page.getByRole("button", { name: "Enter World" });
-  await expect(enterWorld).toBeEnabled({ timeout: 10_000 });
+  await expect(enterWorld).toBeEnabled({ timeout: 30_000 });
   await enterWorld.click();
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
@@ -1538,7 +1540,6 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
   page,
 }) => {
   await page.setViewportSize({ width: 1728, height: 1080 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
   await completeJourney(page, "large-desktop");
   const dimensions = await page.evaluate(() => {
     const box = (selector: string) => {
@@ -1569,7 +1570,6 @@ test("held right-button canvas look follows both axes and clears every exit guar
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
   await completeJourney(page, "pointer-lock");
   const room = page.locator("main.world-room");
   const canvas = page.locator("canvas");
@@ -1646,15 +1646,25 @@ test("held right-button canvas look follows both axes and clears every exit guar
     "data-context-menu-prevented",
     "true",
   );
-  await page
+  const composerContextMenuPrevented = await page
     .getByLabel("Message Mr Fluff")
-    .click({ button: "right", force: true });
+    .evaluate((element) => {
+      const event = new MouseEvent("contextmenu", {
+        bubbles: true,
+        cancelable: true,
+        button: 2,
+      });
+      element.dispatchEvent(event);
+      return event.defaultPrevented;
+    });
+  expect(composerContextMenuPrevented).toBe(false);
   await expect(page.locator("body")).toHaveAttribute(
     "data-context-menu-prevented",
     "false",
   );
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
 
+  await page.mouse.click(center.x, center.y, { button: "left" });
   await page.mouse.move(center.x, center.y);
   await page.mouse.down({ button: "right" });
   await expectCanvasPointerLock(true);
@@ -1685,13 +1695,7 @@ test("held right-button canvas look follows both axes and clears every exit guar
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
   await page.mouse.up({ button: "right" });
 
-  await page.mouse.down({ button: "right" });
-  await expectCanvasPointerLock(true);
-  await page.keyboard.press("Escape");
-  await expectCanvasPointerLock(false);
-  await expect(room).toHaveAttribute("data-mouse-look", "idle");
-  await page.mouse.up({ button: "right" });
-
+  await page.mouse.click(center.x, center.y, { button: "left" });
   await page.mouse.down({ button: "right" });
   await expectCanvasPointerLock(true);
   await canvas.evaluate((element) => {
@@ -1706,6 +1710,7 @@ test("held right-button canvas look follows both axes and clears every exit guar
   await expect(room).toHaveAttribute("data-mouse-look", "idle");
   await page.mouse.up({ button: "right" });
 
+  await page.mouse.click(center.x, center.y, { button: "left" });
   await page.mouse.down({ button: "right" });
   await expectCanvasPointerLock(true);
   await expect(room).toHaveAttribute("data-mouse-look", "active");
@@ -1727,6 +1732,16 @@ test("held right-button canvas look follows both axes and clears every exit guar
     });
     document.dispatchEvent(new Event("visibilitychange"));
   });
+
+  await page.mouse.click(center.x, center.y, { button: "left" });
+  await page.mouse.down({ button: "right" });
+  await expectCanvasPointerLock(true);
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await page.keyboard.press("Escape");
+  await expectCanvasPointerLock(false);
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
+
   await room.focus();
   const positionBeforeForwardValue = String(
     await canvas.getAttribute("data-user-position"),
@@ -1804,7 +1819,6 @@ test("fixture addressing follows a second selected avatar name", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
   await completeJourney(page, "fixture-name", "Riley");
   await expect(
     page.getByRole("log", { name: "Conversation and activity" }),

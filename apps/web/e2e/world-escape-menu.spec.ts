@@ -335,12 +335,18 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
     "data-agent-avatar-rendered-clip-index",
     "19",
   );
-  await expect(room).toHaveAttribute("data-agent-movement-state", "idle", {
-    timeout: 30_000,
+
+  authority.activate({
+    actionId: "77777777-7777-4777-8777-777777777777",
+    x: 2.5,
+    speed: 1,
   });
-  expect(
-    Number(await room.getAttribute("data-agent-position-x")),
-  ).toBeLessThanOrEqual(-0.75);
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle", {
+    timeout: 10_000,
+  });
+  const arrivedX = Number(await room.getAttribute("data-agent-position-x"));
+  expect(arrivedX).toBeGreaterThanOrEqual(2.25);
+  expect(arrivedX).toBeLessThanOrEqual(2.75);
   await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
   await expect(room).toHaveAttribute(
     "data-agent-avatar-rendered-clip-index",
@@ -351,7 +357,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
   );
 
   authority.activate({
-    actionId: "77777777-7777-4777-8777-777777777777",
+    actionId: "88888888-8888-4888-8888-888888888888",
     x: 10,
     speed: 8,
   });
@@ -415,12 +421,52 @@ test("accepted user model plays exact Space and local gesture clips without tran
     "cat-agent-01",
   );
 
+  const armUserAnimationCapture = async (
+    semantic: string,
+    clipIndex: string,
+  ) => {
+    await room.evaluate(
+      (element, expected) => {
+        delete document.body.dataset.capturedUserAnimation;
+        const capture = () => {
+          if (
+            element.getAttribute("data-user-avatar-semantic") !==
+              expected.semantic ||
+            element.getAttribute("data-user-avatar-rendered-clip-index") !==
+              expected.clipIndex
+          )
+            return false;
+          document.body.dataset.capturedUserAnimation = `${expected.semantic}:${expected.clipIndex}`;
+          return true;
+        };
+        if (capture()) return;
+        const observer = new MutationObserver(() => {
+          if (capture()) observer.disconnect();
+        });
+        observer.observe(element, {
+          attributes: true,
+          attributeFilter: [
+            "data-user-avatar-semantic",
+            "data-user-avatar-rendered-clip-index",
+          ],
+        });
+      },
+      { semantic, clipIndex },
+    );
+  };
+  const expectCapturedUserAnimation = async (
+    semantic: string,
+    clipIndex: string,
+  ) =>
+    expect(page.locator("body")).toHaveAttribute(
+      "data-captured-user-animation",
+      `${semantic}:${clipIndex}`,
+      { timeout: 10_000 },
+    );
+
+  await armUserAnimationCapture("Jump", "6");
   await page.keyboard.press("Space");
-  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Jump");
-  await expect(room).toHaveAttribute(
-    "data-user-avatar-rendered-clip-index",
-    "6",
-  );
+  await expectCapturedUserAnimation("Jump", "6");
 
   const composer = page.getByLabel("Message Mr Fluff");
   const accepted = [
@@ -434,23 +480,17 @@ test("accepted user model plays exact Space and local gesture clips without tran
     ["laugh", "Laugh", "5"],
   ] as const;
   for (const [command, semantic, clipIndex] of accepted) {
+    await armUserAnimationCapture(semantic, clipIndex);
     await composer.fill(`/${command}`);
     await page.getByRole("button", { name: "Send" }).click();
-    await expect(room).toHaveAttribute("data-user-avatar-semantic", semantic);
-    await expect(room).toHaveAttribute(
-      "data-user-avatar-rendered-clip-index",
-      clipIndex,
-    );
+    await expectCapturedUserAnimation(semantic, clipIndex);
   }
   expect(fixture.mutationPaths).toEqual([]);
 
   await room.focus();
+  await armUserAnimationCapture("Walk", "2");
   await page.keyboard.down("w");
-  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Walk");
-  await expect(room).toHaveAttribute(
-    "data-user-avatar-rendered-clip-index",
-    "2",
-  );
+  await expectCapturedUserAnimation("Walk", "2");
   await page.keyboard.up("w");
   await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
   await expect(room).toHaveAttribute(
@@ -471,7 +511,6 @@ test("accepted user model plays exact Space and local gesture clips without tran
 test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
   page,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -586,7 +625,6 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
 test("slash focuses active World chat and submitted history restores its draft", async ({
   page,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -675,7 +713,6 @@ test("slash focuses active World chat and submitted history restores its draft",
 test("Settings stays product-facing and Change Avatar selects the exact role and agent", async ({
   page,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page);
   const fixture = await installSessionFixture(page);
@@ -814,7 +851,6 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
 }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1365, height: 900 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page, false);
   const fixture = await installSessionFixture(page, {

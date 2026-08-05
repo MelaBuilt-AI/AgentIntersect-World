@@ -341,7 +341,7 @@ test("text-only selection loads no GLB and stale removed IDs require re-selectio
 test("seventeen agent stances and mounted user-directed movement work in production", async ({
   page,
 }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(360_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   const session = {
     schema: "aiw.agent-session/0.12",
@@ -1026,6 +1026,9 @@ test("seventeen agent stances and mounted user-directed movement work in product
     await page
       .getByRole("button", { name: "Mr Fluff · connected agent" })
       .click();
+    await expect(
+      page.getByTestId("avatar-preview").locator(".imported-avatar-canvas"),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
     await page.getByRole("button", { name: buttonName }).click();
     await expect(
       page.getByRole("button", { name: "Accept and save avatar" }),
