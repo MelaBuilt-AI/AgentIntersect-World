@@ -133,9 +133,16 @@ describe("acceptance command graph", () => {
         {
           strategy?: { matrix?: { shard?: string[] } };
           steps: Array<{
+            name?: string;
+            if?: string;
             run?: string;
             uses?: string;
-            with?: { "node-version"?: number };
+            with?: {
+              "node-version"?: number;
+              name?: string;
+              path?: string;
+              "retention-days"?: number;
+            };
           }>;
         }
       >;
@@ -199,6 +206,16 @@ describe("acceptance command graph", () => {
       "3/4",
       "4/4",
     ]);
+    expect(workflow.jobs["e2e-flagged"]?.steps).toContainEqual({
+      name: "Upload flagged browser failure evidence",
+      if: "failure()",
+      uses: "actions/upload-artifact@v7",
+      with: {
+        name: "e2e-flagged-failure-${{ strategy.job-index }}",
+        path: "test-results",
+        "retention-days": 7,
+      },
+    });
     expectOrderedCommands("e2e-unflagged", [
       ...pinnedBootstrap,
       "pnpm exec playwright install --with-deps chromium",

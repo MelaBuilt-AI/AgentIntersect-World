@@ -1037,11 +1037,12 @@ test("seventeen agent stances and mounted user-directed movement work in product
     const saveAvatar = page.getByRole("button", {
       name: "Accept and save avatar",
     });
-    await expect(saveAvatar).toBeEnabled();
+    await expect(saveAvatar).toBeEnabled({ timeout: 30_000 });
     await saveAvatar.click();
     await expect(page.locator(".world-room")).toHaveAttribute(
       "data-agent-avatar-imported-id",
       modelId,
+      { timeout: 30_000 },
     );
     await expect(worldCanvas).toHaveAttribute(
       "data-avatar-render-ready",

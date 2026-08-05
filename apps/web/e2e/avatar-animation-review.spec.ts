@@ -4,7 +4,9 @@ import { readFile } from "node:fs/promises";
 test("direct raw clip playback and review receipt remain technical review-only evidence", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(240_000);
+  // This exact journey takes 2.2 minutes in a faithful two-CPU local scope and
+  // over four minutes on GitHub's software renderer. Assertions stay exact.
+  test.setTimeout(600_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/internal/avatar-animation-review");
 

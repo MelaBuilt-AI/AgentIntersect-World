@@ -342,7 +342,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
     speed: 1,
   });
   await expect(room).toHaveAttribute("data-agent-movement-state", "idle", {
-    timeout: 10_000,
+    timeout: 30_000,
   });
   const arrivedX = Number(await room.getAttribute("data-agent-position-x"));
   expect(arrivedX).toBeGreaterThanOrEqual(2.25);
@@ -405,7 +405,9 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
 test("accepted user model plays exact Space and local gesture clips without transport", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(180_000);
+  // Exact transient clip receipts take 1.9 minutes in a faithful two-CPU
+  // local scope and exceed three minutes on GitHub's software renderer.
+  test.setTimeout(360_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   const fixture = await installSessionFixture(page);
@@ -511,6 +513,7 @@ test("accepted user model plays exact Space and local gesture clips without tran
 test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -625,6 +628,7 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
 test("slash focuses active World chat and submitted history restores its draft", async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -713,6 +717,7 @@ test("slash focuses active World chat and submitted history restores its draft",
 test("Settings stays product-facing and Change Avatar selects the exact role and agent", async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   const fixture = await installSessionFixture(page);
@@ -849,7 +854,7 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
 test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff through cat and robot reloads", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1365, height: 900 });
   const errors = capturePageErrors(page);
   await installWorldState(page, false);
@@ -904,7 +909,7 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   await expect(saveCatAvatar).toBeEnabled();
   await saveCatAvatar.click();
   const enterWorld = page.getByRole("button", { name: "Enter World" });
-  await expect(enterWorld).toBeEnabled();
+  await expect(enterWorld).toBeEnabled({ timeout: 30_000 });
   await enterWorld.click();
   await expect(page.locator(".world-room")).toHaveAttribute(
     "data-agent-avatar-imported-id",

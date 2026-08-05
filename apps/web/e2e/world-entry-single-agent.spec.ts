@@ -701,8 +701,15 @@ async function completeJourney(
     | "phase18-5",
   userDisplayName = "Aaron",
 ) {
+  // Desktop journeys load both accepted GLBs, exercise movement, complete two
+  // fixture turns, and capture full-page evidence. GitHub's two-CPU software
+  // renderer can take more than three minutes without changing any assertion.
   test.setTimeout(
-    evidence === "desktop" || evidence === "large-desktop" ? 180_000 : 120_000,
+    evidence === "desktop" || evidence === "large-desktop"
+      ? 600_000
+      : evidence === "pointer-lock"
+        ? 300_000
+        : 120_000,
   );
   await seedConfiguredAvatar(page, userDisplayName);
   await installWorldFixtures(page, { restoreStatus: true });
@@ -893,6 +900,7 @@ async function completeJourney(
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
     "repository",
+    { timeout: 30_000 },
   );
   await expect(
     page.getByRole("heading", { name: "Repository floor" }),
@@ -910,7 +918,9 @@ async function completeJourney(
   )
     await expect(
       page.locator('canvas[data-floor-state="repository"]'),
-    ).toHaveAttribute("data-avatar-render-ready", "true");
+    ).toHaveAttribute("data-avatar-render-ready", "true", {
+      timeout: 30_000,
+    });
   if (
     evidence === "desktop" ||
     evidence === "large-desktop" ||

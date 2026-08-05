@@ -67,6 +67,13 @@ jobs:
           --config playwright.config.ts
           --grep-invert @phase18-5-performance
           --shard=${{ matrix.shard }}
+      - name: Upload flagged browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-flagged-failure-${{ strategy.job-index }}
+          path: test-results
+          retention-days: 7
 
   e2e-unflagged:
     runs-on: ubuntu-latest
