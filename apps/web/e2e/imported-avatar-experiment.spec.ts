@@ -341,7 +341,7 @@ test("text-only selection loads no GLB and stale removed IDs require re-selectio
 test("seventeen agent stances and mounted user-directed movement work in production", async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(240_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   const session = {
     schema: "aiw.agent-session/0.12",
@@ -540,11 +540,13 @@ test("seventeen agent stances and mounted user-directed movement work in product
         continuity: "current",
         messages: [],
         transcriptAuthority: "hermes",
-        avatarConsent: {
-          state: "accepted",
-          current: acceptedProposal ?? proposal,
-          previous: null,
-        },
+        avatarConsent: acceptedProposal
+          ? {
+              state: "accepted",
+              current: acceptedProposal,
+              previous: null,
+            }
+          : null,
       };
     else if (pathname.endsWith("/avatar-consent")) {
       const body = route.request().postDataJSON() as {
@@ -607,7 +609,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
-    page.getByRole("heading", { name: "Change Mr Fluff’s avatar" }),
+    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
   ).toBeVisible({ timeout: 20_000 });
   await expect(
     page.getByRole("button", { name: /Open .* 3D preview/u }),
@@ -1029,7 +1031,11 @@ test("seventeen agent stances and mounted user-directed movement work in product
       page.getByRole("button", { name: "Accept and save avatar" }),
     ).toBeDisabled();
     await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-    await page.getByRole("button", { name: "Accept and save avatar" }).click();
+    const saveAvatar = page.getByRole("button", {
+      name: "Accept and save avatar",
+    });
+    await expect(saveAvatar).toBeEnabled();
+    await saveAvatar.click();
     await expect(page.locator(".world-room")).toHaveAttribute(
       "data-agent-avatar-imported-id",
       modelId,

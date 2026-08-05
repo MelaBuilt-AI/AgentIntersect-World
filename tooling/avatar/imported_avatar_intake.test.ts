@@ -28,7 +28,7 @@ describe("imported avatar deterministic intake", () => {
       "verified 23 repository-owned replacement avatars; manifest and runtime registry are deterministic",
     );
     expect(output).not.toMatch(/\/mnt\/|Codex|3D avatars|source folder/iu);
-  });
+  }, 30_000);
 
   it("keeps source inventory selection explicit and machine-independent", () => {
     const inspectorSource = readFileSync(

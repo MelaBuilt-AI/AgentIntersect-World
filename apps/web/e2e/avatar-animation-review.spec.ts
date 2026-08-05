@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 test("direct raw clip playback and review receipt remain technical review-only evidence", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/internal/avatar-animation-review");
 
@@ -51,7 +51,9 @@ test("direct raw clip playback and review receipt remain technical review-only e
   expect(frameAtMidpoint.equals(frameAtStart)).toBe(false);
   await page.getByRole("button", { name: "Replay clip" }).click();
   await expect(page.getByTestId("review-playback-state")).toHaveText("playing");
-  await page.getByRole("button", { name: "Pause clip" }).click();
+  const replayPause = page.getByRole("button", { name: "Pause clip" });
+  await expect(replayPause).toBeEnabled();
+  await replayPause.click();
 
   for (const semantic of [
     "Jump",

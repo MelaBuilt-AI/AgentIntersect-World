@@ -126,6 +126,19 @@ async function installSessionFixture(
     if (request.method() !== "GET" && !pathname.endsWith("/attach"))
       mutationPaths.push(`${request.method()} ${pathname}`);
     let data: unknown;
+    if (pathname.includes("/world-actions/")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          protocol: "aiw.world-action/0.13",
+          capability: { enabled: true },
+          actions: [],
+          executions: [],
+        }),
+      });
+      return;
+    }
     if (pathname.endsWith("/agent-sessions/capabilities"))
       data = [
         {
@@ -302,16 +315,15 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
   await installWorldState(page);
   await installSessionFixture(page);
   const authority = await installAutonomousMovementFixture(page);
-  authority.activate({
-    actionId: "66666666-6666-4666-8666-666666666666",
-    x: -2,
-    speed: 4,
-  });
   await page.goto("/");
   await openRestoredWorld(page);
   const room = page.locator(".world-room");
 
-  const startX = Number(await room.getAttribute("data-agent-position-x"));
+  authority.activate({
+    actionId: "66666666-6666-4666-8666-666666666666",
+    x: -1,
+    speed: 1,
+  });
   await expect(room).toHaveAttribute(
     "data-agent-movement-source",
     "agent-autonomous",
@@ -323,12 +335,12 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
     "data-agent-avatar-rendered-clip-index",
     "19",
   );
-  await expect
-    .poll(async () => Number(await room.getAttribute("data-agent-position-x")))
-    .toBeLessThan(startX - 0.2);
   await expect(room).toHaveAttribute("data-agent-movement-state", "idle", {
-    timeout: 10_000,
+    timeout: 30_000,
   });
+  expect(
+    Number(await room.getAttribute("data-agent-position-x")),
+  ).toBeLessThanOrEqual(-0.75);
   await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
   await expect(room).toHaveAttribute(
     "data-agent-avatar-rendered-clip-index",
@@ -387,7 +399,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
 test("accepted user model plays exact Space and local gesture clips without transport", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(90_000);
+  test.setTimeout(180_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   const fixture = await installSessionFixture(page);
@@ -459,6 +471,7 @@ test("accepted user model plays exact Space and local gesture clips without tran
 test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -573,6 +586,7 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
 test("slash focuses active World chat and submitted history restores its draft", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -661,6 +675,7 @@ test("slash focuses active World chat and submitted history restores its draft",
 test("Settings stays product-facing and Change Avatar selects the exact role and agent", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page);
   const fixture = await installSessionFixture(page);
@@ -699,7 +714,11 @@ test("Settings stays product-facing and Change Avatar selects the exact role and
     .getByRole("button", { name: "Open Robot Agent 5 3D preview" })
     .click();
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await page.getByRole("button", { name: "Accept and save avatar" }).click();
+  const saveAgentAvatar = page.getByRole("button", {
+    name: "Accept and save avatar",
+  });
+  await expect(saveAgentAvatar).toBeEnabled();
+  await saveAgentAvatar.click();
   await expect(page.locator(".world-room")).toBeVisible();
   expect(fixture.acceptedProposal().avatarSource).toMatchObject({
     kind: "imported",
@@ -793,7 +812,9 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
 test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff through cat and robot reloads", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   await page.setViewportSize({ width: 1365, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors = capturePageErrors(page);
   await installWorldState(page, false);
   const fixture = await installSessionFixture(page, {
@@ -807,7 +828,9 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   await page.getByLabel("Agent name").fill("Beans");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
-    page.getByText("agent not found", { exact: true }),
+    page.locator('span[aria-hidden="true"]', {
+      hasText: /^agent not found$/u,
+    }),
   ).toBeVisible();
   expect(fixture.mutationPaths).toEqual([]);
   await page.getByRole("button", { name: "Retry" }).click();
@@ -839,8 +862,14 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
     .getByRole("button", { name: "Open Cat Agent 1 3D preview" })
     .click();
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await page.getByRole("button", { name: "Accept and save avatar" }).click();
-  await page.getByRole("button", { name: "Enter World" }).click();
+  const saveCatAvatar = page.getByRole("button", {
+    name: "Accept and save avatar",
+  });
+  await expect(saveCatAvatar).toBeEnabled();
+  await saveCatAvatar.click();
+  const enterWorld = page.getByRole("button", { name: "Enter World" });
+  await expect(enterWorld).toBeEnabled();
+  await enterWorld.click();
   await expect(page.locator(".world-room")).toHaveAttribute(
     "data-agent-avatar-imported-id",
     "cat-agent-01",

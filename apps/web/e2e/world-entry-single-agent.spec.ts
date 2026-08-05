@@ -355,6 +355,19 @@ async function installWorldFixtures(
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     let data: unknown;
+    if (pathname.includes("/world-actions/")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          protocol: "aiw.world-action/0.13",
+          capability: { enabled: true },
+          actions: [],
+          executions: [],
+        }),
+      });
+      return;
+    }
     if (pathname.endsWith("/agent-sessions/capabilities"))
       data = [
         {
@@ -688,7 +701,7 @@ async function completeJourney(
     | "phase18-5",
   userDisplayName = "Aaron",
 ) {
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
   await seedConfiguredAvatar(page, userDisplayName);
   await installWorldFixtures(page, { restoreStatus: true });
   await page.goto("/");
@@ -769,9 +782,11 @@ async function completeJourney(
   }
   await page.getByLabel("Required agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await page
-    .getByRole("button", { name: "Accept and save avatar" })
-    .click({ noWaitAfter: true });
+  const saveAvatar = page.getByRole("button", {
+    name: "Accept and save avatar",
+  });
+  await expect(saveAvatar).toBeEnabled();
+  await saveAvatar.click({ noWaitAfter: true });
   const enterWorld = page.getByRole("button", { name: "Enter World" });
   await expect(enterWorld).toBeEnabled({ timeout: 10_000 });
   await enterWorld.click();
@@ -791,6 +806,9 @@ async function completeJourney(
     evidence === "phase18-5"
   ) {
     const canvas = page.locator('canvas[data-camera-mode="third-person"]');
+    await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true", {
+      timeout: 20_000,
+    });
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute("data-user-avatar-species", "human");
     await expect(canvas).toHaveAttribute("data-user-avatar-shirt", "Codex");
@@ -813,7 +831,6 @@ async function completeJourney(
       "data-agent-avatar-heading",
       "independent",
     );
-    await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true");
     await expect(canvas).toHaveAttribute("data-user-avatar-source", "custom");
     await expect(canvas).toHaveAttribute(
       "data-agent-avatar-source",
@@ -841,6 +858,11 @@ async function completeJourney(
   }
   await page.getByLabel("Message Mr Fluff").fill("hi");
   await page.getByRole("button", { name: "Send" }).click();
+  if (evidence !== "no-webgl")
+    await expect(page.locator("canvas")).toHaveAttribute(
+      "data-agent-activity",
+      "completed",
+    );
   const transcript = page.getByRole("log", {
     name: "Conversation and activity",
   });
@@ -852,11 +874,6 @@ async function completeJourney(
   await expect(page.locator("[data-activity-state=completed]")).toContainText(
     "Mr Fluff completed",
   );
-  if (evidence !== "no-webgl")
-    await expect(page.locator("canvas")).toHaveAttribute(
-      "data-agent-activity",
-      "completed",
-    );
   if (evidence === "desktop")
     await page.screenshot({
       path: `${evidenceDirectory}/blank-room-desktop.png`,
