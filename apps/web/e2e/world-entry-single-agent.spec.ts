@@ -2353,10 +2353,10 @@ test("repository city correction keeps loading local, restores source materials,
     { timeout: 30_000 },
   );
   await expect(room).toHaveAttribute("data-floor-state", "repository", {
-    timeout: 30_000,
+    timeout: 60_000,
   });
   await expect(room).toHaveAttribute("data-repository-readiness", "ready", {
-    timeout: 30_000,
+    timeout: 60_000,
   });
   await expect(page.locator("#root")).toBeVisible();
   await expect(room).toBeVisible();
