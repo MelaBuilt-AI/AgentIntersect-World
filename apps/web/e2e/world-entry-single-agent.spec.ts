@@ -1737,10 +1737,15 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
   await page.setViewportSize({ width: 1728, height: 1080 });
   await completeJourney(page, "large-desktop");
   const dimensions = await page.evaluate(() => {
-    const box = (selector: string) => {
-      const bounds = document
-        .querySelector<HTMLElement>(selector)!
-        .getBoundingClientRect();
+    const box = (selector: string, visible = false) => {
+      const elements = [...document.querySelectorAll<HTMLElement>(selector)];
+      const element = visible
+        ? elements.find((candidate) => {
+            const bounds = candidate.getBoundingClientRect();
+            return bounds.width > 0 && bounds.height > 0;
+          })
+        : elements[0];
+      const bounds = element!.getBoundingClientRect();
       return {
         width: Math.round(bounds.width),
         height: Math.round(bounds.height),
@@ -1753,7 +1758,7 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
       },
       experience: box(".world-experience"),
       room: box(".world-room"),
-      canvas: box('canvas[data-floor-state="repository"]'),
+      canvas: box('canvas[data-floor-state="repository"]', true),
     };
   });
   expect(dimensions.experience).toEqual(dimensions.viewport);
@@ -2337,10 +2342,16 @@ test("repository city correction keeps loading local, restores source materials,
 
   const room = page.locator("main.world-room");
   const composer = page.getByLabel("Message Mr Fluff");
-  const send = page.getByRole("button", { name: "Send" });
+  const repositoryTranscript = page.getByRole("log", {
+    name: "Conversation and activity",
+  });
   await expect(room).toHaveAttribute("data-floor-state", "blank");
   await composer.fill("/repo load MelaBuilt-AI/agentclutch");
-  await send.click();
+  await composer.press("Enter");
+  await expect(repositoryTranscript).toContainText(
+    "You/repo load MelaBuilt-AI/agentclutch",
+    { timeout: 30_000 },
+  );
   await expect(room).toHaveAttribute("data-floor-state", "repository", {
     timeout: 30_000,
   });
@@ -2351,9 +2362,6 @@ test("repository city correction keeps loading local, restores source materials,
   await expect(room).toBeVisible();
   expect(pageErrors).toEqual([]);
   expect(streamedMessages).toEqual([]);
-  const repositoryTranscript = page.getByRole("log", {
-    name: "Conversation and activity",
-  });
   await expect(repositoryTranscript).toContainText(
     "Repository loaded locally · Current · 2 packages · 2 directories · 125 files",
   );
@@ -2381,7 +2389,7 @@ test("repository city correction keeps loading local, restores source materials,
   });
   const directBefore = await position();
   await composer.fill("/agent move left 5");
-  await send.click();
+  await composer.press("Enter");
   await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
   await expect
     .poll(
@@ -2404,7 +2412,7 @@ test("repository city correction keeps loading local, restores source materials,
   movement = null;
   const followBefore = await position();
   await composer.fill("follow me");
-  await send.click();
+  await composer.press("Enter");
   await expect.poll(() => streamedMessages).toEqual(["follow me"]);
   await expect
     .poll(
