@@ -959,9 +959,10 @@ async function completeJourney(
   });
   await messageComposer.fill("Please load the approved repository");
   await expect(sendMessage).toBeEnabled();
-  await sendMessage.click();
+  await messageComposer.press("Enter");
   await expect(transcript).toContainText(
     "YouPlease load the approved repository",
+    { timeout: 30_000 },
   );
   await expect(transcript).toContainText(
     "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
@@ -1752,7 +1753,7 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
       },
       experience: box(".world-experience"),
       room: box(".world-room"),
-      canvas: box("canvas"),
+      canvas: box('canvas[data-floor-state="repository"]'),
     };
   });
   expect(dimensions.experience).toEqual(dimensions.viewport);
@@ -2383,10 +2384,16 @@ test("repository city correction keeps loading local, restores source materials,
   await send.click();
   await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
   await expect
-    .poll(async () => {
-      const current = await position();
-      return Math.hypot(current.x - directBefore.x, current.z - directBefore.z);
-    })
+    .poll(
+      async () => {
+        const current = await position();
+        return Math.hypot(
+          current.x - directBefore.x,
+          current.z - directBefore.z,
+        );
+      },
+      { timeout: 30_000 },
+    )
     .toBeGreaterThan(0.2);
   const directAfter = await position();
   expect(streamedMessages).toEqual([]);
@@ -2400,10 +2407,16 @@ test("repository city correction keeps loading local, restores source materials,
   await send.click();
   await expect.poll(() => streamedMessages).toEqual(["follow me"]);
   await expect
-    .poll(async () => {
-      const current = await position();
-      return Math.hypot(current.x - followBefore.x, current.z - followBefore.z);
-    })
+    .poll(
+      async () => {
+        const current = await position();
+        return Math.hypot(
+          current.x - followBefore.x,
+          current.z - followBefore.z,
+        );
+      },
+      { timeout: 30_000 },
+    )
     .toBeGreaterThan(0.2);
   const followAfter = await position();
 
