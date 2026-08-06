@@ -1,0 +1,21 @@
+{
+  "received": "2026-08-05",
+  "source": "/mnt/c/Codex/repository-visual-assets",
+  "destination": "apps/web/public/assets/repository-city",
+  "provenance": "tripo3d-subscription-user-confirmed-unrestricted-use",
+  "pairCount": 26,
+  "fileCount": 52,
+  "copyPolicy": "byte-identical",
+  "hashManifest": "source.sha256",
+  "inspection": {
+    "tool": "Blender 5.2.0 LTS",
+    "result": "26 imported, zero errors",
+    "objectsPerAsset": 1,
+    "meshesPerAsset": 1,
+    "materialsPerAsset": 1,
+    "imagesPerAsset": 1,
+    "embeddedAnimations": 0,
+    "totalVertices": 185706,
+    "totalTriangles": 123963
+  }
+}

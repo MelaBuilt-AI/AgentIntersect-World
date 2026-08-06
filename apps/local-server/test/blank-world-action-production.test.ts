@@ -277,7 +277,16 @@ describe("production blank-World movement authority", () => {
     expect(state.turnBodies).toHaveLength(1);
     expect(state.turnBodies[0]?.message).toBe("Please follow me");
     expect(state.turnBodies[0]?.system_message).toContain(
+      "World binds the actor identity after verifying the exact native session",
+    );
+    expect(state.turnBodies[0]?.system_message).toContain(
+      "omit actorId from move-agent actions",
+    );
+    expect(state.turnBodies[0]?.system_message).not.toContain(
       `actorId ${session.sessionId}`,
+    );
+    expect(state.turnBodies[0]?.system_message).toContain(
+      "queued tool receipt confirms neither movement nor arrival",
     );
     expect(state.turnBodies[0]?.system_message).toContain("move-agent");
     expect(state.turnBodies[0]?.system_message).toContain("follow-user");
@@ -375,17 +384,17 @@ describe("production blank-World movement authority", () => {
     expect(coordinate.status).toBe(202);
   });
 
-  it("preserves repository-selected authority and rejects a repository mismatch", async () => {
+  it("preserves current-session authority after repository selection and rejects a pinned mismatch", async () => {
     const state = await fixture();
     const snapshot = await indexRepository(state.baseUrl, state.repositoryRoot);
-    const matching = await state.attach(
-      "native-repository",
-      snapshot.repositoryRef,
-    );
+    const current = await state.attach("native-repository", "current");
     const available = await fetch(
-      `${state.baseUrl}/world-actions/${matching.sessionId}`,
+      `${state.baseUrl}/world-actions/${current.sessionId}`,
     );
     expect(available.status).toBe(200);
+    expect(await available.json()).toMatchObject({
+      capability: { enabled: true },
+    });
 
     const mismatched = await state.attach(
       "native-mismatch",
@@ -395,5 +404,6 @@ describe("production blank-World movement authority", () => {
       `${state.baseUrl}/world-actions/${mismatched.sessionId}`,
     );
     expect(unavailable.status).toBe(404);
+    expect(snapshot.repositoryRef).not.toBe("current");
   });
 });

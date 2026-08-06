@@ -7,10 +7,18 @@ import { AvatarBuilder } from "../src/avatar/AvatarBuilder.js";
 import * as activityModule from "../src/world-entry/world-chat-model.js";
 import * as roomModule from "../src/world-entry/world-navigation-model.js";
 import * as worldRoomModule from "../src/world-entry/WorldRoom.js";
+import * as explainPromptModule from "../src/world-entry/repository-explain-prompt.js";
+import {
+  advanceAgentMovement,
+  createAgentMovementState,
+  requestAgentMovement,
+  type AgentMovementRequest,
+} from "../src/world-entry/world-agent-movement-model.js";
 import {
   parseAvatarDraft,
   type AvatarDraft,
 } from "@agentintersect-world/avatar-system";
+import { canOccupyRepositoryCity } from "@agentintersect-world/renderer-r3f";
 import type {
   AvatarProposal,
   WorldAgentEvent,
@@ -573,7 +581,8 @@ describe("Phase 18 World entry experience", () => {
     expect(room).toContain("Mr Fluff is coding");
     expect(room).toContain("Repository floor");
     expect(room).toContain("world-entry.ts");
-    expect(room).not.toMatch(/portal|WorldActionPanel|dashboard/i);
+    expect(room).not.toMatch(/Repository portal|WorldActionPanel|dashboard/i);
+    expect(room).toContain("Deployment Portal");
 
     const hud = renderToStaticMarkup(
       createElement(component(api.WorldHud), {
@@ -673,20 +682,119 @@ describe("Phase 18 World entry experience", () => {
     ).not.toContain("dangerouslySetInnerHTML");
   });
 
-  it("keeps outer completion behind the awaited repository-floor step", () => {
+  it("handles repository loading before constructing any remote chat turn", () => {
     const source = readFileSync(
       new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),
       "utf8",
     );
     const repositoryAwait = source.indexOf(
-      "await loadRequestedRepository(current.text)",
+      "await loadRequestedRepository(classified.text)",
     );
-    const outerCompletion = source.indexOf(
-      'updateChat({ type: "SEND_COMPLETED", text: answer.finalText })',
-      repositoryAwait,
-    );
+    const remoteTurn = source.indexOf("const text = classified.text");
     expect(repositoryAwait).toBeGreaterThan(-1);
-    expect(outerCompletion).toBeGreaterThan(repositoryAwait);
+    expect(remoteTurn).toBeGreaterThan(repositoryAwait);
+  });
+
+  it("moves for both exact command paths after repository-city placement", () => {
+    const cityInstances = [
+      {
+        instanceId: "repository:root",
+        assetId: "04-repository-root-hub" as const,
+        position: { x: 9, z: 0 },
+        status: "idle" as const,
+        lifecycle: "idle" as const,
+        pinned: false,
+        manual: false,
+        linkedRepoData: { ref: "root" },
+        sourceEvent: "repository.loaded",
+      },
+    ];
+    const context = {
+      bounds: { minX: -15, maxX: 15, minZ: -15, maxZ: 15 },
+      userPosition: { x: 0, z: 0 },
+      layoutGeneration: "repo-loaded",
+      resolveRepositoryObject: () => null,
+      canOccupy: (position: { readonly x: number; readonly z: number }) =>
+        canOccupyRepositoryCity(cityInstances, position, null),
+    } as const;
+    const requests: readonly AgentMovementRequest[] = [
+      {
+        schema: "aiw.agent-movement/1",
+        requestId: "chat-follow",
+        actorId: "agent-session-1",
+        source: "agent-autonomous",
+        speed: 4,
+        target: { kind: "follow-user", stoppingRadius: 1.5 },
+      },
+      {
+        schema: "aiw.agent-movement/1",
+        requestId: "direct-left",
+        actorId: "agent-session-1",
+        source: "user-directed",
+        speed: 4,
+        target: { kind: "relative", direction: "left", distance: 5 },
+      },
+    ];
+
+    for (const request of requests) {
+      const initial = createAgentMovementState("agent-session-1", {
+        x: 2.5,
+        z: 1,
+      });
+      const accepted = requestAgentMovement(initial, request, context);
+      const advanced = advanceAgentMovement(accepted.state, 0.1, context);
+      expect(accepted.events.map(({ state }) => state)).toEqual([
+        "requested",
+        "accepted",
+        "moving",
+      ]);
+      expect(advanced.state.position).not.toEqual(initial.position);
+      expect(advanced.state.movementState).toBe("moving");
+      expect(advanced.events).toEqual([]);
+    }
+  });
+
+  it("builds Ask Agent copy from concrete code context before the visual metaphor", () => {
+    const buildPrompt = (
+      explainPromptModule as unknown as {
+        readonly buildRepositoryExplainPrompt?: (
+          instance: Readonly<Record<string, unknown>>,
+        ) => string;
+      }
+    ).buildRepositoryExplainPrompt;
+    expect(buildPrompt).toBeTypeOf("function");
+    if (!buildPrompt) return;
+
+    const prompt = buildPrompt({
+      instanceId: "repository:src/world-entry/WorldRoom.tsx",
+      assetId: "01-code-slab",
+      linkedRepoData: {
+        ref: "aiw://object/0123456789abcdef0123456789abcdef",
+        repositoryRef: "aiw://object/fedcba9876543210fedcba9876543210",
+        label: "WorldRoom.tsx",
+        path: "apps/web/src/world-entry/WorldRoom.tsx",
+        kind: "file",
+        fileKind: "source",
+        language: "typescript",
+        parentRef: "aiw://object/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        parentPath: "apps/web/src/world-entry",
+        childCount: 0,
+        directChildren: "WorldHud.tsx, world-chat-model.ts",
+      },
+    });
+    expect(prompt).toContain("WorldRoom.tsx");
+    expect(prompt).toContain("apps/web/src/world-entry/WorldRoom.tsx");
+    expect(prompt).toContain("kind: file");
+    expect(prompt).toContain("language: typescript");
+    expect(prompt).toContain("parentRef");
+    expect(prompt).toContain("parent path: apps/web/src/world-entry");
+    expect(prompt).toContain("WorldHud.tsx, world-chat-model.ts");
+    expect(prompt).toContain("repository/code role");
+    expect(prompt).toContain("known relationships");
+    expect(prompt).toContain("Do not invent");
+    expect(prompt.indexOf("repository/code role")).toBeLessThan(
+      prompt.indexOf("visual metaphor"),
+    );
   });
 
   it("fails the internal dashboard route closed unless both exact path and flag are present", () => {
@@ -747,7 +855,9 @@ describe("Phase 18 World entry experience", () => {
       "utf8",
     );
     expect(source).toContain("event.button !== 2");
-    expect(source).toContain("HTMLCanvasElement");
+    expect(source).not.toContain("event.target instanceof HTMLCanvasElement");
+    expect(source).toContain('window.addEventListener("pointerdown"');
+    expect(source).toContain("isInteractiveMouseTarget");
     expect(source).toContain("requestPointerLock");
     expect(source).toContain("exitPointerLock");
     expect(source).toContain("lookRequestPending");
@@ -761,7 +871,7 @@ describe("Phase 18 World entry experience", () => {
     expect(source).toContain('"pointercancel"');
     expect(source).toContain('"blur"');
     expect(source).toContain('"visibilitychange"');
-    expect(source).toContain("onContextMenu");
+    expect(source).toContain('window.addEventListener("contextmenu"');
     expect(source).toContain("Hold right mouse");
   });
 

@@ -1,8 +1,162 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-04
+Updated: 2026-08-05
 
 ## Current milestone
+
+### 2026-08-05 accepted repository city — PRIVATE KNOWN-WORKING GIT CHECKPOINT DELIVERY AUTHORIZED
+
+After the first-hand `10/10` manual PASS and clean candidate closeout, Aaron separately authorized committing and pushing the complete accepted tree and creating a durable GitHub milestone that can be restored later. The private repository visibility remains unchanged.
+
+The recovery label for this accepted checkpoint is:
+
+- branch: `work/repository-city-assets-20260805`;
+- annotated tag: `checkpoint/phase18-repository-city-accepted-2026-08-05`;
+- acceptance: first-hand manual PASS `10/10` plus independent technical parent proof;
+- delivery boundary: source/evidence checkpoint only; no GitHub Release, package publication, deployment, merge, visibility change, protected-plugin activation, voice work, or revised Phases 19–20.
+
+The final commit SHA and remote/tag parity are recorded externally after GitHub accepts the branch and annotated tag, avoiding a self-referential status commit.
+
+### 2026-08-05 repository-load blank-page correction — FIRST-HAND MANUAL PASS 10/10; ACCEPTED AND CLEANLY CLOSED
+
+Aaron completed the focused fresh-candidate retest at `http://127.0.0.1:45232/` and reported: `we have a pass for all 1-10! nice work fluff you nailed it!`
+
+This is the authoritative first-hand verdict. All ten presented criteria passed:
+
+1. manual movement before repository loading;
+2. movement requested through chat before repository loading;
+3. `/repo load MelaBuilt-AI/agentclutch` accepted;
+4. the World remained visible and reached `Repository city · ready` without blanking;
+5. truthful local-load acknowledgement;
+6. readable repository city on one continuous floor;
+7. post-load direct movement;
+8. post-load conversational `follow me` movement;
+9. code-linked asset explanation;
+10. right-drag camera control plus normal chat-input right-click behavior.
+
+The exact private verdict receipt is `fresh-candidate-20260806T023535Z/manual-pass-10-of-10.json` with SHA-256 `3d7587d08bd65803e506ec7032e86fad1b1368dfda9a0e37aea92df79ccc547d`.
+
+Before cleanup, the live candidate receipt and owner identities re-verified and the frozen worktree remained `98` dirty paths, `0` staged, with manifest SHA-256 `22564f881b535e91a107e7fb51fa2936b16e21f9a4b7e21a534c47947232be41`. Cleanup then stopped only the receipt-owned candidate tmux/listeners on `43822/45232`; its fresh state/evidence root was retained. Hermes on `8642` and OpenClaw on `18789` preserved their exact recorded identities and were not signalled.
+
+The repository-load blank-page correction is accepted. Git delivery, broader CI, merge, release, publication, deployment, protected-plugin activation, voice work, and revised Phases 19–20 remain separate decisions and were not authorized by this verdict.
+
+### 2026-08-05 repository-load blank-page correction — TECHNICAL GREEN; FRESH MANUAL RETEST CANDIDATE AUTHORIZED
+
+Aaron's first-hand retest exposed a repeatable blank-browser failure at the exact repository-load transition after both manual and conversational movement passed in the blank World. The failed receipt-owned generation was privacy-safely frozen and owner-stopped before correction work began.
+
+The retained failed snapshot contained `1,125` repository entries. `WorldEntryExperience.tsx` preserved all repository objects for semantic UI, while `WorldRoom.tsx` projected all of them through a 100-slot repository-city placement search. The uncaught `Repository city placement capacity is exhausted` exception unmounted the React World and produced the observed persistent blank page.
+
+The bounded correction now:
+
+- shares one 48-instance capacity between repository-city projection and the renderer;
+- deterministically selects the bounded 3D city subset before placement;
+- preserves the complete repository object set and truthful package/directory/file counts for semantic UI, search, and explanation;
+- leaves independent capacity for live/manual event assets;
+- retains the exact 34×34-floor containment and non-overlap checks.
+
+Strict RED evidence reproduced both failure seams before the production correction:
+
+- the 1,125-object unit seam threw `Repository city placement capacity is exhausted`;
+- the built-product browser journey timed out because `main.world-room` disappeared.
+
+Worker and independent parent verification are green:
+
+- exact 1,125-object deterministic unit coverage;
+- `30/30` impacted renderer tests;
+- renderer and web TypeScript checks;
+- renderer build and fresh developer-UI Vite production build;
+- Prettier plus `git diff --check`;
+- `1/1` selected built-product Playwright journey with a 129-object repository, visible `#root` and `main.world-room`, `repository/ready`, zero `pageerror`, truthful full semantic counts, and both direct and conversational movement;
+- post-baseline scope proof: the same 98 dirty paths, zero staged, and only the four authorized production/test paths changed before this status update.
+
+Automated visual evidence shows the World mounted at `Repository city · ready` with repository assets on one continuous floor. This is technical evidence only; Aaron's fresh first-hand verdict remains the governing acceptance gate. Git delivery, broad CI, merge, release, publication, deployment, protected-plugin activation, voice work, and revised Phases 19–20 remain outside this correction authorization.
+
+### 2026-08-05 repository-city corrected retest — MANUAL FAIL; BLANK PAGE AFTER REPOSITORY LOAD AUTHORIZED FOR BOUNDED FIX
+
+Aaron's first-hand retest of the fresh receipt-owned candidate at
+`http://127.0.0.1:45231/` is authoritative. Manual agent movement and
+conversational movement both passed before repository load. Issuing
+`/repo load MelaBuilt-AI/agentclutch` then changed the World to a blank browser
+page that remained blank without progressing. Refreshing and issuing the same
+command again reproduced the persistent blank page. The repository-load
+transition is therefore **FAIL**; all later repository-city, post-load movement,
+code-explanation, and lower-HUD camera criteria were unreachable. No screenshot
+or video accompanied the report, and Mr Fluff did not independently automate or
+reproduce the browser interaction before closeout.
+
+The exact failed generation is retained under
+`/home/mela_ai/.hermes/runs/aiw-repository-city-operator-fail-fix-20260806T000741Z/manual-candidate-20260806T005031Z/`.
+Its criterion-level verdict and privacy-safe hash-only state manifest are
+`manual-fail-blank-after-repo-load.json` and
+`manual-fail-state-manifest.json`. The owner-validating stopper closed only
+candidate ports `43821/45231`, removed the exact tmux session, retained the
+failed state, preserved the frozen 98-path/zero-stage worktree, and re-attested
+Hermes `8642` PID `762014` plus OpenClaw `18789` PID `589` unchanged.
+
+Aaron explicitly authorized a bounded diagnosis, causal RED regression, smallest
+direct correction, decisive parent verification, and a fresh isolated manual
+retest candidate. No stage, commit, push, PR, merge, tag, release, publication,
+deployment, public visibility change, broad CI, voice, or revised Phase 19/20
+authority is inferred.
+
+### 2026-08-05 repository-city final correction — SOURCE TECHNICAL GREEN; PROTECTED PLUGIN ACTIVATION DECISION PAUSED
+
+Aaron's criterion-level mixed manual FAIL remains the authoritative operator verdict
+for the stopped candidate. A single bounded Codex correction worker then completed
+all five frozen correction slices in the isolated dirty worktree:
+
+1. World sessions bound to dynamic `current` now retain movement authority after a
+   concrete repository snapshot is selected, while genuinely mismatched pinned
+   repository refs still fail closed.
+2. Hermes movement proposals no longer trust a stale persisted World actor UUID.
+   World binds actor identity only after exact native-session verification, accepts
+   the first observed helper sequence for a fresh World session, and preserves
+   sequence continuity thereafter. Tool receipts now state `queued` with
+   `executionConfirmed: false`; they do not claim arrival.
+3. `/repo load MelaBuilt-AI/agentclutch` remains a local command and appends a
+   truthful success/failure acknowledgement only after the local load resolves.
+4. Repository projection, live events, and Director placement use measured GLB X/Z
+   footprints plus deterministic collision probing; the reproduced directory-gate /
+   Live Collaboration Relay collision is separated.
+5. Ask Agent to Explain now receives bounded repository-relative name/path,
+   file/package/language, parent, child, and count context before the visual
+   metaphor, and explicitly forbids invented code behavior or relationships.
+
+Independent parent proof under Node `v24.18.0` is green:
+
+- production-shaped local-server authority regression: 3/3;
+- focused correction aggregate: 10 files, 76/76 tests;
+- additional API/palette/avatar slice: 3 files, 14/14 tests;
+- Hermes plugin conformance: 3/3;
+- renderer build, local-server typecheck/build, web typecheck, ESLint, focused
+  Prettier, `git diff --check`, zero staged paths, and production Vite build: pass;
+- imported repository-city artifacts: 52/52 byte-identical;
+- fixture-backed production Chromium journey: 1/1 pass, with local load
+  acknowledgement, zero repository-load stream requests, direct movement
+  `{x:2.5,z:1}` → `{x:-0.7,z:1}`, and conversational follow
+  `{x:-2.25,z:1}` → `{x:-1.396,z:0.621}`.
+
+The parent corrected one stale production-test assertion after the first unrestricted
+run proved the implementation's new World-owned actor binding; the rerun passed
+3/3. This was a test-expectation correction, not a production-source change.
+
+A new real-Hermes manual candidate was intentionally **not** launched. The corrected
+Hermes plugin exists only in the repository source under
+`integrations/hermes/agentintersect-world/__init__.py`; the protected active profile
+and gateway were not edited, installed, or restarted. Consequently a candidate that
+continues through the currently loaded protected plugin cannot yet validate the
+conversational movement correction truthfully. Activating that plugin requires a
+separate owner decision and protected-service mutation/restart authority, which the
+bounded lane explicitly did not have. Per Aaron's instruction, work pauses here and
+the end-session handoff must preserve the exact activation/retest boundary without
+asking during this run.
+
+The failed candidate remains stopped with retained state/evidence under
+`/home/mela_ai/.hermes/runs/aiw-repository-city-manual-corrections-20260805T204944Z/`.
+The final source-correction and parent-proof run is
+`/home/mela_ai/.hermes/runs/aiw-repository-city-final-corrections-20260805T215306Z/`.
+No stage, commit, push, PR, merge, release, publication, deployment, public visibility,
+or protected-service mutation was authorized or performed.
 
 ### 2026-08-04 pre-voice animation, autonomous movement, and code-visual assets — MILESTONES 1–2 OPERATOR ACCEPTED; MILESTONE 3 AWAITING SCOPE CONFIRMATION
 

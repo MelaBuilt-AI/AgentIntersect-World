@@ -1,4 +1,6 @@
 export type RenderObjectKind = "package" | "directory" | "file" | "symbol";
+export * from "./repository-asset-manifest.js";
+export * from "./repository-city-state.js";
 export const REPOSITORY_VISUAL_FAMILIES = [
   "package-workspace-hub",
   "directory-archive-gate",
@@ -230,8 +232,18 @@ export type RenderEvidenceOutcome =
 
 export type RepositoryRenderObject = {
   readonly ref: string;
+  readonly repositoryRef?: string;
   readonly kind: RenderObjectKind;
   readonly name: string;
+  readonly path?: string;
+  readonly parentRef?: string | null;
+  readonly parentLabel?: string;
+  readonly parentPath?: string;
+  readonly childCount?: number;
+  readonly directChildren?: string;
+  readonly fileCount?: number;
+  readonly packageKind?: string;
+  readonly packageName?: string | null;
   readonly position: {
     readonly x: number;
     readonly y: number;

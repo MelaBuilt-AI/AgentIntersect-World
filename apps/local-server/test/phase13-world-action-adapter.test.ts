@@ -191,6 +191,54 @@ describe("Hermes World Action helper seam", () => {
     expect(readPluginWorldActionProposal(proposalPath, sessionRef)).toBeNull();
   });
 
+  it("binds an actorless exact-native-session movement proposal to the current World session", () => {
+    const directory = root();
+    const nativeSessionRef = "native-movement-session";
+    const worldSessionId = "11111111-1111-4111-8111-111111111111";
+    const proposalPath = path.join(directory, "movement-proposal.json");
+    fs.writeFileSync(
+      proposalPath,
+      JSON.stringify({
+        schema: "aiw.hermes-world-action-proposal/0.13",
+        proposalId: "00000000-0000-4000-8000-000000000003",
+        nativeSessionHash: createHash("sha256")
+          .update(nativeSessionRef)
+          .digest("hex"),
+        sequence: 1,
+        createdAt: "2026-07-21T12:00:00.000Z",
+        ttlMs: 30_000,
+        actions: [
+          {
+            kind: "move-agent",
+            schema: "aiw.agent-movement/1",
+            source: "agent-autonomous",
+            speed: 4,
+            target: { kind: "relative", direction: "left", distance: 3 },
+          },
+        ],
+      }),
+      { mode: 0o600 },
+    );
+
+    expect(
+      readPluginWorldActionProposal(
+        proposalPath,
+        nativeSessionRef,
+        worldSessionId,
+      ),
+    ).toMatchObject({
+      proposal: {
+        actions: [
+          {
+            kind: "move-agent",
+            actorId: worldSessionId,
+            target: { kind: "relative", direction: "left", distance: 3 },
+          },
+        ],
+      },
+    });
+  });
+
   it("consumes a proposal owned by the immediately previous proven effective session after compression", () => {
     const directory = root();
     const previous = "effective-before-compression";

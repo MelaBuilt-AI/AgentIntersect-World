@@ -1,6 +1,13 @@
 import {
+  canOccupyRepositoryCity,
+  createRepositoryCityState,
+  projectRepositoryObjects,
+  REPOSITORY_ASSET_BY_ID,
+  reduceRepositoryCity,
   repositoryVisualFamily,
   resolveWebGLCapability,
+  type RepositoryAssetId,
+  type RepositoryCityInstance,
   type RepositoryRenderObject,
 } from "@agentintersect-world/renderer-r3f";
 import {
@@ -16,6 +23,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
   type ReactNode,
@@ -40,6 +48,8 @@ import {
   type WorldCameraLook,
 } from "./world-navigation-model.js";
 import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
+import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
+import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
 import {
   advanceAgentMovement,
   createAgentMovementState,
@@ -80,6 +90,14 @@ class WorldCanvasErrorBoundary extends Component<
   }
 }
 
+const isInteractiveMouseTarget = (target: EventTarget | null): boolean =>
+  target instanceof Element &&
+  Boolean(
+    target.closest(
+      'input, textarea, select, button, a, form, [contenteditable="true"], [role="button"], [role="link"], .world-transcript, .repository-asset-palette, .repository-asset-inspector',
+    ),
+  );
+
 export function WorldRoom({
   floor,
   objects,
@@ -98,6 +116,10 @@ export function WorldRoom({
   layoutGeneration = "blank-world",
   onAgentMovementEvent,
   showControlHints = true,
+  repositoryReadiness = "idle",
+  onAskAgent,
+  onRepositoryReady,
+  onRepositoryError,
 }: {
   readonly floor: "blank" | "repository";
   readonly objects: readonly RepositoryRenderObject[];
@@ -140,6 +162,10 @@ export function WorldRoom({
     | ((event: AgentMovementEvent, position: { x: number; z: number }) => void)
     | undefined;
   readonly showControlHints?: boolean;
+  readonly repositoryReadiness?: "idle" | "loading" | "ready" | "error";
+  readonly onAskAgent?: ((prompt: string) => void) | undefined;
+  readonly onRepositoryReady?: (() => void) | undefined;
+  readonly onRepositoryError?: (() => void) | undefined;
 }) {
   const roomRef = useRef<HTMLElement>(null);
   const pressedKeys = useRef(new Set<string>());
@@ -181,12 +207,83 @@ export function WorldRoom({
   const lookOwnsPointerLock = useRef(false);
   const lookRequestSequence = useRef(0);
   const [mouseLookActive, setMouseLookActive] = useState(false);
+  const [city, dispatchCity] = useReducer(
+    reduceRepositoryCity,
+    undefined,
+    createRepositoryCityState,
+  );
+  const [cityMode, setCityMode] = useState<"live" | "director">("live");
+  const [selectedCityInstanceId, setSelectedCityInstanceId] = useState<
+    string | null
+  >(null);
+  const [cityFocusPosition, setCityFocusPosition] = useState<{
+    readonly x: number;
+    readonly z: number;
+  } | null>(null);
+  const nextManualCityInstance = useRef(1);
   const modularUnsupported =
     (userAvatar.avatarSource?.kind === "imported" &&
       userAvatar.avatarSource.mode === "modular") ||
     (agentAvatar.avatarSource?.kind === "imported" &&
       agentAvatar.avatarSource.mode === "modular");
   const noWebGL = forceNoWebGL || contextLost || modularUnsupported;
+  const selectedCityInstance =
+    city.instances.find(
+      ({ instanceId }) => instanceId === selectedCityInstanceId,
+    ) ?? null;
+  useEffect(() => {
+    if (floor === "blank") {
+      dispatchCity({ type: "initial", instances: [] });
+      return;
+    }
+    dispatchCity({
+      type: "initial",
+      instances: projectRepositoryObjects(objects),
+    });
+    if (noWebGL) onRepositoryReady?.();
+  }, [floor, layoutGeneration, noWebGL, objects, onRepositoryReady]);
+  useEffect(() => {
+    if (floor !== "repository" || activity.state === "idle") return;
+    dispatchCity({
+      type: "event",
+      event: {
+        id: "world-chat",
+        type: "conversation.activity",
+        status:
+          activity.state === "failed"
+            ? "failure"
+            : activity.state === "completed"
+              ? "active"
+              : "pending",
+        linkedRepoData: {
+          label: activity.label,
+          detail: activity.detail || null,
+        },
+      },
+    });
+  }, [activity.detail, activity.label, activity.state, floor]);
+  const addManualCityInstance = useCallback(
+    (assetId: RepositoryAssetId, position?: { x: number; z: number }) => {
+      const sequence = nextManualCityInstance.current++;
+      const angle = (sequence % 12) * (Math.PI / 6);
+      dispatchCity({
+        type: "manual.add",
+        instanceId: `manual:${sequence}`,
+        assetId,
+        position: position ?? {
+          x: Math.round(Math.cos(angle) * 10),
+          z: Math.round(Math.sin(angle) * 10),
+        },
+      });
+      setSelectedCityInstanceId(`manual:${sequence}`);
+      setCityFocusPosition(null);
+    },
+    [],
+  );
+  const selectCityInstance = useCallback((instanceId: string) => {
+    setSelectedCityInstanceId(instanceId);
+    setCityFocusPosition(null);
+  }, []);
   useEffect(() => {
     userAnimationRef.current = userAnimation;
   }, [userAnimation]);
@@ -238,48 +335,42 @@ export function WorldRoom({
       resolveRepositoryObject: (
         objectId: string,
       ): RepositoryApproachPoint | null => {
-        const object = objects.find(({ ref }) => ref === objectId);
+        const instance = city.instances.find(
+          ({ linkedRepoData }) => linkedRepoData?.ref === objectId,
+        );
         const from = agentMovementRef.current.position;
+        const footprint = instance
+          ? REPOSITORY_ASSET_BY_ID.get(instance.assetId)!.footprint
+          : null;
         const clearance = 0.6;
-        const candidates = object
-          ? [
-              {
-                x: object.bounds.x - clearance,
-                z: Math.max(
-                  object.bounds.z,
-                  Math.min(object.bounds.z + object.bounds.depth, from.z),
-                ),
-              },
-              {
-                x: object.bounds.x + object.bounds.width + clearance,
-                z: Math.max(
-                  object.bounds.z,
-                  Math.min(object.bounds.z + object.bounds.depth, from.z),
-                ),
-              },
-              {
-                x: Math.max(
-                  object.bounds.x,
-                  Math.min(object.bounds.x + object.bounds.width, from.x),
-                ),
-                z: object.bounds.z - clearance,
-              },
-              {
-                x: Math.max(
-                  object.bounds.x,
-                  Math.min(object.bounds.x + object.bounds.width, from.x),
-                ),
-                z: object.bounds.z + object.bounds.depth + clearance,
-              },
-            ].sort(
-              (left, right) =>
-                Math.hypot(left.x - from.x, left.z - from.z) -
-                  Math.hypot(right.x - from.x, right.z - from.z) ||
-                left.x - right.x ||
-                left.z - right.z,
-            )
-          : [];
-        return object
+        const candidates =
+          instance && footprint
+            ? [
+                {
+                  x: instance.position.x - footprint[0] / 2 - clearance,
+                  z: instance.position.z,
+                },
+                {
+                  x: instance.position.x + footprint[0] / 2 + clearance,
+                  z: instance.position.z,
+                },
+                {
+                  x: instance.position.x,
+                  z: instance.position.z - footprint[1] / 2 - clearance,
+                },
+                {
+                  x: instance.position.x,
+                  z: instance.position.z + footprint[1] / 2 + clearance,
+                },
+              ].sort(
+                (left, right) =>
+                  Math.hypot(left.x - from.x, left.z - from.z) -
+                    Math.hypot(right.x - from.x, right.z - from.z) ||
+                  left.x - right.x ||
+                  left.z - right.z,
+              )
+            : [];
+        return instance
           ? {
               objectId,
               layoutGeneration,
@@ -292,17 +383,9 @@ export function WorldRoom({
       canOccupy: (
         position: { readonly x: number; readonly z: number },
         targetObjectId: string | null,
-      ) =>
-        objects.every(
-          (object) =>
-            object.ref === targetObjectId ||
-            position.x <= object.bounds.x - 0.45 ||
-            position.x >= object.bounds.x + object.bounds.width + 0.45 ||
-            position.z <= object.bounds.z - 0.45 ||
-            position.z >= object.bounds.z + object.bounds.depth + 0.45,
-        ),
+      ) => canOccupyRepositoryCity(city.instances, position, targetObjectId),
     }),
-    [layoutGeneration, objects, userPosition],
+    [city.instances, layoutGeneration, userPosition],
   );
   const agentMovementContextRef = useRef(agentMovementContext);
   useEffect(() => {
@@ -473,6 +556,7 @@ export function WorldRoom({
         return;
       }
       if (key === "shift" || isOperatorMovementKey(key)) {
+        setCityFocusPosition(null);
         const previousKeys = [...activeKeys];
         activeKeys.add(key);
         setMovementPhase((current) =>
@@ -576,11 +660,76 @@ export function WorldRoom({
         }),
       );
     };
+    const startLook = (event: PointerEvent) => {
+      if (
+        event.button !== 2 ||
+        activeLookPointer.current !== null ||
+        isInteractiveMouseTarget(event.target)
+      )
+        return;
+      const room = roomRef.current;
+      const surface = document.querySelector<HTMLCanvasElement>(
+        'canvas[data-scene-id="world-room"]',
+      );
+      if (!room || !surface) return;
+      setCityFocusPosition(null);
+      const pointerId = event.pointerId;
+      const requestSequence = lookRequestSequence.current + 1;
+      lookRequestSequence.current = requestSequence;
+      activeLookPointer.current = pointerId;
+      lookSurface.current = surface;
+      lookRequestPending.current = true;
+      lookOwnsPointerLock.current = false;
+      setMouseLookActive(false);
+      event.preventDefault();
+      room.focus({ preventScroll: true });
+      try {
+        void Promise.resolve(surface.requestPointerLock())
+          .then(() => {
+            if (
+              lookRequestSequence.current === requestSequence &&
+              activeLookPointer.current !== pointerId &&
+              document.pointerLockElement === surface
+            ) {
+              lookRequestPending.current = false;
+              document.exitPointerLock();
+            }
+          })
+          .catch(() => {
+            if (
+              lookRequestSequence.current === requestSequence &&
+              lookRequestPending.current
+            ) {
+              lookRequestPending.current = false;
+              lookOwnsPointerLock.current = false;
+              if (activeLookPointer.current === pointerId) {
+                activeLookPointer.current = null;
+                setMouseLookActive(false);
+              }
+            }
+          });
+      } catch {
+        lookRequestPending.current = false;
+        lookOwnsPointerLock.current = false;
+        activeLookPointer.current = null;
+        setMouseLookActive(false);
+      }
+    };
+    const contextMenu = (event: MouseEvent) => {
+      if (
+        !roomRef.current?.isConnected ||
+        isInteractiveMouseTarget(event.target)
+      )
+        return;
+      event.preventDefault();
+    };
     window.addEventListener("keydown", down, true);
     window.addEventListener("keyup", up, true);
     window.addEventListener("blur", clear);
     window.addEventListener("pointerup", release, true);
     window.addEventListener("pointercancel", release, true);
+    window.addEventListener("pointerdown", startLook, true);
+    window.addEventListener("contextmenu", contextMenu, true);
     document.addEventListener("focusin", focus, true);
     document.addEventListener("visibilitychange", visibility);
     document.addEventListener("pointerlockchange", pointerLockChanged);
@@ -592,6 +741,8 @@ export function WorldRoom({
       window.removeEventListener("blur", clear);
       window.removeEventListener("pointerup", release, true);
       window.removeEventListener("pointercancel", release, true);
+      window.removeEventListener("pointerdown", startLook, true);
+      window.removeEventListener("contextmenu", contextMenu, true);
       document.removeEventListener("focusin", focus, true);
       document.removeEventListener("visibilitychange", visibility);
       document.removeEventListener("pointerlockchange", pointerLockChanged);
@@ -815,64 +966,39 @@ export function WorldRoom({
       data-mouse-look={mouseLookActive ? "active" : "idle"}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
+      data-repository-readiness={repositoryReadiness}
+      data-repository-city-count={city.instances.length}
+      data-repository-city-mode={cityMode}
       data-user-avatar-action={userAction}
       data-agent-avatar-action={agentAction}
       tabIndex={0}
       aria-label="AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move, Shift to sprint, and Space to jump."
-      onPointerDown={(event) => {
-        if (event.button !== 2 || !(event.target instanceof HTMLCanvasElement))
+      onDragOver={(event) => {
+        if (cityMode === "director" && floor === "repository")
+          event.preventDefault();
+      }}
+      onDrop={(event) => {
+        const assetId = event.dataTransfer.getData(
+          "application/x-aiw-repository-asset",
+        ) as RepositoryAssetId;
+        if (!assetId || cityMode !== "director" || floor !== "repository")
           return;
-        const surface = event.target;
-        const pointerId = event.pointerId;
-        const requestSequence = lookRequestSequence.current + 1;
-        lookRequestSequence.current = requestSequence;
-        activeLookPointer.current = pointerId;
-        lookSurface.current = surface;
-        lookRequestPending.current = true;
-        lookOwnsPointerLock.current = false;
-        setMouseLookActive(false);
         event.preventDefault();
-        event.currentTarget.focus({ preventScroll: true });
-        try {
-          void Promise.resolve(surface.requestPointerLock())
-            .then(() => {
-              if (
-                lookRequestSequence.current === requestSequence &&
-                activeLookPointer.current !== pointerId &&
-                document.pointerLockElement === surface
-              ) {
-                lookRequestPending.current = false;
-                document.exitPointerLock();
-              }
-            })
-            .catch(() => {
-              if (
-                lookRequestSequence.current === requestSequence &&
-                lookRequestPending.current
-              ) {
-                lookRequestPending.current = false;
-                lookOwnsPointerLock.current = false;
-                if (activeLookPointer.current === pointerId) {
-                  activeLookPointer.current = null;
-                  setMouseLookActive(false);
-                }
-              }
-            });
-        } catch {
-          lookRequestPending.current = false;
-          lookOwnsPointerLock.current = false;
-          activeLookPointer.current = null;
-          setMouseLookActive(false);
-        }
+        const bounds = event.currentTarget.getBoundingClientRect();
+        let x = Math.round(
+          ((event.clientX - bounds.left) / bounds.width - 0.5) * 30,
+        );
+        const z = Math.round(
+          ((event.clientY - bounds.top) / bounds.height - 0.5) * 30,
+        );
+        if (Math.hypot(x, z) < 6) x = x < 0 ? -6 : 6;
+        addManualCityInstance(assetId, { x, z });
       }}
       onPointerUp={(event) => {
         if (event.pointerId === activeLookPointer.current) stopMouseLook();
       }}
       onPointerCancel={(event) => {
         if (event.pointerId === activeLookPointer.current) stopMouseLook();
-      }}
-      onContextMenu={(event) => {
-        if (event.target === lookSurface.current) event.preventDefault();
       }}
     >
       {showControlHints ? (
@@ -887,6 +1013,40 @@ export function WorldRoom({
             {mouseLookActive ? "Mouse look active" : "Mouse look idle"}
           </strong>
         </section>
+      ) : null}
+      {floor === "repository" ? (
+        <>
+          <RepositoryAssetPalette
+            mode={cityMode}
+            selected={selectedCityInstance}
+            onMode={setCityMode}
+            onPlace={addManualCityInstance}
+            onFocus={(instanceId) => {
+              const instance = city.instances.find(
+                (candidate) => candidate.instanceId === instanceId,
+              );
+              if (!instance) return;
+              setSelectedCityInstanceId(instanceId);
+              setCityFocusPosition(instance.position);
+            }}
+            onPin={(instanceId, pinned) =>
+              dispatchCity({ type: "pin", instanceId, pinned })
+            }
+            onRemove={(instanceId) => {
+              dispatchCity({ type: "remove", instanceId });
+              setSelectedCityInstanceId(null);
+              setCityFocusPosition(null);
+            }}
+            onAskAgent={(instance: RepositoryCityInstance) => {
+              onAskAgent?.(buildRepositoryExplainPrompt(instance));
+            }}
+          />
+          {cityMode === "director" ? (
+            <p className="repository-city-drop-hint" role="status">
+              Director grid active · drop an asset outside the center zone
+            </p>
+          ) : null}
+        </>
       ) : null}
       {staticPoseRefused ? (
         <p className="world-room__static-pose-truth" role="status">
@@ -925,6 +1085,10 @@ export function WorldRoom({
         {floor === "repository" ? (
           <>
             <p>The existing floor is now the current repository landscape.</p>
+            <p role="status">
+              Repository city {repositoryReadiness} · {city.instances.length}{" "}
+              semantic objects.
+            </p>
             <ol
               className="world-room__repository-objects"
               aria-label="Repository floor objects"
@@ -961,6 +1125,7 @@ export function WorldRoom({
             onError={() => {
               setRendererFailure("load-or-render-error");
               setContextLost(true);
+              onRepositoryError?.();
             }}
           >
             <Suspense fallback={null}>
@@ -968,6 +1133,9 @@ export function WorldRoom({
                 <ImportedWorldRoomCanvas
                   floor={floor}
                   objects={objects}
+                  cityInstances={city.instances}
+                  selectedCityInstanceId={selectedCityInstanceId}
+                  cityFocusPosition={cityFocusPosition}
                   userPosition={userPosition}
                   camera={camera}
                   activity={activity}
@@ -988,12 +1156,21 @@ export function WorldRoom({
                   onContextLost={() => {
                     setRendererFailure("context-lost");
                     setContextLost(true);
+                    onRepositoryError?.();
                   }}
+                  onCitySelect={selectCityInstance}
+                  onCitySettled={(instanceId) =>
+                    dispatchCity({ type: "settled", instanceId })
+                  }
+                  onCityReady={onRepositoryReady ?? (() => undefined)}
                 />
               ) : (
                 <WorldRoomCanvas
                   floor={floor}
                   objects={objects}
+                  cityInstances={city.instances}
+                  selectedCityInstanceId={selectedCityInstanceId}
+                  cityFocusPosition={cityFocusPosition}
                   userPosition={userPosition}
                   camera={camera}
                   activity={activity}
@@ -1007,7 +1184,13 @@ export function WorldRoom({
                   onContextLost={() => {
                     setRendererFailure("context-lost");
                     setContextLost(true);
+                    onRepositoryError?.();
                   }}
+                  onCitySelect={selectCityInstance}
+                  onCitySettled={(instanceId) =>
+                    dispatchCity({ type: "settled", instanceId })
+                  }
+                  onCityReady={onRepositoryReady ?? (() => undefined)}
                 />
               )}
             </Suspense>

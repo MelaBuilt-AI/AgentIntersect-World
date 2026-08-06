@@ -414,7 +414,7 @@ export function advanceAgentMovement(
   const step = Math.min(request.speed * elapsed, distance - stoppingRadius);
   const ux = dx / distance;
   const uz = dz / distance;
-  const position = {
+  let position = {
     x: quantized(state.position.x + ux * step),
     z: quantized(state.position.z + uz * step),
   };
@@ -428,22 +428,59 @@ export function advanceAgentMovement(
         ? request.target.objectId
         : null,
     )
-  )
-    return finishMovement(state, request, "refused", "static-collision");
+  ) {
+    if (request.target.kind !== "follow-user")
+      return finishMovement(state, request, "refused", "static-collision");
+    const detour = [Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2]
+      .map((angle) => ({
+        x: quantized(
+          state.position.x +
+            (ux * Math.cos(angle) - uz * Math.sin(angle)) * step,
+        ),
+        z: quantized(
+          state.position.z +
+            (ux * Math.sin(angle) + uz * Math.cos(angle)) * step,
+        ),
+      }))
+      .filter(
+        (candidate) =>
+          inside(candidate, context.bounds) &&
+          context.canOccupy!(candidate, null),
+      )
+      .sort(
+        (left, right) =>
+          Math.hypot(left.x - destination.x, left.z - destination.z) -
+          Math.hypot(right.x - destination.x, right.z - destination.z),
+      )[0];
+    if (!detour)
+      return finishMovement(state, request, "refused", "static-collision");
+    position = detour;
+  }
+  const movementX = position.x - state.position.x;
+  const movementZ = position.z - state.position.z;
+  const movementDistance = Math.hypot(movementX, movementZ);
+  const movementUx = movementDistance > 0 ? movementX / movementDistance : 0;
+  const movementUz = movementDistance > 0 ? movementZ / movementDistance : 0;
   return {
     state: {
       ...state,
       position,
       destination,
-      heading: Math.atan2(ux, uz),
+      heading:
+        movementDistance > 0
+          ? Math.atan2(movementUx, movementUz)
+          : state.heading,
       animationSemantic: movementAnimation(
         request.speed,
         Math.hypot(destination.x - position.x, destination.z - position.z),
         stoppingRadius,
       ),
       velocity:
-        elapsed > 0
-          ? { x: ux * request.speed, z: uz * request.speed }
+        elapsed > 0 && movementDistance > 0
+          ? {
+              x: movementUx * request.speed,
+              z: movementUz * request.speed,
+            }
           : { x: 0, z: 0 },
     },
     events: [],

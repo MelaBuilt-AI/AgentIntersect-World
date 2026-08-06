@@ -196,19 +196,21 @@ def _validate_action(value: object) -> dict[str, Any]:
             raise ValueError("Cancellation target ID is invalid") from error
         output.update({"targetType": value["targetType"], "targetId": target_id})
     elif kind == "move-agent":
-        allowed = {"kind", "schema", "actorId", "source", "speed", "target"}
+        allowed = {"kind", "schema", "source", "speed", "target"}
         actor_id = value.get("actorId")
+        if "actorId" in value:
+            if (
+                not isinstance(actor_id, str)
+                or not 1 <= len(actor_id) <= 256
+                or actor_id[0] not in _SAFE_TOOL
+                or any(character not in _SAFE_TOOL for character in actor_id)
+            ):
+                raise ValueError("Agent movement actor is invalid")
+            allowed.add("actorId")
         speed = value.get("speed")
         target = value.get("target")
         if value.get("schema") != "aiw.agent-movement/1":
             raise ValueError("Agent movement schema is invalid")
-        if (
-            not isinstance(actor_id, str)
-            or not 1 <= len(actor_id) <= 256
-            or actor_id[0] not in _SAFE_TOOL
-            or any(character not in _SAFE_TOOL for character in actor_id)
-        ):
-            raise ValueError("Agent movement actor is invalid")
         if value.get("source") != "agent-autonomous":
             raise ValueError("Plugin movement source is invalid")
         if (
@@ -265,7 +267,6 @@ def _validate_action(value: object) -> dict[str, Any]:
             raise ValueError("Agent follow stopping radius is required")
         output.update({
             "schema": value["schema"],
-            "actorId": actor_id,
             "source": value["source"],
             "speed": speed,
             "target": target,
@@ -416,7 +417,12 @@ def _propose_world_action(actions=None, ttl_ms=30000, **kwargs):
         }
         _write_action_source_state(source_state_path, sources)
         fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
-    return {"status": "proposed", "proposalId": proposal_id, "actionCount": len(validated)}
+    return {
+        "status": "queued",
+        "executionConfirmed": False,
+        "proposalId": proposal_id,
+        "actionCount": len(validated),
+    }
 
 
 def _world_action_tool_handler(args, **_runtime_context):

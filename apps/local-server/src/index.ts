@@ -41,6 +41,7 @@ import { VoiceService, VoiceStore } from "./voice-service.js";
 import { CoordinationService } from "./coordination-service.js";
 import { loadProductionCoordinationGitConfig } from "./coordination-production-config.js";
 import { Phase17Service } from "./phase17-service.js";
+import { matchesSelectedRepository } from "./repository-selection-authority.js";
 
 const config = (() => {
   try {
@@ -233,7 +234,10 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                   const selection = server.currentRepositorySelection();
                   if (
                     selection &&
-                    session.repositoryRef !== selection.snapshot.repositoryRef
+                    !matchesSelectedRepository(
+                      session.repositoryRef,
+                      selection.snapshot.repositoryRef,
+                    )
                   )
                     return null;
                   const manifest = (
@@ -436,6 +440,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                     const proposal = readPluginWorldActionProposal(
                       file,
                       proposalOwners,
+                      sessionId,
                     );
                     return proposal ? [{ file, ...proposal }] : [];
                   });

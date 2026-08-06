@@ -340,6 +340,11 @@ function streamBody(requestText: string, userDisplayName: string) {
 type WorldFixtureOptions = {
   readonly history?: unknown;
   readonly restoreStatus?: boolean;
+  readonly snapshot?: unknown;
+  readonly fulfillWorldActions?: (
+    route: Route,
+    pathname: string,
+  ) => Promise<void>;
   readonly fulfillStream?: (
     route: Route,
     requestText: string,
@@ -356,6 +361,10 @@ async function installWorldFixtures(
     const pathname = new URL(request.url()).pathname;
     let data: unknown;
     if (pathname.includes("/world-actions/")) {
+      if (options.fulfillWorldActions) {
+        await options.fulfillWorldActions(route, pathname);
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -441,7 +450,8 @@ async function installWorldFixtures(
           bytesHashed: 4800,
         },
       };
-    else if (pathname.endsWith("/world/current")) data = { snapshot };
+    else if (pathname.endsWith("/world/current"))
+      data = { snapshot: options.snapshot ?? snapshot };
     else {
       await route.fulfill({ status: 404, body: "fixture route missing" });
       return;
@@ -942,6 +952,24 @@ async function completeJourney(
     ).toHaveAttribute("data-avatar-render-ready", "true", {
       timeout: 30_000,
     });
+  if (evidence === "desktop") {
+    const room = page.locator("main.world-room");
+    const canvas = page.locator('canvas[data-floor-state="repository"]');
+    await page.getByRole("button", { name: "Director" }).click();
+    await page.getByLabel("Search assets").fill("deployment");
+    await page.getByRole("button", { name: "Place on grid" }).click();
+    const inspector = page.getByRole("region", { name: "Asset Inspector" });
+    await inspector.getByRole("button", { name: "Focus" }).click();
+    await expect(canvas).toHaveAttribute(
+      "data-camera-focus",
+      "repository-city",
+    );
+    await inspector.getByRole("button", { name: "Remove" }).click();
+    await expect(canvas).toHaveAttribute("data-camera-focus", "user");
+    await page.getByLabel("Search assets").fill("");
+    await page.getByRole("button", { name: "Live" }).click();
+    await expect(room).toHaveAttribute("data-repository-city-mode", "live");
+  }
   if (
     evidence === "desktop" ||
     evidence === "large-desktop" ||
@@ -1842,6 +1870,426 @@ test("held right-button canvas look follows both axes and clears every exit guar
   });
 });
 
+test("lower non-interactive HUD band owns camera capture while chat keeps context menu @pointer-lock-lower", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installWorldFixtures(page, { restoreStatus: true });
+  await enterFixtureWorld(page);
+
+  const room = page.locator("main.world-room");
+  const canvas = page.locator("canvas");
+  await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true", {
+    timeout: 30_000,
+  });
+  expect(
+    await page.evaluate(() =>
+      Boolean(document.querySelector('canvas[data-scene-id="world-room"]')),
+    ),
+  ).toBe(true);
+  await page.evaluate(() => {
+    window.addEventListener("pointerdown", (event) => {
+      document.body.dataset.lowerPointerDown = JSON.stringify({
+        button: event.button,
+        pointerId: event.pointerId,
+        prevented: event.defaultPrevented,
+        target: (event.target as HTMLElement | null)?.className ?? null,
+      });
+    });
+    window.addEventListener("contextmenu", (event) => {
+      document.body.dataset.lowerContextMenuPrevented = String(
+        event.defaultPrevented,
+      );
+    });
+  });
+  const lowerStatusBounds = await page
+    .locator(".world-hud__captions")
+    .boundingBox();
+  expect(lowerStatusBounds).not.toBeNull();
+  if (!lowerStatusBounds) return;
+  const lowerStatusPoint = {
+    x: lowerStatusBounds.x + lowerStatusBounds.width / 2,
+    y: lowerStatusBounds.y + lowerStatusBounds.height / 2,
+  };
+  expect(
+    await page.evaluate(
+      ({ x, y }) =>
+        document
+          .elementFromPoint(x, y)
+          ?.closest("input, textarea, select, button, a, form") === null,
+      lowerStatusPoint,
+    ),
+  ).toBe(true);
+
+  const expectPointerLock = async (locked: boolean) =>
+    expect
+      .poll(
+        () =>
+          canvas.evaluate((element) => document.pointerLockElement === element),
+        { timeout: 15_000 },
+      )
+      .toBe(locked);
+
+  await page.mouse.move(lowerStatusPoint.x, lowerStatusPoint.y);
+  await page.mouse.down({ button: "right" });
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-lower-pointer-down",
+    /"prevented":true/u,
+  );
+  await expectPointerLock(true);
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await page.mouse.up({ button: "right" });
+  await expectPointerLock(false);
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-lower-context-menu-prevented",
+    "true",
+  );
+
+  const composerContextMenuPrevented = await page
+    .getByLabel("Message Mr Fluff")
+    .evaluate((element) => {
+      const event = new MouseEvent("contextmenu", {
+        bubbles: true,
+        cancelable: true,
+        button: 2,
+      });
+      element.dispatchEvent(event);
+      return event.defaultPrevented;
+    });
+  expect(composerContextMenuPrevented).toBe(false);
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-lower-context-menu-prevented",
+    "false",
+  );
+
+  await page.mouse.move(lowerStatusPoint.x, lowerStatusPoint.y);
+  await page.mouse.down({ button: "right" });
+  await expectPointerLock(true);
+  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  await expectPointerLock(false);
+  await page.mouse.up({ button: "right" });
+
+  await page.mouse.move(lowerStatusPoint.x, lowerStatusPoint.y);
+  await page.mouse.down({ button: "right" });
+  await expectPointerLock(true);
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "hidden",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expectPointerLock(false);
+  await page.mouse.up({ button: "right" });
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+
+  await page.mouse.move(lowerStatusPoint.x, lowerStatusPoint.y);
+  await page.mouse.down({ button: "right" });
+  await expectPointerLock(true);
+  await page.keyboard.press("Escape");
+  await expectPointerLock(false);
+  await page.mouse.up({ button: "right" });
+
+  await page.mouse.move(lowerStatusPoint.x, lowerStatusPoint.y);
+  await page.mouse.down({ button: "right" });
+  await expectPointerLock(true);
+  await page.evaluate(() => {
+    const pointerId = Number(
+      JSON.parse(document.body.dataset.lowerPointerDown ?? "{}").pointerId,
+    );
+    window.dispatchEvent(
+      new PointerEvent("pointercancel", { bubbles: true, pointerId }),
+    );
+  });
+  await expectPointerLock(false);
+  await page.mouse.up({ button: "right" });
+
+  await canvas.evaluate((element) => {
+    Object.defineProperty(element, "requestPointerLock", {
+      configurable: true,
+      value: () => Promise.reject(new Error("fixture pointer lock rejection")),
+    });
+  });
+  await page.mouse.move(lowerStatusPoint.x, lowerStatusPoint.y);
+  await page.mouse.down({ button: "right" });
+  await expectPointerLock(false);
+  await expect(room).toHaveAttribute("data-mouse-look", "idle");
+  await page.mouse.up({ button: "right" });
+});
+
+test("repository city correction keeps loading local, restores source materials, and moves by both paths", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await seedConfiguredAvatar(page, "Aaron");
+
+  type MovementFixture = {
+    readonly actionId: string;
+    readonly source: "user-directed" | "agent-autonomous";
+    readonly target:
+      | {
+          readonly kind: "relative";
+          readonly direction: "left";
+          readonly distance: 5;
+        }
+      | { readonly kind: "follow-user"; readonly stoppingRadius: 1.5 };
+  };
+  let movement: MovementFixture | null = null;
+  const streamedMessages: string[] = [];
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  const largeSnapshot = {
+    ...snapshot,
+    objects: [
+      ...snapshot.objects,
+      ...Array.from({ length: 120 }, (_, offset) => {
+        const id = (offset + 12).toString(16).padStart(32, "0");
+        return {
+          kind: "file" as const,
+          id,
+          ref: ref(id),
+          name: `large-repository-${offset}.ts`,
+          parentRef: ref("2"),
+          childRefs: [],
+          path: `src/large-repository-${offset}.ts`,
+          size: 1_024 + offset,
+          fileKind: "source" as const,
+          language: "typescript",
+          contentHash: offset.toString(16).padStart(64, "0"),
+          pathHistory: [],
+          position: { x: offset % 20, y: 0, z: Math.floor(offset / 20) },
+          bounds: {
+            x: offset % 20,
+            z: Math.floor(offset / 20),
+            width: 1,
+            depth: 1,
+          },
+        };
+      }),
+    ],
+  };
+  const activateMovement = (
+    source: MovementFixture["source"],
+    target: MovementFixture["target"],
+  ) => {
+    movement = {
+      actionId:
+        source === "user-directed"
+          ? "66666666-6666-4666-8666-666666666666"
+          : "77777777-7777-4777-8777-777777777777",
+      source,
+      target,
+    };
+  };
+  await installWorldFixtures(page, {
+    restoreStatus: true,
+    snapshot: largeSnapshot,
+    fulfillStream: async (route, requestText, userDisplayName) => {
+      streamedMessages.push(requestText);
+      if (requestText.trim().toLocaleLowerCase() === "follow me")
+        activateMovement("agent-autonomous", {
+          kind: "follow-user",
+          stoppingRadius: 1.5,
+        });
+      await route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        body: streamBody(requestText, userDisplayName),
+      });
+    },
+    fulfillWorldActions: async (route, pathname) => {
+      const request = route.request();
+      if (pathname.endsWith("/proposals") && request.method() === "POST") {
+        const body = request.postDataJSON() as {
+          readonly actions?: readonly {
+            readonly source?: unknown;
+            readonly target?: unknown;
+          }[];
+        };
+        const action = body.actions?.[0];
+        expect(action?.source).toBe("user-directed");
+        expect(action?.target).toEqual({
+          kind: "relative",
+          direction: "left",
+          distance: 5,
+        });
+        activateMovement("user-directed", {
+          kind: "relative",
+          direction: "left",
+          distance: 5,
+        });
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: "{}",
+        });
+        return;
+      }
+      if (request.method() === "GET") {
+        const active = movement;
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(
+            active
+              ? {
+                  capability: { enabled: true },
+                  actions: [
+                    {
+                      actionId: active.actionId,
+                      kind: "move-agent",
+                      state: "path-planned",
+                      reason: active.source,
+                    },
+                  ],
+                  executions: [
+                    {
+                      accepted: true,
+                      envelope: {
+                        schema: "aiw.world-action/0.13",
+                        requestId: "22222222-2222-4222-8222-222222222222",
+                        batchId: "33333333-3333-4333-8333-333333333333",
+                        sessionId: session.sessionId,
+                        adapterSessionRef: session.adapterSessionRef,
+                        repositoryRef: "aiw://object/repository-a",
+                        worldGeneration: "world-a",
+                        layoutGeneration: "layout-a",
+                        graphGeneration: null,
+                        capabilitySnapshotHash: "a".repeat(64),
+                        sequence: active.source === "user-directed" ? 1 : 2,
+                        createdAt: new Date(Date.now() - 1_000).toISOString(),
+                        expiresAt: new Date(Date.now() + 30_000).toISOString(),
+                        actions: [
+                          {
+                            kind: "move-agent",
+                            schema: "aiw.agent-movement/1",
+                            actionId: active.actionId,
+                            actorId: session.sessionId,
+                            source: active.source,
+                            speed: 4,
+                            target: active.target,
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                }
+              : {
+                  capability: { enabled: true },
+                  actions: [],
+                  executions: [],
+                },
+          ),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: "{}",
+      });
+    },
+  });
+  await enterFixtureWorld(page);
+
+  const room = page.locator("main.world-room");
+  const composer = page.getByLabel("Message Mr Fluff");
+  const send = page.getByRole("button", { name: "Send" });
+  await expect(room).toHaveAttribute("data-floor-state", "blank");
+  await composer.fill("/repo load MelaBuilt-AI/agentclutch");
+  await send.click();
+  await expect(room).toHaveAttribute("data-floor-state", "repository", {
+    timeout: 30_000,
+  });
+  await expect(room).toHaveAttribute("data-repository-readiness", "ready", {
+    timeout: 30_000,
+  });
+  await expect(page.locator("#root")).toBeVisible();
+  await expect(room).toBeVisible();
+  expect(pageErrors).toEqual([]);
+  expect(streamedMessages).toEqual([]);
+  const repositoryTranscript = page.getByRole("log", {
+    name: "Conversation and activity",
+  });
+  await expect(repositoryTranscript).toContainText(
+    "Repository loaded locally · Current · 2 packages · 2 directories · 125 files",
+  );
+  await expect(repositoryTranscript).not.toContainText(
+    "repository loading is unavailable",
+  );
+
+  const canvas = page.locator('canvas[data-floor-state="repository"]');
+  await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true", {
+    timeout: 30_000,
+  });
+  await page.waitForTimeout(1_250);
+  const evidenceDirectory =
+    process.env.AIW_REPOSITORY_CITY_BROWSER_OUTPUT ??
+    "/tmp/aiw-repository-city-browser-proof";
+  mkdirSync(evidenceDirectory, { recursive: true });
+  await page.screenshot({
+    path: resolve(evidenceDirectory, "repository-city-idle-materials.png"),
+    fullPage: true,
+  });
+
+  const position = async () => ({
+    x: Number(await room.getAttribute("data-agent-position-x")),
+    z: Number(await room.getAttribute("data-agent-position-z")),
+  });
+  const directBefore = await position();
+  await composer.fill("/agent move left 5");
+  await send.click();
+  await expect
+    .poll(async () => {
+      const current = await position();
+      return Math.hypot(current.x - directBefore.x, current.z - directBefore.z);
+    })
+    .toBeGreaterThan(0.2);
+  const directAfter = await position();
+  expect(streamedMessages).toEqual([]);
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle", {
+    timeout: 15_000,
+  });
+
+  movement = null;
+  const followBefore = await position();
+  await composer.fill("follow me");
+  await send.click();
+  await expect.poll(() => streamedMessages).toEqual(["follow me"]);
+  await expect
+    .poll(async () => {
+      const current = await position();
+      return Math.hypot(current.x - followBefore.x, current.z - followBefore.z);
+    })
+    .toBeGreaterThan(0.2);
+  const followAfter = await position();
+
+  writeFileSync(
+    resolve(evidenceDirectory, "movement-proof.json"),
+    JSON.stringify(
+      {
+        schema: "aiw.repository-city-correction-browser-proof/1",
+        repositoryLoadStreamRequests: 0,
+        direct: { before: directBefore, after: directAfter },
+        follow: { before: followBefore, after: followAfter },
+        streamedMessages,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  expect(pageErrors).toEqual([]);
+});
+
 test("no-WebGL semantic state completes the same repository-floor journey", async ({
   page,
 }) => {
@@ -1858,6 +2306,49 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
   await expect(
     page.getByText("WorldEntryExperience.tsx", { exact: false }),
   ).toBeVisible();
+  const room = page.locator("main.world-room");
+  await expect(room).toHaveAttribute("data-repository-readiness", "ready");
+  const cityCount = Number(
+    await room.getAttribute("data-repository-city-count"),
+  );
+  await page.getByRole("button", { name: "Director" }).click();
+  await page.getByLabel("Search assets").fill("deployment");
+  await expect(page.locator(".repository-assets__card")).toHaveCount(1);
+  await page.getByRole("button", { name: "Place on grid" }).click();
+  await expect(room).toHaveAttribute(
+    "data-repository-city-count",
+    String(cityCount + 1),
+  );
+  const inspector = page.getByRole("region", { name: "Asset Inspector" });
+  await expect(inspector).toContainText("Deployment Portal");
+  await inspector.getByRole("button", { name: "Unpin" }).click();
+  await inspector.getByRole("button", { name: "Pin", exact: true }).click();
+  await inspector.getByRole("button", { name: "Ask Agent to Explain" }).click();
+  await expect(page.getByLabel("Message Mr Fluff")).toHaveValue(
+    "@Mr Fluff Explain that this Director placement has no linked repository item. Do not invent a path or code role. Then explain the Deployment Portal (26-deployment-portal) visual metaphor.",
+  );
+  await page.screenshot({
+    path: `${evidenceDirectory}/repository-city-director.png`,
+  });
+  await inspector.getByRole("button", { name: "Remove" }).click();
+  await expect(room).toHaveAttribute(
+    "data-repository-city-count",
+    String(cityCount),
+  );
+  await page.getByLabel("Search assets").fill("code slab");
+  await page.locator(".repository-assets__card").dragTo(room, {
+    targetPosition: { x: 760, y: 260 },
+  });
+  await expect(room).toHaveAttribute(
+    "data-repository-city-count",
+    String(cityCount + 1),
+  );
+  await expect(inspector).toContainText("Code Slab");
+  await inspector.getByRole("button", { name: "Remove" }).click();
+  await expect(room).toHaveAttribute(
+    "data-repository-city-count",
+    String(cityCount),
+  );
 });
 
 test("fixture addressing follows a second selected avatar name", async ({

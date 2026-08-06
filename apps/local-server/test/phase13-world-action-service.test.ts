@@ -174,6 +174,30 @@ describe("durable World Action service", () => {
     expect(ordinary.envelope.requestId).not.toBe(accepted.envelope.requestId);
   });
 
+  it("accepts the first observed native helper sequence for a fresh World session", async () => {
+    const service = new WorldActionService(temporary(), {
+      now: () => Date.parse("2026-07-21T12:00:20.000Z"),
+    });
+    const sourceStreamId = "f".repeat(64);
+
+    await expect(
+      service.propose(sessionId, importedProposal, context, {
+        requestId: "10000000-0000-4000-8000-000000000009",
+        sourceStreamId,
+        sequence: 7,
+        createdAt: "2026-07-21T12:00:00.000Z",
+      }),
+    ).resolves.toMatchObject({ accepted: true });
+    await expect(
+      service.propose(sessionId, importedProposal, context, {
+        requestId: "10000000-0000-4000-8000-000000000010",
+        sourceStreamId,
+        sequence: 9,
+        createdAt: "2026-07-21T12:00:01.000Z",
+      }),
+    ).resolves.toEqual({ accepted: false, reason: "sequence-gap" });
+  });
+
   it("accepts at most one concurrent import with the same helper request identity", async () => {
     const service = new WorldActionService(temporary(), {
       now: () => Date.parse("2026-07-21T12:00:10.000Z"),

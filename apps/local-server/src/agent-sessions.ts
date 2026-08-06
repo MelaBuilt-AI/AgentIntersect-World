@@ -1073,7 +1073,7 @@ export class HermesSessionAdapter implements AgentAdapter {
       );
     if (context?.worldActionActorId)
       systemMessages.push(
-        `AgentIntersect World movement authority is available through propose_world_action for actorId ${context.worldActionActorId}. When the user directly asks you to move, call propose_world_action with exactly one move-agent action using schema aiw.agent-movement/1, that exact actorId, source agent-autonomous, speed 4 (or speed 8 only when the user asks for fast movement), and a coordinate or relative target. When the user asks you to follow them, use the same action fields with target {"kind":"follow-user","stoppingRadius":1.5}. A proposed tool receipt is not arrival; do not claim arrival. Ordinary non-movement conversation must remain ordinary chat.`,
+        `AgentIntersect World movement authority is available through propose_world_action for the current World session. World binds the actor identity after verifying the exact native session, so omit actorId from move-agent actions even if earlier turns show one. When the user directly asks you to move, call propose_world_action with exactly one move-agent action using schema aiw.agent-movement/1, source agent-autonomous, speed 4 (or speed 8 only when the user asks for fast movement), and a materially distinct coordinate or relative target. When the user asks you to follow them, use the same action fields with target {"kind":"follow-user","stoppingRadius":1.5}. A queued tool receipt confirms neither movement nor arrival; describe it only as queued until World reports execution. Ordinary non-movement conversation must remain ordinary chat.`,
       );
     if (context?.userDisplayName !== undefined) {
       const userDisplayName = context.userDisplayName.normalize("NFC").trim();
@@ -1720,6 +1720,7 @@ export function readPluginAvatarProposal(
 export function readPluginWorldActionProposal(
   proposalPath: string,
   adapterSessionRef: string | readonly string[],
+  worldSessionId?: string,
 ): {
   readonly proposalId: string;
   readonly sourceStreamId: string;
@@ -1781,8 +1782,18 @@ export function readPluginWorldActionProposal(
       )
     )
       return null;
+    const actions = Array.isArray(input.actions)
+      ? input.actions.map((action) =>
+          isRecord(action) &&
+          action.kind === "move-agent" &&
+          !("actorId" in action) &&
+          typeof worldSessionId === "string"
+            ? { ...action, actorId: worldSessionId }
+            : action,
+        )
+      : input.actions;
     const parsed = WorldActionProposalSchema.safeParse({
-      actions: input.actions,
+      actions,
       ttlMs: input.ttlMs,
     });
     if (!parsed.success) return null;

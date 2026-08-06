@@ -321,13 +321,20 @@ export class WorldActionService {
     )
       return { accepted: false, reason: "duplicate" };
     if (sourceAuthority) {
-      const expectedSourceSequence =
-        (this.#sourceCursors.find(
-          (record) =>
-            record.sessionId === sessionId &&
-            record.sourceStreamId === sourceStreamId,
-        )?.lastSequence ?? 0) + 1;
-      if (sourceAuthority.sequence !== expectedSourceSequence)
+      if (
+        !Number.isSafeInteger(sourceAuthority.sequence) ||
+        sourceAuthority.sequence < 1
+      )
+        return { accepted: false, reason: "invalid" };
+      const sourceCursor = this.#sourceCursors.find(
+        (record) =>
+          record.sessionId === sessionId &&
+          record.sourceStreamId === sourceStreamId,
+      );
+      if (
+        sourceCursor &&
+        sourceAuthority.sequence !== sourceCursor.lastSequence + 1
+      )
         return { accepted: false, reason: "sequence-gap" };
       if (
         Date.parse(sourceAuthority.createdAt) +

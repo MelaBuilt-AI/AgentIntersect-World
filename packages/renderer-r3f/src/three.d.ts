@@ -36,7 +36,11 @@ declare module "three" {
   export class Group extends Object3D {}
   export class Material {
     name: string;
+    opacity: number;
+    transparent: boolean;
+    userData: Record<string, unknown>;
     clone(): this;
+    dispose(): void;
   }
   export class Texture {
     minFilter: unknown;
@@ -104,6 +108,13 @@ declare module "three" {
       tubularSegments?: number,
     );
   }
+  export class RingGeometry extends BufferGeometry {
+    constructor(
+      innerRadius?: number,
+      outerRadius?: number,
+      thetaSegments?: number,
+    );
+  }
   export class SphereGeometry {
     constructor(
       radius?: number,
@@ -120,10 +131,16 @@ declare module "three" {
       emissiveIntensity?: number;
     });
     color: Color;
+    emissive: Color;
+    emissiveIntensity: number;
     roughness: number;
   }
   export class MeshBasicMaterial extends Material {
-    constructor(parameters?: { color?: ColorRepresentation });
+    constructor(parameters?: {
+      color?: ColorRepresentation;
+      transparent?: boolean;
+      opacity?: number;
+    });
     color: Color;
     wireframe: boolean;
   }
@@ -139,6 +156,7 @@ declare module "three" {
   }
   export class Color {
     constructor(color?: ColorRepresentation);
+    set(color: ColorRepresentation): this;
     getHexString(): string;
   }
   export class AmbientLight extends Object3D {

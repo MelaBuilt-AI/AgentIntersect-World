@@ -75,6 +75,7 @@ type AnimationApi = {
     | { readonly kind: "local-animation"; readonly semantic: OneShotSemantic }
     | { readonly kind: "local-agent-movement"; readonly target: object }
     | { readonly kind: "local-agent-stop" }
+    | { readonly kind: "local-repository-load"; readonly text: string }
     | { readonly kind: "local-refusal"; readonly message: string }
     | { readonly kind: "remote-chat"; readonly text: string };
 };
@@ -189,6 +190,18 @@ describe("complete-avatar World animation controls", () => {
     expect(classify("  /unknown hello  ")).toEqual({
       kind: "remote-chat",
       text: "/unknown hello",
+    });
+  });
+
+  it("keeps a recognized repository load local instead of leaking it to assistant chat", () => {
+    expect(typeof animation.classifyWorldMessage).toBe("function");
+    expect(
+      animation.classifyWorldMessage!(
+        "  /repo load MelaBuilt-AI/agentclutch  ",
+      ),
+    ).toEqual({
+      kind: "local-repository-load",
+      text: "/repo load MelaBuilt-AI/agentclutch",
     });
   });
 

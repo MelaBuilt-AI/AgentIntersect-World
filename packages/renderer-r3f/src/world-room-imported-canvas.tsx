@@ -48,6 +48,11 @@ import {
   createRepositoryGeometry,
   createRepositoryMaterial,
 } from "./repository-visual-kit.js";
+import {
+  RepositoryCityModels,
+  selectRepositoryCityRenderPlan,
+} from "./repository-city-canvas.js";
+import type { RepositoryCityInstance } from "./repository-city-state.js";
 
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 
@@ -674,6 +679,9 @@ function WorldAvatarModel({
 function WorldRoomScene({
   floor,
   objects,
+  cityInstances,
+  selectedCityInstanceId,
+  cityFocusPosition,
   userPosition,
   camera: cameraLook,
   activity,
@@ -698,9 +706,15 @@ function WorldRoomScene({
   agentPosition,
   agentHeading,
   onContextLost,
+  onCitySelect,
+  onCitySettled,
+  onCityReady,
 }: {
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
+  readonly cityInstances: readonly RepositoryCityInstance[];
+  readonly selectedCityInstanceId: string | null;
+  readonly cityFocusPosition: Readonly<{ x: number; z: number }> | null;
   readonly userPosition: Readonly<{ x: number; z: number }>;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
@@ -731,6 +745,9 @@ function WorldRoomScene({
   readonly agentPosition: Readonly<{ x: number; z: number }>;
   readonly agentHeading: number;
   readonly onContextLost: () => void;
+  readonly onCitySelect: (instanceId: string) => void;
+  readonly onCitySettled: (instanceId: string) => void;
+  readonly onCityReady: () => void;
 }) {
   const { camera, gl, invalidate, scene } = useThree();
   const controlledAvatarYaw = calculateControlledAvatarYaw(cameraLook.yaw);
@@ -751,9 +768,22 @@ function WorldRoomScene({
     agentImportedClip?.clipIndex,
     avatarMotion.skeletal,
   );
+  const cityPlan = useMemo(
+    () => selectRepositoryCityRenderPlan(cityInstances),
+    [cityInstances],
+  );
+  const fallbackObjects = useMemo(() => {
+    const fallbackRefs = new Set(
+      cityPlan.aggregate.flatMap((instance) => {
+        const ref = instance.linkedRepoData?.ref;
+        return typeof ref === "string" ? [ref] : [];
+      }),
+    );
+    return objects.filter(({ ref }) => fallbackRefs.has(ref));
+  }, [cityPlan.aggregate, objects]);
   const prepared = useMemo(
-    () => prepareRepositoryInstances(objects),
-    [objects],
+    () => prepareRepositoryInstances(fallbackObjects),
+    [fallbackObjects],
   );
   const repositoryTransform = useMemo(
     () => calculateRepositoryTransform(objects),
@@ -774,7 +804,7 @@ function WorldRoomScene({
   const grid = useMemo(() => new GridHelper(34, 17, "#249cff", "#1f2937"), []);
   useEffect(() => {
     const pose = calculateWorldCameraPose({
-      userPosition,
+      userPosition: cityFocusPosition ?? userPosition,
       camera: cameraLook,
     });
     camera.position.set(...pose.position);
@@ -782,6 +812,9 @@ function WorldRoomScene({
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
     gl.domElement.dataset.cameraMode = "third-person";
+    gl.domElement.dataset.cameraFocus = cityFocusPosition
+      ? "repository-city"
+      : "user";
     gl.domElement.dataset.sceneId = "world-room";
     gl.domElement.dataset.floorState = floor;
     gl.domElement.dataset.userPosition = `${userPosition.x},${userPosition.z}`;
@@ -861,6 +894,7 @@ function WorldRoomScene({
     avatarLod,
     camera,
     cameraLook,
+    cityFocusPosition,
     floor,
     gl,
     invalidate,
@@ -911,19 +945,33 @@ function WorldRoomScene({
       <primitive object={floorMesh} />
       <primitive object={grid} />
       {floor === "repository" ? (
-        <group
-          name="world-room-repository-landscape"
-          position={repositoryTransform.position}
-          scale={repositoryTransform.scale}
-        >
-          {REPOSITORY_VISUAL_FAMILIES.map((family) => (
-            <InstanceGroup
-              key={family}
-              family={family}
-              group={prepared.groups[family]}
+        <>
+          <group name="world-room-repository-city">
+            <RepositoryCityModels
+              instances={cityPlan.semantic}
+              reducedMotion={reducedMotion}
+              selectedInstanceId={selectedCityInstanceId}
+              onSelect={onCitySelect}
+              onSettled={onCitySettled}
+              onReady={onCityReady}
             />
-          ))}
-        </group>
+          </group>
+          {cityPlan.aggregateCount > 0 ? (
+            <group
+              name="world-room-repository-aggregate-fallback"
+              position={repositoryTransform.position}
+              scale={repositoryTransform.scale}
+            >
+              {REPOSITORY_VISUAL_FAMILIES.map((family) => (
+                <InstanceGroup
+                  key={family}
+                  family={family}
+                  group={prepared.groups[family]}
+                />
+              ))}
+            </group>
+          ) : null}
+        </>
       ) : null}
       {userImportedAvatar ? (
         <ImportedAvatarGroundingMarker
@@ -1035,6 +1083,9 @@ function WorldRoomScene({
 export function WorldRoomCanvas({
   floor,
   objects,
+  cityInstances,
+  selectedCityInstanceId,
+  cityFocusPosition,
   userPosition,
   camera,
   activity,
@@ -1053,9 +1104,15 @@ export function WorldRoomCanvas({
   agentPosition,
   agentHeading,
   onContextLost,
+  onCitySelect,
+  onCitySettled,
+  onCityReady,
 }: {
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
+  readonly cityInstances: readonly RepositoryCityInstance[];
+  readonly selectedCityInstanceId: string | null;
+  readonly cityFocusPosition: Readonly<{ x: number; z: number }> | null;
   readonly userPosition: Readonly<{ x: number; z: number }>;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
@@ -1077,6 +1134,9 @@ export function WorldRoomCanvas({
   readonly agentPosition: Readonly<{ x: number; z: number }>;
   readonly agentHeading: number;
   readonly onContextLost: () => void;
+  readonly onCitySelect: (instanceId: string) => void;
+  readonly onCitySettled: (instanceId: string) => void;
+  readonly onCityReady: () => void;
 }) {
   const userImportedClip = userImportedAvatar?.resolvedClip;
   const agentImportedClip = agentImportedAvatar?.resolvedClip;
@@ -1244,6 +1304,9 @@ export function WorldRoomCanvas({
       <WorldRoomScene
         floor={floor}
         objects={objects}
+        cityInstances={cityInstances}
+        selectedCityInstanceId={selectedCityInstanceId}
+        cityFocusPosition={cityFocusPosition}
         userPosition={userPosition}
         camera={camera}
         activity={activity}
@@ -1268,6 +1331,9 @@ export function WorldRoomCanvas({
         agentPosition={agentPosition}
         agentHeading={agentHeading}
         onContextLost={onContextLost}
+        onCitySelect={onCitySelect}
+        onCitySettled={onCitySettled}
+        onCityReady={onCityReady}
       />
     </Canvas>
   );

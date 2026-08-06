@@ -10,6 +10,7 @@ import type {
 import {
   lazy,
   Suspense,
+  useCallback,
   useEffect,
   useMemo,
   useReducer,
@@ -77,6 +78,7 @@ type PendingWorldMessage = {
 function renderObjects(
   snapshot: WorldSnapshot,
 ): readonly RepositoryRenderObject[] {
+  const byRef = new Map(snapshot.objects.map((object) => [object.ref, object]));
   return snapshot.objects
     .filter(
       (
@@ -89,20 +91,49 @@ function renderObjects(
         object.kind === "directory" ||
         object.kind === "file",
     )
-    .map((object) => ({
-      ref: object.ref,
-      kind: object.kind,
-      name: object.name,
-      position: object.position,
-      bounds: object.bounds,
-      ...(object.kind === "file"
-        ? {
-            fileKind: object.fileKind,
-            language: object.language,
-            size: object.size,
-          }
-        : {}),
-    }));
+    .map((object) => {
+      const parent = object.parentRef ? byRef.get(object.parentRef) : null;
+      const directChildren = object.childRefs
+        .slice(0, 8)
+        .flatMap((ref) => {
+          const child = byRef.get(ref);
+          if (!child) return [];
+          return ["path" in child ? child.path : child.name];
+        })
+        .join(", ");
+      return {
+        ref: object.ref,
+        repositoryRef: snapshot.repositoryRef,
+        kind: object.kind,
+        name: object.name,
+        path: object.path,
+        parentRef: object.parentRef,
+        ...(parent
+          ? {
+              parentLabel: parent.name,
+              ...("path" in parent ? { parentPath: parent.path } : {}),
+            }
+          : {}),
+        childCount: object.childRefs.length,
+        ...(directChildren ? { directChildren } : {}),
+        position: object.position,
+        bounds: object.bounds,
+        ...(object.kind === "directory" ? { fileCount: object.fileCount } : {}),
+        ...(object.kind === "package"
+          ? {
+              packageKind: object.packageKind,
+              packageName: object.packageName,
+            }
+          : {}),
+        ...(object.kind === "file"
+          ? {
+              fileKind: object.fileKind,
+              language: object.language,
+              size: object.size,
+            }
+          : {}),
+      };
+    });
 }
 
 function connectionLabel(result: HermesConnectionResult): string {
@@ -111,13 +142,6 @@ function connectionLabel(result: HermesConnectionResult): string {
   if (result.status === "stale") return "Stale / unavailable";
   if (result.status === "unavailable") return "Unavailable";
   return "Retry";
-}
-
-function repositoryRequest(text: string): boolean {
-  return (
-    /\b(load|open|index|map|show)\b/iu.test(text) &&
-    /\b(repo|repository|project|codebase)\b/iu.test(text)
-  );
 }
 
 export type WorldEntryClient = ReturnType<typeof createWorldEntryClient>;
@@ -174,6 +198,9 @@ export function WorldEntryExperience({
     readonly source: "local-command";
   } | null>(null);
   const [objects, setObjects] = useState<readonly RepositoryRenderObject[]>([]);
+  const [repositoryReadiness, setRepositoryReadiness] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
   const [layoutGeneration, setLayoutGeneration] = useState("blank-world");
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
@@ -405,17 +432,27 @@ export function WorldEntryExperience({
   };
 
   const loadRequestedRepository = async (text: string) => {
-    if (!repositoryRequest(text) || !mounted.current) return;
+    if (!mounted.current) return;
+    const acknowledgementId = `${Date.now()}-${nextMessageId.current++}`;
     dispatch({ type: "REQUEST_REPOSITORY", request: text });
+    setRepositoryReadiness("loading");
     setStatus("Repository loading · blank floor preserved");
     const result = await client.loadRepository(".");
     if (!mounted.current) return;
     if (result.status === "failed") {
+      setRepositoryReadiness("error");
       dispatch({
         type: "REPOSITORY_FAILED",
         reason: result.message,
       });
       setStatus("Repository unavailable · blank floor preserved · Retry");
+      updateChat({
+        type: "LOCAL_REPOSITORY_RESULT",
+        id: acknowledgementId,
+        request: text,
+        success: false,
+        message: "Repository load failed locally · blank floor preserved",
+      });
       return;
     }
     const nextObjects = renderObjects(result.snapshot);
@@ -439,7 +476,26 @@ export function WorldEntryExperience({
         ? `Repository floor · Previous / recovered · ${repositorySummary}`
         : `Repository floor · Current · ${repositorySummary}`,
     );
+    updateChat({
+      type: "LOCAL_REPOSITORY_RESULT",
+      id: acknowledgementId,
+      request: text,
+      success: true,
+      message:
+        result.status === "previous-recovered"
+          ? `Repository loaded locally · Previous / recovered · ${repositorySummary}`
+          : `Repository loaded locally · Current · ${repositorySummary}`,
+    });
   };
+
+  const repositoryRendered = useCallback(() => {
+    setRepositoryReadiness("ready");
+    setStatus("Repository city · ready");
+  }, []);
+  const repositoryRenderFailed = useCallback(() => {
+    setRepositoryReadiness("error");
+    setStatus("Repository city renderer unavailable · semantic scene active");
+  }, []);
 
   const processChatQueue = async () => {
     if (processingChat.current || !session) return;
@@ -468,8 +524,6 @@ export function WorldEntryExperience({
           });
           if (!mounted.current || presentationGeneration.current !== generation)
             return;
-          await loadRequestedRepository(current.text);
-          if (!mounted.current) return;
           updateChat({ type: "SEND_COMPLETED", text: answer.finalText });
         } catch {
           if (mounted.current && presentationGeneration.current === generation)
@@ -538,6 +592,10 @@ export function WorldEntryExperience({
         if (mounted.current)
           setStatus("agent movement stop refused · unavailable");
       }
+      return;
+    }
+    if (classified.kind === "local-repository-load") {
+      await loadRequestedRepository(classified.text);
       return;
     }
     const text = classified.text;
@@ -772,7 +830,10 @@ export function WorldEntryExperience({
         </main>
       );
     return (
-      <div className="world-experience world-experience--room">
+      <div
+        className="world-experience world-experience--room"
+        data-repository-readiness={repositoryReadiness}
+      >
         <Suspense
           fallback={
             <p className="world-entry-overlay" role="status">
@@ -798,6 +859,12 @@ export function WorldEntryExperience({
             layoutGeneration={layoutGeneration}
             onAgentMovementEvent={reportAgentMovementEvent}
             showControlHints={preferences.showControlHints}
+            repositoryReadiness={repositoryReadiness}
+            onRepositoryReady={repositoryRendered}
+            onRepositoryError={repositoryRenderFailed}
+            onAskAgent={(prompt) =>
+              setMessage(`@${activeProposal.displayName} ${prompt}`)
+            }
           />
         </Suspense>
         {state.step !== "world_entering" ? (

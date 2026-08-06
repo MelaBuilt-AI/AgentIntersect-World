@@ -32,6 +32,46 @@ const startTurn = () => {
 };
 
 describe("World chat outer-turn activity", () => {
+  it("adds a local repository acknowledgement only when the load result is known", () => {
+    const initial = createWorldChatState();
+    expect(initial.transcript).toEqual([]);
+
+    const succeeded = reduceWorldChat(initial, {
+      type: "LOCAL_REPOSITORY_RESULT",
+      id: "repo-success",
+      request: "/repo load MelaBuilt-AI/agentclutch",
+      success: true,
+      message:
+        "Repository loaded locally · Current · 4 packages · 8 directories · 12 files",
+    });
+    expect(
+      succeeded.transcript.map(({ kind, text }) => ({ kind, text })),
+    ).toEqual([
+      { kind: "user", text: "/repo load MelaBuilt-AI/agentclutch" },
+      {
+        kind: "assistant",
+        text: "Repository loaded locally · Current · 4 packages · 8 directories · 12 files",
+      },
+    ]);
+
+    const failed = reduceWorldChat(initial, {
+      type: "LOCAL_REPOSITORY_RESULT",
+      id: "repo-failure",
+      request: "/repo load missing",
+      success: false,
+      message: "Repository load failed locally · blank floor preserved",
+    });
+    expect(failed.transcript.map(({ kind, text }) => ({ kind, text }))).toEqual(
+      [
+        { kind: "user", text: "/repo load missing" },
+        {
+          kind: "error",
+          text: "Repository load failed locally · blank floor preserved",
+        },
+      ],
+    );
+  });
+
   it.each([
     ["terminal.exec", "terminal", "coding"],
     ["file-content.read", "reading", "tool"],

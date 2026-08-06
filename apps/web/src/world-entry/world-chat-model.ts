@@ -189,6 +189,13 @@ export function parseAgentDirectionCommand(
   return { kind: "refused", message: AGENT_DIRECTION_REFUSAL };
 }
 
+export function isRepositoryLoadRequest(text: string): boolean {
+  return (
+    /\b(load|open|index|map|show)\b/iu.test(text) &&
+    /\b(repo|repository|project|codebase)\b/iu.test(text)
+  );
+}
+
 export function classifyWorldMessage(text: string):
   | {
       readonly kind: "local-animation";
@@ -199,6 +206,7 @@ export function classifyWorldMessage(text: string):
       readonly target: AgentMovementTarget;
     }
   | { readonly kind: "local-agent-stop" }
+  | { readonly kind: "local-repository-load"; readonly text: string }
   | { readonly kind: "local-refusal"; readonly message: string }
   | { readonly kind: "remote-chat"; readonly text: string } {
   const semantic = resolveLocalAvatarCommand(text);
@@ -209,7 +217,10 @@ export function classifyWorldMessage(text: string):
   if (direction.kind === "stop") return { kind: "local-agent-stop" };
   if (direction.kind === "refused")
     return { kind: "local-refusal", message: direction.message };
-  return { kind: "remote-chat", text: text.trim() };
+  const trimmed = text.trim();
+  if (isRepositoryLoadRequest(trimmed))
+    return { kind: "local-repository-load", text: trimmed };
+  return { kind: "remote-chat", text: trimmed };
 }
 
 export function projectAgentAnimationCue(
@@ -350,6 +361,13 @@ export type WorldChatAction =
   | { readonly type: "AGENT_EVENT"; readonly event: WorldAgentEvent }
   | { readonly type: "SEND_COMPLETED"; readonly text: string }
   | { readonly type: "SEND_FAILED"; readonly message: string }
+  | {
+      readonly type: "LOCAL_REPOSITORY_RESULT";
+      readonly id: string;
+      readonly request: string;
+      readonly success: boolean;
+      readonly message: string;
+    }
   | { readonly type: "RESET_PRESENTATION" };
 
 const IDLE: WorldActivity = {
@@ -527,6 +545,18 @@ export function reduceWorldChat(
           event: "completed",
         }),
     );
+  }
+  if (action.type === "LOCAL_REPOSITORY_RESULT") {
+    const withRequest = append(state, {
+      id: `user-${action.id}`,
+      kind: "user",
+      text: action.request,
+    });
+    return append(withRequest, {
+      id: `local-repository-${action.id}`,
+      kind: action.success ? "assistant" : "error",
+      text: action.message,
+    });
   }
 
   const { event } = action;

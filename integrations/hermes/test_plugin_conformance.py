@@ -49,7 +49,7 @@ class PluginConformanceTest(unittest.TestCase):
                 move = json.loads(helper({"actions": [{
                     "kind": "move-agent",
                     "schema": "aiw.agent-movement/1",
-                    "actorId": "11111111-1111-4111-8111-111111111111",
+                    "actorId": "00000000-0000-4000-8000-000000000099",
                     "source": "agent-autonomous",
                     "speed": 4,
                     "target": {
@@ -61,15 +61,16 @@ class PluginConformanceTest(unittest.TestCase):
                 follow = json.loads(helper({"actions": [{
                     "kind": "move-agent",
                     "schema": "aiw.agent-movement/1",
-                    "actorId": "11111111-1111-4111-8111-111111111111",
                     "source": "agent-autonomous",
                     "speed": 4,
                     "target": {"kind": "follow-user", "stoppingRadius": 1.5},
                 }]}))
                 context.hooks["post_llm_call"](session_id="movement-session")
 
-            self.assertEqual(move["status"], "proposed")
-            self.assertEqual(follow["status"], "proposed")
+            self.assertEqual(move["status"], "queued")
+            self.assertFalse(move["executionConfirmed"])
+            self.assertEqual(follow["status"], "queued")
+            self.assertFalse(follow["executionConfirmed"])
             proposals = [
                 json.loads(candidate.read_text("utf-8"))
                 for candidate in (
@@ -79,6 +80,9 @@ class PluginConformanceTest(unittest.TestCase):
             self.assertEqual(
                 {proposal["actions"][0]["target"]["kind"] for proposal in proposals},
                 {"relative", "follow-user"},
+            )
+            self.assertTrue(
+                all("actorId" not in proposal["actions"][0] for proposal in proposals)
             )
 
     def test_world_action_source_sequence_survives_reload_and_is_atomic(self):
@@ -190,7 +194,8 @@ class PluginConformanceTest(unittest.TestCase):
                 )
                 self.assertIsInstance(receipt_json, str)
                 receipt = json.loads(receipt_json)
-                self.assertEqual(receipt["status"], "proposed")
+                self.assertEqual(receipt["status"], "queued")
+                self.assertFalse(receipt["executionConfirmed"])
                 proposal = json.loads(
                     (home / "agentintersect-world" / "world-action-proposals" / f"{receipt['proposalId']}.json").read_text("utf-8")
                 )
