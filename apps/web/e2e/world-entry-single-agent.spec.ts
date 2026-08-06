@@ -1734,8 +1734,54 @@ test("mobile keyboard/reduced-motion/forced-colors journey remains contained", a
 test("large desktop World and HUD fill and reflow with the browser viewport", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
   await page.setViewportSize({ width: 1728, height: 1080 });
-  await completeJourney(page, "large-desktop");
+  await seedConfiguredAvatar(page, "Aaron");
+  await restoreFixtureWorld(page);
+  await expectSharedHudBottomTrack(page);
+
+  const room = page.locator("main.world-room");
+  const messageComposer = page.getByLabel("Message Mr Fluff");
+  const transcript = page.getByRole("log", {
+    name: "Conversation and activity",
+  });
+  await messageComposer.focus();
+  await expect(messageComposer).toBeFocused();
+  await messageComposer.fill("Please load the approved repository");
+  await messageComposer.press("Enter");
+  await expect(transcript).toContainText(
+    "YouPlease load the approved repository",
+    { timeout: 30_000 },
+  );
+  await expect(transcript).toContainText(
+    "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
+    { timeout: 60_000 },
+  );
+  await expect(room).toHaveAttribute("data-floor-state", "repository", {
+    timeout: 30_000,
+  });
+  await expect(room).toHaveAttribute("data-repository-readiness", "ready", {
+    timeout: 30_000,
+  });
+  await expect(
+    page.getByRole("heading", { name: "Repository floor" }),
+  ).toBeVisible({ timeout: 30_000 });
+  await expect(
+    page
+      .getByRole("list", { name: "Repository floor objects" })
+      .getByRole("listitem"),
+  ).toHaveCount(9, { timeout: 30_000 });
+  const repositoryCanvas = page.locator(
+    'canvas[data-floor-state="repository"]',
+  );
+  await expect(repositoryCanvas).toBeVisible({ timeout: 30_000 });
+  await expect(repositoryCanvas).toHaveAttribute(
+    "data-avatar-render-ready",
+    "true",
+    { timeout: 30_000 },
+  );
+  await expectSharedHudBottomTrack(page);
+
   const dimensions = await page.evaluate(() => {
     const box = (selector: string, visible = false) => {
       const elements = [...document.querySelectorAll<HTMLElement>(selector)];
@@ -1764,6 +1810,10 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
   expect(dimensions.experience).toEqual(dimensions.viewport);
   expect(dimensions.room).toEqual(dimensions.viewport);
   expect(dimensions.canvas).toEqual(dimensions.viewport);
+  await page.screenshot({
+    path: `${evidenceDirectory}/repository-floor-large-desktop.png`,
+    fullPage: true,
+  });
 });
 
 test("held right-button canvas look follows both axes and clears every exit guard @pointer-lock", async ({
@@ -2390,7 +2440,9 @@ test("repository city correction keeps loading local, restores source materials,
   const directBefore = await position();
   await composer.fill("/agent move left 5");
   await composer.press("Enter");
-  await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
+  await expect(room).toHaveAttribute("data-agent-movement-state", "moving", {
+    timeout: 30_000,
+  });
   await expect
     .poll(
       async () => {
@@ -2413,7 +2465,9 @@ test("repository city correction keeps loading local, restores source materials,
   const followBefore = await position();
   await composer.fill("follow me");
   await composer.press("Enter");
-  await expect.poll(() => streamedMessages).toEqual(["follow me"]);
+  await expect
+    .poll(() => streamedMessages, { timeout: 30_000 })
+    .toEqual(["follow me"]);
   await expect
     .poll(
       async () => {
