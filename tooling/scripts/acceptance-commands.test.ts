@@ -97,7 +97,7 @@ describe("acceptance command graph", () => {
     const projects = config.projects ?? [];
 
     expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
-    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(1);
+    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(2);
     expect(projects).toHaveLength(2);
     expect(projects[0]?.name ?? "").toBe("");
     expect(projects).toEqual([

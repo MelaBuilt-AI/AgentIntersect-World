@@ -338,6 +338,7 @@ function streamBody(requestText: string, userDisplayName: string) {
 }
 
 type WorldFixtureOptions = {
+  readonly avatarProposal?: unknown;
   readonly history?: unknown;
   readonly restoreStatus?: boolean;
   readonly snapshot?: unknown;
@@ -401,7 +402,8 @@ async function installWorldFixtures(
       pathname.endsWith(`/agent-sessions/${session.sessionId}/status`)
     )
       data = session;
-    else if (pathname.endsWith("/avatar-proposal")) data = proposal;
+    else if (pathname.endsWith("/avatar-proposal"))
+      data = options.avatarProposal ?? proposal;
     else if (pathname.endsWith("/history"))
       data =
         options.history ??
@@ -477,6 +479,46 @@ async function enterFixtureWorld(page: Page) {
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   await page.getByRole("button", { name: "Accept and save avatar" }).click();
   await page.getByRole("button", { name: "Enter World" }).click();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+}
+
+async function restoreFixtureWorld(page: Page) {
+  const acceptedProposal = {
+    ...proposal,
+    avatarSource: {
+      kind: "imported",
+      version: 2,
+      mode: "original",
+      modelId: "robot-agent-02",
+    },
+  } as const;
+  await page.addInitScript(
+    ({ key, activeSessionId }) => localStorage.setItem(key, activeSessionId),
+    {
+      key: "aiw.agent-session.pointer.0.12",
+      activeSessionId: session.sessionId,
+    },
+  );
+  await installWorldFixtures(page, {
+    avatarProposal: acceptedProposal,
+    restoreStatus: true,
+    history: {
+      sessionId: session.sessionId,
+      continuity: "current",
+      messages: [],
+      transcriptAuthority: "hermes",
+      avatarConsent: {
+        state: "accepted",
+        current: acceptedProposal,
+        previous: null,
+      },
+    },
+  });
+  await page.goto("/");
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "blank",
+  );
   await expect(page.getByTestId("world-hud")).toBeVisible();
 }
 
@@ -922,7 +964,7 @@ async function completeJourney(
     "YouPlease load the approved repository",
   );
   await expect(transcript).toContainText(
-    "Mr Fluff[fixture] The repository floor is ready.",
+    "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
     { timeout: 60_000 },
   );
   await expect(chatForm).toHaveAttribute("aria-busy", "false", {
@@ -963,6 +1005,7 @@ async function completeJourney(
     await expect(canvas).toHaveAttribute(
       "data-camera-focus",
       "repository-city",
+      { timeout: 30_000 },
     );
     await inspector.getByRole("button", { name: "Remove" }).click();
     await expect(canvas).toHaveAttribute("data-camera-focus", "user");
@@ -1087,7 +1130,17 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
       sessionId: session.sessionId,
     },
   );
+  const acceptedProposal = {
+    ...proposal,
+    avatarSource: {
+      kind: "imported",
+      version: 2,
+      mode: "original",
+      modelId: "cat-agent-01",
+    },
+  } as const;
   await installWorldFixtures(page, {
+    avatarProposal: acceptedProposal,
     restoreStatus: true,
     history: {
       sessionId: session.sessionId,
@@ -1099,15 +1152,7 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
       transcriptAuthority: "hermes",
       avatarConsent: {
         state: "accepted",
-        current: {
-          ...proposal,
-          avatarSource: {
-            kind: "imported",
-            version: 2,
-            mode: "original",
-            modelId: "cat-agent-01",
-          },
-        },
+        current: acceptedProposal,
         previous: null,
       },
     },
@@ -1331,13 +1376,64 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
     .getByRole("log", { name: "Conversation and activity" })
     .getByRole("listitem");
   const transcriptItemCount = await transcriptItems.count();
+  const repositoryCanvas = page.locator(
+    'canvas[data-floor-state="repository"]',
+  );
   const actionComposer = page.getByLabel("Message Mr Fluff");
   await actionComposer.fill("Refresh Phase 18.5 action proof");
+  const cheerObservation = await repositoryCanvas.evaluateHandle((canvas) => {
+    let observer: MutationObserver | null = null;
+    let timeout: number | null = null;
+    const cleanup = () => {
+      observer?.disconnect();
+      if (timeout !== null) window.clearTimeout(timeout);
+    };
+    const observation = new Promise<{
+      readonly action: string | undefined;
+      readonly face: string | undefined;
+      readonly secondary: string | undefined;
+    }>((resolveCheer, rejectCheer) => {
+      const capture = () => {
+        if (canvas.dataset.agentAvatarAction !== "Cheer") return;
+        const snapshot = {
+          action: canvas.dataset.agentAvatarAction,
+          face: canvas.dataset.agentAvatarFace,
+          secondary: canvas.dataset.agentAvatarSecondary,
+        };
+        cleanup();
+        resolveCheer(snapshot);
+      };
+      observer = new MutationObserver(capture);
+      observer.observe(canvas, {
+        attributes: true,
+        attributeFilter: [
+          "data-agent-avatar-action",
+          "data-agent-avatar-face",
+          "data-agent-avatar-secondary",
+        ],
+      });
+      timeout = window.setTimeout(() => {
+        cleanup();
+        rejectCheer(new Error("Phase 18.5 Cheer observation timed out"));
+      }, 15_000);
+      capture();
+    });
+    return { observation };
+  });
   await actionComposer.press("Enter");
   await expect(transcriptItems).toHaveCount(transcriptItemCount + 4);
-  await expect(
-    page.locator('canvas[data-floor-state="repository"]'),
-  ).toHaveAttribute("data-agent-avatar-action", "Celebrate");
+  const transientSnapshot = await cheerObservation
+    .evaluate(({ observation }) => observation)
+    .finally(() => cheerObservation.dispose());
+  expect(transientSnapshot.action).toBe("Cheer");
+  // The imported clip and projected activity layer use independent clocks.
+  expect([
+    { face: "Smile", secondary: "Celebrate" },
+    { face: "neutral", secondary: "Neutral" },
+  ]).toContainEqual({
+    face: transientSnapshot.face,
+    secondary: transientSnapshot.secondary,
+  });
   const inspection = await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>(
       'canvas[data-floor-state="repository"]',
@@ -1366,9 +1462,6 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
       userSpecies: canvas?.dataset.userAvatarSpecies ?? null,
       agentSpecies: canvas?.dataset.agentAvatarSpecies ?? null,
       userAction: canvas?.dataset.userAvatarAction ?? null,
-      agentAction: canvas?.dataset.agentAvatarAction ?? null,
-      agentFace: canvas?.dataset.agentAvatarFace ?? null,
-      agentSecondary: canvas?.dataset.agentAvatarSecondary ?? null,
       userLod: canvas?.dataset.userAvatarLod ?? null,
       agentLod: canvas?.dataset.agentAvatarLod ?? null,
       renderLoop: canvas?.dataset.renderLoop ?? null,
@@ -1391,9 +1484,49 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
   const expectedRenderLoopMode = constrainedCosmetics
     ? "continuous-constrained"
     : "continuous-native";
-  await expect(
-    page.locator('canvas[data-floor-state="repository"]'),
-  ).toHaveAttribute("data-agent-avatar-action", "Idle");
+  await repositoryCanvas.evaluate(
+    (canvas) =>
+      new Promise<void>((resolveIdle) => {
+        if (
+          canvas.dataset.agentAvatarAction === "Idle" &&
+          canvas.dataset.agentAvatarFace === "neutral" &&
+          canvas.dataset.agentAvatarSecondary === "Neutral"
+        ) {
+          resolveIdle();
+          return;
+        }
+        const observer = new MutationObserver(() => {
+          if (
+            canvas.dataset.agentAvatarAction !== "Idle" ||
+            canvas.dataset.agentAvatarFace !== "neutral" ||
+            canvas.dataset.agentAvatarSecondary !== "Neutral"
+          )
+            return;
+          observer.disconnect();
+          resolveIdle();
+        });
+        observer.observe(canvas, {
+          attributes: true,
+          attributeFilter: [
+            "data-agent-avatar-action",
+            "data-agent-avatar-face",
+            "data-agent-avatar-secondary",
+          ],
+        });
+      }),
+  );
+  await expect(repositoryCanvas).toHaveAttribute(
+    "data-agent-avatar-action",
+    "Idle",
+  );
+  await expect(repositoryCanvas).toHaveAttribute(
+    "data-agent-avatar-face",
+    "neutral",
+  );
+  await expect(repositoryCanvas).toHaveAttribute(
+    "data-agent-avatar-secondary",
+    "Neutral",
+  );
   const frames = await measurePhase18_5Frames(page);
   const percentile = (values: readonly number[], fraction: number) =>
     [...values].sort((left, right) => left - right)[
@@ -1522,9 +1655,6 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
     userSpecies: "human",
     agentSpecies: "cat",
     userAction: "Idle",
-    agentAction: "Celebrate",
-    agentFace: "Smile",
-    agentSecondary: "Celebrate",
     userLod: "LOD0",
     agentLod: "LOD0",
     renderLoop: "continuous",
@@ -1634,9 +1764,13 @@ test("held right-button canvas look follows both axes and clears every exit guar
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await completeJourney(page, "pointer-lock");
+  await seedConfiguredAvatar(page, "Aaron");
+  await restoreFixtureWorld(page);
   const room = page.locator("main.world-room");
   const canvas = page.locator("canvas");
+  await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true", {
+    timeout: 30_000,
+  });
   const bounds = await canvas.boundingBox();
   expect(bounds).not.toBeNull();
   if (!bounds) return;
@@ -1875,8 +2009,7 @@ test("lower non-interactive HUD band owns camera capture while chat keeps contex
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
-  await installWorldFixtures(page, { restoreStatus: true });
-  await enterFixtureWorld(page);
+  await restoreFixtureWorld(page);
 
   const room = page.locator("main.world-room");
   const canvas = page.locator("canvas");
@@ -2248,6 +2381,7 @@ test("repository city correction keeps loading local, restores source materials,
   const directBefore = await position();
   await composer.fill("/agent move left 5");
   await send.click();
+  await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
   await expect
     .poll(async () => {
       const current = await position();
