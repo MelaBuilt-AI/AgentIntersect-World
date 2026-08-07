@@ -17,6 +17,48 @@ import {
 
 export { MAX_REPOSITORY_CITY_INSTANCES as MAX_SEMANTIC_REPOSITORY_GLBS } from "./repository-city-state.js";
 
+export class RepositoryCityGLTFLoader extends GLTFLoader {
+  private pending: Promise<void> = Promise.resolve();
+
+  override load(
+    url: string,
+    onLoad: (gltf: GLTF) => void,
+    onProgress?: ((event: ProgressEvent) => void) | undefined,
+    onError?: ((error: unknown) => void) | undefined,
+  ): void {
+    const start = () =>
+      new Promise<void>((release) => {
+        try {
+          super.load(
+            url,
+            (gltf) => {
+              try {
+                onLoad(gltf);
+              } finally {
+                release();
+              }
+            },
+            onProgress,
+            (error) => {
+              try {
+                onError?.(error);
+              } finally {
+                release();
+              }
+            },
+          );
+        } catch (error) {
+          try {
+            onError?.(error);
+          } finally {
+            release();
+          }
+        }
+      });
+    this.pending = this.pending.then(start, start);
+  }
+}
+
 export function selectRepositoryCityRenderPlan(
   instances: readonly RepositoryCityInstance[],
 ) {
@@ -266,7 +308,7 @@ export function RepositoryCityModels({
     ],
     [instances],
   );
-  const loaded = useLoader(GLTFLoader, urls);
+  const loaded = useLoader(RepositoryCityGLTFLoader, urls);
   const byUrl = new Map(urls.map((url, index) => [url, loaded[index]!]));
   useEffect(onReady, [onReady, urls]);
   return instances.map((instance) => {

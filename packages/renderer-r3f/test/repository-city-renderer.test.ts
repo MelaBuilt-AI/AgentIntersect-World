@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import {
+  GLTFLoader,
+  type GLTF,
+} from "three/examples/jsm/loaders/GLTFLoader.js";
+import { describe, expect, it, vi } from "vitest";
 
 import {
+  RepositoryCityGLTFLoader,
   repositoryMaterializationFrame,
   repositoryMaterialTint,
   selectRepositoryCityRenderPlan,
@@ -20,6 +25,66 @@ const instance = (index: number): RepositoryCityInstance => ({
 });
 
 describe("repository city renderer policy", () => {
+  it("loads repository GLBs one at a time and releases the queue after errors", async () => {
+    const started: string[] = [];
+    const pending = new Map<
+      string,
+      { readonly succeed: () => void; readonly fail: () => void }
+    >();
+    let active = 0;
+    let maximumActive = 0;
+    vi.spyOn(GLTFLoader.prototype, "load").mockImplementation(
+      (url, onLoad, _onProgress, onError) => {
+        started.push(url);
+        active += 1;
+        maximumActive = Math.max(maximumActive, active);
+        pending.set(url, {
+          succeed: () => {
+            active -= 1;
+            onLoad({} as GLTF);
+          },
+          fail: () => {
+            active -= 1;
+            onError?.(new Error(`failed ${url}`));
+          },
+        });
+      },
+    );
+
+    const loader = new RepositoryCityGLTFLoader();
+    loader.load(
+      "first.glb",
+      () => undefined,
+      undefined,
+      () => undefined,
+    );
+    loader.load(
+      "second.glb",
+      () => undefined,
+      undefined,
+      () => undefined,
+    );
+    loader.load(
+      "third.glb",
+      () => undefined,
+      undefined,
+      () => undefined,
+    );
+
+    await vi.waitFor(() => expect(started).toEqual(["first.glb"]));
+    pending.get("first.glb")!.succeed();
+    await vi.waitFor(() =>
+      expect(started).toEqual(["first.glb", "second.glb"]),
+    );
+    pending.get("second.glb")!.fail();
+    await vi.waitFor(() =>
+      expect(started).toEqual(["first.glb", "second.glb", "third.glb"]),
+    );
+    pending.get("third.glb")!.succeed();
+    await vi.waitFor(() => expect(active).toBe(0));
+    expect(maximumActive).toBe(1);
+  });
+
   it("bounds full GLBs and leaves an explicit aggregate fallback", () => {
     const plan = selectRepositoryCityRenderPlan(
       Array.from({ length: 90 }, (_, index) => instance(index)),
