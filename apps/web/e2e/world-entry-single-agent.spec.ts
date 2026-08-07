@@ -13,6 +13,8 @@ import {
 import { seedConfiguredAvatar } from "./helpers.js";
 
 test.use({ trace: "off" });
+const traceTest = test.extend({});
+traceTest.use({ trace: "retain-on-failure" });
 
 const evidenceDirectory = resolve("artifacts/phase18");
 const phase18_5EvidenceDirectory = resolve("artifacts/phase18-5");
@@ -2213,10 +2215,11 @@ test("lower non-interactive HUD band owns camera capture while chat keeps contex
   await page.mouse.up({ button: "right" });
 });
 
-test("repository city correction keeps loading local, restores source materials, and moves by both paths", async ({
-  page,
-}) => {
-  test.setTimeout(180_000);
+const repositoryCityCorrectionTitle =
+  "repository city correction keeps loading local, restores source materials, and moves by both paths";
+
+traceTest(repositoryCityCorrectionTitle, async ({ page }) => {
+  traceTest.setTimeout(180_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");

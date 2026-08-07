@@ -125,6 +125,28 @@ describe("acceptance command graph", () => {
     expect(config.webServer).toHaveLength(2);
   });
 
+  it("retains traces only for the repository city correction journey", async () => {
+    const worldEntrySpec = await readProjectFile(
+      "apps/web/e2e/world-entry-single-agent.spec.ts",
+    );
+    const journeyTitle =
+      "repository city correction keeps loading local, restores source materials, and moves by both paths";
+
+    expect(worldEntrySpec).toContain('test.use({ trace: "off" });');
+    expect([
+      ...worldEntrySpec.matchAll(/trace: "retain-on-failure"/gu),
+    ]).toHaveLength(1);
+    expect(worldEntrySpec).toContain(
+      'traceTest.use({ trace: "retain-on-failure" });',
+    );
+    expect(worldEntrySpec).toContain(
+      `const repositoryCityCorrectionTitle =\n  "${journeyTitle}";`,
+    );
+    expect(worldEntrySpec).toContain(
+      "traceTest(repositoryCityCorrectionTitle, async ({ page }) => {",
+    );
+  });
+
   it("installs pinned pnpm before every isolated CI acceptance lane", async () => {
     const workflowSource = await readProjectFile(".github/workflows/ci.yml");
     const workflow = parse(workflowSource) as {
