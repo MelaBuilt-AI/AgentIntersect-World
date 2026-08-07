@@ -1,8 +1,39 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-05
+Updated: 2026-08-07
 
 ## Current milestone
+
+### 2026-08-07 In-World Agent Workbench — PRIVATE DELIVERY STEPS 1–6 COMPLETE; FIRST-HAND ACCEPTANCE NEXT
+
+The private query-gated In-World Agent Workbench stack is committed and pushed on
+`work/in-world-agent-workbench`. The implementation tip
+`7791eb63fc8d1be250d8893fe27d7f20796b1a1c` is identical across local HEAD,
+upstream, raw remote, and GitHub API, with a completely clean worktree and no
+pending LFS upload. Exact-SHA workflow run `31191886517` attempt 2 completed with
+all seven required jobs successful and zero current check-run annotations. Attempt
+1 remains preserved as real failure history; no contract was weakened between
+attempts.
+
+The exact next session objective is **first-hand Workbench acceptance**, not new
+implementation. Launch the query-gated Workbench locally from the exact delivered
+tip and let Aaron operate it manually. Verify that:
+
+1. Work Inspector opens and remains keyboard accessible;
+2. deterministic demo and live projections remain truthful;
+3. Workstream create/read/current/cancel behavior matches the bounded authority;
+4. repository, worktree, agent, and session ownership are represented correctly;
+5. loading, empty, error, cleanup-required, and completed states are understandable;
+6. Workbench remains internal and absent from normal-product navigation.
+
+Do not call the feature accepted until Aaron returns a first-hand criterion-level
+verdict. If he passes it, the recommended next delivery decision is a **private
+stacked draft PR** from `work/in-world-agent-workbench` into
+`work/repository-city-assets-20260805`; at this status snapshot that boundary is
+two commits and 32 files. A direct PR to `main` would instead combine the broader
+40-commit/300-file accumulated World lineage and should be planned separately.
+No PR, merge, tag, release, deployment, publication, visibility change, or
+normal-product exposure is authorized by this status marker.
 
 ### 2026-08-05 accepted repository city — PRIVATE KNOWN-WORKING GIT CHECKPOINT DELIVERY AUTHORIZED
 
