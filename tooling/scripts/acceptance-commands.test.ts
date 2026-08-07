@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -132,12 +133,15 @@ describe("acceptance command graph", () => {
     const journeyTitle =
       "repository city correction keeps loading local, restores source materials, and moves by both paths";
 
-    expect(worldEntrySpec).toContain('test.use({ trace: "off" });');
+    expect(worldEntrySpec).toContain(
+      'const test = base.extend({ trace: "off" });',
+    );
     expect([
       ...worldEntrySpec.matchAll(/trace: "retain-on-failure"/gu),
     ]).toHaveLength(1);
+    expect(worldEntrySpec).not.toMatch(/\.use\(\{ trace:/u);
     expect(worldEntrySpec).toContain(
-      'traceTest.use({ trace: "retain-on-failure" });',
+      'const traceTest = test.extend({ trace: "retain-on-failure" });',
     );
     expect(worldEntrySpec).toContain(
       `const repositoryCityCorrectionTitle =\n  "${journeyTitle}";`,
@@ -145,6 +149,25 @@ describe("acceptance command graph", () => {
     expect(worldEntrySpec).toContain(
       "traceTest(repositoryCityCorrectionTitle, async ({ page }) => {",
     );
+
+    const shardListing = execFileSync(
+      process.execPath,
+      [
+        resolve(repositoryRoot, "node_modules/@playwright/test/cli.js"),
+        "test",
+        "--config",
+        "playwright.config.ts",
+        "--grep-invert",
+        "@phase18-5-performance",
+        "--shard=4/4",
+        "--list",
+      ],
+      { cwd: repositoryRoot, encoding: "utf8" },
+    );
+    expect(shardListing).toContain(
+      `› production boundary completes the returning-user Hermes magic slice`,
+    );
+    expect(shardListing).toContain(`› ${journeyTitle}`);
   });
 
   it("installs pinned pnpm before every isolated CI acceptance lane", async () => {

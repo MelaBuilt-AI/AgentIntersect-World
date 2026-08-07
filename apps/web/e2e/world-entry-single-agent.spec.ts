@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test as base, type Page, type Route } from "@playwright/test";
 // @ts-expect-error -- Playwright E2E runs in Node; the web app tsconfig intentionally exposes only Vite types.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -12,9 +12,8 @@ import {
 } from "../../../tooling/scripts/phase18-5-performance-evidence.js";
 import { seedConfiguredAvatar } from "./helpers.js";
 
-test.use({ trace: "off" });
-const traceTest = test.extend({});
-traceTest.use({ trace: "retain-on-failure" });
+const test = base.extend({ trace: "off" });
+const traceTest = test.extend({ trace: "retain-on-failure" });
 
 const evidenceDirectory = resolve("artifacts/phase18");
 const phase18_5EvidenceDirectory = resolve("artifacts/phase18-5");
