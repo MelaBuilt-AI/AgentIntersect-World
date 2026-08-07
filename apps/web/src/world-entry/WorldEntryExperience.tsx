@@ -61,6 +61,10 @@ import {
   type WorldDisplayPreferences,
 } from "./world-escape-menu-model.js";
 import { resolveWorldEntryRestore } from "./world-entry-restore.js";
+import type {
+  WorkstreamAuthorityDescriptor,
+  WorkstreamReference,
+} from "./workstream-client.js";
 
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
 const SESSION_POINTER_PATTERN =
@@ -202,6 +206,8 @@ export function WorldEntryExperience({
     "idle" | "loading" | "ready" | "error"
   >("idle");
   const [layoutGeneration, setLayoutGeneration] = useState("blank-world");
+  const [activeRepositoryAuthority, setActiveRepositoryAuthority] =
+    useState<WorkstreamReference | null>(null);
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
   const [agentMovementControl, setAgentMovementControl] = useState<{
@@ -435,6 +441,7 @@ export function WorldEntryExperience({
     if (!mounted.current) return;
     const acknowledgementId = `${Date.now()}-${nextMessageId.current++}`;
     dispatch({ type: "REQUEST_REPOSITORY", request: text });
+    setActiveRepositoryAuthority(null);
     setRepositoryReadiness("loading");
     setStatus("Repository loading · blank floor preserved");
     const result = await client.loadRepository(".");
@@ -466,6 +473,7 @@ export function WorldEntryExperience({
     const repositorySummary = `${repositoryCounts.packages} packages · ${repositoryCounts.directories} directories · ${repositoryCounts.files} files`;
     setObjects(nextObjects);
     setLayoutGeneration(result.generationId);
+    setActiveRepositoryAuthority(result.repository);
     dispatch({
       type: "ACTIVATE_REPOSITORY",
       generationId: result.generationId,
@@ -631,6 +639,7 @@ export function WorldEntryExperience({
     setUserAnimationCue(null);
     setObjects([]);
     setLayoutGeneration("blank-world");
+    setActiveRepositoryAuthority(null);
     setAgentMovementRequest(null);
     setAgentMovementControl(null);
     processedMovementActions.current.clear();
@@ -649,6 +658,20 @@ export function WorldEntryExperience({
     state.step === "repository_loading" ||
     state.step === "world_repository";
   const movementSessionId = inWorld ? session?.sessionId : undefined;
+  const workstreamAuthority = useMemo<WorkstreamAuthorityDescriptor | null>(
+    () =>
+      activeRepositoryAuthority && session
+        ? {
+            repository: activeRepositoryAuthority,
+            agent: {
+              agentId: session.sessionId,
+              nativeSessionId: session.adapterSessionRef,
+              revision: String(session.permissionRevision),
+            },
+          }
+        : null,
+    [activeRepositoryAuthority, session],
+  );
   useEffect(() => {
     if (!movementSessionId) return;
     let active = true;
@@ -860,6 +883,7 @@ export function WorldEntryExperience({
             onAgentMovementEvent={reportAgentMovementEvent}
             showControlHints={preferences.showControlHints}
             repositoryReadiness={repositoryReadiness}
+            workstreamAuthority={workstreamAuthority}
             onRepositoryReady={repositoryRendered}
             onRepositoryError={repositoryRenderFailed}
             onAskAgent={(prompt) =>

@@ -973,9 +973,11 @@ describe("Phase 18 World entry client composition", () => {
       id: "index-operation",
       status: "succeeded",
       generationId: "generation-current",
+      generation: { id: "repository-generation-current" },
     };
     const snapshot = {
       schema: "aiw.world-snapshot/0.3",
+      repositoryRef: "aiw://object/repository-current",
       generationFingerprint: "generation-current",
       objects: [],
     };
@@ -998,6 +1000,10 @@ describe("Phase 18 World entry client composition", () => {
       status: "current",
       generationId: "generation-current",
       snapshot,
+      repository: {
+        repositoryId: "aiw://object/repository-current",
+        revision: "repository-generation-current",
+      },
     });
 
     const failed = api.createWorldEntryClient({

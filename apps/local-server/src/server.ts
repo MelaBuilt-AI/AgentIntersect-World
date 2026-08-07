@@ -104,6 +104,8 @@ import type { CoordinationService } from "./coordination-service.js";
 import { registerCoordinationRoutes } from "./coordination-routes.js";
 import type { Phase17Service } from "./phase17-service.js";
 import { registerPhase17Routes } from "./phase17-routes.js";
+import type { WorkstreamService } from "./workstream-service.js";
+import { registerWorkstreamRoutes } from "./workstream-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -126,6 +128,7 @@ export type LocalServer = FastifyInstance & {
   readonly voiceService?: VoiceService;
   readonly coordinationService?: CoordinationService;
   readonly phase17Service?: Phase17Service;
+  readonly workstreamService?: WorkstreamService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -161,6 +164,7 @@ export type LocalServerOptions = {
   readonly voiceService?: VoiceService;
   readonly coordinationService?: CoordinationService;
   readonly phase17Service?: Phase17Service;
+  readonly workstreamService?: WorkstreamService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -267,6 +271,7 @@ export function createLocalServer(
   server.decorate("voiceService", options.voiceService);
   server.decorate("coordinationService", options.coordinationService);
   server.decorate("phase17Service", options.phase17Service);
+  server.decorate("workstreamService", options.workstreamService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -283,6 +288,7 @@ export function createLocalServer(
     await options.phase14Service?.dispose();
     await options.coordinationService?.dispose();
     await options.phase17Service?.dispose();
+    await options.workstreamService?.dispose();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -388,6 +394,11 @@ export function createLocalServer(
       });
     if (options.phase17Service)
       registerPhase17Routes(server, options.phase17Service, {
+        success,
+        failure,
+      });
+    if (options.workstreamService)
+      registerWorkstreamRoutes(server, options.workstreamService, {
         success,
         failure,
       });

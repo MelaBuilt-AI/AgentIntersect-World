@@ -31,6 +31,10 @@ import {
 
 import { isOperatorMovementKey } from "../world-actions/operator-navigation.js";
 import {
+  Phase14Client,
+  type Phase14JourneyState,
+} from "../phase14/phase14-client.js";
+import {
   completeAvatarOneShot,
   createAvatarAnimationState,
   setAvatarLocomotion,
@@ -50,6 +54,19 @@ import {
 import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
 import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
 import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
+import {
+  demoWorkstreamFromSearch,
+  findWorkstreamForRepositorySelection,
+  loadCurrentPhase14Workstream,
+  projectAuthoritativeWorkstream,
+  workstreamTracerModeFromSearch,
+  type Workstream,
+} from "./workstream-tracer.js";
+import {
+  WorkstreamClient,
+  type WorkstreamAuthorityDescriptor,
+} from "./workstream-client.js";
+import { createLiveWorkstream } from "./workstream-create.js";
 import {
   advanceAgentMovement,
   createAgentMovementState,
@@ -117,6 +134,7 @@ export function WorldRoom({
   onAgentMovementEvent,
   showControlHints = true,
   repositoryReadiness = "idle",
+  workstreamAuthority,
   onAskAgent,
   onRepositoryReady,
   onRepositoryError,
@@ -163,6 +181,8 @@ export function WorldRoom({
     | undefined;
   readonly showControlHints?: boolean;
   readonly repositoryReadiness?: "idle" | "loading" | "ready" | "error";
+  readonly workstreamAuthority?:
+    WorkstreamAuthorityDescriptor | null | undefined;
   readonly onAskAgent?: ((prompt: string) => void) | undefined;
   readonly onRepositoryReady?: (() => void) | undefined;
   readonly onRepositoryError?: (() => void) | undefined;
@@ -216,6 +236,32 @@ export function WorldRoom({
   const [selectedCityInstanceId, setSelectedCityInstanceId] = useState<
     string | null
   >(null);
+  const tracerMode = useMemo(
+    () =>
+      workstreamTracerModeFromSearch(
+        typeof window === "undefined" ? "" : window.location.search,
+      ),
+    [],
+  );
+  const demoWorkstream = useMemo(
+    () =>
+      tracerMode === "demo"
+        ? demoWorkstreamFromSearch(window.location.search)
+        : null,
+    [tracerMode],
+  );
+  const [liveWorkstream, setLiveWorkstream] = useState<Workstream | null>(null);
+  const [liveTracerMessage, setLiveTracerMessage] = useState<string | null>(
+    tracerMode === "live"
+      ? "Loading current Workstream…"
+      : tracerMode === "phase14"
+        ? "Loading diagnostic Phase 14 current journey…"
+        : null,
+  );
+  const [workstreamActionPending, setWorkstreamActionPending] = useState(false);
+  const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<
+    string | null
+  >(null);
   const [cityFocusPosition, setCityFocusPosition] = useState<{
     readonly x: number;
     readonly z: number;
@@ -231,6 +277,104 @@ export function WorldRoom({
     city.instances.find(
       ({ instanceId }) => instanceId === selectedCityInstanceId,
     ) ?? null;
+  const availableWorkstream = demoWorkstream ?? liveWorkstream;
+  const selectedWorkstream = selectedCityInstance
+    ? findWorkstreamForRepositorySelection(
+        availableWorkstream ? [availableWorkstream] : [],
+        selectedCityInstance,
+      )
+    : selectedWorkstreamId === availableWorkstream?.workstreamId
+      ? availableWorkstream
+      : null;
+  useEffect(() => {
+    if (tracerMode !== "live" && tracerMode !== "phase14") return;
+    let active = true;
+    const request =
+      tracerMode === "live"
+        ? new WorkstreamClient()
+            .current()
+            .then((record) =>
+              record ? projectAuthoritativeWorkstream(record) : null,
+            )
+        : loadCurrentPhase14Workstream(() =>
+            new Phase14Client().current<Phase14JourneyState>(),
+          );
+    void request
+      .then((workstream) => {
+        if (!active) return;
+        setLiveWorkstream(workstream);
+        setLiveTracerMessage(
+          tracerMode === "live"
+            ? workstream
+              ? `Current Workstream is ${workstream.status}.`
+              : "No current Workstream."
+            : workstream
+              ? "Diagnostic Phase 14 current journey available."
+              : "Phase 14 current journey unavailable · current response had no journey identity.",
+        );
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        const detail =
+          error instanceof Error ? error.message : "Workstream request failed";
+        setLiveTracerMessage(
+          tracerMode === "live"
+            ? `Workbench error · ${detail}.`
+            : detail === "No Phase 14 journey"
+              ? "Phase 14 current journey unavailable · No current journey."
+              : `Phase 14 diagnostic error · ${detail}.`,
+        );
+      });
+    return () => {
+      active = false;
+    };
+  }, [tracerMode]);
+
+  const cancelWorkstream = useCallback(async () => {
+    const authority = selectedWorkstream?.authority;
+    if (tracerMode !== "live" || !authority || workstreamActionPending) return;
+    setWorkstreamActionPending(true);
+    try {
+      const commandId = crypto.randomUUID();
+      const result = await new WorkstreamClient().cancel(authority, {
+        requestId: `cancel-${commandId}`,
+        correlationId: commandId,
+      });
+      const projected = projectAuthoritativeWorkstream(result.workstream);
+      setLiveWorkstream(projected);
+      setLiveTracerMessage(`Current Workstream is ${projected.status}.`);
+    } catch (error) {
+      setLiveTracerMessage(
+        `Workbench error · ${error instanceof Error ? error.message : "Cancel failed"}.`,
+      );
+    } finally {
+      setWorkstreamActionPending(false);
+    }
+  }, [selectedWorkstream, tracerMode, workstreamActionPending]);
+  const createWorkstream = useCallback(async () => {
+    if (
+      tracerMode !== "live" ||
+      !workstreamAuthority ||
+      liveWorkstream ||
+      liveTracerMessage !== "No current Workstream." ||
+      workstreamActionPending
+    )
+      return;
+    setWorkstreamActionPending(true);
+    const outcome = await createLiveWorkstream(workstreamAuthority);
+    if (outcome.workstream) {
+      setLiveWorkstream(outcome.workstream);
+      setSelectedWorkstreamId(outcome.workstream.workstreamId);
+    }
+    setLiveTracerMessage(outcome.message);
+    setWorkstreamActionPending(false);
+  }, [
+    liveTracerMessage,
+    liveWorkstream,
+    tracerMode,
+    workstreamActionPending,
+    workstreamAuthority,
+  ]);
   useEffect(() => {
     if (floor === "blank") {
       dispatchCity({ type: "initial", instances: [] });
@@ -282,6 +426,7 @@ export function WorldRoom({
   );
   const selectCityInstance = useCallback((instanceId: string) => {
     setSelectedCityInstanceId(instanceId);
+    setSelectedWorkstreamId(null);
     setCityFocusPosition(null);
   }, []);
   useEffect(() => {
@@ -1019,6 +1164,30 @@ export function WorldRoom({
           <RepositoryAssetPalette
             mode={cityMode}
             selected={selectedCityInstance}
+            availableWorkstream={availableWorkstream}
+            workstream={selectedWorkstream}
+            workstreamSource={tracerMode ?? undefined}
+            tracerMessage={availableWorkstream ? null : liveTracerMessage}
+            onCreateWorkstream={
+              tracerMode === "live" &&
+              workstreamAuthority &&
+              !availableWorkstream &&
+              liveTracerMessage === "No current Workstream." &&
+              !workstreamActionPending
+                ? () => void createWorkstream()
+                : undefined
+            }
+            onCancelWorkstream={
+              tracerMode === "live" && selectedWorkstream?.authority
+                ? () => void cancelWorkstream()
+                : undefined
+            }
+            workstreamActionPending={workstreamActionPending}
+            onSelectWorkstream={(workstreamId) => {
+              setSelectedCityInstanceId(null);
+              setSelectedWorkstreamId(workstreamId);
+              setCityFocusPosition(null);
+            }}
             onMode={setCityMode}
             onPlace={addManualCityInstance}
             onFocus={(instanceId) => {
@@ -1027,6 +1196,7 @@ export function WorldRoom({
               );
               if (!instance) return;
               setSelectedCityInstanceId(instanceId);
+              setSelectedWorkstreamId(null);
               setCityFocusPosition(instance.position);
             }}
             onPin={(instanceId, pinned) =>
@@ -1035,6 +1205,7 @@ export function WorldRoom({
             onRemove={(instanceId) => {
               dispatchCity({ type: "remove", instanceId });
               setSelectedCityInstanceId(null);
+              setSelectedWorkstreamId(null);
               setCityFocusPosition(null);
             }}
             onAskAgent={(instance: RepositoryCityInstance) => {

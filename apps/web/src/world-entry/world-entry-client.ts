@@ -22,6 +22,7 @@ import {
   parseImportedAvatarSource,
 } from "@agentintersect-world/avatar-system/imported-avatar";
 import { getCurrentWorld } from "../world-client.js";
+import type { WorkstreamReference } from "./workstream-client.js";
 
 export const WORLD_ENTRY_CLIENT_VERSION = "phase18";
 
@@ -56,6 +57,7 @@ export type RepositoryLoadResult =
       readonly status: "current" | "previous-recovered";
       readonly generationId: string;
       readonly snapshot: WorldSnapshot;
+      readonly repository: WorkstreamReference;
     }
   | {
       readonly status: "failed";
@@ -408,13 +410,18 @@ export function createWorldEntryClient(
         if (next.status !== "ok") return repositoryFailed();
         operation = next.data;
       }
-      if (operation.status !== "succeeded") return repositoryFailed();
+      if (operation.status !== "succeeded" || !operation.generation)
+        return repositoryFailed();
       const current = await readWorld();
       if (current.status !== "ok") return repositoryFailed();
       return {
         status: "current",
         generationId: current.data.snapshot.generationFingerprint,
         snapshot: current.data.snapshot,
+        repository: {
+          repositoryId: current.data.snapshot.repositoryRef,
+          revision: operation.generation.id,
+        },
       };
     },
   };

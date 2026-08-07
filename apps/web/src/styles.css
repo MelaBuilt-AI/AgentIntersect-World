@@ -1040,7 +1040,9 @@
 }
 
 .repository-assets__controls,
-.repository-asset-inspector {
+.repository-asset-inspector,
+.workstream-tracer-control,
+.work-inspector {
   display: grid;
   gap: 0.55rem;
   padding: 0.65rem;
@@ -1104,6 +1106,28 @@
 
 .repository-asset-inspector {
   border-top: 1px solid rgba(183, 108, 255, 0.55);
+}
+
+.workstream-tracer-control,
+.work-inspector {
+  border-top: 1px solid rgba(65, 233, 255, 0.48);
+}
+
+.work-inspector h2,
+.work-inspector h3,
+.work-inspector p,
+.work-inspector ol,
+.work-inspector ul {
+  margin: 0;
+}
+
+.work-inspector code,
+.work-inspector small {
+  overflow-wrap: anywhere;
+}
+
+.work-inspector__fixture {
+  color: #fbbf24;
 }
 
 .repository-asset-inspector h2,

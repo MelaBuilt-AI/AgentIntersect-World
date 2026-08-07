@@ -8,6 +8,12 @@ import {
 } from "@agentintersect-world/renderer-r3f";
 import { useMemo, useState } from "react";
 
+import { WorkInspector } from "./WorkInspector.js";
+import type {
+  Workstream,
+  WorkstreamTracerSource,
+} from "./workstream-tracer.js";
+
 export function RepositoryAssetPalette({
   mode,
   selected,
@@ -17,6 +23,14 @@ export function RepositoryAssetPalette({
   onPin,
   onRemove,
   onAskAgent,
+  availableWorkstream,
+  workstream,
+  onSelectWorkstream,
+  workstreamSource,
+  tracerMessage,
+  onCreateWorkstream,
+  onCancelWorkstream,
+  workstreamActionPending = false,
 }: {
   readonly mode: "live" | "director";
   readonly selected: RepositoryCityInstance | null;
@@ -27,6 +41,14 @@ export function RepositoryAssetPalette({
   readonly onRemove?: ((instanceId: string) => void) | undefined;
   readonly onAskAgent?:
     ((instance: RepositoryCityInstance) => void) | undefined;
+  readonly availableWorkstream?: Workstream | null | undefined;
+  readonly workstream?: Workstream | null | undefined;
+  readonly onSelectWorkstream?: ((workstreamId: string) => void) | undefined;
+  readonly workstreamSource?: WorkstreamTracerSource | undefined;
+  readonly tracerMessage?: string | null | undefined;
+  readonly onCreateWorkstream?: (() => void) | undefined;
+  readonly onCancelWorkstream?: (() => void) | undefined;
+  readonly workstreamActionPending?: boolean | undefined;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<
@@ -134,6 +156,61 @@ export function RepositoryAssetPalette({
           ))}
         </ul>
       </details>
+      {availableWorkstream || tracerMessage ? (
+        <section
+          className="workstream-tracer-control"
+          aria-label={
+            workstreamSource === "live"
+              ? "Authoritative Workbench"
+              : workstreamSource === "phase14"
+                ? "Phase 14 diagnostic tracer"
+                : "Workbench tracer demo"
+          }
+        >
+          <strong>
+            {workstreamSource === "live"
+              ? "Authoritative Workbench · current local Workstream"
+              : workstreamSource === "phase14"
+                ? "Phase 14 diagnostic tracer · read-only"
+                : "Workbench tracer · demo fixture"}
+          </strong>
+          {tracerMessage ? <p role="status">{tracerMessage}</p> : null}
+          {availableWorkstream ? (
+            <button
+              type="button"
+              onClick={() =>
+                onSelectWorkstream?.(availableWorkstream.workstreamId)
+              }
+            >
+              {workstreamSource === "live"
+                ? "Inspect current Workstream"
+                : workstreamSource === "phase14"
+                  ? "Inspect current Phase 14 workstream"
+                  : "Inspect demo workstream"}
+            </button>
+          ) : null}
+          {workstreamSource === "live" &&
+          !availableWorkstream &&
+          onCreateWorkstream &&
+          !workstreamActionPending ? (
+            <button
+              type="button"
+              className="world-action--enabled"
+              onClick={onCreateWorkstream}
+            >
+              Create Workstream
+            </button>
+          ) : null}
+        </section>
+      ) : null}
+      {workstream ? (
+        <WorkInspector
+          workstream={workstream}
+          source={workstreamSource}
+          onCancel={onCancelWorkstream}
+          actionPending={workstreamActionPending}
+        />
+      ) : null}
       {selected && selectedAsset ? (
         <section
           className="repository-asset-inspector"

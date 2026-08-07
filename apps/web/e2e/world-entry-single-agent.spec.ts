@@ -343,6 +343,7 @@ type WorldFixtureOptions = {
   readonly history?: unknown;
   readonly restoreStatus?: boolean;
   readonly snapshot?: unknown;
+  readonly phase14Current?: unknown;
   readonly fulfillWorldActions?: (
     route: Route,
     pathname: string,
@@ -376,6 +377,25 @@ async function installWorldFixtures(
           actions: [],
           executions: [],
         }),
+      });
+      return;
+    }
+    if (
+      pathname.endsWith("/phase14/journeys/current") &&
+      request.method() === "GET"
+    ) {
+      if (options.phase14Current === undefined) {
+        await route.fulfill({
+          status: 404,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "No Phase 14 journey" }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(options.phase14Current),
       });
       return;
     }
@@ -444,6 +464,30 @@ async function installWorldFixtures(
         id: "66666666-6666-4666-8666-666666666666",
         rootPath: ".",
         status: "succeeded",
+        generation: {
+          id: "77777777-7777-4777-8777-777777777777",
+          fingerprint: "b".repeat(64),
+          rootPath: ".",
+          repositoryName: "fixture",
+          startedAt: "2026-07-25T00:00:00.000Z",
+          completedAt: "2026-07-25T00:00:01.000Z",
+          durationMs: 1_000,
+          git: { present: false, branch: null, head: null, dirty: false },
+          directories: [],
+          files: [],
+          packages: [],
+          coverage: {
+            discoveredFiles: 0,
+            indexedFiles: 0,
+            prunedEntries: 0,
+            skippedSymlinks: 0,
+            directories: 0,
+            packages: 0,
+            binaryFiles: 0,
+            oversizedFiles: 0,
+            bytesHashed: 0,
+          },
+        },
         createdAt: "2026-07-25T00:00:00.000Z",
         updatedAt: "2026-07-25T00:00:01.000Z",
         progress: {
@@ -467,8 +511,8 @@ async function installWorldFixtures(
   });
 }
 
-async function enterFixtureWorld(page: Page) {
-  await page.goto("/");
+async function enterFixtureWorld(page: Page, path = "/") {
+  await page.goto(path);
   await page.getByRole("button", { name: /Single Agent/ }).click();
   await page.getByRole("button", { name: /hermes_/ }).click();
   await page.getByLabel("Agent name").fill("Mr Fluff");
@@ -482,6 +526,141 @@ async function enterFixtureWorld(page: Page) {
   await page.getByRole("button", { name: "Enter World" }).click();
   await expect(page.getByTestId("world-hud")).toBeVisible();
 }
+
+test("@workstream-tracer deterministic Work Inspector stays truthful and keyboard accessible", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installWorldFixtures(page);
+  await enterFixtureWorld(page, "/?workstreamTracer=demo");
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  await composer.fill("/repo load .");
+  await composer.press("Enter");
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+    { timeout: 30_000 },
+  );
+
+  const inspect = page.getByRole("button", {
+    name: "Inspect demo workstream",
+  });
+  await inspect.focus();
+  await inspect.press("Enter");
+
+  const inspector = page.getByRole("region", { name: "Work Inspector" });
+  await expect(inspector).toBeVisible();
+  await expect(inspector).toContainText("Deterministic demo fixture");
+  await expect(inspector).toContainText(
+    "No live branch, preview, push, approval, or check result",
+  );
+  await expect(inspector).toContainText("In-world Work Inspector tracer");
+  await expect(inspector).toContainText("Fixture only — no check has run.");
+});
+
+test("@workstream-tracer-live reads and inspects only the current Phase 14 journey", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedConfiguredAvatar(page, "Aaron");
+  const phase14Requests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/phase14/"))
+      phase14Requests.push(
+        `${request.method()} ${new URL(request.url()).pathname}`,
+      );
+  });
+  await installWorldFixtures(page, {
+    phase14Current: {
+      operationId: "99999999-9999-4999-8999-999999999999",
+      createdAt: "2026-08-06T20:00:00.000Z",
+      updatedAt: "2026-08-06T20:04:00.000Z",
+      status: "active",
+      step: 8,
+      session: {
+        adapterSessionRef: "phase14-hermes-fixture-session",
+        continuity: "fixture-existing",
+      },
+      disposable: {
+        repositoryId: "aiw://object/repository-phase14-magic-slice",
+        fixtureRevision: "phase14-magic-slice/1",
+        target: "src/greeting.mjs",
+        symbol: "greeting",
+      },
+      events: [
+        {
+          eventId: "88888888-8888-4888-8888-888888888888",
+          operation: "test",
+          state: "running",
+          sequence: 8,
+          occurredAt: "2026-08-06T20:04:00.000Z",
+        },
+      ],
+      explanation: null,
+      edit: {
+        outcome: "applied",
+        diff: "--- previous/src/greeting.mjs\n+++ current/src/greeting.mjs",
+        patchDigest: "3".repeat(64),
+        previousHash: "8".repeat(64),
+        currentHash: "a".repeat(64),
+        previousEvidenceRef: "aiw://evidence/source-previous",
+        currentEvidenceRef: "aiw://evidence/diff-current",
+        error: null,
+      },
+      approval: null,
+      test: {
+        state: "running",
+        argv: ["/usr/bin/node", "--test", "test/greeting.test.mjs"],
+        stdout: "",
+        stderr: "",
+        stdoutTruncated: false,
+        stderrTruncated: false,
+        exitCode: null,
+        signal: null,
+        timedOut: false,
+        startedAt: "2026-08-06T20:03:00.000Z",
+        finishedAt: null,
+        evidenceRef: null,
+      },
+      preview: null,
+      evidenceRefs: ["aiw://evidence/diff-current"],
+    },
+  });
+  await enterFixtureWorld(page, "/?workstreamTracer=phase14");
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  await composer.fill("/repo load .");
+  await composer.press("Enter");
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+    { timeout: 30_000 },
+  );
+
+  const inspect = page.getByRole("button", {
+    name: "Inspect current Phase 14 workstream",
+  });
+  await inspect.focus();
+  await inspect.press("Enter");
+
+  const inspector = page.getByRole("region", { name: "Work Inspector" });
+  await expect(inspector).toContainText(
+    "Authoritative Phase 14 read-only projection",
+  );
+  await expect(inspector).toContainText("Status: validating");
+  await expect(inspector).toContainText("Phase 14 test running");
+  await expect(inspector).toContainText("src/greeting.mjs");
+  await expect(inspector).toContainText("aiw://evidence/diff-current");
+  await expect(inspector).toContainText(
+    "State running · exit unavailable · timed out no.",
+  );
+  await expect(inspector).not.toContainText("Deterministic demo fixture");
+  expect(phase14Requests).toEqual(["GET /api/phase14/journeys/current"]);
+});
 
 async function restoreFixtureWorld(page: Page) {
   const acceptedProposal = {

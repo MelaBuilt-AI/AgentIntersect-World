@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   PHASE14_JOURNEY_FIXTURE,
   Phase14JourneyExperience,
-  type Phase14JourneyState,
 } from "./phase14/Phase14JourneyPanel.js";
+import type { Phase14JourneyState } from "./phase14/phase14-client.js";
 
 const noop = () => undefined;
 
@@ -53,6 +53,8 @@ export const TestRunning: Story = {
         >),
         state: "running",
         exitCode: null,
+        finishedAt: null,
+        evidenceRef: null,
       },
       preview: null,
     }),

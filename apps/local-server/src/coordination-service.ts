@@ -1,14 +1,13 @@
 import { createHash } from "node:crypto";
 import {
   copyFile,
-  lstat,
   mkdir,
   open,
   readFile,
   realpath,
   rename,
 } from "node:fs/promises";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
 
 import {
@@ -30,6 +29,12 @@ import {
   type CoordinationWorktree,
 } from "@agentintersect-world/multi-agent-coordination";
 import { z } from "zod";
+
+import {
+  WorktreeAuthority,
+  WorktreeAuthorityError,
+  type WorktreeReceipt,
+} from "./worktree-authority.js";
 
 const StoreEnvelopeSchema = z.strictObject({
   schema: z.literal("aiw.coordination-store/0.16"),
@@ -140,21 +145,10 @@ async function syncDirectory(path: string): Promise<void> {
   }
 }
 
-function contained(parent: string, child: string): boolean {
-  const path = relative(parent, child);
-  return path === "" || (!path.startsWith(`..${sep}`) && path !== "..");
-}
-
 function displayGitFailure(result: GitResult): string {
   return (result.stderr || result.stdout || "Git operation failed")
     .trim()
     .slice(0, 512);
-}
-
-function normalizeGitOutput(value: string, maxBytes: number): string {
-  const bytes = Buffer.from(value, "utf8");
-  if (bytes.length <= maxBytes) return value;
-  return bytes.subarray(0, maxBytes).toString("utf8");
 }
 
 function persistedRequest(request: CoordinationAction): CoordinationAction {
@@ -201,6 +195,7 @@ export class CoordinationService {
   readonly #approvedRepositoryRoot: string | null;
   readonly #allowedWorktreeParent: string | null;
   readonly #requireApprovedGitBoundary: boolean;
+  readonly #worktreeAuthority: WorktreeAuthority | null;
   readonly #currentPath: string;
   readonly #previousPath: string;
   #loaded = false;
@@ -229,6 +224,13 @@ export class CoordinationService {
       : null;
     this.#requireApprovedGitBoundary =
       options.requireApprovedGitBoundary ?? false;
+    this.#worktreeAuthority =
+      options.approvedRepositoryRoot && options.allowedWorktreeParent
+        ? new WorktreeAuthority({
+            approvedRepositoryRoot: options.approvedRepositoryRoot,
+            allowedWorktreeParent: options.allowedWorktreeParent,
+          })
+        : null;
   }
 
   pathsForTest(): { readonly current: string; readonly previous: string } {
@@ -236,7 +238,10 @@ export class CoordinationService {
   }
 
   ownedProcessCount(): number {
-    return this.#activeChild ? 1 : 0;
+    return (
+      (this.#activeChild ? 1 : 0) +
+      (this.#worktreeAuthority?.ownedProcessCount() ?? 0)
+    );
   }
 
   async snapshot(): Promise<CoordinationProjection> {
@@ -301,6 +306,19 @@ export class CoordinationService {
         return { snapshot: next, replayed: false };
       } catch (error) {
         if (error instanceof CoordinationServiceError) throw error;
+        if (error instanceof WorktreeAuthorityError)
+          throw new CoordinationServiceError(
+            error.code === "validation"
+              ? "validation"
+              : error.code === "git-failed"
+                ? "git-failed"
+                : error.code === "not-found"
+                  ? "not-found"
+                  : error.code === "unavailable"
+                    ? "unavailable"
+                    : "git-refused",
+            error.message,
+          );
         if (error instanceof CoordinationProtocolError)
           throw new CoordinationServiceError(
             protocolErrorCode(error.code),
@@ -376,10 +394,14 @@ export class CoordinationService {
             continue;
           }
           worktrees.push(
-            await this.#measureWorktree(
+            this.#worktreeFromReceipt(
               worktree,
-              internal.repositoryRoot,
-              internal.worktreePath,
+              await this.#authority().measure({
+                ownerId: this.#ownerId(worktree),
+                worktreeId: worktree.worktreeId,
+                repositoryRoot: internal.repositoryRoot,
+                worktreePath: internal.worktreePath,
+              }),
             ),
           );
         } catch (error) {
@@ -525,34 +547,23 @@ export class CoordinationService {
     }
     if (action.kind === "worktree.create") {
       this.#preflightWorktreeBinding(snapshot, action, "create");
-      await this.#validateCreatePaths(
-        action.repositoryRoot,
-        action.worktreePath,
-      );
+      const authority = this.#authority();
       this.#assertRepositoryBinding(
         snapshot,
-        await this.#commonRepositoryIdentity(action.repositoryRoot),
+        await authority.repositoryIdentity(),
       );
-      const result = await this.#git([
-        "-C",
-        action.repositoryRoot,
-        "worktree",
-        "add",
-        "-b",
-        action.branch,
-        action.worktreePath,
-        action.startPoint,
-      ]);
-      if (result.exitCode !== 0)
-        throw new CoordinationServiceError(
-          "git-failed",
-          displayGitFailure(result),
-        );
-      const measured = await this.#newWorktree(
-        snapshot,
-        action,
-        action.repositoryRoot,
-        action.worktreePath,
+      const result = await authority.create({
+        ownerId: this.#ownerId(action),
+        requestId: this.#authorityRequestId(request.correlationId),
+        worktreeId: action.worktreeId,
+        repositoryRoot: action.repositoryRoot,
+        worktreePath: action.worktreePath,
+        branch: action.branch,
+        startPoint: action.startPoint,
+      });
+      const measured = this.#worktreeFromReceipt(
+        this.#worktreeBase(snapshot, action),
+        result.receipt,
       );
       this.#worktreePaths.set(action.worktreeId, {
         repositoryRoot: await realpath(action.repositoryRoot),
@@ -568,11 +579,23 @@ export class CoordinationService {
     }
     if (action.kind === "worktree.attach") {
       this.#preflightWorktreeBinding(snapshot, action, "attach");
-      const measured = await this.#newWorktree(
+      const authority = this.#authority();
+      this.#assertRepositoryBinding(
         snapshot,
-        action,
-        action.repositoryRoot,
-        action.worktreePath,
+        await authority.repositoryIdentity(),
+      );
+      const result = await authority.attach({
+        ownerId: this.#ownerId(action),
+        requestId: this.#authorityRequestId(request.correlationId),
+        worktreeId: action.worktreeId,
+        repositoryRoot: action.repositoryRoot,
+        worktreePath: action.worktreePath,
+        branch: action.branch,
+        startPoint: "HEAD",
+      });
+      const measured = this.#worktreeFromReceipt(
+        this.#worktreeBase(snapshot, action),
+        result.receipt,
       );
       this.#worktreePaths.set(action.worktreeId, {
         repositoryRoot: await realpath(action.repositoryRoot),
@@ -607,24 +630,14 @@ export class CoordinationService {
           "git-refused",
           "Worktree path is not attached; explicit worktree.attach is required",
         );
-      const requestedRepository = await this.#validatedDirectory(
-        action.repositoryRoot,
-      );
-      const requestedWorktree = await this.#validatedDirectory(
-        action.worktreePath,
-      );
-      if (
-        requestedRepository !== internal.repositoryRoot ||
-        requestedWorktree !== internal.worktreePath
-      )
-        throw new CoordinationServiceError(
-          "git-refused",
-          "Validation cannot change an attached worktree path",
-        );
-      const measured = await this.#measureWorktree(
+      const measured = this.#worktreeFromReceipt(
         current,
-        internal.repositoryRoot,
-        internal.worktreePath,
+        await this.#authority().measure({
+          ownerId: this.#ownerId(current),
+          worktreeId: current.worktreeId,
+          repositoryRoot: action.repositoryRoot,
+          worktreePath: action.worktreePath,
+        }),
       );
       return withServiceResult(
         snapshot,
@@ -785,16 +798,14 @@ export class CoordinationService {
       );
   }
 
-  async #newWorktree(
+  #worktreeBase(
     snapshot: CoordinationSnapshot,
     action: Extract<
       CoordinationAction["action"],
       { kind: "worktree.create" | "worktree.attach" }
     >,
-    repositoryRoot: string,
-    worktreePath: string,
-  ): Promise<CoordinationWorktree> {
-    const base: CoordinationWorktree = {
+  ): CoordinationWorktree {
+    return {
       worktreeId: action.worktreeId,
       agentId: action.agentId,
       nativeSessionId: action.nativeSessionId,
@@ -808,110 +819,47 @@ export class CoordinationService {
       statusSummary: "Not measured",
       validatedAt: new Date().toISOString(),
     };
-    const measured = await this.#measureWorktree(
-      base,
-      repositoryRoot,
-      worktreePath,
-    );
-    this.#assertRepositoryBinding(snapshot, measured.commonRepositoryId);
-    return measured;
   }
 
-  async #validateCreatePaths(
-    repositoryRoot: string,
-    worktreePath: string,
-  ): Promise<void> {
-    const { allowedParent } = await this.#approvedGitBoundary(repositoryRoot);
-    if (!isAbsolute(worktreePath))
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Worktree path must be absolute",
-      );
-    const parent = await this.#validatedDirectory(dirname(worktreePath));
-    if (!contained(allowedParent, parent))
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Worktree path is outside the allowed parent",
-      );
-    try {
-      await lstat(worktreePath);
-      throw new CoordinationServiceError(
-        "git-refused",
-        "New worktree path already exists",
-      );
-    } catch (error) {
-      if (error instanceof CoordinationServiceError) throw error;
-      if (
-        !error ||
-        typeof error !== "object" ||
-        !("code" in error) ||
-        (error as { code: unknown }).code !== "ENOENT"
-      )
-        throw error;
-    }
+  #worktreeFromReceipt(
+    worktree: CoordinationWorktree,
+    receipt: WorktreeReceipt,
+  ): CoordinationWorktree {
+    return {
+      ...worktree,
+      head: receipt.head,
+      commonRepositoryId: receipt.repositoryId,
+      state: receipt.state,
+      statusSummary: receipt.statusSummary,
+      validatedAt: receipt.validatedAt,
+    };
   }
 
-  async #approvedGitBoundary(repositoryRoot: string): Promise<{
-    readonly repositoryRoot: string;
-    readonly allowedParent: string;
-  }> {
-    if (!this.#approvedRepositoryRoot || !this.#allowedWorktreeParent)
+  #authority(): WorktreeAuthority {
+    if (!this.#worktreeAuthority)
       throw new CoordinationServiceError(
         "git-refused",
         "An operator-approved repository root and worktree parent are required",
       );
-    const [approvedRepositoryRoot, allowedParent, requestedRepositoryRoot] =
-      await Promise.all([
-        this.#validatedDirectory(this.#approvedRepositoryRoot),
-        this.#validatedDirectory(this.#allowedWorktreeParent),
-        this.#validatedDirectory(repositoryRoot),
-      ]);
-    if (requestedRepositoryRoot !== approvedRepositoryRoot)
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Repository root is not the operator-approved repository",
-      );
-    return {
-      repositoryRoot: requestedRepositoryRoot,
-      allowedParent,
-    };
+    return this.#worktreeAuthority;
   }
 
-  async #validatedDirectory(path: string): Promise<string> {
-    if (!isAbsolute(path))
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Git roots must be absolute",
-      );
-    const information = await lstat(path);
-    if (information.isSymbolicLink() || !information.isDirectory())
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Git root must be a real directory",
-      );
-    return realpath(path);
+  #ownerId(binding: {
+    readonly agentId: string;
+    readonly nativeSessionId: string;
+    readonly taskId: string;
+  }): string {
+    return `coordination-${sha256(
+      canonicalCoordinationValue({
+        agentId: binding.agentId,
+        nativeSessionId: binding.nativeSessionId,
+        taskId: binding.taskId,
+      }),
+    ).slice(0, 24)}`;
   }
 
-  async #commonDirectory(repositoryRoot: string): Promise<string> {
-    const result = await this.#git([
-      "-C",
-      repositoryRoot,
-      "rev-parse",
-      "--git-common-dir",
-    ]);
-    if (result.exitCode !== 0)
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Directory is not a valid Git worktree",
-      );
-    const raw = result.stdout.trim();
-    return realpath(isAbsolute(raw) ? raw : resolve(repositoryRoot, raw));
-  }
-
-  async #commonRepositoryIdentity(repositoryRoot: string): Promise<string> {
-    const validatedRoot = await this.#validatedDirectory(repositoryRoot);
-    const commonDirectory = await this.#commonDirectory(validatedRoot);
-    return `git-${sha256(commonDirectory).slice(0, 24)}`;
+  #authorityRequestId(correlationId: string): string {
+    return `coordination-${sha256(correlationId).slice(0, 24)}`;
   }
 
   #assertRepositoryBinding(
@@ -932,107 +880,6 @@ export class CoordinationService {
         "git-refused",
         "Coordination session is bound to a different repository",
       );
-  }
-
-  async #measureWorktree(
-    worktree: CoordinationWorktree,
-    repositoryRootInput: string,
-    worktreePathInput: string,
-  ): Promise<CoordinationWorktree> {
-    const { repositoryRoot, allowedParent } =
-      await this.#approvedGitBoundary(repositoryRootInput);
-    const worktreePath = await this.#validatedDirectory(worktreePathInput);
-    if (repositoryRoot === worktreePath)
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Repository root cannot be used as an editing worktree",
-      );
-    if (
-      [...this.#worktreePaths.entries()].some(
-        ([worktreeId, paths]) =>
-          worktreeId !== worktree.worktreeId &&
-          paths.worktreePath === worktreePath,
-      )
-    )
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Real worktree path is already attached to another identity",
-      );
-    if (!contained(allowedParent, worktreePath))
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Worktree is outside the allowed parent",
-      );
-    const [repositoryCommon, worktreeCommon] = await Promise.all([
-      this.#commonDirectory(repositoryRoot),
-      this.#commonDirectory(worktreePath),
-    ]);
-    if (repositoryCommon !== worktreeCommon)
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Worktree belongs to a different repository",
-      );
-    const registered = await this.#git([
-      "-C",
-      repositoryRoot,
-      "worktree",
-      "list",
-      "--porcelain",
-    ]);
-    if (
-      registered.exitCode !== 0 ||
-      !registered.stdout
-        .split(/\r?\n/)
-        .some((line) => line === `worktree ${worktreePath}`)
-    )
-      throw new CoordinationServiceError(
-        "git-refused",
-        "Worktree is not registered in the repository worktree list",
-      );
-    const branchResult = await this.#git([
-      "-C",
-      worktreePath,
-      "rev-parse",
-      "--abbrev-ref",
-      "HEAD",
-    ]);
-    const headResult = await this.#git([
-      "-C",
-      worktreePath,
-      "rev-parse",
-      "HEAD",
-    ]);
-    const statusResult = await this.#git([
-      "-C",
-      worktreePath,
-      "status",
-      "--porcelain=v2",
-      "--untracked-files=normal",
-    ]);
-    if (
-      branchResult.exitCode !== 0 ||
-      headResult.exitCode !== 0 ||
-      statusResult.exitCode !== 0
-    )
-      throw new CoordinationServiceError(
-        "git-failed",
-        "Could not measure worktree branch, HEAD, and status",
-      );
-    const branch = branchResult.stdout.trim();
-    const dirty = statusResult.stdout.trim().length > 0;
-    const wrongBranch = branch !== worktree.branch;
-    return {
-      ...worktree,
-      head: headResult.stdout.trim(),
-      commonRepositoryId: `git-${sha256(repositoryCommon).slice(0, 24)}`,
-      state: wrongBranch ? "wrong-branch" : dirty ? "dirty" : "current",
-      statusSummary: wrongBranch
-        ? `Expected ${worktree.branch}; found ${branch}`
-        : dirty
-          ? normalizeGitOutput(statusResult.stdout.trim(), 2_048)
-          : "clean",
-      validatedAt: new Date().toISOString(),
-    };
   }
 
   #bindWorktree(
@@ -1133,15 +980,23 @@ export class CoordinationService {
         "git-refused",
         "Candidate binding mismatch",
       );
-    const measuredSource = await this.#measureWorktree(
+    const measuredSource = this.#worktreeFromReceipt(
       source,
-      sourcePaths.repositoryRoot,
-      sourcePaths.worktreePath,
+      await this.#authority().measure({
+        ownerId: this.#ownerId(source),
+        worktreeId: source.worktreeId,
+        repositoryRoot: sourcePaths.repositoryRoot,
+        worktreePath: sourcePaths.worktreePath,
+      }),
     );
-    const measuredTarget = await this.#measureWorktree(
+    const measuredTarget = this.#worktreeFromReceipt(
       target,
-      targetPaths.repositoryRoot,
-      targetPaths.worktreePath,
+      await this.#authority().measure({
+        ownerId: this.#ownerId(target),
+        worktreeId: target.worktreeId,
+        repositoryRoot: targetPaths.repositoryRoot,
+        worktreePath: targetPaths.worktreePath,
+      }),
     );
     if (
       measuredSource.state !== "current" ||
@@ -1378,6 +1233,10 @@ export class CoordinationService {
   async dispose(): Promise<void> {
     this.#closed = true;
     this.#activeChild?.kill("SIGTERM");
-    await Promise.all([this.#mutationTail, this.#gitTail]);
+    await Promise.all([
+      this.#mutationTail,
+      this.#gitTail,
+      this.#worktreeAuthority?.dispose(),
+    ]);
   }
 }

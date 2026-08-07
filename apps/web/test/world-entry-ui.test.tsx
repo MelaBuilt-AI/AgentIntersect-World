@@ -695,6 +695,15 @@ describe("Phase 18 World entry experience", () => {
     expect(remoteTurn).toBeGreaterThan(repositoryAwait);
   });
 
+  it("retains and forwards the exact successful repository and World-session authority", () => {
+    const source = readFileSync(
+      new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(source).toContain("setActiveRepositoryAuthority(result.repository)");
+    expect(source).toContain("workstreamAuthority={workstreamAuthority}");
+  });
+
   it("moves for both exact command paths after repository-city placement", () => {
     const cityInstances = [
       {

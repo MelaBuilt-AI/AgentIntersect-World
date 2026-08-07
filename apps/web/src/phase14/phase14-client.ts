@@ -10,6 +10,97 @@ export type Phase14Action =
   | "stop-preview"
   | "cancel";
 
+type Phase14Claim = {
+  readonly label:
+    "source-fact" | "runtime-observation" | "test-result" | "interpretation";
+  readonly text: string;
+};
+
+export type Phase14JourneyState = {
+  readonly operationId: string | null;
+  readonly createdAt: string | null;
+  readonly updatedAt: string | null;
+  readonly status: "idle" | "active" | "cancelled" | "completed" | "failed";
+  readonly step: number;
+  readonly session: {
+    readonly adapterSessionRef: string;
+    readonly continuity: string;
+  } | null;
+  readonly disposable: {
+    readonly repositoryId: string;
+    readonly fixtureRevision: string;
+    readonly target: "src/greeting.mjs";
+    readonly symbol: "greeting";
+  } | null;
+  readonly events: readonly {
+    readonly eventId: string;
+    readonly operation: "read" | "search" | "edit" | "test" | "preview";
+    readonly state:
+      | "requested"
+      | "accepted"
+      | "running"
+      | "succeeded"
+      | "failed"
+      | "cancelled"
+      | "superseded";
+    readonly sequence: number;
+    readonly occurredAt: string;
+  }[];
+  readonly explanation: {
+    readonly continuity: {
+      readonly state: string;
+      readonly reason: string | null;
+    };
+    readonly claims: {
+      readonly sourceFacts: readonly Phase14Claim[];
+      readonly runtimeObservations: readonly Phase14Claim[];
+      readonly testResults: readonly Phase14Claim[];
+      readonly interpretations: readonly Phase14Claim[];
+    };
+  } | null;
+  readonly edit: {
+    readonly outcome: string;
+    readonly diff: string;
+    readonly patchDigest: string;
+    readonly previousHash: string;
+    readonly currentHash: string | null;
+    readonly previousEvidenceRef: string;
+    readonly currentEvidenceRef: string | null;
+    readonly error: string | null;
+  } | null;
+  readonly approval: {
+    readonly approvalId: string;
+    readonly expiresAt: string;
+    readonly used: boolean;
+    readonly revoked: boolean;
+  } | null;
+  readonly test: {
+    readonly state:
+      "requested" | "running" | "succeeded" | "failed" | "cancelled";
+    readonly argv: readonly string[];
+    readonly stdout: string;
+    readonly stderr: string;
+    readonly stdoutTruncated: boolean;
+    readonly stderrTruncated: boolean;
+    readonly exitCode: number | null;
+    readonly signal: string | null;
+    readonly timedOut: boolean;
+    readonly startedAt: string;
+    readonly finishedAt: string | null;
+    readonly evidenceRef: string | null;
+  } | null;
+  readonly preview: {
+    readonly state: string;
+    readonly url: string | null;
+    readonly health: { readonly ok: true; readonly schema: string } | null;
+    readonly logs: string;
+    readonly logsTruncated: boolean;
+    readonly portClosed: boolean | null;
+    readonly evidenceRef: string | null;
+  } | null;
+  readonly evidenceRefs: readonly string[];
+};
+
 async function jsonRequest<T>(
   fetcher: typeof fetch,
   url: string,

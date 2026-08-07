@@ -42,6 +42,11 @@ import { CoordinationService } from "./coordination-service.js";
 import { loadProductionCoordinationGitConfig } from "./coordination-production-config.js";
 import { Phase17Service } from "./phase17-service.js";
 import { matchesSelectedRepository } from "./repository-selection-authority.js";
+import {
+  WorkstreamService,
+  WorkstreamServiceError,
+} from "./workstream-service.js";
+import { WorktreeAuthority } from "./worktree-authority.js";
 
 const config = (() => {
   try {
@@ -188,6 +193,59 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     ...(coordinationGitConfig ?? {}),
     requireApprovedGitBoundary: true,
   });
+  const workstreamService =
+    coordinationGitConfig && agentSessionGateway
+      ? new WorkstreamService({
+          directory: path.join(
+            config.presentationSync.dataDir,
+            "..",
+            "workbench",
+            "workstreams",
+          ),
+          worktreeAuthority: new WorktreeAuthority({
+            approvedRepositoryRoot:
+              coordinationGitConfig.approvedRepositoryRoot,
+            allowedWorktreeParent: coordinationGitConfig.allowedWorktreeParent,
+          }),
+          currentRepository: () => {
+            const selection = selectedRepository();
+            return selection
+              ? {
+                  repositoryId: selection.snapshot.repositoryRef,
+                  revision: selection.generation.id,
+                }
+              : null;
+          },
+          connectedAgent: (agentId) => {
+            try {
+              const session = agentSessionGateway.status(agentId);
+              if (
+                session.sessionId !== agentId ||
+                session.status !== "ready" ||
+                session.continuity !== "current"
+              )
+                return null;
+              return {
+                agentId: session.sessionId,
+                nativeSessionId: session.adapterSessionRef,
+                revision: String(session.permissionRevision),
+              };
+            } catch {
+              return null;
+            }
+          },
+          evidenceReader: {
+            read: (operationRefs) => {
+              if (operationRefs.length > 0)
+                throw new WorkstreamServiceError(
+                  "unavailable",
+                  "Workstream evidence is unavailable until the Phase 14 adapter is composed",
+                );
+              return [];
+            },
+          },
+        })
+      : undefined;
   const phase17Service = new Phase17Service({
     directory:
       process.env.AIW_PHASE17_STATE_DIR ??
@@ -206,6 +264,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     phase14Service,
     coordinationService,
     phase17Service,
+    ...(workstreamService ? { workstreamService } : {}),
     ...(voiceService ? { voiceService } : {}),
     ...(agentSessionGateway
       ? {

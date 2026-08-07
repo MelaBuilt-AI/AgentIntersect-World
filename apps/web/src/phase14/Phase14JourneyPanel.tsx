@@ -1,84 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { Phase14Client, type Phase14Action } from "./phase14-client.js";
-
-type Claim = {
-  readonly label:
-    "source-fact" | "runtime-observation" | "test-result" | "interpretation";
-  readonly text: string;
-};
-
-export type Phase14JourneyState = {
-  readonly operationId: string | null;
-  readonly status: "idle" | "active" | "cancelled" | "completed" | "failed";
-  readonly step: number;
-  readonly session: {
-    readonly adapterSessionRef: string;
-    readonly continuity: string;
-  } | null;
-  readonly disposable: {
-    readonly repositoryId: string;
-    readonly fixtureRevision: string;
-    readonly target: "src/greeting.mjs";
-    readonly symbol: "greeting";
-  } | null;
-  readonly events: readonly {
-    readonly eventId: string;
-    readonly operation: string;
-    readonly state: string;
-    readonly sequence: number;
-  }[];
-  readonly explanation: {
-    readonly continuity: {
-      readonly state: string;
-      readonly reason: string | null;
-    };
-    readonly claims: {
-      readonly sourceFacts: readonly Claim[];
-      readonly runtimeObservations: readonly Claim[];
-      readonly testResults: readonly Claim[];
-      readonly interpretations: readonly Claim[];
-    };
-  } | null;
-  readonly edit: {
-    readonly outcome: string;
-    readonly diff: string;
-    readonly patchDigest: string;
-    readonly previousHash: string;
-    readonly currentHash: string | null;
-  } | null;
-  readonly approval: {
-    readonly approvalId: string;
-    readonly expiresAt: string;
-    readonly used: boolean;
-    readonly revoked: boolean;
-  } | null;
-  readonly test: {
-    readonly state: string;
-    readonly argv: readonly string[];
-    readonly stdout: string;
-    readonly stderr: string;
-    readonly stdoutTruncated: boolean;
-    readonly stderrTruncated: boolean;
-    readonly exitCode: number | null;
-    readonly signal: string | null;
-    readonly timedOut: boolean;
-    readonly evidenceRef: string | null;
-  } | null;
-  readonly preview: {
-    readonly state: string;
-    readonly url: string | null;
-    readonly health: { readonly ok: true; readonly schema: string } | null;
-    readonly logs: string;
-    readonly logsTruncated: boolean;
-    readonly portClosed: boolean | null;
-    readonly evidenceRef: string | null;
-  } | null;
-  readonly evidenceRefs: readonly string[];
-};
+import {
+  Phase14Client,
+  type Phase14Action,
+  type Phase14JourneyState,
+} from "./phase14-client.js";
 
 const emptyState: Phase14JourneyState = {
   operationId: null,
+  createdAt: null,
+  updatedAt: null,
   status: "idle",
   step: 0,
   session: null,
@@ -101,6 +32,8 @@ const previousSource =
 // eslint-disable-next-line react-refresh/only-export-components
 export const PHASE14_JOURNEY_FIXTURE: Phase14JourneyState = {
   operationId: "11111111-1111-4111-8111-111111111111",
+  createdAt: "2026-07-22T12:00:00.000Z",
+  updatedAt: "2026-07-22T12:10:00.000Z",
   status: "completed",
   step: 10,
   session: {
@@ -119,6 +52,7 @@ export const PHASE14_JOURNEY_FIXTURE: Phase14JourneyState = {
       operation: "preview",
       state: "succeeded",
       sequence: 20,
+      occurredAt: "2026-07-22T12:09:00.000Z",
     },
   ],
   explanation: {
@@ -150,6 +84,9 @@ export const PHASE14_JOURNEY_FIXTURE: Phase14JourneyState = {
     patchDigest: "3".repeat(64),
     previousHash: "8".repeat(64),
     currentHash: "a".repeat(64),
+    previousEvidenceRef: "aiw://evidence/phase14-fixture-diff-previous",
+    currentEvidenceRef: "aiw://evidence/phase14-fixture-diff-current",
+    error: null,
   },
   approval: {
     approvalId: "33333333-3333-4333-8333-333333333333",
@@ -167,6 +104,8 @@ export const PHASE14_JOURNEY_FIXTURE: Phase14JourneyState = {
     exitCode: 0,
     signal: null,
     timedOut: false,
+    startedAt: "2026-07-22T12:07:00.000Z",
+    finishedAt: "2026-07-22T12:08:00.000Z",
     evidenceRef: "aiw://evidence/phase14-fixture-test-result",
   },
   preview: {
