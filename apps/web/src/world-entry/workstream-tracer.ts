@@ -40,6 +40,14 @@ export type Workstream = {
   readonly changedFiles: readonly WorkstreamChangedFile[];
   readonly validation: readonly WorkstreamValidationCheck[];
   readonly assetLinks: readonly WorkstreamAssetLink[];
+  readonly diff?:
+    | {
+        readonly summary: string;
+        readonly patch: string;
+        readonly truncated: boolean;
+      }
+    | undefined;
+  readonly evidenceRefs?: readonly string[] | undefined;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly authority?: WorkstreamApiRecord | undefined;
@@ -258,17 +266,29 @@ export function workstreamTracerModeFromSearch(
 export function projectAuthoritativeWorkstream(
   record: WorkstreamApiRecord,
 ): Workstream {
-  const latestEvent = record.events.at(-1);
   return {
     workstreamId: record.workstreamId,
     title: record.title,
     status: record.status,
-    plan: record.events.map((event) => event.summary),
-    currentActivity:
-      latestEvent?.summary ?? "No Workstream activity has been reported.",
-    changedFiles: [],
-    validation: [],
-    assetLinks: [],
+    plan: [`Task: ${record.task}`],
+    currentActivity: record.projection.currentActivity,
+    changedFiles: record.projection.changedFiles.map((file) => ({
+      path: file.path,
+      change: file.change,
+      diffSummaryRef: file.diffSummary,
+    })),
+    validation: record.projection.validation.map((check, index) => ({
+      id: `workstream-validation-${index + 1}`,
+      label: check.command,
+      state: check.exitCode === 0 ? "passed" : "failed",
+      summary: `Exit ${check.exitCode} · ${check.summary}`,
+    })),
+    assetLinks: record.projection.changedFiles.map((file) => ({
+      repositoryPath: file.path,
+      role: "changed-file" as const,
+    })),
+    diff: record.projection.diff,
+    evidenceRefs: record.projection.evidenceRefs,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
     authority: record,

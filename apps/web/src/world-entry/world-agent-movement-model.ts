@@ -87,10 +87,6 @@ export type AgentMovementContext = {
   readonly resolveRepositoryObject: (
     objectId: string,
   ) => RepositoryApproachPoint | null;
-  readonly canOccupy?: (
-    position: WorldPoint,
-    targetObjectId: string | null,
-  ) => boolean;
 };
 export type AgentMovementResult = {
   readonly state: AgentMovementState;
@@ -414,48 +410,12 @@ export function advanceAgentMovement(
   const step = Math.min(request.speed * elapsed, distance - stoppingRadius);
   const ux = dx / distance;
   const uz = dz / distance;
-  let position = {
+  const position = {
     x: quantized(state.position.x + ux * step),
     z: quantized(state.position.z + uz * step),
   };
   if (!inside(position, context.bounds))
     return cancelAgentMovement(state, "world-bounds", context);
-  if (
-    context.canOccupy &&
-    !context.canOccupy(
-      position,
-      request.target.kind === "repository-object"
-        ? request.target.objectId
-        : null,
-    )
-  ) {
-    if (request.target.kind !== "follow-user")
-      return finishMovement(state, request, "refused", "static-collision");
-    const detour = [Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2]
-      .map((angle) => ({
-        x: quantized(
-          state.position.x +
-            (ux * Math.cos(angle) - uz * Math.sin(angle)) * step,
-        ),
-        z: quantized(
-          state.position.z +
-            (ux * Math.sin(angle) + uz * Math.cos(angle)) * step,
-        ),
-      }))
-      .filter(
-        (candidate) =>
-          inside(candidate, context.bounds) &&
-          context.canOccupy!(candidate, null),
-      )
-      .sort(
-        (left, right) =>
-          Math.hypot(left.x - destination.x, left.z - destination.z) -
-          Math.hypot(right.x - destination.x, right.z - destination.z),
-      )[0];
-    if (!detour)
-      return finishMovement(state, request, "refused", "static-collision");
-    position = detour;
-  }
   const movementX = position.x - state.position.x;
   const movementZ = position.z - state.position.z;
   const movementDistance = Math.hypot(movementX, movementZ);

@@ -4,7 +4,41 @@ Updated: 2026-08-11
 
 ## Current milestone
 
-### 2026-08-11 In-World Agent Workbench — FULL SIX-CRITERION FIRST-HAND PASS; PRIVATE COMMIT/PUSH AUTHORIZED
+### 2026-08-11 Phase 18 single-agent feature loop — MANUALLY ACCEPTED; INDEPENDENT PARENT VERIFICATION GREEN
+
+Aaron completed and explicitly accepted the real Phase 18 Single-Agent Hermes
+feature loop. The accepted Workstream
+`83365e83-f9d1-4389-b2a9-c7a4b31eca37` remained bound to one Hermes session,
+one owned branch/worktree, one repository task, its real changed files and diff,
+and 19 validation receipts. The final repository-city feature makes autonomous
+coordinate and follow-user agent movement pass through real repository-city
+occupancy while preserving World-boundary cancellation. User-avatar navigation
+and repository visual/renderer source were unchanged. The retained Workstream
+still truthfully carries its stale historical `working` label; that evidence was
+not rewritten to manufacture lifecycle completion.
+
+The clean delivery composition combines the independently
+verified Workstream orchestration/session/worktree/evidence/restoration gap-fix,
+the four-file manually accepted movement feature, and only the proven
+developer-gated stale/missing-current-Workstream pointer recovery. The normal
+product still has no link to the Workbench; its live surface remains available
+only through the explicit local developer query gate. The independently
+verified composition is green for the complete serial 144-file/864-test Vitest
+suite, 38/38 typechecks, 11/11 architecture tests, format, lint, the full
+20-package build, developer-gated production build, smoke, and the selected 2/2
+production browser journeys. Exact commit, remote-parity, and hosted-CI receipts
+are retained in the external handoff rather than recursively recorded in this
+status file.
+
+The Phase 18 single-agent feature-loop product gate is complete, manually
+accepted, and independently parent-verified. The next product decision is
+whether to plan and authorize **Phase 19 — Multi-Agent
+Constellation and Harness Breadth**. Phase 19 implementation has not started and
+is not authorized. PR, merge, release, deployment, publication, tag, visibility
+change, public exposure, generic command execution, and normal-product Workbench
+exposure remain outside this delivery.
+
+### 2026-08-11 In-World Agent Workbench — FULL SIX-CRITERION FIRST-HAND PASS; PRIVATE COMMIT/PUSH AUTHORIZED (HISTORICAL PRECURSOR)
 
 Aaron manually tested the fresh clarity-corrected candidate and explicitly
 reported `all passes on 1-6`. Keyboard access, truthful deterministic/live

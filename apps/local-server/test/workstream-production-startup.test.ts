@@ -158,6 +158,23 @@ async function productionFixture() {
       );
       return;
     }
+    const chat = request.url?.match(
+      /^\/api\/sessions\/([^/]+)\/chat\/stream$/u,
+    );
+    if (chat && request.method === "POST") {
+      const id = decodeURIComponent(chat[1]!);
+      response.setHeader("content-type", "text/event-stream");
+      response.end(
+        [
+          `event: run.started\ndata: ${JSON.stringify({ session_id: id, run_id: "run-workstream", seq: 1 })}\n\n`,
+          `event: message.started\ndata: ${JSON.stringify({ session_id: id, run_id: "run-workstream", message: { id: "message-workstream", role: "assistant" }, seq: 2 })}\n\n`,
+          `event: assistant.completed\ndata: ${JSON.stringify({ session_id: id, run_id: "run-workstream", message_id: "message-workstream", content: "Workstream task accepted.", seq: 3 })}\n\n`,
+          `event: run.completed\ndata: ${JSON.stringify({ session_id: id, run_id: "run-workstream", seq: 4 })}\n\n`,
+          `event: done\ndata: ${JSON.stringify({ session_id: id, run_id: "run-workstream", seq: 5 })}\n\n`,
+        ].join(""),
+      );
+      return;
+    }
     const session = request.url?.match(/^\/api\/sessions\/([^/?]+)$/u);
     if (session) {
       const id = decodeURIComponent(session[1]!);
@@ -369,6 +386,7 @@ describe("production Workstream startup composition", () => {
       data: {
         sessionId: string;
         adapterSessionRef: string;
+        adapterRootSessionRef?: string;
         permissionRevision: number;
       };
     }>(attached);
@@ -377,6 +395,8 @@ describe("production Workstream startup composition", () => {
     const agent = {
       agentId: session.sessionId,
       nativeSessionId: session.adapterSessionRef,
+      rootNativeSessionId:
+        session.adapterRootSessionRef ?? session.adapterSessionRef,
       revision: String(session.permissionRevision),
     };
 
@@ -387,6 +407,7 @@ describe("production Workstream startup composition", () => {
         requestId: "create-production-workstream",
         correlationId: "correlation-production-workstream",
         title: "Production-bound Workstream",
+        task: "Implement the production-bound Workstream fixture.",
         repository,
         agent,
       }),
@@ -399,7 +420,7 @@ describe("production Workstream startup composition", () => {
           repository: typeof repository;
           agent: typeof agent;
           evidenceOperationRefs: string[];
-          authority: { relativePath: string };
+          authority: { relativePath: string; worktreeId: string };
         };
       };
     }>(createResponse);
@@ -407,8 +428,15 @@ describe("production Workstream startup composition", () => {
     const created = createBody.data.workstream;
     expect(created).toMatchObject({
       repository,
-      agent,
-      evidenceOperationRefs: [],
+      agent: { ...agent, revision: "1" },
+    });
+    const boundSession = await fetch(
+      `${baseUrl}/agent-sessions/${session.sessionId}/status`,
+    );
+    expect((await json<{ data: unknown }>(boundSession)).data).toMatchObject({
+      mode: "collaborate",
+      worktreeRef: created.authority.worktreeId,
+      currentTaskRef: created.workstreamId,
     });
     const worktreePath = path.join(
       fixture.worktreeParent,
@@ -418,10 +446,26 @@ describe("production Workstream startup composition", () => {
 
     const current = await fetch(`${baseUrl}/workstreams/current`);
     expect(current.status).toBe(200);
-    expect(
-      (await json<{ data: { workstreamId: string } }>(current)).data
-        .workstreamId,
-    ).toBe(created.workstreamId);
+    const currentWorkstream = (
+      await json<{
+        data: {
+          workstreamId: string;
+          revision: number;
+          agent: typeof created.agent;
+        };
+      }>(current)
+    ).data;
+    expect(currentWorkstream.workstreamId).toBe(created.workstreamId);
+    await waitFor(async () => {
+      const response = await fetch(`${baseUrl}/workstreams/current`);
+      if (!response.ok) return false;
+      const body = await json<{
+        data: { evidenceOperationRefs: string[] };
+      }>(response);
+      return body.data.evidenceOperationRefs.some((reference) =>
+        /^agent-event:/u.test(reference),
+      );
+    }, "correlated Workstream agent evidence");
     const read = await fetch(`${baseUrl}/workstreams/${created.workstreamId}`);
     expect(read.status).toBe(200);
 
@@ -433,13 +477,13 @@ describe("production Workstream startup composition", () => {
         body: JSON.stringify({
           requestId: "cancel-production-workstream",
           correlationId: "correlation-cancel-production",
-          expectedRevision: created.revision,
+          expectedRevision: currentWorkstream.revision,
           repository,
-          agent,
+          agent: currentWorkstream.agent,
         }),
       },
     );
-    expect(cancelled.status).toBe(200);
+    expect(cancelled.status, await cancelled.clone().text()).toBe(200);
     expect(
       (
         await json<{
@@ -449,6 +493,14 @@ describe("production Workstream startup composition", () => {
         }>(cancelled)
       ).data.workstream,
     ).toMatchObject({ status: "cancelled", worktreeState: "removed" });
+    const unboundSession = await fetch(
+      `${baseUrl}/agent-sessions/${session.sessionId}/status`,
+    );
+    expect((await json<{ data: unknown }>(unboundSession)).data).toMatchObject({
+      mode: "explore",
+      worktreeRef: null,
+      currentTaskRef: null,
+    });
     expect(await exists(worktreePath)).toBe(false);
     expect(await readdir(fixture.worktreeParent)).toEqual([]);
     expect(

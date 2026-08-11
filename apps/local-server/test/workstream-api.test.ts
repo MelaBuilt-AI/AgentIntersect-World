@@ -20,6 +20,7 @@ const repository = {
 const agent = {
   agentId: "mr-fluff",
   nativeSessionId: "hermes-session-current",
+  rootNativeSessionId: "hermes-session-root",
   revision: "agent-revision-1",
 } as const;
 
@@ -80,6 +81,7 @@ describe("Workstream API", () => {
       requestId: "request-create-one",
       correlationId: "correlation-create-one",
       title: "Implement one bounded workstream",
+      task: "Implement one bounded workstream",
       repository,
       agent,
     };
@@ -168,6 +170,7 @@ describe("Workstream API", () => {
           requestId: `request-${field}`,
           correlationId: `correlation-${field}`,
           title: "Rejected authority input",
+          task: "Rejected authority input",
           repository,
           agent,
           [field]: field === "argv" ? ["git", "status"] : "/tmp/not-allowed",

@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import {
   findWorkstreamForRepositorySelection,
   loadCurrentPhase14Workstream,
+  projectAuthoritativeWorkstream,
   replayWorkstreamEvents,
   workstreamTracerModeFromSearch,
   type WorkstreamEvent,
@@ -16,7 +17,10 @@ import {
   WorkstreamClient,
   type WorkstreamApiRecord,
 } from "../src/world-entry/workstream-client.js";
-import { createLiveWorkstream } from "../src/world-entry/workstream-create.js";
+import {
+  createLiveWorkstream,
+  resolveWorkstreamTask,
+} from "../src/world-entry/workstream-create.js";
 
 const events: readonly WorkstreamEvent[] = [
   {
@@ -220,6 +224,7 @@ const apiWorkstream: WorkstreamApiRecord = {
   agent: {
     agentId: "mr-fluff",
     nativeSessionId: "hermes-session-current",
+    rootNativeSessionId: "hermes-session-root",
     revision: "agent-revision-1",
   },
   authority: {
@@ -238,6 +243,30 @@ const apiWorkstream: WorkstreamApiRecord = {
   },
   worktreeState: "current",
   evidenceOperationRefs: [],
+  task: "Make repository-city collisions non-blocking for the agent avatar.",
+  projection: {
+    currentActivity: "Running the focused collision regression.",
+    changedFiles: [
+      {
+        path: "apps/web/src/world-entry/WorldRoom.tsx",
+        change: "modified",
+        diffSummary: "12 insertions, 4 deletions",
+      },
+    ],
+    diff: {
+      summary: "1 file changed, 12 insertions(+), 4 deletions(-)",
+      patch: "@@ -10,2 +10,4 @@",
+      truncated: false,
+    },
+    validation: [
+      {
+        command: "pnpm vitest run collision.test.ts",
+        exitCode: 0,
+        summary: "1 test passed",
+      },
+    ],
+    evidenceRefs: ["agent-event:event-1", "report:validation-1"],
+  },
   status: "working",
   createdAt: "2026-08-07T00:00:00.000Z",
   updatedAt: "2026-08-07T00:00:01.000Z",
@@ -252,6 +281,75 @@ const apiWorkstream: WorkstreamApiRecord = {
 };
 
 describe("authoritative Workstream client", () => {
+  it("captures only the latest bounded World user task after its turn finishes", () => {
+    const transcript = [
+      { id: "u1", kind: "user" as const, text: "Explain the repository." },
+      { id: "a1", kind: "assistant" as const, text: "It is a monorepo." },
+      {
+        id: "u2",
+        kind: "user" as const,
+        text: "  Make the agent avatar stop colliding with repository objects.  ",
+      },
+      { id: "a2", kind: "assistant" as const, text: "I can inspect that." },
+    ];
+
+    expect(resolveWorkstreamTask(transcript, false)).toEqual({
+      task: "Make the agent avatar stop colliding with repository objects.",
+      unavailableReason: null,
+    });
+    expect(resolveWorkstreamTask(transcript, true)).toEqual({
+      task: null,
+      unavailableReason: "Wait for the current agent turn to finish.",
+    });
+    expect(
+      resolveWorkstreamTask(
+        [{ id: "a", kind: "assistant", text: "No user task." }],
+        false,
+      ),
+    ).toEqual({
+      task: null,
+      unavailableReason: "Send a feature request in World chat first.",
+    });
+    expect(
+      resolveWorkstreamTask(
+        [{ id: "u", kind: "user", text: "x".repeat(2_001) }],
+        false,
+      ),
+    ).toEqual({
+      task: null,
+      unavailableReason:
+        "The latest feature request is too long for a Workstream.",
+    });
+  });
+
+  it("projects authoritative Git, validation, and evidence facts", () => {
+    const projected = projectAuthoritativeWorkstream(apiWorkstream);
+
+    expect(projected).toMatchObject({
+      title: "Bounded live Workstream",
+      plan: [
+        "Task: Make repository-city collisions non-blocking for the agent avatar.",
+      ],
+      currentActivity: "Running the focused collision regression.",
+      changedFiles: [
+        {
+          path: "apps/web/src/world-entry/WorldRoom.tsx",
+          change: "modified",
+          diffSummaryRef: "12 insertions, 4 deletions",
+        },
+      ],
+      validation: [
+        {
+          label: "pnpm vitest run collision.test.ts",
+          state: "passed",
+          summary: "Exit 0 · 1 test passed",
+        },
+      ],
+      diff: apiWorkstream.projection.diff,
+      evidenceRefs: apiWorkstream.projection.evidenceRefs,
+    });
+  });
+
   it("renders cancelled and removed authority as terminal and unavailable", () => {
     const html = renderToStaticMarkup(
       createElement(WorkInspector, {
@@ -360,6 +458,7 @@ describe("authoritative Workstream client", () => {
       requestId: "request-create",
       correlationId: "correlation-create",
       title: "Bounded live Workstream",
+      task: "Make repository-city collisions non-blocking.",
       repository: apiWorkstream.repository,
       agent: apiWorkstream.agent,
     });
@@ -389,6 +488,7 @@ describe("authoritative Workstream client", () => {
     ];
     const success = await createLiveWorkstream(
       { repository: apiWorkstream.repository, agent: apiWorkstream.agent },
+      "Make the agent avatar stop colliding with repository objects.",
       {
         create: async (input) => {
           requests.push(input);
@@ -402,7 +502,8 @@ describe("authoritative Workstream client", () => {
       {
         requestId: "create-00000000-0000-4000-8000-000000000021",
         correlationId: "00000000-0000-4000-8000-000000000022",
-        title: "Repository Workstream",
+        title: "Make the agent avatar stop colliding with repository objects.",
+        task: "Make the agent avatar stop colliding with repository objects.",
         repository: apiWorkstream.repository,
         agent: apiWorkstream.agent,
       },
@@ -412,6 +513,7 @@ describe("authoritative Workstream client", () => {
 
     const failure = await createLiveWorkstream(
       { repository: apiWorkstream.repository, agent: apiWorkstream.agent },
+      "Make the agent avatar stop colliding with repository objects.",
       {
         create: async () => Promise.reject(new Error("Exact binding is stale")),
       },
@@ -444,6 +546,7 @@ describe("authoritative Workstream client", () => {
       await expect(
         createLiveWorkstream(
           { repository: apiWorkstream.repository, agent: apiWorkstream.agent },
+          "Make the agent avatar stop colliding with repository objects.",
           {
             create: async () => ({
               workstream: apiWorkstream,

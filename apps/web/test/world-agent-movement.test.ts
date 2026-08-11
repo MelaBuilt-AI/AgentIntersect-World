@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import {
+  canOccupyRepositoryCity,
+  type RepositoryCityInstance,
+} from "@agentintersect-world/renderer-r3f";
 
 import {
   advanceAgentMovement,
@@ -16,6 +20,19 @@ const context = {
   layoutGeneration: "layout-1",
   resolveRepositoryObject: () => null,
 } as const;
+const repositoryCity: readonly RepositoryCityInstance[] = [
+  {
+    instanceId: "repository:test-beacon",
+    assetId: "06-test-beacon",
+    position: { x: 1.2, z: 0 },
+    status: "idle",
+    lifecycle: "idle",
+    pinned: false,
+    manual: false,
+    linkedRepoData: { ref: "aiw://object/test-beacon" },
+    sourceEvent: "test.completed",
+  },
+];
 const request = (
   requestId: string,
   source: "user-directed" | "agent-autonomous",
@@ -361,86 +378,84 @@ describe("authoritative World-owned agent movement", () => {
     ).toMatchObject({ state: "refused", reason: "request-terminal" });
   });
 
-  it("refuses the active request instead of crossing a current floor collision", () => {
-    const collisionContext = {
-      ...context,
-      canOccupy: (position: { readonly x: number }) => position.x < 0.5,
-    };
+  it("moves an autonomous coordinate request through repository-city occupancy", () => {
     let result = requestAgentMovement(
       createAgentMovementState("agent-session-1", { x: 0, z: 0 }),
-      request("blocked", "agent-autonomous", {
+      request("coordinate-through-city", "agent-autonomous", {
         kind: "coordinate",
-        x: 2,
+        x: 3,
         z: 0,
       }),
-      collisionContext,
+      context,
     );
-    result = advanceAgentMovement(result.state, 0.1, collisionContext);
-    expect(result.state.position.x).toBe(0.4);
-    result = advanceAgentMovement(result.state, 0.1, collisionContext);
-    expect(result.state.position.x).toBe(0.4);
-    expect(result.state.movementState).toBe("idle");
-    expect(result.events.at(-1)).toMatchObject({
-      requestId: "blocked",
-      state: "refused",
-      reason: "static-collision",
-    });
-  });
-
-  it("steers a follow request around a repository footprint after load", () => {
-    const repositoryContext = {
-      ...context,
-      canOccupy: (position: { readonly x: number; readonly z: number }) =>
-        position.x < 1 || position.x > 3 || Math.abs(position.z) > 1,
-    };
-    let result = requestAgentMovement(
-      createAgentMovementState("agent-session-1", { x: 0, z: 0 }),
-      request("follow-after-load", "agent-autonomous", {
-        kind: "follow-user",
-        stoppingRadius: 1.5,
-      }),
-      repositoryContext,
-    );
-    let greatestDetour = 0;
-    for (let index = 0; index < 100 && result.state.activeRequest; index += 1) {
-      result = advanceAgentMovement(result.state, 0.1, repositoryContext);
-      greatestDetour = Math.max(
-        greatestDetour,
-        Math.abs(result.state.position.z),
+    let enteredRepositoryOccupancy = false;
+    for (let index = 0; index < 20 && result.state.activeRequest; index += 1) {
+      result = advanceAgentMovement(result.state, 0.1, context);
+      enteredRepositoryOccupancy ||= !canOccupyRepositoryCity(
+        repositoryCity,
+        result.state.position,
+        null,
       );
     }
 
-    expect(greatestDetour).toBeGreaterThan(1);
-    expect(result.state.position.x).toBeGreaterThan(0.4);
+    expect(canOccupyRepositoryCity(repositoryCity, { x: 0, z: 0 }, null)).toBe(
+      true,
+    );
+    expect(enteredRepositoryOccupancy).toBe(true);
     expect(result.events.at(-1)).toMatchObject({
-      requestId: "follow-after-load",
+      requestId: "coordinate-through-city",
       state: "arrived",
     });
   });
 
-  it("truthfully refuses follow when every local path step is occupied", () => {
-    const enclosedContext = {
-      ...context,
-      canOccupy: (position: { readonly x: number; readonly z: number }) =>
-        position.x === 0 && position.z === 0,
-    };
+  it("follows the user through repository-city occupancy", () => {
     let result = requestAgentMovement(
       createAgentMovementState("agent-session-1", { x: 0, z: 0 }),
-      request("enclosed-follow", "agent-autonomous", {
+      request("follow-through-city", "agent-autonomous", {
         kind: "follow-user",
         stoppingRadius: 1.5,
       }),
-      enclosedContext,
+      context,
     );
-    result = advanceAgentMovement(result.state, 0.1, enclosedContext);
+    let enteredRepositoryOccupancy = false;
+    for (let index = 0; index < 20 && result.state.activeRequest; index += 1) {
+      result = advanceAgentMovement(result.state, 0.1, context);
+      enteredRepositoryOccupancy ||= !canOccupyRepositoryCity(
+        repositoryCity,
+        result.state.position,
+        null,
+      );
+    }
 
-    expect(result.state.position).toEqual({ x: 0, z: 0 });
-    expect(result.events).toEqual([
-      expect.objectContaining({
-        requestId: "enclosed-follow",
-        state: "refused",
-        reason: "static-collision",
+    expect(enteredRepositoryOccupancy).toBe(true);
+    expect(result.events.at(-1)).toMatchObject({
+      requestId: "follow-through-city",
+      state: "arrived",
+    });
+  });
+
+  it("cancels an active request when the World boundary changes", () => {
+    const narrowedContext = {
+      ...context,
+      bounds: { ...bounds, maxX: 0.2 },
+    };
+    let result = requestAgentMovement(
+      createAgentMovementState("agent-session-1", { x: 0.3, z: 0 }),
+      request("cross-changed-world-boundary", "agent-autonomous", {
+        kind: "coordinate",
+        x: 0,
+        z: 0,
       }),
-    ]);
+      context,
+    );
+
+    result = advanceAgentMovement(result.state, 0.1, narrowedContext);
+
+    expect(result.state.position).toEqual({ x: 0.3, z: 0 });
+    expect(result.events.at(-1)).toMatchObject({
+      requestId: "cross-changed-world-boundary",
+      state: "cancelled",
+      reason: "world-bounds",
+    });
   });
 });

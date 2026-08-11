@@ -1,10 +1,10 @@
 # Pre-Voice Animation, Autonomous Movement, and Code-Visual Assets
 
-Updated: 2026-08-04
+Updated: 2026-08-11
 
 ## Status
 
-**MILESTONES 1–2 OPERATOR PASS / MILESTONE 3 AWAITING EXPLICIT SCOPE CONFIRMATION**
+**MILESTONES 1–3 OPERATOR ACCEPTED / PHASE 18 SINGLE-AGENT FEATURE LOOP ACCEPTED**
 
 Aaron explicitly moved three milestones ahead of normal-World voice and the later roadmap. They must be completed in this order:
 
@@ -12,7 +12,7 @@ Aaron explicitly moved three milestones ahead of normal-World voice and the late
 2. autonomous agent movement with correct animation;
 3. ingestion and World integration of 26 user-labeled code/repository/action visual assets.
 
-This sequencing record marks Milestones 1 and 2 complete through first-hand operator acceptance. It does not mark Milestone 3 started, seal Phase 18 or Phase 18.5, begin Phase 19 or Phase 20, activate a provider, alter protected services, or authorize release/publication/deployment.
+This sequencing record marks all three milestones complete through first-hand operator acceptance. The 26-pair repository-city intake is provenance-bound under `assets/repository-city/`; Aaron accepted the integrated repository-city journey 10/10 on 2026-08-05. Aaron then accepted the real single-agent Workstream feature loop on 2026-08-11. This completion does not begin Phase 19 or Phase 20, activate a provider, alter protected services, or authorize release/publication/deployment.
 
 Aaron's sanitized operator receipts authorize exact model-local Jump and gesture clips for `user-male-01` and `cat-agent-01`. Aaron returned first-hand `animation pass` at 2026-08-03 17:46 EDT, so Milestone 1 is accepted. All other models remain fail-closed for those semantics. The retained developer-only review surface supports every role-valid repository model and defaults to `cat-agent-01`; run `pnpm avatar:review` and open `http://127.0.0.1:45184/internal/avatar-animation-review`. Importing or editing a browser receipt remains review-only and cannot mutate runtime semantics.
 
@@ -20,7 +20,7 @@ Aaron's earlier corrected movement retest remains the authoritative historical m
 
 Aaron returned first-hand `movement pass` at 2026-08-04 16:14 EDT. He observed Mr Fluff move autonomously when asked, follow when asked, face the correct forward/back travel direction, transition through Walk/Run/Idle truthfully, and pass `/` chat activation plus ArrowUp/ArrowDown prompt history. His complete-checklist statement also accepts both distance sets, gradual non-teleport displacement, and scoped stop with no resumption. The criterion-level verdict is retained at `/home/mela_ai/.hermes/runs/aiw-m2-movement-retest-20260804T134639Z/manual-verdict.json`. No screenshot or video accompanied the report, and Mr Fluff did not automate the browser interaction. **Milestone 2 is accepted.**
 
-Milestone 3 is next in the ordered roadmap but remains behind explicit scope confirmation. Do not inspect, hash, convert, or integrate `C:\Codex\repository-visual-assets` until Aaron authorizes Milestone 3 start. This acceptance does not authorize Git delivery, release, publication, deployment, provider activation, public visibility, or Phase 19/20 work.
+Milestone 3 was subsequently authorized, implemented from exactly 26 preserved and hash-bound source pairs, and accepted through the repository-city product journey. Its historical pre-authorization prohibition remains evidence of the earlier boundary, not the current roadmap state. Phase 19 remains not started and requires a separate planning/authorization decision.
 
 ## Milestone 1 — Correct avatar animations
 
@@ -77,32 +77,32 @@ Aaron already has 26 labeled assets representing aspects of code, repositories, 
 
 ### Tasks
 
-- [ ] At milestone start, inspect `C:\Codex\repository-visual-assets` and verify the inventory contains exactly 26 intended labeled image/GLB asset pairs.
-- [ ] Preserve every original byte and record file name, user label, format, size, SHA-256, provenance/use authorization, coordinate system, scale, orientation, materials/textures, and runtime suitability.
-- [ ] Freeze a versioned manifest mapping each user label to one truthful code/repository/action semantic; do not invent semantics from appearance or file names.
-- [ ] Define deterministic intake/conversion rules for source preservation, optimized runtime copies, naming, pivots, scale, materials, LODs, collision/selection bounds, and fallback representation.
-- [ ] Add structural and visual intake validation before runtime registration.
-- [ ] Integrate the accepted assets into the repository-floor visual grammar so supported repositories, code structures, evidence states, and coding actions use the correct representations.
-- [ ] Connect live agent coding events to visuals only through existing validated tool/repository/evidence authority; decorative animation must never imply an unproven edit, test, build, or completion.
-- [ ] Preserve instancing/culling/performance budgets plus reduced-motion, forced-colors/semantic DOM, no-WebGL, and low-spec truth.
-- [ ] Produce representative World scenes for repository structure and an in-progress coding journey, with exact asset-to-semantic traceability.
-- [ ] Obtain Aaron's first-hand visual and interaction acceptance of all 26 assets in their intended World roles.
+- [x] At milestone start, inspect `C:\Codex\repository-visual-assets` and verify the inventory contains exactly 26 intended labeled image/GLB asset pairs.
+- [x] Preserve every original byte and record file name, user label, format, size, SHA-256, provenance/use authorization, coordinate system, scale, orientation, materials/textures, and runtime suitability.
+- [x] Freeze a versioned manifest mapping each user label to one truthful code/repository/action semantic; do not invent semantics from appearance or file names.
+- [x] Define deterministic intake/conversion rules for source preservation, optimized runtime copies, naming, pivots, scale, materials, LODs, collision/selection bounds, and fallback representation.
+- [x] Add structural and visual intake validation before runtime registration.
+- [x] Integrate the accepted assets into the repository-floor visual grammar so supported repositories, code structures, evidence states, and coding actions use the correct representations.
+- [x] Connect live agent coding events to visuals only through existing validated tool/repository/evidence authority; decorative animation never implies an unproven edit, test, build, or completion.
+- [x] Preserve instancing/culling/performance budgets plus reduced-motion, forced-colors/semantic DOM, no-WebGL, and low-spec truth.
+- [x] Produce representative World scenes for repository structure and an in-progress coding journey, with exact asset-to-semantic traceability.
+- [x] Obtain Aaron's first-hand visual and interaction acceptance of the integrated repository-city roles.
 
 ### Exit gate
 
-All 26 assets are provenance-bound, deterministic pipeline inputs and appear in World as truthful, readable representations of their labeled code/repository/action semantics during normal repository exploration and agent coding activity.
+All 26 assets are provenance-bound deterministic pipeline inputs and appear in World as truthful, readable representations of their labeled code/repository/action semantics during normal repository exploration and agent coding activity. Aaron's 10/10 repository-city acceptance completed this gate.
 
 ## Ordered roadmap after these milestones
 
 1. **Accepted:** avatar animation semantics.
 2. **Accepted:** autonomous agent movement.
-3. **Next after explicit scope confirmation:** complete and accept the 26-asset code-visual pipeline and World integration.
-4. Resume normal-World push-to-talk voice using the accepted Phase 15 contracts.
-5. Complete bounded live coding acceptance.
-6. Explicitly seal Phase 18 and reconcile remaining Phase 18.5 acceptance/evidence.
-7. Begin Phase 19 only after separate user authorization.
+3. **Accepted:** 26-asset code-visual pipeline and repository-city World integration.
+4. **Accepted foundation:** normal-World push-to-talk voice under the Phase 15 contract.
+5. **Accepted:** bounded single-agent Workstream feature loop.
+6. Retain exact private-delivery parity and hosted-CI receipts in the external handoff; do not turn this product roadmap into a recursive delivery-status commit.
+7. Decide whether to plan and authorize Phase 19; do not begin implementation from this record alone.
 8. Leave Phase 20 integrated acceptance and bounded hardening until the preceding product slices are accepted.
 
 ## Explicit deferrals
 
-Until Milestone 3 passes, do not prioritize custom Mr Fluff voice, broad CI-flake cleanup, LAN setup UI, gesture guessing, Phase 19, Phase 20, release, publication, deployment, provider activation, or unrelated hardening.
+Phase 19 implementation, Phase 20, custom Mr Fluff voice, broad CI-flake cleanup, LAN setup UI, gesture guessing, release, publication, deployment, provider activation, and unrelated hardening remain separately gated.

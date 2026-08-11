@@ -542,6 +542,67 @@ describe("Phase 18 World entry client composition", () => {
     });
   });
 
+  it("restores an active Workstream session without downgrading Collaborate mode", async () => {
+    if (!api.createWorldEntryClient) return;
+    const session = worldSession({
+      adapterSessionRef: "workstream-effective-session",
+      adapterRootSessionRef: "workstream-root-session",
+      mode: "collaborate",
+      permissionRevision: 1,
+      worktreeRef: "worktree-feature",
+      currentTaskRef: "workstream-feature",
+    });
+    const proposal = {
+      proposalId: "workstream-avatar-proposal",
+      sessionId: session.sessionId,
+      displayName: "Mr Fluff",
+    };
+    const sessionClient = {
+      status: vi.fn().mockResolvedValue(session),
+      nativeSessions: vi.fn().mockResolvedValue([
+        {
+          id: "workstream-root-session",
+          title: "Current Workstream root",
+          source: "discord",
+        },
+      ]),
+      attach: vi.fn().mockImplementation(async (input) => {
+        if (input.mode !== "collaborate" || input.modeConfirmed !== true)
+          throw new Error("active Workstream binding cannot be downgraded");
+        return session;
+      }),
+      avatarProposal: vi.fn().mockResolvedValue(proposal),
+      history: vi.fn().mockResolvedValue({
+        sessionId: session.sessionId,
+        continuity: "current",
+        messages: [],
+        transcriptAuthority: "hermes",
+        avatarConsent: null,
+      }),
+      avatarConsent: vi.fn(),
+      stream: vi.fn(),
+    };
+
+    await expect(
+      api
+        .createWorldEntryClient({ sessionClient })
+        .restoreHermes(session.sessionId),
+    ).resolves.toMatchObject({
+      status: "connected",
+      session,
+      proposal,
+    });
+    expect(sessionClient.attach).toHaveBeenCalledWith({
+      adapterId: "hermes",
+      adapterSessionRef: "workstream-root-session",
+      profile: "default",
+      workspaceId: "world-entry",
+      repositoryRef: "current",
+      mode: "collaborate",
+      modeConfirmed: true,
+    });
+  });
+
   it("restores the same accepted World session after a persisted Hermes text turn refreshes volatile proposal source fields", async () => {
     if (!api.createWorldEntryClient) return;
     const root = fs.mkdtempSync(

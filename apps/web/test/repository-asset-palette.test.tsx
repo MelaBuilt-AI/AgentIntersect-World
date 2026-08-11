@@ -56,7 +56,7 @@ describe("RepositoryAssetPalette", () => {
     expect(html).toContain(tracerMessage);
   });
 
-  it("shows create only with authority and cancel only for a real active Workstream", () => {
+  it("shows create only with a completed user task and explains unavailable or busy state", () => {
     const create = renderToStaticMarkup(
       <RepositoryAssetPalette
         mode="live"
@@ -66,6 +66,7 @@ describe("RepositoryAssetPalette", () => {
         workstreamSource="live"
         tracerMessage="No current Workstream."
         onCreateWorkstream={() => undefined}
+        workstreamTask="Make the avatar stop colliding with repository objects."
       />,
     );
     expect(create).toContain("Create Workstream");
@@ -80,7 +81,11 @@ describe("RepositoryAssetPalette", () => {
         tracerMessage="No current Workstream."
       />,
     );
-    expect(withoutAuthority).not.toContain("Create Workstream");
+    expect(withoutAuthority).toContain("Create Workstream");
+    expect(withoutAuthority).toContain(
+      "Send a feature request in World chat first.",
+    );
+    expect(withoutAuthority).toContain('disabled=""');
 
     const whilePending = renderToStaticMarkup(
       <RepositoryAssetPalette
@@ -91,10 +96,15 @@ describe("RepositoryAssetPalette", () => {
         workstreamSource="live"
         tracerMessage="No current Workstream."
         onCreateWorkstream={() => undefined}
+        workstreamTask="Make the avatar stop colliding with repository objects."
+        workstreamCreateUnavailableReason="Wait for the current agent turn to finish."
         workstreamActionPending
       />,
     );
-    expect(whilePending).not.toContain("Create Workstream");
-    expect(whilePending).not.toContain("Creating Workstream");
+    expect(whilePending).toContain("Creating Workstream…");
+    expect(whilePending).toContain(
+      "Wait for the current agent turn to finish.",
+    );
+    expect(whilePending).toContain('disabled=""');
   });
 });

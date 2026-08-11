@@ -29,6 +29,8 @@ export function RepositoryAssetPalette({
   workstreamSource,
   tracerMessage,
   onCreateWorkstream,
+  workstreamTask,
+  workstreamCreateUnavailableReason,
   onCancelWorkstream,
   workstreamActionPending = false,
 }: {
@@ -47,6 +49,8 @@ export function RepositoryAssetPalette({
   readonly workstreamSource?: WorkstreamTracerSource | undefined;
   readonly tracerMessage?: string | null | undefined;
   readonly onCreateWorkstream?: (() => void) | undefined;
+  readonly workstreamTask?: string | null | undefined;
+  readonly workstreamCreateUnavailableReason?: string | null | undefined;
   readonly onCancelWorkstream?: (() => void) | undefined;
   readonly workstreamActionPending?: boolean | undefined;
 }) {
@@ -196,17 +200,37 @@ export function RepositoryAssetPalette({
                     : "Inspect demo workstream"}
             </button>
           ) : null}
-          {workstreamSource === "live" &&
-          !availableWorkstream &&
-          onCreateWorkstream &&
-          !workstreamActionPending ? (
-            <button
-              type="button"
-              className="world-action--enabled"
-              onClick={onCreateWorkstream}
-            >
-              Create Workstream
-            </button>
+          {workstreamSource === "live" && !availableWorkstream ? (
+            <>
+              <button
+                type="button"
+                className={
+                  onCreateWorkstream &&
+                  workstreamTask &&
+                  !workstreamCreateUnavailableReason &&
+                  !workstreamActionPending
+                    ? "world-action--enabled"
+                    : undefined
+                }
+                disabled={
+                  !onCreateWorkstream ||
+                  !workstreamTask ||
+                  Boolean(workstreamCreateUnavailableReason) ||
+                  workstreamActionPending
+                }
+                onClick={onCreateWorkstream}
+              >
+                {workstreamActionPending
+                  ? "Creating Workstream…"
+                  : "Create Workstream"}
+              </button>
+              {!workstreamTask || workstreamCreateUnavailableReason ? (
+                <p role="status">
+                  {workstreamCreateUnavailableReason ??
+                    "Send a feature request in World chat first."}
+                </p>
+              ) : null}
+            </>
           ) : null}
         </section>
       ) : null}

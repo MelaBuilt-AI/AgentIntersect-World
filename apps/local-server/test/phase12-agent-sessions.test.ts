@@ -36,6 +36,91 @@ afterEach(async () => {
   for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true });
 });
 
+it("keeps the same Workstream context on later turns after explicit collaborate binding", async () => {
+  const contexts: Array<string | undefined> = [];
+  const adapter: AgentAdapter = {
+    id: "fixture",
+    attest: async () => ({
+      schema: "aiw.agent-capabilities/0.12",
+      adapterId: "fixture",
+      adapterVersion: "1",
+      transport: "loopback-http-sse",
+      origin: "local",
+      auth: "server-bearer",
+      supportedModes: ["explore", "collaborate"],
+      ordering: "per-session-strict",
+      resume: "session-api",
+      shutdownOwner: "external",
+      maxInputBytes: 16384,
+      maxEventBytes: 32768,
+      capabilities: {
+        attach: true,
+        sendText: true,
+        streamDeltas: true,
+        toolStatus: false,
+        approvals: false,
+        interrupt: false,
+        avatarProposal: false,
+        skillsDisclosure: false,
+      },
+      unavailable: {
+        toolStatus: "fixture",
+        approvals: "fixture",
+        interrupt: "fixture",
+        avatarProposal: "fixture",
+        skillsDisclosure: "fixture",
+      },
+    }),
+    listSessions: async () => [],
+    attach: async (id) => ({
+      id,
+      rootId: id,
+      source: "fixture",
+      title: "Fixture",
+    }),
+    sendText: async (_session, _text, context) => {
+      contexts.push(context?.systemMessage);
+      return { finalText: "done", deltas: [] };
+    },
+  };
+  const gateway = new AgentSessionGateway({
+    registry: new AdapterRegistry([adapter]),
+    store: new AgentSessionStore(newRoot()),
+  });
+  const attached = await gateway.attach({
+    adapterId: "fixture",
+    adapterSessionRef: "native-root",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+    mode: "explore",
+  });
+  const bound = gateway.bindWorkstream(attached.sessionId, {
+    worktreeRef: "worktree-collision",
+    taskRef: "workstream-collision",
+  });
+  gateway.setWorkstreamContextResolver((session) =>
+    session.currentTaskRef === "workstream-collision"
+      ? "Workstream collision context in /tmp/owned-worktree"
+      : null,
+  );
+
+  await gateway.sendText(bound.sessionId, {
+    text: "Initial implementation task",
+    binding: bound,
+  });
+  const afterInitial = gateway.status(bound.sessionId);
+  await gateway.sendText(afterInitial.sessionId, {
+    text: "Please make the bounded adjustment",
+    binding: afterInitial,
+  });
+
+  expect(contexts).toEqual([
+    "Workstream collision context in /tmp/owned-worktree",
+    "Workstream collision context in /tmp/owned-worktree",
+  ]);
+});
+
 type FakeHermesOptions = {
   readonly noDeltas?: boolean;
   readonly malformed?: boolean;

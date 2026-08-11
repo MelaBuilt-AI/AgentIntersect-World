@@ -6,6 +6,7 @@ export type WorkstreamReference = {
 export type WorkstreamAgentReference = {
   readonly agentId: string;
   readonly nativeSessionId: string;
+  readonly rootNativeSessionId: string;
   readonly revision: string;
 };
 
@@ -19,6 +20,7 @@ export type WorkstreamApiRecord = {
   readonly workstreamId: string;
   readonly revision: number;
   readonly title: string;
+  readonly task: string;
   readonly repository: WorkstreamReference;
   readonly agent: WorkstreamAgentReference;
   readonly authority: {
@@ -38,6 +40,25 @@ export type WorkstreamApiRecord = {
   readonly worktreeState:
     "current" | "dirty" | "wrong-branch" | "missing" | "removed";
   readonly evidenceOperationRefs: readonly string[];
+  readonly projection: {
+    readonly currentActivity: string;
+    readonly changedFiles: readonly {
+      readonly path: string;
+      readonly change: "added" | "modified" | "deleted" | "renamed";
+      readonly diffSummary: string;
+    }[];
+    readonly diff: {
+      readonly summary: string;
+      readonly patch: string;
+      readonly truncated: boolean;
+    };
+    readonly validation: readonly {
+      readonly command: string;
+      readonly exitCode: number;
+      readonly summary: string;
+    }[];
+    readonly evidenceRefs: readonly string[];
+  };
   readonly status:
     | "planning"
     | "working"
@@ -59,6 +80,7 @@ export type WorkstreamCreateInput = {
   readonly requestId: string;
   readonly correlationId: string;
   readonly title: string;
+  readonly task: string;
   readonly repository: WorkstreamReference;
   readonly agent: WorkstreamAgentReference;
 };
@@ -95,11 +117,13 @@ function recordFrom(body: unknown): WorkstreamApiRecord {
     typeof record.workstreamId !== "string" ||
     typeof record.revision !== "number" ||
     typeof record.title !== "string" ||
+    typeof record.task !== "string" ||
     !record.repository ||
     !record.agent ||
     !record.authority ||
     !Array.isArray(record.events) ||
     !Array.isArray(record.evidenceOperationRefs) ||
+    !record.projection ||
     typeof record.status !== "string"
   )
     throw new Error("Invalid Workstream response");

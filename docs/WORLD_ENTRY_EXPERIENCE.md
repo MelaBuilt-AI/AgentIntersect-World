@@ -284,15 +284,15 @@ The following are explicitly deferred:
 - broad internal-dashboard redesign;
 - public rooms, unrelated users, cloud relay, release, publication, tags, deployment, public ingress, or visibility changes.
 
-## 17. Phase 18.5 sequencing boundary
+## 17. Current sequencing boundary
 
-Aaron explicitly authorized **Phase 18.5 — Avatar and World Visual Production** as the next milestone while leaving revised Phase 18 open. This does not waive the pending physical-mouse camera or real in-World single-agent chat/voice/coding gates. Phase 18.5 may replace avatar and repository rendering foundations first, but those Phase 18 gates must later pass against the integrated candidate. Phase 19 and Phase 20 remain closed.
+The accepted Phase 18.5 visual/repository foundation now supports the completed Phase 18 Single-Agent Hermes feature loop. Aaron first-hand accepted the real Workstream-owned feature on 2026-08-11 after observing the source-bound World/Workbench composition. The accepted behavior lets autonomous coordinate and follow-user agent movement pass through real repository-city occupancy while World-boundary cancellation remains enforced. The normal experience still does not link to the internal Workbench.
 
-Phase 18.5 began with `docs/PHASE_18_5_SCOPE.md` and an executable asset contract. The uncommitted implementation candidate now includes the approved Luminous Codecraft direction, a human-plus-cat hero slice, the full modular human/dog/cat family, shared rig/actions/PBR/LODs, truthful metadata-driven repository environment art, runtime composition, and deterministic structural/visual evidence. The managed worker sandbox cannot start a browser or loopback listener, so the prepared integrated Playwright screenshots and frame/Long Task measurement remain blocked and truthfully absent. Parent proof in a browser-capable environment and Aaron's first-hand visual acceptance are still required; Phase 18.5 is not accepted or sealed.
+The layered delivery composition passed independent parent verification; exact private-delivery commit, parity, and hosted-CI receipts are retained in the external handoff rather than recursively encoded in this product contract. The next decision is whether to plan and authorize **Phase 19 — Multi-Agent Constellation and Harness Breadth**. Phase 19 implementation and Phase 20 remain closed.
 
 ## 18. Revised Phase 18 acceptance journey
 
-The future Single-Agent Hermes magic slice passes only when all steps are observed in one production-boundary journey:
+The Single-Agent Hermes magic slice was completed through the following production-boundary journey and the accepted real feature loop:
 
 1. Seed or restore an existing valid user avatar.
 2. Open World and see the full-screen animated logo personalized with the user’s name on the X.
@@ -313,4 +313,4 @@ The future Single-Agent Hermes magic slice passes only when all steps are observ
 17. Have Hermes/Mr Fluff complete one bounded disposable-project feature as the sole connected agent while World truthfully shows progress, tools, chat/queue behavior, changes, tests/build, result, and cleanup.
 18. Repeat an equivalent bounded coding journey for every other Single Agent harness truthfully presented as enabled; unsupported harnesses remain grey and are not claimed.
 
-Completion of this journey requires the remaining production-boundary implementation/evidence, independent parent proof, and Aaron's explicit first-hand acceptance. Starting Phase 18.5 does not satisfy or waive any of these Phase 18 gates.
+Aaron's explicit first-hand acceptance completes the Phase 18 single-agent feature-loop product gate for the truthfully enabled Hermes path, and the integrated source passed independent parent verification. Exact private-delivery parity and hosted-CI receipts remain external evidence. This completion does not authorize Phase 19 implementation or any release/public action.

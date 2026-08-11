@@ -1,5 +1,4 @@
 import {
-  canOccupyRepositoryCity,
   createRepositoryCityState,
   projectRepositoryObjects,
   REPOSITORY_ASSET_BY_ID,
@@ -135,6 +134,9 @@ export function WorldRoom({
   showControlHints = true,
   repositoryReadiness = "idle",
   workstreamAuthority,
+  workstreamTask,
+  workstreamCreateUnavailableReason,
+  onWorkstreamSessionChanged,
   onAskAgent,
   onRepositoryReady,
   onRepositoryError,
@@ -183,6 +185,10 @@ export function WorldRoom({
   readonly repositoryReadiness?: "idle" | "loading" | "ready" | "error";
   readonly workstreamAuthority?:
     WorkstreamAuthorityDescriptor | null | undefined;
+  readonly workstreamTask?: string | null | undefined;
+  readonly workstreamCreateUnavailableReason?: string | null | undefined;
+  readonly onWorkstreamSessionChanged?:
+    (() => Promise<void> | void) | undefined;
   readonly onAskAgent?: ((prompt: string) => void) | undefined;
   readonly onRepositoryReady?: (() => void) | undefined;
   readonly onRepositoryError?: (() => void) | undefined;
@@ -289,20 +295,32 @@ export function WorldRoom({
   useEffect(() => {
     if (tracerMode !== "live" && tracerMode !== "phase14") return;
     let active = true;
-    const request =
-      tracerMode === "live"
-        ? new WorkstreamClient()
-            .current()
-            .then((record) =>
-              record ? projectAuthoritativeWorkstream(record) : null,
-            )
-        : loadCurrentPhase14Workstream(() =>
-            new Phase14Client().current<Phase14JourneyState>(),
-          );
-    void request
-      .then((workstream) => {
+    let pending = false;
+    const load = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const workstream =
+          tracerMode === "live"
+            ? await new WorkstreamClient()
+                .current()
+                .then((record) =>
+                  record ? projectAuthoritativeWorkstream(record) : null,
+                )
+            : await loadCurrentPhase14Workstream(() =>
+                new Phase14Client().current<Phase14JourneyState>(),
+              );
         if (!active) return;
-        setLiveWorkstream(workstream);
+        setLiveWorkstream((current) => {
+          if (!workstream) return current;
+          if (
+            current?.authority &&
+            workstream.authority &&
+            current.authority.revision > workstream.authority.revision
+          )
+            return current;
+          return workstream;
+        });
         setLiveTracerMessage(
           tracerMode === "live"
             ? workstream
@@ -312,8 +330,7 @@ export function WorldRoom({
               ? "Diagnostic Phase 14 current journey available."
               : "Phase 14 current journey unavailable · current response had no journey identity.",
         );
-      })
-      .catch((error: unknown) => {
+      } catch (error) {
         if (!active) return;
         const detail =
           error instanceof Error ? error.message : "Workstream request failed";
@@ -324,9 +341,18 @@ export function WorldRoom({
               ? "Phase 14 current journey unavailable · No current journey."
               : `Phase 14 diagnostic error · ${detail}.`,
         );
-      });
+      } finally {
+        pending = false;
+      }
+    };
+    void load();
+    const timer =
+      tracerMode === "live"
+        ? window.setInterval(() => void load(), 1_000)
+        : null;
     return () => {
       active = false;
+      if (timer !== null) window.clearInterval(timer);
     };
   }, [tracerMode]);
 
@@ -343,6 +369,7 @@ export function WorldRoom({
       const projected = projectAuthoritativeWorkstream(result.workstream);
       setLiveWorkstream(projected);
       setLiveTracerMessage(`Current Workstream is ${projected.status}.`);
+      await onWorkstreamSessionChanged?.();
     } catch (error) {
       setLiveTracerMessage(
         `Workbench error · ${error instanceof Error ? error.message : "Cancel failed"}.`,
@@ -350,21 +377,32 @@ export function WorldRoom({
     } finally {
       setWorkstreamActionPending(false);
     }
-  }, [selectedWorkstream, tracerMode, workstreamActionPending]);
+  }, [
+    onWorkstreamSessionChanged,
+    selectedWorkstream,
+    tracerMode,
+    workstreamActionPending,
+  ]);
   const createWorkstream = useCallback(async () => {
     if (
       tracerMode !== "live" ||
       !workstreamAuthority ||
+      !workstreamTask ||
+      workstreamCreateUnavailableReason ||
       liveWorkstream ||
       liveTracerMessage !== "No current Workstream." ||
       workstreamActionPending
     )
       return;
     setWorkstreamActionPending(true);
-    const outcome = await createLiveWorkstream(workstreamAuthority);
+    const outcome = await createLiveWorkstream(
+      workstreamAuthority,
+      workstreamTask,
+    );
     if (outcome.workstream) {
       setLiveWorkstream(outcome.workstream);
       setSelectedWorkstreamId(outcome.workstream.workstreamId);
+      await onWorkstreamSessionChanged?.();
     }
     setLiveTracerMessage(outcome.message);
     setWorkstreamActionPending(false);
@@ -374,6 +412,9 @@ export function WorldRoom({
     tracerMode,
     workstreamActionPending,
     workstreamAuthority,
+    workstreamCreateUnavailableReason,
+    workstreamTask,
+    onWorkstreamSessionChanged,
   ]);
   useEffect(() => {
     if (floor === "blank") {
@@ -525,10 +566,6 @@ export function WorldRoom({
             }
           : null;
       },
-      canOccupy: (
-        position: { readonly x: number; readonly z: number },
-        targetObjectId: string | null,
-      ) => canOccupyRepositoryCity(city.instances, position, targetObjectId),
     }),
     [city.instances, layoutGeneration, userPosition],
   );
@@ -1176,6 +1213,10 @@ export function WorldRoom({
               !workstreamActionPending
                 ? () => void createWorkstream()
                 : undefined
+            }
+            workstreamTask={workstreamTask}
+            workstreamCreateUnavailableReason={
+              workstreamCreateUnavailableReason
             }
             onCancelWorkstream={
               tracerMode === "live" && selectedWorkstream?.authority

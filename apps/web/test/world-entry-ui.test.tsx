@@ -18,7 +18,6 @@ import {
   parseAvatarDraft,
   type AvatarDraft,
 } from "@agentintersect-world/avatar-system";
-import { canOccupyRepositoryCity } from "@agentintersect-world/renderer-r3f";
 import type {
   AvatarProposal,
   WorldAgentEvent,
@@ -705,26 +704,11 @@ describe("Phase 18 World entry experience", () => {
   });
 
   it("moves for both exact command paths after repository-city placement", () => {
-    const cityInstances = [
-      {
-        instanceId: "repository:root",
-        assetId: "04-repository-root-hub" as const,
-        position: { x: 9, z: 0 },
-        status: "idle" as const,
-        lifecycle: "idle" as const,
-        pinned: false,
-        manual: false,
-        linkedRepoData: { ref: "root" },
-        sourceEvent: "repository.loaded",
-      },
-    ];
     const context = {
       bounds: { minX: -15, maxX: 15, minZ: -15, maxZ: 15 },
       userPosition: { x: 0, z: 0 },
       layoutGeneration: "repo-loaded",
       resolveRepositoryObject: () => null,
-      canOccupy: (position: { readonly x: number; readonly z: number }) =>
-        canOccupyRepositoryCity(cityInstances, position, null),
     } as const;
     const requests: readonly AgentMovementRequest[] = [
       {

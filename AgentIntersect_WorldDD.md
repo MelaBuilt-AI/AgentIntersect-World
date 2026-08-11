@@ -232,7 +232,7 @@ The operator selects a design document, sees compiled phases and acceptance crit
 
 ### v0.1 cutline
 
-The current cutline leaves revised Phase 18's World Entry Experience open while the explicitly authorized **Phase 18.5 — Avatar and World Visual Production** has reached a visual/hardware-accepted, locally and fresh-copy verified private-delivery candidate. Phase 18 retains its physical-mouse camera and real in-World single-agent chat/voice/coding acceptance gates; none are waived. Revised Phase 19 remains unauthorized until its dependencies and acceptance gates are satisfied, and revised Phase 20 remains separately gated. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
+The current cutline records the revised Phase 18 Single-Agent Hermes feature loop as complete and manually accepted. Its independently verified layered composition combines the Workstream orchestration/restoration correction, the accepted repository-city movement feature, and the proven developer-gated pointer recovery. Exact private-delivery commit, parity, and hosted-CI evidence are retained in the external handoff rather than recursively encoded here. The next product decision is Phase 19 planning and authorization, not implementation. Revised Phase 19 remains not started and unauthorized, and revised Phase 20 remains separately gated. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
 
 ### Relationship to AgentIntersect and AgentClutch
 
@@ -1934,7 +1934,7 @@ The logo remains a home/reset action. Categories may initially expose truthful u
 
 **What is not reused:** the original AgentIntersect menu contents, control-plane route assumptions, Connect/OnBoarding/Design/Control/Workers/Records business logic, external configuration writes, worker authority, or monolithic server-rendered implementation. World ports the accepted visual and interaction design into typed React components backed only by World APIs.
 
-**Current versus proposed:** The completed Phase 5 dashboard and the Phase 6–17 operational panels remain accepted internal capability foundations. Revised Phase 18 has a privately delivered, exact-SHA-CI-green correction candidate; harness geometry is visually accepted, while physical-mouse camera and real in-World single-agent chat/voice/coding acceptance remain open. Aaron explicitly authorized Phase 18.5 visual production as the next milestone despite those preserved open gates. Revised Phase 19 will add multi-agent constellation and harness breadth after the accepted visual foundation; revised Phase 20 will perform integrated embodied acceptance and bounded hardening.
+**Current versus proposed:** The completed Phase 5 dashboard and the Phase 6–17 operational panels remain accepted internal capability foundations. Revised Phase 18's Single-Agent Hermes feature loop is complete and manually accepted, including the real Workstream-owned repository-city movement correction and truthful validation evidence. The integrated source passed independent parent verification; exact private-delivery parity and hosted-CI state are retained in the external handoff. Revised Phase 19 is the next planning/authorization decision and, if separately authorized later, will add multi-agent constellation and harness breadth. Revised Phase 20 remains the later integrated embodied acceptance and bounded-hardening milestone.
 
 ### Onboarding
 
@@ -2365,13 +2365,13 @@ Completed Phases 0–17 are accepted historical foundations and are not reopened
 | Phases 11–14 | Modular avatars, persistent Hermes session, navigation/actions, tools and previews   |
 | Phases 15–17 | Staged voice lane, isolated multi-agent coordination, diagnostics/recovery machinery |
 
-The unstarted future path is replaced by this sequence:
+The re-baselined product path is:
 
-| Phase | Status                                                     | Product question answered                                            | Primary deliverable                                               |
-| ----- | ---------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| 18    | Correction implemented; awaiting fresh parent verification | Can one user call Mr Fluff into a World and bring in a repository?   | Single-Agent Hermes World-entry magic slice                       |
-| 19    | Not started or authorized                                  | Can the frozen constellation work across agents and harnesses?       | Multi-Agent sequence, targeting, and four-harness breadth         |
-| 20    | Not started or authorized                                  | Does the embodied product work reliably across accepted foundations? | Integrated acceptance and bounded hardening; old Phase 18 purpose |
+| Phase | Status                                                                 | Product question answered                                                       | Primary deliverable                                               |
+| ----- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 18    | Single-agent feature loop manually accepted and independently verified | Can one user call Mr Fluff into a World and complete a real repository feature? | Single-Agent Hermes World-entry and Workstream magic slice        |
+| 19    | Next planning/authorization decision; not started                      | Can the frozen constellation work across agents and harnesses?                  | Multi-Agent sequence, targeting, and four-harness breadth         |
+| 20    | Not started or authorized                                              | Does the embodied product work reliably across accepted foundations?            | Integrated acceptance and bounded hardening; old Phase 18 purpose |
 
 ```mermaid
 flowchart LR
@@ -2920,9 +2920,11 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Phase 18 — World Entry Experience — Single-Agent Hermes magic slice
 
-**Status:** CORRECTIONS PRIVATELY DELIVERED / EXACT-SHA CI GREEN / USER ACCEPTANCE OPEN. Aaron visually accepted the harness geometry but deferred the physical-mouse held-right camera test. Real in-World single-agent chat/voice/coding acceptance is also required before sealing. Phase 18 is not user accepted or sealed.
+**Status:** SINGLE-AGENT FEATURE LOOP COMPLETE / MANUALLY ACCEPTED / INDEPENDENT PARENT VERIFICATION GREEN. Aaron accepted the real Hermes/Mr Fluff Workstream journey and its repository-city movement feature on 2026-08-11. Exact private-delivery commit, remote parity, and hosted-CI state remain external delivery evidence rather than product-acceptance claims.
 
 **2026-08-03 user-ordering update:** Before voice, bounded live coding, or later-phase progression, complete three user-prioritized milestones in order: (1) correct Space/`Jump` and the exact `/dance`, `/clap`, `/cheer`, `/wave`, `/bow`, `/agree`, `/angry`, and `/laugh` animation semantics; (2) complete autonomous agent movement so validated agent intent drives truthful navigation plus correct locomotion and stationary actions; and (3) ingest and integrate Aaron's 26 labeled code/repository/action assets as deterministic, authority-bound World visuals. `docs/PRE_VOICE_ANIMATION_MOVEMENT_AND_CODE_VISUALS.md` is the concrete task and acceptance contract. This ordering does not mark those tasks complete or waive any existing Phase 18/18.5 gate.
+
+**2026-08-11 acceptance update:** The ordered animation, autonomous-movement, repository-visual, and bounded single-agent coding path is complete through first-hand acceptance. The accepted feature loop used one real Workstream and retained exact session/worktree/task/diff/test evidence. The integrated source also passed independent parent verification. Commit, parity, and hosted-CI receipts live in the external delivery handoff; this product update does not claim merge, release, or publication.
 
 **Objective:** Replace the normal dashboard-first journey with one coherent embodied entry slice that reuses accepted Phase 0–17 capabilities beneath a user-facing identity, Hermes connection, explicit agent-avatar, World entry, chat, and repository-floor transformation.
 
@@ -2949,11 +2951,11 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Code/artifacts:** The bounded implementation is in `apps/web/src/App.tsx`, `apps/web/src/world-entry/`, `apps/web/src/styles.css`, and `packages/renderer-r3f/src/world-room-canvas.tsx`, with focused Vitest/Playwright coverage and retained evidence under `artifacts/phase18/`. The implementation intentionally reused existing session/avatar/repository/navigation authority without local-server, protocol, provider, Hermes/OpenClaw, or original-AgentIntersect changes. Exact paths/results are recorded in `PHASE_18_REPORT.md`.
 
-**Tests/evidence:** The corrected UI candidate has focused unit/browser proof, independent review, production build, and private exact-SHA CI green. Remaining evidence is first-hand physical-mouse held-right camera behavior plus production-boundary live in-World chat/voice and bounded coding journeys for Hermes and every other truthfully enabled Single Agent harness. Fixture-assisted output remains visibly labeled and non-acceptance evidence for live continuity.
+**Tests/evidence:** Historical corrected UI and repository-city candidates retain their focused unit/browser, independent, build, delivery, and first-hand evidence. The final single-agent feature loop used real Workstream authority and received Aaron's explicit acceptance with source-grounded repository geometry, autonomous/follow traversal, World-boundary cancellation, and 19 validation receipts. The combined source passed independent parent verification, including the complete serial unit suite, type/format/lint/architecture/build/smoke gates, and selected production-browser journeys; private-delivery receipts are retained externally.
 
 **Acceptance criteria:** The exact journey completes without visiting or linking to the dashboard; no first-time agent avatar is silently defaulted; `Enter World` is absent until the selected agent is truthfully connected and the avatar is complete; the camera begins third-person behind the user; only chat and push-to-talk persist in World; one repository request transforms the whole existing floor; physical-mouse held-right look passes; Hermes replies live inside World; every truthfully enabled Single Agent harness completes the bounded coding journey with real evidence; errors are brief and retryable; internal machinery remains available only under the explicit local developer flag/internal route; accessibility and truthful state invariants pass.
 
-**Exit gate:** The corrected implementation, private delivery, independent review, and exact-SHA CI are complete. First-hand physical-mouse and live single-agent gates remain open; therefore Phase 18 is not accepted or sealed. Aaron separately authorized Phase 18.5 next despite this open state. That sequencing does not authorize Phase 19, provider activation, or any public action.
+**Exit gate:** The Phase 18 Single-Agent Hermes product journey and real bounded feature loop are manually accepted, and the layered source composition passed independent parent verification. Exact private-delivery parity and hosted-CI receipts are maintained in the external handoff. The next product decision is Phase 19 planning/authorization; this acceptance does not itself authorize Phase 19 implementation, provider activation, or any public action.
 
 **Risks:** Existing panel-oriented composition may leak admin chrome; native Hermes identity matching may expose technical detail; blank-room and repository renderers may become separate spaces; persisted state may reveal `Enter World` early. Mitigate through an explicit state machine, semantic truth selectors, one floor scene identity, internal-route boundary tests, and end-to-end readiness assertions.
 
@@ -3289,7 +3291,7 @@ None may bypass the core authority invariants. In particular, unrelated-user exe
 
 ## Current stop condition and next approval gates
 
-**Stop condition now:** Phases 0–17 remain accepted historical foundations. Phase 13 Discord → World continuity remains FAIL/deferred under waiver and was not retried. Phase 15’s local STT provider remains staged/unactivated. Revised Phase 18—**World Entry Experience — Single-Agent Hermes magic slice**—has fresh independent parent verification green; private exact-SHA CI and a new full-browser first-hand user retest are next, while explicit user-facing acceptance remains open. Revised Phases 19 and 20 are not started or authorized. Do not call Phase 18 user accepted or sealed, promote or activate a provider, modify Hermes/OpenClaw/core/profile or the original AgentIntersect repository, retry Phase 13, begin Phase 19/20, install packages, start persistent services, release, publish, tag, deploy, expose public ingress, or change visibility without separate explicit authorization.
+**Stop condition now:** Phases 0–17 remain accepted historical foundations. Phase 13 Discord → World continuity remains FAIL/deferred under waiver and was not retried. Phase 15’s local STT provider remains staged/unactivated. Revised Phase 18—**World Entry Experience — Single-Agent Hermes magic slice**—has completed its real single-agent feature loop, received Aaron's explicit first-hand acceptance, and passed independent parent verification. Exact private-delivery state is retained in the external handoff. Phase 19 planning/authorization is the next product decision; Phase 19 implementation and Phase 20 remain not started or authorized. Do not promote or activate a provider, modify Hermes/OpenClaw/core/profile or the original AgentIntersect repository, retry Phase 13, begin Phase 19/20 implementation, start persistent services, release, publish, tag, deploy, expose public ingress, or change visibility without separate explicit authorization.
 
 ## Source references and AgentIntersect anchors
 

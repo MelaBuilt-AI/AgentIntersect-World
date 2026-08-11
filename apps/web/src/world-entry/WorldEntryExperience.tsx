@@ -61,10 +61,12 @@ import {
   type WorldDisplayPreferences,
 } from "./world-escape-menu-model.js";
 import { resolveWorldEntryRestore } from "./world-entry-restore.js";
-import type {
-  WorkstreamAuthorityDescriptor,
-  WorkstreamReference,
+import {
+  WorkstreamClient,
+  type WorkstreamAuthorityDescriptor,
+  type WorkstreamReference,
 } from "./workstream-client.js";
+import { resolveWorkstreamTask } from "./workstream-create.js";
 
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
 const SESSION_POINTER_PATTERN =
@@ -249,71 +251,93 @@ export function WorldEntryExperience({
       if (clearPointer) window.localStorage.removeItem(SESSION_POINTER_KEY);
       setRestorePending(false);
     };
-    if (!pointer) {
-      finishWithoutRestore(false);
+    const liveWorkstreamTracer =
+      new URLSearchParams(window.location.search).get("workstreamTracer") ===
+      "live";
+    const validPointer =
+      pointer && SESSION_POINTER_PATTERN.test(pointer) ? pointer : null;
+    if (!validPointer && !liveWorkstreamTracer) {
+      finishWithoutRestore(pointer !== null);
       return () => {
         active = false;
       };
     }
-    if (!SESSION_POINTER_PATTERN.test(pointer)) {
-      finishWithoutRestore(true);
-      return () => {
-        active = false;
-      };
-    }
-    void client
-      .restoreHermes(pointer)
-      .then((result) => {
-        if (!active) return;
-        const disposition = resolveWorldEntryRestore(result);
-        if (
+    void (async () => {
+      let result: HermesConnectionResult | null = validPointer
+        ? await client.restoreHermes(validPointer)
+        : null;
+      let disposition = result ? resolveWorldEntryRestore(result) : null;
+      if (
+        (!result ||
           disposition === "clear" ||
           (result.status !== "connected" && result.status !== "recovered") ||
-          !result.proposal
+          !result.proposal) &&
+        liveWorkstreamTracer
+      ) {
+        const workstream = await new WorkstreamClient().current();
+        const currentAgentId = workstream?.agent.agentId;
+        if (
+          currentAgentId &&
+          currentAgentId !== validPointer &&
+          SESSION_POINTER_PATTERN.test(currentAgentId)
         ) {
-          finishWithoutRestore(true);
-          return;
+          result = await client.restoreHermes(currentAgentId);
+          disposition = resolveWorldEntryRestore(result);
         }
-        setSession(result.session);
-        setProposal(result.proposal);
-        updateChat({
-          type: "RESTORE_HISTORY",
-          messages: result.history.messages,
+      }
+      if (!active) return;
+      if (
+        !result ||
+        disposition === "clear" ||
+        (result.status !== "connected" && result.status !== "recovered") ||
+        !result.proposal
+      ) {
+        finishWithoutRestore(pointer !== null);
+        return;
+      }
+      setSession(result.session);
+      setProposal(result.proposal);
+      window.localStorage.setItem(
+        SESSION_POINTER_KEY,
+        result.session.sessionId,
+      );
+      updateChat({
+        type: "RESTORE_HISTORY",
+        messages: result.history.messages,
+      });
+      if (disposition === "world") {
+        setAgentAvatar(avatarDraftFromProposal(result.proposal));
+        setStatus(
+          `agent connected · ${connectionLabel(result)} · avatar accepted`,
+        );
+        dispatch({
+          type: "RESTORE_WORLD",
+          sessionId: result.session.sessionId,
+          continuity: result.continuity,
+          agentName: result.proposal.displayName,
+          avatarProfileId: result.proposal.proposalId,
         });
-        if (disposition === "world") {
-          setAgentAvatar(avatarDraftFromProposal(result.proposal));
-          setStatus(
-            `agent connected · ${connectionLabel(result)} · avatar accepted`,
-          );
-          dispatch({
-            type: "RESTORE_WORLD",
-            sessionId: result.session.sessionId,
-            continuity: result.continuity,
-            agentName: result.proposal.displayName,
-            avatarProfileId: result.proposal.proposalId,
-          });
-        } else {
-          setAgentAvatar(null);
-          setAgentAvatarMode(
-            disposition === "avatar-migrate" ? "migrate" : "create",
-          );
-          setStatus(
-            `agent connected · ${connectionLabel(result)} · ${
-              disposition === "avatar-migrate"
-                ? "avatar change required"
-                : "avatar acceptance required"
-            }`,
-          );
-          dispatch({
-            type: "RESTORE_AGENT_AVATAR",
-            sessionId: result.session.sessionId,
-            continuity: result.continuity,
-            agentName: result.proposal.displayName,
-          });
-        }
-        setRestorePending(false);
-      })
-      .catch(() => finishWithoutRestore(true));
+      } else {
+        setAgentAvatar(null);
+        setAgentAvatarMode(
+          disposition === "avatar-migrate" ? "migrate" : "create",
+        );
+        setStatus(
+          `agent connected · ${connectionLabel(result)} · ${
+            disposition === "avatar-migrate"
+              ? "avatar change required"
+              : "avatar acceptance required"
+          }`,
+        );
+        dispatch({
+          type: "RESTORE_AGENT_AVATAR",
+          sessionId: result.session.sessionId,
+          continuity: result.continuity,
+          agentName: result.proposal.displayName,
+        });
+      }
+      setRestorePending(false);
+    })().catch(() => finishWithoutRestore(pointer !== null));
     return () => {
       active = false;
     };
@@ -666,12 +690,29 @@ export function WorldEntryExperience({
             agent: {
               agentId: session.sessionId,
               nativeSessionId: session.adapterSessionRef,
+              rootNativeSessionId:
+                typeof session.adapterRootSessionRef === "string"
+                  ? session.adapterRootSessionRef
+                  : session.adapterSessionRef,
               revision: String(session.permissionRevision),
             },
           }
         : null,
     [activeRepositoryAuthority, session],
   );
+  const workstreamTask = useMemo(
+    () => resolveWorkstreamTask(chat.transcript, chatBusy || queuedCount > 0),
+    [chat.transcript, chatBusy, queuedCount],
+  );
+  const refreshWorkstreamSession = useCallback(async () => {
+    if (!session) return;
+    try {
+      const refreshed = await client.refreshSession(session.sessionId);
+      if (mounted.current) setSession(refreshed);
+    } catch {
+      if (mounted.current) setStatus("Workstream session refresh unavailable_");
+    }
+  }, [client, session]);
   useEffect(() => {
     if (!movementSessionId) return;
     let active = true;
@@ -884,6 +925,9 @@ export function WorldEntryExperience({
             showControlHints={preferences.showControlHints}
             repositoryReadiness={repositoryReadiness}
             workstreamAuthority={workstreamAuthority}
+            workstreamTask={workstreamTask.task}
+            workstreamCreateUnavailableReason={workstreamTask.unavailableReason}
+            onWorkstreamSessionChanged={refreshWorkstreamSession}
             onRepositoryReady={repositoryRendered}
             onRepositoryError={repositoryRenderFailed}
             onAskAgent={(prompt) =>

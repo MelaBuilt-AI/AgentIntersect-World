@@ -45,6 +45,7 @@ import { matchesSelectedRepository } from "./repository-selection-authority.js";
 import {
   WorkstreamService,
   WorkstreamServiceError,
+  type WorkstreamAgentBinding,
 } from "./workstream-service.js";
 import { WorktreeAuthority } from "./worktree-authority.js";
 
@@ -193,6 +194,34 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     ...(coordinationGitConfig ?? {}),
     requireApprovedGitBoundary: true,
   });
+  const workstreamAgentBinding = (
+    agentId: string,
+  ): WorkstreamAgentBinding | null => {
+    if (!agentSessionGateway) return null;
+    try {
+      const session = agentSessionGateway.status(agentId);
+      if (
+        session.sessionId !== agentId ||
+        session.status !== "ready" ||
+        session.continuity !== "current" ||
+        (session.mode !== "explore" && session.mode !== "collaborate")
+      )
+        return null;
+      return {
+        agentId: session.sessionId,
+        nativeSessionId: session.adapterSessionRef,
+        rootNativeSessionId:
+          session.adapterRootSessionRef ?? session.adapterSessionRef,
+        revision: String(session.permissionRevision),
+        worktreeRef: session.worktreeRef,
+        currentTaskRef: session.currentTaskRef,
+        mode: session.mode,
+        eventSequence: session.lastEventSequence,
+      };
+    } catch {
+      return null;
+    }
+  };
   const workstreamService =
     coordinationGitConfig && agentSessionGateway
       ? new WorkstreamService({
@@ -207,6 +236,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
               coordinationGitConfig.approvedRepositoryRoot,
             allowedWorktreeParent: coordinationGitConfig.allowedWorktreeParent,
           }),
+          worktreeParent: coordinationGitConfig.allowedWorktreeParent,
           currentRepository: () => {
             const selection = selectedRepository();
             return selection
@@ -228,6 +258,8 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
               return {
                 agentId: session.sessionId,
                 nativeSessionId: session.adapterSessionRef,
+                rootNativeSessionId:
+                  session.adapterRootSessionRef ?? session.adapterSessionRef,
                 revision: String(session.permissionRevision),
               };
             } catch {
@@ -244,8 +276,76 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
               return [];
             },
           },
+          agentPort: {
+            current: workstreamAgentBinding,
+            busy: (agentId) => agentSessionGateway.isBusy(agentId),
+            bind: ({ agent, worktreeRef, taskRef }) => {
+              const current = workstreamAgentBinding(agent.agentId);
+              if (
+                !current ||
+                current.nativeSessionId !== agent.nativeSessionId ||
+                current.rootNativeSessionId !==
+                  (agent.rootNativeSessionId ?? agent.nativeSessionId) ||
+                current.revision !== agent.revision
+              )
+                throw new Error(
+                  "Selected World agent binding changed before Workstream creation",
+                );
+              agentSessionGateway.bindWorkstream(agent.agentId, {
+                worktreeRef,
+                taskRef,
+              });
+              const bound = workstreamAgentBinding(agent.agentId);
+              if (!bound) throw new Error("Workstream agent binding failed");
+              return bound;
+            },
+            dispatch: async ({ agentId, task, systemContext, signal }) => {
+              const binding = agentSessionGateway.status(agentId);
+              await agentSessionGateway.sendText(
+                agentId,
+                {
+                  text: task,
+                  binding,
+                  context: { systemMessage: systemContext },
+                },
+                { signal },
+              );
+            },
+            evidence: (agentId, afterSequence) =>
+              agentSessionGateway
+                .events(agentId)
+                .filter(
+                  (event) =>
+                    event.sequence > afterSequence &&
+                    event.type !== "message.assistant-delta",
+                )
+                .slice(-64)
+                .map((event) => ({
+                  ref: `agent-event:${event.eventId}`,
+                  summary:
+                    event.type === "tool.started" ||
+                    event.type === "tool.completed" ||
+                    event.type === "tool.failed"
+                      ? `Hermes ${event.type} · ${String(event.payload.toolName ?? "unknown")}.`
+                      : `Hermes ${event.type}.`,
+                })),
+            unbind: ({ agentId, worktreeRef, taskRef }) => {
+              agentSessionGateway.unbindWorkstream(agentId, {
+                worktreeRef,
+                taskRef,
+              });
+            },
+          },
         })
       : undefined;
+  if (workstreamService && agentSessionGateway)
+    agentSessionGateway.setWorkstreamContextResolver((session) =>
+      workstreamService.contextForAgent({
+        agentId: session.sessionId,
+        worktreeRef: session.worktreeRef,
+        currentTaskRef: session.currentTaskRef,
+      }),
+    );
   const phase17Service = new Phase17Service({
     directory:
       process.env.AIW_PHASE17_STATE_DIR ??

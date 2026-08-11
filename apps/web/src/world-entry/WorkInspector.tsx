@@ -23,7 +23,7 @@ export function WorkInspector({
   const resolvedSource = source ?? (fixture ? "demo" : null);
   const cancellable =
     Boolean(workstream.authority) &&
-    ["planning", "working", "blocked"].includes(workstream.status);
+    ["planning", "working", "blocked", "completed"].includes(workstream.status);
   const cancelLabel = actionPending
     ? "Cancelling Workstream…"
     : cancellable
@@ -89,6 +89,14 @@ export function WorkInspector({
           ))}
         </ol>
       </section>
+      {workstream.diff ? (
+        <section aria-labelledby="work-inspector-diff">
+          <h3 id="work-inspector-diff">Bounded diff</h3>
+          <p>{workstream.diff.summary || "No tracked diff yet."}</p>
+          {workstream.diff.patch ? <pre>{workstream.diff.patch}</pre> : null}
+          {workstream.diff.truncated ? <p>Diff view truncated.</p> : null}
+        </section>
+      ) : null}
       <section aria-labelledby="work-inspector-files">
         <h3 id="work-inspector-files">Changed files</h3>
         {workstream.changedFiles.length === 0 ? (
@@ -105,6 +113,16 @@ export function WorkInspector({
           </ul>
         )}
       </section>
+      {workstream.evidenceRefs && workstream.evidenceRefs.length > 0 ? (
+        <section aria-labelledby="work-inspector-evidence">
+          <h3 id="work-inspector-evidence">Evidence references</h3>
+          <ul>
+            {workstream.evidenceRefs.map((reference) => (
+              <li key={reference}>{reference}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <section aria-labelledby="work-inspector-validation">
         <h3 id="work-inspector-validation">Validation</h3>
         {workstream.validation.length === 0 ? (

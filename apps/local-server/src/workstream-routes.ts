@@ -35,10 +35,11 @@ const repositoryReference = {
 const agentReference = {
   type: "object",
   additionalProperties: false,
-  required: ["agentId", "nativeSessionId", "revision"],
+  required: ["agentId", "nativeSessionId", "rootNativeSessionId", "revision"],
   properties: {
     agentId: identifier,
     nativeSessionId: identifier,
+    rootNativeSessionId: identifier,
     revision: identifier,
   },
 } as const;
@@ -65,7 +66,12 @@ function validateReferences(body: unknown): void {
   if (!body || typeof body !== "object" || Array.isArray(body)) return;
   const value = body as { repository?: unknown; agent?: unknown };
   rejectUnknownKeys(value.repository, ["repositoryId", "revision"]);
-  rejectUnknownKeys(value.agent, ["agentId", "nativeSessionId", "revision"]);
+  rejectUnknownKeys(value.agent, [
+    "agentId",
+    "nativeSessionId",
+    "rootNativeSessionId",
+    "revision",
+  ]);
 }
 
 function fail(
@@ -115,6 +121,7 @@ export function registerWorkstreamRoutes(
           "requestId",
           "correlationId",
           "title",
+          "task",
           "repository",
           "agent",
         ]);
@@ -130,6 +137,7 @@ export function registerWorkstreamRoutes(
             "requestId",
             "correlationId",
             "title",
+            "task",
             "repository",
             "agent",
           ],
@@ -137,6 +145,7 @@ export function registerWorkstreamRoutes(
             requestId: identifier,
             correlationId: identifier,
             title: { type: "string", minLength: 1, maxLength: 160 },
+            task: { type: "string", minLength: 1, maxLength: 2000 },
             repository: repositoryReference,
             agent: agentReference,
           },

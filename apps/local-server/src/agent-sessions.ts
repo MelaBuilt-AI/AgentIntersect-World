@@ -47,6 +47,7 @@ export type AdapterTurnContext = {
   readonly mode: SessionMode;
   readonly rootSessionRef?: string;
   readonly userDisplayName?: string;
+  readonly systemMessage?: string;
   readonly worldActionActorId?: string;
   readonly onEvent?: (event: AdapterTurnEvent) => Promise<void> | void;
   readonly signal?: AbortSignal;
@@ -1065,6 +1066,17 @@ export class HermesSessionAdapter implements AgentAdapter {
     const requestSessionRef =
       await this.#resolveEffectiveSession(rootSessionRef);
     const systemMessages: string[] = [];
+    if (context?.systemMessage !== undefined) {
+      if (
+        context.systemMessage.trim().length === 0 ||
+        Buffer.byteLength(context.systemMessage, "utf8") > 8_192
+      )
+        throw new GatewayError(
+          "validation",
+          "Workstream system context must be 1-8192 UTF-8 bytes",
+        );
+      systemMessages.push(context.systemMessage);
+    }
     if (context?.mode === "explore")
       systemMessages.push(
         context.worldActionActorId
@@ -1280,6 +1292,9 @@ export class AgentSessionGateway {
   readonly #registry: AdapterRegistry;
   readonly #store: AgentSessionStore;
   readonly #busy = new Set<string>();
+  #workstreamContextResolver:
+    ((session: AgentSession) => Promise<string | null> | string | null) | null =
+    null;
 
   constructor(options: {
     readonly registry: AdapterRegistry;
@@ -1291,6 +1306,79 @@ export class AgentSessionGateway {
 
   get store(): AgentSessionStore {
     return this.#store;
+  }
+
+  setWorkstreamContextResolver(
+    resolver: (session: AgentSession) => Promise<string | null> | string | null,
+  ): void {
+    this.#workstreamContextResolver = resolver;
+  }
+
+  isBusy(sessionId: string): boolean {
+    return this.#busy.has(sessionId);
+  }
+
+  bindWorkstream(
+    sessionId: string,
+    binding: { readonly worktreeRef: string; readonly taskRef: string },
+  ): AgentSession {
+    const current = this.#store.requireSession(sessionId);
+    if (
+      this.#busy.has(sessionId) ||
+      current.status !== "ready" ||
+      current.continuity !== "current"
+    )
+      throw new GatewayError(
+        "conflict",
+        "The selected World session is busy or unavailable",
+      );
+    if (
+      (current.worktreeRef !== null &&
+        current.worktreeRef !== binding.worktreeRef) ||
+      (current.currentTaskRef !== null &&
+        current.currentTaskRef !== binding.taskRef)
+    )
+      throw new GatewayError(
+        "conflict",
+        "The selected World session is bound to another Workstream",
+      );
+    const changed =
+      current.mode !== "collaborate" ||
+      current.worktreeRef !== binding.worktreeRef ||
+      current.currentTaskRef !== binding.taskRef;
+    return this.#store.saveSession({
+      ...current,
+      worktreeRef: binding.worktreeRef,
+      currentTaskRef: binding.taskRef,
+      mode: "collaborate",
+      permissionRevision: changed
+        ? current.permissionRevision + 1
+        : current.permissionRevision,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  unbindWorkstream(
+    sessionId: string,
+    binding: { readonly worktreeRef: string; readonly taskRef: string },
+  ): AgentSession {
+    const current = this.#store.requireSession(sessionId);
+    if (
+      current.worktreeRef !== binding.worktreeRef ||
+      current.currentTaskRef !== binding.taskRef
+    )
+      throw new GatewayError(
+        "conflict",
+        "The selected World session Workstream binding does not match",
+      );
+    return this.#store.saveSession({
+      ...current,
+      worktreeRef: null,
+      currentTaskRef: null,
+      mode: "explore",
+      permissionRevision: current.permissionRevision + 1,
+      updatedAt: new Date().toISOString(),
+    });
   }
 
   capabilities(): Promise<readonly AgentCapabilityManifest[]> {
@@ -1421,7 +1509,10 @@ export class AgentSessionGateway {
     request: {
       readonly text: string;
       readonly binding: AgentSession;
-      readonly context?: { readonly userDisplayName: string };
+      readonly context?: {
+        readonly userDisplayName?: string;
+        readonly systemMessage?: string;
+      };
     },
     options: {
       readonly onEvent?: (event: AgentSessionEvent) => Promise<void> | void;
@@ -1451,6 +1542,11 @@ export class AgentSessionGateway {
           "conflict",
           "Adapter capabilities changed; reconnect before sending",
         );
+      const workstreamSystemMessage =
+        request.context?.systemMessage ??
+        (this.#workstreamContextResolver
+          ? await this.#workstreamContextResolver(persisted)
+          : null);
       const correlationId = randomUUID();
       const appendNormalizedEvent = async (
         type: AgentSessionEvent["type"],
@@ -1486,8 +1582,11 @@ export class AgentSessionGateway {
           mode: persisted.mode,
           rootSessionRef:
             persisted.adapterRootSessionRef ?? persisted.adapterSessionRef,
-          ...(request.context
+          ...(request.context?.userDisplayName !== undefined
             ? { userDisplayName: request.context.userDisplayName }
+            : {}),
+          ...(workstreamSystemMessage
+            ? { systemMessage: workstreamSystemMessage }
             : {}),
           ...(manifest.capabilities.worldActions
             ? { worldActionActorId: persisted.sessionId }

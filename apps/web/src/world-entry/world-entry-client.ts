@@ -74,7 +74,8 @@ export type WorldEntrySessionPort = {
     readonly profile: string;
     readonly workspaceId: string;
     readonly repositoryRef: string;
-    readonly mode: "explore";
+    readonly mode: "explore" | "collaborate";
+    readonly modeConfirmed?: boolean;
   }): Promise<WorldAgentSession>;
   avatarProposal(sessionId: string): Promise<AvatarProposal | null>;
   history(sessionId: string): Promise<SessionHistory>;
@@ -237,6 +238,10 @@ export function createWorldEntryClient(
   const readWorld = ports.getCurrentWorld ?? getCurrentWorld;
 
   return {
+    async refreshSession(sessionId: string): Promise<WorldAgentSession> {
+      return sessionClient.status(sessionId);
+    },
+
     async restoreHermes(sessionId: string): Promise<HermesConnectionResult> {
       if (
         !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
@@ -259,13 +264,16 @@ export function createWorldEntryClient(
           )
         )
           return { status: "stale", message: "agent unavailable_" };
+        if (persisted.mode !== "explore" && persisted.mode !== "collaborate")
+          return { status: "stale", message: "agent unavailable_" };
         const session = await sessionClient.attach({
           adapterId: "hermes",
           adapterSessionRef: rootSessionRef,
           profile: persisted.profile,
           workspaceId: persisted.workspaceId,
           repositoryRef: persisted.repositoryRef,
-          mode: "explore",
+          mode: persisted.mode,
+          ...(persisted.mode === "collaborate" ? { modeConfirmed: true } : {}),
         });
         const refreshedRootSessionRef =
           typeof session.adapterRootSessionRef === "string"
