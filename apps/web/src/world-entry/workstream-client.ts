@@ -107,7 +107,7 @@ function recordFrom(body: unknown): WorkstreamApiRecord {
 }
 
 export class WorkstreamClient {
-  constructor(readonly fetcher: typeof fetch = fetch) {}
+  constructor(readonly fetcher: typeof fetch = fetch.bind(globalThis)) {}
 
   async current(): Promise<WorkstreamApiRecord | null> {
     const response = await this.fetcher("/api/workstreams/current", {

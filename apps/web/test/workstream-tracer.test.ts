@@ -252,6 +252,52 @@ const apiWorkstream: WorkstreamApiRecord = {
 };
 
 describe("authoritative Workstream client", () => {
+  it("renders cancelled and removed authority as terminal and unavailable", () => {
+    const html = renderToStaticMarkup(
+      createElement(WorkInspector, {
+        workstream: {
+          ...replayWorkstreamEvents(events)!,
+          status: "cancelled",
+          authority: {
+            ...apiWorkstream,
+            status: "cancelled",
+            worktreeState: "removed",
+          },
+        },
+        source: "live",
+        onCancel: () => undefined,
+      }),
+    );
+
+    expect(html).toContain(
+      "Workstream cancelled. The owned worktree was removed.",
+    );
+    expect(html).toContain("Cancel unavailable — Workstream is cancelled.");
+    expect(html).toContain('disabled=""');
+  });
+
+  it("uses the browser receiver for its default fetch", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = function (this: unknown) {
+      if (this !== globalThis) throw new TypeError("Illegal invocation");
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            ok: false,
+            error: { code: "not_found", message: "No current Workstream" },
+          }),
+          { status: 404 },
+        ),
+      );
+    } as typeof fetch;
+
+    try {
+      await expect(new WorkstreamClient().current()).resolves.toBeNull();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("reads the current envelope and preserves an explicit absent state", async () => {
     const fetcher = async (input: string | URL | Request) =>
       String(input).endsWith("/current")
@@ -375,6 +421,44 @@ describe("authoritative Workstream client", () => {
       workstream: null,
       message: "Workbench error · Exact binding is stale.",
     });
+  });
+
+  it("uses the browser receiver for default Workstream IDs", async () => {
+    const originalDescriptor = Object.getOwnPropertyDescriptor(
+      crypto,
+      "randomUUID",
+    );
+    const ids = [
+      "00000000-0000-4000-8000-000000000024",
+      "00000000-0000-4000-8000-000000000025",
+    ];
+    Object.defineProperty(crypto, "randomUUID", {
+      configurable: true,
+      value: function (this: unknown) {
+        if (this !== crypto) throw new TypeError("Illegal invocation");
+        return ids.shift()!;
+      },
+    });
+
+    try {
+      await expect(
+        createLiveWorkstream(
+          { repository: apiWorkstream.repository, agent: apiWorkstream.agent },
+          {
+            create: async () => ({
+              workstream: apiWorkstream,
+              replayed: false,
+            }),
+          },
+        ),
+      ).resolves.toMatchObject({
+        message: "Current Workstream is working.",
+      });
+    } finally {
+      if (originalDescriptor)
+        Object.defineProperty(crypto, "randomUUID", originalDescriptor);
+      else delete (crypto as { randomUUID?: unknown }).randomUUID;
+    }
   });
 });
 

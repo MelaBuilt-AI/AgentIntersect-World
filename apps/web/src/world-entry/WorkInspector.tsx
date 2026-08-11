@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import type {
   Workstream,
   WorkstreamTracerSource,
@@ -16,12 +18,35 @@ export function WorkInspector({
   readonly onCancel?: (() => void) | undefined;
   readonly actionPending?: boolean | undefined;
 }) {
+  const focusTarget = useRef<HTMLElement>(null);
+  const focusedWorkstreamId = useRef<string | null>(null);
   const resolvedSource = source ?? (fixture ? "demo" : null);
   const cancellable =
     Boolean(workstream.authority) &&
     ["planning", "working", "blocked"].includes(workstream.status);
+  const cancelLabel = actionPending
+    ? "Cancelling Workstream…"
+    : cancellable
+      ? "Cancel Workstream"
+      : workstream.authority
+        ? `Cancel unavailable — Workstream is ${workstream.status}.`
+        : "Cancel unavailable — no owned worktree.";
+  useEffect(() => {
+    if (focusedWorkstreamId.current === workstream.workstreamId) return;
+    const target = focusTarget.current;
+    if (!target) return;
+    focusedWorkstreamId.current = workstream.workstreamId;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ behavior: "auto", block: "nearest" });
+  }, [workstream.workstreamId]);
   return (
-    <section className="work-inspector" aria-label="Work Inspector">
+    <section
+      id="work-inspector"
+      ref={focusTarget}
+      className="work-inspector"
+      aria-label="Work Inspector"
+      tabIndex={-1}
+    >
       <header>
         <h2>Work Inspector</h2>
         {resolvedSource === "demo" ? (
@@ -48,6 +73,13 @@ export function WorkInspector({
         <p>
           Status: {workstream.status} · {workstream.currentActivity}
         </p>
+        {resolvedSource === "live" &&
+        workstream.status === "cancelled" &&
+        workstream.authority?.worktreeState === "removed" ? (
+          <p role="status">
+            Workstream cancelled. The owned worktree was removed.
+          </p>
+        ) : null}
       </header>
       <section aria-labelledby="work-inspector-plan">
         <h3 id="work-inspector-plan">Plan</h3>
@@ -100,7 +132,7 @@ export function WorkInspector({
           disabled={!cancellable || actionPending}
           onClick={onCancel}
         >
-          {actionPending ? "Cancelling Workstream…" : "Cancel Workstream"}
+          {cancelLabel}
         </button>
       ) : null}
     </section>

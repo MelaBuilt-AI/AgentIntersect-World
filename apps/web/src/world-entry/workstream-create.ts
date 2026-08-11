@@ -11,7 +11,7 @@ import {
 export async function createLiveWorkstream(
   authority: WorkstreamAuthorityDescriptor,
   client: Pick<WorkstreamClient, "create"> = new WorkstreamClient(),
-  id: () => string = crypto.randomUUID,
+  id: () => string = () => crypto.randomUUID(),
 ): Promise<{
   readonly workstream: Workstream | null;
   readonly message: string;

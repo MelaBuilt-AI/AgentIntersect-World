@@ -532,6 +532,7 @@ test("@workstream-tracer deterministic Work Inspector stays truthful and keyboar
 }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
   await installWorldFixtures(page);
   await enterFixtureWorld(page, "/?workstreamTracer=demo");
@@ -548,11 +549,62 @@ test("@workstream-tracer deterministic Work Inspector stays truthful and keyboar
   const inspect = page.getByRole("button", {
     name: "Inspect demo workstream",
   });
+  await expect(inspect).toHaveAttribute("aria-expanded", "false");
+  await page.evaluate(() => {
+    const scrollIntoView = Element.prototype.scrollIntoView;
+    (
+      window as unknown as {
+        workInspectorScrolls: ScrollIntoViewOptions[];
+      }
+    ).workInspectorScrolls = [];
+    Element.prototype.scrollIntoView = function (
+      options?: boolean | ScrollIntoViewOptions,
+    ) {
+      if (this.getAttribute("aria-label") === "Work Inspector")
+        (
+          window as unknown as {
+            workInspectorScrolls: ScrollIntoViewOptions[];
+          }
+        ).workInspectorScrolls.push(options as ScrollIntoViewOptions);
+      scrollIntoView.call(this, options);
+    };
+  });
   await inspect.focus();
   await inspect.press("Enter");
 
   const inspector = page.getByRole("region", { name: "Work Inspector" });
   await expect(inspector).toBeVisible();
+  await expect(inspector).toBeFocused();
+  await expect(inspector).toBeInViewport();
+  const openInspect = page.getByRole("button", {
+    name: "Work Inspector open",
+  });
+  await expect(openInspect).toHaveAttribute("aria-expanded", "true");
+  await expect(openInspect).toHaveAttribute("aria-controls", "work-inspector");
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            workInspectorScrolls: ScrollIntoViewOptions[];
+          }
+        ).workInspectorScrolls,
+    ),
+  ).toEqual([{ behavior: "auto", block: "nearest" }]);
+
+  const assetSearch = page.getByLabel("Search assets");
+  await assetSearch.fill("branch");
+  await expect(assetSearch).toBeFocused();
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            workInspectorScrolls: ScrollIntoViewOptions[];
+          }
+        ).workInspectorScrolls,
+    ),
+  ).toHaveLength(1);
   await expect(inspector).toContainText("Deterministic demo fixture");
   await expect(inspector).toContainText(
     "No live branch, preview, push, approval, or check result",

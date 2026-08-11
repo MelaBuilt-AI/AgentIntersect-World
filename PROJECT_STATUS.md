@@ -1,8 +1,159 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-07
+Updated: 2026-08-11
 
 ## Current milestone
+
+### 2026-08-11 In-World Agent Workbench — FULL SIX-CRITERION FIRST-HAND PASS; PRIVATE COMMIT/PUSH AUTHORIZED
+
+Aaron manually tested the fresh clarity-corrected candidate and explicitly
+reported `all passes on 1-6`. Keyboard access, truthful deterministic/live
+projection, bounded Workstream lifecycle, ownership presentation, Inspector and
+terminal-state clarity, and internal-only exposure are therefore all accepted.
+No browser automation was used for this verdict.
+
+The accepted candidate was pinned to binary diff SHA-256
+`06bf2ad3b0bbb6947afa5c09045cb61f69ac25aa7e9b40d6ba3b5c097495614d`.
+Its live authority independently confirmed Workstream revision 2, status
+`cancelled`, worktree state `removed`, and terminal event `Owned clean worktree
+removed.` The criterion-level verdict and retained state are under
+`/home/mela_ai/.hermes/runs/aiw-workbench-clarity-retest-20260810T214646Z/candidate/`.
+
+Receipt-bound cleanup then closed candidate ports `43831/45241`, removed the
+exact candidate tmux session and candidate-owned Phase 14 root, retained the
+candidate evidence/state, and verified the cancelled owned worktree was absent.
+Hermes PID `616` and OpenClaw PID `617` were not signalled and remain live.
+
+The Workbench correction is now functionally and first-hand accepted. Aaron
+explicitly authorized one private commit and push containing the seven intended
+tracked paths. The immutable commit SHA, remote parity, and hosted CI receipt
+belong in the external verified handoff rather than a self-referential status
+commit. No PR, merge, release, deployment, publication, tag, visibility change,
+normal-product exposure, generic executor expansion, or Phase 19 work is
+authorized. After private delivery is verified, the next major product slice
+remains one bounded real single-agent disposable feature loop.
+
+### 2026-08-10 In-World Agent Workbench clarity correction — TECHNICAL GREEN (HISTORICAL; SUPERSEDED BY 2026-08-11 PASS)
+
+The concrete state-clarity follow-up is now implemented without changing
+Workstream authority, routing, transport, lifecycle semantics, or the internal
+query gate. Activating an Inspect control now exposes `aria-expanded` and
+`aria-controls`, changes its visible copy to `Work Inspector open`, moves focus
+to the newly opened regular-DOM Inspector once per selected Workstream, and
+scrolls it into view with reduced-motion-safe `auto` behavior. Later updates to
+the same Workstream do not steal focus again.
+
+A live terminal record with `status: cancelled` and
+`worktreeState: removed` now states `Workstream cancelled. The owned worktree
+was removed.` The disabled action itself reads
+`Cancel unavailable — Workstream is cancelled.`, preserving the established
+grey unavailable presentation without relying on color alone.
+
+Strict TDD evidence was preserved:
+
+- the focused static RED failed because the cancelled/removed terminal copy was
+  absent;
+- the focused production-shaped browser RED failed because the Inspect control
+  lacked `aria-expanded`;
+- both focused corrections turned GREEN;
+- independent parent verification under Node `v24.18.0` passed the complete
+  owning Workstream file at 18/18, web typecheck, focused ESLint, focused
+  Prettier, the flagged production web build, `git diff --check`, and the exact
+  reduced-motion Playwright focus journey at 1/1;
+- the Playwright output baseline was restored byte-for-byte, its owned listeners
+  closed, and Hermes/OpenClaw remained untouched.
+
+The worktree now contains exactly seven intended unstaged tracked paths and zero
+staged or untracked paths: this status file, the two browser receiver corrections,
+the Workbench palette/Inspector presentation, and the two owning test surfaces.
+Full first-hand acceptance is still open. The next step is one fresh
+receipt-owned proof/candidate generation so Aaron can finish keyboard access,
+demo/live truth, ownership presentation, state clarity, and normal-navigation
+absence. Commit, push, PR, merge, release, deployment, publication, tag,
+visibility change, generic executor work, normal-product exposure, and Phase 19
+remain separately gated.
+
+### 2026-08-10 In-World Agent Workbench — BOUNDED LIFECYCLE FIRST-HAND PASS (HISTORICAL; SUPERSEDED BY 2026-08-11 PASS)
+
+Aaron's first live candidate exposed `Window.fetch` invoked with the
+`WorkstreamClient` receiver. A focused RED reproduced the exact browser
+`Illegal invocation`; binding only the default fetch to `globalThis` turned it
+GREEN while preserving injected fetchers. The next fresh candidate cleared that
+error but clicking Create Workstream produced no request or visible result. A
+second focused RED proved that default `crypto.randomUUID` was also passed
+unbound and called before the helper's catch boundary. Calling it through a
+receiver-preserving closure turned that regression GREEN.
+
+Final Node 24 verification passed the complete owning Workstream suite at 17/17,
+web typecheck, production web build, focused ESLint, Prettier, and diff hygiene.
+A disposable real-server proof passed Workstream create 201, read/current 200,
+cancel 200, final `cancelled`, and worktree `removed` before its receipt-owned
+state was removed.
+
+Aaron then completed the final fresh candidate's real create/inspect/cancel
+sequence. The live authoritative record reached revision 2, status `cancelled`,
+and `worktreeState: removed`; create/read/current/cancel is therefore a
+first-hand functional PASS. Full Workbench acceptance remains incomplete:
+
+1. keyboard-only Inspector access was not tested;
+2. live projection was truthful, but deterministic demo was not tested;
+3. bounded create/read/current/cancel passed;
+4. ownership passed authoritative technical inspection but was not separately
+   rated by Aaron;
+5. Inspector-open and terminal-state clarity need improvement because the inline
+   Inspector and grey disabled Cancel button were not self-explanatory;
+6. query-gated construction remained intact, but absence from normal-product
+   navigation was not first-hand checked.
+
+The exact final verdict and screenshots are retained under
+`/home/mela_ai/.hermes/runs/aiw-workbench-create-retry-20260810T201214Z/candidate/manual-acceptance-20260810-create-inspect-cancel/`.
+The receipt-owned candidate is stopped, ports `43829/45239` are closed, its
+Phase 14 root is removed, and candidate state/evidence is retained. Hermes and
+OpenClaw were not signalled.
+
+Aaron confirmed alignment with the full product vision. The next session order
+is:
+
+1. correct the concrete Inspector-open and terminal-state clarity issue;
+2. complete the remaining bounded Workbench acceptance criteria;
+3. preserve/deliver the accepted correction only after the appropriate explicit
+   Git/PR decision;
+4. build one real single-agent disposable feature loop: a World chat request
+   creates a Workstream, the connected agent works in its owned branch/worktree,
+   meaningful progress/files/diffs/tests appear in World, a real preview is
+   usable, one user-directed iteration continues in the same Workstream, and
+   explicit approval or bounded cleanup closes it.
+
+Do not broaden this into Phase 19 multi-agent work, a generic arbitrary-command
+executor, normal-product dashboard exposure, PR/merge/release/deployment, or
+publication without a separate decision.
+
+### 2026-08-10 In-World Agent Workbench — FIRST-HAND MANUAL FAIL; FAILED LANE FROZEN AND STOPPED
+
+Aaron completed agent setup, entered the World, issued `/repo load .`, and confirmed
+that the repository city rendered correctly. In the live query-gated Workbench, the
+Authoritative Workbench panel then displayed:
+
+`Workbench error · Failed to execute 'fetch' on 'Window': Illegal invocation.`
+
+Aaron supplied a screenshot. This is the authoritative first-hand result. The live
+half of criterion 2 failed, and criterion 3 failed before Workstream
+create/read/current/cancel could be exercised. Keyboard access, ownership
+representation, state clarity, internal-only exposure, and the deterministic demo
+remain untested rather than inferred. The overall candidate verdict is **FAIL**.
+
+While the failed candidate was still live, a direct read-only
+`GET /workstreams/current` probe returned the expected empty-state `404`; this
+low-level result does not override the browser failure. The screenshot,
+criterion-level verdict, response, and privacy-safe hash-only state freeze are under
+`/home/mela_ai/.hermes/runs/aiw-workbench-manual-20260810T183646Z/candidate/failure-20260810-workbench-fetch/`.
+
+The owner-validating stopper then closed only candidate ports `43825/45235`, removed
+the exact candidate tmux session and candidate-owned Phase 14 root, retained the
+failed state byte-for-byte, and re-attested Hermes `8642` PID `616` plus OpenClaw
+`18789` PID `617` unchanged. No diagnosis, source correction, replacement candidate,
+stage, commit, push, PR, merge, release, publication, deployment, visibility change,
+or normal-product exposure is authorized by this verdict.
 
 ### 2026-08-07 In-World Agent Workbench — PRIVATE DELIVERY STEPS 1–6 COMPLETE; FIRST-HAND ACCEPTANCE NEXT
 

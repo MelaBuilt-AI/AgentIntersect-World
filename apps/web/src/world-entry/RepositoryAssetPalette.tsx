@@ -68,6 +68,9 @@ export function RepositoryAssetPalette({
   const selectedAsset = selected
     ? (REPOSITORY_ASSET_BY_ID.get(selected.assetId) ?? null)
     : null;
+  const workstreamOpen =
+    Boolean(workstream) &&
+    workstream?.workstreamId === availableWorkstream?.workstreamId;
   return (
     <aside className="repository-assets" aria-label="Repository assets">
       <details open>
@@ -178,15 +181,19 @@ export function RepositoryAssetPalette({
           {availableWorkstream ? (
             <button
               type="button"
+              aria-controls="work-inspector"
+              aria-expanded={workstreamOpen}
               onClick={() =>
                 onSelectWorkstream?.(availableWorkstream.workstreamId)
               }
             >
-              {workstreamSource === "live"
-                ? "Inspect current Workstream"
-                : workstreamSource === "phase14"
-                  ? "Inspect current Phase 14 workstream"
-                  : "Inspect demo workstream"}
+              {workstreamOpen
+                ? "Work Inspector open"
+                : workstreamSource === "live"
+                  ? "Inspect current Workstream"
+                  : workstreamSource === "phase14"
+                    ? "Inspect current Phase 14 workstream"
+                    : "Inspect demo workstream"}
             </button>
           ) : null}
           {workstreamSource === "live" &&
