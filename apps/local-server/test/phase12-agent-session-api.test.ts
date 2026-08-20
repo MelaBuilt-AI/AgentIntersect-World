@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
+import Fastify from "fastify";
 
 import {
   AdapterRegistry,
@@ -10,7 +11,9 @@ import {
   AgentSessionStore,
   type AgentAdapter,
 } from "../src/agent-sessions.js";
+import { PHASE19_ADAPTER_IDS } from "@agentintersect-world/agent-session-protocol";
 import { createLocalServer } from "../src/server.js";
+import { registerAgentSessionRoutes } from "../src/agent-session-routes.js";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -79,6 +82,117 @@ function fixture() {
 }
 
 describe("Phase 12 local APIs", () => {
+  it("publishes stable readiness and strict World-owned create/end with truthful transcript authority", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "aiw-phase19-api-"));
+    roots.push(root);
+    let ended = false;
+    const adapter: AgentAdapter = {
+      id: "codex",
+      attest: async () => ({
+        ...(await fixture().registry.require("fixture").attest()),
+        adapterId: "codex",
+        shutdownOwner: "world",
+      }),
+      listSessions: async () => [],
+      createWorldSession: async () => ({
+        id: "codex-native",
+        rootId: "codex-native",
+        source: "codex",
+        title: "Codex",
+      }),
+      attach: async (id, context) => {
+        if (context?.worldInstanceId !== "world-one")
+          throw new Error("wrong World");
+        return { id, rootId: id, source: "codex", title: "Codex" };
+      },
+      sendText: async (_ref, text) => ({
+        finalText: `reply: ${text}`,
+        deltas: [],
+      }),
+      endWorldSession: async () => {
+        ended = true;
+      },
+    };
+    const registry = new AdapterRegistry([adapter], PHASE19_ADAPTER_IDS);
+    const gateway = new AgentSessionGateway({
+      registry,
+      store: new AgentSessionStore(path.join(root, "state")),
+    });
+    const server = Fastify({ logger: false });
+    registerAgentSessionRoutes(
+      server,
+      gateway,
+      {},
+      {
+        success: (_request, data) => ({ ok: true, data }),
+        failure: (_request, code, message) => ({
+          ok: false,
+          error: { code, message },
+        }),
+      },
+    );
+
+    const readiness = await server.inject({
+      method: "GET",
+      url: "/agent-sessions/readiness",
+    });
+    expect(readiness.statusCode).toBe(200);
+    expect(
+      readiness.json().data.map((row: { adapterId: string }) => row.adapterId),
+    ).toEqual(PHASE19_ADAPTER_IDS);
+
+    const rejectedExtra = await server.inject({
+      method: "POST",
+      url: "/agent-sessions/world",
+      payload: {
+        adapterId: "codex",
+        worldInstanceId: "world-one",
+        displayName: "Codex",
+        profile: "default",
+        workspaceId: "world-workspace",
+        repositoryRef: "world-repository",
+        mode: "explore",
+        nativePath: "/SECRET_CANARY",
+      },
+    });
+    expect(rejectedExtra.statusCode).toBe(400);
+
+    const created = await server.inject({
+      method: "POST",
+      url: "/agent-sessions/world",
+      payload: {
+        adapterId: "codex",
+        worldInstanceId: "world-one",
+        displayName: "Codex",
+        profile: "default",
+        workspaceId: "world-workspace",
+        repositoryRef: "world-repository",
+        mode: "explore",
+      },
+    });
+    expect(created.statusCode).toBe(201);
+    const session = created.json().data;
+
+    const history = await server.inject({
+      method: "GET",
+      url: `/agent-sessions/${session.sessionId}/history`,
+    });
+    expect(history.json().data.transcriptAuthority).toBe("world-projection");
+    expect(JSON.stringify(history.json())).not.toMatch(
+      /adapterSessionRef|nativePath|SECRET_CANARY/,
+    );
+
+    const endedResponse = await server.inject({
+      method: "POST",
+      url: `/agent-sessions/${session.sessionId}/world-end`,
+      payload: { worldInstanceId: "world-one" },
+    });
+    expect(endedResponse.statusCode).toBe(200);
+    expect(endedResponse.json().data).toMatchObject({ status: "closed" });
+    expect(ended).toBe(true);
+    await server.close();
+  });
+
   it("publishes capability/session/send/history/design routes and no Phase 13 actions", async () => {
     const state = fixture();
     const server = createLocalServer({
@@ -126,7 +240,14 @@ describe("Phase 12 local APIs", () => {
       url: `/agent-sessions/${session.sessionId}/history`,
     });
     expect(history.json().data.messages).toHaveLength(2);
+    expect(history.json().data.transcriptAuthority).toBe("world-projection");
     expect(JSON.stringify(history.json())).not.toMatch(/adapterSessionRef/);
+    const workFocus = await server.inject({
+      method: "GET",
+      url: `/agent-sessions/${session.sessionId}/work-focus`,
+    });
+    expect(workFocus.statusCode).toBe(200);
+    expect(workFocus.json().data).toEqual({ focus: null });
     const design = await server.inject({
       method: "GET",
       url: "/guided-build/designs",
@@ -141,6 +262,7 @@ describe("Phase 12 local APIs", () => {
     });
     const paths = Object.keys(openapi.json().paths);
     expect(paths).toContain("/agent-sessions/{sessionId}/interrupt");
+    expect(paths).toContain("/agent-sessions/{sessionId}/work-focus");
     expect(paths).toContain(
       "/agent-sessions/{sessionId}/approvals/{approvalId}",
     );

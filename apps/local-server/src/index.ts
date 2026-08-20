@@ -4,7 +4,10 @@ import {
 } from "@agentintersect-world/config/node";
 import { AgentIntersectReadClient } from "@agentintersect-world/agentintersect-client/read";
 import { WorldEventStore } from "@agentintersect-world/persistence";
-import { capabilitySnapshotHash } from "@agentintersect-world/agent-session-protocol";
+import {
+  PHASE19_ADAPTER_IDS,
+  capabilitySnapshotHash,
+} from "@agentintersect-world/agent-session-protocol";
 import { buildNavigationMesh } from "@agentintersect-world/navigation";
 import { readdir, unlink } from "node:fs/promises";
 import path from "node:path";
@@ -30,6 +33,12 @@ import {
   readPluginWorldActionProposal,
 } from "./agent-sessions.js";
 import {
+  OpenClawSessionAdapter,
+  resolveOpenClawCredential,
+} from "./openclaw-session-adapter.js";
+import { CodexSessionAdapter } from "./codex-session-adapter.js";
+import { ClaudeCodeSessionAdapter } from "./claude-code-session-adapter.js";
+import {
   importWorldActionProposal,
   WorldActionService,
   type WorldActionContext,
@@ -48,6 +57,8 @@ import {
   type WorkstreamAgentBinding,
 } from "./workstream-service.js";
 import { WorktreeAuthority } from "./worktree-authority.js";
+import { ConstellationService } from "./constellation-service.js";
+import { ConstellationMessageService } from "./constellation-message-service.js";
 
 const config = (() => {
   try {
@@ -140,8 +151,32 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
           : {}),
       })
     : undefined;
+  const openclawAdapter = config.agentSessions?.openclaw
+    ? new OpenClawSessionAdapter({
+        gatewayUrl: config.agentSessions.openclaw.gatewayUrl,
+        credential: () =>
+          resolveOpenClawCredential(
+            config.agentSessions?.openclaw?.credentialRef as string,
+          ),
+      })
+    : undefined;
+  const codexAdapter = config.agentSessions?.codex
+    ? new CodexSessionAdapter(config.agentSessions.codex)
+    : undefined;
+  const claudeCodeAdapter = config.agentSessions?.claudeCode
+    ? new ClaudeCodeSessionAdapter(config.agentSessions.claudeCode)
+    : undefined;
   const agentAdapterRegistry = new AdapterRegistry(
-    hermesAdapter ? [hermesAdapter] : [],
+    [hermesAdapter, openclawAdapter, codexAdapter, claudeCodeAdapter].filter(
+      (
+        adapter,
+      ): adapter is
+        | HermesSessionAdapter
+        | OpenClawSessionAdapter
+        | CodexSessionAdapter
+        | ClaudeCodeSessionAdapter => adapter !== undefined,
+    ),
+    PHASE19_ADAPTER_IDS,
   );
   const agentSessionGateway = config.agentSessions
     ? new AgentSessionGateway({
@@ -149,6 +184,77 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
         store: new AgentSessionStore(config.agentSessions.dataDir),
       })
     : undefined;
+  const constellationService =
+    agentSessionGateway && config.agentSessions
+      ? await ConstellationService.open({
+          directory: path.join(config.agentSessions.dataDir, "constellation"),
+          lifecycle: {
+            validateBinding: async (binding) => {
+              const session = agentSessionGateway.status(
+                binding.worldSessionId,
+              );
+              const rootSessionRef =
+                session.adapterRootSessionRef ?? session.adapterSessionRef;
+              if (
+                session.adapterId !== binding.adapterId ||
+                rootSessionRef !== binding.nativeRootSessionRef
+              )
+                return {
+                  ...binding,
+                  adapterId: session.adapterId as typeof binding.adapterId,
+                  nativeRootSessionRef: rootSessionRef,
+                  continuity: "unavailable" as const,
+                };
+              const attached = await agentSessionGateway.attach({
+                adapterId: binding.adapterId,
+                adapterSessionRef: binding.nativeRootSessionRef,
+                profile: session.profile,
+                workspaceId: session.workspaceId,
+                repositoryRef: session.repositoryRef,
+                mode: session.mode,
+                ...(binding.sessionOwnership === "world-owned"
+                  ? { worldInstanceId: binding.worldInstanceId }
+                  : {}),
+              });
+              const continuity =
+                attached.status === "ready" &&
+                (attached.continuity === "current" ||
+                  attached.continuity === "previous-recovered")
+                  ? attached.continuity
+                  : "unavailable";
+              return {
+                ...binding,
+                adapterId: attached.adapterId as typeof binding.adapterId,
+                worldSessionId: attached.sessionId,
+                nativeRootSessionRef:
+                  attached.adapterRootSessionRef ?? attached.adapterSessionRef,
+                continuity,
+              };
+            },
+            endWorldSession: async (worldSessionId, worldInstanceId) => {
+              if (
+                agentSessionGateway.status(worldSessionId).status === "closed"
+              )
+                return;
+              await agentSessionGateway.endWorldSession(
+                worldSessionId,
+                worldInstanceId,
+              );
+            },
+          },
+        })
+      : undefined;
+  const constellationMessageService =
+    constellationService && agentSessionGateway && config.agentSessions
+      ? await ConstellationMessageService.open({
+          directory: path.join(
+            config.agentSessions.dataDir,
+            "constellation-messages",
+          ),
+          constellation: constellationService,
+          gateway: agentSessionGateway,
+        })
+      : undefined;
   const worldActionService = config.agentSessions
     ? new WorldActionService(
         path.join(config.agentSessions.dataDir, "world-actions"),
@@ -338,7 +444,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
           },
         })
       : undefined;
-  if (workstreamService && agentSessionGateway)
+  if (workstreamService && agentSessionGateway) {
     agentSessionGateway.setWorkstreamContextResolver((session) =>
       workstreamService.contextForAgent({
         agentId: session.sessionId,
@@ -346,6 +452,10 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
         currentTaskRef: session.currentTaskRef,
       }),
     );
+    agentSessionGateway.setRepositoryWorkFocusRecoveryResolver(() =>
+      workstreamService.current(),
+    );
+  }
   const phase17Service = new Phase17Service({
     directory:
       process.env.AIW_PHASE17_STATE_DIR ??
@@ -365,6 +475,8 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     coordinationService,
     phase17Service,
     ...(workstreamService ? { workstreamService } : {}),
+    ...(constellationService ? { constellationService } : {}),
+    ...(constellationMessageService ? { constellationMessageService } : {}),
     ...(voiceService ? { voiceService } : {}),
     ...(agentSessionGateway
       ? {

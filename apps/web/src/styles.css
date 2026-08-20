@@ -1013,6 +1013,109 @@
   white-space: nowrap;
 }
 
+.world-room__agent-targets {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.world-room__agent-target {
+  position: absolute;
+  min-width: 6rem;
+  padding: 0.28rem 0.5rem;
+  border: 1px solid #38bdf8;
+  border-radius: 0.35rem;
+  background: rgba(2, 6, 23, 0.82);
+  color: #7dd3fc;
+  font: inherit;
+  pointer-events: auto;
+}
+
+.world-room__agent-target[aria-pressed="true"] {
+  background: #075985;
+  color: #f0f9ff;
+  outline: 2px solid #7dd3fc;
+  outline-offset: 2px;
+}
+
+.world-room__agent-target:nth-child(1) {
+  right: calc(50% + 5rem);
+  top: 43%;
+}
+
+.world-room__agent-target:nth-child(2) {
+  left: calc(50% + 5rem);
+  top: 43%;
+}
+
+.world-room__agent-target:nth-child(3) {
+  right: calc(50% + 7rem);
+  top: 56%;
+}
+
+.world-room__agent-target:nth-child(4) {
+  left: calc(50% + 7rem);
+  top: 56%;
+}
+
+@media (max-width: 640px) {
+  .world-room__agent-target:nth-child(3) {
+    right: auto;
+    left: 1rem;
+  }
+
+  .world-room__agent-target:nth-child(4) {
+    left: auto;
+    right: 1rem;
+  }
+}
+
+.world-constellation-projection {
+  position: relative;
+  z-index: 4;
+  width: min(92vw, 42rem);
+  margin: 1rem auto 0;
+  color: #e2e8f0;
+}
+
+.world-constellation-projection ol {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.world-constellation-projection li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #334155;
+  background: rgba(2, 6, 23, 0.72);
+}
+
+.world-constellation-projection__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.world-constellation-projection button {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid #38bdf8;
+  background: #075985;
+  color: #f0f9ff;
+  font: inherit;
+}
+
+.world-constellation-projection button:disabled {
+  border-color: #64748b;
+  background: #374151;
+  color: #cbd5e1;
+}
+
 .world-room__repository-objects {
   max-height: 12rem;
   overflow: auto;

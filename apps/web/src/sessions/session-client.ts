@@ -5,8 +5,10 @@ import type {
 
 type ApiEnvelope<T> = { readonly ok: true; readonly data: T };
 
+export type Phase19AdapterId = "hermes" | "openclaw" | "codex" | "claude-code";
+
 export type SessionCapability = {
-  readonly adapterId: string;
+  readonly adapterId: Phase19AdapterId;
   readonly capabilities: Readonly<Record<string, boolean>>;
   readonly unavailable: Readonly<Record<string, string>>;
 };
@@ -22,7 +24,7 @@ export type NativeSession = {
 export type WorldAgentSession = {
   readonly schema: "aiw.agent-session/0.12";
   readonly sessionId: string;
-  readonly adapterId: string;
+  readonly adapterId: Phase19AdapterId;
   readonly adapterSessionRef: string;
   readonly profile: string;
   readonly workspaceId: string;
@@ -33,6 +35,28 @@ export type WorldAgentSession = {
   readonly continuity: string;
   readonly status: string;
   readonly [key: string]: unknown;
+};
+
+export type AgentRepositoryWorkFocus = {
+  readonly schema: "aiw.agent-work-focus/0.19";
+  readonly activityId: string;
+  readonly rosterId: string;
+  readonly worldSessionId: string;
+  readonly repositoryRef: string;
+  readonly objectRef: string;
+  readonly objectKind: "symbol" | "file" | "directory" | "package";
+  readonly repositoryPath: string;
+  readonly layoutGeneration: string;
+  readonly movementRequestId: string | null;
+  readonly source: "structured-tool-event" | "workstream-binding";
+  readonly state:
+    | "targeted"
+    | "navigating"
+    | "coding"
+    | "completed"
+    | "failed"
+    | "cancelled"
+    | "stale";
 };
 
 export type DesignPreview = {
@@ -72,12 +96,103 @@ export type SessionHistory = {
     readonly role: "user" | "assistant";
     readonly text: string;
   }[];
-  readonly transcriptAuthority: "hermes";
+  readonly transcriptAuthority: Phase19AdapterId;
   readonly avatarConsent: null | {
     readonly state: "accepted" | "declined" | "revoked";
     readonly current?: AvatarProposal | null;
     readonly previous?: AvatarProposal | null;
   };
+};
+
+export type ConstellationAvatar = {
+  readonly status: "missing" | "editing" | "accepted";
+  readonly profileId: string | null;
+  readonly sessionId: string | null;
+};
+
+export type ConstellationAgent = {
+  readonly rosterId: string;
+  readonly adapterId: Phase19AdapterId;
+  readonly sessionOwnership: "operator-persistent" | "world-owned";
+  readonly worldSessionId: string;
+  readonly worldInstanceId: string;
+  readonly nativeRootSessionRef: string;
+  readonly displayName: string;
+  readonly continuity:
+    "current" | "previous-recovered" | "stale" | "unavailable";
+  readonly connection: "connecting" | "connected" | "stale" | "unavailable";
+  readonly avatar: ConstellationAvatar;
+  readonly addedOrder: number;
+};
+
+export type ConstellationState = {
+  readonly projection: {
+    readonly schema: "aiw.constellation/0.19";
+    readonly mode: "multi-agent";
+    readonly worldInstanceId: string;
+    readonly lifecycle: "assembling" | "active" | "ending" | "ended";
+    readonly revision: number;
+    readonly agents: readonly ConstellationAgent[];
+    readonly entryReady: boolean;
+    readonly truth: "current" | "previous-recovered";
+  };
+  readonly terminalOutcomes: readonly {
+    readonly rosterId: string;
+    readonly status: "skipped-operator-persistent" | "ended" | "failed";
+  }[];
+  readonly unavailableReason: null;
+};
+
+export type ConstellationMutation = {
+  readonly worldInstanceId: string;
+  readonly expectedRevision: number;
+  readonly idempotencyKey: string;
+};
+
+export type ConstellationMessageRecipient = {
+  readonly rosterId: string;
+  readonly worldSessionId: string;
+  readonly state:
+    | "queued"
+    | "streaming"
+    | "completed"
+    | "unavailable"
+    | "failed"
+    | "cancelled"
+    | "interrupted";
+  readonly finalText: string | null;
+  readonly errorLabel: string | null;
+};
+
+export type ConstellationMessageGroup = {
+  readonly schema: "aiw.constellation-message/0.19";
+  readonly groupId: string;
+  readonly requestId: string;
+  readonly correlationId: string;
+  readonly text: string;
+  readonly target:
+    | { readonly kind: "broadcast" }
+    | { readonly kind: "agent"; readonly rosterId: string };
+  readonly recipientRosterIds: readonly string[];
+  readonly recipients: readonly ConstellationMessageRecipient[];
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
+export type AddConstellationAgentInput = ConstellationMutation & {
+  readonly agent: Pick<
+    ConstellationAgent,
+    | "rosterId"
+    | "adapterId"
+    | "sessionOwnership"
+    | "worldSessionId"
+    | "nativeRootSessionRef"
+    | "displayName"
+  >;
+};
+
+export type SetConstellationAvatarInput = ConstellationMutation & {
+  readonly avatar: ConstellationAvatar;
 };
 
 export type WorldAgentEvent = {
@@ -100,6 +215,67 @@ export type WorldAgentEvent = {
 
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+const WORK_FOCUS_KEYS = new Set([
+  "schema",
+  "activityId",
+  "rosterId",
+  "worldSessionId",
+  "repositoryRef",
+  "objectRef",
+  "objectKind",
+  "repositoryPath",
+  "layoutGeneration",
+  "movementRequestId",
+  "source",
+  "state",
+]);
+
+function repositoryWorkFocus(value: unknown): AgentRepositoryWorkFocus | null {
+  if (value === null) return null;
+  if (
+    !record(value) ||
+    Object.keys(value).some((key) => !WORK_FOCUS_KEYS.has(key)) ||
+    value.schema !== "aiw.agent-work-focus/0.19" ||
+    !["symbol", "file", "directory", "package"].includes(
+      String(value.objectKind),
+    ) ||
+    !["structured-tool-event", "workstream-binding"].includes(
+      String(value.source),
+    ) ||
+    ![
+      "targeted",
+      "navigating",
+      "coding",
+      "completed",
+      "failed",
+      "cancelled",
+      "stale",
+    ].includes(String(value.state)) ||
+    typeof value.repositoryPath !== "string" ||
+    value.repositoryPath.length === 0 ||
+    value.repositoryPath.startsWith("/") ||
+    value.repositoryPath.includes("\\") ||
+    /(?:^|\/)\.\.(?:\/|$)/u.test(value.repositoryPath) ||
+    [...value.repositoryPath].some((character) => {
+      const code = character.charCodeAt(0);
+      return code <= 31 || code === 127;
+    }) ||
+    typeof value.layoutGeneration !== "string" ||
+    !/^layout-[0-9a-f]{64}$/u.test(value.layoutGeneration) ||
+    (value.movementRequestId !== null &&
+      typeof value.movementRequestId !== "string") ||
+    [
+      value.activityId,
+      value.rosterId,
+      value.worldSessionId,
+      value.repositoryRef,
+      value.objectRef,
+    ].some((field) => typeof field !== "string" || field.length === 0)
+  )
+    throw new Error("World repository work focus is invalid.");
+  return value as AgentRepositoryWorkFocus;
 }
 
 function utf8Bytes(value: string): number {
@@ -237,6 +413,56 @@ function worldEvent(value: unknown, sessionId: string): WorldAgentEvent {
   return value as WorldAgentEvent;
 }
 
+function constellationMessageGroup(value: unknown): ConstellationMessageGroup {
+  const terminalStates = new Set([
+    "queued",
+    "streaming",
+    "completed",
+    "unavailable",
+    "failed",
+    "cancelled",
+    "interrupted",
+  ]);
+  if (
+    !record(value) ||
+    value.schema !== "aiw.constellation-message/0.19" ||
+    typeof value.groupId !== "string" ||
+    typeof value.requestId !== "string" ||
+    typeof value.correlationId !== "string" ||
+    typeof value.text !== "string" ||
+    !record(value.target) ||
+    !Array.isArray(value.recipientRosterIds) ||
+    !Array.isArray(value.recipients) ||
+    value.recipients.length < 1 ||
+    value.recipients.length > 4 ||
+    value.recipients.length !== value.recipientRosterIds.length ||
+    typeof value.createdAt !== "string" ||
+    typeof value.updatedAt !== "string"
+  )
+    throw new Error("Constellation message response is invalid.");
+  if (
+    (value.target.kind !== "broadcast" && value.target.kind !== "agent") ||
+    (value.target.kind === "agent" && typeof value.target.rosterId !== "string")
+  )
+    throw new Error("Constellation message target is invalid.");
+  for (const [index, recipient] of value.recipients.entries()) {
+    if (
+      !record(recipient) ||
+      typeof recipient.rosterId !== "string" ||
+      recipient.rosterId !== value.recipientRosterIds[index] ||
+      typeof recipient.worldSessionId !== "string" ||
+      typeof recipient.state !== "string" ||
+      !terminalStates.has(recipient.state) ||
+      (recipient.finalText !== null &&
+        typeof recipient.finalText !== "string") ||
+      (recipient.errorLabel !== null &&
+        typeof recipient.errorLabel !== "string")
+    )
+      throw new Error("Constellation message recipient is invalid.");
+  }
+  return value as ConstellationMessageGroup;
+}
+
 async function data<T>(response: Response): Promise<T> {
   const body = (await response.json()) as
     ApiEnvelope<T> | { readonly error?: { readonly message?: string } };
@@ -260,7 +486,9 @@ export class AgentSessionClient {
     return this.get("/api/agent-sessions/capabilities");
   }
 
-  nativeSessions(adapterId: string): Promise<readonly NativeSession[]> {
+  nativeSessions(
+    adapterId: Phase19AdapterId,
+  ): Promise<readonly NativeSession[]> {
     return this.get(
       `/api/agent-sessions/native?adapterId=${encodeURIComponent(adapterId)}`,
     );
@@ -276,6 +504,15 @@ export class AgentSessionClient {
 
   history(sessionId: string): Promise<SessionHistory> {
     return this.get(`/api/agent-sessions/${sessionId}/history`);
+  }
+
+  async workFocus(
+    sessionId: string,
+  ): Promise<{ readonly focus: AgentRepositoryWorkFocus | null }> {
+    const response = await this.get<{ readonly focus: unknown }>(
+      `/api/agent-sessions/${sessionId}/work-focus`,
+    );
+    return { focus: repositoryWorkFocus(response.focus) };
   }
 
   avatarProposal(sessionId: string): Promise<AvatarProposal | null> {
@@ -297,6 +534,84 @@ export class AgentSessionClient {
     return this.delete(`/api/agent-sessions/${sessionId}/avatar-consent`);
   }
 
+  currentConstellation(): Promise<ConstellationState> {
+    return this.get("/api/constellation/current");
+  }
+
+  addConstellationAgent(
+    input: AddConstellationAgentInput,
+  ): Promise<ConstellationState> {
+    return this.post("/api/constellation/agents", input);
+  }
+
+  reconnectConstellationAgent(
+    rosterId: string,
+    input: ConstellationMutation,
+  ): Promise<ConstellationState> {
+    return this.post(
+      `/api/constellation/agents/${encodeURIComponent(rosterId)}/reconnect`,
+      input,
+    );
+  }
+
+  removeConstellationAgent(
+    rosterId: string,
+    input: ConstellationMutation,
+  ): Promise<ConstellationState> {
+    return this.delete(
+      `/api/constellation/agents/${encodeURIComponent(rosterId)}`,
+      input,
+    );
+  }
+
+  setConstellationAvatar(
+    rosterId: string,
+    input: SetConstellationAvatarInput,
+  ): Promise<ConstellationState> {
+    return this.post(
+      `/api/constellation/agents/${encodeURIComponent(rosterId)}/avatar`,
+      input,
+    );
+  }
+
+  endConstellation(input: ConstellationMutation): Promise<ConstellationState> {
+    return this.post("/api/constellation/end", input);
+  }
+
+  async sendGrouped(
+    text: string,
+    options: {
+      readonly requestId: string;
+      readonly idempotencyKey: string;
+      readonly targetRosterId?: string;
+      readonly userDisplayName?: string;
+      readonly signal?: AbortSignal;
+    },
+  ): Promise<ConstellationMessageGroup> {
+    const response = await this.#fetcher("/api/constellation/messages", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        requestId: options.requestId,
+        idempotencyKey: options.idempotencyKey,
+        text,
+        ...(options.targetRosterId
+          ? { targetRosterId: options.targetRosterId }
+          : {}),
+        ...(options.userDisplayName
+          ? { userDisplayName: options.userDisplayName }
+          : {}),
+      }),
+      ...(options.signal ? { signal: options.signal } : {}),
+    });
+    return constellationMessageGroup(
+      await data<ConstellationMessageGroup>(response),
+    );
+  }
+
   attach(input: {
     readonly adapterId: string;
     readonly adapterSessionRef: string;
@@ -305,8 +620,22 @@ export class AgentSessionClient {
     readonly repositoryRef: string;
     readonly mode: "explore" | "collaborate";
     readonly modeConfirmed?: boolean;
+    readonly worldInstanceId?: string;
   }): Promise<WorldAgentSession> {
     return this.post("/api/agent-sessions/attach", input);
+  }
+
+  createWorldSession(input: {
+    readonly adapterId: Exclude<Phase19AdapterId, "hermes">;
+    readonly worldInstanceId: string;
+    readonly displayName: string;
+    readonly profile: string;
+    readonly workspaceId: string;
+    readonly repositoryRef: string;
+    readonly mode: "explore" | "collaborate";
+    readonly modeConfirmed?: boolean;
+  }): Promise<WorldAgentSession> {
+    return this.post("/api/agent-sessions/world", input);
   }
 
   send(
@@ -445,11 +774,15 @@ export class AgentSessionClient {
     );
   }
 
-  async delete<T>(url: string): Promise<T> {
+  async delete<T>(url: string, body?: unknown): Promise<T> {
     return data<T>(
       await this.#fetcher(url, {
         method: "DELETE",
-        headers: { accept: "application/json" },
+        headers: {
+          accept: "application/json",
+          ...(body === undefined ? {} : { "content-type": "application/json" }),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       }),
     );
   }

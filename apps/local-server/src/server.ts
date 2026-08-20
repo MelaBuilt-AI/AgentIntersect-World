@@ -89,6 +89,7 @@ import {
   type AgentSessionGateway,
 } from "./agent-sessions.js";
 import { registerAgentSessionRoutes } from "./agent-session-routes.js";
+import { RepositoryWorkFocusCoordinator } from "./repository-work-focus.js";
 import { registerWorldActionRoutes } from "./world-action-routes.js";
 import {
   WorldActionService,
@@ -106,6 +107,10 @@ import type { Phase17Service } from "./phase17-service.js";
 import { registerPhase17Routes } from "./phase17-routes.js";
 import type { WorkstreamService } from "./workstream-service.js";
 import { registerWorkstreamRoutes } from "./workstream-routes.js";
+import type { ConstellationService } from "./constellation-service.js";
+import { registerConstellationRoutes } from "./constellation-routes.js";
+import type { ConstellationMessageService } from "./constellation-message-service.js";
+import { registerConstellationMessageRoutes } from "./constellation-message-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -129,6 +134,8 @@ export type LocalServer = FastifyInstance & {
   readonly coordinationService?: CoordinationService;
   readonly phase17Service?: Phase17Service;
   readonly workstreamService?: WorkstreamService;
+  readonly constellationService?: ConstellationService;
+  readonly constellationMessageService?: ConstellationMessageService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -165,6 +172,8 @@ export type LocalServerOptions = {
   readonly coordinationService?: CoordinationService;
   readonly phase17Service?: Phase17Service;
   readonly workstreamService?: WorkstreamService;
+  readonly constellationService?: ConstellationService;
+  readonly constellationMessageService?: ConstellationMessageService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -232,6 +241,55 @@ export function createLocalServer(
       );
     return { generation, snapshot: cachedWorldSnapshot };
   };
+  if (
+    options.agentSessionGateway &&
+    options.worldActionService &&
+    options.worldActionContext
+  )
+    options.agentSessionGateway.setRepositoryWorkFocusCoordinator(
+      new RepositoryWorkFocusCoordinator({
+        selectedRepository: currentRepositorySelection,
+        submitMovement: async (movement) => {
+          const context = await options.worldActionContext?.(
+            movement.worldSessionId,
+          );
+          if (!context) return null;
+          const result = await options.worldActionService?.propose(
+            movement.worldSessionId,
+            {
+              actions: [
+                {
+                  kind: "move-agent",
+                  schema: "aiw.agent-movement/1",
+                  actorId: movement.worldSessionId,
+                  source: "agent-autonomous",
+                  speed: 4,
+                  target: {
+                    kind: "repository-object",
+                    objectId: movement.objectRef,
+                    layoutGeneration: movement.layoutGeneration,
+                  },
+                },
+              ],
+            },
+            context,
+            {
+              requestId: movement.activityId,
+              sequence: movement.sequence,
+              createdAt: new Date().toISOString(),
+            },
+          );
+          if (!result?.accepted) return null;
+          const outcome = result.outcomes.find(
+            (candidate) => candidate.kind === "move-agent",
+          );
+          return outcome ? { movementRequestId: outcome.actionId } : null;
+        },
+        cancelMovement: async ({ worldSessionId, movementRequestId }) => {
+          options.worldActionService?.cancel(worldSessionId, movementRequestId);
+        },
+      }),
+    );
   const presentationService = new PresentationSyncService({
     store:
       options.presentationStore ??
@@ -272,6 +330,11 @@ export function createLocalServer(
   server.decorate("coordinationService", options.coordinationService);
   server.decorate("phase17Service", options.phase17Service);
   server.decorate("workstreamService", options.workstreamService);
+  server.decorate("constellationService", options.constellationService);
+  server.decorate(
+    "constellationMessageService",
+    options.constellationMessageService,
+  );
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -402,6 +465,17 @@ export function createLocalServer(
         success,
         failure,
       });
+    if (options.constellationService)
+      registerConstellationRoutes(server, options.constellationService, {
+        success,
+        failure,
+      });
+    if (options.constellationMessageService)
+      registerConstellationMessageRoutes(
+        server,
+        options.constellationMessageService,
+        { success, failure },
+      );
 
     server.get<{ Reply: HealthResponse }>("/health", async (request, reply) => {
       const correlationId = correlationFor(request);

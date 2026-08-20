@@ -83,6 +83,13 @@ export type ApiResult<T> = {
   meta: z.infer<typeof ApiMetaSchema>;
 };
 
+const AdapterConfigurationStatusSchema = z
+  .object({
+    configured: z.boolean(),
+    reason: z.enum(["configured", "not-configured"]),
+  })
+  .strict();
+
 export const SafeConfigSchema = z
   .object({
     phase: z.literal("Phase 14"),
@@ -96,6 +103,14 @@ export const SafeConfigSchema = z
     agentIntersectReadEnabled: z.boolean(),
     agentIntersectCommandsEnabled: z.boolean(),
     agentSessionsEnabled: z.boolean(),
+    agentAdapters: z
+      .object({
+        hermes: AdapterConfigurationStatusSchema,
+        openclaw: AdapterConfigurationStatusSchema,
+        codex: AdapterConfigurationStatusSchema,
+        "claude-code": AdapterConfigurationStatusSchema,
+      })
+      .strict(),
     presentationSync: z
       .object({
         enabled: z.literal(true),

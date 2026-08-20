@@ -14,9 +14,17 @@ import {
   type AgentAvatarProposal,
   type AgentSession,
   type AgentSessionEvent,
+  type AgentRepositoryWorkFocus,
   type SessionMode,
 } from "@agentintersect-world/agent-session-protocol";
 import { WorldActionProposalSchema } from "@agentintersect-world/world-action-protocol";
+
+import {
+  extractAdapterRepositoryLocator,
+  type AdapterRepositoryLocator,
+  type RepositoryWorkstreamRecovery,
+  type RepositoryWorkFocusCoordinator,
+} from "./repository-work-focus.js";
 
 export type AdapterSessionSummary = {
   readonly id: string;
@@ -40,6 +48,8 @@ export type AdapterTurnEvent = {
     "assistant.delta" | "tool.started" | "tool.completed" | "tool.failed";
   readonly text?: string;
   readonly toolName?: string;
+  readonly activityId?: string;
+  readonly repositoryLocator?: AdapterRepositoryLocator;
   readonly redaction: { readonly applied: boolean; readonly count: number };
 };
 
@@ -53,11 +63,26 @@ export type AdapterTurnContext = {
   readonly signal?: AbortSignal;
 };
 
+export type WorldOwnedSessionContext = {
+  readonly worldInstanceId: string;
+};
+
 export interface AgentAdapter {
   readonly id: string;
   attest(): Promise<AgentCapabilityManifest>;
   listSessions(): Promise<readonly AdapterSessionSummary[]>;
-  attach(sessionRef: string): Promise<AdapterSessionSummary>;
+  attach(
+    sessionRef: string,
+    context?: WorldOwnedSessionContext,
+  ): Promise<AdapterSessionSummary>;
+  createWorldSession?(
+    worldInstanceId: string,
+    displayName?: string,
+  ): Promise<AdapterSessionSummary>;
+  endWorldSession?(
+    worldInstanceId: string,
+    rootSessionRef: string,
+  ): Promise<void>;
   sendText(
     sessionRef: string,
     text: string,
@@ -70,6 +95,12 @@ export interface AgentAdapter {
     decision: string,
   ): Promise<void>;
 }
+
+export type AdapterRuntimeReadiness = {
+  readonly adapterId: string;
+  readonly enabled: boolean;
+  readonly reason: "runtime-attested" | "attestation-unavailable";
+};
 
 export class GatewayError extends Error {
   constructor(
@@ -90,11 +121,23 @@ export class GatewayError extends Error {
 
 export class AdapterRegistry {
   readonly #adapters = new Map<string, AgentAdapter>();
+  readonly #adapterIds: readonly string[];
 
-  constructor(adapters: readonly AgentAdapter[]) {
+  constructor(
+    adapters: readonly AgentAdapter[],
+    adapterIds: readonly string[] = adapters.map((adapter) => adapter.id),
+  ) {
+    if (new Set(adapterIds).size !== adapterIds.length)
+      throw new GatewayError("conflict", "Duplicate adapter registry slot");
+    this.#adapterIds = [...adapterIds];
     for (const adapter of adapters) {
       if (this.#adapters.has(adapter.id))
         throw new GatewayError("conflict", `Duplicate adapter ${adapter.id}`);
+      if (!this.#adapterIds.includes(adapter.id))
+        throw new GatewayError(
+          "conflict",
+          `Adapter ${adapter.id} has no registry slot`,
+        );
       this.#adapters.set(adapter.id, adapter);
     }
   }
@@ -108,10 +151,58 @@ export class AdapterRegistry {
 
   async capabilities(): Promise<readonly AgentCapabilityManifest[]> {
     const manifests = await Promise.all(
-      [...this.#adapters.values()].map((adapter) => adapter.attest()),
+      this.#adapterIds.map(async (adapterId) => {
+        const adapter = this.#adapters.get(adapterId);
+        if (!adapter) return null;
+        try {
+          const result = AgentCapabilityManifestSchema.safeParse(
+            await adapter.attest(),
+          );
+          return result.success &&
+            result.data.adapterId === adapter.id &&
+            result.data.capabilities.attach &&
+            result.data.capabilities.sendText
+            ? result.data
+            : null;
+        } catch {
+          return null;
+        }
+      }),
     );
-    return manifests.map((manifest) =>
-      AgentCapabilityManifestSchema.parse(manifest),
+    return manifests.filter(
+      (manifest): manifest is AgentCapabilityManifest => manifest !== null,
+    );
+  }
+
+  async readiness(): Promise<readonly AdapterRuntimeReadiness[]> {
+    return Promise.all(
+      this.#adapterIds.map(async (adapterId) => {
+        const adapter = this.#adapters.get(adapterId);
+        try {
+          if (!adapter) throw new Error("adapter unavailable");
+          const result = AgentCapabilityManifestSchema.safeParse(
+            await adapter.attest(),
+          );
+          if (
+            result.success &&
+            result.data.adapterId === adapter.id &&
+            result.data.capabilities.attach &&
+            result.data.capabilities.sendText
+          )
+            return {
+              adapterId: adapter.id,
+              enabled: true,
+              reason: "runtime-attested",
+            } as const;
+        } catch {
+          // Runtime readiness is a safe fail-closed projection.
+        }
+        return {
+          adapterId,
+          enabled: false,
+          reason: "attestation-unavailable",
+        } as const;
+      }),
     );
   }
 
@@ -1131,6 +1222,15 @@ export class HermesSessionAdapter implements AgentAdapter {
     let done = false;
     let upstreamError = false;
     let terminalSessionRef: string | undefined;
+    let fallbackToolSequence = 0;
+    let activeFallbackTool:
+      | {
+          readonly activityId: string;
+          readonly name: string;
+          readonly locator: AdapterRepositoryLocator;
+        }
+      | undefined;
+    const toolLocators = new Map<string, AdapterRepositoryLocator>();
     const emit = async (event: AdapterTurnEvent) => {
       await context?.onEvent?.(event);
     };
@@ -1200,6 +1300,43 @@ export class HermesSessionAdapter implements AgentAdapter {
         event === "tool.failed"
       ) {
         const tool = boundedToolName(data.tool_name);
+        const providerActivityId =
+          typeof data.tool_call_id === "string" &&
+          /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(data.tool_call_id)
+            ? data.tool_call_id
+            : typeof data.call_id === "string" &&
+                /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(data.call_id)
+              ? data.call_id
+              : undefined;
+        const startedLocator =
+          event === "tool.started"
+            ? extractAdapterRepositoryLocator("hermes", tool.name, data.args)
+            : undefined;
+        let activityId = providerActivityId;
+        let locator = providerActivityId
+          ? toolLocators.get(providerActivityId)
+          : undefined;
+        if (
+          event === "tool.started" &&
+          startedLocator &&
+          !providerActivityId &&
+          activeFallbackTool
+        ) {
+          toolLocators.delete(activeFallbackTool.activityId);
+          activeFallbackTool = undefined;
+        } else if (event === "tool.started" && startedLocator) {
+          activityId ??= `hermes-tool-${++fallbackToolSequence}`;
+          locator = startedLocator;
+          toolLocators.set(activityId, locator);
+          if (!providerActivityId)
+            activeFallbackTool = { activityId, name: tool.name, locator };
+        } else if (
+          event !== "tool.started" &&
+          !providerActivityId &&
+          activeFallbackTool?.name === tool.name
+        ) {
+          ({ activityId, locator } = activeFallbackTool);
+        }
         const count =
           Number(data.preview !== undefined) +
           Number(data.args !== undefined) +
@@ -1207,8 +1344,18 @@ export class HermesSessionAdapter implements AgentAdapter {
         await emit({
           type: event,
           toolName: tool.name,
+          ...(activityId && locator
+            ? { activityId, repositoryLocator: locator }
+            : {}),
           redaction: { applied: count > 0, count },
         });
+        if (event !== "tool.started" && activityId)
+          toolLocators.delete(activityId);
+        if (
+          event !== "tool.started" &&
+          activeFallbackTool?.activityId === activityId
+        )
+          activeFallbackTool = undefined;
         return;
       }
       if (event === "tool.progress") return;
@@ -1286,12 +1433,44 @@ type GatewayAttachRequest = {
   readonly repositoryRef: string;
   readonly mode: SessionMode;
   readonly modeConfirmed?: boolean;
+  readonly worldInstanceId?: string;
+};
+
+export type GatewayCreateWorldSessionRequest = Omit<
+  GatewayAttachRequest,
+  "adapterSessionRef" | "worldInstanceId"
+> & {
+  readonly worldInstanceId: string;
+  readonly displayName: string;
 };
 
 export class AgentSessionGateway {
   readonly #registry: AdapterRegistry;
   readonly #store: AgentSessionStore;
   readonly #busy = new Set<string>();
+  readonly #workFocus = new Map<string, AgentRepositoryWorkFocus>();
+  readonly #workFocusTerminalAt = new Map<string, number>();
+  #workFocusCoordinator: RepositoryWorkFocusCoordinator | null = null;
+  #workFocusRecoveryResolver:
+    | ((
+        session: AgentSession,
+      ) =>
+        | Promise<RepositoryWorkstreamRecovery | null>
+        | RepositoryWorkstreamRecovery
+        | null)
+    | null = null;
+  readonly #workFocusRecoveries = new Map<
+    string,
+    Promise<AgentRepositoryWorkFocus | null>
+  >();
+  readonly #worldOwners = new Map<
+    string,
+    {
+      readonly adapterId: string;
+      readonly worldInstanceId: string;
+      readonly rootSessionRef: string;
+    }
+  >();
   #workstreamContextResolver:
     ((session: AgentSession) => Promise<string | null> | string | null) | null =
     null;
@@ -1312,6 +1491,67 @@ export class AgentSessionGateway {
     resolver: (session: AgentSession) => Promise<string | null> | string | null,
   ): void {
     this.#workstreamContextResolver = resolver;
+  }
+
+  setRepositoryWorkFocusCoordinator(
+    coordinator: RepositoryWorkFocusCoordinator,
+  ): void {
+    this.#workFocusCoordinator = coordinator;
+  }
+
+  setRepositoryWorkFocusRecoveryResolver(
+    resolver: (
+      session: AgentSession,
+    ) =>
+      | Promise<RepositoryWorkstreamRecovery | null>
+      | RepositoryWorkstreamRecovery
+      | null,
+  ): void {
+    this.#workFocusRecoveryResolver = resolver;
+  }
+
+  async recoverWorkFocus(
+    sessionId: string,
+  ): Promise<AgentRepositoryWorkFocus | null> {
+    const current = this.currentWorkFocus(sessionId);
+    if (current) return current;
+    if (!this.#workFocusCoordinator || !this.#workFocusRecoveryResolver)
+      return null;
+    const active = this.#workFocusRecoveries.get(sessionId);
+    if (active) return active;
+    const recovery = (async () => {
+      const session = this.#store.requireSession(sessionId);
+      const workstream = await this.#workFocusRecoveryResolver!(session);
+      if (!workstream || this.#workFocus.has(sessionId))
+        return this.#workFocus.get(sessionId) ?? null;
+      const focus = await this.#workFocusCoordinator!.recover({
+        session,
+        rosterId: sessionId,
+        workstream,
+      });
+      if (focus && !this.#workFocus.has(sessionId)) {
+        this.#workFocus.set(sessionId, focus);
+        this.#workFocusTerminalAt.delete(sessionId);
+      }
+      return this.#workFocus.get(sessionId) ?? null;
+    })().finally(() => this.#workFocusRecoveries.delete(sessionId));
+    this.#workFocusRecoveries.set(sessionId, recovery);
+    return recovery;
+  }
+
+  currentWorkFocus(sessionId: string): AgentRepositoryWorkFocus | null {
+    this.#store.requireSession(sessionId);
+    const terminalAt = this.#workFocusTerminalAt.get(sessionId);
+    if (terminalAt !== undefined && Date.now() - terminalAt >= 5_000) {
+      this.#workFocus.delete(sessionId);
+      this.#workFocusTerminalAt.delete(sessionId);
+    }
+    return this.#workFocus.get(sessionId) ?? null;
+  }
+
+  clearWorkFocus(sessionId: string): void {
+    this.#workFocus.delete(sessionId);
+    this.#workFocusTerminalAt.delete(sessionId);
   }
 
   isBusy(sessionId: string): boolean {
@@ -1385,6 +1625,10 @@ export class AgentSessionGateway {
     return this.#registry.capabilities();
   }
 
+  readiness(): Promise<readonly AdapterRuntimeReadiness[]> {
+    return this.#registry.readiness();
+  }
+
   listNativeSessions(
     adapterId: string,
   ): Promise<readonly AdapterSessionSummary[]> {
@@ -1403,6 +1647,127 @@ export class AgentSessionGateway {
     return this.#store.events(sessionId);
   }
 
+  async createWorldSession(
+    request: GatewayCreateWorldSessionRequest,
+  ): Promise<AgentSession> {
+    const adapter = this.#registry.require(request.adapterId);
+    let manifest: AgentCapabilityManifest;
+    try {
+      manifest = AgentCapabilityManifestSchema.parse(await adapter.attest());
+    } catch {
+      throw new GatewayError("offline", "Adapter attestation is unavailable");
+    }
+    if (manifest.adapterId !== adapter.id)
+      throw new GatewayError("offline", "Adapter attestation is unavailable");
+    if (
+      manifest.shutdownOwner !== "world" ||
+      !adapter.createWorldSession ||
+      !adapter.endWorldSession
+    )
+      throw new GatewayError(
+        "unsupported",
+        "Adapter does not support World-owned sessions",
+      );
+
+    let rootSessionRef: string | undefined;
+    try {
+      const created = await adapter.createWorldSession(
+        request.worldInstanceId,
+        request.displayName,
+      );
+      rootSessionRef = created.rootId ?? created.id;
+      if (
+        !isAdapterSessionRef(rootSessionRef) ||
+        !isAdapterSessionRef(created.id)
+      )
+        throw new GatewayError(
+          "upstream",
+          "Adapter returned an invalid World session identity",
+        );
+      return await this.attach({
+        adapterId: request.adapterId,
+        adapterSessionRef: rootSessionRef,
+        profile: request.profile,
+        workspaceId: request.workspaceId,
+        repositoryRef: request.repositoryRef,
+        mode: request.mode,
+        ...(request.modeConfirmed !== undefined
+          ? { modeConfirmed: request.modeConfirmed }
+          : {}),
+        worldInstanceId: request.worldInstanceId,
+      });
+    } catch {
+      if (rootSessionRef) {
+        try {
+          await adapter.endWorldSession(
+            request.worldInstanceId,
+            rootSessionRef,
+          );
+        } catch {
+          // The exact newly created identity was the only cleanup target.
+        }
+      }
+      throw new GatewayError("upstream", "World session creation failed");
+    }
+  }
+
+  async endWorldSession(
+    sessionId: string,
+    worldInstanceId: string,
+  ): Promise<AgentSession> {
+    const session = this.#store.requireSession(sessionId);
+    const recordedOwner = this.#worldOwners.get(sessionId);
+    if (
+      session.status === "closed" &&
+      recordedOwner?.worldInstanceId === worldInstanceId
+    )
+      return session;
+    const adapter = this.#registry.require(session.adapterId);
+    let manifest: AgentCapabilityManifest;
+    try {
+      manifest = AgentCapabilityManifestSchema.parse(await adapter.attest());
+    } catch {
+      throw new GatewayError("offline", "Adapter attestation is unavailable");
+    }
+    if (
+      manifest.adapterId !== adapter.id ||
+      manifest.shutdownOwner !== "world" ||
+      !adapter.endWorldSession
+    )
+      throw new GatewayError(
+        "unsupported",
+        "Adapter does not support World-owned sessions",
+      );
+    const owner = recordedOwner;
+    if (!owner || owner.worldInstanceId !== worldInstanceId)
+      throw new GatewayError(
+        "conflict",
+        "World session ownership does not match",
+      );
+    if (this.#busy.has(sessionId))
+      throw new GatewayError(
+        "conflict",
+        "World session still has an active turn",
+      );
+    try {
+      await adapter.endWorldSession(worldInstanceId, owner.rootSessionRef);
+    } catch (error) {
+      if (error instanceof GatewayError) throw error;
+      throw new GatewayError("upstream", "World session end failed");
+    }
+    const focus = this.#workFocus.get(sessionId);
+    if (focus && this.#workFocusCoordinator)
+      await this.#workFocusCoordinator.stop(focus, "cancelled");
+    this.clearWorkFocus(sessionId);
+    return this.#store.saveSession({
+      ...session,
+      status: "closed",
+      continuity: "missing",
+      activeRunId: null,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
   async attach(request: GatewayAttachRequest): Promise<AgentSession> {
     if (request.mode === "autonomous" || request.mode === "guided-build")
       throw new GatewayError(
@@ -1419,13 +1784,28 @@ export class AgentSessionGateway {
     let manifest: AgentCapabilityManifest;
     let effectiveSessionRef: string;
     try {
-      manifest = await adapter.attest();
+      manifest = AgentCapabilityManifestSchema.parse(await adapter.attest());
+      if (manifest.adapterId !== adapter.id)
+        throw new GatewayError(
+          "upstream",
+          "Adapter attestation identity does not match",
+        );
       if (!manifest.capabilities.attach)
         throw new GatewayError(
           "unsupported",
           "Adapter attach capability is unavailable",
         );
-      const attached = await adapter.attach(request.adapterSessionRef);
+      if (manifest.shutdownOwner === "world" && !request.worldInstanceId)
+        throw new GatewayError(
+          "conflict",
+          "World ownership identity is required",
+        );
+      const attached = await adapter.attach(
+        request.adapterSessionRef,
+        request.worldInstanceId
+          ? { worldInstanceId: request.worldInstanceId }
+          : undefined,
+      );
       if (!isAdapterSessionRef(attached.id))
         throw new GatewayError(
           "upstream",
@@ -1456,52 +1836,65 @@ export class AgentSessionGateway {
     }
     const now = new Date().toISOString();
     const snapshotHash = capabilitySnapshotHash(manifest);
-    if (existing)
-      return this.#store.saveSession(
-        AgentSessionSchema.parse({
-          ...existing,
-          adapterSessionRef: effectiveSessionRef,
-          adapterRootSessionRef: request.adapterSessionRef,
-          adapterPreviousSessionRef:
-            effectiveSessionRef === existing.adapterSessionRef
-              ? null
-              : existing.adapterSessionRef,
-          capabilitySnapshotHash: snapshotHash,
-          permissionRevision:
-            existing.capabilitySnapshotHash === snapshotHash
-              ? existing.permissionRevision
-              : existing.permissionRevision + 1,
-          continuity: "current",
-          status: "ready",
-          updatedAt: now,
-        }),
-      );
-    return this.#store.saveSession(
-      AgentSessionSchema.parse({
-        schema: "aiw.agent-session/0.12",
-        sessionId: randomUUID(),
+    const session = existing
+      ? this.#store.saveSession(
+          AgentSessionSchema.parse({
+            ...existing,
+            adapterSessionRef: effectiveSessionRef,
+            adapterRootSessionRef: request.adapterSessionRef,
+            adapterPreviousSessionRef:
+              effectiveSessionRef === existing.adapterSessionRef
+                ? null
+                : existing.adapterSessionRef,
+            capabilitySnapshotHash: snapshotHash,
+            permissionRevision:
+              existing.capabilitySnapshotHash === snapshotHash
+                ? existing.permissionRevision
+                : existing.permissionRevision + 1,
+            continuity: "current",
+            status: "ready",
+            updatedAt: now,
+          }),
+        )
+      : this.#store.saveSession(
+          AgentSessionSchema.parse({
+            schema: "aiw.agent-session/0.12",
+            sessionId: randomUUID(),
+            adapterId: request.adapterId,
+            adapterSessionRef: effectiveSessionRef,
+            adapterRootSessionRef: request.adapterSessionRef,
+            adapterPreviousSessionRef: null,
+            profile: request.profile,
+            workspaceId: request.workspaceId,
+            repositoryRef: request.repositoryRef,
+            worktreeRef: null,
+            mode: request.mode,
+            permissionRevision: 0,
+            capabilitySnapshotHash: snapshotHash,
+            avatarProfileRef: null,
+            status: "ready",
+            continuity: "current",
+            currentFocusObjectIds: [],
+            currentTaskRef: null,
+            activeRunId: null,
+            lastEventSequence: 0,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        );
+    if (manifest.shutdownOwner === "world") {
+      if (!request.worldInstanceId)
+        throw new GatewayError(
+          "conflict",
+          "World ownership identity is required",
+        );
+      this.#worldOwners.set(session.sessionId, {
         adapterId: request.adapterId,
-        adapterSessionRef: effectiveSessionRef,
-        adapterRootSessionRef: request.adapterSessionRef,
-        adapterPreviousSessionRef: null,
-        profile: request.profile,
-        workspaceId: request.workspaceId,
-        repositoryRef: request.repositoryRef,
-        worktreeRef: null,
-        mode: request.mode,
-        permissionRevision: 0,
-        capabilitySnapshotHash: snapshotHash,
-        avatarProfileRef: null,
-        status: "ready",
-        continuity: "current",
-        currentFocusObjectIds: [],
-        currentTaskRef: null,
-        activeRunId: null,
-        lastEventSequence: 0,
-        createdAt: now,
-        updatedAt: now,
-      }),
-    );
+        worldInstanceId: request.worldInstanceId,
+        rootSessionRef: request.adapterSessionRef,
+      });
+    }
+    return session;
   }
 
   async sendText(
@@ -1536,7 +1929,14 @@ export class AgentSessionGateway {
     this.#busy.add(sessionId);
     try {
       const adapter = this.#registry.require(persisted.adapterId);
-      const manifest = await adapter.attest();
+      const manifest = AgentCapabilityManifestSchema.parse(
+        await adapter.attest(),
+      );
+      if (manifest.adapterId !== adapter.id)
+        throw new GatewayError(
+          "conflict",
+          "Adapter capabilities changed; reconnect before sending",
+        );
       if (capabilitySnapshotHash(manifest) !== persisted.capabilitySnapshotHash)
         throw new GatewayError(
           "conflict",
@@ -1593,6 +1993,54 @@ export class AgentSessionGateway {
             : {}),
           ...(options.signal ? { signal: options.signal } : {}),
           onEvent: async (event) => {
+            if (
+              event.type === "tool.started" &&
+              event.activityId &&
+              event.repositoryLocator &&
+              this.#workFocusCoordinator
+            ) {
+              const previous = this.#workFocus.get(sessionId);
+              if (previous) {
+                const stale = await this.#workFocusCoordinator.stop(
+                  previous,
+                  "stale",
+                );
+                this.#workFocus.set(sessionId, stale);
+                this.#workFocusTerminalAt.set(sessionId, Date.now());
+              }
+              const focus = await this.#workFocusCoordinator.start({
+                session: persisted,
+                rosterId: sessionId,
+                activityId: event.activityId,
+                locator: event.repositoryLocator,
+              });
+              if (focus) {
+                this.#workFocus.set(sessionId, focus);
+                this.#workFocusTerminalAt.delete(sessionId);
+              }
+            } else if (
+              (event.type === "tool.completed" ||
+                event.type === "tool.failed") &&
+              event.activityId
+            ) {
+              const focus = this.#workFocus.get(sessionId);
+              if (focus?.activityId === event.activityId) {
+                const terminal = this.#workFocusCoordinator
+                  ? await this.#workFocusCoordinator.stop(
+                      focus,
+                      event.type === "tool.completed" ? "completed" : "failed",
+                    )
+                  : {
+                      ...focus,
+                      state:
+                        event.type === "tool.completed"
+                          ? ("completed" as const)
+                          : ("failed" as const),
+                    };
+                this.#workFocus.set(sessionId, terminal);
+                this.#workFocusTerminalAt.set(sessionId, Date.now());
+              }
+            }
             if (event.type === "assistant.delta")
               await appendNormalizedEvent(
                 "message.assistant-delta",

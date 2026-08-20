@@ -20,11 +20,15 @@ import {
 
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
 import { AvatarBuilderLoader } from "../avatar/AvatarBuilderLoader.js";
-import type {
-  AvatarProposal,
-  WorldAgentEvent,
-  WorldAgentSession,
+import {
+  AgentSessionClient,
+  type AgentRepositoryWorkFocus,
+  type AvatarProposal,
+  type ConstellationState,
+  type WorldAgentEvent,
+  type WorldAgentSession,
 } from "../sessions/session-client.js";
+import type { ConstellationMessageGroup } from "../sessions/session-client.js";
 import {
   createWorldEntryClient,
   type HermesConnectionResult,
@@ -41,6 +45,7 @@ import {
 } from "./world-entry-machine.js";
 import {
   classifyWorldMessage,
+  consumeOneSendRecipient,
   createWorldChatState,
   reduceWorldChat,
   type AvatarOneShotSemantic,
@@ -60,7 +65,10 @@ import {
   saveWorldDisplayPreferences,
   type WorldDisplayPreferences,
 } from "./world-escape-menu-model.js";
-import { resolveWorldEntryRestore } from "./world-entry-restore.js";
+import {
+  resolveWorldEntryRestore,
+  restoreWorldEntryConstellation,
+} from "./world-entry-restore.js";
 import {
   WorkstreamClient,
   type WorkstreamAuthorityDescriptor,
@@ -79,6 +87,9 @@ const LazyWorldRoom = lazy(async () => {
 type PendingWorldMessage = {
   readonly id: string;
   readonly text: string;
+  readonly requestId: string;
+  readonly idempotencyKey: string;
+  readonly targetRosterId?: string;
 };
 
 function renderObjects(
@@ -150,6 +161,91 @@ function connectionLabel(result: HermesConnectionResult): string {
   return "Retry";
 }
 
+type ConstellationProjection = ConstellationState["projection"];
+
+const constellationTruthLabel = (
+  continuity: ConstellationProjection["agents"][number]["continuity"],
+): string => {
+  if (continuity === "previous-recovered") return "Previous / recovered";
+  if (continuity === "stale") return "Stale";
+  if (continuity === "unavailable") return "Unavailable";
+  return "Current";
+};
+
+export function WorldEntryConstellationProjection({
+  projection,
+  busyRosterId,
+  onReconnect,
+  onRemove,
+  onEnterWorld,
+}: {
+  readonly projection: ConstellationProjection;
+  readonly busyRosterId: string | null;
+  readonly onReconnect: (rosterId: string) => void;
+  readonly onRemove: (rosterId: string) => void;
+  readonly onEnterWorld: () => void;
+}) {
+  const agents = [...projection.agents].sort(
+    (left, right) => left.addedOrder - right.addedOrder,
+  );
+  return (
+    <section
+      className="world-constellation-projection"
+      aria-label="Connected agent constellation"
+      aria-live="polite"
+    >
+      <ol>
+        {agents.map((agent) => {
+          const unavailable =
+            agent.connection === "stale" || agent.connection === "unavailable";
+          const busy = busyRosterId === agent.rosterId;
+          return (
+            <li key={agent.rosterId} data-connection={agent.connection}>
+              <span>
+                {agent.displayName} · {agent.adapterId} ·{" "}
+                {constellationTruthLabel(agent.continuity)}
+              </span>
+              {unavailable ? (
+                <span className="world-constellation-projection__actions">
+                  <button
+                    type="button"
+                    className="world-action--enabled"
+                    disabled={busy}
+                    onClick={() => onReconnect(agent.rosterId)}
+                  >
+                    Reconnect
+                  </button>
+                  <button
+                    type="button"
+                    className="world-action--enabled"
+                    disabled={busy}
+                    onClick={() => onRemove(agent.rosterId)}
+                  >
+                    Remove
+                  </button>
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+      <button
+        type="button"
+        className={`world-enter-action ${
+          projection.entryReady
+            ? "world-action--enabled"
+            : "world-action--unavailable"
+        }`}
+        disabled={!projection.entryReady}
+        aria-disabled={!projection.entryReady}
+        onClick={onEnterWorld}
+      >
+        Enter World
+      </button>
+    </section>
+  );
+}
+
 export type WorldEntryClient = ReturnType<typeof createWorldEntryClient>;
 
 export function WorldEntryExperience({
@@ -168,6 +264,7 @@ export function WorldEntryExperience({
     () => providedClient ?? createWorldEntryClient(),
     [providedClient],
   );
+  const groupedClient = useMemo(() => new AgentSessionClient(), []);
   const [state, dispatch] = useReducer(
     reduceWorldEntry,
     {
@@ -180,6 +277,17 @@ export function WorldEntryExperience({
   const [session, setSession] = useState<WorldAgentSession | null>(null);
   const [proposal, setProposal] = useState<AvatarProposal | null>(null);
   const [agentAvatar, setAgentAvatar] = useState<AvatarDraft | null>(null);
+  const [constellation, setConstellation] =
+    useState<ConstellationProjection | null>(null);
+  const [constellationBusyRosterId, setConstellationBusyRosterId] = useState<
+    string | null
+  >(null);
+  const [acceptedAgentAvatars, setAcceptedAgentAvatars] = useState<
+    Readonly<Record<string, AvatarDraft>>
+  >({});
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(
+    null,
+  );
   const [agentAvatarMode, setAgentAvatarMode] = useState<
     "create" | "migrate" | "change"
   >("create");
@@ -218,6 +326,27 @@ export function WorldEntryExperience({
     readonly state: "cancelled" | "interrupted";
     readonly reason: string;
   } | null>(null);
+  const [agentWorkFocus, setAgentWorkFocus] =
+    useState<AgentRepositoryWorkFocus | null>(null);
+  const [rosterMovementRequests, setRosterMovementRequests] = useState<
+    Readonly<Record<string, AgentMovementRequest | null>>
+  >({});
+  const [rosterMovementControls, setRosterMovementControls] = useState<
+    Readonly<
+      Record<
+        string,
+        {
+          readonly sequence: number;
+          readonly requestId: string;
+          readonly state: "cancelled" | "interrupted";
+          readonly reason: string;
+        } | null
+      >
+    >
+  >({});
+  const [rosterWorkFocus, setRosterWorkFocus] = useState<
+    Readonly<Record<string, AgentRepositoryWorkFocus | null>>
+  >({});
   const [preferences, setPreferences] = useState<WorldDisplayPreferences>(() =>
     typeof window === "undefined"
       ? DEFAULT_WORLD_DISPLAY_PREFERENCES
@@ -233,6 +362,7 @@ export function WorldEntryExperience({
   const activeChatAbort = useRef<AbortController | null>(null);
   const processedMovementActions = useRef(new Set<string>());
   const processedMovementOutcomes = useRef(new Map<string, string>());
+  const processedRosterMovementOutcomes = useRef(new Map<string, string>());
   const nextMovementControl = useRef(1);
 
   useEffect(() => {
@@ -256,13 +386,100 @@ export function WorldEntryExperience({
       "live";
     const validPointer =
       pointer && SESSION_POINTER_PATTERN.test(pointer) ? pointer : null;
-    if (!validPointer && !liveWorkstreamTracer) {
-      finishWithoutRestore(pointer !== null);
-      return () => {
-        active = false;
-      };
-    }
     void (async () => {
+      const currentConstellation = await client
+        .currentConstellation()
+        .catch(() => null);
+      const retainedProjection =
+        currentConstellation?.projection.mode === "multi-agent" &&
+        currentConstellation.projection.lifecycle !== "ended" &&
+        currentConstellation.projection.agents.length >= 2 &&
+        currentConstellation.projection.agents.every(
+          (agent) =>
+            agent.avatar.status === "accepted" &&
+            typeof agent.avatar.profileId === "string" &&
+            agent.avatar.sessionId === agent.worldSessionId,
+        )
+          ? currentConstellation.projection
+          : null;
+      if (retainedProjection) {
+        const plan = await restoreWorldEntryConstellation(
+          client,
+          retainedProjection,
+        );
+        if (!active) return;
+        setConstellation(retainedProjection);
+        if (plan) {
+          const primary = plan.agents.find(
+            (agent) => agent.rosterId === plan.primaryRosterId,
+          );
+          if (!primary) throw new Error("agent unavailable_");
+          setSession(primary.session);
+          setProposal(primary.proposal);
+          setAgentAvatar(avatarDraftFromProposal(primary.proposal));
+          setAcceptedAgentAvatars(
+            Object.fromEntries(
+              plan.agents.map((agent) => [
+                agent.rosterId,
+                avatarDraftFromProposal(agent.proposal),
+              ]),
+            ),
+          );
+          window.localStorage.setItem(
+            SESSION_POINTER_KEY,
+            primary.session.sessionId,
+          );
+          updateChat({
+            type: "RESTORE_HISTORY",
+            messages: primary.history.messages,
+          });
+          setStatus(
+            "agent constellation restored · avatar identities preserved",
+          );
+          dispatch({
+            type: "RESTORE_CONSTELLATION",
+            agents: plan.agents.map((agent) => ({
+              rosterId: agent.rosterId,
+              adapterId: agent.adapterId,
+              agentName: agent.displayName,
+              sessionId: agent.worldSessionId,
+              continuity: agent.continuity,
+              avatarProfileId: agent.avatarProfileId,
+            })),
+          });
+          setRestorePending(false);
+          return;
+        }
+        dispatch({
+          type: "RESTORE_CONSTELLATION",
+          enterWorld: false,
+          agents: retainedProjection.agents.map((agent) => ({
+            rosterId: agent.rosterId,
+            adapterId: agent.adapterId,
+            agentName: agent.displayName,
+            sessionId: agent.worldSessionId,
+            connectionStatus:
+              agent.connection === "connected" || agent.connection === "stale"
+                ? agent.connection
+                : "unavailable",
+            continuity:
+              agent.continuity === "current" ||
+              agent.continuity === "previous-recovered"
+                ? agent.continuity
+                : "none",
+            avatarProfileId: agent.avatar.profileId!,
+          })),
+        });
+        setStatus(
+          "agent constellation retained · reconnect or remove stale agents",
+        );
+        setRestorePending(false);
+        return;
+      }
+      if (!validPointer && !liveWorkstreamTracer) {
+        finishWithoutRestore(pointer !== null);
+        return;
+      }
       let result: HermesConnectionResult | null = validPointer
         ? await client.restoreHermes(validPointer)
         : null;
@@ -360,7 +577,34 @@ export function WorldEntryExperience({
     setError("");
     setStatus("connecting agent");
     dispatch({ type: "SUBMIT_AGENT_NAME", name: entered });
-    const result = await client.connectHermes(entered);
+    let nextConstellation = constellation;
+    const selectedHarness = state.selectedHarness;
+    const result =
+      selectedHarness === "hermes"
+        ? await client.connectHermes(entered)
+        : selectedHarness
+          ? await (async () => {
+              try {
+                const current =
+                  nextConstellation ??
+                  (await client.currentConstellation()).projection;
+                nextConstellation = current;
+                return await client.connectWorldOwnedAgent(
+                  selectedHarness,
+                  current.worldInstanceId,
+                  entered,
+                );
+              } catch {
+                return {
+                  status: "unavailable" as const,
+                  message: "agent unavailable_" as const,
+                };
+              }
+            })()
+          : {
+              status: "unavailable" as const,
+              message: "agent unavailable_" as const,
+            };
     if (attempt !== connectAttempt.current) return;
     if (result.status === "not_found") {
       setStatus("Retry");
@@ -377,6 +621,40 @@ export function WorldEntryExperience({
       return;
     }
     if (!("session" in result)) return;
+    if (state.sessionMode === "multi") {
+      try {
+        const current =
+          nextConstellation ?? (await client.currentConstellation()).projection;
+        const nativeRootSessionRef =
+          typeof result.session.adapterRootSessionRef === "string"
+            ? result.session.adapterRootSessionRef
+            : result.session.adapterSessionRef;
+        nextConstellation = (
+          await client.addConstellationAgent({
+            worldInstanceId: current.worldInstanceId,
+            expectedRevision: current.revision,
+            idempotencyKey: `task10-add-${crypto.randomUUID()}`,
+            agent: {
+              rosterId: result.session.sessionId,
+              adapterId: result.session.adapterId,
+              sessionOwnership:
+                result.session.adapterId === "hermes"
+                  ? "operator-persistent"
+                  : "world-owned",
+              worldSessionId: result.session.sessionId,
+              nativeRootSessionRef,
+              displayName: result.proposal?.displayName ?? entered,
+            },
+          })
+        ).projection;
+        setConstellation(nextConstellation);
+      } catch {
+        setStatus("Unavailable");
+        setError("agent unavailable_");
+        dispatch({ type: "CONNECTION_UNAVAILABLE", stale: false });
+        return;
+      }
+    }
     setSession(result.session);
     setProposal(result.proposal);
     setAgentAvatar(
@@ -393,15 +671,28 @@ export function WorldEntryExperience({
     });
     setStatus(`agent connected · ${connectionLabel(result)}`);
     window.localStorage.setItem(SESSION_POINTER_KEY, result.session.sessionId);
-    dispatch({
-      type: "CONNECTION_ATTACHED",
-      sessionId: result.session.sessionId,
-      continuity: result.continuity,
-    });
+    dispatch(
+      state.sessionMode === "multi"
+        ? {
+            type: "AGENT_ATTACHED",
+            rosterId: result.session.sessionId,
+            sessionId: result.session.sessionId,
+            continuity: result.continuity,
+          }
+        : {
+            type: "CONNECTION_ATTACHED",
+            sessionId: result.session.sessionId,
+            continuity: result.continuity,
+          },
+    );
     window.setTimeout(
       () => {
         dispatch({ type: "OPEN_AGENT_AVATAR" });
-        if (result.avatarSetup === "complete" && result.proposal)
+        if (
+          state.sessionMode === "single" &&
+          result.avatarSetup === "complete" &&
+          result.proposal
+        )
           dispatch({
             type: "ACCEPT_AGENT_AVATAR",
             sessionId: result.session.sessionId,
@@ -432,6 +723,34 @@ export function WorldEntryExperience({
       setError("avatar save unavailable_");
       return;
     }
+    const pendingRosterId = state.pendingAgent?.rosterId;
+    if (state.sessionMode === "multi") {
+      if (!constellation || !pendingRosterId) {
+        setError("avatar save unavailable_");
+        return;
+      }
+      try {
+        const next = await client.setConstellationAvatar(pendingRosterId, {
+          worldInstanceId: constellation.worldInstanceId,
+          expectedRevision: constellation.revision,
+          idempotencyKey: `task10-avatar-${crypto.randomUUID()}`,
+          avatar: {
+            status: "accepted",
+            profileId: acceptedProposal.proposalId,
+            sessionId: session.sessionId,
+          },
+        });
+        setConstellation(next.projection);
+        setAcceptedAgentAvatars((current) => ({
+          ...current,
+          [pendingRosterId]: acceptedDraft,
+        }));
+        setSelectedRecipientId((current) => current ?? pendingRosterId);
+      } catch {
+        setError("avatar save unavailable_");
+        return;
+      }
+    }
     setProposal(acceptedProposal);
     setAgentAvatar(acceptedDraft);
     setStatus(
@@ -445,15 +764,134 @@ export function WorldEntryExperience({
       setAvatarTarget(null);
       return;
     }
-    dispatch({
-      type: "ACCEPT_AGENT_AVATAR",
-      sessionId: session.sessionId,
-      avatarProfileId: acceptedProposal.proposalId,
-    });
+    if (state.sessionMode === "multi" && pendingRosterId)
+      dispatch({
+        type: "AGENT_AVATAR_ACCEPTED",
+        rosterId: pendingRosterId,
+        sessionId: session.sessionId,
+        avatarProfileId: acceptedProposal.proposalId,
+      });
+    else
+      dispatch({
+        type: "ACCEPT_AGENT_AVATAR",
+        sessionId: session.sessionId,
+        avatarProfileId: acceptedProposal.proposalId,
+      });
+    if (state.sessionMode === "multi")
+      window.setTimeout(
+        () => dispatch({ type: "RETURN_TO_CONSTELLATION" }),
+        reducedMotion ? 0 : 320,
+      );
+  };
+
+  const selectMultiAgent = () => {
+    dispatch({ type: "SELECT_MULTI_AGENT" });
+    setError("");
+    void client
+      .currentConstellation()
+      .then((current) => setConstellation(current.projection))
+      .catch(() => setError("agent constellation unavailable_"));
+  };
+
+  const reconnectConstellationAgent = async (rosterId: string) => {
+    if (!constellation || constellationBusyRosterId) return;
+    setConstellationBusyRosterId(rosterId);
+    try {
+      const next = await client.reconnectConstellationAgent(rosterId, {
+        worldInstanceId: constellation.worldInstanceId,
+        expectedRevision: constellation.revision,
+        idempotencyKey: `task10-reconnect-${crypto.randomUUID()}`,
+      });
+      setConstellation(next.projection);
+      const agent = next.projection.agents.find(
+        (candidate) => candidate.rosterId === rosterId,
+      );
+      if (
+        agent?.connection === "connected" &&
+        (agent.continuity === "current" ||
+          agent.continuity === "previous-recovered")
+      ) {
+        const restored =
+          agent.adapterId === "hermes"
+            ? await client.restoreHermes(agent.worldSessionId)
+            : await client.restoreConstellationAgent(
+                agent.worldSessionId,
+                agent.adapterId,
+              );
+        if (
+          (restored.status !== "connected" &&
+            restored.status !== "recovered") ||
+          !restored.proposal ||
+          !restored.avatarAccepted ||
+          restored.avatarSetup !== "complete"
+        )
+          throw new Error("agent unavailable_");
+        const restoredAvatar = avatarDraftFromProposal(restored.proposal);
+        setAcceptedAgentAvatars((current) => ({
+          ...current,
+          [rosterId]: restoredAvatar,
+        }));
+        if (!session || agent.adapterId === "hermes") {
+          setSession(restored.session);
+          setProposal(restored.proposal);
+          setAgentAvatar(restoredAvatar);
+          window.localStorage.setItem(
+            SESSION_POINTER_KEY,
+            restored.session.sessionId,
+          );
+        }
+        dispatch({
+          type: "RECONNECT_AGENT",
+          rosterId,
+          status: "connected",
+          sessionId: agent.worldSessionId,
+          continuity: agent.continuity,
+        });
+      } else if (agent)
+        dispatch({
+          type: "RECONNECT_AGENT",
+          rosterId,
+          status: agent.connection === "stale" ? "stale" : "unavailable",
+        });
+    } catch {
+      setError("agent unavailable_");
+    } finally {
+      setConstellationBusyRosterId(null);
+    }
+  };
+
+  const removeConstellationAgent = async (rosterId: string) => {
+    if (!constellation || constellationBusyRosterId) return;
+    setConstellationBusyRosterId(rosterId);
+    try {
+      const next = await client.removeConstellationAgent(rosterId, {
+        worldInstanceId: constellation.worldInstanceId,
+        expectedRevision: constellation.revision,
+        idempotencyKey: `task10-remove-${crypto.randomUUID()}`,
+      });
+      setConstellation(next.projection);
+      setAcceptedAgentAvatars((current) =>
+        Object.fromEntries(
+          Object.entries(current).filter(([key]) => key !== rosterId),
+        ),
+      );
+      setSelectedRecipientId((current) =>
+        current === rosterId ? null : current,
+      );
+      dispatch({ type: "REMOVE_AGENT", rosterId });
+    } catch {
+      setError("agent unavailable_");
+    } finally {
+      setConstellationBusyRosterId(null);
+    }
   };
 
   const enterWorld = () => {
-    if (!canEnterWorld(state)) return;
+    if (
+      !canEnterWorld(state) ||
+      (state.sessionMode === "multi" && !constellation?.entryReady)
+    )
+      return;
     dispatch({ type: "ENTER_WORLD" });
     window.setTimeout(
       () => dispatch({ type: "WORLD_READY" }),
@@ -496,7 +934,7 @@ export function WorldEntryExperience({
     };
     const repositorySummary = `${repositoryCounts.packages} packages · ${repositoryCounts.directories} directories · ${repositoryCounts.files} files`;
     setObjects(nextObjects);
-    setLayoutGeneration(result.generationId);
+    setLayoutGeneration(`layout-${result.generationId}`);
     setActiveRepositoryAuthority(result.repository);
     dispatch({
       type: "ACTIVATE_REPOSITORY",
@@ -547,16 +985,49 @@ export function WorldEntryExperience({
         const controller = new AbortController();
         activeChatAbort.current = controller;
         try {
-          const answer = await client.sendExactSession(session, current.text, {
-            signal: controller.signal,
-            userDisplayName: profile.agentName,
-            onEvent: (event: WorldAgentEvent) => {
-              if (mounted.current) updateChat({ type: "AGENT_EVENT", event });
-            },
-          });
+          let groupedAnswer: ConstellationMessageGroup | null = null;
+          let singleAnswer: { readonly finalText: string } | null = null;
+          if (state.sessionMode === "multi")
+            groupedAnswer = await groupedClient.sendGrouped(current.text, {
+              requestId: current.requestId,
+              idempotencyKey: current.idempotencyKey,
+              ...(current.targetRosterId
+                ? { targetRosterId: current.targetRosterId }
+                : {}),
+              userDisplayName: profile.agentName,
+              signal: controller.signal,
+            });
+          else
+            singleAnswer = await client.sendExactSession(
+              session,
+              current.text,
+              {
+                signal: controller.signal,
+                userDisplayName: profile.agentName,
+                onEvent: (event: WorldAgentEvent) => {
+                  if (mounted.current)
+                    updateChat({ type: "AGENT_EVENT", event });
+                },
+              },
+            );
           if (!mounted.current || presentationGeneration.current !== generation)
             return;
-          updateChat({ type: "SEND_COMPLETED", text: answer.finalText });
+          if (groupedAnswer)
+            updateChat({
+              type: "GROUP_COMPLETED",
+              group: groupedAnswer,
+              displayNames: Object.fromEntries(
+                (constellation?.agents ?? []).map((agent) => [
+                  agent.rosterId,
+                  agent.displayName,
+                ]),
+              ),
+            });
+          else if (singleAnswer)
+            updateChat({
+              type: "SEND_COMPLETED",
+              text: singleAnswer.finalText,
+            });
         } catch {
           if (mounted.current && presentationGeneration.current === generation)
             updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
@@ -631,9 +1102,22 @@ export function WorldEntryExperience({
       return;
     }
     const text = classified.text;
+    const oneSendRecipient = consumeOneSendRecipient(
+      state.sessionMode === "multi" ? selectedRecipientId : null,
+    );
+    if (state.sessionMode === "multi") {
+      setSelectedRecipientId(oneSendRecipient.nextSelectedRecipientId);
+      setStatus("Next message recipient · All agents");
+    }
+    const requestId = crypto.randomUUID();
     const pending = {
       id: `${Date.now()}-${nextMessageId.current++}`,
       text,
+      requestId,
+      idempotencyKey: `task11-${requestId}`,
+      ...(oneSendRecipient.targetRosterId
+        ? { targetRosterId: oneSendRecipient.targetRosterId }
+        : {}),
     };
     pendingMessages.current.push(pending);
     setQueuedCount(pendingMessages.current.length);
@@ -681,7 +1165,15 @@ export function WorldEntryExperience({
     state.step === "world_blank" ||
     state.step === "repository_loading" ||
     state.step === "world_repository";
-  const movementSessionId = inWorld ? session?.sessionId : undefined;
+  const primaryConstellationAgent =
+    state.sessionMode === "multi" && constellation
+      ? [...constellation.agents]
+          .sort((left, right) => left.addedOrder - right.addedOrder)
+          .find((agent) => agent.connection === "connected")
+      : undefined;
+  const movementSessionId = inWorld
+    ? (primaryConstellationAgent?.worldSessionId ?? session?.sessionId)
+    : undefined;
   const workstreamAuthority = useMemo<WorkstreamAuthorityDescriptor | null>(
     () =>
       activeRepositoryAuthority && session
@@ -792,6 +1284,102 @@ export function WorldEntryExperience({
     };
   }, [movementSessionId]);
 
+  useEffect(() => {
+    if (!movementSessionId) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const result = await groupedClient.workFocus(movementSessionId);
+        if (active) setAgentWorkFocus(result.focus);
+      } catch {
+        if (active) setAgentWorkFocus(null);
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 500);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [groupedClient, movementSessionId]);
+
+  useEffect(() => {
+    if (!inWorld || state.sessionMode !== "multi" || !constellation) {
+      processedRosterMovementOutcomes.current.clear();
+      return;
+    }
+    const agents = constellation.agents.filter(
+      (agent) => agent.connection === "connected",
+    );
+    let active = true;
+    const load = async () => {
+      await Promise.all(
+        agents.map(async (agent) => {
+          try {
+            const [movementResponse, focusResult] = await Promise.all([
+              fetch(`/api/world-actions/${agent.worldSessionId}`),
+              groupedClient.workFocus(agent.worldSessionId),
+            ]);
+            if (!movementResponse.ok || !active) return;
+            const snapshot = parseAgentMovementAuthoritySnapshot(
+              await movementResponse.json(),
+              agent.worldSessionId,
+            );
+            const request = snapshot.requests.at(-1) ?? null;
+            const terminal = snapshot.outcomes.findLast((outcome) =>
+              request ? outcome.requestId === request.requestId : false,
+            );
+            setRosterMovementRequests((current) => ({
+              ...current,
+              [agent.rosterId]: request,
+            }));
+            setRosterWorkFocus((current) => ({
+              ...current,
+              [agent.rosterId]: focusResult.focus,
+            }));
+            if (
+              terminal &&
+              (terminal.state === "cancelled" ||
+                terminal.state === "interrupted" ||
+                terminal.state === "refused") &&
+              processedRosterMovementOutcomes.current.get(agent.rosterId) !==
+                `${terminal.requestId}:${terminal.state}`
+            ) {
+              processedRosterMovementOutcomes.current.set(
+                agent.rosterId,
+                `${terminal.requestId}:${terminal.state}`,
+              );
+              setRosterMovementControls((current) => ({
+                ...current,
+                [agent.rosterId]: {
+                  sequence: nextMovementControl.current++,
+                  requestId: terminal.requestId,
+                  state:
+                    terminal.state === "cancelled"
+                      ? "cancelled"
+                      : "interrupted",
+                  reason: terminal.reason ?? terminal.state,
+                },
+              }));
+            }
+          } catch {
+            if (active)
+              setRosterWorkFocus((current) => ({
+                ...current,
+                [agent.rosterId]: null,
+              }));
+          }
+        }),
+      );
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 500);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [constellation, groupedClient, inWorld, state.sessionMode]);
+
   const reportAgentMovementEvent = (
     movementEvent: AgentMovementEvent,
     position: { readonly x: number; readonly z: number },
@@ -808,7 +1396,7 @@ export function WorldEntryExperience({
       setStatus(`agent movement target stale · ${movementEvent.reason}`);
     else if (movementEvent.state === "refused")
       setStatus(`agent movement refused · ${movementEvent.reason}`);
-    const actionUrl = `/api/world-actions/${movementSessionId}/actions/${movementEvent.requestId}`;
+    const actionUrl = `/api/world-actions/${movementEvent.actorId}/actions/${movementEvent.requestId}`;
     if (movementEvent.state === "moving" || movementEvent.state === "arrived")
       void fetch(`${actionUrl}/transition`, {
         method: "POST",
@@ -847,6 +1435,35 @@ export function WorldEntryExperience({
       );
     const activeProposal = proposal;
     const activeAgentAvatar = agentAvatar;
+    const worldAgentAvatars =
+      state.sessionMode === "multi" && constellation
+        ? [...constellation.agents]
+            .sort((left, right) => left.addedOrder - right.addedOrder)
+            .flatMap((agent) => {
+              const avatar =
+                acceptedAgentAvatars[agent.rosterId] ??
+                (agent.worldSessionId === session?.sessionId
+                  ? activeAgentAvatar
+                  : null);
+              return avatar
+                ? [
+                    {
+                      rosterId: agent.rosterId,
+                      worldSessionId: agent.worldSessionId,
+                      name: agent.displayName,
+                      avatar,
+                    },
+                  ]
+                : [];
+            })
+        : [
+            {
+              rosterId: session?.sessionId ?? "agent-local",
+              worldSessionId: session?.sessionId ?? "agent-local",
+              name: activeProposal.displayName,
+              avatar: activeAgentAvatar,
+            },
+          ];
     if (avatarTarget === "user")
       return (
         <main className="world-experience world-experience--avatar">
@@ -914,12 +1531,35 @@ export function WorldEntryExperience({
             agentName={activeProposal.displayName}
             userAvatar={profile}
             agentAvatar={activeAgentAvatar}
+            {...(state.sessionMode === "multi"
+              ? { agentAvatars: worldAgentAvatars }
+              : {})}
+            selectedRecipientId={selectedRecipientId}
+            onSelectRecipient={(rosterId) => {
+              setSelectedRecipientId(rosterId);
+              const target = worldAgentAvatars.find(
+                (agent) => agent.rosterId === rosterId,
+              );
+              if (target) setStatus(`Next message recipient · ${target.name}`);
+            }}
             activity={chat.activity}
             userCue={userAnimationCue}
             agentCue={chat.animationCue}
             agentActorId={movementSessionId}
             agentMovementRequest={agentMovementRequest}
             agentMovementControl={agentMovementControl}
+            agentWorkFocus={movementSessionId ? agentWorkFocus : null}
+            {...(state.sessionMode === "multi"
+              ? {
+                  agentMovementBindings: worldAgentAvatars.map((agent) => ({
+                    rosterId: agent.rosterId,
+                    actorId: agent.worldSessionId,
+                    request: rosterMovementRequests[agent.rosterId] ?? null,
+                    control: rosterMovementControls[agent.rosterId] ?? null,
+                    workFocus: rosterWorkFocus[agent.rosterId] ?? null,
+                  })),
+                }
+              : {})}
             layoutGeneration={layoutGeneration}
             onAgentMovementEvent={reportAgentMovementEvent}
             showControlHints={preferences.showControlHints}
@@ -937,7 +1577,13 @@ export function WorldEntryExperience({
         </Suspense>
         {state.step !== "world_entering" ? (
           <WorldHud
-            recipient={activeProposal.displayName}
+            recipient={
+              state.sessionMode === "multi"
+                ? (worldAgentAvatars.find(
+                    (agent) => agent.rosterId === selectedRecipientId,
+                  )?.name ?? "All agents")
+                : activeProposal.displayName
+            }
             status={status}
             busy={chatBusy || state.step === "repository_loading"}
             queuedCount={queuedCount}
@@ -1011,12 +1657,30 @@ export function WorldEntryExperience({
         userName={profile.agentName}
         stage={stage}
         reducedMotion={reducedMotion}
-        singleSelected={
-          state.selectedHarness === "hermes" || state.step !== "session_select"
-        }
+        singleSelected={state.sessionMode === "single"}
+        multiSelected={state.sessionMode === "multi"}
+        selectedHarness={state.selectedHarness}
+        connectionPending={state.step === "agent_resolving"}
+        rosterFull={(constellation?.agents.length ?? state.roster.length) >= 4}
         onSingle={() => dispatch({ type: "SELECT_SINGLE_AGENT" })}
-        onHermes={() => dispatch({ type: "SELECT_HERMES" })}
+        onMulti={selectMultiAgent}
+        onHarness={(harness) => dispatch({ type: "SELECT_HARNESS", harness })}
       />
+      {state.sessionMode === "multi" && constellation ? (
+        <WorldEntryConstellationProjection
+          projection={{
+            ...constellation,
+            entryReady:
+              constellation.entryReady &&
+              state.step === "enter_ready" &&
+              canEnterWorld(state),
+          }}
+          busyRosterId={constellationBusyRosterId}
+          onReconnect={(rosterId) => void reconnectConstellationAgent(rosterId)}
+          onRemove={(rosterId) => void removeConstellationAgent(rosterId)}
+          onEnterWorld={enterWorld}
+        />
+      ) : null}
       {state.step === "agent_prompt" ? (
         <form
           className="world-agent-prompt"
@@ -1082,7 +1746,7 @@ export function WorldEntryExperience({
               } as HermesConnectionResult)}`}
         </div>
       ) : null}
-      {state.step === "enter_ready" ? (
+      {state.step === "enter_ready" && state.sessionMode === "single" ? (
         <button
           type="button"
           className="world-enter-action world-action--enabled"

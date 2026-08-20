@@ -45,15 +45,30 @@ export function WorldEntryLogo({
   stage,
   reducedMotion,
   singleSelected,
+  multiSelected = false,
+  selectedHarness = null,
+  connectionPending = false,
+  rosterFull = false,
   onSingle,
+  onMulti = () => undefined,
+  onHarness,
   onHermes,
 }: {
   readonly userName: string;
   readonly stage: "identity" | "session" | "constellation" | "prompt" | "ready";
   readonly reducedMotion: boolean;
   readonly singleSelected: boolean;
+  readonly multiSelected?: boolean;
+  readonly selectedHarness?:
+    "hermes" | "openclaw" | "claude-code" | "codex" | null;
+  readonly connectionPending?: boolean;
+  readonly rosterFull?: boolean;
   readonly onSingle: () => void;
-  readonly onHermes: () => void;
+  readonly onMulti?: () => void;
+  readonly onHarness?: (
+    harness: "hermes" | "openclaw" | "claude-code" | "codex",
+  ) => void;
+  readonly onHermes?: () => void;
 }) {
   const showSessions = stage === "session" || stage === "constellation";
   const showHarnesses =
@@ -76,53 +91,43 @@ export function WorldEntryLogo({
           <div
             className="world-entry-logo__endpoints"
             aria-label="Agent harnesses"
+            data-selected-harness={selectedHarness ?? "none"}
           >
-            <button
-              type="button"
-              className="world-harness world-harness--openclaw world-action--unavailable"
-              aria-disabled="true"
-              disabled
-              title="Unavailable until Phase 19"
-            >
-              openclaw_
-              <span className="sr-only"> — unavailable until Phase 19</span>
-            </button>
-            <button
-              type="button"
-              className={
-                singleSelected
-                  ? "world-harness world-harness--hermes world-action--enabled"
-                  : "world-harness world-harness--hermes world-action--unavailable"
-              }
-              aria-disabled={singleSelected ? "false" : "true"}
-              disabled={!singleSelected}
-              onClick={onHermes}
-            >
-              hermes_
-              <span className="sr-only">
-                {singleSelected ? " — available" : " — select Single Agent"}
-              </span>
-            </button>
-            <button
-              type="button"
-              className="world-harness world-harness--claude world-action--unavailable"
-              aria-disabled="true"
-              disabled
-              title="Unavailable until Phase 19"
-            >
-              claude_
-              <span className="sr-only"> — unavailable until Phase 19</span>
-            </button>
-            <button
-              type="button"
-              className="world-harness world-harness--codex world-action--unavailable"
-              aria-disabled="true"
-              disabled
-              title="Unavailable until Phase 19"
-            >
-              codex_
-              <span className="sr-only"> — unavailable until Phase 19</span>
-            </button>
+            {(
+              [
+                ["openclaw", "openclaw_", "openclaw"],
+                ["hermes", "hermes_", "hermes"],
+                ["claude-code", "claude_", "claude"],
+                ["codex", "codex_", "codex"],
+              ] as const
+            ).map(([harness, label, modifier]) => {
+              const disabled = connectionPending || rosterFull;
+              const selected = selectedHarness === harness;
+              return (
+                <button
+                  key={harness}
+                  type="button"
+                  className={`world-harness world-harness--${modifier} ${
+                    disabled
+                      ? "world-action--unavailable"
+                      : "world-action--enabled"
+                  }`}
+                  aria-label={`Connect ${label.slice(0, -1)}`}
+                  aria-pressed={selected}
+                  aria-disabled={disabled}
+                  disabled={disabled}
+                  onClick={() => {
+                    onHarness?.(harness);
+                    if (harness === "hermes") onHermes?.();
+                  }}
+                >
+                  {label}
+                  <span className="sr-only">
+                    {selected ? " — selected" : " — available"}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         ) : null}
       </div>
@@ -142,13 +147,13 @@ export function WorldEntryLogo({
             </button>
             <button
               type="button"
-              className="world-session-choice world-action--unavailable"
-              aria-disabled="true"
-              disabled
-              title="Unavailable until Phase 19"
+              className="world-session-choice world-action--enabled"
+              aria-pressed={multiSelected}
+              aria-disabled="false"
+              onClick={onMulti}
             >
               Multi Agent
-              <span className="sr-only"> — unavailable until Phase 19</span>
+              <span className="sr-only"> — available</span>
             </button>
           </div>
         ) : null}

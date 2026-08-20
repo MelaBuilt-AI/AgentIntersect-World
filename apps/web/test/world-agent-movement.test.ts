@@ -143,6 +143,25 @@ describe("authoritative World-owned agent movement", () => {
     expect(short.events.at(-1)?.state).toBe("arrived");
   });
 
+  it("emits arrival on the step that reaches the quantized stopping boundary", () => {
+    let result = requestAgentMovement(
+      createAgentMovementState("agent-session-1", { x: 0, z: 0 }),
+      request("quantized-arrival", "agent-autonomous", {
+        kind: "coordinate",
+        x: 0.9004,
+        z: 0,
+        stoppingRadius: 0.5,
+      }),
+      context,
+    );
+
+    result = advanceAgentMovement(result.state, 0.125, context);
+
+    expect(result.state.position.x).toBe(0.4);
+    expect(result.state.movementState).toBe("idle");
+    expect(result.events.map(({ state }) => state)).toEqual(["arrived"]);
+  });
+
   it("refuses out-of-bounds and stale repository targets without moving", () => {
     const state = createAgentMovementState("agent-session-1", { x: 0, z: 0 });
     const outside = requestAgentMovement(
@@ -276,7 +295,6 @@ describe("authoritative World-owned agent movement", () => {
     expect(latest.state.activeRequest?.requestId).toBe("user-2");
 
     let arrived = advanceAgentMovement(latest.state, 1, context);
-    arrived = advanceAgentMovement(arrived.state, 1, context);
     arrived = advanceAgentMovement(arrived.state, 1, context);
     expect(arrived.events.map(({ state }) => state)).toContain("arrived");
     expect(arrived.state.activeRequest).toBeNull();

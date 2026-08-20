@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 
 import * as clientModule from "../src/world-entry/world-entry-client.js";
+import { AgentSessionClient } from "../src/sessions/session-client.js";
 import { resolveWorldEntryRestore } from "../src/world-entry/world-entry-restore.js";
 import { createModularImportedAvatarSource } from "@agentintersect-world/avatar-system/imported-avatar";
 import {
@@ -41,6 +42,11 @@ type ClientApi = {
     readonly connectHermes: (
       name: string,
     ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly connectWorldOwnedAgent: (
+      adapterId: "openclaw" | "codex" | "claude-code",
+      worldInstanceId: string,
+      name: string,
+    ) => Promise<Readonly<Record<string, unknown>>>;
     readonly acceptAgentAvatar: (
       session: Readonly<Record<string, unknown>>,
       proposal: Readonly<Record<string, unknown>>,
@@ -54,6 +60,27 @@ type ClientApi = {
     ) => Promise<Readonly<Record<string, unknown>>>;
     readonly loadRepository: (
       rootPath: string,
+    ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly currentConstellation: () => Promise<
+      Readonly<Record<string, unknown>>
+    >;
+    readonly addConstellationAgent: (
+      input: Readonly<Record<string, unknown>>,
+    ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly reconnectConstellationAgent: (
+      rosterId: string,
+      input: Readonly<Record<string, unknown>>,
+    ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly removeConstellationAgent: (
+      rosterId: string,
+      input: Readonly<Record<string, unknown>>,
+    ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly setConstellationAvatar: (
+      rosterId: string,
+      input: Readonly<Record<string, unknown>>,
+    ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly endConstellation: (
+      input: Readonly<Record<string, unknown>>,
     ) => Promise<Readonly<Record<string, unknown>>>;
   };
 };
@@ -80,6 +107,153 @@ describe("Phase 18 World entry client composition", () => {
   it("provides the bounded World-owned Hermes and repository composition", () => {
     expect(typeof api.resolveHermesDisplayName).toBe("function");
     expect(typeof api.createWorldEntryClient).toBe("function");
+  });
+
+  it("provides direct typed access to the six existing constellation routes and World-owned create route", async () => {
+    const calls: Array<{ readonly url: string; readonly init?: RequestInit }> =
+      [];
+    const fetcher = vi.fn(
+      async (url: string | URL | Request, init?: RequestInit) => {
+        calls.push({ url: String(url), init });
+        return new Response(
+          JSON.stringify({ ok: true, data: { route: url } }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        );
+      },
+    ) as unknown as typeof fetch;
+    const sessionClient = new AgentSessionClient(fetcher) as unknown as Record<
+      string,
+      (...args: unknown[]) => Promise<unknown>
+    >;
+
+    expect(typeof sessionClient.currentConstellation).toBe("function");
+    expect(typeof sessionClient.addConstellationAgent).toBe("function");
+    expect(typeof sessionClient.reconnectConstellationAgent).toBe("function");
+    expect(typeof sessionClient.removeConstellationAgent).toBe("function");
+    expect(typeof sessionClient.setConstellationAvatar).toBe("function");
+    expect(typeof sessionClient.endConstellation).toBe("function");
+    expect(typeof sessionClient.createWorldSession).toBe("function");
+
+    const mutation = {
+      worldInstanceId: "world-1",
+      expectedRevision: 0,
+      idempotencyKey: "task9-test",
+    };
+    await sessionClient.currentConstellation!();
+    await sessionClient.addConstellationAgent!({
+      ...mutation,
+      agent: {
+        rosterId: "roster-1",
+        adapterId: "codex",
+        sessionOwnership: "world-owned",
+        worldSessionId: "session-1",
+        nativeRootSessionRef: "native-1",
+        displayName: "Codex",
+      },
+    });
+    await sessionClient.reconnectConstellationAgent!("roster-1", mutation);
+    await sessionClient.removeConstellationAgent!("roster-1", mutation);
+    await sessionClient.setConstellationAvatar!("roster-1", {
+      ...mutation,
+      avatar: {
+        status: "accepted",
+        profileId: "avatar-1",
+        sessionId: "session-1",
+      },
+    });
+    await sessionClient.endConstellation!(mutation);
+    await sessionClient.createWorldSession!({
+      adapterId: "codex",
+      worldInstanceId: "world-1",
+      displayName: "Codex",
+      profile: "default",
+      workspaceId: "world-entry",
+      repositoryRef: "current",
+      mode: "explore",
+    });
+
+    expect(calls.map(({ url }) => url)).toEqual([
+      "/api/constellation/current",
+      "/api/constellation/agents",
+      "/api/constellation/agents/roster-1/reconnect",
+      "/api/constellation/agents/roster-1",
+      "/api/constellation/agents/roster-1/avatar",
+      "/api/constellation/end",
+      "/api/agent-sessions/world",
+    ]);
+    expect(calls[3]?.init).toMatchObject({ method: "DELETE" });
+  });
+
+  it("composes the existing constellation client without adding lifecycle behavior", async () => {
+    if (!api.createWorldEntryClient) return;
+    const projection = { projection: { schema: "aiw.constellation/0.19" } };
+    const sessionClient = {
+      currentConstellation: vi.fn().mockResolvedValue(projection),
+      addConstellationAgent: vi.fn().mockResolvedValue(projection),
+      reconnectConstellationAgent: vi.fn().mockResolvedValue(projection),
+      removeConstellationAgent: vi.fn().mockResolvedValue(projection),
+      setConstellationAvatar: vi.fn().mockResolvedValue(projection),
+      endConstellation: vi.fn().mockResolvedValue(projection),
+    };
+    const client = api.createWorldEntryClient({ sessionClient });
+
+    expect(typeof client.currentConstellation).toBe("function");
+    await expect(client.currentConstellation()).resolves.toBe(projection);
+    expect(sessionClient.currentConstellation).toHaveBeenCalledOnce();
+  });
+
+  it("creates one exact World-owned non-Hermes binding and opens bounded avatar setup", async () => {
+    if (!api.createWorldEntryClient) return;
+    const session = worldSession({
+      adapterId: "codex",
+      adapterSessionRef: "codex-thread",
+      adapterRootSessionRef: "codex-thread",
+    });
+    const history = {
+      sessionId: session.sessionId,
+      continuity: "current",
+      messages: [],
+      transcriptAuthority: "codex" as const,
+      avatarConsent: null,
+    };
+    const sessionClient = {
+      createWorldSession: vi.fn().mockResolvedValue(session),
+      history: vi.fn().mockResolvedValue(history),
+    };
+    const client = api.createWorldEntryClient({ sessionClient });
+
+    const result = await client.connectWorldOwnedAgent(
+      "codex",
+      "world-task10",
+      "Codex One",
+    );
+
+    expect(sessionClient.createWorldSession).toHaveBeenCalledWith({
+      adapterId: "codex",
+      worldInstanceId: "world-task10",
+      displayName: "Codex One",
+      profile: "default",
+      workspaceId: "world-entry",
+      repositoryRef: "current",
+      mode: "explore",
+    });
+    expect(result).toMatchObject({
+      status: "connected",
+      continuity: "current",
+      session,
+      avatarAccepted: false,
+      avatarSetup: "required",
+      history,
+      proposal: {
+        schema: "aiw.avatar-proposal/0.12",
+        sessionId: session.sessionId,
+        displayName: "Codex One",
+        sourceDisclosure: "manual-local-input",
+      },
+    });
   });
 
   it("requires exactly one normalized safe display-label match", () => {

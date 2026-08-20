@@ -24,6 +24,12 @@ describe("Phase 7 local-server configuration", () => {
       agentIntersectReadEnabled: false,
       agentIntersectCommandsEnabled: false,
       agentSessionsEnabled: false,
+      agentAdapters: {
+        hermes: { configured: false, reason: "not-configured" },
+        openclaw: { configured: false, reason: "not-configured" },
+        codex: { configured: false, reason: "not-configured" },
+        "claude-code": { configured: false, reason: "not-configured" },
+      },
       presentationSync: {
         enabled: true,
         transport: "ws/http",
@@ -33,6 +39,167 @@ describe("Phase 7 local-server configuration", () => {
         allowedHost: "127.0.0.1:5173",
       },
     });
+  });
+
+  it("accepts complete adapter configuration without changing Hermes fields", async () => {
+    const { loadLocalServerConfig, toSafeConfig } =
+      await import("../src/node.js");
+    const config = loadLocalServerConfig({
+      AIW_AGENT_SESSIONS_ENABLED: "true",
+      AIW_HERMES_API_KEY: "hermes-canary-secret",
+      AIW_AGENT_SESSION_DATA_DIR: "/tmp/shared-agent-sessions",
+      AIW_OPENCLAW_ENABLED: "true",
+      AIW_OPENCLAW_GATEWAY_URL: "https://localhost:18789/v1/gateway",
+      AIW_OPENCLAW_CREDENTIAL_REF: "env:OPENCLAW_CANARY_CREDENTIAL",
+      AIW_CODEX_ENABLED: "true",
+      AIW_CODEX_EXECUTABLE_PATH: "/opt/codex-canary/bin/codex",
+      AIW_CODEX_NATIVE_SESSION_ROOT: "/tmp/codex-canary-sessions",
+      AIW_CLAUDE_CODE_ENABLED: "true",
+      AIW_CLAUDE_CODE_EXECUTABLE_PATH: "/opt/claude-canary/bin/claude",
+      AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT: "/tmp/claude-canary-sessions",
+    });
+
+    expect(config.agentSessions).toMatchObject({
+      hermesApiUrl: "http://127.0.0.1:8642",
+      hermesApiKey: "hermes-canary-secret",
+      hermesProfile: "default",
+      dataDir: "/tmp/shared-agent-sessions",
+      openclaw: {
+        gatewayUrl: "https://localhost:18789/v1/gateway",
+        credentialRef: "env:OPENCLAW_CANARY_CREDENTIAL",
+      },
+      codex: {
+        executablePath: "/opt/codex-canary/bin/codex",
+        nativeSessionRoot: "/tmp/codex-canary-sessions",
+      },
+      claudeCode: {
+        executablePath: "/opt/claude-canary/bin/claude",
+        nativeSessionRoot: "/tmp/claude-canary-sessions",
+      },
+    });
+    const safe = toSafeConfig(config);
+    expect(safe.agentSessionsEnabled).toBe(true);
+    expect(safe.agentAdapters).toEqual({
+      hermes: { configured: true, reason: "configured" },
+      openclaw: { configured: true, reason: "configured" },
+      codex: { configured: true, reason: "configured" },
+      "claude-code": { configured: true, reason: "configured" },
+    });
+    expect(JSON.stringify(safe)).not.toMatch(
+      /canary|localhost|18789|\/opt\/|\/tmp\/|credential|nativeSession/i,
+    );
+  });
+
+  it.each([
+    [
+      {
+        AIW_OPENCLAW_ENABLED: "true",
+        AIW_OPENCLAW_GATEWAY_URL: "http://127.0.0.1:18789/gateway",
+      },
+      "AIW_OPENCLAW_CREDENTIAL_REF",
+    ],
+    [
+      {
+        AIW_CODEX_ENABLED: "true",
+        AIW_CODEX_EXECUTABLE_PATH: "/usr/bin/codex",
+      },
+      "AIW_CODEX_NATIVE_SESSION_ROOT",
+    ],
+    [
+      {
+        AIW_CLAUDE_CODE_ENABLED: "true",
+        AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT: "/tmp/claude-sessions",
+      },
+      "AIW_CLAUDE_CODE_EXECUTABLE_PATH",
+    ],
+    [
+      { AIW_OPENCLAW_GATEWAY_URL: "http://127.0.0.1:18789/gateway" },
+      "AIW_OPENCLAW_ENABLED",
+    ],
+    [{ AIW_CODEX_EXECUTABLE_PATH: "/usr/bin/codex" }, "AIW_CODEX_ENABLED"],
+    [
+      { AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT: "/tmp/claude-sessions" },
+      "AIW_CLAUDE_CODE_ENABLED",
+    ],
+    [{ AIW_OPENCLAW_ENABLED: "yes" }, "AIW_OPENCLAW_ENABLED"],
+    [{ AIW_CODEX_ENABLED: "1" }, "AIW_CODEX_ENABLED"],
+    [{ AIW_CLAUDE_CODE_ENABLED: "TRUE" }, "AIW_CLAUDE_CODE_ENABLED"],
+  ])(
+    "rejects incomplete or ambiguous adapter configuration %o",
+    async (adapter, field) => {
+      const { loadLocalServerConfig } = await import("../src/node.js");
+      expect(() =>
+        loadLocalServerConfig({
+          AIW_AGENT_SESSIONS_ENABLED: "true",
+          AIW_HERMES_API_KEY: "fixture-secret",
+          ...adapter,
+        }),
+      ).toThrow(field);
+    },
+  );
+
+  it.each([
+    [
+      {
+        AIW_OPENCLAW_ENABLED: "true",
+        AIW_OPENCLAW_GATEWAY_URL: "http://user:secret@127.0.0.1:18789/gateway",
+        AIW_OPENCLAW_CREDENTIAL_REF: "env:OPENCLAW_TOKEN",
+      },
+      /without credentials/i,
+    ],
+    [
+      {
+        AIW_OPENCLAW_ENABLED: "true",
+        AIW_OPENCLAW_GATEWAY_URL: "https://gateway.example.com/v1",
+        AIW_OPENCLAW_CREDENTIAL_REF: "env:OPENCLAW_TOKEN",
+      },
+      /loopback/i,
+    ],
+    [
+      {
+        AIW_CODEX_ENABLED: "true",
+        AIW_CODEX_EXECUTABLE_PATH: "bin/codex",
+        AIW_CODEX_NATIVE_SESSION_ROOT: "/tmp/codex-sessions",
+      },
+      /absolute paths/i,
+    ],
+    [
+      {
+        AIW_CLAUDE_CODE_ENABLED: "true",
+        AIW_CLAUDE_CODE_EXECUTABLE_PATH: "/usr/bin/claude",
+        AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT: "claude-sessions",
+      },
+      /absolute paths/i,
+    ],
+  ])("rejects unsafe adapter configuration %o", async (adapter, reason) => {
+    const { loadLocalServerConfig } = await import("../src/node.js");
+    expect(() =>
+      loadLocalServerConfig({
+        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_HERMES_API_KEY: "fixture-secret",
+        ...adapter,
+      }),
+    ).toThrow(reason);
+  });
+
+  it.each([
+    ["AIW_CLAUDE_CODE_EXECUTABLE_PATH", "/usr/bin/shared"],
+    ["AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT", "/tmp/shared-sessions"],
+  ])("rejects duplicate CLI adapter value for %s", async (field, value) => {
+    const { loadLocalServerConfig } = await import("../src/node.js");
+    expect(() =>
+      loadLocalServerConfig({
+        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_HERMES_API_KEY: "fixture-secret",
+        AIW_CODEX_ENABLED: "true",
+        AIW_CODEX_EXECUTABLE_PATH: "/usr/bin/shared",
+        AIW_CODEX_NATIVE_SESSION_ROOT: "/tmp/shared-sessions",
+        AIW_CLAUDE_CODE_ENABLED: "true",
+        AIW_CLAUDE_CODE_EXECUTABLE_PATH: "/usr/bin/claude",
+        AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT: "/tmp/claude-sessions",
+        [field]: value,
+      }),
+    ).toThrow(/distinct/i);
   });
 
   it("keeps the Hermes bearer server-only and requires loopback API configuration", async () => {

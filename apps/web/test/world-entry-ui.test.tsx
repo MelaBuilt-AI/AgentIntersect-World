@@ -378,9 +378,11 @@ describe("Phase 18 World entry experience", () => {
     expect(html).toContain("claude_");
     expect(html).toContain("codex_");
     expect(html).toContain("world-action--enabled");
-    expect(html).toContain("world-action--unavailable");
+    expect(html).not.toContain("world-action--unavailable");
     expect(html).toMatch(/aria-disabled="false"[^>]*>hermes_/);
-    expect(html).toMatch(/aria-disabled="true"[^>]*>Multi Agent/);
+    expect(html).toMatch(
+      /aria-pressed="false"[^>]*aria-disabled="false"[^>]*>Multi Agent/,
+    );
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain("font-family");
   });

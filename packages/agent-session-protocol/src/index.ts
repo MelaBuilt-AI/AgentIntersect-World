@@ -9,6 +9,11 @@ const Utf8Bounded = (minimum: number, maximum: number) =>
     .refine((value) => Buffer.byteLength(value, "utf8") <= maximum, {
       message: `Must be at most ${maximum} UTF-8 bytes`,
     });
+const hasControlCharacters = (value: string) =>
+  [...value].some((character) => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
 
 const LocalOpaqueRef = z
   .string()
@@ -528,3 +533,382 @@ export function sanitizeDisplayText(
     redaction: { applied: count > 0, count },
   };
 }
+
+export const PHASE19_ADAPTER_IDS = [
+  "hermes",
+  "openclaw",
+  "codex",
+  "claude-code",
+] as const;
+
+export const Phase19AdapterIdSchema = z.enum(PHASE19_ADAPTER_IDS);
+export type Phase19AdapterId = z.infer<typeof Phase19AdapterIdSchema>;
+
+const ConstellationAvatarSchema = z
+  .object({
+    status: z.enum(["missing", "editing", "accepted"]),
+    profileId: WorldRef.nullable(),
+    sessionId: LocalOpaqueRef.nullable(),
+  })
+  .strict()
+  .superRefine((avatar, context) => {
+    if (
+      avatar.status === "accepted" &&
+      (avatar.profileId === null || avatar.sessionId === null)
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "Accepted avatars require profile and session references",
+      });
+    }
+  });
+
+export const ConstellationAgentSchema = z
+  .object({
+    rosterId: LocalOpaqueRef,
+    adapterId: Phase19AdapterIdSchema,
+    sessionOwnership: z.enum(["operator-persistent", "world-owned"]),
+    worldSessionId: LocalOpaqueRef,
+    worldInstanceId: LocalOpaqueRef,
+    nativeRootSessionRef: LocalOpaqueRef,
+    displayName: Utf8Bounded(1, 64),
+    continuity: z.enum([
+      "current",
+      "previous-recovered",
+      "stale",
+      "unavailable",
+    ]),
+    connection: z.enum(["connecting", "connected", "stale", "unavailable"]),
+    avatar: ConstellationAvatarSchema,
+    addedOrder: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  })
+  .strict()
+  .superRefine((agent, context) => {
+    if (
+      agent.sessionOwnership === "operator-persistent" &&
+      agent.adapterId !== "hermes"
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["sessionOwnership"],
+        message: "Only Hermes may own an operator-persistent session",
+      });
+    }
+  });
+
+export type ConstellationAgent = z.infer<typeof ConstellationAgentSchema>;
+
+export function deriveConstellationEntryReady(
+  agents: ReadonlyArray<ConstellationAgent>,
+): boolean {
+  return (
+    agents.length >= 2 &&
+    agents.length <= 4 &&
+    agents.every(
+      (agent) =>
+        agent.connection === "connected" &&
+        (agent.continuity === "current" ||
+          agent.continuity === "previous-recovered") &&
+        agent.avatar.status === "accepted" &&
+        agent.avatar.profileId !== null &&
+        agent.avatar.sessionId !== null,
+    )
+  );
+}
+
+export const ConstellationProjectionSchema = z
+  .object({
+    schema: z.literal("aiw.constellation/0.19"),
+    mode: z.literal("multi-agent"),
+    worldInstanceId: LocalOpaqueRef,
+    lifecycle: z.enum(["assembling", "active", "ending", "ended"]),
+    revision: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    agents: z.array(ConstellationAgentSchema).max(4),
+    entryReady: z.boolean(),
+    truth: z.enum(["current", "previous-recovered"]),
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const rosterIds = new Set<string>();
+    const bindings = new Set<string>();
+    const orders = new Set<number>();
+
+    for (const [index, agent] of projection.agents.entries()) {
+      if (agent.worldInstanceId !== projection.worldInstanceId) {
+        context.addIssue({
+          code: "custom",
+          path: ["agents", index, "worldInstanceId"],
+          message: "Agent binding belongs to a different World instance",
+        });
+      }
+      if (rosterIds.has(agent.rosterId)) {
+        context.addIssue({
+          code: "custom",
+          path: ["agents", index, "rosterId"],
+          message: "Duplicate roster ID",
+        });
+      }
+      rosterIds.add(agent.rosterId);
+
+      const binding = `${agent.adapterId}\u0000${agent.nativeRootSessionRef}`;
+      if (bindings.has(binding)) {
+        context.addIssue({
+          code: "custom",
+          path: ["agents", index, "nativeRootSessionRef"],
+          message: "Duplicate adapter and native root binding",
+        });
+      }
+      bindings.add(binding);
+
+      if (orders.has(agent.addedOrder)) {
+        context.addIssue({
+          code: "custom",
+          path: ["agents", index, "addedOrder"],
+          message: "Duplicate added order",
+        });
+      }
+      orders.add(agent.addedOrder);
+      const previousAgent = projection.agents[index - 1];
+      if (previousAgent && agent.addedOrder <= previousAgent.addedOrder) {
+        context.addIssue({
+          code: "custom",
+          path: ["agents", index, "addedOrder"],
+          message: "Agents must remain in stable added order",
+        });
+      }
+    }
+
+    const expectedEntryReady =
+      projection.lifecycle !== "ending" &&
+      projection.lifecycle !== "ended" &&
+      deriveConstellationEntryReady(projection.agents);
+    if (projection.entryReady !== expectedEntryReady) {
+      context.addIssue({
+        code: "custom",
+        path: ["entryReady"],
+        message: "Entry readiness does not match derived roster truth",
+      });
+    }
+  });
+
+export type ConstellationProjection = z.infer<
+  typeof ConstellationProjectionSchema
+>;
+
+export function teardownConstellation(
+  projection: ConstellationProjection,
+): ConstellationProjection {
+  const current = ConstellationProjectionSchema.parse(projection);
+  if (current.lifecycle === "ended") return current;
+  return ConstellationProjectionSchema.parse({
+    ...current,
+    lifecycle: "ended",
+    entryReady: false,
+  });
+}
+
+export const MessageTargetSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("broadcast") }).strict(),
+  z.object({ kind: z.literal("agent"), rosterId: LocalOpaqueRef }).strict(),
+]);
+
+export type MessageTarget = z.infer<typeof MessageTargetSchema>;
+
+export function resolveMessageRecipients(
+  target: MessageTarget,
+  roster: ReadonlyArray<ConstellationAgent>,
+): string[] {
+  const parsedTarget = MessageTargetSchema.parse(target);
+  const parsedRoster = z.array(ConstellationAgentSchema).max(4).parse(roster);
+  const rosterIds = new Set<string>();
+  const addedOrders = new Set<number>();
+  for (const agent of parsedRoster) {
+    if (rosterIds.has(agent.rosterId)) throw new Error("Duplicate roster ID");
+    if (addedOrders.has(agent.addedOrder))
+      throw new Error("Duplicate added order");
+    rosterIds.add(agent.rosterId);
+    addedOrders.add(agent.addedOrder);
+  }
+  const ordered = [...parsedRoster].sort(
+    (left, right) => left.addedOrder - right.addedOrder,
+  );
+  if (parsedTarget.kind === "broadcast") {
+    return ordered.map((agent) => agent.rosterId);
+  }
+  if (!rosterIds.has(parsedTarget.rosterId)) {
+    throw new Error("Unknown roster target");
+  }
+  return [parsedTarget.rosterId];
+}
+
+const MessageRecipientStateSchema = z.enum([
+  "queued",
+  "streaming",
+  "completed",
+  "unavailable",
+  "failed",
+  "cancelled",
+  "interrupted",
+]);
+
+const MessageRecipientSchema = z
+  .object({
+    rosterId: LocalOpaqueRef,
+    worldSessionId: LocalOpaqueRef,
+    state: MessageRecipientStateSchema,
+    finalText: Utf8Bounded(1, 32_768).nullable(),
+    errorLabel: Utf8Bounded(1, 240).nullable(),
+  })
+  .strict();
+
+export const ConstellationMessageGroupSchema = z
+  .object({
+    schema: z.literal("aiw.constellation-message/0.19"),
+    groupId: z.string().uuid(),
+    requestId: z.string().uuid(),
+    correlationId: z.string().uuid(),
+    text: Utf8Bounded(1, 16_384),
+    target: MessageTargetSchema,
+    recipientRosterIds: z.array(LocalOpaqueRef).min(1).max(4),
+    recipients: z.array(MessageRecipientSchema).min(1).max(4),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict()
+  .superRefine((group, context) => {
+    if (
+      new Set(group.recipientRosterIds).size !== group.recipientRosterIds.length
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["recipientRosterIds"],
+        message: "Recipient roster IDs must be unique",
+      });
+    }
+    if (group.recipients.length !== group.recipientRosterIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["recipients"],
+        message: "Recipient rows must match the immutable recipient list",
+      });
+    } else {
+      for (const [index, recipient] of group.recipients.entries()) {
+        if (recipient.rosterId !== group.recipientRosterIds[index]) {
+          context.addIssue({
+            code: "custom",
+            path: ["recipients", index, "rosterId"],
+            message: "Recipient rows must remain in immutable roster order",
+          });
+        }
+      }
+    }
+    if (
+      group.target.kind === "agent" &&
+      (group.recipientRosterIds.length !== 1 ||
+        group.recipientRosterIds[0] !== group.target.rosterId)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["recipientRosterIds"],
+        message:
+          "Targeted groups require exactly the selected roster recipient",
+      });
+    }
+  });
+
+export type ConstellationMessageGroup = z.infer<
+  typeof ConstellationMessageGroupSchema
+>;
+
+const TERMINAL_RECIPIENT_STATES = new Set([
+  "completed",
+  "unavailable",
+  "failed",
+  "cancelled",
+  "interrupted",
+]);
+
+export function isConstellationMessageGroupComplete(
+  group: ConstellationMessageGroup,
+): boolean {
+  const parsed = ConstellationMessageGroupSchema.parse(group);
+  return parsed.recipients.every((recipient) =>
+    TERMINAL_RECIPIENT_STATES.has(recipient.state),
+  );
+}
+
+export const AgentRepositoryWorkFocusSchema = z
+  .object({
+    schema: z.literal("aiw.agent-work-focus/0.19"),
+    activityId: LocalOpaqueRef,
+    rosterId: LocalOpaqueRef,
+    worldSessionId: LocalOpaqueRef,
+    repositoryRef: WorldRef,
+    objectRef: WorldRef,
+    objectKind: z.enum(["symbol", "file", "directory", "package"]),
+    repositoryPath: Utf8Bounded(1, 4_096).refine(
+      (value) =>
+        !value.startsWith("/") &&
+        !value.includes("\\") &&
+        !/(?:^|\/)\.\.(?:\/|$)/u.test(value) &&
+        !hasControlCharacters(value),
+      { message: "Repository path must be a safe relative POSIX path" },
+    ),
+    layoutGeneration: z.string().regex(/^layout-[0-9a-f]{64}$/u),
+    movementRequestId: LocalOpaqueRef.nullable(),
+    source: z.enum(["structured-tool-event", "workstream-binding"]),
+    state: z.enum([
+      "targeted",
+      "navigating",
+      "coding",
+      "completed",
+      "failed",
+      "cancelled",
+      "stale",
+    ]),
+  })
+  .strict();
+
+export type AgentRepositoryWorkFocus = z.infer<
+  typeof AgentRepositoryWorkFocusSchema
+>;
+
+export function assertCurrentAgentWorkFocus(
+  focus: AgentRepositoryWorkFocus,
+  expected: Pick<
+    AgentRepositoryWorkFocus,
+    "repositoryRef" | "objectRef" | "layoutGeneration"
+  >,
+): AgentRepositoryWorkFocus {
+  const parsed = AgentRepositoryWorkFocusSchema.parse(focus);
+  if (
+    parsed.state === "completed" ||
+    parsed.state === "failed" ||
+    parsed.state === "cancelled" ||
+    parsed.state === "stale"
+  ) {
+    throw new Error("Work focus is not current");
+  }
+  if (
+    parsed.repositoryRef !== expected.repositoryRef ||
+    parsed.objectRef !== expected.objectRef ||
+    parsed.layoutGeneration !== expected.layoutGeneration
+  ) {
+    throw new Error("Work focus identity or generation mismatch");
+  }
+  return parsed;
+}
+
+export const AcceptedVoiceTextSchema = z
+  .object({
+    schema: z.literal("aiw.voice-accepted-text/0.19"),
+    worldInstanceId: LocalOpaqueRef,
+    requestId: z.string().uuid(),
+    correlationId: z.string().uuid(),
+    acceptedText: Utf8Bounded(1, 16_384),
+    target: MessageTargetSchema,
+    acceptedAt: z.string().datetime(),
+  })
+  .strict();
+
+export type AcceptedVoiceText = z.infer<typeof AcceptedVoiceTextSchema>;

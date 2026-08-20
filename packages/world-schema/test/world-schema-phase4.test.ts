@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   CurrentWorldSnapshotDataSchema,
   RepositoryGenerationSchema,
+  SafeConfigSchema,
   WORLD_LAYOUT_VERSION,
   WORLD_SCHEMA_VERSION,
   WorldIdentityVersionSchema,
@@ -55,6 +56,41 @@ const minimalSnapshot = {
 };
 
 describe("Phase 4 World schemas", () => {
+  it("accepts the sanitized four-adapter safe configuration and stays strict", () => {
+    const safeConfig = {
+      phase: "Phase 14",
+      version: "0.14.0-phase14",
+      instanceName: "AgentIntersect World Local",
+      networkScope: "loopback",
+      host: "127.0.0.1",
+      port: 3770,
+      demoOperationMaxMs: 5_000,
+      repositoryMaxFiles: 2_500,
+      agentIntersectReadEnabled: false,
+      agentIntersectCommandsEnabled: false,
+      agentSessionsEnabled: true,
+      agentAdapters: {
+        hermes: { configured: true, reason: "configured" },
+        openclaw: { configured: true, reason: "configured" },
+        codex: { configured: false, reason: "not-configured" },
+        "claude-code": { configured: false, reason: "not-configured" },
+      },
+      presentationSync: {
+        enabled: true,
+        transport: "ws/http",
+        encrypted: false,
+        unencryptedLanWarning: false,
+        allowedOrigin: "http://127.0.0.1:3770",
+        allowedHost: "127.0.0.1:3770",
+      },
+    } as const;
+
+    expect(SafeConfigSchema.parse(safeConfig)).toEqual(safeConfig);
+    expect(() =>
+      SafeConfigSchema.parse({ ...safeConfig, unexpected: true }),
+    ).toThrow();
+  });
+
   it("exports strict schema, identity, and layout version literals", () => {
     expect(WorldSchemaVersionSchema.parse("aiw.world/0.4")).toBe(
       WORLD_SCHEMA_VERSION,

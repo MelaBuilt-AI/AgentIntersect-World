@@ -228,13 +228,14 @@ export function WorldHud({
                 className={`world-transcript__item world-transcript__item--${item.kind}`}
               >
                 <strong>
-                  {item.kind === "user"
-                    ? "You"
-                    : item.kind === "assistant"
-                      ? "Mr Fluff"
-                      : item.kind === "tool"
-                        ? "Activity"
-                        : "Error"}
+                  {item.recipient ??
+                    (item.kind === "user"
+                      ? "You"
+                      : item.kind === "assistant"
+                        ? "Mr Fluff"
+                        : item.kind === "tool"
+                          ? "Activity"
+                          : "Error")}
                 </strong>
                 {item.kind === "assistant" ? (
                   <AssistantText text={item.text} />

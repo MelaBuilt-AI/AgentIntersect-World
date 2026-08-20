@@ -3,7 +3,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import type { AgentSession } from "@agentintersect-world/agent-session-protocol";
+import type {
+  AgentCapabilityManifest,
+  AgentSession,
+} from "@agentintersect-world/agent-session-protocol";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -15,6 +18,7 @@ import {
   discoverDesignPreviews,
   type AgentAdapter,
 } from "../src/agent-sessions.js";
+import type { RepositoryWorkFocusCoordinator } from "../src/repository-work-focus.js";
 
 const roots: string[] = [];
 const servers: ReturnType<typeof createServer>[] = [];
@@ -34,6 +38,199 @@ afterEach(async () => {
       ),
   );
   for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true });
+});
+
+function focusAdapter(
+  events: readonly Parameters<
+    NonNullable<Parameters<AgentAdapter["sendText"]>[2]>["onEvent"] extends (
+      ...args: infer P
+    ) => unknown
+      ? P[0]
+      : never
+  >[],
+): AgentAdapter {
+  return {
+    id: "fixture",
+    attest: async () => ({
+      schema: "aiw.agent-capabilities/0.12",
+      adapterId: "fixture",
+      adapterVersion: "1",
+      transport: "loopback-http-sse",
+      origin: "local",
+      auth: "server-bearer",
+      supportedModes: ["explore", "collaborate"],
+      ordering: "per-session-strict",
+      resume: "session-api",
+      shutdownOwner: "external",
+      maxInputBytes: 16_384,
+      maxEventBytes: 32_768,
+      capabilities: {
+        attach: true,
+        sendText: true,
+        streamDeltas: true,
+        toolStatus: false,
+        approvals: false,
+        interrupt: false,
+        avatarProposal: false,
+        skillsDisclosure: false,
+      },
+      unavailable: {
+        toolStatus: "fixture",
+        approvals: "fixture",
+        interrupt: "fixture",
+        avatarProposal: "fixture",
+        skillsDisclosure: "fixture",
+      },
+    }),
+    listSessions: async () => [],
+    attach: async (id) => ({
+      id,
+      rootId: id,
+      source: "fixture",
+      title: "Fixture",
+    }),
+    sendText: async (_session, _text, context) => {
+      for (const event of events) await context?.onEvent?.(event);
+      return { finalText: "done", deltas: [] };
+    },
+  };
+}
+
+it("cancels a superseded movement before an unresolvable replacement", async () => {
+  const adapter = focusAdapter([
+    {
+      type: "tool.started",
+      toolName: "edit_file",
+      activityId: "activity-a",
+      repositoryLocator: { operation: "edit", paths: ["src/a.ts"] },
+      redaction: { applied: false, count: 0 },
+    },
+    {
+      type: "tool.started",
+      toolName: "edit_file",
+      activityId: "activity-b",
+      repositoryLocator: { operation: "edit", paths: ["missing.ts"] },
+      redaction: { applied: false, count: 0 },
+    },
+  ]);
+  const gateway = new AgentSessionGateway({
+    registry: new AdapterRegistry([adapter]),
+    store: new AgentSessionStore(newRoot()),
+  });
+  const stopped: string[] = [];
+  gateway.setRepositoryWorkFocusCoordinator({
+    start: async ({ session, rosterId, activityId }) =>
+      activityId === "activity-a"
+        ? {
+            schema: "aiw.agent-work-focus/0.19",
+            activityId,
+            rosterId,
+            worldSessionId: session.sessionId,
+            repositoryRef: session.repositoryRef,
+            objectRef: "aiw://object/file-a",
+            objectKind: "file",
+            repositoryPath: "src/a.ts",
+            layoutGeneration: `layout-${"a".repeat(64)}`,
+            movementRequestId: "movement-a",
+            source: "structured-tool-event",
+            state: "navigating",
+          }
+        : null,
+    stop: async (focus, state) => {
+      stopped.push(`${focus.activityId}:${focus.movementRequestId}`);
+      return { ...focus, state };
+    },
+  } as RepositoryWorkFocusCoordinator);
+  const session = await gateway.attach({
+    adapterId: "fixture",
+    adapterSessionRef: "native-root",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+    mode: "explore",
+  });
+
+  await gateway.sendText(session.sessionId, {
+    text: "bounded turn",
+    binding: session,
+  });
+
+  expect(stopped).toEqual(["activity-a:movement-a"]);
+  expect(gateway.currentWorkFocus(session.sessionId)).toMatchObject({
+    activityId: "activity-a",
+    state: "stale",
+  });
+});
+
+it("owns concurrent workstream recovery as one cached movement", async () => {
+  const adapter = focusAdapter([]);
+  const gateway = new AgentSessionGateway({
+    registry: new AdapterRegistry([adapter]),
+    store: new AgentSessionStore(newRoot()),
+  });
+  let recoveries = 0;
+  gateway.setRepositoryWorkFocusCoordinator({
+    start: async () => null,
+    stop: async (focus, state) => ({ ...focus, state }),
+    recover: async ({ session, rosterId }) => {
+      recoveries += 1;
+      await Promise.resolve();
+      return {
+        schema: "aiw.agent-work-focus/0.19",
+        activityId: "workstream-recovery",
+        rosterId,
+        worldSessionId: session.sessionId,
+        repositoryRef: session.repositoryRef,
+        objectRef: "aiw://object/file-a",
+        objectKind: "file",
+        repositoryPath: "src/a.ts",
+        layoutGeneration: `layout-${"a".repeat(64)}`,
+        movementRequestId: "movement-recovery",
+        source: "workstream-binding",
+        state: "navigating",
+      };
+    },
+  } as RepositoryWorkFocusCoordinator);
+  const attached = await gateway.attach({
+    adapterId: "fixture",
+    adapterSessionRef: "native-root",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+    mode: "explore",
+  });
+  const session = gateway.bindWorkstream(attached.sessionId, {
+    worktreeRef: "worktree-a",
+    taskRef: "task-a",
+  });
+  let resolverCalls = 0;
+  gateway.setRepositoryWorkFocusRecoveryResolver(async () => {
+    resolverCalls += 1;
+    return {
+      workstreamId: "task-a",
+      revision: 1,
+      repository: { repositoryId: "repo_fixture", revision: "generation-a" },
+      agent: {
+        agentId: session.sessionId,
+        nativeSessionId: "native-root",
+      },
+      authority: { repositoryId: "repo_fixture", worktreeId: "worktree-a" },
+      worktreeState: "dirty",
+      projection: { changedFiles: [{ path: "src/a.ts" }] },
+      status: "working",
+    };
+  });
+
+  const recovered = await Promise.all([
+    gateway.recoverWorkFocus(session.sessionId),
+    gateway.recoverWorkFocus(session.sessionId),
+    gateway.recoverWorkFocus(session.sessionId),
+  ]);
+  expect(recovered).toEqual([recovered[0], recovered[0], recovered[0]]);
+  expect(recoveries).toBe(1);
+  expect(resolverCalls).toBe(1);
+  expect(await gateway.recoverWorkFocus(session.sessionId)).toBe(recovered[0]);
+  expect(recoveries).toBe(1);
 });
 
 it("keeps the same Workstream context on later turns after explicit collaborate binding", async () => {
@@ -368,7 +565,126 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
   };
 }
 
+function capabilityManifest(
+  adapterId: string,
+  capabilities: Partial<AgentCapabilityManifest["capabilities"]> = {},
+): AgentCapabilityManifest {
+  const values = {
+    attach: true,
+    sendText: true,
+    streamDeltas: false,
+    toolStatus: false,
+    approvals: false,
+    interrupt: false,
+    avatarProposal: false,
+    skillsDisclosure: false,
+    worldActions: false,
+    ...capabilities,
+  };
+  return {
+    schema: "aiw.agent-capabilities/0.12",
+    adapterId,
+    adapterVersion: "1",
+    transport: "loopback-http-sse",
+    origin: "local",
+    auth: "server-bearer",
+    supportedModes: ["explore"],
+    ordering: "per-session-strict",
+    resume: "session-api",
+    shutdownOwner: "external",
+    maxInputBytes: 16_384,
+    maxEventBytes: 32_768,
+    capabilities: values,
+    unavailable: {
+      ...(!values.attach ? { attach: "fixture" } : {}),
+      ...(!values.sendText ? { sendText: "fixture" } : {}),
+      streamDeltas: "fixture",
+      toolStatus: "fixture",
+      approvals: "fixture",
+      interrupt: "fixture",
+      avatarProposal: "fixture",
+      skillsDisclosure: "fixture",
+    },
+    worldActions: {
+      enabled: false,
+      protocol: "aiw.world-action/0.13",
+      proposalHelper: "propose_world_action",
+      maximumBatchActions: 8,
+      maximumEnvelopeBytes: 16_384,
+      defaultTtlMs: 30_000,
+      maximumTtlMs: 120_000,
+      rateActionsPerSecond: 4,
+      rateBurstActions: 8,
+      maximumQueuedActions: 32,
+      unavailableReason: "fixture",
+    },
+  };
+}
+
 describe("Phase 12 Hermes adapter and session gateway", () => {
+  it("reports runtime readiness only from matching complete attestations", async () => {
+    const adapter = (id: string, manifest: unknown): AgentAdapter => ({
+      id,
+      attest: async () => manifest as AgentCapabilityManifest,
+      listSessions: async () => [],
+      attach: async () => ({
+        id: "native",
+        source: "fixture",
+        title: "Fixture",
+      }),
+      sendText: async () => ({ finalText: "done", deltas: [] }),
+    });
+    const registry = new AdapterRegistry([
+      adapter("ready", capabilityManifest("ready")),
+      adapter(
+        "attach-only",
+        capabilityManifest("attach-only", { sendText: false }),
+      ),
+      adapter("send-only", capabilityManifest("send-only", { attach: false })),
+      adapter("mismatch", capabilityManifest("different")),
+      adapter("malformed", { schema: "wrong", secret: "MALFORMED_CANARY" }),
+      {
+        ...adapter("thrown", capabilityManifest("thrown")),
+        attest: async () => {
+          throw new Error("THROWN_SECRET_CANARY");
+        },
+      },
+    ]);
+
+    const readiness = await registry.readiness();
+    expect(readiness).toEqual([
+      { adapterId: "ready", enabled: true, reason: "runtime-attested" },
+      {
+        adapterId: "attach-only",
+        enabled: false,
+        reason: "attestation-unavailable",
+      },
+      {
+        adapterId: "send-only",
+        enabled: false,
+        reason: "attestation-unavailable",
+      },
+      {
+        adapterId: "mismatch",
+        enabled: false,
+        reason: "attestation-unavailable",
+      },
+      {
+        adapterId: "malformed",
+        enabled: false,
+        reason: "attestation-unavailable",
+      },
+      {
+        adapterId: "thrown",
+        enabled: false,
+        reason: "attestation-unavailable",
+      },
+    ]);
+    expect(JSON.stringify(readiness)).not.toMatch(
+      /CANARY|secret|wrong|different/i,
+    );
+  });
+
   it("attaches the exact session from a direct detail payload plus safe-resume evidence", async () => {
     const sessionRef = "20260721_011618_330489c8";
     const fetch = vi.fn(async (input: string | URL | Request) =>

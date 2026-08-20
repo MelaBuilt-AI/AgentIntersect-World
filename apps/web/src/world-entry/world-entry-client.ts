@@ -10,10 +10,15 @@ import {
 } from "../repository-index-client.js";
 import {
   AgentSessionClient,
+  type AddConstellationAgentInput,
   type AvatarProposal,
+  type ConstellationMutation,
+  type ConstellationState,
   type NativeSession,
+  type Phase19AdapterId,
   type SessionCapability,
   type SessionHistory,
+  type SetConstellationAvatarInput,
   type WorldAgentEvent,
   type WorldAgentSession,
 } from "../sessions/session-client.js";
@@ -24,7 +29,7 @@ import {
 import { getCurrentWorld } from "../world-client.js";
 import type { WorkstreamReference } from "./workstream-client.js";
 
-export const WORLD_ENTRY_CLIENT_VERSION = "phase18";
+export const WORLD_ENTRY_CLIENT_VERSION = "phase19-task13";
 
 export type HermesDisplayResolution =
   | { readonly status: "matched"; readonly nativeSessionId: string }
@@ -66,11 +71,24 @@ export type RepositoryLoadResult =
 
 export type WorldEntrySessionPort = {
   capabilities(): Promise<readonly SessionCapability[]>;
-  nativeSessions(adapterId: string): Promise<readonly NativeSession[]>;
+  nativeSessions(
+    adapterId: Phase19AdapterId,
+  ): Promise<readonly NativeSession[]>;
   status(sessionId: string): Promise<WorldAgentSession>;
   attach(input: {
-    readonly adapterId: string;
+    readonly adapterId: Phase19AdapterId;
     readonly adapterSessionRef: string;
+    readonly profile: string;
+    readonly workspaceId: string;
+    readonly repositoryRef: string;
+    readonly mode: "explore" | "collaborate";
+    readonly modeConfirmed?: boolean;
+    readonly worldInstanceId?: string;
+  }): Promise<WorldAgentSession>;
+  createWorldSession(input: {
+    readonly adapterId: Exclude<Phase19AdapterId, "hermes">;
+    readonly worldInstanceId: string;
+    readonly displayName: string;
     readonly profile: string;
     readonly workspaceId: string;
     readonly repositoryRef: string;
@@ -96,6 +114,23 @@ export type WorldEntrySessionPort = {
     readonly finalText: string;
     readonly deltas: readonly string[];
   }>;
+  currentConstellation(): Promise<ConstellationState>;
+  addConstellationAgent(
+    input: AddConstellationAgentInput,
+  ): Promise<ConstellationState>;
+  reconnectConstellationAgent(
+    rosterId: string,
+    input: ConstellationMutation,
+  ): Promise<ConstellationState>;
+  removeConstellationAgent(
+    rosterId: string,
+    input: ConstellationMutation,
+  ): Promise<ConstellationState>;
+  setConstellationAvatar(
+    rosterId: string,
+    input: SetConstellationAvatarInput,
+  ): Promise<ConstellationState>;
+  endConstellation(input: ConstellationMutation): Promise<ConstellationState>;
 };
 
 type RepositoryIndexPort = (
@@ -154,19 +189,22 @@ export function resolveHermesDisplayName(
 
 function currentCapability(
   capabilities: readonly SessionCapability[],
+  adapterId: Phase19AdapterId = "hermes",
 ): SessionCapability | null {
   return (
-    capabilities.find((capability) => capability.adapterId === "hermes") ?? null
+    capabilities.find((capability) => capability.adapterId === adapterId) ??
+    null
   );
 }
 
 function validAttachedSession(
   session: WorldAgentSession,
+  adapterId: Phase19AdapterId = "hermes",
 ): session is WorldAgentSession & {
   readonly continuity: "current" | "previous-recovered";
 } {
   return (
-    session.adapterId === "hermes" &&
+    session.adapterId === adapterId &&
     session.status === "ready" &&
     (session.continuity === "current" ||
       session.continuity === "previous-recovered")
@@ -242,6 +280,43 @@ export function createWorldEntryClient(
       return sessionClient.status(sessionId);
     },
 
+    currentConstellation(): Promise<ConstellationState> {
+      return sessionClient.currentConstellation();
+    },
+
+    addConstellationAgent(
+      input: AddConstellationAgentInput,
+    ): Promise<ConstellationState> {
+      return sessionClient.addConstellationAgent(input);
+    },
+
+    reconnectConstellationAgent(
+      rosterId: string,
+      input: ConstellationMutation,
+    ): Promise<ConstellationState> {
+      return sessionClient.reconnectConstellationAgent(rosterId, input);
+    },
+
+    removeConstellationAgent(
+      rosterId: string,
+      input: ConstellationMutation,
+    ): Promise<ConstellationState> {
+      return sessionClient.removeConstellationAgent(rosterId, input);
+    },
+
+    setConstellationAvatar(
+      rosterId: string,
+      input: SetConstellationAvatarInput,
+    ): Promise<ConstellationState> {
+      return sessionClient.setConstellationAvatar(rosterId, input);
+    },
+
+    endConstellation(
+      input: ConstellationMutation,
+    ): Promise<ConstellationState> {
+      return sessionClient.endConstellation(input);
+    },
+
     async restoreHermes(sessionId: string): Promise<HermesConnectionResult> {
       if (
         !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
@@ -305,6 +380,111 @@ export function createWorldEntryClient(
       }
     },
 
+    async restoreConstellationAgent(
+      sessionId: string,
+      adapterId: Exclude<Phase19AdapterId, "hermes">,
+    ): Promise<HermesConnectionResult> {
+      if (
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+          sessionId,
+        )
+      )
+        return { status: "stale", message: "agent unavailable_" };
+      try {
+        const session = await sessionClient.status(sessionId);
+        if (
+          !validAttachedSession(session, adapterId) ||
+          session.sessionId !== sessionId
+        )
+          return { status: "stale", message: "agent unavailable_" };
+        const [proposal, history] = await Promise.all([
+          sessionClient.avatarProposal(sessionId).catch(() => null),
+          sessionClient.history(sessionId),
+        ]);
+        const avatar = resolveAvatarState(sessionId, proposal, history);
+        return {
+          status:
+            session.continuity === "previous-recovered"
+              ? "recovered"
+              : "connected",
+          continuity: session.continuity,
+          session,
+          ...avatar,
+          history,
+        };
+      } catch {
+        return { status: "unavailable", message: "agent unavailable_" };
+      }
+    },
+
+    async connectWorldOwnedAgent(
+      adapterId: Exclude<Phase19AdapterId, "hermes">,
+      worldInstanceId: string,
+      name: string,
+    ): Promise<HermesConnectionResult> {
+      const displayName = name.normalize("NFC").trim();
+      if (!safeDisplayLabel(displayName) || !worldInstanceId)
+        return { status: "unavailable", message: "agent unavailable_" };
+      try {
+        const session = await sessionClient.createWorldSession({
+          adapterId,
+          worldInstanceId,
+          displayName,
+          profile: "default",
+          workspaceId: "world-entry",
+          repositoryRef: "current",
+          mode: "explore",
+        });
+        if (!validAttachedSession(session, adapterId))
+          return { status: "stale", message: "agent unavailable_" };
+        const history = await sessionClient
+          .history(session.sessionId)
+          .catch((): SessionHistory => ({
+            sessionId: session.sessionId,
+            continuity: session.continuity,
+            messages: [],
+            transcriptAuthority: adapterId,
+            avatarConsent: null,
+          }));
+        const proposal: AvatarProposal = {
+          schema: "aiw.avatar-proposal/0.12",
+          proposalId: crypto.randomUUID(),
+          sessionId: session.sessionId,
+          displayName,
+          species: "human",
+          head: "round",
+          hands: "hands",
+          feet: "feet",
+          fur: "none",
+          tail: "none",
+          markings: "solid",
+          bodyColor: "warm-light",
+          shirt: adapterId === "codex" ? "Codex" : "World",
+          movementStyle: "shared-biped-core",
+          sourceDisclosure: "manual-local-input",
+          rationale: "User-selected World-owned agent avatar setup.",
+          createdAt: new Date().toISOString(),
+        };
+        return {
+          status:
+            session.continuity === "previous-recovered"
+              ? "recovered"
+              : "connected",
+          continuity:
+            session.continuity === "previous-recovered"
+              ? "previous-recovered"
+              : "current",
+          session,
+          proposal,
+          avatarAccepted: false,
+          avatarSetup: "required",
+          history,
+        };
+      } catch {
+        return { status: "unavailable", message: "agent unavailable_" };
+      }
+    },
+
     async connectHermes(name: string): Promise<HermesConnectionResult> {
       try {
         const capabilities = await sessionClient.capabilities();
@@ -360,11 +540,7 @@ export function createWorldEntryClient(
       session: WorldAgentSession,
       proposal: AvatarProposal,
     ): Promise<boolean> {
-      if (
-        session.adapterId !== "hermes" ||
-        proposal.sessionId !== session.sessionId
-      )
-        return false;
+      if (proposal.sessionId !== session.sessionId) return false;
       try {
         const result = await sessionClient.avatarConsent(
           session.sessionId,

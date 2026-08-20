@@ -55,6 +55,18 @@ import {
 import type { RepositoryCityInstance } from "./repository-city-state.js";
 
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
+const WORLD_AGENT_SPAWN_POSITIONS = [
+  [-4.2, 0, 0.8],
+  [4.2, 0, 0.8],
+  [-3.2, 0, -4],
+  [3.2, 0, -4],
+] as const;
+
+export function worldAgentSpawnPosition(
+  index: number,
+): readonly [number, number, number] {
+  return WORLD_AGENT_SPAWN_POSITIONS[index] ?? WORLD_AGENT_SPAWN_POSITIONS[0];
+}
 
 export type WorldRoomFloor = "blank" | "repository";
 export type WorldRoomCamera = {
@@ -67,6 +79,16 @@ export type WorldRoomActivity = {
   readonly icon: string;
   readonly label: string;
   readonly detail: "" | "terminal" | "reading" | "tool";
+};
+
+export type WorldRoomAgentState = {
+  readonly rosterId: string;
+  readonly name: string;
+  readonly position: Readonly<{ x: number; z: number }>;
+  readonly heading: number;
+  readonly action: string;
+  readonly workState: "idle" | "navigating" | "coding" | "stale";
+  readonly objectRef: string | null;
 };
 
 export type WorldRenderQuality = {
@@ -246,22 +268,27 @@ export function calculateControlledAvatarYaw(cameraYaw: number): number {
 export function calculateWorldCameraPose({
   userPosition,
   camera,
+  agentCount = 1,
+  viewportAspect = 16 / 9,
 }: {
   readonly userPosition: Readonly<{ x: number; z: number }>;
   readonly camera: WorldRoomCamera;
+  readonly agentCount?: number;
+  readonly viewportAspect?: number;
 }): {
   readonly position: readonly [number, number, number];
   readonly target: readonly [number, number, number];
 } {
-  const distance = 5.2;
-  const horizontalDistance = Math.cos(camera.pitch) * distance;
+  const constellationDistance =
+    agentCount > 1 ? 11.5 * Math.max(1, 1.3 / viewportAspect) : 5.2;
+  const horizontalDistance = Math.cos(camera.pitch) * constellationDistance;
   return {
     position: [
       cameraValue(userPosition.x - Math.sin(camera.yaw) * horizontalDistance),
-      cameraValue(1.54 + Math.sin(camera.pitch) * distance),
+      cameraValue(1.54 + Math.sin(camera.pitch) * constellationDistance),
       cameraValue(userPosition.z + Math.cos(camera.yaw) * horizontalDistance),
     ],
-    target: [userPosition.x + 1, 0.7, userPosition.z],
+    target: [userPosition.x + (agentCount > 1 ? 0 : 1), 0.7, userPosition.z],
   };
 }
 
@@ -605,6 +632,23 @@ function LightweightAvatarMotion({
   return <group ref={groupRef}>{children}</group>;
 }
 
+function CodingWorkHalo({
+  position,
+}: {
+  readonly position: readonly [number, number, number];
+}) {
+  return (
+    <mesh
+      name="agent-coding-work-halo"
+      position={[position[0], 0.035, position[2]]}
+      rotation={[-Math.PI / 2, 0, 0]}
+    >
+      <ringGeometry args={[0.62, 0.82, 40]} />
+      <meshBasicMaterial color="#22d3ee" transparent opacity={0.78} />
+    </mesh>
+  );
+}
+
 function WorldAvatarModel({
   role,
   selection,
@@ -687,8 +731,11 @@ function WorldRoomScene({
   activity,
   userAvatar,
   agentAvatar,
+  agentAvatars,
+  agentStates,
   userImportedAvatar,
   agentImportedAvatar,
+  agentImportedAvatars,
   userAction,
   agentAction,
   userLayerState,
@@ -720,8 +767,13 @@ function WorldRoomScene({
   readonly activity: WorldRoomActivity;
   readonly userAvatar: AvatarSelection;
   readonly agentAvatar: AvatarSelection;
+  readonly agentAvatars?: readonly AvatarSelection[];
+  readonly agentStates?: readonly WorldRoomAgentState[];
   readonly userImportedAvatar?: ImportedAvatarWorldSelection | undefined;
   readonly agentImportedAvatar?: ImportedAvatarWorldSelection | undefined;
+  readonly agentImportedAvatars?: readonly (
+    ImportedAvatarWorldSelection | null | undefined
+  )[];
   readonly userAction: string;
   readonly agentAction: string;
   readonly userLayerState: AvatarLayerState;
@@ -749,7 +801,7 @@ function WorldRoomScene({
   readonly onCitySettled: (instanceId: string) => void;
   readonly onCityReady: () => void;
 }) {
-  const { camera, gl, invalidate, scene } = useThree();
+  const { camera, gl, invalidate, scene, size } = useThree();
   const controlledAvatarYaw = calculateControlledAvatarYaw(cameraLook.yaw);
   const avatarMotion = selectWorldAvatarMotion(renderQuality, reducedMotion);
   const userImportedClip = userImportedAvatar?.resolvedClip;
@@ -758,6 +810,12 @@ function WorldRoomScene({
     () => [agentPosition.x, 0, agentPosition.z] as const,
     [agentPosition.x, agentPosition.z],
   );
+  const renderedAgentAvatars = (
+    agentAvatars?.length ? agentAvatars : [agentAvatar]
+  ).slice(0, 4);
+  const renderedAgentImports = agentImportedAvatars?.length
+    ? agentImportedAvatars.slice(0, 4)
+    : [agentImportedAvatar];
   const userAnimationEnabled = selectWorldImportedAvatarMotion(
     reducedMotion,
     userImportedClip?.clipIndex,
@@ -806,6 +864,8 @@ function WorldRoomScene({
     const pose = calculateWorldCameraPose({
       userPosition: cityFocusPosition ?? userPosition,
       camera: cameraLook,
+      agentCount: renderedAgentAvatars.length,
+      viewportAspect: size.width / Math.max(size.height, 1),
     });
     camera.position.set(...pose.position);
     camera.lookAt(new Vector3().fromArray(pose.target));
@@ -900,6 +960,9 @@ function WorldRoomScene({
     invalidate,
     reducedMotion,
     renderQuality,
+    renderedAgentAvatars.length,
+    size.height,
+    size.width,
     userAvatar,
     userImportedAvatar,
     userImportedClip,
@@ -1027,55 +1090,59 @@ function WorldRoomScene({
         reducedMotion={reducedMotion}
         position={agentWorldPosition}
       />
-      {agentImportedAvatar ? (
-        <ImportedAvatarGroundingMarker
-          role="agent"
-          position={agentWorldPosition}
-        />
-      ) : null}
-      {avatarMotion.lightweight ? (
-        <LightweightAvatarMotion phase={Math.PI}>
+      {renderedAgentAvatars.map((selection, index) => {
+        const state = agentStates?.[index];
+        const imported = renderedAgentImports[index];
+        const position = state
+          ? ([state.position.x, 0, state.position.z] as const)
+          : renderedAgentAvatars.length > 1
+            ? worldAgentSpawnPosition(index)
+            : agentWorldPosition;
+        const model = (
           <WorldAvatarModel
+            key={`agent-${index + 1}`}
             role="agent"
-            selection={agentAvatar}
-            imported={agentImportedAvatar}
-            action={agentAction}
-            layerState={agentLayerState}
-            animate={agentAnimationEnabled}
-            position={agentWorldPosition}
-            rotation={[0, agentHeading, 0]}
-            scale={
-              agentImportedAvatar
-                ? IMPORTED_WORLD_AVATAR_SCALE
-                : AVATARS[1].scale
+            selection={selection}
+            imported={imported ?? undefined}
+            action={
+              state?.workState === "coding"
+                ? "Idle"
+                : (state?.action ?? (index === 0 ? agentAction : "Idle"))
             }
+            layerState={agentLayerState}
+            animate={index === 0 ? agentAnimationEnabled : false}
+            position={position}
+            rotation={[
+              0,
+              state?.heading ?? (index === 0 ? agentHeading : 0),
+              0,
+            ]}
+            scale={imported ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale}
             onReady={onAvatarReady}
             onLodChange={onAvatarLodChange}
             onAnimationSample={onImportedAnimationSample}
             onOneShotComplete={onImportedOneShotComplete}
-            animationGeneration={agentAnimationGeneration}
+            animationGeneration={index === 0 ? agentAnimationGeneration : 0}
           />
-        </LightweightAvatarMotion>
-      ) : (
-        <WorldAvatarModel
-          role="agent"
-          selection={agentAvatar}
-          imported={agentImportedAvatar}
-          action={agentAction}
-          layerState={agentLayerState}
-          animate={agentAnimationEnabled}
-          position={agentWorldPosition}
-          rotation={[0, agentHeading, 0]}
-          scale={
-            agentImportedAvatar ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale
-          }
-          onReady={onAvatarReady}
-          onLodChange={onAvatarLodChange}
-          onAnimationSample={onImportedAnimationSample}
-          onOneShotComplete={onImportedOneShotComplete}
-          animationGeneration={agentAnimationGeneration}
-        />
-      )}
+        );
+        return (
+          <group key={`agent-group-${index + 1}`}>
+            {state?.workState === "coding" ? (
+              <CodingWorkHalo position={position} />
+            ) : null}
+            {imported ? (
+              <ImportedAvatarGroundingMarker role="agent" position={position} />
+            ) : null}
+            {avatarMotion.lightweight ? (
+              <LightweightAvatarMotion phase={Math.PI + index}>
+                {model}
+              </LightweightAvatarMotion>
+            ) : (
+              model
+            )}
+          </group>
+        );
+      })}
     </>
   );
 }
@@ -1091,8 +1158,11 @@ export function WorldRoomCanvas({
   activity,
   userAvatar,
   agentAvatar,
+  agentAvatars,
+  agentStates,
   userImportedAvatar,
   agentImportedAvatar,
+  agentImportedAvatars,
   userAction,
   agentAction,
   userLayerState,
@@ -1118,8 +1188,13 @@ export function WorldRoomCanvas({
   readonly activity: WorldRoomActivity;
   readonly userAvatar: AvatarSelection;
   readonly agentAvatar: AvatarSelection;
+  readonly agentAvatars?: readonly AvatarSelection[];
+  readonly agentStates?: readonly WorldRoomAgentState[];
   readonly userImportedAvatar?: ImportedAvatarWorldSelection | undefined;
   readonly agentImportedAvatar?: ImportedAvatarWorldSelection | undefined;
+  readonly agentImportedAvatars?: readonly (
+    ImportedAvatarWorldSelection | null | undefined
+  )[];
   readonly userAction: string;
   readonly agentAction: string;
   readonly userLayerState: AvatarLayerState;
@@ -1274,6 +1349,15 @@ export function WorldRoomCanvas({
       data-agent-activity={activity.state}
       data-user-avatar-action={userAction}
       data-agent-avatar-action={agentAction}
+      data-agent-state-count={agentStates?.length ?? 0}
+      data-agent-work-states={
+        agentStates
+          ?.map(
+            ({ rosterId, workState, objectRef }) =>
+              `${rosterId}:${workState}:${objectRef ?? ""}`,
+          )
+          .join("|") ?? ""
+      }
       data-agent-avatar-upper-body={agentLayerState.upperBody ?? "none"}
       data-agent-avatar-face={agentLayerState.face ?? "neutral"}
       data-agent-avatar-gaze={agentLayerState.gaze}
@@ -1312,8 +1396,11 @@ export function WorldRoomCanvas({
         activity={activity}
         userAvatar={userAvatar}
         agentAvatar={agentAvatar}
+        {...(agentAvatars ? { agentAvatars } : {})}
+        {...(agentStates ? { agentStates } : {})}
         userImportedAvatar={userImportedAvatar}
         agentImportedAvatar={agentImportedAvatar}
+        {...(agentImportedAvatars ? { agentImportedAvatars } : {})}
         userAction={userAction}
         agentAction={agentAction}
         userLayerState={userLayerState}

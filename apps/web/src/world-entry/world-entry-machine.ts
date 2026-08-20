@@ -1,9 +1,10 @@
-export const WORLD_ENTRY_MACHINE_VERSION = "phase18";
+export const WORLD_ENTRY_MACHINE_VERSION = "phase19-task9";
 
 export type WorldEntryStep =
   | "returning_identity"
   | "session_select"
   | "constellation_single"
+  | "constellation_multi"
   | "agent_prompt"
   | "agent_resolving"
   | "agent_not_found"
@@ -22,15 +23,39 @@ export type WorldEntryConnection = {
   readonly continuity: "none" | "current" | "previous-recovered";
 };
 
+export type WorldEntryAdapterId =
+  "hermes" | "openclaw" | "codex" | "claude-code";
+
+export type WorldEntryRosterEntry = {
+  readonly rosterId: string;
+  readonly adapterId: WorldEntryAdapterId;
+  readonly agentName: string;
+  readonly connection: WorldEntryConnection;
+  readonly agentAvatar: {
+    readonly status: "missing" | "editing" | "accepted";
+    readonly sessionId: string | null;
+    readonly profileId: string | null;
+  };
+};
+
+export type WorldEntryPendingAgent = WorldEntryRosterEntry;
+
 export type WorldEntryState = {
   readonly step: WorldEntryStep;
   readonly user: {
     readonly profileId: string;
     readonly name: string;
   };
-  readonly selectedHarness: null | "hermes";
+  readonly sessionMode: "single" | "multi";
+  readonly roster: readonly WorldEntryRosterEntry[];
+  readonly pendingAgent: WorldEntryPendingAgent | null;
+  /** Derived compatibility projection for the Task 10-unmodified UI. */
+  readonly selectedHarness: WorldEntryAdapterId | null;
+  /** Derived compatibility projection for the Task 10-unmodified UI. */
   readonly agentName: string;
+  /** Derived compatibility projection for the Task 10-unmodified UI. */
   readonly connection: WorldEntryConnection;
+  /** Derived compatibility projection for the Task 10-unmodified UI. */
   readonly agentAvatar: {
     readonly status: "missing" | "editing" | "accepted";
     readonly sessionId: string | null;
@@ -53,6 +78,11 @@ export type WorldEntryState = {
 export type WorldEntryEvent =
   | { readonly type: "PRESENT_IDENTITY" }
   | { readonly type: "SELECT_SINGLE_AGENT" }
+  | { readonly type: "SELECT_MULTI_AGENT" }
+  | {
+      readonly type: "SELECT_HARNESS";
+      readonly harness: WorldEntryAdapterId;
+    }
   | { readonly type: "SELECT_HERMES" }
   | { readonly type: "SUBMIT_AGENT_NAME"; readonly name: string }
   | { readonly type: "CONNECTION_NOT_FOUND" }
@@ -67,11 +97,30 @@ export type WorldEntryEvent =
       readonly continuity: "current" | "previous-recovered";
     }
   | {
+      readonly type: "AGENT_ATTACHED";
+      readonly rosterId: string;
+      readonly sessionId: string;
+      readonly continuity: "current" | "previous-recovered";
+    }
+  | {
       readonly type: "RESTORE_WORLD";
       readonly sessionId: string;
       readonly continuity: "current" | "previous-recovered";
       readonly agentName: string;
       readonly avatarProfileId: string;
+    }
+  | {
+      readonly type: "RESTORE_CONSTELLATION";
+      readonly enterWorld?: boolean;
+      readonly agents: readonly {
+        readonly rosterId: string;
+        readonly adapterId: WorldEntryAdapterId;
+        readonly agentName: string;
+        readonly sessionId: string;
+        readonly connectionStatus?: "connected" | "stale" | "unavailable";
+        readonly continuity: "none" | "current" | "previous-recovered";
+        readonly avatarProfileId: string;
+      }[];
     }
   | {
       readonly type: "RESTORE_AGENT_AVATAR";
@@ -85,6 +134,21 @@ export type WorldEntryEvent =
       readonly sessionId: string;
       readonly avatarProfileId: string;
     }
+  | {
+      readonly type: "AGENT_AVATAR_ACCEPTED";
+      readonly rosterId?: string;
+      readonly sessionId: string;
+      readonly avatarProfileId: string;
+    }
+  | { readonly type: "RETURN_TO_CONSTELLATION" }
+  | {
+      readonly type: "RECONNECT_AGENT";
+      readonly rosterId: string;
+      readonly status?: "connected" | "stale" | "unavailable";
+      readonly sessionId?: string;
+      readonly continuity?: "current" | "previous-recovered";
+    }
+  | { readonly type: "REMOVE_AGENT"; readonly rosterId: string }
   | { readonly type: "ENTER_WORLD" }
   | { readonly type: "WORLD_READY" }
   | { readonly type: "REQUEST_REPOSITORY"; readonly request: string }
@@ -107,6 +171,36 @@ const emptyConnection = (): WorldEntryConnection => ({
   continuity: "none",
 });
 
+const emptyAvatar = (): WorldEntryRosterEntry["agentAvatar"] => ({
+  status: "missing",
+  sessionId: null,
+  profileId: null,
+});
+
+function projectSetupAuthority(state: WorldEntryState): WorldEntryState {
+  const entry =
+    state.pendingAgent ?? state.roster[state.roster.length - 1] ?? null;
+  return {
+    ...state,
+    selectedHarness: entry?.adapterId ?? null,
+    agentName: entry?.agentName ?? "",
+    connection: entry?.connection ?? emptyConnection(),
+    agentAvatar: entry?.agentAvatar ?? emptyAvatar(),
+  };
+}
+
+function pendingForHarness(
+  harness: WorldEntryAdapterId,
+): WorldEntryPendingAgent {
+  return {
+    rosterId: "",
+    adapterId: harness,
+    agentName: "",
+    connection: emptyConnection(),
+    agentAvatar: emptyAvatar(),
+  };
+}
+
 export function createReturningWorldEntryState(identity: {
   readonly profileId: string;
   readonly name: string;
@@ -114,6 +208,9 @@ export function createReturningWorldEntryState(identity: {
   return {
     step: "returning_identity",
     user: identity,
+    sessionMode: "single",
+    roster: [],
+    pendingAgent: null,
     selectedHarness: null,
     agentName: "",
     connection: emptyConnection(),
@@ -138,15 +235,20 @@ export function createReturningWorldEntryState(identity: {
 }
 
 export function canEnterWorld(state: WorldEntryState): boolean {
-  return (
-    state.connection.status === "connected" &&
-    state.connection.sessionId !== null &&
-    (state.connection.continuity === "current" ||
-      state.connection.continuity === "previous-recovered") &&
-    state.agentAvatar.status === "accepted" &&
-    state.agentAvatar.sessionId === state.connection.sessionId &&
-    state.agentAvatar.profileId !== null
+  if (state.pendingAgent !== null) return false;
+  const ready = state.roster.every(
+    (entry) =>
+      entry.connection.status === "connected" &&
+      entry.connection.sessionId !== null &&
+      (entry.connection.continuity === "current" ||
+        entry.connection.continuity === "previous-recovered") &&
+      entry.agentAvatar.status === "accepted" &&
+      entry.agentAvatar.sessionId === entry.connection.sessionId &&
+      entry.agentAvatar.profileId !== null,
   );
+  return state.sessionMode === "single"
+    ? state.roster.length === 1 && ready
+    : state.roster.length >= 2 && state.roster.length <= 4 && ready;
 }
 
 function safeName(value: string): string {
@@ -164,77 +266,115 @@ export function reduceWorldEntry(
         : state;
     case "SELECT_SINGLE_AGENT":
       return state.step === "session_select"
-        ? { ...state, step: "constellation_single" }
+        ? { ...state, step: "constellation_single", sessionMode: "single" }
+        : state;
+    case "SELECT_MULTI_AGENT":
+      return state.step === "session_select"
+        ? { ...state, step: "constellation_multi", sessionMode: "multi" }
+        : state;
+    case "SELECT_HARNESS":
+      return (state.step === "constellation_single" ||
+        state.step === "constellation_multi" ||
+        (state.step === "enter_ready" && state.sessionMode === "multi")) &&
+        state.pendingAgent === null &&
+        state.roster.length < 4
+        ? projectSetupAuthority({
+            ...state,
+            step: "agent_prompt",
+            pendingAgent: pendingForHarness(event.harness),
+          })
         : state;
     case "SELECT_HERMES":
       return state.step === "constellation_single"
-        ? { ...state, step: "agent_prompt", selectedHarness: "hermes" }
+        ? projectSetupAuthority({
+            ...state,
+            step: "agent_prompt",
+            pendingAgent: pendingForHarness("hermes"),
+          })
         : state;
     case "SUBMIT_AGENT_NAME": {
       const name = safeName(event.name);
-      return state.step === "agent_prompt" && name
-        ? {
+      return state.step === "agent_prompt" && name && state.pendingAgent
+        ? projectSetupAuthority({
             ...state,
             step: "agent_resolving",
-            agentName: name,
-            connection: {
-              status: "connecting",
-              sessionId: null,
-              continuity: "none",
+            pendingAgent: {
+              ...state.pendingAgent,
+              agentName: name,
+              connection: {
+                status: "connecting",
+                sessionId: null,
+                continuity: "none",
+              },
             },
-          }
+          })
         : state;
     }
     case "CONNECTION_NOT_FOUND":
-      return state.step === "agent_resolving"
-        ? {
+      return state.step === "agent_resolving" && state.pendingAgent
+        ? projectSetupAuthority({
             ...state,
             step: "agent_not_found",
-            connection: {
-              status: "not_found",
-              sessionId: null,
-              continuity: "none",
+            pendingAgent: {
+              ...state.pendingAgent,
+              connection: {
+                status: "not_found",
+                sessionId: null,
+                continuity: "none",
+              },
             },
-          }
+          })
         : state;
     case "RETRY_CONNECTION":
       return state.step === "agent_not_found" ||
         state.connection.status === "unavailable" ||
         state.connection.status === "stale"
-        ? {
+        ? projectSetupAuthority({
             ...state,
             step: "agent_prompt",
-            connection: emptyConnection(),
-          }
+            pendingAgent: state.pendingAgent
+              ? { ...state.pendingAgent, connection: emptyConnection() }
+              : null,
+          })
         : state;
     case "CONNECTION_UNAVAILABLE":
-      return state.step === "agent_resolving"
-        ? {
+      return state.step === "agent_resolving" && state.pendingAgent
+        ? projectSetupAuthority({
             ...state,
             step: "agent_prompt",
-            connection: {
-              status: event.stale ? "stale" : "unavailable",
-              sessionId: null,
-              continuity: "none",
+            pendingAgent: {
+              ...state.pendingAgent,
+              connection: {
+                status: event.stale ? "stale" : "unavailable",
+                sessionId: null,
+                continuity: "none",
+              },
             },
-          }
+          })
         : state;
     case "CONNECTION_ATTACHED":
-      return state.step === "agent_resolving" && event.sessionId
-        ? {
+    case "AGENT_ATTACHED":
+      return state.step === "agent_resolving" &&
+        state.pendingAgent &&
+        event.sessionId &&
+        (event.type === "CONNECTION_ATTACHED" || event.rosterId)
+        ? projectSetupAuthority({
             ...state,
             step: "agent_connected",
-            connection: {
-              status: "connected",
-              sessionId: event.sessionId,
-              continuity: event.continuity,
+            pendingAgent: {
+              ...state.pendingAgent,
+              rosterId:
+                event.type === "AGENT_ATTACHED"
+                  ? event.rosterId
+                  : event.sessionId,
+              connection: {
+                status: "connected",
+                sessionId: event.sessionId,
+                continuity: event.continuity,
+              },
+              agentAvatar: emptyAvatar(),
             },
-            agentAvatar: {
-              status: "missing",
-              sessionId: null,
-              profileId: null,
-            },
-          }
+          })
         : state;
     case "RESTORE_WORLD": {
       const agentName = safeName(event.agentName);
@@ -242,76 +382,223 @@ export function reduceWorldEntry(
         event.sessionId &&
         agentName &&
         event.avatarProfileId
-        ? {
+        ? projectSetupAuthority({
             ...state,
             step: "world_blank",
-            selectedHarness: "hermes",
-            agentName,
-            connection: {
-              status: "connected",
-              sessionId: event.sessionId,
-              continuity: event.continuity,
-            },
-            agentAvatar: {
-              status: "accepted",
-              sessionId: event.sessionId,
-              profileId: event.avatarProfileId,
-            },
-          }
+            sessionMode: "single",
+            roster: [
+              {
+                rosterId: event.sessionId,
+                adapterId: "hermes",
+                agentName,
+                connection: {
+                  status: "connected",
+                  sessionId: event.sessionId,
+                  continuity: event.continuity,
+                },
+                agentAvatar: {
+                  status: "accepted",
+                  sessionId: event.sessionId,
+                  profileId: event.avatarProfileId,
+                },
+              },
+            ],
+            pendingAgent: null,
+          })
         : state;
+    }
+    case "RESTORE_CONSTELLATION": {
+      if (
+        state.step !== "returning_identity" ||
+        event.agents.length < 2 ||
+        event.agents.length > 4
+      )
+        return state;
+      const rosterIds = new Set(event.agents.map((agent) => agent.rosterId));
+      const sessionIds = new Set(event.agents.map((agent) => agent.sessionId));
+      if (
+        rosterIds.size !== event.agents.length ||
+        sessionIds.size !== event.agents.length ||
+        event.agents.some(
+          (agent) =>
+            !agent.rosterId ||
+            !agent.sessionId ||
+            !agent.avatarProfileId ||
+            !safeName(agent.agentName),
+        )
+      )
+        return state;
+      return projectSetupAuthority({
+        ...state,
+        step:
+          event.enterWorld === false ? "constellation_multi" : "world_blank",
+        sessionMode: "multi",
+        roster: event.agents.map((agent) => ({
+          rosterId: agent.rosterId,
+          adapterId: agent.adapterId,
+          agentName: safeName(agent.agentName),
+          connection: {
+            status: agent.connectionStatus ?? "connected",
+            sessionId: agent.sessionId,
+            continuity: agent.continuity,
+          },
+          agentAvatar: {
+            status: "accepted",
+            sessionId: agent.sessionId,
+            profileId: agent.avatarProfileId,
+          },
+        })),
+        pendingAgent: null,
+      });
     }
     case "RESTORE_AGENT_AVATAR": {
       const agentName = safeName(event.agentName);
       return state.step === "returning_identity" && event.sessionId && agentName
-        ? {
+        ? projectSetupAuthority({
             ...state,
             step: "agent_avatar",
-            selectedHarness: "hermes",
-            agentName,
-            connection: {
-              status: "connected",
-              sessionId: event.sessionId,
-              continuity: event.continuity,
+            sessionMode: "single",
+            roster: [],
+            pendingAgent: {
+              rosterId: event.sessionId,
+              adapterId: "hermes",
+              agentName,
+              connection: {
+                status: "connected",
+                sessionId: event.sessionId,
+                continuity: event.continuity,
+              },
+              agentAvatar: {
+                status: "editing",
+                sessionId: event.sessionId,
+                profileId: null,
+              },
             },
-            agentAvatar: {
-              status: "editing",
-              sessionId: event.sessionId,
-              profileId: null,
-            },
-          }
+          })
         : state;
     }
     case "OPEN_AGENT_AVATAR":
       return state.step === "agent_connected" &&
-        state.connection.sessionId !== null
-        ? {
+        state.pendingAgent?.connection.sessionId !== null &&
+        state.pendingAgent !== null
+        ? projectSetupAuthority({
             ...state,
             step: "agent_avatar",
-            agentAvatar: {
-              status: "editing",
-              sessionId: state.connection.sessionId,
-              profileId: null,
+            pendingAgent: {
+              ...state.pendingAgent,
+              agentAvatar: {
+                status: "editing",
+                sessionId: state.pendingAgent.connection.sessionId,
+                profileId: null,
+              },
             },
-          }
+          })
         : state;
     case "ACCEPT_AGENT_AVATAR":
+    case "AGENT_AVATAR_ACCEPTED": {
+      const pending = state.pendingAgent;
       if (
         state.step !== "agent_avatar" ||
-        state.connection.status !== "connected" ||
+        pending === null ||
+        pending.connection.status !== "connected" ||
         !event.avatarProfileId ||
-        event.sessionId !== state.connection.sessionId ||
-        event.sessionId !== state.agentAvatar.sessionId
+        event.sessionId !== pending.connection.sessionId ||
+        event.sessionId !== pending.agentAvatar.sessionId ||
+        (event.type === "AGENT_AVATAR_ACCEPTED" &&
+          event.rosterId !== undefined &&
+          event.rosterId !== pending.rosterId) ||
+        !pending.rosterId ||
+        state.roster.length >= 4 ||
+        state.roster.some(
+          (entry) =>
+            entry.rosterId === pending.rosterId ||
+            entry.connection.sessionId === pending.connection.sessionId,
+        )
       )
         return state;
-      return {
-        ...state,
-        step: "enter_ready",
+      const accepted: WorldEntryRosterEntry = {
+        ...pending,
         agentAvatar: {
           status: "accepted",
           sessionId: event.sessionId,
           profileId: event.avatarProfileId,
         },
       };
+      return projectSetupAuthority({
+        ...state,
+        step:
+          state.sessionMode === "single" ? "enter_ready" : "agent_connected",
+        roster: [...state.roster, accepted],
+        pendingAgent: null,
+      });
+    }
+    case "RETURN_TO_CONSTELLATION":
+      return state.sessionMode === "multi" &&
+        state.step === "agent_connected" &&
+        state.pendingAgent === null
+        ? (() => {
+            const next = projectSetupAuthority({
+              ...state,
+              step: "constellation_multi",
+            });
+            return canEnterWorld(next)
+              ? { ...next, step: "enter_ready" }
+              : next;
+          })()
+        : state;
+    case "RECONNECT_AGENT": {
+      const index = state.roster.findIndex(
+        (entry) => entry.rosterId === event.rosterId,
+      );
+      if (index === -1) return state;
+      const entry = state.roster[index]!;
+      const status = event.status ?? "connected";
+      const sessionId =
+        status === "connected"
+          ? (event.sessionId ?? entry.connection.sessionId)
+          : entry.connection.sessionId;
+      if (
+        status === "connected" &&
+        (sessionId !== entry.connection.sessionId ||
+          (event.continuity !== "current" &&
+            event.continuity !== "previous-recovered"))
+      )
+        return state;
+      const roster = [...state.roster];
+      roster[index] = {
+        ...entry,
+        connection: {
+          status,
+          sessionId,
+          continuity: status === "connected" ? event.continuity! : "none",
+        },
+      };
+      const next = projectSetupAuthority({ ...state, roster });
+      return state.sessionMode === "multi" &&
+        (state.step === "constellation_multi" || state.step === "enter_ready")
+        ? {
+            ...next,
+            step: canEnterWorld(next) ? "enter_ready" : "constellation_multi",
+          }
+        : next;
+    }
+    case "REMOVE_AGENT": {
+      if (!state.roster.some((entry) => entry.rosterId === event.rosterId))
+        return state;
+      const next = projectSetupAuthority({
+        ...state,
+        roster: state.roster.filter(
+          (entry) => entry.rosterId !== event.rosterId,
+        ),
+      });
+      return state.sessionMode === "multi" &&
+        (state.step === "constellation_multi" || state.step === "enter_ready")
+        ? {
+            ...next,
+            step: canEnterWorld(next) ? "enter_ready" : "constellation_multi",
+          }
+        : next;
+    }
     case "ENTER_WORLD":
       return state.step === "enter_ready" && canEnterWorld(state)
         ? { ...state, step: "world_entering" }
@@ -384,11 +671,13 @@ export function reduceWorldEntry(
       )
         return state;
       const detached = createReturningWorldEntryState(state.user);
-      return {
-        ...detached,
-        step: event.destination,
-        selectedHarness: event.destination === "agent_prompt" ? "hermes" : null,
-      };
+      return event.destination === "agent_prompt"
+        ? projectSetupAuthority({
+            ...detached,
+            step: "agent_prompt",
+            pendingAgent: pendingForHarness("hermes"),
+          })
+        : { ...detached, step: "session_select" };
     }
     case "ANIMATION_FINISHED":
       return state;

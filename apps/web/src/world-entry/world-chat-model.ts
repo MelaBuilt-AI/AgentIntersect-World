@@ -1,4 +1,5 @@
 import type {
+  ConstellationMessageGroup,
   SessionHistory,
   WorldAgentEvent,
 } from "../sessions/session-client.js";
@@ -330,6 +331,7 @@ export type WorldTranscriptItem = {
   readonly id: string;
   readonly kind: "user" | "assistant" | "tool" | "error";
   readonly text: string;
+  readonly recipient?: string;
 };
 
 export type WorldChatState = {
@@ -362,6 +364,11 @@ export type WorldChatAction =
   | { readonly type: "SEND_COMPLETED"; readonly text: string }
   | { readonly type: "SEND_FAILED"; readonly message: string }
   | {
+      readonly type: "GROUP_COMPLETED";
+      readonly group: ConstellationMessageGroup;
+      readonly displayNames: Readonly<Record<string, string>>;
+    }
+  | {
       readonly type: "LOCAL_REPOSITORY_RESULT";
       readonly id: string;
       readonly request: string;
@@ -376,6 +383,16 @@ const IDLE: WorldActivity = {
   label: "Mr Fluff is idle",
   detail: "",
 };
+
+export function consumeOneSendRecipient(selectedRecipientId: string | null): {
+  readonly targetRosterId: string | undefined;
+  readonly nextSelectedRecipientId: null;
+} {
+  return {
+    targetRosterId: selectedRecipientId ?? undefined,
+    nextSelectedRecipientId: null,
+  };
+}
 
 const toolDetail = (toolName: string): Exclude<WorldActivity["detail"], ""> => {
   const normalized = toolName.toLocaleLowerCase();
@@ -544,6 +561,51 @@ export function reduceWorldChat(
           type: "application-event",
           event: "completed",
         }),
+    );
+  }
+  if (action.type === "GROUP_COMPLETED") {
+    const transcript = [
+      ...state.transcript,
+      ...action.group.recipients.map((recipient) => ({
+        id: `group-${action.group.groupId}-${recipient.rosterId}`,
+        kind:
+          recipient.state === "completed"
+            ? ("assistant" as const)
+            : ("error" as const),
+        text:
+          recipient.finalText ??
+          recipient.errorLabel ??
+          `Agent turn ${recipient.state}`,
+        recipient:
+          action.displayNames[recipient.rosterId] ?? recipient.rosterId,
+      })),
+    ].slice(-200);
+    const failed = action.group.recipients.some(
+      (recipient) => recipient.state !== "completed",
+    );
+    return withAnimationCue(
+      {
+        ...state,
+        transcript,
+        activeAssistantId: null,
+        activity: failed
+          ? {
+              state: "failed",
+              icon: "!",
+              label: "One or more agents failed",
+              detail: "",
+            }
+          : {
+              state: "completed",
+              icon: "✓",
+              label: "All agents completed the request",
+              detail: "",
+            },
+      },
+      projectAgentAnimationCue({
+        type: "application-event",
+        event: failed ? "failed" : "completed",
+      }),
     );
   }
   if (action.type === "LOCAL_REPOSITORY_RESULT") {

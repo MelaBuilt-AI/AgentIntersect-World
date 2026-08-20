@@ -19,6 +19,11 @@ export const WEB_API_BASE_PATH = "/api";
 
 export type NetworkScope = "loopback" | "lan";
 
+export type AdapterConfigurationStatus = {
+  readonly configured: boolean;
+  readonly reason: "configured" | "not-configured";
+};
+
 export type LocalServerConfig = {
   readonly networkScope: NetworkScope;
   readonly host: string;
@@ -49,6 +54,18 @@ export type LocalServerConfig = {
     readonly pinnedSessionRef?: string;
     readonly agentDisplayName?: string;
     readonly designRepositoryRoot?: string;
+    readonly openclaw?: {
+      readonly gatewayUrl: string;
+      readonly credentialRef: string;
+    };
+    readonly codex?: {
+      readonly executablePath: string;
+      readonly nativeSessionRoot: string;
+    };
+    readonly claudeCode?: {
+      readonly executablePath: string;
+      readonly nativeSessionRoot: string;
+    };
   };
   readonly presentationSync: {
     readonly dataDir: string;
@@ -70,6 +87,12 @@ export type SafeConfig = Omit<
   readonly agentIntersectReadEnabled: boolean;
   readonly agentIntersectCommandsEnabled: boolean;
   readonly agentSessionsEnabled: boolean;
+  readonly agentAdapters: {
+    readonly hermes: AdapterConfigurationStatus;
+    readonly openclaw: AdapterConfigurationStatus;
+    readonly codex: AdapterConfigurationStatus;
+    readonly "claude-code": AdapterConfigurationStatus;
+  };
   readonly presentationSync: {
     readonly enabled: true;
     readonly transport: "ws/http" | "wss/https";

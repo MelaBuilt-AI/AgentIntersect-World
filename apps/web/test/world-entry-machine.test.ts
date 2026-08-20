@@ -49,6 +49,9 @@ describe("Phase 18 World entry state machine", () => {
     });
     expect(initial).toMatchObject({
       step: "returning_identity",
+      sessionMode: "single",
+      roster: [],
+      pendingAgent: null,
       user: { profileId: "avatar_user", name: "Mela" },
       connection: {
         status: "none",
@@ -201,6 +204,15 @@ describe("Phase 18 World entry state machine", () => {
     );
     expect(restored).toMatchObject({
       step: "world_blank",
+      sessionMode: "single",
+      pendingAgent: null,
+      roster: [
+        {
+          rosterId: "world_current",
+          adapterId: "hermes",
+          agentName: "Mr Fluff",
+        },
+      ],
       selectedHarness: "hermes",
       agentName: "Mr Fluff",
       connection: {
@@ -237,6 +249,13 @@ describe("Phase 18 World entry state machine", () => {
     );
     expect(restored).toMatchObject({
       step: "agent_avatar",
+      sessionMode: "single",
+      roster: [],
+      pendingAgent: {
+        rosterId: "world_current",
+        adapterId: "hermes",
+        agentName: "Mr Fluff",
+      },
       selectedHarness: "hermes",
       agentName: "Mr Fluff",
       connection: {
@@ -290,6 +309,8 @@ describe("Phase 18 World entry state machine", () => {
     expect(agentPrompt).toMatchObject({
       step: "agent_prompt",
       user: initial.user,
+      roster: [],
+      pendingAgent: { adapterId: "hermes", agentName: "" },
       selectedHarness: "hermes",
       agentName: "",
       connection: {

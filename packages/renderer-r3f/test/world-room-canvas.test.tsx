@@ -1,5 +1,6 @@
 import * as avatarKitModule from "../src/avatar-kit-canvas.js";
 import * as rendererModule from "../src/world-room-canvas.js";
+import * as importedRendererModule from "../src/world-room-imported-canvas.js";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -16,6 +17,9 @@ type AvatarSelection = {
 };
 
 type RendererApi = {
+  readonly worldAgentSpawnPosition: (
+    index: number,
+  ) => readonly [number, number, number];
   readonly selectWorldRenderQuality: (
     hardwareConcurrency: number | null | undefined,
     renderer?: string | null | undefined,
@@ -96,6 +100,8 @@ type RendererApi = {
   readonly calculateWorldCameraPose: (input: {
     readonly userPosition: { readonly x: number; readonly z: number };
     readonly camera: { readonly yaw: number; readonly pitch: number };
+    readonly agentCount?: number;
+    readonly viewportAspect?: number;
   }) => {
     readonly position: readonly [number, number, number];
     readonly target: readonly [number, number, number];
@@ -148,6 +154,7 @@ type RendererApi = {
 };
 
 const api = rendererModule as unknown as Partial<RendererApi>;
+const importedApi = importedRendererModule as unknown as Partial<RendererApi>;
 const avatarApi = avatarKitModule as unknown as {
   readonly AvatarKitWorldModel?: unknown;
   readonly avatarGroundOffset?: (selection: AvatarSelection) => number;
@@ -186,6 +193,67 @@ const dogAvatar: AvatarSelection = {
 };
 
 describe("Phase 18 shared World room canvas", () => {
+  it("assigns four deterministic visibly separated agent spawns", () => {
+    expect(api.worldAgentSpawnPosition).toBeTypeOf("function");
+    const positions = [0, 1, 2, 3].map((index) =>
+      api.worldAgentSpawnPosition!(index),
+    );
+    expect(positions).toEqual([
+      [-4.2, 0, 0.8],
+      [4.2, 0, 0.8],
+      [-3.2, 0, -4],
+      [3.2, 0, -4],
+    ]);
+    expect(new Set(positions.map((position) => position.join(","))).size).toBe(
+      4,
+    );
+    expect(importedApi.worldAgentSpawnPosition).toBeTypeOf("function");
+    expect([0, 1, 2, 3].map(importedApi.worldAgentSpawnPosition!)).toEqual(
+      positions,
+    );
+  });
+  it("pulls back a four-agent portrait camera without changing the accepted single-agent framing", () => {
+    expect(typeof api.calculateWorldCameraPose).toBe("function");
+    expect(typeof importedApi.calculateWorldCameraPose).toBe("function");
+    const input = {
+      userPosition: { x: 0, z: 0 },
+      camera: { yaw: 0, pitch: 0.35 },
+    };
+    const single = importedApi.calculateWorldCameraPose!(input);
+    const desktop = importedApi.calculateWorldCameraPose!({
+      ...input,
+      agentCount: 4,
+      viewportAspect: 1.44,
+    });
+    const portrait = importedApi.calculateWorldCameraPose!({
+      ...input,
+      agentCount: 4,
+      viewportAspect: 390 / 844,
+    });
+    expect(single.position[2]).toBeLessThan(desktop.position[2]);
+    expect(desktop.position[2]).toBeLessThan(portrait.position[2]);
+    expect(single.target).toEqual([1, 0.7, 0]);
+    expect(desktop.target).toEqual([0, 0.7, 0]);
+    expect(portrait.target).toEqual([0, 0.7, 0]);
+    const proceduralSingle = api.calculateWorldCameraPose!(input);
+    const proceduralDesktop = api.calculateWorldCameraPose!({
+      ...input,
+      agentCount: 4,
+      viewportAspect: 1.44,
+    });
+    const proceduralPortrait = api.calculateWorldCameraPose!({
+      ...input,
+      agentCount: 4,
+      viewportAspect: 390 / 844,
+    });
+    expect(proceduralSingle.position[2]).toBeLessThan(
+      proceduralDesktop.position[2],
+    );
+    expect(proceduralDesktop.position[2]).toBeLessThan(
+      proceduralPortrait.position[2],
+    );
+  });
+
   it("selects quarter-DPR constrained renderer cosmetics only for valid hardware concurrency at or below two cores", () => {
     expect(typeof api.selectWorldRenderQuality).toBe("function");
     if (!api.selectWorldRenderQuality) return;
@@ -657,6 +725,26 @@ describe("Phase 18 shared World room canvas", () => {
     expect(source).toMatch(
       /movementPhase !== "starting"\s*&&\s*movementPhase !== "moving"\s*&&\s*movementPhase !== "sprinting"/u,
     );
+  });
+
+  it("projects independent roster positions/actions through both renderer paths", () => {
+    const procedural = readFileSync(
+      new URL("../src/world-room-canvas.tsx", import.meta.url),
+      "utf8",
+    );
+    const imported = readFileSync(
+      new URL("../src/world-room-imported-canvas.tsx", import.meta.url),
+      "utf8",
+    );
+    for (const source of [procedural, imported]) {
+      expect(source).toContain("agentStates?.[index]");
+      expect(source).toContain("data-agent-work-states");
+      expect(source).toContain("state.position.x");
+      expect(source).toContain("state?.heading");
+      expect(source).toContain("CodingWorkHalo");
+      expect(source).toContain('state?.workState === "coding"');
+    }
+    expect(imported).toContain('state?.workState === "coding"');
   });
 
   it("preserves scene, third-person camera, and avatars across an in-place floor transition", () => {

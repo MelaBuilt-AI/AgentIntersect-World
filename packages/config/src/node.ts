@@ -15,6 +15,14 @@ const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 const ABSOLUTE_PATH = /^(?:\/|[a-z]:[\\/]|\\\\)/i;
 const VISIBLE_ASCII = /^[\x20-\x7e]+$/;
 
+function hasControlCharacters(value: string): boolean {
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code <= 0x1f || code === 0x7f) return true;
+  }
+  return false;
+}
+
 function readUrl(
   value: string | undefined,
   fallback: string,
@@ -63,6 +71,40 @@ function integerSetting(
     );
   }
   return value;
+}
+
+function booleanSetting(
+  environment: Readonly<Record<string, string | undefined>>,
+  key: string,
+): boolean {
+  const raw = environment[key];
+  if (raw !== undefined && raw !== "true" && raw !== "false")
+    throw new ConfigurationError(`${key} must be true or false`);
+  return raw === "true";
+}
+
+function requireAbsoluteAdapterPaths(
+  executablePath: string | undefined,
+  nativeSessionRoot: string | undefined,
+  executableKey: string,
+  sessionRootKey: string,
+): { readonly executablePath: string; readonly nativeSessionRoot: string } {
+  if (!executablePath)
+    throw new ConfigurationError(`${executableKey} is required`);
+  if (!nativeSessionRoot)
+    throw new ConfigurationError(`${sessionRootKey} is required`);
+  if (
+    !ABSOLUTE_PATH.test(executablePath) ||
+    !ABSOLUTE_PATH.test(nativeSessionRoot) ||
+    executablePath.length > 4_096 ||
+    nativeSessionRoot.length > 4_096 ||
+    hasControlCharacters(executablePath) ||
+    hasControlCharacters(nativeSessionRoot)
+  )
+    throw new ConfigurationError(
+      `${executableKey} and ${sessionRootKey} must be bounded absolute paths`,
+    );
+  return { executablePath, nativeSessionRoot };
 }
 
 export function loadLocalServerConfig(
@@ -327,6 +369,106 @@ export function loadLocalServerConfig(
       throw new ConfigurationError("AIW_HERMES_API_URL must be loopback HTTP");
   }
 
+  const openclawEnabled = booleanSetting(environment, "AIW_OPENCLAW_ENABLED");
+  const openclawGatewayUrl = environment.AIW_OPENCLAW_GATEWAY_URL?.trim();
+  const openclawCredentialRef = environment.AIW_OPENCLAW_CREDENTIAL_REF?.trim();
+  if (
+    !openclawEnabled &&
+    (openclawGatewayUrl !== undefined || openclawCredentialRef !== undefined)
+  )
+    throw new ConfigurationError(
+      "AIW_OPENCLAW_ENABLED must be true when OpenClaw fields are configured",
+    );
+  if (openclawEnabled && !openclawGatewayUrl)
+    throw new ConfigurationError("AIW_OPENCLAW_GATEWAY_URL is required");
+  if (openclawEnabled && !openclawCredentialRef)
+    throw new ConfigurationError("AIW_OPENCLAW_CREDENTIAL_REF is required");
+  let openclaw: NonNullable<
+    NonNullable<LocalServerConfig["agentSessions"]>["openclaw"]
+  > | null = null;
+  if (openclawEnabled) {
+    const gatewayUrl = readUrl(
+      openclawGatewayUrl,
+      "",
+      "AIW_OPENCLAW_GATEWAY_URL",
+    );
+    const url = new URL(gatewayUrl);
+    if (!LOOPBACK_HOSTS.has(url.hostname) || url.search || url.hash)
+      throw new ConfigurationError(
+        "AIW_OPENCLAW_GATEWAY_URL must be an exact loopback HTTP(S) endpoint",
+      );
+    if (
+      (openclawCredentialRef as string).length > 256 ||
+      !/^(?:env|file):\S+$/.test(openclawCredentialRef as string)
+    )
+      throw new ConfigurationError(
+        "AIW_OPENCLAW_CREDENTIAL_REF must be a bounded env: or file: reference",
+      );
+    openclaw = {
+      gatewayUrl,
+      credentialRef: openclawCredentialRef as string,
+    };
+  }
+
+  const codexEnabled = booleanSetting(environment, "AIW_CODEX_ENABLED");
+  const codexExecutablePath = environment.AIW_CODEX_EXECUTABLE_PATH?.trim();
+  const codexNativeSessionRoot =
+    environment.AIW_CODEX_NATIVE_SESSION_ROOT?.trim();
+  if (
+    !codexEnabled &&
+    (codexExecutablePath !== undefined || codexNativeSessionRoot !== undefined)
+  )
+    throw new ConfigurationError(
+      "AIW_CODEX_ENABLED must be true when Codex fields are configured",
+    );
+  const codex = codexEnabled
+    ? requireAbsoluteAdapterPaths(
+        codexExecutablePath,
+        codexNativeSessionRoot,
+        "AIW_CODEX_EXECUTABLE_PATH",
+        "AIW_CODEX_NATIVE_SESSION_ROOT",
+      )
+    : null;
+
+  const claudeCodeEnabled = booleanSetting(
+    environment,
+    "AIW_CLAUDE_CODE_ENABLED",
+  );
+  const claudeCodeExecutablePath =
+    environment.AIW_CLAUDE_CODE_EXECUTABLE_PATH?.trim();
+  const claudeCodeNativeSessionRoot =
+    environment.AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT?.trim();
+  if (
+    !claudeCodeEnabled &&
+    (claudeCodeExecutablePath !== undefined ||
+      claudeCodeNativeSessionRoot !== undefined)
+  )
+    throw new ConfigurationError(
+      "AIW_CLAUDE_CODE_ENABLED must be true when Claude Code fields are configured",
+    );
+  const claudeCode = claudeCodeEnabled
+    ? requireAbsoluteAdapterPaths(
+        claudeCodeExecutablePath,
+        claudeCodeNativeSessionRoot,
+        "AIW_CLAUDE_CODE_EXECUTABLE_PATH",
+        "AIW_CLAUDE_CODE_NATIVE_SESSION_ROOT",
+      )
+    : null;
+
+  if ((openclaw || codex || claudeCode) && !agentSessionsEnabled)
+    throw new ConfigurationError(
+      "AIW_AGENT_SESSIONS_ENABLED must be true when an adapter is configured",
+    );
+  if (
+    codex &&
+    claudeCode &&
+    (codex.executablePath === claudeCode.executablePath ||
+      codex.nativeSessionRoot === claudeCode.nativeSessionRoot)
+  )
+    throw new ConfigurationError(
+      "Codex and Claude Code require distinct executable paths and native-session roots",
+    );
+
   return {
     networkScope,
     host,
@@ -403,6 +545,9 @@ export function loadLocalServerConfig(
                 }
               : {}),
             ...(designRepositoryRoot ? { designRepositoryRoot } : {}),
+            ...(openclaw ? { openclaw } : {}),
+            ...(codex ? { codex } : {}),
+            ...(claudeCode ? { claudeCode } : {}),
           },
         }
       : {}),
@@ -430,6 +575,20 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
       config.agentIntersectCommands !== undefined &&
       config.agentIntersectRead !== undefined,
     agentSessionsEnabled: config.agentSessions !== undefined,
+    agentAdapters: {
+      hermes: config.agentSessions
+        ? { configured: true, reason: "configured" }
+        : { configured: false, reason: "not-configured" },
+      openclaw: config.agentSessions?.openclaw
+        ? { configured: true, reason: "configured" }
+        : { configured: false, reason: "not-configured" },
+      codex: config.agentSessions?.codex
+        ? { configured: true, reason: "configured" }
+        : { configured: false, reason: "not-configured" },
+      "claude-code": config.agentSessions?.claudeCode
+        ? { configured: true, reason: "configured" }
+        : { configured: false, reason: "not-configured" },
+    },
     presentationSync: {
       enabled: true,
       transport: config.presentationSync.allowedOrigin.startsWith("https:")

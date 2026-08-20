@@ -82,12 +82,48 @@ export function registerAgentSessionRoutes(
   envelope: RouteEnvelope,
 ): void {
   const tags = ["phase12-agent-sessions"];
+  const strictBody = (allowed: readonly string[]) =>
+    async function rejectUnexpectedBody(
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) {
+      const body = request.body as Record<string, unknown> | null;
+      if (
+        body &&
+        Object.keys(body).some((property) => !allowed.includes(property))
+      )
+        return reply
+          .code(400)
+          .send(
+            envelope.failure(
+              request,
+              "validation",
+              "Request body contains an unsupported property",
+            ),
+          );
+    };
   server.get(
     "/agent-sessions/capabilities",
     { schema: { tags, summary: "Attest capability-declared agent adapters" } },
     async (request, reply) => {
       try {
         return envelope.success(request, await gateway.capabilities());
+      } catch (error) {
+        return routeFailure(error, request, reply, envelope);
+      }
+    },
+  );
+  server.get(
+    "/agent-sessions/readiness",
+    {
+      schema: {
+        tags,
+        summary: "Get stable sanitized readiness for the four agent adapters",
+      },
+    },
+    async (request, reply) => {
+      try {
+        return envelope.success(request, await gateway.readiness());
       } catch (error) {
         return routeFailure(error, request, reply, envelope);
       }
@@ -149,6 +185,12 @@ export function registerAgentSessionRoutes(
               enum: ["explore", "collaborate", "autonomous", "guided-build"],
             },
             modeConfirmed: { type: "boolean" },
+            worldInstanceId: {
+              type: "string",
+              minLength: 1,
+              maxLength: 256,
+              pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            },
           },
         },
       },
@@ -161,6 +203,67 @@ export function registerAgentSessionRoutes(
             envelope.success(
               request,
               await gateway.attach(request.body as never),
+            ),
+          );
+      } catch (error) {
+        return routeFailure(error, request, reply, envelope);
+      }
+    },
+  );
+  server.post(
+    "/agent-sessions/world",
+    {
+      preValidation: strictBody([
+        "adapterId",
+        "worldInstanceId",
+        "displayName",
+        "profile",
+        "workspaceId",
+        "repositoryRef",
+        "mode",
+        "modeConfirmed",
+      ]),
+      schema: {
+        tags,
+        summary: "Create and atomically attach one World-owned agent session",
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "adapterId",
+            "worldInstanceId",
+            "displayName",
+            "profile",
+            "workspaceId",
+            "repositoryRef",
+            "mode",
+          ],
+          properties: {
+            adapterId: { type: "string", pattern: "^[a-z][a-z0-9-]{0,63}$" },
+            worldInstanceId: {
+              type: "string",
+              minLength: 1,
+              maxLength: 256,
+              pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            },
+            displayName: { type: "string", minLength: 1, maxLength: 80 },
+            profile: { type: "string", minLength: 1, maxLength: 64 },
+            workspaceId: { type: "string", minLength: 1, maxLength: 256 },
+            repositoryRef: { type: "string", minLength: 1, maxLength: 256 },
+            mode: { type: "string", enum: ["explore", "collaborate"] },
+            modeConfirmed: { type: "boolean" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        return reply
+          .code(201)
+          .send(
+            envelope.success(
+              request,
+              await gateway.createWorldSession(request.body as never),
             ),
           );
       } catch (error) {
@@ -187,6 +290,27 @@ export function registerAgentSessionRoutes(
     },
   );
   server.get(
+    "/agent-sessions/:sessionId/work-focus",
+    {
+      schema: {
+        tags,
+        params: sessionParams,
+        summary: "Get the bounded ephemeral repository work focus",
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { sessionId } = request.params as { sessionId: string };
+        await gateway.recoverWorkFocus(sessionId);
+        return envelope.success(request, {
+          focus: gateway.currentWorkFocus(sessionId),
+        });
+      } catch (error) {
+        return routeFailure(error, request, reply, envelope);
+      }
+    },
+  );
+  server.get(
     "/agent-sessions/:sessionId/history",
     {
       schema: {
@@ -207,8 +331,47 @@ export function registerAgentSessionRoutes(
           messages: gateway.history(sessionId),
           events: gateway.events(sessionId),
           avatarConsent: gateway.store.avatarConsent(sessionId),
-          transcriptAuthority: "hermes",
+          transcriptAuthority:
+            session.adapterId === "hermes" ? "hermes" : "world-projection",
         });
+      } catch (error) {
+        return routeFailure(error, request, reply, envelope);
+      }
+    },
+  );
+  server.post(
+    "/agent-sessions/:sessionId/world-end",
+    {
+      preValidation: strictBody(["worldInstanceId"]),
+      schema: {
+        tags,
+        params: sessionParams,
+        summary: "Idempotently end one exact World-owned agent session",
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["worldInstanceId"],
+          properties: {
+            worldInstanceId: {
+              type: "string",
+              minLength: 1,
+              maxLength: 256,
+              pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { sessionId } = request.params as { sessionId: string };
+        const { worldInstanceId } = request.body as {
+          worldInstanceId: string;
+        };
+        return envelope.success(
+          request,
+          await gateway.endWorldSession(sessionId, worldInstanceId),
+        );
       } catch (error) {
         return routeFailure(error, request, reply, envelope);
       }

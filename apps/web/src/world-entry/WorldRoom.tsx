@@ -72,10 +72,17 @@ import {
   interruptAgentMovement,
   requestAgentMovement,
   type AgentMovementEvent,
+  type AgentMovementContext,
   type AgentMovementRequest,
+  type AgentMovementResult,
   type AgentMovementState,
   type RepositoryApproachPoint,
 } from "./world-agent-movement-model.js";
+import type { AgentRepositoryWorkFocus } from "../sessions/session-client.js";
+import {
+  deriveAgentRepositoryWorkState,
+  type AgentWorkArrival,
+} from "./agent-work-focus-model.js";
 
 const WorldRoomCanvas = lazy(async () => {
   const module = await import("@agentintersect-world/renderer-r3f/world-room");
@@ -86,6 +93,50 @@ const ImportedWorldRoomCanvas = lazy(async () => {
     await import("@agentintersect-world/renderer-r3f/world-room-imported");
   return { default: module.WorldRoomCanvas };
 });
+
+const WORLD_AGENT_SPAWN_POSITIONS = [
+  { x: -4.2, z: 0.8 },
+  { x: 4.2, z: 0.8 },
+  { x: -3.2, z: -4 },
+  { x: 3.2, z: -4 },
+] as const;
+
+function settleReducedAgentMovement(
+  result: AgentMovementResult,
+  context: AgentMovementContext,
+  reducedMotion: boolean,
+): AgentMovementResult {
+  if (!reducedMotion) return result;
+  let state = result.state;
+  const events = [...result.events];
+  for (
+    let step = 0;
+    step < 400 && state.movementState === "moving";
+    step += 1
+  ) {
+    const advanced = advanceAgentMovement(state, 0.1, context);
+    state = advanced.state;
+    events.push(...advanced.events);
+  }
+  return { state, events };
+}
+
+function reconcileAgentWorkArrival(
+  focus: AgentRepositoryWorkFocus | null | undefined,
+  arrival: Omit<AgentWorkArrival, "activityId"> | null,
+): AgentWorkArrival | null {
+  if (
+    !focus ||
+    !arrival ||
+    !arrival.atSafeApproachPoint ||
+    focus.movementRequestId !== arrival.requestId ||
+    focus.worldSessionId !== arrival.actorId ||
+    focus.objectRef !== arrival.objectRef ||
+    focus.layoutGeneration !== arrival.layoutGeneration
+  )
+    return null;
+  return { ...arrival, activityId: focus.activityId };
+}
 
 class WorldCanvasErrorBoundary extends Component<
   { readonly children: ReactNode; readonly onError: () => void },
@@ -123,12 +174,17 @@ export function WorldRoom({
   agentName,
   userAvatar,
   agentAvatar,
+  agentAvatars,
+  selectedRecipientId = null,
+  onSelectRecipient,
   activity,
   userCue,
   agentCue,
   agentActorId,
   agentMovementRequest,
   agentMovementControl,
+  agentWorkFocus,
+  agentMovementBindings,
   layoutGeneration = "blank-world",
   onAgentMovementEvent,
   showControlHints = true,
@@ -149,6 +205,14 @@ export function WorldRoom({
   readonly agentName: string;
   readonly userAvatar: AvatarDraft;
   readonly agentAvatar: AvatarDraft;
+  readonly agentAvatars?: readonly {
+    readonly rosterId: string;
+    readonly worldSessionId?: string;
+    readonly name: string;
+    readonly avatar: AvatarDraft;
+  }[];
+  readonly selectedRecipientId?: string | null;
+  readonly onSelectRecipient?: ((rosterId: string) => void) | undefined;
   readonly activity: WorldActivity;
   readonly userCue?:
     | {
@@ -177,6 +241,19 @@ export function WorldRoom({
       }
     | null
     | undefined;
+  readonly agentWorkFocus?: AgentRepositoryWorkFocus | null | undefined;
+  readonly agentMovementBindings?: readonly {
+    readonly rosterId: string;
+    readonly actorId: string;
+    readonly request: AgentMovementRequest | null;
+    readonly control: {
+      readonly sequence: number;
+      readonly requestId: string;
+      readonly state: "cancelled" | "interrupted";
+      readonly reason: string;
+    } | null;
+    readonly workFocus: AgentRepositoryWorkFocus | null;
+  }[];
   readonly layoutGeneration?: string | undefined;
   readonly onAgentMovementEvent?:
     | ((event: AgentMovementEvent, position: { x: number; z: number }) => void)
@@ -203,11 +280,44 @@ export function WorldRoom({
     "context-lost" | "load-or-render-error" | null
   >(null);
   const [userPosition, setUserPosition] = useState({ x: 0, z: 0 });
+  const renderedAgents = (
+    agentAvatars?.length
+      ? agentAvatars
+      : [
+          {
+            rosterId: agentActorId ?? "agent-local",
+            name: agentName,
+            avatar: agentAvatar,
+          },
+        ]
+  ).slice(0, 4);
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
-    createAgentMovementState(resolvedAgentActorId, { x: 2.5, z: 1 }),
+    createAgentMovementState(
+      resolvedAgentActorId,
+      renderedAgents.length > 1
+        ? WORLD_AGENT_SPAWN_POSITIONS[0]
+        : { x: 2.5, z: 1 },
+    ),
   );
+  const [agentWorkArrival, setAgentWorkArrival] =
+    useState<AgentWorkArrival | null>(null);
+  const [secondaryMovements, setSecondaryMovements] = useState<
+    Readonly<Record<string, AgentMovementState>>
+  >({});
+  const secondaryMovementsRef = useRef(secondaryMovements);
+  const agentMovementBindingsRef = useRef(agentMovementBindings);
+  const secondaryHandledRequests = useRef<Record<string, string>>({});
+  const secondaryHandledControls = useRef<Record<string, number>>({});
+  const [secondaryArrivals, setSecondaryArrivals] = useState<
+    Readonly<Record<string, AgentWorkArrival | null>>
+  >({});
   const agentMovementRef = useRef(agentMovement);
+  const pendingAgentWorkArrivalRef = useRef<Omit<
+    AgentWorkArrival,
+    "activityId"
+  > | null>(null);
+  const latestAgentWorkFocusRef = useRef(agentWorkFocus);
   const handledAgentMovementRequest = useRef<string | null>(null);
   const handledAgentMovementControl = useRef(0);
   const onAgentMovementEventRef = useRef(onAgentMovementEvent);
@@ -276,8 +386,11 @@ export function WorldRoom({
   const modularUnsupported =
     (userAvatar.avatarSource?.kind === "imported" &&
       userAvatar.avatarSource.mode === "modular") ||
-    (agentAvatar.avatarSource?.kind === "imported" &&
-      agentAvatar.avatarSource.mode === "modular");
+    renderedAgents.some(
+      ({ avatar }) =>
+        avatar.avatarSource?.kind === "imported" &&
+        avatar.avatarSource.mode === "modular",
+    );
   const noWebGL = forceNoWebGL || contextLost || modularUnsupported;
   const selectedCityInstance =
     city.instances.find(
@@ -463,7 +576,7 @@ export function WorldRoom({
       setSelectedCityInstanceId(`manual:${sequence}`);
       setCityFocusPosition(null);
     },
-    [],
+    [dispatchCity],
   );
   const selectCityInstance = useCallback((instanceId: string) => {
     setSelectedCityInstanceId(instanceId);
@@ -476,6 +589,47 @@ export function WorldRoom({
   useEffect(() => {
     agentMovementRef.current = agentMovement;
   }, [agentMovement]);
+
+  useEffect(() => {
+    secondaryMovementsRef.current = secondaryMovements;
+  }, [secondaryMovements]);
+  useEffect(() => {
+    agentMovementBindingsRef.current = agentMovementBindings;
+  }, [agentMovementBindings]);
+  useEffect(() => {
+    latestAgentWorkFocusRef.current = agentWorkFocus;
+    const arrival = reconcileAgentWorkArrival(
+      agentWorkFocus,
+      pendingAgentWorkArrivalRef.current,
+    );
+    const timer = window.setTimeout(() => setAgentWorkArrival(arrival), 0);
+    return () => window.clearTimeout(timer);
+  }, [agentWorkFocus]);
+  useEffect(() => {
+    const next = { ...secondaryMovementsRef.current };
+    let changed = false;
+    for (const [index, binding] of (agentMovementBindings ?? []).entries()) {
+      if (index === 0 || next[binding.rosterId]) continue;
+      const spawn = WORLD_AGENT_SPAWN_POSITIONS[index]!;
+      next[binding.rosterId] = createAgentMovementState(binding.actorId, {
+        x: spawn.x,
+        z: spawn.z,
+      });
+      changed = true;
+    }
+    const currentIds = new Set(
+      (agentMovementBindings ?? []).slice(1).map(({ rosterId }) => rosterId),
+    );
+    for (const rosterId of Object.keys(next))
+      if (!currentIds.has(rosterId)) {
+        delete next[rosterId];
+        changed = true;
+      }
+    if (changed) {
+      secondaryMovementsRef.current = next;
+      setSecondaryMovements(next);
+    }
+  }, [agentMovementBindings]);
   useEffect(() => {
     onAgentMovementEventRef.current = onAgentMovementEvent;
   }, [onAgentMovementEvent]);
@@ -529,6 +683,12 @@ export function WorldRoom({
           ? REPOSITORY_ASSET_BY_ID.get(instance.assetId)!.footprint
           : null;
         const clearance = 0.6;
+        const occupied = [
+          userPosition,
+          ...Object.values(secondaryMovementsRef.current).map(
+            ({ position }) => position,
+          ),
+        ];
         const candidates =
           instance && footprint
             ? [
@@ -548,19 +708,29 @@ export function WorldRoom({
                   x: instance.position.x,
                   z: instance.position.z + footprint[1] / 2 + clearance,
                 },
-              ].sort(
-                (left, right) =>
-                  Math.hypot(left.x - from.x, left.z - from.z) -
-                    Math.hypot(right.x - from.x, right.z - from.z) ||
-                  left.x - right.x ||
-                  left.z - right.z,
-              )
+              ]
+                .filter((candidate) =>
+                  occupied.every(
+                    (position) =>
+                      Math.hypot(
+                        candidate.x - position.x,
+                        candidate.z - position.z,
+                      ) >= clearance,
+                  ),
+                )
+                .sort(
+                  (left, right) =>
+                    Math.hypot(left.x - from.x, left.z - from.z) -
+                      Math.hypot(right.x - from.x, right.z - from.z) ||
+                    left.x - right.x ||
+                    left.z - right.z,
+                )
             : [];
-        return instance
+        return instance && candidates[0]
           ? {
               objectId,
               layoutGeneration,
-              position: candidates[0]!,
+              position: candidates[0],
               hidden: false,
               reachable: true,
             }
@@ -573,6 +743,83 @@ export function WorldRoom({
   useEffect(() => {
     agentMovementContextRef.current = agentMovementContext;
   }, [agentMovementContext]);
+  const secondaryMovementContext = useCallback(
+    (rosterId: string, movement: AgentMovementState) => ({
+      bounds: { minX: -15, maxX: 15, minZ: -15, maxZ: 15 },
+      userPosition,
+      layoutGeneration,
+      resolveRepositoryObject: (
+        objectId: string,
+      ): RepositoryApproachPoint | null => {
+        const instance = city.instances.find(
+          ({ linkedRepoData }) => linkedRepoData?.ref === objectId,
+        );
+        const footprint = instance
+          ? REPOSITORY_ASSET_BY_ID.get(instance.assetId)!.footprint
+          : null;
+        if (!instance || !footprint) return null;
+        const occupied = [
+          userPosition,
+          agentMovementRef.current.position,
+          ...Object.entries(secondaryMovementsRef.current).flatMap(
+            ([otherRosterId, state]) =>
+              otherRosterId === rosterId ? [] : [state.position],
+          ),
+        ];
+        const clearance = 0.8;
+        const candidates = [
+          {
+            x: instance.position.x - footprint[0] / 2 - clearance,
+            z: instance.position.z,
+          },
+          {
+            x: instance.position.x + footprint[0] / 2 + clearance,
+            z: instance.position.z,
+          },
+          {
+            x: instance.position.x,
+            z: instance.position.z - footprint[1] / 2 - clearance,
+          },
+          {
+            x: instance.position.x,
+            z: instance.position.z + footprint[1] / 2 + clearance,
+          },
+        ]
+          .filter((candidate) =>
+            occupied.every(
+              (position) =>
+                Math.hypot(
+                  candidate.x - position.x,
+                  candidate.z - position.z,
+                ) >= clearance,
+            ),
+          )
+          .sort(
+            (left, right) =>
+              Math.hypot(
+                left.x - movement.position.x,
+                left.z - movement.position.z,
+              ) -
+                Math.hypot(
+                  right.x - movement.position.x,
+                  right.z - movement.position.z,
+                ) ||
+              left.x - right.x ||
+              left.z - right.z,
+          );
+        return candidates[0]
+          ? {
+              objectId,
+              layoutGeneration,
+              position: candidates[0],
+              hidden: false,
+              reachable: true,
+            }
+          : null;
+      },
+    }),
+    [city.instances, layoutGeneration, userPosition],
+  );
   useEffect(() => {
     if (
       !agentMovementRequest ||
@@ -580,10 +827,36 @@ export function WorldRoom({
     )
       return;
     handledAgentMovementRequest.current = agentMovementRequest.requestId;
-    const result = requestAgentMovement(
-      agentMovementRef.current,
-      agentMovementRequest,
+    pendingAgentWorkArrivalRef.current = null;
+    const result = settleReducedAgentMovement(
+      requestAgentMovement(
+        agentMovementRef.current,
+        agentMovementRequest,
+        agentMovementContextRef.current,
+      ),
       agentMovementContextRef.current,
+      reducedMotion,
+    );
+    if (
+      agentMovementRequest.target.kind === "repository-object" &&
+      result.events.some((event) => event.state === "arrived")
+    ) {
+      const arrival = {
+        requestId: agentMovementRequest.requestId,
+        actorId: agentMovementRequest.actorId,
+        objectRef: agentMovementRequest.target.objectId,
+        layoutGeneration: agentMovementRequest.target.layoutGeneration,
+        atSafeApproachPoint: true as const,
+      };
+      pendingAgentWorkArrivalRef.current = arrival;
+    }
+    const arrival = reconcileAgentWorkArrival(
+      latestAgentWorkFocusRef.current,
+      pendingAgentWorkArrivalRef.current,
+    );
+    const arrivalTimer = window.setTimeout(
+      () => setAgentWorkArrival(arrival),
+      0,
     );
     agentMovementRef.current = result.state;
     setAgentMovement(result.state);
@@ -592,7 +865,8 @@ export function WorldRoom({
     );
     for (const movementEvent of result.events)
       onAgentMovementEventRef.current?.(movementEvent, result.state.position);
-  }, [agentMovementRequest]);
+    return () => window.clearTimeout(arrivalTimer);
+  }, [agentMovementRequest, reducedMotion]);
   useEffect(() => {
     if (
       !agentMovementControl ||
@@ -600,6 +874,8 @@ export function WorldRoom({
     )
       return;
     handledAgentMovementControl.current = agentMovementControl.sequence;
+    pendingAgentWorkArrivalRef.current = null;
+    const arrivalTimer = window.setTimeout(() => setAgentWorkArrival(null), 0);
     const result = interruptAgentMovement(
       agentMovementRef.current,
       agentMovementControl.requestId,
@@ -611,6 +887,7 @@ export function WorldRoom({
     setAgentAnimation((current) => setAvatarLocomotion(current, "Idle"));
     for (const movementEvent of result.events)
       onAgentMovementEventRef.current?.(movementEvent, result.state.position);
+    return () => window.clearTimeout(arrivalTimer);
   }, [agentMovementControl]);
   useEffect(() => {
     if (agentMovement.movementState !== "moving") return;
@@ -625,6 +902,23 @@ export function WorldRoom({
         elapsedSeconds,
         agentMovementContextRef.current,
       );
+      const activeRequest = agentMovementRef.current.activeRequest;
+      if (
+        activeRequest?.target.kind === "repository-object" &&
+        result.events.some((event) => event.state === "arrived")
+      ) {
+        const arrival = {
+          requestId: activeRequest.requestId,
+          actorId: activeRequest.actorId,
+          objectRef: activeRequest.target.objectId,
+          layoutGeneration: activeRequest.target.layoutGeneration,
+          atSafeApproachPoint: true as const,
+        };
+        pendingAgentWorkArrivalRef.current = arrival;
+        setAgentWorkArrival(
+          reconcileAgentWorkArrival(latestAgentWorkFocusRef.current, arrival),
+        );
+      }
       agentMovementRef.current = result.state;
       setAgentMovement(result.state);
       setAgentAnimation((current) =>
@@ -638,6 +932,142 @@ export function WorldRoom({
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
   }, [agentMovement.generation, agentMovement.movementState]);
+  useEffect(() => {
+    if (!agentMovementBindings) return;
+    const next = { ...secondaryMovementsRef.current };
+    let changed = false;
+    for (const [index, binding] of agentMovementBindings.entries()) {
+      if (index === 0) continue;
+      const current = next[binding.rosterId];
+      if (!current) continue;
+      if (
+        binding.request &&
+        secondaryHandledRequests.current[binding.rosterId] !==
+          binding.request.requestId
+      ) {
+        secondaryHandledRequests.current[binding.rosterId] =
+          binding.request.requestId;
+        const context = secondaryMovementContext(binding.rosterId, current);
+        const result = settleReducedAgentMovement(
+          requestAgentMovement(current, binding.request, context),
+          context,
+          reducedMotion,
+        );
+        next[binding.rosterId] = result.state;
+        changed = true;
+        setSecondaryArrivals((arrivals) => ({
+          ...arrivals,
+          [binding.rosterId]: null,
+        }));
+        const repositoryTarget =
+          binding.request.target.kind === "repository-object"
+            ? binding.request.target
+            : null;
+        if (
+          repositoryTarget &&
+          result.events.some((event) => event.state === "arrived") &&
+          binding.workFocus
+        ) {
+          const focus = binding.workFocus;
+          const request = binding.request;
+          setSecondaryArrivals((arrivals) => ({
+            ...arrivals,
+            [binding.rosterId]: {
+              activityId: focus.activityId,
+              requestId: request.requestId,
+              actorId: request.actorId,
+              objectRef: repositoryTarget.objectId,
+              layoutGeneration: repositoryTarget.layoutGeneration,
+              atSafeApproachPoint: true,
+            },
+          }));
+        }
+        for (const event of result.events)
+          onAgentMovementEventRef.current?.(event, result.state.position);
+      }
+      const updated = next[binding.rosterId];
+      if (
+        updated &&
+        binding.control &&
+        (secondaryHandledControls.current[binding.rosterId] ?? 0) <
+          binding.control.sequence
+      ) {
+        secondaryHandledControls.current[binding.rosterId] =
+          binding.control.sequence;
+        const result = interruptAgentMovement(
+          updated,
+          binding.control.requestId,
+          binding.control.reason,
+          binding.control.state,
+        );
+        next[binding.rosterId] = result.state;
+        changed = true;
+        setSecondaryArrivals((arrivals) => ({
+          ...arrivals,
+          [binding.rosterId]: null,
+        }));
+        for (const event of result.events)
+          onAgentMovementEventRef.current?.(event, result.state.position);
+      }
+    }
+    if (changed) {
+      secondaryMovementsRef.current = next;
+      setSecondaryMovements(next);
+    }
+  }, [agentMovementBindings, reducedMotion, secondaryMovementContext]);
+  const hasMovingSecondaryAgent = Object.values(secondaryMovements).some(
+    ({ movementState }) => movementState === "moving",
+  );
+  useEffect(() => {
+    if (!agentMovementBindingsRef.current || !hasMovingSecondaryAgent) return;
+    let frame = 0;
+    let previousFrame: number | null = null;
+    const tick = (timestamp: number) => {
+      const elapsedSeconds =
+        previousFrame === null ? 0 : (timestamp - previousFrame) / 1_000;
+      previousFrame = timestamp;
+      const next = { ...secondaryMovementsRef.current };
+      let moving = false;
+      for (const binding of (agentMovementBindingsRef.current ?? []).slice(1)) {
+        const current = next[binding.rosterId];
+        if (!current || current.movementState !== "moving") continue;
+        const activeRequest = current.activeRequest;
+        const result = advanceAgentMovement(
+          current,
+          elapsedSeconds,
+          secondaryMovementContext(binding.rosterId, current),
+        );
+        next[binding.rosterId] = result.state;
+        moving ||= result.state.movementState === "moving";
+        if (
+          activeRequest?.target.kind === "repository-object" &&
+          result.events.some((event) => event.state === "arrived") &&
+          binding.workFocus
+        ) {
+          const focus = binding.workFocus;
+          const target = activeRequest.target;
+          setSecondaryArrivals((arrivals) => ({
+            ...arrivals,
+            [binding.rosterId]: {
+              activityId: focus.activityId,
+              requestId: activeRequest.requestId,
+              actorId: activeRequest.actorId,
+              objectRef: target.objectId,
+              layoutGeneration: target.layoutGeneration,
+              atSafeApproachPoint: true,
+            },
+          }));
+        }
+        for (const event of result.events)
+          onAgentMovementEventRef.current?.(event, result.state.position);
+      }
+      secondaryMovementsRef.current = next;
+      setSecondaryMovements(next);
+      if (moving) frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [hasMovingSecondaryAgent, secondaryMovementContext]);
   useEffect(() => {
     cameraRef.current = camera;
   }, [camera]);
@@ -977,9 +1407,63 @@ export function WorldRoom({
   const userAction = userUsesImported
     ? userAnimation.semantic
     : projectedUserAction;
-  const agentAction = agentUsesImported
-    ? agentAnimation.semantic
-    : projectedAgentAction;
+  const agentWorkState = deriveAgentRepositoryWorkState(
+    agentWorkFocus ?? null,
+    agentWorkArrival,
+    layoutGeneration,
+    reducedMotion,
+  );
+  const agentAction =
+    agentWorkState.state === "coding"
+      ? agentUsesImported
+        ? "Idle"
+        : agentWorkState.action
+      : agentUsesImported
+        ? agentAnimation.semantic
+        : projectedAgentAction;
+  const renderedAgentStates = renderedAgents.map((agent, index) => {
+    const spawn = WORLD_AGENT_SPAWN_POSITIONS[index]!;
+    const binding = agentMovementBindings?.find(
+      ({ rosterId }) => rosterId === agent.rosterId,
+    );
+    const movement =
+      index === 0
+        ? agentMovement
+        : (secondaryMovements[agent.rosterId] ??
+          createAgentMovementState(binding?.actorId ?? agent.rosterId, {
+            x: spawn.x,
+            z: spawn.z,
+          }));
+    const work =
+      index === 0
+        ? agentWorkState
+        : deriveAgentRepositoryWorkState(
+            binding?.workFocus ?? null,
+            secondaryArrivals[agent.rosterId] ?? null,
+            layoutGeneration,
+            reducedMotion,
+          );
+    const movementAction =
+      movement.animationSemantic === "Run"
+        ? "Run"
+        : movement.movementState === "moving"
+          ? "Walk"
+          : "Idle";
+    return {
+      rosterId: agent.rosterId,
+      name: agent.name,
+      position: movement.position,
+      heading: movement.heading,
+      action:
+        work.state === "coding"
+          ? "Work"
+          : index === 0 && movement.movementState !== "moving"
+            ? agentAction
+            : movementAction,
+      workState: work.state,
+      objectRef: work.objectRef,
+    };
+  });
   const userImportedAvatar = worldImportedAvatarSelection(
     userAvatar,
     userAction,
@@ -990,6 +1474,15 @@ export function WorldRoom({
     agentAction,
     "agent",
   );
+  const renderedAgentImports = renderedAgents.map(({ avatar }, index) =>
+    worldImportedAvatarSelection(
+      avatar,
+      index === 0 ? agentAction : "Idle",
+      "agent",
+    ),
+  );
+  const useImportedRenderer =
+    Boolean(userImportedAvatar) || renderedAgentImports.some(Boolean);
   const userImportedClip = userImportedAvatar?.resolvedClip;
   const agentImportedClip = agentImportedAvatar?.resolvedClip;
   const staticPoseRefused =
@@ -1153,8 +1646,14 @@ export function WorldRoom({
       data-repository-city-mode={cityMode}
       data-user-avatar-action={userAction}
       data-agent-avatar-action={agentAction}
+      data-agent-work-state={agentWorkState.state}
+      data-agent-object-ref={agentWorkState.objectRef ?? ""}
       tabIndex={0}
-      aria-label="AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move, Shift to sprint, and Space to jump."
+      aria-label={
+        agentWorkState.state === "coding"
+          ? `${agentName} coding at ${agentWorkState.repositoryPath}`
+          : "AgentIntersect World room. Hold right mouse over the 3D canvas to look. Use W A S D or arrow keys to move, Shift to sprint, and Space to jump."
+      }
       onDragOver={(event) => {
         if (cityMode === "director" && floor === "repository")
           event.preventDefault();
@@ -1276,6 +1775,27 @@ export function WorldRoom({
         <span>{activity.label}</span>
         {activity.detail ? <span>· {activity.detail}</span> : null}
       </div>
+      <nav
+        className="world-room__agent-targets"
+        aria-label="Choose the next message recipient"
+      >
+        {renderedAgents.map((agent, index) => {
+          const position = WORLD_AGENT_SPAWN_POSITIONS[index]!;
+          return (
+            <button
+              key={agent.rosterId}
+              type="button"
+              className="world-room__agent-target world-action--enabled"
+              aria-label={`Send next message to ${agent.name}`}
+              aria-pressed={selectedRecipientId === agent.rosterId}
+              data-spawn={`${position.x},${position.z}`}
+              onClick={() => onSelectRecipient?.(agent.rosterId)}
+            >
+              {agent.name}
+            </button>
+          );
+        })}
+      </nav>
       <section className="world-room__semantic" aria-label="World scene status">
         <h1>{floor === "blank" ? "Blank World room" : "Repository floor"}</h1>
         <p>Third-person camera behind {userName}.</p>
@@ -1287,12 +1807,31 @@ export function WorldRoom({
               ? `imported ${userImportedAvatar.assetId} · ${userAction} · clip ${(userImportedClip?.clipIndex ?? -1) + 1} ${userImportedClip?.clipName ?? "missing"}`
               : `${userAvatar.species} · ${userAvatar.shirt}`}
           </li>
-          <li>
-            {agentName} · connected agent avatar ·{" "}
-            {agentImportedAvatar
-              ? `imported ${agentImportedAvatar.assetId} · ${agentAction} · clip ${(agentImportedClip?.clipIndex ?? -1) + 1} ${agentImportedClip?.clipName ?? "missing"}`
-              : `${agentAvatar.species} · ${agentAvatar.shirt}`}
-          </li>
+          {renderedAgents.map((agent, index) => {
+            const state = renderedAgentStates[index]!;
+            const position = state.position;
+            const imported = renderedAgentImports[index];
+            return (
+              <li
+                key={agent.rosterId}
+                data-roster-id={agent.rosterId}
+                data-work-state={state.workState}
+                data-object-ref={state.objectRef ?? ""}
+              >
+                <span>
+                  {agent.name}
+                  {state.workState === "coding"
+                    ? ` · coding at ${state.objectRef}`
+                    : ""}{" "}
+                  · connected agent avatar · position {position.x},{position.z}{" "}
+                  ·{" "}
+                  {imported
+                    ? `imported ${imported.assetId} · ${index === 0 ? agentAction : "Idle"}`
+                    : `${agent.avatar.species} · ${agent.avatar.shirt}`}
+                </span>
+              </li>
+            );
+          })}
         </ul>
         {floor === "repository" ? (
           <>
@@ -1341,7 +1880,7 @@ export function WorldRoom({
             }}
           >
             <Suspense fallback={null}>
-              {userImportedAvatar || agentImportedAvatar ? (
+              {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
                   floor={floor}
                   objects={objects}
@@ -1353,8 +1892,15 @@ export function WorldRoom({
                   activity={activity}
                   userAvatar={userAvatar}
                   agentAvatar={agentAvatar}
+                  {...(agentAvatars
+                    ? { agentAvatars: agentAvatars.map(({ avatar }) => avatar) }
+                    : {})}
+                  agentStates={renderedAgentStates}
                   userImportedAvatar={userImportedAvatar}
                   agentImportedAvatar={agentImportedAvatar}
+                  {...(agentAvatars
+                    ? { agentImportedAvatars: renderedAgentImports }
+                    : {})}
                   userAction={userAction}
                   agentAction={agentAction}
                   userAnimationGeneration={userAnimation.generation}
@@ -1388,6 +1934,10 @@ export function WorldRoom({
                   activity={activity}
                   userAvatar={userAvatar}
                   agentAvatar={agentAvatar}
+                  {...(agentAvatars
+                    ? { agentAvatars: agentAvatars.map(({ avatar }) => avatar) }
+                    : {})}
+                  agentStates={renderedAgentStates}
                   userAction={userAction}
                   agentAction={agentAction}
                   userLayerState={userLayerState}

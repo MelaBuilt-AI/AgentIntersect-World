@@ -1,8 +1,158 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-11
+Updated: 2026-08-20
 
 ## Current milestone
+
+### 2026-08-20 Phase 19 — AUTHORIZED / IN PROGRESS — TASK 13 TECHNICALLY COMPLETE / PARENT VERIFICATION GREEN; TASK 14 AND LATER CLOSED
+
+Aaron explicitly authorized **Phase 19 — Multi-Agent Constellation and Harness
+Breadth** on 2026-08-11. The branch is
+`feature/phase19-multi-agent-constellation`, based on accepted Phase 18 commit
+`f4b23b31a131580e1ddd9fb10274919be434bf68`. Tasks 1–12 passed independent
+parent verification under Node `v24.18.0`. Task 11 now owns durable server-side
+grouped broadcast and exact targeting: one immutable ready-roster capture,
+concurrent dispatch across sessions, strict per-session serialization, stable
+roster-ordered terminal rows, partial-success retention, exact avatar/`@name`
+identity, one-send reset, idempotent replay, restart interruption recovery, and
+browser-observation abort without native turn cancellation. Fresh production-
+bundle desktop and 390×844 browser proof passed with one broadcast request,
+truthful mixed success/failure rows, exact targeting, reset to `All agents`,
+continued server completion after leaving World, zero failed responses, and zero
+console errors. Task 12 now adds exact structured-evidence repository work focus,
+independent per-roster movement/arrival reconciliation, exact stale/generation
+refusal, and truthful coding presentation after matching arrival. No Dig mapping
+was operator-approved, so the accepted result uses Work/static coding fallback.
+Task 13 now restores accepted active Multi Agent state before the legacy Single
+Agent pointer path, rehydrates exact current/previous-recovered roster identity
+and avatars without native-session creation, keeps retained stale members visible
+and entry-blocking until exact reconnect/remove, and preserves Phase 18 and Phase
+16 boundaries. Task 14 and later remain closed.
+
+Provider/model/profile changes, package installation, protected
+configuration/service mutation, and real protected session creation/turn/end
+remain unauthorized. Aaron authorized one private Phase 19 checkpoint commit/push
+plus exact-SHA GitHub CI on 2026-08-20. First-hand Task 13 acceptance, PR/merge,
+Task 14+, tag, release, deployment, publication, public ingress, and visibility
+changes remain closed. Final immutable commit/run evidence belongs in the external
+handoff rather than a self-referential follow-up commit. Task 11 parent receipt:
+`/home/mela_ai/.hermes/runs/aiw-phase19-task11-20260813/task11-parent-acceptance.md`.
+
+**Task 13 parent verification (2026-08-20):** direct RED→GREEN implementation closes the missing browser composition seam. Startup queries retained constellation truth before the legacy Hermes pointer, restores two-to-four exact current/previous-recovered accepted sessions through their owning adapter paths, and projects the same active World without creating, attaching, or duplicating native identities. Stale accepted members restore visibly and keep entry blocked until explicit exact reconnect or non-destructive removal; reconnect reloads the accepted avatar. Existing lifecycle coverage remains green for ambiguous display-name refusal, same-World native continuity, idempotent OpenClaw/Codex/Claude teardown, later-World new IDs, persistent Hermes exclusion, and no constellation-to-Phase-16 worktree mutation. Node `v24.18.0` proof passed Task 13 **13/13**, full Phase 19 targeted **184/184**, selected affected web **58/58**, repository typecheck **38/38 tasks**, build **20/20 tasks**, lint, focused Prettier, diff hygiene, and Phase 16 conformance **41/41**. Full monorepo Vitest reached **1030/1033**: the Task 12 acceptance-command test passes **4/4** when its required evidence-directory environment variable is supplied, and the remaining two failures are unchanged safe-config fixtures that omit accepted `agentAdapters`. Implementation-only reconciliation kept HEAD unchanged, staging empty, 60/64 inherited paths byte-identical, four authorized inherited-dirty-path implementation/test edits, and exactly two newly dirty Task 13 paths. Canonical closeout then updated exactly five governance/status paths, leaving 55/64 inherited paths byte-identical and no missing paths. No protected harness/session lifecycle, delivery action, or Task 14+ work occurred.
+
+**Task 12 parent acceptance (2026-08-20):** authoritative structured adapter evidence resolves the most specific current live repository object, projects one exact per-session work focus, and reuses the generation-bound repository-object movement path. Each roster agent retains independent movement, arrival, retarget, terminal, and coding state; stale request/object/layout identities fail closed. No Dig mapping was operator-approved, so imported avatars use truthful Work/static coding fallback. Node `v24.18.0` proof passed focused core **193/193**, Phase 19 impacted **34/34**, Phase 13 movement/action **73/73**, avatar/renderer **105/105**, four affected typechecks/builds, root lint, architecture **11/11**, direct formatting, and diff hygiene. The unchanged stale safe-config fixtures remain the only broad failures: local-server **358/359** and web **286/287** unfiltered, with filtered remainders **352/352** and **284/284**. Fresh production headed proof passed all three journeys (**3/3**) with **34/34** receipt checks, zero browser issues, exact desktop reconnect/retarget/terminal behavior, 390×844 reduced-motion containment, semantic no-WebGL truth, and retained screenshots/video. Evidence: `/home/mela_ai/.hermes/runs/aiw-phase19-task12-headed-20260820/`. Task 13 is parent-verified above; one private checkpoint delivery is now authorized, while first-hand acceptance, Task 14+, PR/merge, and release/publication remain closed.
+
+**Task 11 parent acceptance (2026-08-13):** the browser now submits exactly one server-owned grouped request for an unaddressed Multi Agent message. The local server snapshots the current ready roster once, dispatches concurrently between native sessions while retaining per-session serialization, persists stable roster-ordered independent terminal rows, preserves successful peers beside a failure, resolves avatar click and normalized exact `@name` to the same roster identity, rejects unknown/ambiguous names without sending, resets one-send targeting to broadcast, suppresses replay resend, marks ambiguous restart rows interrupted, and treats browser abort as observation-only. Node `v24.18.0` proof passed Task 11 **14/14**, impacted Phase 19 **86/86**, package builds, both typechecks/builds, ESLint, Prettier, `git diff --check`, and exact inherited-boundary reconciliation with zero unauthorized mismatch and empty staging. The broad suites were **336/337** local-server and **280/281** web because two unchanged pre-Task-11 safe-config fixtures still omit the accepted `agentAdapters` field; excluding only those independently identified stale fixture files, the remaining broad suites passed **330/330** local-server and **278/278** web. Fresh production-bundle desktop/390×844 browser proof and direct pixel inspection passed with one browser broadcast request, stable `OpenClaw → Mr Fluff failure → Claude → Codex` rows, exact avatar/mention identity, reset to `All agents`, continued server completion after leaving World, no cancellation authority, zero failed responses, and zero console errors. Parent receipt: `/home/mela_ai/.hermes/runs/aiw-phase19-task11-20260813/task11-parent-acceptance.md`.
+
+**Task 10 parent acceptance (2026-08-13):** the normal Multi Agent journey now
+supports sequential connect → exact avatar setup → return-to-constellation flow,
+stable server-derived roster/lifecycle truth, reconnect/remove controls, and
+server-gated World entry. World renders one user plus four deterministic agents at
+`[-4.2,0,0.8]`, `[4.2,0,0.8]`, `[-3.2,0,-4]`, and `[3.2,0,-4]`; semantic keyboard
+recipient controls update only the next-message target, and no persistent admin
+panel appears in World. Production desktop and 390×844 browser proof passed with
+all four bodies fully visible and non-overlapping, controls in bounds, zero failed
+responses, and zero console errors. Pinned Node `v24.18.0` proof passed 18/18
+package builds, 116/116 focused/impacted tests, renderer/web typecheck and builds,
+ESLint, Prettier, `git diff --check`, and exact reconciliation with zero unauthorized
+mismatches and empty staging. Parent receipt:
+`/home/mela_ai/.hermes/runs/aiw-phase19-task10-20260813/task10-parent-acceptance.md`.
+Task 11 is parent-accepted above. Task 12 and later remain closed.
+
+**Task 9 parent acceptance (2026-08-13):** the Phase 18 reducer now owns explicit Single/Multi mode, a stable maximum-four ordered
+roster, and one isolated pending setup entry while retaining singular fields only
+as derived compatibility projections. Multi entry requires at least two exact,
+connected, current/recovered, avatar-accepted sessions; stale/unavailable entries
+remain visible for exact reconnect or explicit removal. The web clients expose
+typed four-adapter contracts and direct methods for Task 8's six existing
+constellation routes while preserving the Hermes attach/restore path. Pinned Node
+`v24.18.0` focused and impacted tests, web typecheck/build, ESLint, Prettier, and
+diff checks are green. Exact frozen-baseline reconciliation found only the 11
+authorized Task 9 source/test/governance mismatches, with no unauthorized
+mismatch and empty staging. Parent receipt:
+`/home/mela_ai/.hermes/runs/aiw-phase19-task9-20260813/task9-parent-acceptance.md`.
+Task 10 is superseded by the parent acceptance above. Task 11 is parent-accepted
+above. Task 12 and later remain closed.
+
+**Task 8 closeout (2026-08-13):** the retained candidate owns one bounded,
+checksummed current/previous `aiw.constellation/0.19` projection and exactly six
+Fastify routes for current truth, roster add/reconnect/remove, avatar association,
+and explicit World end. It preserves maximum-four stable order, exact native
+binding identity, stale recovery, server-derived readiness, bounded revision and
+idempotency conflicts, non-destructive removal, and crash/retry-safe World-owned
+teardown while never ending Hermes. Parent inspection found and corrected one
+concrete defect: only Hermes may be `operator-persistent`. Independent pinned
+Node `v24.18.0` proof passed the 18-package prerequisite build, focused Task 8
+service/API **11/11**, impacted Agent Session/API/conformance **38/38**,
+local-server typecheck/build, focused ESLint/Prettier, `git diff --check`, and
+exact frozen-baseline verification. No real protected session lifecycle,
+protected service/configuration change, delivery action, or Task 9 work occurred.
+
+**Task 7 closeout (2026-08-13):** the narrow schema correction restored strict
+safe-config startup while preserving unknown-key rejection. Independent pinned
+proof passed package builds, world-schema and local-server typecheck/build,
+focused Task 7/API **12/12**, shared gateway **26/26**, concrete adapters
+**57/57**, protocol/config/world-schema **50/50**, focused ESLint/Prettier, and
+`git diff --check`. A disposable loopback production entrypoint then returned
+HTTP 200 for health, config, readiness, and capabilities. Hermes, OpenClaw,
+Codex, and Claude Code were all configured and `runtime-attested`; no live
+session was created, sent a turn, or ended. Protected Hermes/OpenClaw files and
+process identities were unchanged, the candidate stopped, and its listener and
+temporary credential file were removed. The first evidence-verdict script had
+one harness-only envelope-path assertion error; corrected offline verification
+of the already captured evidence passed without repeating live contact. The
+parent receipt is
+`/home/mela_ai/.hermes/runs/aiw-phase19-task7-parent-retry-20260813/task7-parent-acceptance.md`.
+
+The seven frozen decisions are:
+
+1. Keep a stable roster of at most four agents. Duplicate harness types require
+   distinct native root sessions; reject an exact duplicate
+   `{adapterId, nativeRootSessionRef}` binding.
+2. Production-bind Hermes, OpenClaw, Codex, and Claude Code and first-hand test
+   each local attach/create, text, result, status, recovery, and lifecycle path.
+   CLI presence/version is insufficient. Do not automatically install or log
+   in, change providers/models, edit protected profiles, mutate external
+   configuration, or retain secrets.
+3. Dispatch broadcasts concurrently across agents while serializing turns
+   within each native session. Present one stable roster-ordered result group
+   with independent terminal states; avatar selection or exact `@name` targets
+   one agent.
+4. Keep stale restored entries visible and block World entry until explicit
+   reconnect or removal. Removal detaches only the roster entry and never
+   silently deletes unrelated native history, profiles, or files.
+5. Preserve Hermes/Mr Fluff's operator-persistent native identity and existing
+   Discord-to-World path. OpenClaw, Codex, and Claude Code do not use Discord;
+   World creates their World-owned sessions through the AgentIntersect harness
+   boundary. They may survive refresh/reconnect to the same active World, close
+   on explicit World end, and are never silently reused by a later World.
+   Underlying harness services/configuration remain untouched. Claude Code uses
+   the existing local Ollama setup; Codex uses the existing WSL GPT-5.6 setup.
+6. Drive Repository City coding embodiment only from real structured tool/work
+   evidence. Resolve the most specific live object, use the existing
+   generation-bound repository-object movement contract and safe approach
+   point, and loop an operator-approved `Dig` only while authoritative coding
+   and truthful arrival coincide. Prose never implies work. Keep unresolved,
+   stale, or blocked targets visible/recoverable; clear Dig on completion,
+   failure, cancellation, or retargeting; keep agents independent; fall back to
+   generic `Work` for a missing or ambiguous Dig mapping.
+7. Begin voice only after all four text/session integrations are green. Reuse
+   Phase 15's local microphone/WAV/Whisper/editable-final-caption pipeline for
+   push-to-talk input only. Accepted text enters exactly typed-chat routing;
+   transcribe broadcast audio once before fan-out. Add no normal-World agent
+   TTS/synthetic speech in Phase 19, and keep typed chat available.
+
+Phase 16's retained exactly-two-agent/two-worktree execution and evidence
+authority remains unchanged. The normal HUD may evolve only within the minimal
+bottom-center chat plus adjacent push-to-talk composition for truthful targeting,
+grouped results, and voice-input state; it cannot become admin chrome. Scope
+remains one human operator on a local/private same-PC topology. LAN/different-PC
+UI, unrelated users, public rooms, generic command execution, admin redesign,
+Phase 13 retry, and Phase 20 hardening remain out of scope. Normal browser
+output must not expose adapter secrets, executable arguments, raw prompts,
+private reasoning, unrestricted tool payloads, or credentials. Commit, push, PR,
+merge, release, publication, deployment, tags, and visibility changes remain
+separate parent/user gates.
 
 ### 2026-08-11 Phase 18 single-agent feature loop — MANUALLY ACCEPTED; INDEPENDENT PARENT VERIFICATION GREEN
 
@@ -31,12 +181,11 @@ are retained in the external handoff rather than recursively recorded in this
 status file.
 
 The Phase 18 single-agent feature-loop product gate is complete, manually
-accepted, and independently parent-verified. The next product decision is
-whether to plan and authorize **Phase 19 — Multi-Agent
-Constellation and Harness Breadth**. Phase 19 implementation has not started and
-is not authorized. PR, merge, release, deployment, publication, tag, visibility
-change, public exposure, generic command execution, and normal-product Workbench
-exposure remain outside this delivery.
+accepted, and independently parent-verified. That acceptance did not itself
+authorize Phase 19; Aaron separately authorized Phase 19 on 2026-08-11, as the
+current milestone above records. PR, merge, release, deployment, publication,
+tag, visibility change, public exposure, generic command execution, and
+normal-product Workbench exposure remain outside both deliveries.
 
 ### 2026-08-11 In-World Agent Workbench — FULL SIX-CRITERION FIRST-HAND PASS; PRIVATE COMMIT/PUSH AUTHORIZED (HISTORICAL PRECURSOR)
 
@@ -419,16 +568,18 @@ retained at
 No screenshot or video accompanied the report, and Mr Fluff did not automate the
 browser interaction.
 
-Milestone 3 is now the next ordered milestone but remains behind an explicit scope
-confirmation. Do not inspect, hash, convert, or integrate
+At this historical 2026-08-04 checkpoint, Milestone 3 was the next ordered
+milestone but remained behind an explicit scope confirmation. Do not inspect,
+hash, convert, or integrate
 `C:\\Codex\\repository-visual-assets` until Aaron authorizes Milestone 3 start. This
 acceptance does not authorize staging, commit, push, PR, merge, tag, release,
 publication, deployment, provider activation, public visibility, or Phase 19/20 work.
 
 The implementation checklist, acceptance gates, and explicit deferrals are
 canonical in `docs/PRE_VOICE_ANIMATION_MOVEMENT_AND_CODE_VISUALS.md`. This
-sequencing record does not itself implement or accept any item, seal Phase 18 or
-Phase 18.5, begin Phase 19/20, or authorize release/publication/deployment.
+historical sequencing record did not itself implement or accept any item, seal
+Phase 18 or Phase 18.5, begin Phase 19/20, or authorize
+release/publication/deployment.
 
 ### 2026-08-03 Hermes chat and repeated-refresh correction — MANUAL PASS; PRIVATE DELIVERY AUTHORIZED
 
@@ -981,7 +1132,7 @@ Evidence integrity was reconciled against the accepted candidate: `artifacts/pha
 
 The implementation used only project-authored Blender/Python/SVG/HTML/CSS/Three.js sources and the repository's existing dependency families. No cloud image service, ComfyUI/model download, third-party model/texture/concept asset, provider activation, commit, push, release, deployment, or public action occurred. Private delivery is the next authorized action; merge, release, publication, deployment, and visibility changes remain closed.
 
-Revised Phase 19 (**Multi-Agent Constellation and Harness Breadth**) and revised Phase 20 (**Embodied Product Acceptance and Bounded Hardening**) remain not started and not authorized.
+At that Phase 18.5 delivery checkpoint, revised Phase 19 (**Multi-Agent Constellation and Harness Breadth**) and revised Phase 20 (**Embodied Product Acceptance and Bounded Hardening**) remained not started and not authorized. The current Phase 19 authority is the 2026-08-11 milestone at the top of this file.
 
 ## Historical Phase 18 correction baseline
 
@@ -991,7 +1142,7 @@ The user authorized complete bounded revised Phase 18 implementation on 2026-07-
 
 That first-hand retest authorized the seven-family correction backlog in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`. The corrections were subsequently implemented, reviewed, privately delivered, and exact-SHA-CI-verified. The current authority is the Phase 18.5 milestone and preserved Phase 18 gates recorded above—not this historical backlog.
 
-Phase 18 remains not accepted or sealed. Historical fixture responses remain fixture-backed, but the separate 2026-07-28 same-session Hermes text journey is genuine first-hand live evidence. Voice and bounded live coding remain open. Revised Phase 19 and Phase 20 remain not started and not authorized.
+At that historical correction checkpoint, Phase 18 remained not accepted or sealed. Historical fixture responses remain fixture-backed, but the separate 2026-07-28 same-session Hermes text journey is genuine first-hand live evidence. Voice and bounded live coding were open, and revised Phase 19 and Phase 20 were not started or authorized. The current milestone supersedes those former gate states without deleting their history.
 
 The frozen normal-experience invariants are:
 
@@ -1222,7 +1373,7 @@ Phase 14 remains sealed and accepted: the user froze and explicitly authorized i
 
 The Phase 13 exact-root Discord → World continuation remains FAIL/deferred as a separate backlog item and was not retried. Phase 15 must not silently absorb, retry, or claim that live gate; revisit it only under an explicit later-milestone authorization.
 
-Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, Hermes/OpenClaw/core/profile change, original-AgentIntersect operation, revised Phases 19–20 implementation, Phase 18 scope expansion, LAN setup UI, and custom voice implementation remain prohibited without their required separate authorization.
+Future runtime/model refetch, provider promotion/activation, release, deployment, public ingress, publication, visibility change, protected Hermes/OpenClaw/core/profile changes, original-AgentIntersect operation, Phase 19 work outside its frozen plan and current task gate, Phase 20 implementation, Phase 18 scope expansion, LAN setup UI, and custom voice implementation remain prohibited without their required separate authorization.
 
 The Phase 13 hybrid performance contract remains inherited: main-thread render-work p95 is capped at 16.7 ms, raw `requestAnimationFrame` cadence p95 at 16.8 ms, and all raw samples remain machine-readable.
 
@@ -1230,7 +1381,7 @@ The Phase 13 hybrid performance contract remains inherited: main-thread render-w
 
 ### Product UI and Mr Fluff voice
 
-- Complete fresh independent parent verification and first-hand user acceptance for the corrected revised Phase 18 World-entry experience before any acceptance/seal or Phase 19 action.
+- Historical precursor: fresh independent parent verification and first-hand user acceptance for the corrected revised Phase 18 World-entry experience were required before Phase 19 action; that gate has since passed and Phase 19 was separately authorized on 2026-08-11.
 - Add a distinctive, high-quality custom Mr Fluff voice in a separately authorized future milestone. Preserve explicit preview/accept/change/revoke/stop controls and provenance; do not treat the accepted browser/system TTS baseline as a custom voice or silently introduce voice cloning.
 
 ### Phase 13 deferred live continuity

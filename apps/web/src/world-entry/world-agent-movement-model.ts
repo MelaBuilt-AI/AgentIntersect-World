@@ -419,6 +419,20 @@ export function advanceAgentMovement(
   const movementX = position.x - state.position.x;
   const movementZ = position.z - state.position.z;
   const movementDistance = Math.hypot(movementX, movementZ);
+  const heading =
+    movementDistance > 0
+      ? Math.atan2(movementX / movementDistance, movementZ / movementDistance)
+      : state.heading;
+  const remainingDistance = Math.hypot(
+    destination.x - position.x,
+    destination.z - position.z,
+  );
+  if (remainingDistance <= stoppingRadius + 0.001)
+    return finishMovement(
+      { ...state, position, destination, heading },
+      request,
+      "arrived",
+    );
   const movementUx = movementDistance > 0 ? movementX / movementDistance : 0;
   const movementUz = movementDistance > 0 ? movementZ / movementDistance : 0;
   return {
@@ -426,10 +440,7 @@ export function advanceAgentMovement(
       ...state,
       position,
       destination,
-      heading:
-        movementDistance > 0
-          ? Math.atan2(movementUx, movementUz)
-          : state.heading,
+      heading,
       animationSemantic: movementAnimation(
         request.speed,
         Math.hypot(destination.x - position.x, destination.z - position.z),
