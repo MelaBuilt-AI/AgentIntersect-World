@@ -645,7 +645,9 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
 test("slash focuses active World chat and submitted history restores its draft", async ({
   page,
 }) => {
-  test.setTimeout(300_000);
+  // Software-rendered CI can spend more than five minutes on six animated
+  // submissions; keyboard/history assertions remain exact.
+  test.setTimeout(600_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
@@ -711,11 +713,12 @@ test("slash focuses active World chat and submitted history restores its draft",
     await send.click();
   }
   await composer.fill("unsent draft");
+  await expect(composer).toBeFocused();
   for (const expected of ["/dance", "/laugh", "/clap", "/clap", "/bow"]) {
-    await composer.press("ArrowUp");
+    await page.keyboard.press("ArrowUp");
     await expect(composer).toHaveValue(expected);
   }
-  await composer.press("ArrowUp");
+  await page.keyboard.press("ArrowUp");
   await expect(composer).toHaveValue("/bow");
   for (const expected of [
     "/clap",
@@ -724,7 +727,7 @@ test("slash focuses active World chat and submitted history restores its draft",
     "/dance",
     "unsent draft",
   ]) {
-    await composer.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
     await expect(composer).toHaveValue(expected);
   }
   expect(

@@ -538,7 +538,13 @@ async function enterFixtureWorld(page: Page, path = "/") {
   ).toBeVisible();
   await page.getByLabel("Required agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await page.getByRole("button", { name: "Accept and save avatar" }).click();
+  const acceptAvatar = page.getByRole("button", {
+    name: "Accept and save avatar",
+  });
+  await expect(acceptAvatar).toBeEnabled();
+  await acceptAvatar.focus();
+  await expect(acceptAvatar).toBeFocused();
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Enter World" }).click();
   await expect(page.getByTestId("world-hud")).toBeVisible();
 }
