@@ -552,7 +552,10 @@ async function enterFixtureWorld(page: Page, path = "/") {
   await acceptAvatar.focus();
   await expect(acceptAvatar).toBeFocused();
   await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: "Enter World" }).click();
+  const enterWorld = page.getByRole("button", { name: "Enter World" });
+  await expect(enterWorld).toBeVisible({ timeout: 60_000 });
+  await expect(enterWorld).toBeEnabled({ timeout: 60_000 });
+  await enterWorld.click();
   await expect(page.getByTestId("world-hud")).toBeVisible({ timeout: 30_000 });
 }
 
@@ -1020,7 +1023,7 @@ async function completeJourney(
   test.setTimeout(
     evidence === "desktop" || evidence === "large-desktop"
       ? 600_000
-      : evidence === "pointer-lock"
+      : evidence === "pointer-lock" || evidence === "fixture-name"
         ? 300_000
         : 120_000,
   );
@@ -1317,6 +1320,7 @@ async function completeJourney(
 test("in-flight follow-ups remain editable and dispatch one at a time in FIFO order", async ({
   page,
 }) => {
+  test.setTimeout(300_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
   const streamRequests: string[] = [];

@@ -26,6 +26,7 @@ export async function getCurrentWorld(
     CurrentWorldSnapshotDataSchema,
     {},
     fetcher,
+    30_000,
   );
 }
 

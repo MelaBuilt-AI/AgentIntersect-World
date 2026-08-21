@@ -55,13 +55,14 @@ export async function apiRequest<T>(
   schema: Schema<T>,
   init: RequestInit,
   fetcher: typeof fetch,
+  timeoutMs = 3_000,
 ): Promise<LocalApiResult<T>> {
   let response: Response;
   try {
     response = await fetcher(`${WEB_API_BASE_PATH}${path}`, {
       ...init,
       headers: { accept: "application/json", ...init.headers },
-      signal: AbortSignal.timeout(3_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch {
     return { status: "unavailable", message: "Local server unavailable" };

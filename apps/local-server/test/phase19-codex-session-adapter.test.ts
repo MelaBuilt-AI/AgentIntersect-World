@@ -597,15 +597,22 @@ describe("CodexSessionAdapter", () => {
     });
     const codex = adapter(fixture, { turnTimeoutMs: 40 });
     const created = await codex.createWorldSession("world-descendant");
-    const turn = codex.sendText(created.id, "bounded", {
-      mode: "explore",
-      rootSessionRef: created.rootId,
-    });
+    // Attach before the 40 ms fixture timeout can elapse under a loaded CI runner.
+    const turn = codex
+      .sendText(created.id, "bounded", {
+        mode: "explore",
+        rootSessionRef: created.rootId,
+      })
+      .catch((reason: unknown) => reason as Error);
     await waitForInvocationCount(fixture, 2);
     await waitForPid(fixture);
     const descendantPid = await fixture.descendantPid();
 
-    await expect(turn).rejects.toThrow(/timed out/i);
+    const turnResult = await turn;
+    expect(turnResult).toBeInstanceOf(Error);
+    if (!(turnResult instanceof Error))
+      throw new Error("turn unexpectedly succeeded");
+    expect(turnResult.message).toMatch(/timed out/i);
     await waitForProcessExit(descendantPid);
     await codex.endWorldSession("world-descendant", created.id);
   });
