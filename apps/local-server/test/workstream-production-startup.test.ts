@@ -286,6 +286,16 @@ describe("production Workstream startup composition", () => {
       AIW_PHASE16_WORKTREE_PARENT: fixture.worktreeParent,
     });
 
+    const constellation = await fetch(`${baseUrl}/constellation/current`);
+    expect(constellation.status).toBe(200);
+    expect(
+      (
+        await json<{
+          data: { projection: { revision: number; agents: unknown[] } };
+        }>(constellation)
+      ).data.projection,
+    ).toMatchObject({ revision: 0, agents: [] });
+
     const absent = await fetch(`${baseUrl}/workstreams/current`);
     expect(absent.status).toBe(404);
     expect(

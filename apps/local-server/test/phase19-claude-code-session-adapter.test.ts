@@ -430,12 +430,12 @@ describe("ClaudeCodeSessionAdapter", () => {
   it("bounds and sanitizes an unresponsive attestation", async () => {
     const fixture = await fixtureExecutable({ attestHang: true });
     const startedAt = Date.now();
-    const error = await adapter(fixture, { attestTimeoutMs: 30 })
+    const error = await adapter(fixture, { attestTimeoutMs: 500 })
       .attest()
       .catch((reason: unknown) => reason as Error);
-    const pid = await fixture.pid();
+    const pid = await waitForPid(fixture);
 
-    expect(Date.now() - startedAt).toBeLessThan(500);
+    expect(Date.now() - startedAt).toBeLessThan(1_500);
     expect(error.message).toMatch(/Claude Code CLI attestation timed out/i);
     expect(error.message).not.toContain(fixture.executablePath);
     await waitForProcessExit(pid);

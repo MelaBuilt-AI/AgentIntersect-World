@@ -605,7 +605,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
 
   await page.goto("/");
   await page.getByRole("button", { name: /Single Agent/u }).click();
-  await page.getByRole("button", { name: /hermes_/u }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
@@ -840,7 +840,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
   const room = page.locator(".world-room");
   const chatInput = page.getByPlaceholder("Message Mr Fluff");
   await chatInput.fill("  /DaNcE  ");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
   await expect(worldCanvas).toHaveAttribute(
     "data-user-avatar-rendered-clip",
@@ -868,7 +868,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
   });
 
   await chatInput.fill("hello");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
   await expect(worldCanvas).toHaveAttribute(
     "data-agent-avatar-rendered-clip",
@@ -895,7 +895,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
 
   const chatCountBeforeDirection = streamedTexts.length;
   await chatInput.fill("  /AgEnT MoVe 10 1  ");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect
     .poll(() => movementProposals.length, { timeout: 10_000 })
     .toBe(1);
@@ -948,7 +948,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
 
   const proposalCountBeforeRefusal = movementProposals.length;
   await chatInput.fill("/agent move 16 0");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.locator(".world-hud__captions")).toContainText(
     "agent movement refused",
   );
@@ -956,7 +956,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
   expect(streamedTexts).toHaveLength(chatCountBeforeDirection);
 
   await chatInput.fill("/agent stop");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect
     .poll(() =>
       movementLifecyclePosts.some(

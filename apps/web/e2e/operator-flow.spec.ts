@@ -10,6 +10,20 @@ test("runs the visible numbered start, cancel, and review flow", async ({
     if (message.type() === "error") browserErrors.push(message.text());
   });
   page.on("pageerror", (error) => browserErrors.push(error.message));
+  await page.route("**/api/agent-sessions/native**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        data: [],
+        meta: {
+          correlationId: "11111111-1111-4111-8111-111111111111",
+          schema: "aiw.api/0.3",
+        },
+      }),
+    });
+  });
 
   await enterDashboard(page);
   await openPanel(page, "World");

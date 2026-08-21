@@ -158,6 +158,22 @@ async function installSessionFixture(
       ];
     else if (pathname.endsWith("/agent-sessions/attach")) data = session;
     else if (pathname.endsWith("/status")) data = session;
+    else if (pathname.endsWith("/constellation/current"))
+      data = {
+        projection: {
+          schema: "aiw.constellation/0.19",
+          mode: "multi-agent",
+          worldInstanceId: "55555555-5555-4555-8555-555555555555",
+          lifecycle: "assembling",
+          revision: 0,
+          agents: [],
+          entryReady: false,
+          truth: "current",
+        },
+        terminalOutcomes: [],
+        unavailableReason: null,
+      };
+    else if (pathname.endsWith("/work-focus")) data = { focus: null };
     else if (pathname.endsWith("/avatar-proposal"))
       data = options.liveProposalAvailable === false ? null : acceptedProposal;
     else if (pathname.endsWith("/history"))
@@ -345,8 +361,9 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
     timeout: 30_000,
   });
   const arrivedX = Number(await room.getAttribute("data-agent-position-x"));
-  expect(arrivedX).toBeGreaterThanOrEqual(2.25);
-  expect(arrivedX).toBeLessThanOrEqual(2.75);
+  // Allow one millimetre of frame-step/float epsilon around the ±0.25 arrival window.
+  expect(arrivedX).toBeGreaterThanOrEqual(2.249);
+  expect(arrivedX).toBeLessThanOrEqual(2.751);
   await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
   await expect(room).toHaveAttribute(
     "data-agent-avatar-rendered-clip-index",
@@ -376,7 +393,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
 
   const composer = page.getByLabel("Message Mr Fluff");
   await composer.fill("/agent stop");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(room).toHaveAttribute("data-agent-movement-state", "idle");
   await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
   await expect
@@ -484,7 +501,7 @@ test("accepted user model plays exact Space and local gesture clips without tran
   for (const [command, semantic, clipIndex] of accepted) {
     await armUserAnimationCapture(semantic, clipIndex);
     await composer.fill(`/${command}`);
-    await page.getByRole("button", { name: "Send" }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expectCapturedUserAnimation(semantic, clipIndex);
   }
   expect(fixture.mutationPaths).toEqual([]);
@@ -689,7 +706,7 @@ test("slash focuses active World chat and submitted history restores its draft",
     "/dance",
   ]) {
     await composer.fill(submission);
-    const send = page.getByRole("button", { name: "Send" });
+    const send = page.getByRole("button", { name: "Send", exact: true });
     await expect(send).toBeEnabled();
     await send.click();
   }
@@ -871,7 +888,7 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   });
   await page.goto("/");
   await page.getByRole("button", { name: "Single Agent" }).click();
-  await page.getByRole("button", { name: /hermes_/u }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
 
   await page.getByLabel("Agent name").fill("Beans");
   await page.getByRole("button", { name: "Connect agent" }).click();

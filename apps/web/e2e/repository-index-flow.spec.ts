@@ -109,6 +109,18 @@ test("indexes, deterministically rescans, cancels, and retains last good", async
     if (message.type() === "error") browserErrors.push(message.text());
   });
   page.on("pageerror", (error) => browserErrors.push(error.message));
+  await page.route("**/api/agent-sessions/native**", async (route) => {
+    await route.fulfill({
+      json: {
+        ok: true,
+        data: [],
+        meta: {
+          correlationId: "22222222-2222-4222-8222-222222222222",
+          schema: "aiw.api/0.3",
+        },
+      },
+    });
+  });
   await enterDashboard(page);
   await openPanel(page, "Repositories");
 

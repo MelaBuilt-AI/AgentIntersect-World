@@ -99,6 +99,10 @@ describe("acceptance command graph", () => {
 
     expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
     expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(2);
+    expect(config.testIgnore).toEqual([
+      "**/world-entry-internal-fail-closed.spec.ts",
+      "**/phase19-task12-two-agent-coding.spec.ts",
+    ]);
     expect(projects).toHaveLength(2);
     expect(projects[0]?.name ?? "").toBe("");
     expect(projects).toEqual([
@@ -123,7 +127,17 @@ describe("acceptance command graph", () => {
       baseURL: "http://127.0.0.1:45173",
       trace: "retain-on-failure",
     });
-    expect(config.webServer).toHaveLength(2);
+    const webServers = Array.isArray(config.webServer)
+      ? config.webServer
+      : [config.webServer];
+    expect(webServers).toHaveLength(2);
+    expect(webServers[0]).toMatchObject({
+      env: {
+        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_AGENT_SESSION_DATA_DIR: expect.stringMatching(/\/agent-sessions$/u),
+        AIW_HERMES_API_KEY: "playwright-fixture-key",
+      },
+    });
   });
 
   it("retains traces only for the repository city correction journey", async () => {

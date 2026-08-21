@@ -9,6 +9,7 @@ import {
   capabilitySnapshotHash,
 } from "@agentintersect-world/agent-session-protocol";
 import { buildNavigationMesh } from "@agentintersect-world/navigation";
+import { randomUUID } from "node:crypto";
 import { readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -188,6 +189,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     agentSessionGateway && config.agentSessions
       ? await ConstellationService.open({
           directory: path.join(config.agentSessions.dataDir, "constellation"),
+          worldInstanceId: randomUUID(),
           lifecycle: {
             validateBinding: async (binding) => {
               const session = agentSessionGateway.status(

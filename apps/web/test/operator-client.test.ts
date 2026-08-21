@@ -42,6 +42,15 @@ describe("Phase 3 operator API client", () => {
               agentIntersectReadEnabled: false,
               agentIntersectCommandsEnabled: false,
               agentSessionsEnabled: false,
+              agentAdapters: {
+                hermes: { configured: false, reason: "not-configured" },
+                openclaw: { configured: false, reason: "not-configured" },
+                codex: { configured: false, reason: "not-configured" },
+                "claude-code": {
+                  configured: false,
+                  reason: "not-configured",
+                },
+              },
               presentationSync: {
                 enabled: true,
                 transport: "ws/http",

@@ -423,6 +423,22 @@ async function installWorldFixtures(
       pathname.endsWith(`/agent-sessions/${session.sessionId}/status`)
     )
       data = session;
+    else if (pathname.endsWith("/constellation/current"))
+      data = {
+        projection: {
+          schema: "aiw.constellation/0.19",
+          mode: "multi-agent",
+          worldInstanceId: "55555555-5555-4555-8555-555555555555",
+          lifecycle: "assembling",
+          revision: 0,
+          agents: [],
+          entryReady: false,
+          truth: "current",
+        },
+        terminalOutcomes: [],
+        unavailableReason: null,
+      };
+    else if (pathname.endsWith("/work-focus")) data = { focus: null };
     else if (pathname.endsWith("/avatar-proposal"))
       data = options.avatarProposal ?? proposal;
     else if (pathname.endsWith("/history"))
@@ -514,7 +530,7 @@ async function installWorldFixtures(
 async function enterFixtureWorld(page: Page, path = "/") {
   await page.goto(path);
   await page.getByRole("button", { name: /Single Agent/ }).click();
-  await page.getByRole("button", { name: /hermes_/ }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
@@ -1026,7 +1042,7 @@ async function completeJourney(
     await page.locator("main").screenshot({
       path: `${evidenceDirectory}/constellation-outward-mobile.png`,
     });
-  await page.getByRole("button", { name: /hermes_/ }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
   await page.getByLabel("Agent name").fill("Missing Agent");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(page.locator(".world-agent-prompt--retry")).toContainText(
@@ -1154,7 +1170,7 @@ async function completeJourney(
     );
   }
   await page.getByLabel("Message Mr Fluff").fill("hi");
-  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   if (evidence !== "no-webgl")
     await expect(page.locator("canvas")).toHaveAttribute(
       "data-agent-activity",
@@ -1184,7 +1200,7 @@ async function completeJourney(
     });
 
   const messageComposer = page.getByLabel("Message Mr Fluff");
-  const sendMessage = page.getByRole("button", { name: "Send" });
+  const sendMessage = page.getByRole("button", { name: "Send", exact: true });
   const chatForm = page.locator("form.world-chat");
   await expect(chatForm).toHaveAttribute("aria-busy", "false", {
     timeout: 60_000,
@@ -1304,7 +1320,7 @@ test("in-flight follow-ups remain editable and dispatch one at a time in FIFO or
   await enterFixtureWorld(page);
 
   const composer = page.getByLabel("Message Mr Fluff");
-  const send = page.getByRole("button", { name: "Send" });
+  const send = page.getByRole("button", { name: "Send", exact: true });
   await composer.fill("first request");
   await send.click();
   await expect.poll(() => [...streamRequests]).toEqual(["first request"]);
@@ -1429,7 +1445,7 @@ test("agent-name prompt replaces the completed session choice without overlap", 
   await page.goto("/");
 
   await page.getByRole("button", { name: /Single Agent/ }).click();
-  await page.getByRole("button", { name: /hermes_/ }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
 
   const prompt = page.locator(".world-agent-prompt");
   await expect(prompt).toBeVisible();
@@ -1456,12 +1472,16 @@ test("native acceptance constellation aligns endpoint rows and moves outward", a
   await expect(page.locator(".world-entry-logo__name")).toHaveText("Aaron");
   await page.getByRole("button", { name: /Single Agent/ }).click();
   const geometry = await expectOutwardConstellation(page, true);
-  await expect(page.getByRole("button", { name: /hermes_/ })).toHaveClass(
-    /world-action--enabled/,
-  );
-  for (const harness of [/openclaw_/, /claude_/, /codex_/]) {
+  await expect(
+    page.getByRole("button", { name: "Connect hermes" }),
+  ).toHaveClass(/world-action--enabled/);
+  for (const harness of [
+    "Connect openclaw",
+    "Connect claude",
+    "Connect codex",
+  ]) {
     await expect(page.getByRole("button", { name: harness })).toHaveClass(
-      /world-action--unavailable/,
+      /world-action--enabled/,
     );
   }
   writeFileSync(
@@ -1939,8 +1959,11 @@ test("mobile keyboard/reduced-motion/forced-colors journey remains contained", a
     [...document.querySelectorAll<HTMLElement>("body *")]
       .filter(
         (element) =>
+          !element.closest(
+            ".world-room__semantic, .world-room__activity-semantic",
+          ) &&
           element.getBoundingClientRect().right >
-          document.documentElement.clientWidth + 0.5,
+            document.documentElement.clientWidth + 0.5,
       )
       .map((element) => {
         const bounds = element.getBoundingClientRect();

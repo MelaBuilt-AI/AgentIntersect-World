@@ -322,7 +322,10 @@ const hermesProposal = (agent: AgentFixture) => ({
   },
 });
 
-function monitorBrowser(page: Page): BrowserIssues {
+function monitorBrowser(
+  page: Page,
+  expectedNotFoundPaths: readonly string[] = [],
+): BrowserIssues {
   const issues: BrowserIssues = {
     responses: [],
     requestFailures: [],
@@ -331,7 +334,10 @@ function monitorBrowser(page: Page): BrowserIssues {
     unexpectedFixtureRoutes: [],
   };
   page.on("response", (response: Response) => {
-    if (response.status() >= 400)
+    const expectedNotFound =
+      response.status() === 404 &&
+      expectedNotFoundPaths.includes(new URL(response.url()).pathname);
+    if (response.status() >= 400 && !expectedNotFound)
       issues.responses.push(`${response.status()} ${response.url()}`);
   });
   page.on("requestfailed", (request: Request) => {
@@ -340,7 +346,11 @@ function monitorBrowser(page: Page): BrowserIssues {
     );
   });
   page.on("console", (message) => {
-    if (message.type() === "error") issues.consoleErrors.push(message.text());
+    const expectedNotFound = expectedNotFoundPaths.includes(
+      new URL(message.location().url || "http://fixture.invalid").pathname,
+    );
+    if (message.type() === "error" && !expectedNotFound)
+      issues.consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => issues.pageErrors.push(error.message));
   return issues;
@@ -515,6 +525,22 @@ async function installTwoAgentFixture(
       const body = request.postDataJSON() as { readonly adapterId?: string };
       const agent = agents.find(
         (candidate) => candidate.adapterId === body.adapterId,
+      );
+      await fulfillJson(route, envelope(sessionFor(agent!)));
+      return;
+    }
+    const statusMatch = pathname.match(/\/agent-sessions\/([^/]+)\/status$/u);
+    if (statusMatch && method === "GET") {
+      const sessionId = decodeURIComponent(statusMatch[1]!);
+      const rosterAgent = roster.find(
+        (candidate) => candidate.worldSessionId === sessionId,
+      );
+      if (requireReconnect && rosterAgent?.connection === "stale") {
+        await fulfillJson(route, { error: "stale session unavailable" }, 404);
+        return;
+      }
+      const agent = agents.find(
+        (candidate) => candidate.sessionId === sessionId,
       );
       await fulfillJson(route, envelope(sessionFor(agent!)));
       return;
@@ -1042,7 +1068,8 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  const issues = monitorBrowser(page);
+  const expectedReconnectMiss = `/api/agent-sessions/${desktopAgents[1]!.sessionId}/status`;
+  const issues = monitorBrowser(page, [expectedReconnectMiss]);
   const receipt = newReceipt(
     "desktop-reconnect-terminal",
     "imported",

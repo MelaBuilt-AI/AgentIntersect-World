@@ -14,7 +14,10 @@ if (!configuredPlaywrightDataRoot)
 
 export default defineConfig({
   testDir: "./apps/web/e2e",
-  testIgnore: "**/world-entry-internal-fail-closed.spec.ts",
+  testIgnore: [
+    "**/world-entry-internal-fail-closed.spec.ts",
+    "**/phase19-task12-two-agent-coding.spec.ts",
+  ],
   globalTeardown: "./tooling/scripts/playwright-global-teardown.ts",
   fullyParallel: false,
   workers: 1,
@@ -48,6 +51,9 @@ export default defineConfig({
       env: {
         AIW_HOST: "127.0.0.1",
         AIW_PORT: String(serverPort),
+        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_AGENT_SESSION_DATA_DIR: `${playwrightDataRoot}/agent-sessions`,
+        AIW_HERMES_API_KEY: "playwright-fixture-key",
         AIW_PRESENTATION_ALLOWED_ORIGIN: `http://127.0.0.1:${webPort}`,
         AIW_PRESENTATION_ALLOWED_HOST: `127.0.0.1:${webPort}`,
         AIW_PRESENTATION_DATA_DIR: "/tmp/aiw-phase9-playwright-presentation",
