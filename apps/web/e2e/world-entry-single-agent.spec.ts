@@ -538,6 +538,13 @@ async function enterFixtureWorld(page: Page, path = "/") {
   ).toBeVisible();
   await page.getByLabel("Required agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
+  await expect(
+    page
+      .getByTestId("avatar-preview")
+      .locator(
+        '.imported-avatar-canvas[data-avatar-imported-id="cat-agent-01"]',
+      ),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 60_000 });
   const acceptAvatar = page.getByRole("button", {
     name: "Accept and save avatar",
   });
@@ -552,7 +559,7 @@ async function enterFixtureWorld(page: Page, path = "/") {
 test("@workstream-tracer deterministic Work Inspector stays truthful and keyboard accessible", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
@@ -638,7 +645,7 @@ test("@workstream-tracer deterministic Work Inspector stays truthful and keyboar
 test("@workstream-tracer-live reads and inspects only the current Phase 14 journey", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
   const phase14Requests: string[] = [];
@@ -1100,6 +1107,14 @@ async function completeJourney(
   }
   await page.getByLabel("Required agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Use Complete Avatar" }).click();
+  if (evidence !== "no-webgl")
+    await expect(
+      page
+        .getByTestId("avatar-preview")
+        .locator(
+          '.imported-avatar-canvas[data-avatar-imported-id="cat-agent-01"]',
+        ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 60_000 });
   const saveAvatar = page.getByRole("button", {
     name: "Accept and save avatar",
   });
