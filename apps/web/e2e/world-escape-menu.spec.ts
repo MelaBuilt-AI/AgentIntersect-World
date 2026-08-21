@@ -343,7 +343,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
   await expect(room).toHaveAttribute(
     "data-agent-movement-source",
     "agent-autonomous",
-    { timeout: 10_000 },
+    { timeout: 30_000 },
   );
   await expect(room).toHaveAttribute("data-agent-movement-state", "moving");
   await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Walk");

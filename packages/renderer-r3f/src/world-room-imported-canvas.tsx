@@ -53,6 +53,7 @@ import {
   selectRepositoryCityRenderPlan,
 } from "./repository-city-canvas.js";
 import type { RepositoryCityInstance } from "./repository-city-state.js";
+import { createWorldPointerEvents } from "./world-room-canvas.js";
 
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 const WORLD_AGENT_SPAWN_POSITIONS = [
@@ -1263,6 +1264,7 @@ export function WorldRoomCanvas({
   const agentAnimationSample = animationSamples.agent;
   return (
     <Canvas
+      events={createWorldPointerEvents}
       aria-hidden="true"
       className="world-room__canvas"
       data-testid="world-room-canvas"

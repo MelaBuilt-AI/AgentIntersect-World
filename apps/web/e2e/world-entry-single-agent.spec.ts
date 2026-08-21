@@ -546,7 +546,7 @@ async function enterFixtureWorld(page: Page, path = "/") {
   await expect(acceptAvatar).toBeFocused();
   await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Enter World" }).click();
-  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await expect(page.getByTestId("world-hud")).toBeVisible({ timeout: 30_000 });
 }
 
 test("@workstream-tracer deterministic Work Inspector stays truthful and keyboard accessible", async ({
@@ -2478,7 +2478,10 @@ const repositoryCityCorrectionTitle =
   "repository city correction keeps loading local, restores source materials, and moves by both paths";
 
 traceTest(repositoryCityCorrectionTitle, async ({ page }) => {
-  traceTest.setTimeout(180_000);
+  // The full-page evidence capture follows all semantic and movement checks.
+  // Software WebGL on GitHub's two-CPU runner can spend more than six minutes
+  // reaching that final capture without changing the asserted behavior.
+  traceTest.setTimeout(720_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");

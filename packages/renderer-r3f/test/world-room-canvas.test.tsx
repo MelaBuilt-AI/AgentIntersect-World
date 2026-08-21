@@ -743,8 +743,10 @@ describe("Phase 18 shared World room canvas", () => {
       expect(source).toContain("state?.heading");
       expect(source).toContain("CodingWorkHalo");
       expect(source).toContain('state?.workState === "coding"');
+      expect(source).toContain("events={createWorldPointerEvents}");
     }
     expect(imported).toContain('state?.workState === "coding"');
+    expect(procedural).toContain("if (target) connect?.(target)");
   });
 
   it("preserves scene, third-person camera, and avatars across an in-place floor transition", () => {

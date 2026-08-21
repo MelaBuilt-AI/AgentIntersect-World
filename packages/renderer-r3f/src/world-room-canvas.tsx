@@ -1,4 +1,10 @@
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+  Canvas,
+  events as createPointerEvents,
+  useFrame,
+  useThree,
+  type RootStore,
+} from "@react-three/fiber";
 import {
   useCallback,
   useEffect,
@@ -50,6 +56,20 @@ import {
 } from "./repository-city-state.js";
 
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
+
+export function createWorldPointerEvents(store: RootStore) {
+  const events = createPointerEvents(store);
+  const connect = events.connect;
+  return {
+    ...events,
+    connect(target: HTMLElement) {
+      // Canvas setup is asynchronous. A superseded canvas can finish setup
+      // after unmount, when R3F's internal event source has become null.
+      if (target) connect?.(target);
+    },
+  };
+}
+
 const WORLD_AGENT_SPAWN_POSITIONS = [
   [-4.2, 0, 0.8],
   [4.2, 0, 0.8],
@@ -1015,6 +1035,7 @@ export function WorldRoomCanvas({
   );
   return (
     <Canvas
+      events={createWorldPointerEvents}
       aria-hidden="true"
       className="world-room__canvas"
       data-testid="world-room-canvas"
