@@ -530,7 +530,9 @@ test("accepted user model plays exact Space and local gesture clips without tran
 test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
   page,
 }) => {
-  test.setTimeout(90_000);
+  // Software-rendered CI can spend more than 90 seconds reaching the final
+  // keyboard close after proving every preceding menu/focus contract.
+  test.setTimeout(180_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
   await installSessionFixture(page);
