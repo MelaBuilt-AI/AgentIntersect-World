@@ -660,7 +660,7 @@ describe("ClaudeCodeSessionAdapter", () => {
     "terminates the process group and quarantines on %s",
     async (kind) => {
       const fixture = await fixtureExecutable({ failure: "hang" });
-      const claude = adapter(fixture, { turnTimeoutMs: 40 });
+      const claude = adapter(fixture, { turnTimeoutMs: 500 });
       const created = await claude.createWorldSession(`world-${kind}`);
       const controller = new AbortController();
       const turn = claude.sendText(created.id, "bounded", {
@@ -685,7 +685,7 @@ describe("ClaudeCodeSessionAdapter", () => {
     const fixture = await fixtureExecutable({
       failure: "leader-exit-descendant",
     });
-    const claude = adapter(fixture, { turnTimeoutMs: 40 });
+    const claude = adapter(fixture, { turnTimeoutMs: 500 });
     const created = await claude.createWorldSession("world-descendant");
     const turn = claude.sendText(created.id, "bounded", {
       mode: "explore",

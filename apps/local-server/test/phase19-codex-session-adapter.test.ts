@@ -569,7 +569,7 @@ describe("CodexSessionAdapter", () => {
     "terminates the process group and quarantines on %s",
     async (kind) => {
       const fixture = await fixtureExecutable({ failure: "hang" });
-      const codex = adapter(fixture, { turnTimeoutMs: 40 });
+      const codex = adapter(fixture, { turnTimeoutMs: 500 });
       const created = await codex.createWorldSession(`world-${kind}`);
       const controller = new AbortController();
       const turn = codex.sendText(created.id, "bounded", {
@@ -595,9 +595,9 @@ describe("CodexSessionAdapter", () => {
     const fixture = await fixtureExecutable({
       failure: "leader-exit-descendant",
     });
-    const codex = adapter(fixture, { turnTimeoutMs: 40 });
+    const codex = adapter(fixture, { turnTimeoutMs: 500 });
     const created = await codex.createWorldSession("world-descendant");
-    // Attach before the 40 ms fixture timeout can elapse under a loaded CI runner.
+    // Attach before the bounded fixture timeout can elapse under a loaded CI runner.
     const turn = codex
       .sendText(created.id, "bounded", {
         mode: "explore",
