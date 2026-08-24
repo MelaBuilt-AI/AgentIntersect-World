@@ -215,6 +215,60 @@ describe("Phase 19 Task 13 recovery and migration", () => {
     ).toBeNull();
   });
 
+  it("hydrates every already-connected member while a stale member still blocks entry", async () => {
+    const hydrate = (
+      restoreModule as typeof restoreModule & {
+        restoreAvailableWorldEntryConstellationAgents?: (
+          client: Readonly<Record<string, unknown>>,
+          projection: Readonly<Record<string, unknown>>,
+        ) => Promise<readonly Readonly<Record<string, unknown>>[]>;
+      }
+    ).restoreAvailableWorldEntryConstellationAgents;
+    expect(typeof hydrate).toBe("function");
+    if (!hydrate) return;
+
+    const retainedProjection = {
+      ...projection,
+      entryReady: false,
+      truth: "previous-recovered" as const,
+      agents: projection.agents.map((agent, index) => ({
+        ...agent,
+        continuity:
+          index === 2 ? ("stale" as const) : ("previous-recovered" as const),
+        connection: index === 2 ? ("stale" as const) : ("connected" as const),
+      })),
+    };
+    const results = Object.fromEntries(
+      agents.map(([rosterId, adapterId, displayName, sessionId]) => [
+        rosterId,
+        acceptedResult(sessionId, adapterId, displayName, "previous-recovered"),
+      ]),
+    );
+    const restoreHermes = vi.fn().mockResolvedValue(results["roster-hermes"]);
+    const restoreConstellationAgent = vi.fn(
+      async (
+        _sessionId: string,
+        adapterId: "openclaw" | "codex" | "claude-code",
+      ) =>
+        results[
+          agents.find(([, candidate]) => candidate === adapterId)?.[0] ?? ""
+        ],
+    );
+
+    await expect(
+      hydrate({ restoreHermes, restoreConstellationAgent }, retainedProjection),
+    ).resolves.toMatchObject([
+      { rosterId: "roster-hermes", displayName: "Mr Fluff" },
+      { rosterId: "roster-openclaw", displayName: "Claw" },
+      { rosterId: "roster-claude", displayName: "Claude" },
+    ]);
+    expect(restoreHermes).toHaveBeenCalledWith("session-hermes");
+    expect(restoreConstellationAgent.mock.calls).toEqual([
+      ["session-openclaw", "openclaw"],
+      ["session-claude", "claude-code"],
+    ]);
+  });
+
   it("restores each exact active-World member through its owning adapter path", async () => {
     const results = Object.fromEntries(
       agents.map(([rosterId, adapterId, displayName, sessionId]) => [

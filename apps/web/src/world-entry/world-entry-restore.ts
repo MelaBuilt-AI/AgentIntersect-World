@@ -29,6 +29,49 @@ export type WorldEntryConstellationRestorePlan = {
   readonly agents: readonly WorldEntryConstellationRestoreAgent[];
 };
 
+type ConstellationAgent = ConstellationState["projection"]["agents"][number];
+
+function resolveConstellationAgent(
+  projection: ConstellationState["projection"],
+  agent: ConstellationAgent,
+  result: HermesConnectionResult | undefined,
+): WorldEntryConstellationRestoreAgent | null {
+  if (
+    !result ||
+    agent.worldInstanceId !== projection.worldInstanceId ||
+    (result.status !== "connected" && result.status !== "recovered") ||
+    result.continuity !== agent.continuity ||
+    result.session.sessionId !== agent.worldSessionId ||
+    result.session.adapterId !== agent.adapterId ||
+    result.history.sessionId !== agent.worldSessionId ||
+    result.history.continuity !== result.continuity ||
+    result.history.transcriptAuthority !== agent.adapterId ||
+    !result.proposal ||
+    result.proposal.sessionId !== agent.worldSessionId ||
+    !result.avatarAccepted ||
+    result.avatarSetup !== "complete" ||
+    result.history.avatarConsent?.state !== "accepted" ||
+    result.history.avatarConsent.current?.proposalId !==
+      result.proposal.proposalId ||
+    agent.connection !== "connected" ||
+    agent.avatar.status !== "accepted" ||
+    agent.avatar.sessionId !== agent.worldSessionId ||
+    agent.avatar.profileId !== result.proposal.proposalId
+  )
+    return null;
+  return {
+    rosterId: agent.rosterId,
+    adapterId: agent.adapterId,
+    displayName: agent.displayName,
+    worldSessionId: agent.worldSessionId,
+    continuity: result.continuity,
+    avatarProfileId: result.proposal.proposalId,
+    session: result.session,
+    proposal: result.proposal,
+    history: result.history,
+  };
+}
+
 export function resolveWorldEntryRestore(
   result: HermesConnectionResult,
 ): WorldEntryRestoreDisposition {
@@ -86,40 +129,13 @@ export function resolveWorldEntryConstellationRestore(
   for (const agent of [...projection.agents].sort(
     (left, right) => left.addedOrder - right.addedOrder,
   )) {
-    const result = results[agent.rosterId];
-    if (
-      !result ||
-      (result.status !== "connected" && result.status !== "recovered") ||
-      result.continuity !== agent.continuity ||
-      result.session.sessionId !== agent.worldSessionId ||
-      result.session.adapterId !== agent.adapterId ||
-      result.history.sessionId !== agent.worldSessionId ||
-      result.history.continuity !== result.continuity ||
-      result.history.transcriptAuthority !== agent.adapterId ||
-      !result.proposal ||
-      result.proposal.sessionId !== agent.worldSessionId ||
-      !result.avatarAccepted ||
-      result.avatarSetup !== "complete" ||
-      result.history.avatarConsent?.state !== "accepted" ||
-      result.history.avatarConsent.current?.proposalId !==
-        result.proposal.proposalId ||
-      agent.connection !== "connected" ||
-      agent.avatar.status !== "accepted" ||
-      agent.avatar.sessionId !== agent.worldSessionId ||
-      agent.avatar.profileId !== result.proposal.proposalId
-    )
-      return null;
-    agents.push({
-      rosterId: agent.rosterId,
-      adapterId: agent.adapterId,
-      displayName: agent.displayName,
-      worldSessionId: agent.worldSessionId,
-      continuity: result.continuity,
-      avatarProfileId: result.proposal.proposalId,
-      session: result.session,
-      proposal: result.proposal,
-      history: result.history,
-    });
+    const restored = resolveConstellationAgent(
+      projection,
+      agent,
+      results[agent.rosterId],
+    );
+    if (!restored) return null;
+    agents.push(restored);
   }
 
   const primary =
@@ -132,6 +148,47 @@ export function resolveWorldEntryConstellationRestore(
         agents,
       }
     : null;
+}
+
+export async function restoreAvailableWorldEntryConstellationAgents(
+  client: {
+    readonly restoreHermes: (
+      sessionId: string,
+    ) => Promise<HermesConnectionResult>;
+    readonly restoreConstellationAgent: (
+      sessionId: string,
+      adapterId: Exclude<Phase19AdapterId, "hermes">,
+    ) => Promise<HermesConnectionResult>;
+  },
+  projection: ConstellationState["projection"],
+): Promise<readonly WorldEntryConstellationRestoreAgent[]> {
+  const restored = await Promise.all(
+    [...projection.agents]
+      .sort((left, right) => left.addedOrder - right.addedOrder)
+      .filter(
+        (agent) =>
+          agent.connection === "connected" &&
+          (agent.continuity === "current" ||
+            agent.continuity === "previous-recovered"),
+      )
+      .map(async (agent) => {
+        try {
+          const result =
+            agent.adapterId === "hermes"
+              ? await client.restoreHermes(agent.worldSessionId)
+              : await client.restoreConstellationAgent(
+                  agent.worldSessionId,
+                  agent.adapterId,
+                );
+          return resolveConstellationAgent(projection, agent, result);
+        } catch {
+          return null;
+        }
+      }),
+  );
+  return restored.filter(
+    (agent): agent is WorldEntryConstellationRestoreAgent => agent !== null,
+  );
 }
 
 export async function restoreWorldEntryConstellation(

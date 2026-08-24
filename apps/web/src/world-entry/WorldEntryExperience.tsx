@@ -67,6 +67,7 @@ import {
 } from "./world-escape-menu-model.js";
 import {
   resolveWorldEntryRestore,
+  restoreAvailableWorldEntryConstellationAgents,
   restoreWorldEntryConstellation,
 } from "./world-entry-restore.js";
 import {
@@ -449,6 +450,36 @@ export function WorldEntryExperience({
           });
           setRestorePending(false);
           return;
+        }
+        const availableAgents =
+          await restoreAvailableWorldEntryConstellationAgents(
+            client,
+            retainedProjection,
+          );
+        if (!active) return;
+        setAcceptedAgentAvatars(
+          Object.fromEntries(
+            availableAgents.map((agent) => [
+              agent.rosterId,
+              avatarDraftFromProposal(agent.proposal),
+            ]),
+          ),
+        );
+        const primary =
+          availableAgents.find((agent) => agent.adapterId === "hermes") ??
+          availableAgents[0];
+        if (primary) {
+          setSession(primary.session);
+          setProposal(primary.proposal);
+          setAgentAvatar(avatarDraftFromProposal(primary.proposal));
+          window.localStorage.setItem(
+            SESSION_POINTER_KEY,
+            primary.session.sessionId,
+          );
+          updateChat({
+            type: "RESTORE_HISTORY",
+            messages: primary.history.messages,
+          });
         }
         dispatch({
           type: "RESTORE_CONSTELLATION",
