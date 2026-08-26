@@ -59,11 +59,20 @@ export function WorldPushToTalk({
   const utteranceGeneration = useRef(0);
   const activeUtterance = useRef<number | null>(null);
   const transcriptionAbort = useRef<AbortController | null>(null);
+  const activityOwned = useRef(false);
 
   const updatePhase = useCallback((next: VoicePhase) => {
     phaseRef.current = next;
     setPhase(next);
   }, []);
+
+  const clearActivity = useCallback(async () => {
+    if (!session || !activityOwned.current) return;
+    activityOwned.current = false;
+    await voiceClient
+      .markActivity(session.sessionId, null)
+      .catch(() => undefined);
+  }, [session, voiceClient]);
 
   const transcribeWav = useCallback(
     async (
@@ -111,12 +120,10 @@ export function WorldPushToTalk({
         wav.fill(0);
         if (transcriptionAbort.current === controller)
           transcriptionAbort.current = null;
-        await voiceClient
-          .markActivity(session.sessionId, null)
-          .catch(() => undefined);
+        await clearActivity();
       }
     },
-    [session, updatePhase, voiceClient],
+    [clearActivity, session, updatePhase, voiceClient],
   );
 
   const [capture, setCapture] = useState<VoiceCaptureController | null>(
@@ -155,10 +162,7 @@ export function WorldPushToTalk({
               ? "Microphone device was lost; capture was discarded. Typed text remains ready."
               : "Voice capture ended; typed text remains ready.",
           );
-          if (session)
-            void voiceClient
-              .markActivity(session.sessionId, null)
-              .catch(() => undefined);
+          void clearActivity();
         },
       });
     setCapture(next);
@@ -169,12 +173,9 @@ export function WorldPushToTalk({
       next.cancel();
       transcriptionAbort.current?.abort();
       transcriptionAbort.current = null;
-      if (session)
-        void voiceClient
-          .markActivity(session.sessionId, null)
-          .catch(() => undefined);
+      void clearActivity();
     };
-  }, [providedCapture, session, transcribeWav, updatePhase, voiceClient]);
+  }, [clearActivity, providedCapture, transcribeWav, updatePhase]);
 
   const browserAvailable = capture?.availability().available === true;
   const canUseVoice = available && Boolean(session) && browserAvailable;
@@ -296,6 +297,7 @@ export function WorldPushToTalk({
           return;
         }
         if (!session) return;
+        activityOwned.current = true;
         await voiceClient.markActivity(session.sessionId, "capture");
         if (generation !== utteranceGeneration.current) {
           capture.cancel();
@@ -314,6 +316,7 @@ export function WorldPushToTalk({
         holding.current = false;
         activeUtterance.current = null;
         capture.cancel();
+        void clearActivity();
         updatePhase("failed");
         setVoiceStatus(
           error instanceof Error
@@ -321,7 +324,15 @@ export function WorldPushToTalk({
             : "Voice capture failed. Typed text remains ready.",
         );
       });
-  }, [canHold, capture, session, stopCapture, updatePhase, voiceClient]);
+  }, [
+    canHold,
+    capture,
+    clearActivity,
+    session,
+    stopCapture,
+    updatePhase,
+    voiceClient,
+  ]);
 
   const releaseCapture = () => {
     if (!holding.current) return;
@@ -342,10 +353,7 @@ export function WorldPushToTalk({
     setVoiceStatus(
       "Voice input cancelled and discarded. Typed text remains ready.",
     );
-    if (session)
-      void voiceClient
-        .markActivity(session.sessionId, null)
-        .catch(() => undefined);
+    void clearActivity();
   };
 
   const unavailableReason =
