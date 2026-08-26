@@ -1446,12 +1446,57 @@
   white-space: nowrap;
 }
 
+.world-voice-input {
+  position: relative;
+  display: grid;
+}
+
 .world-hud__voice-reason {
-  grid-area: voice;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.55rem);
+  width: min(80vw, 28rem);
   margin: 0;
   color: #cbd5e1;
   font-size: 0.76rem;
   text-align: right;
+}
+
+.world-voice-surface {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.55rem);
+  z-index: 31;
+  display: grid;
+  gap: 0.45rem;
+  width: min(80vw, 34rem);
+  margin: 0;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  border-radius: 0.65rem;
+  padding: 0.65rem;
+  color: #e2e8f0;
+  background: rgba(3, 9, 20, 0.96);
+  font-size: 0.76rem;
+}
+
+.world-voice-surface p {
+  margin: 0;
+}
+
+.world-voice-surface textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+  border: 1px solid #64748b;
+  border-radius: 0.45rem;
+  padding: 0.55rem;
+  color: #fff;
+  background: #050b16;
+}
+
+.world-voice-surface > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
 }
 
 .world-escape-backdrop {

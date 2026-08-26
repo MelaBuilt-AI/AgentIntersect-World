@@ -1,10 +1,10 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-24
+Updated: 2026-08-26
 
 ## Current milestone
 
-### 2026-08-24 Phase 19 — AUTHORIZED / IN PROGRESS — TASK 13 USER-ACCEPTED; TASK 14 AND LATER CLOSED
+### 2026-08-26 Phase 19 — TASKS 13–14 USER-ACCEPTED; TASK 15+ CLOSED
 
 Aaron explicitly authorized **Phase 19 — Multi-Agent Constellation and Harness
 Breadth** on 2026-08-11. The branch is
@@ -32,20 +32,21 @@ criteria: four-member retained roster truth, stale Codex blocking, exact reconne
 without avatar recreation, Aaron plus all four distinct agents in World, direct
 refresh restoration without duplication/setup loops, and Repository City load at
 1 package, 1 directory, and 125 files with all agents and camera/movement usable.
-Task 14 and later remain closed.
+Task 14 is user-accepted after Aaron passed the complete 1–9 real-microphone/local-Whisper journey on 2026-08-26. Task 15 and later remain closed.
 
 Provider/model/profile changes, package installation, protected
 configuration/service mutation, and real protected session creation/turn/end
-remain unauthorized. Aaron authorized one private Task 13 acceptance-milestone
-commit/push on 2026-08-24. The three corrective source/test files and five
-canonical status/governance files form that exact milestone candidate; the final
-commit SHA and CI receipt belong in external delivery evidence rather than this
-self-containing commit. No PR/merge, Task 14+, tag, release, deployment,
-publication, public ingress, or visibility change is implied. Task 11 parent
+remain unauthorized. The Task 13 acceptance milestone is privately delivered;
+its final commit SHA and CI receipt belong in external delivery evidence rather
+than recursive status commits. No Task 14 commit/push, PR/merge, Task 15+, tag,
+release, deployment, publication, public ingress, or visibility change is
+authorized or implied. Task 11 parent
 receipt:
 `/home/mela_ai/.hermes/runs/aiw-phase19-task11-20260813/task11-parent-acceptance.md`.
 
 **Task 13 first-hand acceptance (2026-08-24):** preflight browser proof exposed one concrete retained-state composition defect: when a stale member blocked entry, reconnect hydrated only that member and omitted the already-connected accepted avatars. Strict RED→GREEN added one focused regression, reused the existing exact restore validation per connected member, and populated the retained primary session/avatar/history before reconnect. Parent proof passed the focused Task 13 file **6/6**, selected impacted web files **60/60**, package builds **18/18**, Prettier, ESLint, web typecheck, production Vite build, and a fresh fixture-assisted production-browser proof **22/22**. Aaron then reported `PASS all 1-8 worked exactly as you listed` from the fresh InPrivate Edge candidate. Receipt: `/home/mela_ai/.hermes/runs/aiw-phase19-task13-manual-20260824T114819Z/manual-acceptance-verdict.json`. Three fixture-only grouped-message requests returned intentional `501` responses, persisted no request bodies, and reached no native sessions. Aaron later confirmed that he mistakenly entered chat during the manual lane; these requests are operator-input evidence, not a product defect, and remain separate from the authoritative 8/8 acceptance verdict.
+
+**Task 14 user acceptance (2026-08-26):** normal World push-to-talk requires local-provider disclosure and explicit microphone enable, supports pointer/touch/focused-Space hold/release, reuses bounded Phase 15 WAV/local Whisper transcription, exposes only an editable final caption, and submits accepted text through the exact typed/grouped routing path with broadcast or one-send avatar target/reset. Typed chat remains available and normal World instantiates no speech playback. Parent inspection had already added one focused RED→GREEN correction for oversized audio callbacks; automated proof passed Phase 15 conformance **41/41**, selected World/Phase 19 tests **68/68**, repository typecheck **38/38 tasks**, build **20/20 tasks**, full ESLint, focused formatting, diff hygiene, Task 14 Playwright **1/1**, and impacted no-WebGL Playwright **1/1**. Aaron then reported `PASS 1-9` from a receipt-owned Edge lane using the production web bundle, production VoiceService, real staged local `whisper.cpp`, and disposable agent/message state. First-hand criteria passed disclosure-before-permission, explicit enable, pointer Cancel/no-send, focused-Space edited broadcast to all four agents, avatar-selected edited Codex-only routing, automatic broadcast reset, typed-chat availability, desktop/mobile containment, and physical device-loss discard. The lane recorded one extra typed `hi` broadcast as operator-input evidence; it is not a defect. Eleven capture requests produced eleven redacted operation records (seven completed, four failed/device-loss attempts), zero raw-audio fields in grouped payloads, idle final voice activity, and an empty volatile-audio root. Receipt: `/home/mela_ai/.hermes/runs/aiw-phase19-task14-manual-20260826T065547-0400/manual-acceptance-verdict.json`. Task 14 is user-accepted but not commit/push authorized; protected runtime mutation, Task 15+, Phase 20, PR/merge, release, and publication remain closed.
 
 **Task 13 parent verification (2026-08-20):** direct RED→GREEN implementation closes the missing browser composition seam. Startup queries retained constellation truth before the legacy Hermes pointer, restores two-to-four exact current/previous-recovered accepted sessions through their owning adapter paths, and projects the same active World without creating, attaching, or duplicating native identities. Stale accepted members restore visibly and keep entry blocked until explicit exact reconnect or non-destructive removal; reconnect reloads the accepted avatar. Existing lifecycle coverage remains green for ambiguous display-name refusal, same-World native continuity, idempotent OpenClaw/Codex/Claude teardown, later-World new IDs, persistent Hermes exclusion, and no constellation-to-Phase-16 worktree mutation. Node `v24.18.0` proof passed Task 13 **13/13**, full Phase 19 targeted **184/184**, selected affected web **58/58**, repository typecheck **38/38 tasks**, build **20/20 tasks**, lint, focused Prettier, diff hygiene, and Phase 16 conformance **41/41**. Full monorepo Vitest reached **1030/1033**: the Task 12 acceptance-command test passes **4/4** when its required evidence-directory environment variable is supplied, and the remaining two failures are unchanged safe-config fixtures that omit accepted `agentAdapters`. Implementation-only reconciliation kept HEAD unchanged, staging empty, 60/64 inherited paths byte-identical, four authorized inherited-dirty-path implementation/test edits, and exactly two newly dirty Task 13 paths. Canonical closeout then updated exactly five governance/status paths, leaving 55/64 inherited paths byte-identical and no missing paths. No protected harness/session lifecycle, delivery action, or Task 14+ work occurred.
 

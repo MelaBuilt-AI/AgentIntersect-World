@@ -1134,7 +1134,7 @@ async function completeJourney(
   await expect(page.getByTestId("world-hud")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Push to talk/ }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expectSharedHudBottomTrack(page);
   if (
     evidence === "desktop" ||

@@ -7,6 +7,8 @@ import {
   shouldConsumeWorldChatShortcut,
   type WorldTranscriptItem,
 } from "./world-chat-model.js";
+import type { WorldAgentSession } from "../sessions/session-client.js";
+import { WorldPushToTalk } from "./WorldPushToTalk.js";
 
 const inlineTokens = (text: string, keyPrefix: string): ReactNode[] => {
   const tokens = text.split(/(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__)/gu);
@@ -155,8 +157,10 @@ export function WorldHud({
   message,
   transcript,
   pushToTalkAvailable,
+  voiceSession = null,
   onMessage,
   onSend,
+  onVoiceSend = () => undefined,
 }: {
   readonly recipient: string;
   readonly status: string;
@@ -165,8 +169,10 @@ export function WorldHud({
   readonly message: string;
   readonly transcript: readonly WorldTranscriptItem[];
   readonly pushToTalkAvailable: boolean;
+  readonly voiceSession?: WorldAgentSession | null;
   readonly onMessage: (message: string) => void;
   readonly onSend: () => void;
+  readonly onVoiceSend?: (message: string) => void;
 }) {
   const transcriptRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -317,28 +323,12 @@ export function WorldHud({
             Send
           </button>
         </form>
-        <button
-          type="button"
-          className={
-            pushToTalkAvailable
-              ? "world-ptt world-action--enabled"
-              : "world-ptt world-action--unavailable"
-          }
-          disabled={!pushToTalkAvailable}
-          aria-disabled={!pushToTalkAvailable}
-          aria-describedby={
-            pushToTalkAvailable ? undefined : "world-ptt-unavailable"
-          }
-        >
-          <span aria-hidden="true">◉</span>
-          Push to talk
-        </button>
+        <WorldPushToTalk
+          available={pushToTalkAvailable}
+          session={voiceSession}
+          onAcceptedText={onVoiceSend}
+        />
       </div>
-      {!pushToTalkAvailable ? (
-        <p id="world-ptt-unavailable" className="world-hud__voice-reason">
-          Voice provider unavailable. Text chat remains ready.
-        </p>
-      ) : null}
     </div>
   );
 }

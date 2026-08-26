@@ -1076,10 +1076,9 @@ export function WorldEntryExperience({
     }
   };
 
-  const send = async () => {
-    if (!session || !message.trim()) return;
-    const classified = classifyWorldMessage(message);
-    setMessage("");
+  const sendText = async (input: string) => {
+    if (!session || !input.trim()) return;
+    const classified = classifyWorldMessage(input);
     if (classified.kind === "local-animation") {
       setUserAnimationCue({
         sequence: nextUserAnimationCue.current++,
@@ -1154,6 +1153,12 @@ export function WorldEntryExperience({
     setQueuedCount(pendingMessages.current.length);
     updateChat({ type: "QUEUE_MESSAGE", ...pending });
     void processChatQueue();
+  };
+
+  const send = async () => {
+    const input = message;
+    setMessage("");
+    await sendText(input);
   };
 
   const updatePreferences = (next: WorldDisplayPreferences) => {
@@ -1620,9 +1625,11 @@ export function WorldEntryExperience({
             queuedCount={queuedCount}
             message={message}
             transcript={chat.transcript}
-            pushToTalkAvailable={false}
+            pushToTalkAvailable={Boolean(session)}
+            voiceSession={session}
             onMessage={setMessage}
             onSend={() => void send()}
+            onVoiceSend={(text) => void sendText(text)}
           />
         ) : (
           <div className="world-entry-overlay" role="status" aria-live="polite">

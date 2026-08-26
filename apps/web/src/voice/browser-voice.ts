@@ -30,6 +30,12 @@ type MinimalTrack = {
   readonly label?: string;
   readonly readyState?: string;
   stop(): void;
+  addEventListener?(
+    type: "ended",
+    listener: () => void,
+    options?: { readonly once?: boolean },
+  ): void;
+  removeEventListener?(type: "ended", listener: () => void): void;
 };
 
 type MinimalStream = {
@@ -73,6 +79,7 @@ type CaptureOptions = {
     wav: Uint8Array,
     reason: "time-ceiling" | "size-ceiling",
   ) => Promise<void> | void;
+  readonly onTerminated?: (reason: "lost-device") => void;
   readonly setTimer?: (
     callback: () => void,
     milliseconds: number,
@@ -145,6 +152,7 @@ export class VoiceCaptureController {
   readonly #stopPlayback: () => void;
   readonly #fixtureSamples: Float32Array | undefined;
   readonly #onAutomaticStop: CaptureOptions["onAutomaticStop"];
+  readonly #onTerminated: CaptureOptions["onTerminated"];
   readonly #setTimer: NonNullable<CaptureOptions["setTimer"]>;
   readonly #clearTimer: NonNullable<CaptureOptions["clearTimer"]>;
   #state: VoiceCaptureSnapshot["state"] = "idle";
@@ -153,6 +161,7 @@ export class VoiceCaptureController {
     "Browser default microphone (label unavailable until permission)";
   #stopReason: VoiceCaptureSnapshot["stopReason"] = null;
   #stream: MinimalStream | null = null;
+  #track: MinimalTrack | null = null;
   #context: AudioContextLike | null = null;
   #source: AudioNodeLike | null = null;
   #processor: ProcessorLike | null = null;
@@ -176,6 +185,7 @@ export class VoiceCaptureController {
     this.#stopPlayback = options.stopPlayback ?? (() => undefined);
     this.#fixtureSamples = options.fixtureSamples;
     this.#onAutomaticStop = options.onAutomaticStop;
+    this.#onTerminated = options.onTerminated;
     this.#setTimer =
       options.setTimer ??
       ((callback, milliseconds) =>
@@ -280,6 +290,8 @@ export class VoiceCaptureController {
             "lost-device",
             "The microphone device was lost.",
           );
+        this.#track = track;
+        track.addEventListener?.("ended", this.#deviceEnded, { once: true });
         this.#context = this.#audioContext!();
         this.#source = this.#context.createMediaStreamSource(this.#stream);
         this.#processor = this.#context.createScriptProcessor(4096, 1, 1);
@@ -331,8 +343,14 @@ export class VoiceCaptureController {
     this.#stopReason = reason;
     this.#state = "stopped";
     this.#release();
-    const wav = encodePcm16Wav(resampleMono(samples, sourceRate), 16_000);
+    const resampled = resampleMono(samples, sourceRate);
+    const maxSamples = Math.min(
+      Math.floor((MAX_ENCODED_AUDIO_BYTES - 44) / 2),
+      Math.floor((MAX_UTTERANCE_MS * 16_000) / 1_000),
+    );
+    const wav = encodePcm16Wav(resampled.subarray(0, maxSamples), 16_000);
     samples.fill(0);
+    resampled.fill(0);
     this.#chunks = [];
     this.#sampleCount = 0;
     return wav;
@@ -360,6 +378,14 @@ export class VoiceCaptureController {
       .catch(() => undefined);
   }
 
+  readonly #deviceEnded = (): void => {
+    if (this.#state !== "listening") return;
+    this.cancel();
+    this.#stopReason = "lost-device";
+    this.#state = "failed";
+    this.#onTerminated?.("lost-device");
+  };
+
   #release(): void {
     if (this.#timer) this.#clearTimer(this.#timer);
     this.#timer = null;
@@ -367,10 +393,12 @@ export class VoiceCaptureController {
     this.#processor?.disconnect();
     this.#source?.disconnect();
     this.#stream?.getTracks().forEach((track) => track.stop());
+    this.#track?.removeEventListener?.("ended", this.#deviceEnded);
     void this.#context?.close().catch(() => undefined);
     this.#processor = null;
     this.#source = null;
     this.#stream = null;
+    this.#track = null;
     this.#context = null;
   }
 }

@@ -5,7 +5,10 @@ import {
   VoiceCaptureController,
   exactSessionBinding,
 } from "../src/voice/browser-voice.js";
-import { inspectPcm16Wav } from "@agentintersect-world/voice";
+import {
+  inspectPcm16Wav,
+  MAX_ENCODED_AUDIO_BYTES,
+} from "@agentintersect-world/voice";
 
 describe("Phase 15 browser capture and playback", () => {
   it("truthfully reports permission denied, no device, and unsupported audio", async () => {
@@ -52,6 +55,7 @@ describe("Phase 15 browser capture and playback", () => {
     let callback: (() => void) | undefined;
     const automaticStop = vi.fn((wav: Uint8Array, reason: string) => {
       expect(inspectPcm16Wav(wav).sampleRate).toBe(16_000);
+      expect(wav.byteLength).toBeLessThanOrEqual(MAX_ENCODED_AUDIO_BYTES);
       expect(reason).toBe("time-ceiling");
     });
     const controller = new VoiceCaptureController({
@@ -71,6 +75,111 @@ describe("Phase 15 browser capture and playback", () => {
       state: "stopped",
       sampleCount: 0,
       stopReason: "time-ceiling",
+    });
+  });
+
+  it("never emits a WAV beyond the 4 MiB capture ceiling", async () => {
+    let processor:
+      | {
+          onaudioprocess:
+            | ((event: {
+                inputBuffer: {
+                  getChannelData: (channel: number) => Float32Array;
+                };
+              }) => void)
+            | null;
+          connect: ReturnType<typeof vi.fn>;
+          disconnect: ReturnType<typeof vi.fn>;
+        }
+      | undefined;
+    const automaticStop = vi.fn((wav: Uint8Array, reason: string) => {
+      expect(reason).toBe("size-ceiling");
+      expect(wav.byteLength).toBeLessThanOrEqual(MAX_ENCODED_AUDIO_BYTES);
+    });
+    const track = { stop: vi.fn() };
+    const controller = new VoiceCaptureController({
+      getUserMedia: vi.fn().mockResolvedValue({
+        getTracks: () => [track],
+        getAudioTracks: () => [track],
+      }),
+      audioContext: () => ({
+        sampleRate: 16_000,
+        destination: {},
+        createMediaStreamSource: () => ({
+          connect: vi.fn(),
+          disconnect: vi.fn(),
+        }),
+        createScriptProcessor: () => {
+          processor = {
+            onaudioprocess: null,
+            connect: vi.fn(),
+            disconnect: vi.fn(),
+          };
+          return processor;
+        },
+        close: vi.fn().mockResolvedValue(undefined),
+      }),
+      onAutomaticStop: automaticStop,
+    });
+
+    await controller.enable();
+    await controller.start();
+    processor?.onaudioprocess?.({
+      inputBuffer: {
+        getChannelData: () => new Float32Array(MAX_ENCODED_AUDIO_BYTES / 2),
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(automaticStop).toHaveBeenCalledOnce();
+  });
+
+  it("discards capture immediately when the active microphone device is lost", async () => {
+    let ended: (() => void) | undefined;
+    const stop = vi.fn();
+    const track = {
+      label: "Fixture microphone",
+      stop,
+      addEventListener: (_type: "ended", listener: () => void) => {
+        ended = listener;
+      },
+      removeEventListener: vi.fn(),
+    };
+    const stream = {
+      getTracks: () => [track],
+      getAudioTracks: () => [track],
+    };
+    const processor = {
+      onaudioprocess: null,
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    };
+    const terminated = vi.fn();
+    const controller = new VoiceCaptureController({
+      getUserMedia: vi.fn().mockResolvedValue(stream),
+      audioContext: () => ({
+        sampleRate: 16_000,
+        destination: {},
+        createMediaStreamSource: () => ({
+          connect: vi.fn(),
+          disconnect: vi.fn(),
+        }),
+        createScriptProcessor: () => processor,
+        close: vi.fn().mockResolvedValue(undefined),
+      }),
+      onTerminated: terminated,
+    });
+
+    await controller.enable();
+    await controller.start();
+    ended?.();
+
+    expect(terminated).toHaveBeenCalledOnce();
+    expect(terminated).toHaveBeenCalledWith("lost-device");
+    expect(controller.snapshot()).toMatchObject({
+      state: "failed",
+      sampleCount: 0,
+      stopReason: "lost-device",
     });
   });
 
