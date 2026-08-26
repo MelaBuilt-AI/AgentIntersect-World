@@ -190,6 +190,7 @@ describe("acceptance command graph", () => {
       jobs: Record<
         string,
         {
+          "timeout-minutes"?: number;
           strategy?: { matrix?: { shard?: string[] } };
           steps: Array<{
             name?: string;
@@ -265,6 +266,7 @@ describe("acceptance command graph", () => {
       "3/4",
       "4/4",
     ]);
+    expect(workflow.jobs["e2e-flagged"]?.["timeout-minutes"]).toBe(30);
     expect(workflow.jobs["e2e-flagged"]?.steps).toContainEqual({
       name: "Upload flagged browser failure evidence",
       if: "failure()",
