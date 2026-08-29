@@ -45,7 +45,8 @@ function resolveConstellationAgent(
     result.session.adapterId !== agent.adapterId ||
     result.history.sessionId !== agent.worldSessionId ||
     result.history.continuity !== result.continuity ||
-    result.history.transcriptAuthority !== agent.adapterId ||
+    result.history.transcriptAuthority !==
+      (agent.adapterId === "hermes" ? "hermes" : "world-projection") ||
     !result.proposal ||
     result.proposal.sessionId !== agent.worldSessionId ||
     !result.avatarAccepted ||

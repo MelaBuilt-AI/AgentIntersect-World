@@ -112,6 +112,10 @@ export type WorldEntryEvent =
   | {
       readonly type: "RESTORE_CONSTELLATION";
       readonly enterWorld?: boolean;
+      readonly repository?: {
+        readonly generationId: string;
+        readonly projectionTruth: "current" | "previous-recovered";
+      };
       readonly agents: readonly {
         readonly rosterId: string;
         readonly adapterId: WorldEntryAdapterId;
@@ -428,10 +432,34 @@ export function reduceWorldEntry(
         )
       )
         return state;
+      const restoredRepository =
+        event.enterWorld !== false && event.repository
+          ? event.repository
+          : null;
       return projectSetupAuthority({
         ...state,
         step:
-          event.enterWorld === false ? "constellation_multi" : "world_blank",
+          event.enterWorld === false
+            ? "constellation_multi"
+            : restoredRepository
+              ? "world_repository"
+              : "world_blank",
+        ...(restoredRepository
+          ? {
+              repository: {
+                ...state.repository,
+                status: "active" as const,
+                request: "restored repository",
+                error: "",
+              },
+              world: {
+                ...state.world,
+                floor: "repository" as const,
+                generationId: restoredRepository.generationId,
+                projectionTruth: restoredRepository.projectionTruth,
+              },
+            }
+          : {}),
         sessionMode: "multi",
         roster: event.agents.map((agent) => ({
           rosterId: agent.rosterId,

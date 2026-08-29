@@ -148,6 +148,7 @@ describe("Phase 19 Task 10 multi-agent entry UI", () => {
         })),
         selectedRecipientId: "roster-claude",
         onSelectRecipient: () => undefined,
+        onClearRecipient: () => undefined,
         activity: { state: "idle", icon: "", label: "Idle", detail: "" },
       }),
     );
@@ -158,6 +159,8 @@ describe("Phase 19 Task 10 multi-agent entry UI", () => {
     ).toHaveLength(4);
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain("Send next message to Claude");
+    expect(html).toContain('aria-label="Clear Claude and send to all agents"');
+    expect(html).toContain("world-room__agent-target-clear");
     expect(html).toContain("position -4.2,0.8");
     expect(html).toContain("position 4.2,0.8");
     expect(html).toContain("position -3.2,-4");

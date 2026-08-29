@@ -117,6 +117,17 @@ export function registerConstellationMessageRoutes(
   );
 
   server.get(
+    "/constellation/messages",
+    {
+      schema: {
+        tags,
+        summary: "Read durable constellation message groups",
+      },
+    },
+    (request) => envelope.success(request, service.list()),
+  );
+
+  server.get(
     "/constellation/messages/:requestId",
     {
       schema: {

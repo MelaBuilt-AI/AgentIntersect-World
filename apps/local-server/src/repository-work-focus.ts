@@ -11,6 +11,7 @@ import type {
   WorldObject,
   WorldSnapshot,
 } from "@agentintersect-world/world-schema";
+import { matchesSelectedRepository } from "./repository-selection-authority.js";
 
 export type AdapterRepositoryLocator = {
   readonly operation: "read" | "edit" | "tool";
@@ -55,6 +56,7 @@ const TOOL_POLICIES: Readonly<
   Record<AdapterId, Readonly<Record<string, LocatorPolicy>>>
 > = {
   codex: {
+    command_execution: { operation: "read", fields: [] },
     file_change: { operation: "edit", fields: [] },
     read_file: { operation: "read", fields: ["path", "file_path"] },
     write_file: { operation: "edit", fields: ["path", "file_path"] },
@@ -110,6 +112,18 @@ export function extractAdapterRepositoryLocator(
   if (!isRecord(args)) return undefined;
   const policy = TOOL_POLICIES[adapterId][toolName.toLowerCase()];
   if (!policy) return undefined;
+  if (adapterId === "codex" && toolName.toLowerCase() === "command_execution") {
+    if (!Array.isArray(args.parsed_cmd) || args.parsed_cmd.length === 0)
+      return undefined;
+    const commands = args.parsed_cmd.filter(isRecord);
+    if (
+      commands.length !== args.parsed_cmd.length ||
+      commands.some((command) => command.type !== "read")
+    )
+      return undefined;
+    const paths = boundedLocatorPaths(commands.map((command) => command.path));
+    return paths ? { operation: "read", paths } : undefined;
+  }
   if (adapterId === "codex" && toolName.toLowerCase() === "file_change") {
     if (!Array.isArray(args.changes)) return undefined;
     const paths = boundedLocatorPaths(
@@ -217,7 +231,10 @@ export function resolveRepositoryWorkTarget(input: {
 }): Resolution {
   const { locator, selection } = input;
   if (
-    input.repositoryRef !== selection.snapshot.repositoryRef ||
+    !matchesSelectedRepository(
+      input.repositoryRef,
+      selection.snapshot.repositoryRef,
+    ) ||
     selection.generation.fingerprint !==
       selection.snapshot.generationFingerprint
   )

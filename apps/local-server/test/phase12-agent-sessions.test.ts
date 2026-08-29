@@ -17,6 +17,7 @@ import {
   HermesSessionAdapter,
   discoverDesignPreviews,
   type AgentAdapter,
+  type AdapterTurnEvent,
 } from "../src/agent-sessions.js";
 import type { RepositoryWorkFocusCoordinator } from "../src/repository-work-focus.js";
 
@@ -40,15 +41,7 @@ afterEach(async () => {
   for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true });
 });
 
-function focusAdapter(
-  events: readonly Parameters<
-    NonNullable<Parameters<AgentAdapter["sendText"]>[2]>["onEvent"] extends (
-      ...args: infer P
-    ) => unknown
-      ? P[0]
-      : never
-  >[],
-): AgentAdapter {
+function focusAdapter(events: readonly AdapterTurnEvent[]): AgentAdapter {
   return {
     id: "fixture",
     attest: async () => ({
@@ -159,6 +152,70 @@ it("cancels a superseded movement before an unresolvable replacement", async () 
   expect(gateway.currentWorkFocus(session.sessionId)).toMatchObject({
     activityId: "activity-a",
     state: "stale",
+  });
+});
+
+it("keeps a completed structured read moving long enough for visible arrival", async () => {
+  const adapter = focusAdapter([
+    {
+      type: "tool.started",
+      toolName: "Read",
+      activityId: "activity-read",
+      repositoryLocator: { operation: "read", paths: ["src/a.ts"] },
+      redaction: { applied: true, count: 1 },
+    },
+    {
+      type: "tool.completed",
+      toolName: "Read",
+      activityId: "activity-read",
+      repositoryLocator: { operation: "read", paths: ["src/a.ts"] },
+      redaction: { applied: true, count: 1 },
+    },
+  ]);
+  const gateway = new AgentSessionGateway({
+    registry: new AdapterRegistry([adapter]),
+    store: new AgentSessionStore(newRoot()),
+  });
+  const stopped: string[] = [];
+  gateway.setRepositoryWorkFocusCoordinator({
+    start: async ({ session, rosterId, activityId }) => ({
+      schema: "aiw.agent-work-focus/0.19",
+      activityId,
+      rosterId,
+      worldSessionId: session.sessionId,
+      repositoryRef: session.repositoryRef,
+      objectRef: "aiw://object/file-a",
+      objectKind: "file",
+      repositoryPath: "src/a.ts",
+      layoutGeneration: `layout-${"a".repeat(64)}`,
+      movementRequestId: "movement-read",
+      source: "structured-tool-event",
+      state: "navigating",
+    }),
+    stop: async (focus, state) => {
+      stopped.push(state);
+      return { ...focus, state };
+    },
+  } as RepositoryWorkFocusCoordinator);
+  const session = await gateway.attach({
+    adapterId: "fixture",
+    adapterSessionRef: "native-read",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+    mode: "explore",
+  });
+
+  await gateway.sendText(session.sessionId, {
+    text: "read the file",
+    binding: session,
+  });
+
+  expect(stopped).toEqual([]);
+  expect(gateway.currentWorkFocus(session.sessionId)).toMatchObject({
+    activityId: "activity-read",
+    movementRequestId: "movement-read",
+    state: "navigating",
   });
 });
 

@@ -16,7 +16,7 @@ import {
 } from "./agent-sessions.js";
 import { extractAdapterRepositoryLocator } from "./repository-work-focus.js";
 
-export const CODEX_CLI_VERSION = "0.147.0";
+export const CODEX_CLI_VERSION = "0.149.1";
 
 const CODEX_MODEL = "gpt-5.6-sol";
 const CODEX_REASONING = 'model_reasoning_effort="high"';
@@ -173,6 +173,34 @@ function isToolItem(item: Record<string, unknown>): boolean {
     "mcp_tool_call",
     "web_search",
   ].includes(String(item.type));
+}
+
+function codexRepositoryLocator(
+  item: Record<string, unknown>,
+): AdapterTurnEvent["repositoryLocator"] {
+  const toolName = safeToolName(item);
+  const structured = extractAdapterRepositoryLocator(
+    "codex",
+    toolName,
+    item.type === "file_change" || item.type === "command_execution"
+      ? item
+      : item.arguments,
+  );
+  if (structured || item.type !== "command_execution") return structured;
+  const command = item.command;
+  if (typeof command !== "string") return undefined;
+  const pathPattern = "([A-Za-z0-9][A-Za-z0-9._/-]{0,255})";
+  const exactRead = [
+    new RegExp(`^cat ${pathPattern}$`, "u"),
+    new RegExp(`^/bin/bash -lc 'cat ${pathPattern}'$`, "u"),
+    new RegExp(`^/bin/bash -lc \"cat ${pathPattern}\"$`, "u"),
+  ]
+    .map((pattern) => pattern.exec(command))
+    .find((match) => match?.[1]);
+  if (!exactRead?.[1]) return undefined;
+  return extractAdapterRepositoryLocator("codex", toolName, {
+    parsed_cmd: [{ type: "read", path: exactRead[1] }],
+  });
 }
 
 export class CodexSessionAdapter implements AgentAdapter {
@@ -543,11 +571,7 @@ export class CodexSessionAdapter implements AgentAdapter {
             : undefined;
         const locator =
           event.type === "item.started"
-            ? extractAdapterRepositoryLocator(
-                "codex",
-                safeToolName(item),
-                item.type === "file_change" ? item : item.arguments,
-              )
+            ? codexRepositoryLocator(item)
             : activityId
               ? toolLocators.get(activityId)
               : undefined;

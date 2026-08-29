@@ -480,6 +480,43 @@ describe("replacement imported avatar creator", () => {
     });
   });
 
+  it("uses each imported model's verified Idle clip for the temporary Work/static fallback", () => {
+    expect(
+      worldImportedAvatarSelection(
+        importedDraft("cat-agent-02"),
+        "Work",
+        "agent",
+      ),
+    ).toMatchObject({
+      assetId: "cat-agent-02",
+      resolvedClip: {
+        clipIndex: 0,
+        clipName: "NlaTrack",
+        locomotion: "Idle",
+        semantic: "Idle",
+        verification: "semantic-review-pass",
+        error: "",
+      },
+    });
+    expect(
+      worldImportedAvatarSelection(
+        importedDraft("cat-agent-03"),
+        "Work",
+        "agent",
+      ),
+    ).toMatchObject({
+      assetId: "cat-agent-03",
+      resolvedClip: {
+        clipIndex: 18,
+        clipName: "NlaTrack.018",
+        locomotion: "Idle",
+        semantic: "Idle",
+        verification: "semantic-review-pass",
+        error: "",
+      },
+    });
+  });
+
   it("refuses the measured dog pair without loading or substituting either GLB", () => {
     let source = createModularImportedAvatarSource("dog-agent-01");
     for (const slot of [

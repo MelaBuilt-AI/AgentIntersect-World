@@ -111,6 +111,30 @@ describe("Phase 19 Task 12 repository target resolution", () => {
     });
   });
 
+  it("resolves the dynamic current repository alias without accepting another pinned repository", () => {
+    expect(
+      resolveRepositoryWorkTarget({
+        locator: { operation: "read", paths: ["src/index.ts"] },
+        repositoryRef: "current",
+        selection: selection(),
+      }),
+    ).toMatchObject({
+      ok: true,
+      target: {
+        repositoryRef,
+        objectRef: "aiw://object/file-index",
+        repositoryPath: "src/index.ts",
+      },
+    });
+    expect(
+      resolveRepositoryWorkTarget({
+        locator: { operation: "read", paths: ["src/index.ts"] },
+        repositoryRef: "aiw://object/another-repository",
+        selection: selection(),
+      }).ok,
+    ).toBe(false);
+  });
+
   it("uses the nearest live directory and deepest common live ancestor", () => {
     const current = selection();
     expect(

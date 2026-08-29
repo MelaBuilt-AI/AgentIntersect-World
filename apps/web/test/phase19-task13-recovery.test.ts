@@ -75,7 +75,8 @@ const acceptedResult = (
       sessionId,
       continuity,
       messages: [],
-      transcriptAuthority: adapterId,
+      transcriptAuthority:
+        adapterId === "hermes" ? "hermes" : "world-projection",
       avatarConsent: {
         state: "accepted",
         current: proposal,

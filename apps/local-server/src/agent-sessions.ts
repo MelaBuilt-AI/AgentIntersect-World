@@ -1450,6 +1450,7 @@ export class AgentSessionGateway {
   readonly #busy = new Set<string>();
   readonly #workFocus = new Map<string, AgentRepositoryWorkFocus>();
   readonly #workFocusTerminalAt = new Map<string, number>();
+  readonly #workFocusCompletionTimers = new Map<string, NodeJS.Timeout>();
   #workFocusCoordinator: RepositoryWorkFocusCoordinator | null = null;
   #workFocusRecoveryResolver:
     | ((
@@ -1550,6 +1551,9 @@ export class AgentSessionGateway {
   }
 
   clearWorkFocus(sessionId: string): void {
+    const timer = this.#workFocusCompletionTimers.get(sessionId);
+    if (timer) clearTimeout(timer);
+    this.#workFocusCompletionTimers.delete(sessionId);
     this.#workFocus.delete(sessionId);
     this.#workFocusTerminalAt.delete(sessionId);
   }
@@ -1999,6 +2003,10 @@ export class AgentSessionGateway {
               event.repositoryLocator &&
               this.#workFocusCoordinator
             ) {
+              const completionTimer =
+                this.#workFocusCompletionTimers.get(sessionId);
+              if (completionTimer) clearTimeout(completionTimer);
+              this.#workFocusCompletionTimers.delete(sessionId);
               const previous = this.#workFocus.get(sessionId);
               if (previous) {
                 const stale = await this.#workFocusCoordinator.stop(
@@ -2025,20 +2033,40 @@ export class AgentSessionGateway {
             ) {
               const focus = this.#workFocus.get(sessionId);
               if (focus?.activityId === event.activityId) {
-                const terminal = this.#workFocusCoordinator
-                  ? await this.#workFocusCoordinator.stop(
-                      focus,
-                      event.type === "tool.completed" ? "completed" : "failed",
-                    )
-                  : {
-                      ...focus,
-                      state:
-                        event.type === "tool.completed"
-                          ? ("completed" as const)
-                          : ("failed" as const),
-                    };
-                this.#workFocus.set(sessionId, terminal);
-                this.#workFocusTerminalAt.set(sessionId, Date.now());
+                const activityId = event.activityId;
+                const terminalState =
+                  event.type === "tool.completed" ? "completed" : "failed";
+                const terminalize = async () => {
+                  const current = this.#workFocus.get(sessionId);
+                  if (!current || current.activityId !== activityId) return;
+                  const terminal = this.#workFocusCoordinator
+                    ? await this.#workFocusCoordinator.stop(
+                        current,
+                        terminalState,
+                      )
+                    : {
+                        ...current,
+                        state:
+                          terminalState === "completed"
+                            ? ("completed" as const)
+                            : ("failed" as const),
+                      };
+                  this.#workFocus.set(sessionId, terminal);
+                  this.#workFocusTerminalAt.set(sessionId, Date.now());
+                  this.#workFocusCompletionTimers.delete(sessionId);
+                };
+                if (event.type === "tool.completed") {
+                  const previousTimer =
+                    this.#workFocusCompletionTimers.get(sessionId);
+                  if (previousTimer) clearTimeout(previousTimer);
+                  const timer = setTimeout(() => {
+                    void terminalize().catch(() => undefined);
+                  }, 15_000);
+                  timer.unref();
+                  this.#workFocusCompletionTimers.set(sessionId, timer);
+                } else {
+                  await terminalize();
+                }
               }
             }
             if (event.type === "assistant.delta")

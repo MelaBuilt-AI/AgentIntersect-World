@@ -350,6 +350,8 @@ export type WorldChatAction =
   | {
       readonly type: "RESTORE_HISTORY";
       readonly messages: SessionHistory["messages"];
+      readonly groups?: readonly ConstellationMessageGroup[];
+      readonly displayNames?: Readonly<Record<string, string>>;
     }
   | {
       readonly type: "QUEUE_MESSAGE";
@@ -443,6 +445,33 @@ const append = (
   transcript: [...state.transcript, item].slice(-200),
 });
 
+const groupRows = (
+  group: ConstellationMessageGroup,
+  displayNames: Readonly<Record<string, string>>,
+): WorldTranscriptItem[] =>
+  group.recipients.map((recipient) => ({
+    id: `group-${group.groupId}-${recipient.rosterId}`,
+    kind:
+      recipient.state === "completed"
+        ? ("assistant" as const)
+        : recipient.state === "queued" || recipient.state === "streaming"
+          ? ("tool" as const)
+          : ("error" as const),
+    text:
+      recipient.finalText ??
+      recipient.errorLabel ??
+      `Agent turn ${recipient.state}`,
+    recipient: displayNames[recipient.rosterId] ?? recipient.rosterId,
+  }));
+
+const terminalGroupStates = new Set([
+  "completed",
+  "unavailable",
+  "failed",
+  "cancelled",
+  "interrupted",
+]);
+
 const withAnimationCue = (
   state: WorldChatState,
   cue: ReturnType<typeof projectAgentAnimationCue>,
@@ -503,7 +532,26 @@ export function reduceWorldChat(
   action: WorldChatAction,
 ): WorldChatState {
   if (action.type === "RESET_PRESENTATION") return createWorldChatState();
-  if (action.type === "RESTORE_HISTORY")
+  if (action.type === "RESTORE_HISTORY") {
+    if (action.groups?.length) {
+      const displayNames = action.displayNames ?? {};
+      return {
+        activity: IDLE,
+        transcript: action.groups
+          .flatMap((group) => [
+            {
+              id: `group-${group.groupId}-user`,
+              kind: "user" as const,
+              text: group.text,
+            },
+            ...groupRows(group, displayNames),
+          ])
+          .slice(-200),
+        activeAssistantId: null,
+        animationCue: null,
+        nextAnimationCueSequence: 1,
+      };
+    }
     return {
       activity: IDLE,
       transcript: action.messages.slice(-200).map((message, index) => ({
@@ -515,6 +563,7 @@ export function reduceWorldChat(
       animationCue: null,
       nextAnimationCueSequence: 1,
     };
+  }
   if (action.type === "QUEUE_MESSAGE")
     return append(state, {
       id: `user-${action.id}`,
@@ -564,22 +613,25 @@ export function reduceWorldChat(
     );
   }
   if (action.type === "GROUP_COMPLETED") {
+    const rowIds = new Set(
+      action.group.recipients.map(
+        (recipient) => `group-${action.group.groupId}-${recipient.rosterId}`,
+      ),
+    );
     const transcript = [
-      ...state.transcript,
-      ...action.group.recipients.map((recipient) => ({
-        id: `group-${action.group.groupId}-${recipient.rosterId}`,
-        kind:
-          recipient.state === "completed"
-            ? ("assistant" as const)
-            : ("error" as const),
-        text:
-          recipient.finalText ??
-          recipient.errorLabel ??
-          `Agent turn ${recipient.state}`,
-        recipient:
-          action.displayNames[recipient.rosterId] ?? recipient.rosterId,
-      })),
+      ...state.transcript.filter(({ id }) => !rowIds.has(id)),
+      ...groupRows(action.group, action.displayNames),
     ].slice(-200);
+    const terminal = action.group.recipients.every((recipient) =>
+      terminalGroupStates.has(recipient.state),
+    );
+    if (!terminal)
+      return {
+        ...state,
+        transcript,
+        activeAssistantId: null,
+        activity: thinkingActivity(),
+      };
     const failed = action.group.recipients.some(
       (recipient) => recipient.state !== "completed",
     );

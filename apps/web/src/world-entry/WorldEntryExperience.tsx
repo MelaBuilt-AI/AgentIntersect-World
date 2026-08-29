@@ -306,6 +306,9 @@ export function WorldEntryExperience({
   );
   const [restorePending, setRestorePending] = useState(true);
   const [chatBusy, setChatBusy] = useState(false);
+  const [activeMessageRosterIds, setActiveMessageRosterIds] = useState<
+    readonly string[]
+  >([]);
   const [queuedCount, setQueuedCount] = useState(0);
   const [userAnimationCue, setUserAnimationCue] = useState<{
     readonly sequence: number;
@@ -404,12 +407,62 @@ export function WorldEntryExperience({
           ? currentConstellation.projection
           : null;
       if (retainedProjection) {
-        const plan = await restoreWorldEntryConstellation(
+        let restoreProjection = retainedProjection;
+        const restoredRepository = await client.currentRepository();
+        const restoredMessageGroups = await groupedClient
+          .messageGroups()
+          .catch(() => []);
+        const applyRestoredRepository = () => {
+          if (!restoredRepository) return;
+          const nextObjects = renderObjects(restoredRepository.snapshot);
+          setObjects(nextObjects);
+          setLayoutGeneration(`layout-${restoredRepository.generationId}`);
+          setActiveRepositoryAuthority(restoredRepository.repository);
+          setRepositoryReadiness("loading");
+        };
+        let plan = await restoreWorldEntryConstellation(
           client,
-          retainedProjection,
+          restoreProjection,
         );
+        let availableAgents:
+          | Awaited<
+              ReturnType<typeof restoreAvailableWorldEntryConstellationAgents>
+            >
+          | undefined;
+        if (!plan) {
+          availableAgents = await restoreAvailableWorldEntryConstellationAgents(
+            client,
+            restoreProjection,
+          );
+          const refreshedConstellation = await client
+            .currentConstellation()
+            .catch(() => null);
+          const refreshedProjection = refreshedConstellation?.projection;
+          if (
+            refreshedProjection?.mode === "multi-agent" &&
+            refreshedProjection.worldInstanceId ===
+              restoreProjection.worldInstanceId &&
+            refreshedProjection.lifecycle !== "ended" &&
+            refreshedProjection.entryReady &&
+            refreshedProjection.agents.length >= 2 &&
+            refreshedProjection.agents.length <= 4 &&
+            refreshedProjection.agents.every(
+              (agent) =>
+                agent.avatar.status === "accepted" &&
+                typeof agent.avatar.profileId === "string" &&
+                agent.avatar.sessionId === agent.worldSessionId,
+            )
+          ) {
+            restoreProjection = refreshedProjection;
+            setConstellation(restoreProjection);
+            plan = await restoreWorldEntryConstellation(
+              client,
+              restoreProjection,
+            );
+          }
+        }
         if (!active) return;
-        setConstellation(retainedProjection);
+        setConstellation(restoreProjection);
         if (plan) {
           const primary = plan.agents.find(
             (agent) => agent.rosterId === plan.primaryRosterId,
@@ -433,12 +486,33 @@ export function WorldEntryExperience({
           updateChat({
             type: "RESTORE_HISTORY",
             messages: primary.history.messages,
+            groups: restoredMessageGroups.filter((group) =>
+              group.recipientRosterIds.every((rosterId) =>
+                restoreProjection.agents.some(
+                  (agent) => agent.rosterId === rosterId,
+                ),
+              ),
+            ),
+            displayNames: Object.fromEntries(
+              restoreProjection.agents.map((agent) => [
+                agent.rosterId,
+                agent.displayName,
+              ]),
+            ),
           });
           setStatus(
             "agent constellation restored · avatar identities preserved",
           );
           dispatch({
             type: "RESTORE_CONSTELLATION",
+            ...(restoredRepository
+              ? {
+                  repository: {
+                    generationId: restoredRepository.generationId,
+                    projectionTruth: restoredRepository.status,
+                  },
+                }
+              : {}),
             agents: plan.agents.map((agent) => ({
               rosterId: agent.rosterId,
               adapterId: agent.adapterId,
@@ -448,26 +522,31 @@ export function WorldEntryExperience({
               avatarProfileId: agent.avatarProfileId,
             })),
           });
+          applyRestoredRepository();
+          if (restoredRepository) {
+            setStatus("agent constellation and repository restored");
+          }
           setRestorePending(false);
           return;
         }
-        const availableAgents =
-          await restoreAvailableWorldEntryConstellationAgents(
+        const restoredAgents =
+          availableAgents ??
+          (await restoreAvailableWorldEntryConstellationAgents(
             client,
-            retainedProjection,
-          );
+            restoreProjection,
+          ));
         if (!active) return;
         setAcceptedAgentAvatars(
           Object.fromEntries(
-            availableAgents.map((agent) => [
+            restoredAgents.map((agent) => [
               agent.rosterId,
               avatarDraftFromProposal(agent.proposal),
             ]),
           ),
         );
         const primary =
-          availableAgents.find((agent) => agent.adapterId === "hermes") ??
-          availableAgents[0];
+          restoredAgents.find((agent) => agent.adapterId === "hermes") ??
+          restoredAgents[0];
         if (primary) {
           setSession(primary.session);
           setProposal(primary.proposal);
@@ -479,12 +558,25 @@ export function WorldEntryExperience({
           updateChat({
             type: "RESTORE_HISTORY",
             messages: primary.history.messages,
+            groups: restoredMessageGroups.filter((group) =>
+              group.recipientRosterIds.every((rosterId) =>
+                restoreProjection.agents.some(
+                  (agent) => agent.rosterId === rosterId,
+                ),
+              ),
+            ),
+            displayNames: Object.fromEntries(
+              restoreProjection.agents.map((agent) => [
+                agent.rosterId,
+                agent.displayName,
+              ]),
+            ),
           });
         }
         dispatch({
           type: "RESTORE_CONSTELLATION",
           enterWorld: false,
-          agents: retainedProjection.agents.map((agent) => ({
+          agents: restoreProjection.agents.map((agent) => ({
             rosterId: agent.rosterId,
             adapterId: agent.adapterId,
             agentName: agent.displayName,
@@ -501,6 +593,7 @@ export function WorldEntryExperience({
             avatarProfileId: agent.avatar.profileId!,
           })),
         });
+        applyRestoredRepository();
         setStatus(
           "agent constellation retained · reconnect or remove stale agents",
         );
@@ -589,7 +682,7 @@ export function WorldEntryExperience({
     return () => {
       active = false;
     };
-  }, [client]);
+  }, [client, groupedClient]);
 
   useEffect(() => {
     if (restorePending) return;
@@ -1013,12 +1106,44 @@ export function WorldEntryExperience({
         if (!current) break;
         setQueuedCount(pendingMessages.current.length);
         updateChat({ type: "SEND_STARTED", id: current.id });
+        setActiveMessageRosterIds(
+          state.sessionMode === "multi"
+            ? current.targetRosterId
+              ? [current.targetRosterId]
+              : (constellation?.agents.map((agent) => agent.rosterId) ?? [])
+            : [session.sessionId],
+        );
         const controller = new AbortController();
         activeChatAbort.current = controller;
+        let groupPoll: number | null = null;
         try {
           let groupedAnswer: ConstellationMessageGroup | null = null;
           let singleAnswer: { readonly finalText: string } | null = null;
-          if (state.sessionMode === "multi")
+          if (state.sessionMode === "multi") {
+            const projectGroup = (group: ConstellationMessageGroup) => {
+              if (
+                mounted.current &&
+                presentationGeneration.current === generation
+              )
+                updateChat({
+                  type: "GROUP_COMPLETED",
+                  group,
+                  displayNames: Object.fromEntries(
+                    (constellation?.agents ?? []).map((agent) => [
+                      agent.rosterId,
+                      agent.displayName,
+                    ]),
+                  ),
+                });
+            };
+            groupPoll = window.setInterval(
+              () =>
+                void groupedClient
+                  .messageGroup(current.requestId)
+                  .then(projectGroup)
+                  .catch(() => undefined),
+              500,
+            );
             groupedAnswer = await groupedClient.sendGrouped(current.text, {
               requestId: current.requestId,
               idempotencyKey: current.idempotencyKey,
@@ -1028,7 +1153,7 @@ export function WorldEntryExperience({
               userDisplayName: profile.agentName,
               signal: controller.signal,
             });
-          else
+          } else
             singleAnswer = await client.sendExactSession(
               session,
               current.text,
@@ -1063,6 +1188,8 @@ export function WorldEntryExperience({
           if (mounted.current && presentationGeneration.current === generation)
             updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
         } finally {
+          if (groupPoll !== null) window.clearInterval(groupPoll);
+          setActiveMessageRosterIds([]);
           if (activeChatAbort.current === controller)
             activeChatAbort.current = null;
         }
@@ -1189,6 +1316,7 @@ export function WorldEntryExperience({
     processedMovementActions.current.clear();
     processedMovementOutcomes.current.clear();
     setChatBusy(false);
+    setActiveMessageRosterIds([]);
     setQueuedCount(0);
     setError("");
     setStatus("Restored user avatar · Current");
@@ -1578,7 +1706,12 @@ export function WorldEntryExperience({
               );
               if (target) setStatus(`Next message recipient · ${target.name}`);
             }}
+            onClearRecipient={() => {
+              setSelectedRecipientId(null);
+              setStatus("Next message recipient · All agents");
+            }}
             activity={chat.activity}
+            activeAgentRosterIds={activeMessageRosterIds}
             userCue={userAnimationCue}
             agentCue={chat.animationCue}
             agentActorId={movementSessionId}

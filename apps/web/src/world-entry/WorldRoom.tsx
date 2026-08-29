@@ -177,7 +177,9 @@ export function WorldRoom({
   agentAvatars,
   selectedRecipientId = null,
   onSelectRecipient,
+  onClearRecipient,
   activity,
+  activeAgentRosterIds = [],
   userCue,
   agentCue,
   agentActorId,
@@ -213,7 +215,9 @@ export function WorldRoom({
   }[];
   readonly selectedRecipientId?: string | null;
   readonly onSelectRecipient?: ((rosterId: string) => void) | undefined;
+  readonly onClearRecipient?: (() => void) | undefined;
   readonly activity: WorldActivity;
+  readonly activeAgentRosterIds?: readonly string[];
   readonly userCue?:
     | {
         readonly sequence: number;
@@ -291,6 +295,27 @@ export function WorldRoom({
           },
         ]
   ).slice(0, 4);
+  const activeRoster = new Set(activeAgentRosterIds);
+  const renderedAgentActivities = renderedAgents.map((agent) =>
+    activeRoster.has(agent.rosterId)
+      ? {
+          ...activity,
+          label:
+            activity.state === "thinking"
+              ? `${agent.name} is thinking`
+              : activity.state === "completed"
+                ? `${agent.name} completed the request`
+                : activity.state === "failed"
+                  ? `${agent.name} failed`
+                  : `${agent.name} is ${activity.detail || activity.state}`,
+        }
+      : {
+          state: "idle" as const,
+          icon: "",
+          label: `${agent.name} is idle`,
+          detail: "" as const,
+        },
+  );
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
     createAgentMovementState(
@@ -1477,7 +1502,8 @@ export function WorldRoom({
   const renderedAgentImports = renderedAgents.map(({ avatar }, index) =>
     worldImportedAvatarSelection(
       avatar,
-      index === 0 ? agentAction : "Idle",
+      renderedAgentStates[index]?.action ??
+        (index === 0 ? agentAction : "Idle"),
       "agent",
     ),
   );
@@ -1781,18 +1807,34 @@ export function WorldRoom({
       >
         {renderedAgents.map((agent, index) => {
           const position = WORLD_AGENT_SPAWN_POSITIONS[index]!;
+          const selected = selectedRecipientId === agent.rosterId;
           return (
-            <button
+            <span
               key={agent.rosterId}
-              type="button"
-              className="world-room__agent-target world-action--enabled"
-              aria-label={`Send next message to ${agent.name}`}
-              aria-pressed={selectedRecipientId === agent.rosterId}
-              data-spawn={`${position.x},${position.z}`}
-              onClick={() => onSelectRecipient?.(agent.rosterId)}
+              className="world-room__agent-target-shell"
             >
-              {agent.name}
-            </button>
+              <button
+                type="button"
+                className="world-room__agent-target world-action--enabled"
+                aria-label={`Send next message to ${agent.name}`}
+                aria-pressed={selected}
+                data-spawn={`${position.x},${position.z}`}
+                onClick={() => onSelectRecipient?.(agent.rosterId)}
+              >
+                {agent.name}
+              </button>
+              {selected ? (
+                <button
+                  type="button"
+                  className="world-room__agent-target-clear"
+                  aria-label={`Clear ${agent.name} and send to all agents`}
+                  title="Send next message to all agents"
+                  onClick={onClearRecipient}
+                >
+                  ×
+                </button>
+              ) : null}
+            </span>
           );
         })}
       </nav>
@@ -1811,12 +1853,14 @@ export function WorldRoom({
             const state = renderedAgentStates[index]!;
             const position = state.position;
             const imported = renderedAgentImports[index];
+            const agentActivity = renderedAgentActivities[index]!;
             return (
               <li
                 key={agent.rosterId}
                 data-roster-id={agent.rosterId}
                 data-work-state={state.workState}
                 data-object-ref={state.objectRef ?? ""}
+                data-activity-state={agentActivity.state}
               >
                 <span>
                   {agent.name}
@@ -1826,8 +1870,9 @@ export function WorldRoom({
                   · connected agent avatar · position {position.x},{position.z}{" "}
                   ·{" "}
                   {imported
-                    ? `imported ${imported.assetId} · ${index === 0 ? agentAction : "Idle"}`
-                    : `${agent.avatar.species} · ${agent.avatar.shirt}`}
+                    ? `imported ${imported.assetId} · ${state.action}`
+                    : `${agent.avatar.species} · ${agent.avatar.shirt}`}{" "}
+                  · {agentActivity.label}
                 </span>
               </li>
             );
@@ -1890,6 +1935,7 @@ export function WorldRoom({
                   userPosition={userPosition}
                   camera={camera}
                   activity={activity}
+                  agentActivities={renderedAgentActivities}
                   userAvatar={userAvatar}
                   agentAvatar={agentAvatar}
                   {...(agentAvatars
@@ -1932,6 +1978,7 @@ export function WorldRoom({
                   userPosition={userPosition}
                   camera={camera}
                   activity={activity}
+                  agentActivities={renderedAgentActivities}
                   userAvatar={userAvatar}
                   agentAvatar={agentAvatar}
                   {...(agentAvatars

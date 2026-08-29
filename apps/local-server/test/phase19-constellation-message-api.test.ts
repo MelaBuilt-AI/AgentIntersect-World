@@ -109,6 +109,13 @@ describe("Phase 19 constellation message API", () => {
     });
     expect(restored.statusCode).toBe(200);
     expect(restored.json().data).toEqual(created.json().data);
+
+    const listed = await server.inject({
+      method: "GET",
+      url: "/constellation/messages",
+    });
+    expect(listed.statusCode).toBe(200);
+    expect(listed.json().data).toEqual([created.json().data]);
   });
 
   it("strictly validates bounded input and sends nothing for invalid exact targets", async () => {

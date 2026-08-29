@@ -27,7 +27,10 @@ export function worldImportedAvatarSelection(
   if (!asset) return undefined;
   let resolvedClip: ImportedAvatarWorldSelection["resolvedClip"];
   try {
-    const resolved = resolveImportedAvatarWorldClip(asset.id, action);
+    const resolved = resolveImportedAvatarWorldClip(
+      asset.id,
+      action === "Work" ? "Idle" : action,
+    );
     resolvedClip = {
       clipIndex: resolved.clipIndex,
       clipName: resolved.clipName,

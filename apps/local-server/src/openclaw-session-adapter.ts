@@ -481,6 +481,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     const connection = await this.#connection();
     try {
       const result = await connection.request("sessions.create", {
+        key: `agent:main:aiw:${randomUUID()}`,
         label: title,
       });
       if (

@@ -272,7 +272,7 @@ export function createLocalServer(
                 },
               ],
             },
-            context,
+            { ...context, worldActionsEnabled: true },
             {
               requestId: movement.activityId,
               sequence: movement.sequence,

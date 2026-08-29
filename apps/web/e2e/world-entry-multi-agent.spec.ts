@@ -1,0 +1,807 @@
+import { expect, test, type Page, type Route } from "@playwright/test";
+
+import { seedConfiguredAvatar } from "./helpers.js";
+
+const worldInstanceId = "80000000-0000-4000-8000-000000000008";
+const agents = [
+  {
+    rosterId: "roster-hermes",
+    adapterId: "hermes",
+    sessionOwnership: "operator-persistent",
+    worldSessionId: "10000000-0000-4000-8000-000000000001",
+    nativeRootSessionRef: "native-hermes",
+    displayName: "Mr Fluff",
+    addedOrder: 0,
+  },
+  {
+    rosterId: "roster-openclaw",
+    adapterId: "openclaw",
+    sessionOwnership: "world-owned",
+    worldSessionId: "30000000-0000-4000-8000-000000000003",
+    nativeRootSessionRef: "native-openclaw",
+    displayName: "Claw",
+    addedOrder: 1,
+  },
+  {
+    rosterId: "roster-codex",
+    adapterId: "codex",
+    sessionOwnership: "world-owned",
+    worldSessionId: "20000000-0000-4000-8000-000000000002",
+    nativeRootSessionRef: "native-codex",
+    displayName: "Codex",
+    addedOrder: 2,
+  },
+  {
+    rosterId: "roster-claude",
+    adapterId: "claude-code",
+    sessionOwnership: "world-owned",
+    worldSessionId: "40000000-0000-4000-8000-000000000004",
+    nativeRootSessionRef: "native-claude",
+    displayName: "Claude",
+    addedOrder: 3,
+  },
+] as const;
+
+const envelope = (data: unknown) => ({
+  ok: true,
+  data,
+  meta: {
+    correlationId: "90000000-0000-4000-8000-000000000009",
+    schema: "aiw.api/0.3",
+  },
+});
+
+const proposalFor = (agent: (typeof agents)[number]) => ({
+  schema: "aiw.avatar-proposal/0.12",
+  proposalId: `avatar-${agent.adapterId}`,
+  sessionId: agent.worldSessionId,
+  displayName: agent.displayName,
+  species: "human",
+  head: "round",
+  hands: "hands",
+  feet: "feet",
+  fur: "none",
+  tail: "none",
+  markings: "solid",
+  bodyColor: "warm-light",
+  shirt:
+    agent.adapterId === "hermes"
+      ? "Hermes"
+      : agent.adapterId === "openclaw"
+        ? "OpenClaw"
+        : agent.adapterId === "codex"
+          ? "Codex"
+          : "Claude",
+  movementStyle: "shared-biped-core",
+  sourceDisclosure: "Deterministic local Task 15 browser fixture.",
+  rationale: "Accepted fixture avatar.",
+  createdAt: "2026-08-24T21:00:00.000Z",
+  avatarSource: {
+    kind: "imported",
+    version: 2,
+    mode: "original",
+    modelId: "robot-agent-01",
+  },
+});
+
+async function fulfillJson(route: Route, data: unknown, status = 200) {
+  await route.fulfill({
+    status,
+    contentType: "application/json",
+    body: JSON.stringify(data),
+  });
+}
+
+async function installFixture(page: Page) {
+  const transcriptionBodies: unknown[] = [];
+  const groupedBodies: Array<Record<string, unknown>> = [];
+  const resolvedTargetRosterIds: Array<string | null> = [];
+  const hermesHistoryMessages: Array<{
+    readonly role: "user" | "assistant";
+    readonly text: string;
+  }> = [];
+  let reconnected = false;
+  let constellationReadyAfterRestore = true;
+  const sessionFor = (agent: (typeof agents)[number]) => ({
+    schema: "aiw.agent-session/0.12",
+    sessionId: agent.worldSessionId,
+    adapterId: agent.adapterId,
+    adapterSessionRef: agent.nativeRootSessionRef,
+    adapterRootSessionRef: agent.nativeRootSessionRef,
+    adapterPreviousSessionRef: null,
+    profile: "default",
+    workspaceId: "world-entry",
+    repositoryRef: "current",
+    worktreeRef: null,
+    mode: "explore",
+    permissionRevision: 0,
+    capabilitySnapshotHash: "d".repeat(64),
+    avatarProfileRef: null,
+    continuity: "current",
+    status: "ready",
+    currentFocusObjectIds: [],
+    currentTaskRef: null,
+    activeRunId: null,
+    lastEventSequence: 0,
+    createdAt: "2026-08-24T21:00:00.000Z",
+    updatedAt: "2026-08-24T21:00:00.000Z",
+  });
+  const constellation = () => ({
+    projection: {
+      schema: "aiw.constellation/0.19",
+      mode: "multi-agent",
+      worldInstanceId,
+      lifecycle: "active",
+      revision: reconnected ? 3 : 2,
+      agents: agents.map((agent) => ({
+        ...agent,
+        worldInstanceId,
+        continuity:
+          agent.adapterId === "codex" && !reconnected ? "stale" : "current",
+        connection:
+          agent.adapterId === "codex" && !reconnected ? "stale" : "connected",
+        avatar: {
+          status: "accepted",
+          profileId: proposalFor(agent).proposalId,
+          sessionId: agent.worldSessionId,
+        },
+      })),
+      entryReady: reconnected,
+      truth: "current",
+    },
+    terminalOutcomes: [],
+    unavailableReason: null,
+  });
+
+  await page.addInitScript(() => {
+    const microphoneTrack = {
+      label: "Task 15 deterministic microphone",
+      readyState: "live",
+      stop: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    };
+    const stream = {
+      getTracks: () => [microphoneTrack],
+      getAudioTracks: () => [microphoneTrack],
+    };
+    Object.assign(window, {
+      __task15GetUserMediaCalls: 0,
+      __task15SpeechSpeakCalls: 0,
+    });
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: async () => {
+          const fixtureWindow = window as unknown as {
+            __task15GetUserMediaCalls: number;
+          };
+          fixtureWindow.__task15GetUserMediaCalls += 1;
+          return stream;
+        },
+      },
+    });
+    class FixtureAudioContext {
+      readonly sampleRate = 16_000;
+      readonly destination = {};
+      createMediaStreamSource() {
+        return { connect: () => undefined, disconnect: () => undefined };
+      }
+      createScriptProcessor() {
+        const processor = {
+          onaudioprocess: null as
+            | ((event: {
+                inputBuffer: {
+                  getChannelData: () => Float32Array;
+                };
+              }) => void)
+            | null,
+          connect: () => {
+            queueMicrotask(() =>
+              processor.onaudioprocess?.({
+                inputBuffer: {
+                  getChannelData: () => new Float32Array(1_600).fill(0.125),
+                },
+              }),
+            );
+          },
+          disconnect: () => undefined,
+        };
+        return processor;
+      }
+      async close() {}
+    }
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: FixtureAudioContext,
+    });
+    if (window.speechSynthesis)
+      window.speechSynthesis.speak = () => {
+        Object.assign(window, {
+          __task15SpeechSpeakCalls:
+            ((window as unknown as { __task15SpeechSpeakCalls: number })
+              .__task15SpeechSpeakCalls ?? 0) + 1,
+        });
+      };
+  });
+
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const method = request.method();
+
+    if (pathname.endsWith("/constellation/current")) {
+      const current = constellation();
+      if (!constellationReadyAfterRestore) {
+        await fulfillJson(
+          route,
+          envelope({
+            ...current,
+            projection: { ...current.projection, entryReady: false },
+          }),
+        );
+      } else await fulfillJson(route, envelope(current));
+      return;
+    }
+
+    if (pathname.endsWith("/world/current") && method === "GET") {
+      await fulfillJson(
+        route,
+        envelope({
+          snapshot: {
+            schema: "aiw.world/0.4",
+            identityVersion: "aiw.identity/1",
+            layoutVersion: "aiw.layout/grid/1",
+            snapshotId: "1".repeat(32),
+            generationFingerprint: "c".repeat(64),
+            workspaceRef: "aiw://object/11111111111111111111111111111111",
+            repositoryRef: "aiw://object/22222222222222222222222222222222",
+            objects: [
+              {
+                kind: "workspace",
+                id: "1".repeat(32),
+                ref: "aiw://object/11111111111111111111111111111111",
+                name: "Task 15 workspace",
+                parentRef: null,
+                childRefs: ["aiw://object/22222222222222222222222222222222"],
+                position: { x: 0, y: 0, z: 0 },
+                bounds: { x: 0, z: 0, width: 24, depth: 24 },
+              },
+              {
+                kind: "repository",
+                id: "2".repeat(32),
+                ref: "aiw://object/22222222222222222222222222222222",
+                name: "Task 15 repository",
+                parentRef: "aiw://object/11111111111111111111111111111111",
+                childRefs: ["aiw://object/33333333333333333333333333333333"],
+                position: { x: 0, y: 0, z: 0 },
+                bounds: { x: 0, z: 0, width: 20, depth: 20 },
+              },
+              {
+                kind: "package",
+                id: "3".repeat(32),
+                ref: "aiw://object/33333333333333333333333333333333",
+                name: "task15-disposable-acceptance",
+                parentRef: "aiw://object/22222222222222222222222222222222",
+                childRefs: ["aiw://object/44444444444444444444444444444444"],
+                path: ".",
+                packageKind: "npm",
+                packageName: "task15-disposable-acceptance",
+                position: { x: 2, y: 0, z: 2 },
+                bounds: { x: 1, z: 1, width: 2, depth: 2 },
+              },
+              {
+                kind: "file",
+                id: "4".repeat(32),
+                ref: "aiw://object/44444444444444444444444444444444",
+                name: "Task15Claude.md",
+                parentRef: "aiw://object/33333333333333333333333333333333",
+                childRefs: [],
+                path: "Task15Claude.md",
+                size: 193,
+                fileKind: "source",
+                language: "markdown",
+                contentHash: "d".repeat(64),
+                pathHistory: [],
+                position: { x: 6, y: 0, z: 8 },
+                bounds: { x: 5, z: 7, width: 2, depth: 2 },
+              },
+            ],
+            tiles: [],
+            limits: {
+              fullDetailFiles: 10_000,
+              maxTileRecords: 128,
+              maxPathHistory: 8,
+              maxTombstones: 256,
+            },
+          },
+        }),
+      );
+      return;
+    }
+
+    if (pathname.endsWith("/agent-sessions/native") && method === "GET") {
+      const hermes = agents.find((agent) => agent.adapterId === "hermes")!;
+      await fulfillJson(
+        route,
+        envelope([
+          {
+            id: hermes.nativeRootSessionRef,
+            source: "cli",
+            title: hermes.displayName,
+            displayName: hermes.displayName,
+            messageCount: 12,
+          },
+        ]),
+      );
+      return;
+    }
+
+    if (pathname.endsWith("/agent-sessions/attach") && method === "POST") {
+      const hermes = agents.find((agent) => agent.adapterId === "hermes")!;
+      await fulfillJson(route, envelope(sessionFor(hermes)));
+      return;
+    }
+
+    if (
+      pathname.endsWith("/constellation/agents/roster-codex/reconnect") &&
+      method === "POST"
+    ) {
+      reconnected = true;
+      await fulfillJson(route, envelope(constellation()));
+      return;
+    }
+
+    const sessionMatch = pathname.match(
+      /\/agent-sessions\/([^/]+)\/(status|history|avatar-proposal|work-focus)$/u,
+    );
+    if (sessionMatch) {
+      constellationReadyAfterRestore = true;
+      const sessionId = decodeURIComponent(sessionMatch[1]!);
+      const operation = sessionMatch[2]!;
+      const agent = agents.find(
+        (candidate) => candidate.worldSessionId === sessionId,
+      )!;
+      const proposal = proposalFor(agent);
+      const session = sessionFor(agent);
+      const data =
+        operation === "status"
+          ? session
+          : operation === "avatar-proposal"
+            ? proposal
+            : operation === "work-focus"
+              ? { focus: null }
+              : {
+                  sessionId,
+                  continuity: "current",
+                  messages:
+                    agent.adapterId === "hermes" ? hermesHistoryMessages : [],
+                  transcriptAuthority:
+                    agent.adapterId === "hermes"
+                      ? "hermes"
+                      : "world-projection",
+                  avatarConsent: {
+                    state: "accepted",
+                    current: proposal,
+                    previous: null,
+                  },
+                };
+      await fulfillJson(route, envelope(data));
+      return;
+    }
+
+    if (pathname.includes("/world-actions/") && method === "GET") {
+      await fulfillJson(route, {
+        capability: { enabled: true },
+        actions: [],
+        executions: [],
+      });
+      return;
+    }
+
+    if (pathname.endsWith("/voice/disclosure")) {
+      await fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.stt-attestation/0.15",
+          providerId: "whisper.cpp-v1.9.1-base.en",
+          implementation: "whisper-cli",
+          processing: "local-process",
+          language: "en",
+          available: true,
+          reason: null,
+          partials: "unavailable",
+          retention: "volatile-until-text-send",
+          rawAudioLeavesMachine: false,
+        }),
+      );
+      return;
+    }
+
+    if (pathname.endsWith("/activity") && method === "PUT") {
+      await fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.voice-store/0.15",
+          preferences: [],
+          operations: [],
+          activity: request.postDataJSON()?.activity ?? null,
+        }),
+      );
+      return;
+    }
+
+    if (pathname.endsWith("/transcriptions") && method === "POST") {
+      transcriptionBodies.push(request.postDataJSON());
+      const number = transcriptionBodies.length;
+      await fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.voice-transcription-result/0.15",
+          utteranceId: `50000000-0000-4000-8000-00000000000${number}`,
+          finalText: `voice final ${number}`,
+          partialText: null,
+          partialCapability: "unavailable",
+          elapsedMs: 3,
+        }),
+      );
+      return;
+    }
+
+    if (pathname.endsWith("/constellation/messages") && method === "POST") {
+      const body = request.postDataJSON() as Record<string, unknown>;
+      groupedBodies.push(body);
+      const mentionedName =
+        typeof body.text === "string"
+          ? /^@([^\s]+)(?:\s|$)/u.exec(body.text)?.[1]
+          : undefined;
+      const targetRosterId =
+        typeof body.targetRosterId === "string"
+          ? body.targetRosterId
+          : (agents.find(
+              (agent) =>
+                mentionedName?.localeCompare(agent.displayName, undefined, {
+                  sensitivity: "accent",
+                }) === 0,
+            )?.rosterId ?? null);
+      resolvedTargetRosterIds.push(targetRosterId);
+      const recipients = targetRosterId
+        ? agents.filter((agent) => agent.rosterId === targetRosterId)
+        : agents;
+      if (recipients.some((agent) => agent.adapterId === "hermes")) {
+        const text = String(body.text);
+        hermesHistoryMessages.push(
+          { role: "user", text },
+          { role: "assistant", text: `Mr Fluff received ${text}` },
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.constellation-message/0.19",
+          groupId: `60000000-0000-4000-8000-00000000000${groupedBodies.length}`,
+          requestId: body.requestId,
+          correlationId: "70000000-0000-4000-8000-000000000007",
+          text: body.text,
+          target: targetRosterId
+            ? { kind: "agent", rosterId: targetRosterId }
+            : { kind: "broadcast" },
+          recipientRosterIds: recipients.map((agent) => agent.rosterId),
+          recipients: recipients.map((agent) => ({
+            rosterId: agent.rosterId,
+            worldSessionId: agent.worldSessionId,
+            state: "completed",
+            finalText: `${agent.displayName} received ${String(body.text)}`,
+            errorLabel: null,
+          })),
+          createdAt: "2026-08-24T21:00:00.000Z",
+          updatedAt: "2026-08-24T21:00:01.000Z",
+        }),
+        201,
+      );
+      return;
+    }
+
+    if (pathname.endsWith("/phase14/journeys/current")) {
+      await route.fulfill({ status: 404, body: "fixture unavailable" });
+      return;
+    }
+
+    await route.fulfill({
+      status: 404,
+      body: `unexpected ${method} ${pathname}`,
+    });
+  });
+
+  return {
+    transcriptionBodies,
+    groupedBodies,
+    resolvedTargetRosterIds,
+    delayConstellationReadyUntilRestore: () => {
+      constellationReadyAfterRestore = false;
+    },
+  };
+}
+
+async function recordPointer(
+  page: Page,
+  pointerType: "mouse" | "touch",
+  pointerId: number,
+) {
+  const button = page.locator("button.world-ptt");
+  await button.dispatchEvent("pointerdown", {
+    pointerId,
+    pointerType,
+    button: 0,
+    buttons: 1,
+  });
+  await expect(button).toContainText("Listening");
+  await button.dispatchEvent("pointerup", {
+    pointerId,
+    pointerType,
+    button: 0,
+    buttons: 0,
+  });
+  await expect(
+    page.getByRole("region", { name: "Final voice caption" }),
+  ).toBeVisible();
+}
+
+test("Task 15 composes four exact agents with grouped text, targeting, and push-to-talk", async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const fixture = await installFixture(page);
+  await page.goto("/");
+
+  const blockedEnterWorld = page.getByRole("button", { name: "Enter World" });
+  if ((await blockedEnterWorld.count()) === 0)
+    await expect(blockedEnterWorld).toHaveCount(0);
+  else await expect(blockedEnterWorld).toBeDisabled();
+  const constellationRegion = page.getByRole("region", {
+    name: "Connected agent constellation",
+  });
+  await expect(
+    constellationRegion.getByText("Codex · codex · Stale"),
+  ).toBeVisible();
+  await expect(constellationRegion.getByRole("listitem")).toHaveCount(4);
+  await page.getByRole("button", { name: "Reconnect" }).click();
+  const enterWorld = page.getByRole("button", { name: "Enter World" });
+  await expect(enterWorld).toBeEnabled();
+  await enterWorld.click();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /^Send next message to /u }),
+  ).toHaveCount(4);
+  await expect(
+    page
+      .getByRole("region", { name: "World scene status" })
+      .getByRole("listitem")
+      .filter({ hasText: "connected agent avatar" }),
+  ).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: /Workbench|dashboard/iu }),
+  ).toHaveCount(0);
+  const pushToTalk = page.locator("button.world-ptt");
+  const agentActivityStates = page.locator(
+    "[data-roster-id][data-activity-state]",
+  );
+  await expect(agentActivityStates).toHaveCount(4);
+  expect(
+    await agentActivityStates.evaluateAll((items) =>
+      items.map((item) => item.getAttribute("data-activity-state")),
+    ),
+  ).toEqual(["idle", "idle", "idle", "idle"]);
+  await expect(pushToTalk).toBeEnabled();
+
+  await pushToTalk.dispatchEvent("pointerdown", {
+    pointerId: 1,
+    pointerType: "mouse",
+    button: 0,
+    buttons: 1,
+  });
+  const disclosure = page.getByRole("region", {
+    name: "Local voice disclosure",
+  });
+  await expect(disclosure).toContainText("final captions only");
+  await expect(disclosure).toContainText("Raw audio stays on this machine");
+  await expect(page.getByLabel("Message All agents")).toBeEnabled();
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __task15GetUserMediaCalls: number })
+          .__task15GetUserMediaCalls,
+    ),
+  ).toBe(0);
+  await disclosure.getByRole("button", { name: "Enable microphone" }).click();
+  await expect(disclosure).toBeHidden();
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __task15GetUserMediaCalls: number })
+          .__task15GetUserMediaCalls,
+    ),
+  ).toBe(1);
+
+  await pushToTalk.dispatchEvent("pointerdown", {
+    pointerId: 11,
+    pointerType: "mouse",
+    button: 0,
+    buttons: 1,
+  });
+  await expect(pushToTalk).toContainText("Listening");
+  await pushToTalk.dispatchEvent("pointercancel", {
+    pointerId: 11,
+    pointerType: "mouse",
+  });
+  await expect(pushToTalk).toContainText("Push to talk");
+  expect(fixture.transcriptionBodies).toHaveLength(0);
+
+  await recordPointer(page, "mouse", 2);
+  await expect(page.getByLabel("Final caption")).toHaveValue("voice final 1");
+  await page
+    .getByRole("region", { name: "Final voice caption" })
+    .getByRole("button", { name: "Cancel" })
+    .click();
+  expect(fixture.groupedBodies).toHaveLength(0);
+
+  await recordPointer(page, "touch", 3);
+  await expect(page.getByLabel("Final caption")).toHaveValue("voice final 2");
+  await page
+    .getByRole("region", { name: "Final voice caption" })
+    .getByRole("button", { name: "Cancel" })
+    .click();
+  expect(fixture.groupedBodies).toHaveLength(0);
+
+  await pushToTalk.focus();
+  await page.keyboard.down("Space");
+  await expect(pushToTalk).toContainText("Listening");
+  await page.keyboard.up("Space");
+  const finalCaption = page.getByLabel("Final caption");
+  await expect(finalCaption).toHaveValue("voice final 3");
+  await finalCaption.fill("edited broadcast caption");
+  await page
+    .getByRole("region", { name: "Final voice caption" })
+    .getByRole("button", { name: "Send" })
+    .click();
+  await expect
+    .poll(() =>
+      agentActivityStates.evaluateAll((items) =>
+        items.map((item) => item.getAttribute("data-activity-state")),
+      ),
+    )
+    .toEqual(["thinking", "thinking", "thinking", "thinking"]);
+  await expect
+    .poll(() =>
+      agentActivityStates.evaluateAll((items) =>
+        items.map((item) => item.getAttribute("data-activity-state")),
+      ),
+    )
+    .toEqual(["idle", "idle", "idle", "idle"]);
+  await expect(page.getByLabel("Message All agents")).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Send next message to Codex" })
+    .click();
+  await expect(page.getByLabel("Message Codex")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Clear Codex and send to all agents" })
+    .click();
+  await expect(page.getByLabel("Message All agents")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Send next message to Codex" })
+    .click();
+  await expect(page.getByLabel("Message Codex")).toBeVisible();
+  await pushToTalk.focus();
+  await page.keyboard.down("Space");
+  await expect(pushToTalk).toContainText("Listening");
+  await page.keyboard.up("Space");
+  await expect(page.getByLabel("Final caption")).toHaveValue("voice final 4");
+  await page
+    .getByRole("region", { name: "Final voice caption" })
+    .getByRole("button", { name: "Send" })
+    .click();
+  await expect
+    .poll(() =>
+      agentActivityStates.evaluateAll((items) =>
+        items.map((item) => item.getAttribute("data-activity-state")),
+      ),
+    )
+    .toEqual(["idle", "idle", "thinking", "idle"]);
+  await expect
+    .poll(() =>
+      agentActivityStates.evaluateAll((items) =>
+        items.map((item) => item.getAttribute("data-activity-state")),
+      ),
+    )
+    .toEqual(["idle", "idle", "idle", "idle"]);
+  await expect(page.getByLabel("Message All agents")).toBeVisible();
+
+  expect(fixture.transcriptionBodies).toHaveLength(4);
+  expect(fixture.groupedBodies).toHaveLength(2);
+  expect(fixture.groupedBodies[0]).toMatchObject({
+    text: "edited broadcast caption",
+  });
+  expect(fixture.groupedBodies[0]).not.toHaveProperty("targetRosterId");
+  expect(fixture.groupedBodies[1]).toMatchObject({
+    text: "voice final 4",
+    targetRosterId: "roster-codex",
+  });
+  expect(JSON.stringify(fixture.groupedBodies)).not.toMatch(
+    /wav|audio|base64/iu,
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __task15SpeechSpeakCalls: number })
+          .__task15SpeechSpeakCalls,
+    ),
+  ).toBe(0);
+
+  const broadcastInput = page.getByLabel("Message All agents");
+  await broadcastInput.fill("typed Task 15 broadcast");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByLabel("Message All agents")).toBeVisible();
+  await broadcastInput.fill("@Claude typed Task 15 target");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByLabel("Message All agents")).toBeVisible();
+
+  await expect.poll(() => fixture.groupedBodies.length).toBe(4);
+  expect(fixture.groupedBodies).toHaveLength(4);
+  expect(fixture.groupedBodies[2]).toMatchObject({
+    text: "typed Task 15 broadcast",
+  });
+  expect(fixture.groupedBodies[2]).not.toHaveProperty("targetRosterId");
+  expect(fixture.groupedBodies[3]).toMatchObject({
+    text: "@Claude typed Task 15 target",
+  });
+  expect(fixture.groupedBodies[3]).not.toHaveProperty("targetRosterId");
+  expect(fixture.resolvedTargetRosterIds[3]).toBe("roster-claude");
+
+  fixture.delayConstellationReadyUntilRestore();
+  await page.reload();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+  );
+  await expect(
+    page.getByRole("button", { name: /^Send next message to /u }),
+  ).toHaveCount(4);
+  await expect(
+    page.getByText("typed Task 15 broadcast", { exact: true }),
+  ).toBeVisible();
+
+  const receipt = {
+    schema: "aiw.phase19-task15-deterministic-browser/1",
+    caseId: "four-agent-grouped-voice-refresh",
+    source: "production-bundle-with-deterministic-routes",
+    agents: agents.map((agent) => ({
+      rosterId: agent.rosterId,
+      adapterId: agent.adapterId,
+      sessionOwnership: agent.sessionOwnership,
+      addedOrder: agent.addedOrder,
+    })),
+    checks: {
+      staleEntryBlockedBeforeReconnect: true,
+      exactReconnectEnabledEntry: true,
+      fourTargetControlsAndAvatars: true,
+      internalWorkbenchAbsent: true,
+      pointerTouchFocusedSpaceVoice: true,
+      broadcastAndSelectedVoiceRouting: true,
+      typedBroadcastAndExactMentionRouting: true,
+      rawAudioAbsentFromGroupedPayloads: true,
+      speechPlaybackAbsent: true,
+      refreshRestoredWorldRosterAndTranscript: true,
+    },
+    transcriptionCount: fixture.transcriptionBodies.length,
+    groupedRequestCount: fixture.groupedBodies.length,
+    resolvedTargetRosterIds: fixture.resolvedTargetRosterIds,
+  };
+  await testInfo.attach("task15-deterministic-receipt", {
+    body: `${JSON.stringify(receipt, null, 2)}\n`,
+    contentType: "application/json",
+  });
+});

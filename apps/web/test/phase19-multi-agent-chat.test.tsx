@@ -11,6 +11,7 @@ import {
   consumeOneSendRecipient,
   createWorldChatState,
   reduceWorldChat,
+  type WorldChatAction,
 } from "../src/world-entry/world-chat-model.js";
 
 const group: ConstellationMessageGroup = {
@@ -72,6 +73,31 @@ describe("Phase 19 multi-agent chat", () => {
       userDisplayName: "Mela",
     });
     expect(String(init?.body)).not.toContain("recipientRosterIds");
+  });
+
+  it("reads durable grouped results for refresh restoration", async () => {
+    const fetcher = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ ok: true, data: [group] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    const client = new AgentSessionClient(fetcher as typeof fetch);
+
+    expect(
+      typeof (client as unknown as { messageGroups?: unknown }).messageGroups,
+    ).toBe("function");
+    await expect(
+      (
+        client as unknown as {
+          messageGroups: () => Promise<readonly ConstellationMessageGroup[]>;
+        }
+      ).messageGroups(),
+    ).resolves.toEqual([group]);
+    expect(fetcher).toHaveBeenCalledWith("/api/constellation/messages", {
+      headers: { accept: "application/json" },
+    });
   });
 
   it("limits AbortSignal to response observation", async () => {
@@ -147,5 +173,61 @@ describe("Phase 19 multi-agent chat", () => {
     );
     expect(html).toContain("Hermes");
     expect(html).toContain("Codex");
+  });
+
+  it("restores durable groups instead of a single primary-session transcript", () => {
+    const state = reduceWorldChat(createWorldChatState(), {
+      type: "RESTORE_HISTORY",
+      messages: [
+        { role: "user", text: "group question" },
+        { role: "assistant", text: "Hermes succeeded" },
+      ],
+      groups: [group],
+      displayNames: {
+        "roster-hermes": "Hermes",
+        "roster-codex": "Codex",
+      },
+    } as unknown as WorldChatAction);
+
+    expect(
+      state.transcript.map((item) => [item.kind, item.recipient, item.text]),
+    ).toEqual([
+      ["user", undefined, "group question"],
+      ["assistant", "Hermes", "Hermes succeeded"],
+      ["error", "Codex", "Agent turn failed"],
+    ]);
+  });
+
+  it("updates one stable recipient row while a durable group is still completing", () => {
+    const streaming = {
+      ...group,
+      recipients: group.recipients.map((recipient) =>
+        recipient.rosterId === "roster-hermes"
+          ? { ...recipient, state: "streaming" as const, finalText: null }
+          : recipient,
+      ),
+    };
+    const displayNames = {
+      "roster-hermes": "Hermes",
+      "roster-codex": "Codex",
+    };
+    const projected = reduceWorldChat(createWorldChatState(), {
+      type: "GROUP_COMPLETED",
+      group: streaming,
+      displayNames,
+    });
+    const completed = reduceWorldChat(projected, {
+      type: "GROUP_COMPLETED",
+      group,
+      displayNames,
+    });
+
+    expect(completed.transcript).toHaveLength(2);
+    expect(
+      completed.transcript.map((item) => [item.recipient, item.text]),
+    ).toEqual([
+      ["Hermes", "Hermes succeeded"],
+      ["Codex", "Agent turn failed"],
+    ]);
   });
 });

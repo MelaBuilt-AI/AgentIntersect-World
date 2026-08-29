@@ -30,6 +30,28 @@ const MAX_OUTPUT_BYTES = 65_536;
 const MAX_ATTESTATION_BYTES = 65_536;
 const CREATE_PROMPT =
   "Establish this World-owned session. Reply only with the word ready.";
+const WORLD_COMPLETION_PROMPT =
+  "Complete the user's full request before ending the turn. When read-only inspection is requested, use only Read, Glob, or Grep and continue through the final answer. Do not stop after narrating an intended next step.";
+
+function repositoryRelativeLocator(
+  locator: AdapterTurnEvent["repositoryLocator"],
+  repositoryRoot: string,
+): AdapterTurnEvent["repositoryLocator"] {
+  if (!locator || locator.operation !== "read") return locator;
+  const paths = locator.paths.map((value) => {
+    if (!path.isAbsolute(value)) return value;
+    const relative = path.relative(repositoryRoot, value);
+    if (
+      relative.length === 0 ||
+      relative.startsWith(`..${path.sep}`) ||
+      relative === ".." ||
+      path.isAbsolute(relative)
+    )
+      return value;
+    return relative.split(path.sep).join("/");
+  });
+  return { ...locator, paths };
+}
 const ENVIRONMENT_ALLOWLIST = [
   "PATH",
   "USER",
@@ -226,7 +248,13 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       "--verbose",
       "--include-partial-messages",
       "--tools",
-      "",
+      "Read,Glob,Grep",
+      "--allowedTools",
+      "Read,Glob,Grep",
+      "--permission-mode",
+      "dontAsk",
+      "--append-system-prompt",
+      WORLD_COMPLETION_PROMPT,
       "--disable-slash-commands",
       "--setting-sources",
       "",
@@ -659,10 +687,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
             const id = toolUseId(value.id);
             if (toolNames.has(id)) throw claudeFailure();
             const name = safeToolName(value.name);
-            const locator = extractAdapterRepositoryLocator(
-              "claude-code",
-              name,
-              value.input,
+            const locator = repositoryRelativeLocator(
+              extractAdapterRepositoryLocator("claude-code", name, value.input),
+              this.#options.nativeSessionRoot,
             );
             toolNames.set(id, { name, ...(locator ? { locator } : {}) });
             emit({
@@ -680,13 +707,19 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         if (envelope.type === "user") {
           if (
             !isRecord(envelope.message) ||
-            envelope.message.type !== "message" ||
+            (envelope.message.type !== undefined &&
+              envelope.message.type !== "message") ||
             envelope.message.role !== "user" ||
             !Array.isArray(envelope.message.content)
           )
             throw claudeFailure();
           for (const value of envelope.message.content) {
             if (!isRecord(value) || value.type !== "tool_result")
+              throw claudeFailure();
+            if (
+              Object.hasOwn(value, "is_error") &&
+              typeof value.is_error !== "boolean"
+            )
               throw claudeFailure();
             const activityId = toolUseId(value.tool_use_id);
             const tool = toolNames.get(activityId);

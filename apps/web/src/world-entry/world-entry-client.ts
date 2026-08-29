@@ -578,6 +578,24 @@ export function createWorldEntryClient(
       });
     },
 
+    async currentRepository(): Promise<Exclude<
+      RepositoryLoadResult,
+      { readonly status: "failed" }
+    > | null> {
+      const current = await readWorld();
+      if (current.status !== "ok") return null;
+      const snapshot = current.data.snapshot;
+      return {
+        status: "current",
+        generationId: snapshot.generationFingerprint,
+        snapshot,
+        repository: {
+          repositoryId: snapshot.repositoryRef,
+          revision: snapshot.generationFingerprint,
+        },
+      };
+    },
+
     async loadRepository(rootPath: string): Promise<RepositoryLoadResult> {
       const boundedRoot = rootPath.trim();
       if (!boundedRoot || boundedRoot.length > 4_096) return repositoryFailed();

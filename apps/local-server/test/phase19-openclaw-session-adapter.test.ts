@@ -339,6 +339,13 @@ describe("OpenClawSessionAdapter", () => {
     const gateway = await fixtureGateway();
     const openclaw = adapter(gateway.url);
     const created = await openclaw.createWorldSession("world-one", "Claw One");
+    const createCall = gateway.calls.find(
+      ({ method }) => method === "sessions.create",
+    );
+    expect(createCall?.params).toMatchObject({ label: "Claw One" });
+    expect(createCall?.params.key).toMatch(
+      /^agent:main:aiw:[0-9a-f]{8}-[0-9a-f-]{27,}$/iu,
+    );
     const attached = await openclaw.attach(created.rootId as string, {
       worldInstanceId: "world-one",
     });

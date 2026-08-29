@@ -730,6 +730,7 @@ function WorldRoomScene({
   userPosition,
   camera: cameraLook,
   activity,
+  agentActivities,
   userAvatar,
   agentAvatar,
   agentAvatars,
@@ -766,6 +767,7 @@ function WorldRoomScene({
   readonly userPosition: Readonly<{ x: number; z: number }>;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
+  readonly agentActivities?: readonly WorldRoomActivity[];
   readonly userAvatar: AvatarSelection;
   readonly agentAvatar: AvatarSelection;
   readonly agentAvatars?: readonly AvatarSelection[];
@@ -820,11 +822,6 @@ function WorldRoomScene({
   const userAnimationEnabled = selectWorldImportedAvatarMotion(
     reducedMotion,
     userImportedClip?.clipIndex,
-    avatarMotion.skeletal,
-  );
-  const agentAnimationEnabled = selectWorldImportedAvatarMotion(
-    reducedMotion,
-    agentImportedClip?.clipIndex,
     avatarMotion.skeletal,
   );
   const cityPlan = useMemo(
@@ -1086,11 +1083,32 @@ function WorldRoomScene({
           animationGeneration={userAnimationGeneration}
         />
       )}
-      <AgentActivityBillboard
-        activity={activity}
-        reducedMotion={reducedMotion}
-        position={agentWorldPosition}
-      />
+      {renderedAgentAvatars.map((_, index) => {
+        const state = agentStates?.[index];
+        const position = state
+          ? ([state.position.x, 0, state.position.z] as const)
+          : renderedAgentAvatars.length > 1
+            ? worldAgentSpawnPosition(index)
+            : agentWorldPosition;
+        return (
+          <AgentActivityBillboard
+            key={`agent-activity-${index + 1}`}
+            activity={
+              agentActivities?.[index] ??
+              (index === 0
+                ? activity
+                : {
+                    state: "idle",
+                    icon: "",
+                    label: "Agent is idle",
+                    detail: "",
+                  })
+            }
+            reducedMotion={reducedMotion}
+            position={position}
+          />
+        );
+      })}
       {renderedAgentAvatars.map((selection, index) => {
         const state = agentStates?.[index];
         const imported = renderedAgentImports[index];
@@ -1111,7 +1129,11 @@ function WorldRoomScene({
                 : (state?.action ?? (index === 0 ? agentAction : "Idle"))
             }
             layerState={agentLayerState}
-            animate={index === 0 ? agentAnimationEnabled : false}
+            animate={selectWorldImportedAvatarMotion(
+              reducedMotion,
+              imported?.resolvedClip?.clipIndex,
+              avatarMotion.skeletal,
+            )}
             position={position}
             rotation={[
               0,
@@ -1157,6 +1179,7 @@ export function WorldRoomCanvas({
   userPosition,
   camera,
   activity,
+  agentActivities,
   userAvatar,
   agentAvatar,
   agentAvatars,
@@ -1187,6 +1210,7 @@ export function WorldRoomCanvas({
   readonly userPosition: Readonly<{ x: number; z: number }>;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
+  readonly agentActivities?: readonly WorldRoomActivity[];
   readonly userAvatar: AvatarSelection;
   readonly agentAvatar: AvatarSelection;
   readonly agentAvatars?: readonly AvatarSelection[];
@@ -1349,6 +1373,11 @@ export function WorldRoomCanvas({
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       data-agent-activity={activity.state}
+      data-agent-activities={
+        agentActivities
+          ?.map((agentActivity) => agentActivity.state)
+          .join(",") ?? activity.state
+      }
       data-user-avatar-action={userAction}
       data-agent-avatar-action={agentAction}
       data-agent-state-count={agentStates?.length ?? 0}
@@ -1396,6 +1425,7 @@ export function WorldRoomCanvas({
         userPosition={userPosition}
         camera={camera}
         activity={activity}
+        {...(agentActivities ? { agentActivities } : {})}
         userAvatar={userAvatar}
         agentAvatar={agentAvatar}
         {...(agentAvatars ? { agentAvatars } : {})}

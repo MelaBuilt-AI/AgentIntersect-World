@@ -97,7 +97,7 @@ if (control.attestHang && (args.includes("--help") || args.includes("--version")
 }
 
 if (args.length === 1 && args[0] === "--version") {
-  process.stdout.write("codex-cli " + (control.version || "0.147.0") + "\\n");
+  process.stdout.write("codex-cli " + (control.version || "0.149.1") + "\\n");
   process.exit(0);
 }
 
@@ -194,7 +194,7 @@ if (isResume) {
     item: {
       id: "item-2",
       type: "command_execution",
-      command: "RAW_ARGS_CANARY",
+      command: "cat codex/Task15Codex.md",
       status: "in_progress",
     },
   });
@@ -203,8 +203,27 @@ if (isResume) {
     item: {
       id: "item-2",
       type: "command_execution",
-      command: "RAW_ARGS_CANARY",
+      command: "cat codex/Task15Codex.md",
       aggregated_output: "RAW_RESULT_CANARY",
+      exit_code: 0,
+      status: "completed",
+    },
+  });
+  emit({
+    type: "item.started",
+    item: {
+      id: "item-compound",
+      type: "command_execution",
+      command: "/bin/bash -lc 'cat codex/Task15Codex.md; touch changed'",
+      status: "in_progress",
+    },
+  });
+  emit({
+    type: "item.completed",
+    item: {
+      id: "item-compound",
+      type: "command_execution",
+      command: "/bin/bash -lc 'cat codex/Task15Codex.md; touch changed'",
       exit_code: 0,
       status: "completed",
     },
@@ -426,6 +445,26 @@ describe("CodexSessionAdapter", () => {
         type: "assistant.delta",
         text: "fixture ",
         redaction: { applied: false, count: 0 },
+      },
+      {
+        type: "tool.started",
+        toolName: "command_execution",
+        activityId: "item-2",
+        repositoryLocator: {
+          operation: "read",
+          paths: ["codex/Task15Codex.md"],
+        },
+        redaction: { applied: true, count: 1 },
+      },
+      {
+        type: "tool.completed",
+        toolName: "command_execution",
+        activityId: "item-2",
+        repositoryLocator: {
+          operation: "read",
+          paths: ["codex/Task15Codex.md"],
+        },
+        redaction: { applied: true, count: 1 },
       },
       {
         type: "tool.started",

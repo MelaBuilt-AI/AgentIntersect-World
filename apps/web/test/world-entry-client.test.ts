@@ -61,6 +61,9 @@ type ClientApi = {
     readonly loadRepository: (
       rootPath: string,
     ) => Promise<Readonly<Record<string, unknown>>>;
+    readonly currentRepository: () => Promise<Readonly<
+      Record<string, unknown>
+    > | null>;
     readonly currentConstellation: () => Promise<
       Readonly<Record<string, unknown>>
     >;
@@ -1253,6 +1256,32 @@ describe("Phase 18 World entry client composition", () => {
     ).resolves.toEqual({
       status: "failed",
       message: "repository unavailable_",
+    });
+  });
+
+  it("restores the already-selected repository without reindexing", async () => {
+    if (!api.createWorldEntryClient) return;
+    const snapshot = {
+      schema: "aiw.world-snapshot/0.3",
+      repositoryRef: "aiw://object/repository-current",
+      generationFingerprint: "generation-current",
+      objects: [],
+    };
+    const client = api.createWorldEntryClient({
+      sessionClient: {},
+      getCurrentWorld: vi
+        .fn()
+        .mockResolvedValue({ status: "ok", data: { snapshot } }),
+    });
+
+    await expect(client.currentRepository()).resolves.toEqual({
+      status: "current",
+      generationId: "generation-current",
+      snapshot,
+      repository: {
+        repositoryId: "aiw://object/repository-current",
+        revision: "generation-current",
+      },
     });
   });
 });

@@ -541,6 +541,11 @@ export class ConstellationMessageService {
     return structuredClone(record.group);
   }
 
+  list(): readonly ConstellationMessageGroup[] {
+    this.#requireAvailable();
+    return this.#payload.records.map(({ group }) => structuredClone(group));
+  }
+
   async #dispatch(
     groupId: string,
     recipient: DispatchRecipient,

@@ -96,7 +96,7 @@ export type SessionHistory = {
     readonly role: "user" | "assistant";
     readonly text: string;
   }[];
-  readonly transcriptAuthority: Phase19AdapterId;
+  readonly transcriptAuthority: Phase19AdapterId | "world-projection";
   readonly avatarConsent: null | {
     readonly state: "accepted" | "declined" | "revoked";
     readonly current?: AvatarProposal | null;
@@ -609,6 +609,23 @@ export class AgentSessionClient {
     });
     return constellationMessageGroup(
       await data<ConstellationMessageGroup>(response),
+    );
+  }
+
+  async messageGroups(): Promise<readonly ConstellationMessageGroup[]> {
+    const groups = await this.get<readonly unknown[]>(
+      "/api/constellation/messages",
+    );
+    if (!Array.isArray(groups))
+      throw new Error("Constellation message groups are invalid.");
+    return groups.map(constellationMessageGroup);
+  }
+
+  async messageGroup(requestId: string): Promise<ConstellationMessageGroup> {
+    return constellationMessageGroup(
+      await this.get<unknown>(
+        `/api/constellation/messages/${encodeURIComponent(requestId)}`,
+      ),
     );
   }
 

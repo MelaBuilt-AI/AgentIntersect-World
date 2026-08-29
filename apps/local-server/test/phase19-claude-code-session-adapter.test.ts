@@ -21,6 +21,8 @@ type FixtureControl = {
   readonly invalidHelp?: boolean;
   readonly attestHang?: boolean;
   readonly realSystemEvents?: boolean;
+  readonly realToolResultEnvelope?: boolean;
+  readonly invalidToolResultError?: boolean;
   readonly failure?:
     | "malformed"
     | "stdout-flood"
@@ -220,6 +222,7 @@ if (isResume) {
         { type: "text", text: "fixture complete" },
         { type: "tool_use", id: "tool-1", name: "Edit", input: { file_path: "/home/private/file", old_string: "RAW_PROMPT" } },
         { type: "tool_use", id: "tool-2", name: "bad tool name!", input: { command: "RAW_ARGS_CANARY" } },
+        { type: "tool_use", id: "tool-3", name: "Read", input: { file_path: path.join(cwd, "claude-code/Task15Claude.md") } },
       ],
     },
   });
@@ -227,11 +230,21 @@ if (isResume) {
     type: "user",
     session_id: sessionId,
     message: {
-      type: "message",
+      ...(control.realToolResultEnvelope ? {} : { type: "message" }),
       role: "user",
       content: [
-        { type: "tool_result", tool_use_id: "tool-1", content: "RAW_RESULT_CANARY", is_error: false },
+        {
+          type: "tool_result",
+          tool_use_id: "tool-1",
+          content: "RAW_RESULT_CANARY",
+          ...(control.invalidToolResultError
+            ? { is_error: "false" }
+            : control.realToolResultEnvelope
+              ? {}
+              : { is_error: false }),
+        },
         { type: "tool_result", tool_use_id: "tool-2", content: [{ type: "text", text: "/home/private/result" }], is_error: true },
+        { type: "tool_result", tool_use_id: "tool-3", content: "fixture read", is_error: false },
       ],
     },
   });
@@ -494,6 +507,16 @@ describe("ClaudeCodeSessionAdapter", () => {
         redaction: { applied: true, count: 1 },
       },
       {
+        type: "tool.started",
+        toolName: "Read",
+        activityId: "tool-3",
+        repositoryLocator: {
+          operation: "read",
+          paths: ["claude-code/Task15Claude.md"],
+        },
+        redaction: { applied: true, count: 1 },
+      },
+      {
         type: "tool.completed",
         toolName: "Edit",
         activityId: "tool-1",
@@ -506,6 +529,16 @@ describe("ClaudeCodeSessionAdapter", () => {
       {
         type: "tool.failed",
         toolName: "claude_tool",
+        redaction: { applied: true, count: 1 },
+      },
+      {
+        type: "tool.completed",
+        toolName: "Read",
+        activityId: "tool-3",
+        repositoryLocator: {
+          operation: "read",
+          paths: ["claude-code/Task15Claude.md"],
+        },
         redaction: { applied: true, count: 1 },
       },
     ]);
@@ -526,7 +559,13 @@ describe("ClaudeCodeSessionAdapter", () => {
       "--verbose",
       "--include-partial-messages",
       "--tools",
-      "",
+      "Read,Glob,Grep",
+      "--allowedTools",
+      "Read,Glob,Grep",
+      "--permission-mode",
+      "dontAsk",
+      "--append-system-prompt",
+      "Complete the user's full request before ending the turn. When read-only inspection is requested, use only Read, Glob, or Grep and continue through the final answer. Do not stop after narrating an intended next step.",
       "--disable-slash-commands",
       "--setting-sources",
       "",
@@ -554,6 +593,51 @@ describe("ClaudeCodeSessionAdapter", () => {
         rootSessionRef: created.rootId,
       }),
     ).resolves.toMatchObject({ finalText: "fixture complete" });
+  });
+
+  it("accepts the real successful tool-result envelope with omitted optional markers", async () => {
+    const fixture = await fixtureExecutable({ realToolResultEnvelope: true });
+    const claude = adapter(fixture);
+    const created = await claude.createWorldSession("world-real-tool-result");
+    const events: unknown[] = [];
+
+    await expect(
+      claude.sendText(created.id, "resume", {
+        mode: "explore",
+        rootSessionRef: created.rootId,
+        onEvent: (event) => {
+          events.push(event);
+        },
+      }),
+    ).resolves.toMatchObject({ finalText: "fixture complete" });
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "tool.completed",
+        toolName: "Edit",
+        activityId: "tool-1",
+      }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "tool.failed",
+        toolName: "claude_tool",
+      }),
+    );
+  });
+
+  it("rejects a present non-boolean tool-result error marker", async () => {
+    const fixture = await fixtureExecutable({ invalidToolResultError: true });
+    const claude = adapter(fixture);
+    const created = await claude.createWorldSession(
+      "world-invalid-tool-result",
+    );
+
+    await expect(
+      claude.sendText(created.id, "resume", {
+        mode: "explore",
+        rootSessionRef: created.rootId,
+      }),
+    ).rejects.toThrow(/Claude Code/);
   });
 
   it("isolates each World binding in its own private runtime home", async () => {
