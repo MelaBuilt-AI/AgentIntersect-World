@@ -193,7 +193,7 @@ function codexRepositoryLocator(
   const exactRead = [
     new RegExp(`^cat ${pathPattern}$`, "u"),
     new RegExp(`^/bin/bash -lc 'cat ${pathPattern}'$`, "u"),
-    new RegExp(`^/bin/bash -lc \"cat ${pathPattern}\"$`, "u"),
+    new RegExp(`^/bin/bash -lc "cat ${pathPattern}"$`, "u"),
   ]
     .map((pattern) => pattern.exec(command))
     .find((match) => match?.[1]);
