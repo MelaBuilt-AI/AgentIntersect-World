@@ -746,14 +746,17 @@ test("@workstream-tracer-live reads and inspects only the current Phase 14 journ
   expect(phase14Requests).toEqual(["GET /api/phase14/journeys/current"]);
 });
 
-async function restoreFixtureWorld(page: Page) {
+async function restoreFixtureWorld(
+  page: Page,
+  importedModelId = "robot-agent-02",
+) {
   const acceptedProposal = {
     ...proposal,
     avatarSource: {
       kind: "imported",
       version: 2,
       mode: "original",
-      modelId: "robot-agent-02",
+      modelId: importedModelId,
     },
   } as const;
   await page.addInitScript(
@@ -784,6 +787,168 @@ async function restoreFixtureWorld(page: Page) {
     "blank",
   );
   await expect(page.getByTestId("world-hud")).toBeVisible();
+}
+
+async function forcePhase18_5Render(page: Page) {
+  const canvas = page.locator('canvas[data-camera-mode="third-person"]');
+  await canvas.evaluate(
+    (element) =>
+      new Promise<void>((resolveRender, rejectRender) => {
+        const requestId = Date.now();
+        const complete = (event: Event) => {
+          if ((event as CustomEvent).detail?.requestId !== requestId) return;
+          window.clearTimeout(timeout);
+          element.removeEventListener("aiw:render-sample", complete);
+          resolveRender();
+        };
+        const timeout = window.setTimeout(() => {
+          element.removeEventListener("aiw:render-sample", complete);
+          rejectRender(new Error("Phase 18.5 evidence render timed out"));
+        }, 5_000);
+        element.addEventListener("aiw:render-sample", complete);
+        element.dispatchEvent(
+          new CustomEvent("aiw:measure-render", { detail: { requestId } }),
+        );
+      }),
+  );
+}
+
+async function preparePhase18_5World(page: Page) {
+  await seedConfiguredAvatar(page, "Aaron");
+  await restoreFixtureWorld(page, "cat-agent-01");
+  await expect(
+    page.getByRole("button", { name: /Push to talk/ }),
+  ).toBeEnabled();
+  await expectSharedHudBottomTrack(page);
+
+  const canvas = page.locator('canvas[data-camera-mode="third-person"]');
+  await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true", {
+    timeout: 30_000,
+  });
+  await expect(canvas).toBeVisible();
+  await expect(canvas).toHaveAttribute("data-user-avatar-species", "human");
+  await expect(canvas).toHaveAttribute("data-user-avatar-shirt", "Codex");
+  await expect(canvas).toHaveAttribute("data-agent-avatar-species", "cat");
+  await expect(canvas).toHaveAttribute("data-agent-avatar-shirt", "Hermes");
+  await expect(canvas).toHaveAttribute("data-user-avatar-source", "custom");
+  await expect(canvas).toHaveAttribute("data-agent-avatar-source", "imported");
+  await expect(canvas).toHaveAttribute(
+    "data-agent-avatar-imported-id",
+    "cat-agent-01",
+  );
+  await forcePhase18_5Render(page);
+  await page.screenshot({
+    path: `${phase18_5EvidenceDirectory}/browser-world-avatar.png`,
+    fullPage: true,
+  });
+  const messageComposer = page.getByLabel("Message Mr Fluff");
+  const transcript = page.getByRole("log", {
+    name: "Conversation and activity",
+  });
+  const chatForm = page.locator("form.world-chat");
+  await expect(chatForm).toHaveAttribute("aria-busy", "false");
+  await messageComposer.fill("Please load the approved repository");
+  await messageComposer.press("Enter");
+  await expect(transcript).toContainText(
+    "YouPlease load the approved repository",
+    { timeout: 30_000 },
+  );
+  await expect(transcript).toContainText(
+    "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
+    { timeout: 60_000 },
+  );
+  await expect(chatForm).toHaveAttribute("aria-busy", "false", {
+    timeout: 120_000,
+  });
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+    { timeout: 30_000 },
+  );
+  await expect(
+    page.getByRole("heading", { name: "Repository floor" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("list", { name: "Repository floor objects" })
+      .getByRole("listitem"),
+  ).toHaveCount(9);
+  await expectSharedHudBottomTrack(page);
+  await expect(
+    page.locator('canvas[data-floor-state="repository"]'),
+  ).toHaveAttribute("data-avatar-render-ready", "true", {
+    timeout: 30_000,
+  });
+  await forcePhase18_5Render(page);
+  await page.screenshot({
+    path: `${phase18_5EvidenceDirectory}/browser-world-repository.png`,
+    fullPage: true,
+  });
+}
+
+async function expectPhase18_5ActionProjection(page: Page) {
+  const transcriptItems = page
+    .getByRole("log", { name: "Conversation and activity" })
+    .getByRole("listitem");
+  const transcriptItemCount = await transcriptItems.count();
+  const repositoryCanvas = page.locator(
+    'canvas[data-floor-state="repository"]',
+  );
+  const actionComposer = page.getByLabel("Message Mr Fluff");
+  await actionComposer.fill("Refresh Phase 18.5 action proof");
+  const cheerObservation = await repositoryCanvas.evaluateHandle((canvas) => {
+    let observer: MutationObserver | null = null;
+    let timeout: number | null = null;
+    const cleanup = () => {
+      observer?.disconnect();
+      if (timeout !== null) window.clearTimeout(timeout);
+    };
+    const observation = new Promise<{
+      readonly action: string | undefined;
+      readonly face: string | undefined;
+      readonly secondary: string | undefined;
+    }>((resolveCheer, rejectCheer) => {
+      const capture = () => {
+        if (canvas.dataset.agentAvatarAction !== "Cheer") return;
+        const snapshot = {
+          action: canvas.dataset.agentAvatarAction,
+          face: canvas.dataset.agentAvatarFace,
+          secondary: canvas.dataset.agentAvatarSecondary,
+        };
+        cleanup();
+        resolveCheer(snapshot);
+      };
+      observer = new MutationObserver(capture);
+      observer.observe(canvas, {
+        attributes: true,
+        attributeFilter: [
+          "data-agent-avatar-action",
+          "data-agent-avatar-face",
+          "data-agent-avatar-secondary",
+        ],
+      });
+      timeout = window.setTimeout(() => {
+        cleanup();
+        rejectCheer(new Error("Phase 18.5 Cheer observation timed out"));
+      }, 15_000);
+      capture();
+    });
+    return { observation };
+  });
+  await actionComposer.press("Enter");
+  await expect(transcriptItems).toHaveCount(transcriptItemCount + 4);
+  const transientSnapshot = await cheerObservation
+    .evaluate(({ observation }) => observation)
+    .finally(() => cheerObservation.dispose());
+  expect(transientSnapshot.action).toBe("Cheer");
+  // The imported clip and projected activity layer use independent clocks.
+  expect([
+    { face: "Smile", secondary: "Celebrate" },
+    { face: "neutral", secondary: "Neutral" },
+  ]).toContainEqual({
+    face: transientSnapshot.face,
+    secondary: transientSnapshot.secondary,
+  });
 }
 
 async function expectOutwardConstellation(
@@ -1576,6 +1741,9 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
     sanitizeTraceArchive(tracePath);
   }
   await completeJourney(page, "desktop");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expectPhase18_5ActionProjection(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.evaluate(() => {
     document.documentElement.style.zoom = "1.25";
   });
@@ -1636,8 +1804,8 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
 test("Phase 18.5 integrates the avatar family and semantic repository kit @phase18-5-performance", async ({
   page,
 }) => {
-  // The journey includes full GLB loading plus a 120-frame measurement on
-  // two-CPU software renderers. The frame budgets below remain unchanged.
+  // The proportional accepted-session setup keeps the complete 120-frame
+  // cadence and 24-sample render proof inside the strict two-CPU watchdog.
   test.setTimeout(120_000);
   const errors: string[] = [];
   page.on("console", (message) => {
@@ -1646,72 +1814,13 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await completeJourney(page, "phase18-5");
+  await preparePhase18_5World(page);
   await expect(
     page.getByRole("list", { name: "Repository floor objects" }),
   ).toContainText("source-file-code-slab");
-  const transcriptItems = page
-    .getByRole("log", { name: "Conversation and activity" })
-    .getByRole("listitem");
-  const transcriptItemCount = await transcriptItems.count();
   const repositoryCanvas = page.locator(
     'canvas[data-floor-state="repository"]',
   );
-  const actionComposer = page.getByLabel("Message Mr Fluff");
-  await actionComposer.fill("Refresh Phase 18.5 action proof");
-  const cheerObservation = await repositoryCanvas.evaluateHandle((canvas) => {
-    let observer: MutationObserver | null = null;
-    let timeout: number | null = null;
-    const cleanup = () => {
-      observer?.disconnect();
-      if (timeout !== null) window.clearTimeout(timeout);
-    };
-    const observation = new Promise<{
-      readonly action: string | undefined;
-      readonly face: string | undefined;
-      readonly secondary: string | undefined;
-    }>((resolveCheer, rejectCheer) => {
-      const capture = () => {
-        if (canvas.dataset.agentAvatarAction !== "Cheer") return;
-        const snapshot = {
-          action: canvas.dataset.agentAvatarAction,
-          face: canvas.dataset.agentAvatarFace,
-          secondary: canvas.dataset.agentAvatarSecondary,
-        };
-        cleanup();
-        resolveCheer(snapshot);
-      };
-      observer = new MutationObserver(capture);
-      observer.observe(canvas, {
-        attributes: true,
-        attributeFilter: [
-          "data-agent-avatar-action",
-          "data-agent-avatar-face",
-          "data-agent-avatar-secondary",
-        ],
-      });
-      timeout = window.setTimeout(() => {
-        cleanup();
-        rejectCheer(new Error("Phase 18.5 Cheer observation timed out"));
-      }, 15_000);
-      capture();
-    });
-    return { observation };
-  });
-  await actionComposer.press("Enter");
-  await expect(transcriptItems).toHaveCount(transcriptItemCount + 4);
-  const transientSnapshot = await cheerObservation
-    .evaluate(({ observation }) => observation)
-    .finally(() => cheerObservation.dispose());
-  expect(transientSnapshot.action).toBe("Cheer");
-  // The imported clip and projected activity layer use independent clocks.
-  expect([
-    { face: "Smile", secondary: "Celebrate" },
-    { face: "neutral", secondary: "Neutral" },
-  ]).toContainEqual({
-    face: transientSnapshot.face,
-    secondary: transientSnapshot.secondary,
-  });
   const inspection = await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>(
       'canvas[data-floor-state="repository"]',
@@ -1739,6 +1848,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
       renderDpr: canvas?.dataset.renderDpr ?? null,
       userSpecies: canvas?.dataset.userAvatarSpecies ?? null,
       agentSpecies: canvas?.dataset.agentAvatarSpecies ?? null,
+      agentRepresentation: canvas?.dataset.agentAvatarRepresentation ?? null,
       userAction: canvas?.dataset.userAvatarAction ?? null,
       userLod: canvas?.dataset.userAvatarLod ?? null,
       agentLod: canvas?.dataset.agentAvatarLod ?? null,
@@ -1762,6 +1872,9 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
   const expectedRenderLoopMode = constrainedCosmetics
     ? "continuous-constrained"
     : "continuous-native";
+  const expectedAgentRepresentation = constrainedCosmetics
+    ? "runtime-impostor"
+    : "live-model";
   await repositoryCanvas.evaluate(
     (canvas) =>
       new Promise<void>((resolveIdle) => {
@@ -1876,6 +1989,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
     inspection.renderer === "webgl" &&
     inspection.floor === "repository" &&
     inspection.avatarReady === "true" &&
+    inspection.agentRepresentation === expectedAgentRepresentation &&
     inspection.cosmeticQuality === expectedCosmeticQuality &&
     inspection.renderDpr === String(expectedRenderDpr) &&
     inspection.userLod === "LOD0" &&
@@ -1932,6 +2046,7 @@ test("Phase 18.5 integrates the avatar family and semantic repository kit @phase
     renderDpr: String(expectedRenderDpr),
     userSpecies: "human",
     agentSpecies: "cat",
+    agentRepresentation: expectedAgentRepresentation,
     userAction: "Idle",
     userLod: "LOD0",
     agentLod: "LOD0",

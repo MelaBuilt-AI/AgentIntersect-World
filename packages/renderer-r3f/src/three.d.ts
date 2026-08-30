@@ -1,10 +1,11 @@
 declare module "three" {
-  export type ColorRepresentation = string | number;
+  export type ColorRepresentation = string | number | Color;
   export class Vector3 {
     x: number;
     y: number;
     z: number;
     set(x: number, y: number, z: number): this;
+    copy(value: Vector3): this;
     fromArray(array: ArrayLike<number>, offset?: number): this;
   }
   export class Euler {
@@ -32,6 +33,7 @@ declare module "three" {
     remove(...objects: Object3D[]): this;
     traverse(callback: (object: Object3D) => void): void;
     getObjectByName(name: string): Object3D | undefined;
+    updateMatrixWorld(force?: boolean): void;
   }
   export class Group extends Object3D {}
   export class Material {
@@ -44,6 +46,8 @@ declare module "three" {
   }
   export class Texture {
     minFilter: unknown;
+    magFilter: unknown;
+    generateMipmaps: boolean;
     dispose(): void;
   }
   export class CanvasTexture extends Texture {
@@ -159,10 +163,38 @@ declare module "three" {
     set(color: ColorRepresentation): this;
     getHexString(): string;
   }
+  export class Box3 {
+    setFromObject(object: Object3D): this;
+    getCenter(target: Vector3): Vector3;
+    getSize(target: Vector3): Vector3;
+  }
+  export class Scene extends Group {}
+  export class PerspectiveCamera extends Object3D {
+    constructor(fov?: number, aspect?: number, near?: number, far?: number);
+    lookAt(target: Vector3): void;
+  }
+  export class WebGLRenderTarget {
+    constructor(width: number, height: number);
+    texture: Texture;
+    dispose(): void;
+  }
+  export class WebGLRenderer {
+    domElement: HTMLCanvasElement;
+    getContext(): WebGLRenderingContext | WebGL2RenderingContext;
+    getRenderTarget(): WebGLRenderTarget | null;
+    setRenderTarget(target: WebGLRenderTarget | null): void;
+    getClearColor(target: Color): Color;
+    getClearAlpha(): number;
+    setClearColor(color: ColorRepresentation, alpha?: number): void;
+    clear(): void;
+    render(scene: Object3D, camera: Object3D): void;
+  }
   export class AmbientLight extends Object3D {
+    constructor(color?: ColorRepresentation, intensity?: number);
     intensity: number;
   }
   export class DirectionalLight extends Object3D {
+    constructor(color?: ColorRepresentation, intensity?: number);
     intensity: number;
   }
   export class GridHelper extends Object3D {
@@ -213,6 +245,7 @@ declare module "three" {
     constructor(root: Object3D);
     clipAction(clip: AnimationClip): AnimationAction;
     update(delta: number): void;
+    setTime(timeInSeconds: number): this;
     stopAllAction(): this;
     uncacheRoot(root: Object3D): void;
   }

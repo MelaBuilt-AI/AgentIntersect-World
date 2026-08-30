@@ -117,7 +117,7 @@ class Phase185VisualContractTest(unittest.TestCase):
                 "software-emulation",
             )
 
-    def test_july_26_hardware_evidence_is_intrinsically_historical(self):
+    def test_retained_hardware_evidence_is_valid_milestone_history(self):
         evidence = json.loads(
             (
                 ROOT
@@ -125,7 +125,17 @@ class Phase185VisualContractTest(unittest.TestCase):
             ).read_text()
         )
         self.assertEqual(verify_avatar_assets.validate_historical_evidence(evidence), [])
-        self.assertNotEqual(verify_avatar_assets.validate_hardware_evidence(evidence), [])
+        self.assertEqual(verify_avatar_assets.validate_hardware_evidence(evidence), [])
+        inspection = json.loads(
+            (ROOT / "assets/avatar/aiw-avatar-kit.glb-inspection.json").read_text()
+        )
+        performance = inspection["performanceEvidence"]
+        self.assertTrue(performance["performanceEvidenceUsable"])
+        self.assertEqual(
+            performance["nativeEvidenceStatus"], "historical-non-gating"
+        )
+        self.assertNotIn("currentNativeEvidenceStatus", performance)
+        self.assertNotIn("browserEvidenceCurrent", performance)
 
     def test_historical_evidence_rejects_bad_fingerprint_shape_and_screenshot(self):
         evidence = json.loads(verify_avatar_assets.HARDWARE_EVIDENCE.read_text())
@@ -142,7 +152,7 @@ class Phase185VisualContractTest(unittest.TestCase):
         )
         self.assertIn("hardware screenshot fingerprint mismatch", errors)
 
-    def test_hardware_evidence_validation_fails_on_drift_and_threshold(self):
+    def test_hardware_evidence_does_not_bind_current_source_bytes(self):
         evidence = json.loads(
             (
                 ROOT
@@ -152,13 +162,17 @@ class Phase185VisualContractTest(unittest.TestCase):
         evidence["productionInputs"][
             "packages/renderer-r3f/src/avatar-kit-canvas.tsx"
         ]["sha256"] = "0" * 64
+        self.assertEqual(verify_avatar_assets.validate_hardware_evidence(evidence), [])
+
+    def test_hardware_evidence_validation_keeps_performance_thresholds(self):
+        evidence = json.loads(
+            (
+                ROOT
+                / "artifacts/phase18-5/phase18-5-hardware-measurement.json"
+            ).read_text()
+        )
         evidence["metrics"]["cadence"]["p95Ms"] = 16.9
         errors = verify_avatar_assets.validate_hardware_evidence(evidence)
-        self.assertIn(
-            "production input fingerprint mismatch: "
-            "packages/renderer-r3f/src/avatar-kit-canvas.tsx",
-            errors,
-        )
         self.assertIn("hardware cadence p95 exceeds 16.8 ms", errors)
 
     def test_hardware_evidence_validation_rejects_non_authored_runtime_lod(self):

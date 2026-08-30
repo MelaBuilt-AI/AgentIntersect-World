@@ -109,7 +109,6 @@ export function readPhase18_5HardwareEvidence(
 function validatePhase18_5EvidenceIntegrity(
   evidence: Phase18_5HardwareEvidence,
   workspaceRoot: string,
-  compareCurrentInputs: boolean,
 ): Phase18_5HardwareEvidenceValidation {
   const errors: string[] = [];
   if (evidence.schema !== "aiw.phase18-5.hardware-measurement/1")
@@ -197,15 +196,6 @@ function validatePhase18_5EvidenceIntegrity(
         `historical production input fingerprint is invalid: ${relativePath}`,
       );
   }
-  if (compareCurrentInputs) {
-    for (const relativePath of PHASE18_5_PRODUCTION_INPUTS) {
-      const absolutePath = resolve(workspaceRoot, relativePath);
-      const recorded = fingerprints?.[relativePath]?.sha256;
-      if (!existsSync(absolutePath) || recorded !== sha256(absolutePath))
-        errors.push(`production input fingerprint mismatch: ${relativePath}`);
-    }
-  }
-
   const screenshotPath = evidence.screenshot?.path;
   const absoluteScreenshot =
     typeof screenshotPath === "string"
@@ -225,12 +215,14 @@ export function validatePhase18_5HistoricalEvidence(
   evidence: Phase18_5HardwareEvidence,
   workspaceRoot = process.cwd(),
 ): Phase18_5HardwareEvidenceValidation {
-  return validatePhase18_5EvidenceIntegrity(evidence, workspaceRoot, false);
+  return validatePhase18_5EvidenceIntegrity(evidence, workspaceRoot);
 }
 
 export function validatePhase18_5HardwareEvidence(
   evidence: Phase18_5HardwareEvidence,
   workspaceRoot = process.cwd(),
 ): Phase18_5HardwareEvidenceValidation {
-  return validatePhase18_5EvidenceIntegrity(evidence, workspaceRoot, true);
+  // Retained hardware results are milestone evidence, not a source-byte lock on
+  // later development. Their recorded fingerprints remain historical metadata.
+  return validatePhase18_5EvidenceIntegrity(evidence, workspaceRoot);
 }

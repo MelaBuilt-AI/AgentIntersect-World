@@ -1,11 +1,11 @@
 {
   "schema": "aiw.phase18-5.hardware-measurement/1",
-  "measuredAt": "2026-07-26T20:07:09-04:00",
+  "measuredAt": "2026-08-29T15:51:59.929Z",
   "authority": "hardware",
   "passed": true,
   "browser": {
     "name": "Microsoft Edge",
-    "version": "150.0.4078.99",
+    "version": "151.0.4129.107",
     "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
     "errors": []
   },
@@ -29,15 +29,15 @@
   },
   "metrics": {
     "cadence": {
-      "minMs": 9,
-      "medianMs": 9.9,
-      "p90Ms": 10.1,
-      "p95Ms": 10.2,
-      "maxMs": 10.6,
+      "minMs": 8.199999999953434,
+      "medianMs": 8.300000000046566,
+      "p90Ms": 8.400000000139698,
+      "p95Ms": 8.400000000139698,
+      "maxMs": 8.5,
       "samplesOverThreshold": 0
     },
     "renderWork": {
-      "p95Ms": 0.8
+      "p95Ms": 1
     },
     "longTasks": {
       "count": 0,
@@ -45,8 +45,8 @@
     }
   },
   "thresholds": {
-    "cadenceP95Ms": 16.8,
     "renderWorkP95Ms": 16.7,
+    "cadenceP95Ms": 16.8,
     "longestTaskMs": 100
   },
   "productionInputs": {
@@ -54,13 +54,13 @@
       "sha256": "e1f598a7824f4c3829fee4567db9989e3041208c3a3890b206112599d9a55735"
     },
     "packages/renderer-r3f/src/world-room-canvas.tsx": {
-      "sha256": "cd0477fa689eaa527433df80464ba95e994513cdd10e717920e190d84af707ab"
+      "sha256": "0cd598f10ffd23c415bc67aa68ada8f733d9fab9e584298353af7f1332ca34d8"
     },
     "packages/renderer-r3f/src/index.ts": {
-      "sha256": "c600a39901b9364f6b6991cc0a71f4d7179440851b105d400d3fae7aa9ba4a05"
+      "sha256": "7f91961aa3fec178a2236c6726974be5f005ad91265b2d3df1c6625e0291e094"
     },
     "packages/avatar-system/src/index.ts": {
-      "sha256": "cb1e565643a6934190d678effd6df0b76416df3d5a883cdc86f8a5ec21e7b18d"
+      "sha256": "c7f59994bfc124362eec44da1955983ccf93f24c40687d8fcaaf3235c5beff9e"
     },
     "apps/web/public/assets/avatar/aiw-avatar-kit.glb": {
       "sha256": "af8750d8e15b6e564d2937ccc85f52c938695c78785568192018d8b2da7aa6ac"
@@ -68,15 +68,15 @@
   },
   "screenshot": {
     "path": "artifacts/phase18-5/browser-world-edge-hardware.png",
-    "sha256": "acb1c0d830274a1501ac874df8b6ce68c057d892bb85907ffecc6e355a8d423c"
+    "sha256": "99d80d0e6cbd0931e9975fc64af52b402db6653bf45fccd8d1ac55d95a5d8420"
   },
   "visualQa": {
     "passed": true,
     "notes": [
-      "Fresh Microsoft Edge hardware capture shows both full LOD0 user and agent avatars visibly grounded above the HUD.",
-      "Native RTX rendering retained full cosmetics, DPR 1, antialiasing, and continuous-native cadence.",
-      "Semantic repository geometry is visible and the activity billboard does not overlap either avatar.",
-      "Transcript, composer, controls, and viewport composition remain contained with no visible clipping, wrapping, or washed-out-rendering blocker."
+      "Aaron first-hand accepted the focused native Edge closeout with the exact report 'PASS Task 16 Edge closeout'.",
+      "The 1600x1000 capture visibly contains the grounded user avatar plus distinct Codex Alpha and Codex Beta imported avatars without overlap, T-pose, clipping, blanking, or modal obstruction.",
+      "Repository City, asset palette, chat HUD, recipient controls, and camera instructions remain visible and contained.",
+      "The native Edge measurement retained full cosmetics, DPR 1, antialiasing, continuous-native rendering, both observable avatar LODs at LOD0, and zero measurement-window browser errors."
     ]
   }
 }

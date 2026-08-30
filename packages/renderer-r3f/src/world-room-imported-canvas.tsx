@@ -34,7 +34,9 @@ import {
 } from "./avatar-kit-canvas.js";
 import {
   ImportedAvatarWorldModel,
+  selectImportedAvatarWorldRepresentation,
   type ImportedAvatarAnimationSample,
+  type ImportedAvatarWorldRepresentation,
   type ImportedAvatarWorldSelection,
 } from "./imported-avatar-canvas.js";
 import {
@@ -102,10 +104,10 @@ export type WorldRenderLoop = {
   readonly frameloop: "always" | "demand";
   readonly mode:
     "continuous-native" | "continuous-constrained" | "demand-reduced-motion";
-  readonly recurringIntervalMs: 42 | null;
+  readonly recurringIntervalMs: 120 | null;
 };
 
-const CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS = 42 as const;
+const CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS = 120 as const;
 
 const SOFTWARE_RENDERER_PATTERN =
   /swiftshader|llvmpipe|lavapipe|softpipe|software raster|microsoft basic render driver|software emulation/iu;
@@ -665,6 +667,7 @@ function WorldAvatarModel({
   onAnimationSample,
   onOneShotComplete,
   animationGeneration,
+  importedRepresentation,
 }: {
   readonly role: "user" | "agent";
   readonly selection: AvatarSelection;
@@ -686,6 +689,7 @@ function WorldAvatarModel({
     generation: number,
   ) => void;
   readonly animationGeneration: number;
+  readonly importedRepresentation: ImportedAvatarWorldRepresentation;
 }) {
   return imported ? (
     <ImportedAvatarWorldModel
@@ -700,6 +704,7 @@ function WorldAvatarModel({
       onLodChange={onLodChange}
       onAnimationSample={onAnimationSample}
       animationGeneration={animationGeneration}
+      representation={importedRepresentation}
       onOneShotComplete={(completedRole, _semantic, generation) =>
         onOneShotComplete(completedRole, generation)
       }
@@ -807,6 +812,9 @@ function WorldRoomScene({
   const { camera, gl, invalidate, scene, size } = useThree();
   const controlledAvatarYaw = calculateControlledAvatarYaw(cameraLook.yaw);
   const avatarMotion = selectWorldAvatarMotion(renderQuality, reducedMotion);
+  const importedAvatarRepresentation = selectImportedAvatarWorldRepresentation(
+    renderQuality.cosmeticQuality,
+  );
   const userImportedClip = userImportedAvatar?.resolvedClip;
   const agentImportedClip = agentImportedAvatar?.resolvedClip;
   const agentWorldPosition = useMemo(
@@ -893,6 +901,9 @@ function WorldRoomScene({
     gl.domElement.dataset.userAvatarSource = userImportedAvatar
       ? "imported"
       : "custom";
+    gl.domElement.dataset.userAvatarRepresentation = userImportedAvatar
+      ? importedAvatarRepresentation
+      : "live-model";
     gl.domElement.dataset.userAvatarImportedId =
       userImportedAvatar?.assetId ?? "";
     gl.domElement.dataset.userAvatarRenderedClip =
@@ -915,6 +926,9 @@ function WorldRoomScene({
     gl.domElement.dataset.agentAvatarSource = agentImportedAvatar
       ? "imported"
       : "custom";
+    gl.domElement.dataset.agentAvatarRepresentation = agentImportedAvatar
+      ? importedAvatarRepresentation
+      : "live-model";
     gl.domElement.dataset.agentAvatarImportedId =
       agentImportedAvatar?.assetId ?? "";
     gl.domElement.dataset.agentAvatarRenderedClip =
@@ -956,6 +970,7 @@ function WorldRoomScene({
     floor,
     gl,
     invalidate,
+    importedAvatarRepresentation,
     reducedMotion,
     renderQuality,
     renderedAgentAvatars.length,
@@ -1061,6 +1076,7 @@ function WorldRoomScene({
             onAnimationSample={onImportedAnimationSample}
             onOneShotComplete={onImportedOneShotComplete}
             animationGeneration={userAnimationGeneration}
+            importedRepresentation={importedAvatarRepresentation}
           />
         </LightweightAvatarMotion>
       ) : (
@@ -1081,6 +1097,7 @@ function WorldRoomScene({
           onAnimationSample={onImportedAnimationSample}
           onOneShotComplete={onImportedOneShotComplete}
           animationGeneration={userAnimationGeneration}
+          importedRepresentation={importedAvatarRepresentation}
         />
       )}
       {renderedAgentAvatars.map((_, index) => {
@@ -1146,6 +1163,7 @@ function WorldRoomScene({
             onAnimationSample={onImportedAnimationSample}
             onOneShotComplete={onImportedOneShotComplete}
             animationGeneration={index === 0 ? agentAnimationGeneration : 0}
+            importedRepresentation={importedAvatarRepresentation}
           />
         );
         return (

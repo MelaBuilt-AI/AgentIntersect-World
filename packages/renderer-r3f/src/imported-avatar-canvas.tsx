@@ -1,10 +1,21 @@
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AmbientLight,
   AnimationMixer,
   type AnimationAction,
+  Box3,
+  Color,
+  DirectionalLight,
   type Group,
   type Object3D,
+  PerspectiveCamera,
+  Scene,
+  Sprite,
+  SpriteMaterial,
+  Vector3,
+  type WebGLRenderer,
+  WebGLRenderTarget,
 } from "three";
 import {
   GLTFLoader,
@@ -79,6 +90,92 @@ export type ImportedAvatarWorldSelection = Omit<
   readonly groundOffset: number;
 };
 
+export type ImportedAvatarWorldRepresentation =
+  "live-model" | "runtime-impostor";
+
+export function selectImportedAvatarWorldRepresentation(
+  cosmeticQuality: "full" | "constrained",
+): ImportedAvatarWorldRepresentation {
+  return cosmeticQuality === "constrained" ? "runtime-impostor" : "live-model";
+}
+
+export function importedAvatarImpostorPoseTime(
+  durationSeconds: number,
+): number {
+  return Number.isFinite(durationSeconds) && durationSeconds > 0
+    ? durationSeconds * 0.5
+    : 0;
+}
+
+export type ImportedAvatarImpostorSnapshot = {
+  readonly sprite: Sprite;
+  readonly target: WebGLRenderTarget;
+  readonly material: SpriteMaterial;
+};
+
+export function createImportedAvatarImpostorSnapshot(
+  avatarScene: Group,
+  renderer: WebGLRenderer,
+): ImportedAvatarImpostorSnapshot {
+  avatarScene.updateMatrixWorld(true);
+  const bounds = new Box3().setFromObject(avatarScene);
+  const center = bounds.getCenter(new Vector3());
+  const size = bounds.getSize(new Vector3());
+  const textureAspect = 0.5;
+  const frameHeight = Math.max(size.y, size.x / textureAspect, 0.01) * 1.12;
+  const frameWidth = frameHeight * textureAspect;
+  const verticalFov = 30;
+  const distance = frameHeight / (2 * Math.tan((verticalFov * Math.PI) / 360));
+  const camera = new PerspectiveCamera(verticalFov, textureAspect, 0.01, 100);
+  camera.position.set(center.x, center.y, center.z + distance);
+  camera.lookAt(center);
+  const previewScene = new Scene();
+  const originalParent = avatarScene.parent;
+  const ambient = new AmbientLight("#ffffff", 1.7);
+  const key = new DirectionalLight("#ffffff", 2.4);
+  key.position.set(center.x + 2, center.y + 3, center.z + 4);
+  const target = new WebGLRenderTarget(384, 768);
+  target.texture.generateMipmaps = false;
+  const previousTarget = renderer.getRenderTarget();
+  const previousColor = renderer.getClearColor(new Color());
+  const previousAlpha = renderer.getClearAlpha();
+  let material: SpriteMaterial | undefined;
+
+  try {
+    previewScene.add(avatarScene, ambient, key);
+    previewScene.updateMatrixWorld(true);
+    renderer.setRenderTarget(target);
+    renderer.setClearColor("#000000", 0);
+    renderer.clear();
+    renderer.render(previewScene, camera);
+    material = new SpriteMaterial({
+      map: target.texture,
+      transparent: true,
+      depthTest: true,
+    });
+    const sprite = new Sprite(material);
+    sprite.name = "IMPORTED_AVATAR_RUNTIME_IMPOSTOR";
+    sprite.position.copy(center);
+    sprite.scale.set(frameWidth, frameHeight, 1);
+    sprite.userData = {
+      avatarSource: "imported",
+      avatarRepresentation: "runtime-impostor",
+    };
+    return { sprite, target, material };
+  } catch (error) {
+    material?.dispose();
+    target.dispose();
+    throw error;
+  } finally {
+    renderer.setRenderTarget(previousTarget);
+    renderer.setClearColor(previousColor, previousAlpha);
+    if (avatarScene.parent !== originalParent) {
+      avatarScene.parent?.remove(avatarScene);
+      originalParent?.add(avatarScene);
+    }
+  }
+}
+
 export function configureImportedAvatarScene(
   source: Group,
   parts: readonly ImportedAvatarPart[] = [],
@@ -108,6 +205,8 @@ function ImportedAvatarModel({
   rotation,
   scale,
   semanticAction,
+  representation = "live-model",
+  onRepresentationReady,
   onAnimationSample,
   onOneShotComplete,
 }: {
@@ -119,6 +218,8 @@ function ImportedAvatarModel({
   readonly rotation: readonly [number, number, number];
   readonly scale: number;
   readonly semanticAction?: string | undefined;
+  readonly representation?: ImportedAvatarWorldRepresentation | undefined;
+  readonly onRepresentationReady?: (() => void) | undefined;
   readonly onAnimationSample?:
     ((sample: ImportedAvatarAnimationSample) => void) | undefined;
   readonly onOneShotComplete?: ((semantic: string) => void) | undefined;
@@ -127,6 +228,11 @@ function ImportedAvatarModel({
     selection.assetId,
     ...(selection.hiddenPartIds ?? []),
   ].join(":");
+  const renderer = useThree((state) => state.gl) as unknown as WebGLRenderer;
+  const invalidate = useThree((state) => state.invalidate);
+  const [impostor, setImpostor] =
+    useState<ImportedAvatarImpostorSnapshot | null>(null);
+  const onRepresentationReadyRef = useRef(onRepresentationReady);
   const scene = useMemo(
     () =>
       configureImportedAvatarScene(
@@ -183,10 +289,12 @@ function ImportedAvatarModel({
         .find((candidate) => candidate !== undefined),
     [scene],
   );
-  const invalidate = useThree((state) => state.invalidate);
   useEffect(() => {
     onOneShotCompleteRef.current = onOneShotComplete;
   }, [onOneShotComplete]);
+  useEffect(() => {
+    onRepresentationReadyRef.current = onRepresentationReady;
+  }, [onRepresentationReady]);
   useEffect(() => {
     const previous = activeAction.current;
     if (!clip) {
@@ -230,6 +338,38 @@ function ImportedAvatarModel({
     eventMixer.addEventListener("finished", finished);
     return () => eventMixer.removeEventListener("finished", finished);
   }, [animate, clip, invalidate, mixer, resolvedOneShot, resolvedSemantic]);
+  useEffect(() => {
+    if (representation === "live-model") {
+      setImpostor(null);
+      onRepresentationReadyRef.current?.();
+      return;
+    }
+    const previousMixerTime = mixer.time;
+    if (activeAction.current && clip)
+      mixer.setTime(importedAvatarImpostorPoseTime(clip.duration));
+    let snapshot: ImportedAvatarImpostorSnapshot;
+    try {
+      snapshot = createImportedAvatarImpostorSnapshot(scene, renderer);
+    } finally {
+      mixer.setTime(previousMixerTime);
+    }
+    setImpostor(snapshot);
+    onRepresentationReadyRef.current?.();
+    invalidate();
+    return () => {
+      snapshot.material.dispose();
+      snapshot.target.dispose();
+    };
+  }, [
+    clip,
+    clipIndex,
+    invalidate,
+    mixer,
+    renderer,
+    representation,
+    scene,
+    semanticAction,
+  ]);
   useEffect(
     () => () => {
       activeAction.current?.stop();
@@ -287,7 +427,10 @@ function ImportedAvatarModel({
         semanticLocomotion: resolvedWorldClip?.locomotion ?? "preview",
       }}
     >
-      <primitive object={scene} />
+      {representation === "live-model" ? <primitive object={scene} /> : null}
+      {representation === "runtime-impostor" && impostor ? (
+        <primitive object={impostor.sprite} />
+      ) : null}
     </group>
   );
 }
@@ -321,6 +464,7 @@ export function ImportedAvatarWorldModel({
   onAnimationSample,
   onOneShotComplete,
   animationGeneration,
+  representation = "live-model",
 }: {
   readonly role: "user" | "agent";
   readonly selection: ImportedAvatarWorldSelection;
@@ -340,6 +484,7 @@ export function ImportedAvatarWorldModel({
     | ((role: "user" | "agent", semantic: string, generation: number) => void)
     | undefined;
   readonly animationGeneration: number;
+  readonly representation?: ImportedAvatarWorldRepresentation | undefined;
 }) {
   const gltf = useLoader(GLTFLoader, selection.assetUrl);
   const resolvedRotation: readonly [number, number, number] = [
@@ -348,6 +493,7 @@ export function ImportedAvatarWorldModel({
     selection.rotation[2] + rotation[2],
   ];
   const selectionKey = `${role}:${selection.assetId}`;
+  const representationReady = useCallback(() => onReady(role), [onReady, role]);
   useEffect(() => onLodChange?.(role, "LOD0"), [onLodChange, role]);
   return (
     <group name={`${role}-imported-avatar`}>
@@ -356,6 +502,8 @@ export function ImportedAvatarWorldModel({
         selection={selection}
         semanticAction={action}
         animate={animate}
+        representation={representation}
+        onRepresentationReady={representationReady}
         position={[
           position[0],
           position[1] + selection.groundOffset * scale,
@@ -368,10 +516,12 @@ export function ImportedAvatarWorldModel({
           onOneShotComplete?.(role, semantic, animationGeneration)
         }
       />
-      <ImportedAvatarRenderReady
-        selectionKey={selectionKey}
-        onReady={() => onReady(role)}
-      />
+      {representation === "live-model" ? (
+        <ImportedAvatarRenderReady
+          selectionKey={selectionKey}
+          onReady={() => onReady(role)}
+        />
+      ) : null}
     </group>
   );
 }

@@ -773,13 +773,8 @@ test("Settings stays product-facing and Change Avatar selects the exact role and
     .getByRole("button", { name: "Mr Fluff · connected agent" })
     .click();
   await expect(
-    page.getByRole("status", {
-      name: "Loading complete avatar builder…",
-    }),
-  ).toBeHidden({ timeout: 30_000 });
-  await expect(
     page.getByRole("heading", { name: "Change Mr Fluff’s avatar" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("User Male 1", { exact: true })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Open Robot Agent 5 3D preview" })

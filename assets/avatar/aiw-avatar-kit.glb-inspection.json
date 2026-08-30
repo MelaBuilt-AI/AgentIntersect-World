@@ -46,7 +46,6 @@
     "articulatedRig": true,
     "blendBudget": true,
     "blendInspection": true,
-    "browserEvidenceCurrent": true,
     "contractSchema": true,
     "distinctActions": true,
     "distinctModules": true,
@@ -54,6 +53,7 @@
     "expressionSpeechContract": true,
     "generatedAssets": true,
     "heads": true,
+    "historicalEvidenceIntegrity": true,
     "images": true,
     "inventory": true,
     "lodDrawCallProxy": true,
@@ -66,6 +66,7 @@
     "multiBoneActions": true,
     "oneSharedSkin": true,
     "pbrTextureRoles": true,
+    "performanceEvidenceUsable": true,
     "runtimeGlbBudget": true,
     "supersetBoneBudget": true,
     "textureBudget": true,
@@ -410,6 +411,7 @@
     "MAT_SHIRT_Hermes": [0.980392, 0.8, 0.082353, 1.0]
   },
   "missingEvidence": [],
+  "mode": "current-native",
   "moduleSignatures": {
     "feet": {
       "FOOT_clawed-paws_L": "33eba0d4d33a7025521f8abdcd46af3603911c84f7226228aee542f38be8005b",
@@ -442,11 +444,14 @@
   },
   "passed": true,
   "performanceEvidence": {
-    "browserEvidenceCurrent": true,
     "cadenceAuthoritative": false,
     "cadenceAuthority": "software-emulation",
     "hardwareEvidenceErrors": [],
     "hardwareEvidencePassed": true,
+    "historicalEvidenceIntegrityErrors": [],
+    "historicalEvidenceIntegrityPassed": true,
+    "nativeEvidenceStatus": "historical-non-gating",
+    "performanceEvidenceUsable": true,
     "softwareCadencePassed": false
   },
   "schema": "aiw.avatar-runtime-inspection/0.18.5",

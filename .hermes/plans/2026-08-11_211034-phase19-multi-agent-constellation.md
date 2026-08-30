@@ -1,10 +1,10 @@
 # Phase 19 Multi-Agent Constellation and Harness Breadth Implementation Plan
 
-> **For Hermes:** Aaron authorized Phase 19 on 2026-08-11. Tasks 1–12 are parent-accepted under Node 24; Task 13 — recovery, migration, lifecycle teardown, and Phase 16 non-regression — is **USER-ACCEPTED 2026-08-24**; and Task 14 — complete push-to-talk input in the normal World — is **USER-ACCEPTED 2026-08-26** after Aaron reported `PASS 1-9` for the real Edge microphone/local-Whisper journey. On 2026-08-26 Aaron selected every recommended Task 15 planning choice (`1A` through `15A`) and authorized direct end-to-end Task 15 implementation plus concrete corrections for up to 2.5 hours; no Codex/delegated coding is allowed. Task 12's exact independent repository-object work focus passed fresh production headed and non-headed parent acceptance; no Dig mapping was operator-approved, so truthful Work/static coding fallback remains accepted throughout Task 15. Task 16+, PR/merge, protected-service mutation, provider/profile/configuration changes, release, publication, deployment, tags, public ingress, and visibility changes remain closed. Final immutable commit/run evidence belongs in an external handoff after separately authorized delivery.
+> **For Hermes:** Phase 19 Tasks 1–16 are complete. Tasks 13–15 are user-accepted and privately delivered on sole exact-green `main` at `b0b58bd18e4c3fd784b39e8c8a344125c9e2e6a0`; Task 16 closed on 2026-08-30 under Aaron's functionality-first reset after the criterion report, first-hand Edge/RTX and duplicate-Codex acceptance, focused scheduler correction, and green affected browser behavior. Retained source fingerprints and the historical 76/77 fresh-copy result are diagnostic history, not routine development gates. Animation Confirmations for all 23 models, including model-local Dig, are next but not started; Phase 20 remains gated afterward. Mr Fluff codes directly unless Aaron explicitly requests delegation. Commit/push/PR/merge, protected-service mutation, provider/profile/configuration changes, release, publication, deployment, tags, public ingress, and visibility changes remain separate gates.
 
-**Goal:** Extend the accepted Phase 18 single-agent World entry into a bounded four-agent constellation with production-bound Hermes, OpenClaw, Codex, and Claude Code sessions; explicit per-agent avatars; truthful lifecycle/readiness; concurrent broadcast chat; repository-object coding movement with a verified Dig animation; completed in-World push-to-talk input; and no normal-product Workbench exposure.
+**Goal:** Extend the accepted Phase 18 single-agent World entry into a bounded four-agent constellation with production-bound Hermes, OpenClaw, Codex, and Claude Code sessions; explicit per-agent avatars; truthful lifecycle/readiness; concurrent broadcast chat; repository-object coding movement with animated model-local Idle as the accepted Work/static presentation; completed in-World push-to-talk input; and no normal-product Workbench exposure. Model-local Dig belongs to the separately gated Animation Confirmations stage after Phase 19 closure.
 
-**Architecture:** Keep the existing Agent Session Gateway as the native-session authority, but distinguish Mr Fluff’s persistent Hermes continuity from World-owned OpenClaw/Codex/Claude sessions that are created by AgentIntersect for one active World and ended with it. Add a durable bounded constellation projection, route grouped broadcast/targeted turns through a restart-safe server service, project structured repository work focus into existing repository-object movement plus a visually verified Dig loop, and integrate the accepted Phase 15 local STT path into the normal World HUD after all four text adapters pass. Preserve Phase 16’s exactly-two-agent coding/worktree protocol unchanged; constellation membership and chat routing do not broaden execution authority.
+**Architecture:** Keep the existing Agent Session Gateway as the native-session authority, but distinguish Mr Fluff’s persistent Hermes continuity from World-owned OpenClaw/Codex/Claude sessions that are created by AgentIntersect for one active World and ended with it. Add a durable bounded constellation projection, route grouped broadcast/targeted turns through a restart-safe server service, project structured repository work focus into existing repository-object movement plus truthful animated Work/static, and integrate the accepted Phase 15 local STT path into the normal World HUD after all four text adapters pass. Preserve Phase 16’s exactly-two-agent coding/worktree protocol unchanged; constellation membership and chat routing do not broaden execution authority.
 
 **Tech stack:** Node 24, TypeScript 6, Fastify, React 19, Vite, R3F, Zod 4, Vitest, Playwright, existing checksum/current-previous stores, and existing local Agent Session Gateway protocols.
 
@@ -14,7 +14,7 @@
 
 ### Current authorization
 
-Aaron authorized **Phase 19 implementation** on 2026-08-11. Tasks 1–12 passed independent parent verification under Node `v24.18.0`; Task 13 is user-accepted after direct parent verification, the focused retained-avatar hydration correction, fresh production-browser proof, and Aaron's 8/8 Edge pass on 2026-08-24; and Task 14 is user-accepted after Aaron's `PASS 1-9` real Edge microphone/local-Whisper journey on 2026-08-26. The stable four-slot registry, independently sanitized readiness/capability truth, deterministic four-adapter conformance matrix, direct World-owned gateway/API lifecycle, production wiring, narrow strict safe-config alignment, harmless production attestation, durable constellation service/routes, bounded ordered-entry reducer/client, visible four-agent constellation/rendering, durable grouped broadcast/exact-targeting, exact repository-object work focus, recovery/migration/lifecycle, and normal-World push-to-talk slices are green at the current accepted checkpoint. **Task 14 passed disclosure-before-permission, explicit enable, pointer Cancel/no-send, focused-Space edited broadcast, avatar-selected Codex-only routing, target reset, typed-chat availability, desktop/mobile containment, physical device-loss discard, no raw-audio fan-out, and no normal-World agent TTS. Receipt: `/home/mela_ai/.hermes/runs/aiw-phase19-task14-manual-20260826T065547-0400/manual-acceptance-verdict.json`. Task 15 is authorized/in progress under the direct plan `.hermes/plans/2026-08-26_220601-phase19-task15-browser-real-harness-proof.md`, with all recommended choices selected and Work/static retained. Task 16 and later remain closed. Aaron authorized the exact eight-path private Task 13 acceptance-milestone commit/push on 2026-08-24; the final SHA and CI receipt remain external. Aaron separately authorized private Task 14 commit/push on 2026-08-26; its final immutable SHA/CI receipt remains external. PR/merge, release, publication, deployment, tag, public ingress, and visibility changes remain separately closed.** Task 8 changed only:
+Aaron authorized **Phase 19 implementation** on 2026-08-11. Tasks 1–12 passed independent parent verification under Node `v24.18.0`; Task 13 is user-accepted after direct parent verification, the focused retained-avatar hydration correction, fresh production-browser proof, and Aaron's 8/8 Edge pass on 2026-08-24; and Task 14 is user-accepted after Aaron's `PASS 1-9` real Edge microphone/local-Whisper journey on 2026-08-26. The stable four-slot registry, independently sanitized readiness/capability truth, deterministic four-adapter conformance matrix, direct World-owned gateway/API lifecycle, production wiring, narrow strict safe-config alignment, harmless production attestation, durable constellation service/routes, bounded ordered-entry reducer/client, visible four-agent constellation/rendering, durable grouped broadcast/exact-targeting, exact repository-object work focus, recovery/migration/lifecycle, and normal-World push-to-talk slices are green at the current accepted checkpoint. **Task 14 passed disclosure-before-permission, explicit enable, pointer Cancel/no-send, focused-Space edited broadcast, avatar-selected Codex-only routing, target reset, typed-chat availability, desktop/mobile containment, physical device-loss discard, no raw-audio fan-out, and no normal-World agent TTS. Receipt: `/home/mela_ai/.hermes/runs/aiw-phase19-task14-manual-20260826T065547-0400/manual-acceptance-verdict.json`. Tasks 13–15 are user-accepted and privately delivered; Task 16 and Phase 19 are complete under the 2026-08-30 functionality-first closeout. Animation Confirmations and Phase 20 retain separate gates. Aaron authorized the exact eight-path private Task 13 acceptance-milestone commit/push on 2026-08-24; the final SHA and CI receipt remain external. Aaron separately authorized private Task 14 commit/push on 2026-08-26; its final immutable SHA/CI receipt remains external. PR/merge, release, publication, deployment, tag, public ingress, and visibility changes remain separately closed.** Task 8 changed only:
 
 - `.hermes/plans/2026-08-11_211034-phase19-multi-agent-constellation.md` as this first-edit scope record;
 - `apps/local-server/src/constellation-service.ts`;
@@ -37,16 +37,17 @@ Task 8 does not authorize:
 - normal-product Workbench/dashboard exposure;
 - a generic arbitrary-command executor.
 
-### Verified inherited baseline
+### Current Task 16 baseline (re-attested 2026-08-29)
 
 - Repository: private `MelaBuilt-AI/AgentIntersect-World`.
-- Worktree: `/home/mela_ai/.hermes/runs/aiw-repository-city-next-feature/worktree`.
-- Branch: `feature/phase19-multi-agent-constellation`.
-- HEAD/upstream: `f4b23b31a131580e1ddd9fb10274919be434bf68`.
-- Worktree was clean and `git diff --check` passed during planning.
-- Phase 18 exact-SHA hosted CI workflow `31533828456` is 7/7 green.
-- Installed local prerequisites observed at implementation start: Hermes Agent `0.20.0`, OpenClaw `2026.7.1`, Codex CLI `0.147.0`, Claude Code `2.1.228`. Presence/version is not authentication or Phase 19 adapter acceptance.
-- jCodeMunch resolves this worktree as `local/worktree-dfec65e4`; native file reads are authoritative because its recorded index timestamp predates the final Phase 18 commit.
+- Canonical worktree: `/home/mela_ai/AgentIntersect-World`.
+- Sole local and remote branch: `main`.
+- HEAD/upstream/raw remote/GitHub: `b0b58bd18e4c3fd784b39e8c8a344125c9e2e6a0`.
+- Pre-edit worktree and staging were clean; one linked worktree exists.
+- Main exact-SHA hosted workflow `33231542008`, attempt 2, is 7/7 green.
+- Both annotated checkpoint tags are preserved; LFS fsck passes and the LFS push dry-run is empty.
+- Protected Hermes PID `615` on loopback `8642` and OpenClaw PID `617` on loopback `18789` were healthy and intentionally left live.
+- jCodeMunch resolves this canonical checkout as indexed repo `local/AgentIntersect-World`.
 
 ## 2. Frozen Phase 19 decisions
 
@@ -99,11 +100,11 @@ Task 8 does not authorize:
 
 - When structured adapter/tool evidence proves that an agent is actively coding a specific repository section, World resolves that section to the most specific current repository-city object (symbol, then file, directory, or package fallback).
 - The agent moves through the existing `repository-object` movement path to a safe visible approach point for that exact object and layout generation.
-- Only after truthful arrival and active coding evidence coincide does the avatar enter a looping `Dig` semantic, visually representing “coding here.”
-- Dig stops when coding completes/fails/cancels, the work focus changes, the target becomes stale, or the agent leaves the approach area.
-- Unresolved, stale, or blocked targets remain visible and recoverable; completion, failure, cancellation, and retargeting clear Dig deterministically, and different agents retain independent movement/animation state.
+- After truthful arrival and while active coding evidence remains current, imported avatars use each exact model's approved animated Idle clip as the accepted Phase 19 Work/static presentation.
+- Work/static clears when coding completes/fails/cancels, the work focus changes, the target becomes stale, or the agent leaves the approach area.
+- Unresolved, stale, or blocked targets remain visible and recoverable; completion, failure, cancellation, and retargeting clear coding presentation deterministically, and different agents retain independent movement/animation state.
 - Movement and animation are presentation driven by execution evidence; neither grants tool or repository authority.
-- Dig must be mapped and first-hand visually approved for every supported imported agent model. An unverified/missing Dig mapping falls back truthfully to the existing generic `Work` presentation rather than guessing a clip.
+- Dig is not a Phase 19 exit criterion. It remains fail-closed until the separately gated Animation Confirmations stage adds model-local Dig to the strict 23-model review authority and Aaron approves the resulting mappings.
 
 ### Decision 7 — complete push-to-talk input after the four text adapters
 
@@ -129,7 +130,7 @@ Task 8 does not authorize:
 10. The Workbench/dashboard remains developer-query/flag-gated, unlinked, and absent from normal navigation.
 11. No public/LAN account system, unrelated user, cloud room, public ingress, generic shell, or arbitrary command surface is added.
 12. Hermes persistence is not copied onto the other three harnesses: OpenClaw/Codex/Claude sessions belong to one active World and end explicitly with it.
-13. Repository navigation and Dig presentation follow exact structured work evidence and current repository object generations; prose alone cannot move an avatar or claim coding.
+13. Repository navigation and accepted animated Work/static presentation follow exact structured work evidence and current repository object generations; prose alone cannot move an avatar or claim coding. Dig remains separately gated after Phase 19 closure.
 14. Voice input reuses text routing after final transcript acceptance; raw audio is never sent to an agent adapter or duplicated per broadcast recipient.
 15. Agent speech/TTS is out of Phase 19 normal-World scope even though historical Phase 15 browser playback code remains available internally.
 
@@ -716,7 +717,7 @@ Pinned Node `v24.18.0` verification passed Task 13 **13/13**, complete Phase 19 
 
 ### Task 15 — Browser acceptance and real-harness proof
 
-**Status:** **USER-ACCEPTED 2026-08-28; PRIVATE CHECKPOINT DELIVERY AUTHORIZED.** Retest-6 evidence led to two causal corrections: dynamic `current` repository sessions now resolve against the selected concrete repository for server-owned structured movement, and durable grouped results now list, restore, and incrementally update stable recipient rows. Retest 7 first-hand passed Codex/Claude exact-target movement and headings, visible post-refresh replies, Repository City persistence, target clearing, same-World/four-agent refresh, and prior voice criteria. Its only follow-up was a post-arrival imported-avatar T-pose. Exact raw-clip review for the active `cat-agent-02` and `cat-agent-03` models found no unambiguous Dig/coding/examine clip, so no semantic was guessed. Imported `Work` now uses each model's already approved animated Idle clip as the temporary truthful Work/static fallback. In fresh retest 8 Aaron corrected his verdict to **Codex PASS and Claude PASS** with no T-pose. The authoritative verdict and accepted pixels/state are under `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/`. Aaron has authorized one private Task 15 checkpoint commit/push. Dig remains unmapped and non-blocking behind a separate future operator semantic-review gate. Task 16+, PR/merge, provider/profile changes, Phase 20, and public/release actions remain closed.
+**Status:** **USER-ACCEPTED 2026-08-28; PRIVATELY DELIVERED ON SOLE EXACT-GREEN `main`.** Retest-6 evidence led to two causal corrections: dynamic `current` repository sessions now resolve against the selected concrete repository for server-owned structured movement, and durable grouped results now list, restore, and incrementally update stable recipient rows. Retest 7 first-hand passed Codex/Claude exact-target movement and headings, visible post-refresh replies, Repository City persistence, target clearing, same-World/four-agent refresh, and prior voice criteria. Its only follow-up was a post-arrival imported-avatar T-pose. Exact raw-clip review for the active `cat-agent-02` and `cat-agent-03` models found no unambiguous Dig/coding/examine clip, so no semantic was guessed. Imported `Work` now uses each model's already approved animated Idle clip as the truthful Work/static fallback. In fresh retest 8 Aaron corrected his verdict to **Codex PASS and Claude PASS** with no T-pose. The authoritative verdict and accepted pixels/state are under `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/`. Final private delivery is `b0b58bd18e4c3fd784b39e8c8a344125c9e2e6a0`; Dig remains unmapped and non-blocking for Phase 19 closure. Task 16 is now authorized; Animation Confirmations, Phase 20, provider/profile changes, and public/release actions retain separate gates.
 
 **Objective:** Prove the full user journey at production boundaries.
 
@@ -734,8 +735,8 @@ Pinned Node `v24.18.0` verification passed Task 13 **13/13**, complete Phase 19 
 4. Enter World with four avatars and no persistent admin chrome.
 5. Broadcast one message; complete results out of order; verify stable grouped rows.
 6. Target by avatar click, then by `@name`; verify one recipient each and automatic return to broadcast.
-7. Give two agents coding tasks in different repository sections; verify each moves to the exact current city object and loops its approved Dig semantic only after arrival and while coding remains active.
-8. Retarget one coding agent; verify Dig stops, the avatar safely moves to the new object, and Dig resumes only after truthful new arrival.
+7. Give two agents coding tasks in different repository sections; verify each moves to the exact current city object and uses its accepted animated Idle Work/static presentation only after arrival and while coding remains active.
+8. Retarget one coding agent; verify Work/static clears, the avatar safely moves to the new object, and coding presentation resumes only after truthful new arrival.
 9. Use push-to-talk once for broadcast and once for a selected agent; verify one local transcription per utterance, editable final caption, exact text routing, cancellation, and no agent speech playback.
 10. Refresh the same active World, then explicitly end it; verify OpenClaw/Codex/Claude continuity before the end and new native session IDs in the next World.
 11. Restore with one stale agent; verify blocked entry, reconnect, and explicit remove behavior.
@@ -752,13 +753,27 @@ Pinned Node `v24.18.0` verification passed Task 13 **13/13**, complete Phase 19 
 - Hermes continuity remains available outside World and is not shut down by World teardown;
 - truthful unavailable behavior when deliberately withholding only the Phase 19 adapter prerequisite;
 - no provider/profile/account/config mutation;
-- then one combined four-agent broadcast, exact-target, repository-object Dig, and push-to-talk input journey.
+- then one combined four-agent broadcast, exact-target, repository-object movement/Work-static, and push-to-talk input journey.
 
 A fixture-only pass cannot complete Decision 2.
 
 ### Task 16 — Consolidated verification and user gate
 
-**Focused verification:**
+**Status:** **COMPLETE — USER-DIRECTED FUNCTIONALITY-FIRST CLOSEOUT 2026-08-30.** No Animation Confirmations or Phase 20 implementation began.
+
+**First action completed:** Reconcile `PROJECT_STATUS.md`, this plan, `AgentIntersect_WorldDD.md`, `docs/WORLD_ENTRY_EXPERIENCE.md`, and `AGENTS.md` to sole exact-green `main`, Tasks 13–15 accepted/delivered, accepted animated model-local Idle Work/static truth, non-blocking Dig, and the ordered Task 16 → Animation Confirmations → Phase 20 sequence.
+
+**Evidence mapping result:** `PHASE_19_REPORT.md` maps all 19 exit criteria. Retained exact-SHA CI, accepted Tasks 1–15 behavior, current native Edge/RTX acceptance, and distinct duplicate-Codex acceptance cover the Phase 19 product contract.
+
+**Pragmatic verification decision:** The focused scheduler correction changed only the constrained cooperative interval from 42 ms to 120 ms in the standard/imported renderers plus owning tests. Strict RED→GREEN passed 21/21 renderer tests, format, typecheck, build, and the affected three-case browser run. Post-fix Phase 18.5 reached full functional truth with render-work p95 1.0 ms and longest task 85 ms. Retained native source fingerprints remain historical metadata rather than locks on later development.
+
+**Closeout result:** Aaron returned `PASS Task 16 Edge closeout`, then explicitly directed the project back to the simple functionality-first path and asked to close the work. The historical 76/77 fresh-copy result is non-blocking diagnostic evidence because its only failure was the software-rendered outer budget after the affected behavior had passed. No additional native recapture, frozen candidate, receipt system, or broad rerun is required.
+
+**Ongoing development policy:** Use the normal worktree and Git checkpoints when separately authorized. Close routine changes from focused regressions, the impacted type/build gate, and first-hand browser behavior. Reserve `verify:fresh`, complete browser matrices, source-byte attestation, and immutable receipts for explicitly requested milestone/release work or a concrete supported-risk boundary.
+
+**Accepted Phase 19 coding-animation truth:** Exact structured work focus drives current Repository City movement and truthful arrival; imported models use their approved animated Idle clip for Work/static. Dig and two-simultaneous-Dig proof are removed from the Phase 19 exit gate.
+
+**Optional milestone verification commands, use only when materially justified:**
 
 ```bash
 corepack pnpm@11.15.0 build:packages
@@ -770,34 +785,21 @@ corepack pnpm@11.15.0 exec vitest run \
   apps/web/test/phase19-agent-coding-embodiment.test.tsx \
   apps/web/test/phase19-world-voice-input.test.tsx \
   --maxWorkers=1 --no-file-parallelism
-```
-
-**Preserved Phase 16 boundary:**
-
-```bash
 corepack pnpm@11.15.0 conformance:phase16
-```
-
-**Complete parent matrix:**
-
-```bash
 corepack pnpm@11.15.0 check:core
 corepack pnpm@11.15.0 test:e2e:unflagged
 VITE_AIW_LOCAL_DEVELOPER_UI=1 corepack pnpm@11.15.0 test:e2e:flagged
 corepack pnpm@11.15.0 verify:fresh
 ```
 
-Also require:
+**Stop condition:** Phase 19 is complete. Animation Confirmations start only by their separate next-milestone authorization; Phase 20 starts only after Animation Confirmations are integrated and accepted. Commit/push/PR/merge/CI/release actions require a separate explicit decision.
 
-- `git diff --check`;
-- added-content credential/path scan;
-- no unexpected generated output;
-- exact current/previous checksum recovery proof;
-- explicit browser console/page-error result;
-- screenshots/video for constellation setup, four embodied agents, grouped broadcast, exact targeting, two simultaneous repository-object Dig states, retarget/stop behavior, push-to-talk caption/send/cancel, stale blocking, and mobile containment;
-- Aaron’s criterion-level first-hand verdict.
+### Ordered post-closure gate — Animation Confirmations
 
-Stop at first-hand acceptance. Commit/push/PR/merge/CI/release actions require a separate explicit decision even if every local gate is green.
+- Extend the existing 23-model offline review package with model-local `Dig` as semantic ten before review begins.
+- Add 23 unresolved Dig decisions and regenerate the complete authority from 207 to 230 decisions without preselecting clips; preserve all 417 raw candidates and 69 locked locomotion decisions.
+- Keep reports as semantic-review authority only; validate full-document checkpoints, generate runtime mappings separately, and fail closed for stale, tampered, incomplete, cross-model, uncertain, or unsupported decisions.
+- Obtain normal unflagged-product and first-hand actor-local animation acceptance before Phase 20.
 
 ## 7. Proposed implementation commit boundaries (separate gate)
 
@@ -809,7 +811,7 @@ If Aaron separately authorizes commits, prefer these reviewable boundaries:
 4. `feat(phase19): add durable constellation readiness`
 5. `feat(phase19): add multi-agent entry and embodiment`
 6. `feat(phase19): add grouped broadcast and exact targeting`
-7. `feat(phase19): embody repository coding with verified Dig`
+7. `feat(phase19): embody repository coding with truthful Work/static`
 8. `feat(phase19): complete World push-to-talk input`
 9. `test(phase19): add lifecycle recovery and acceptance journeys`
 
@@ -827,8 +829,8 @@ Do not create these commits merely because this plan names them.
 | Response completion order confuses the transcript          | Stable roster-ordered grouped rows that fill independently.                                                            |
 | Stale agent is silently lost                               | Visible stale entry blocks entry until explicit reconnect/remove.                                                      |
 | Four-agent World harms performance or overlaps avatars     | Hard max four, deterministic spawns, renderer/browser measurements, no unbounded roster.                               |
-| Avatar appears to code without real work                   | Structured work-focus evidence plus exact object generation and arrival are all required before Dig.                   |
-| Dig clip is guessed or visually wrong                      | Per-model operator semantic review; fail closed to generic Work when unsupported or ambiguous.                         |
+| Avatar appears to code without real work                   | Structured work-focus evidence plus exact object generation and arrival are required before Work/static.               |
+| Dig clip is guessed or visually wrong                      | Keep Dig outside Phase 19; require separate per-model Animation Confirmations and fail closed when unsupported.        |
 | Agent walks into/behind a repository object                | Reuse current safe repository approach-point resolver and prove terminal position in headed acceptance.                |
 | Voice input creates a parallel routing path                | Transcribe once, review final text, then submit through the exact typed `ConstellationMessageGroup` path.              |
 | Voice scope silently expands to agent speech               | Normal World never instantiates speech playback; explicit no-`speechSynthesis.speak` regression; TTS remains deferred. |
@@ -838,7 +840,7 @@ Do not create these commits merely because this plan names them.
 
 ## 9. Definition of Phase 19 acceptance
 
-Phase 19 is complete only when Aaron first-hand verifies that:
+Phase 19 is complete. Its accepted criteria are:
 
 - up to four distinct native agent sessions can be assembled, including duplicate harness use with distinct native identities;
 - Hermes, OpenClaw, Codex, and Claude Code each complete real attach/create, turn, and lifecycle-correct continuity proof;
@@ -850,8 +852,8 @@ Phase 19 is complete only when Aaron first-hand verifies that:
 - all avatars appear and remain selectable in one World;
 - unaddressed chat creates one truthful grouped broadcast with independent results;
 - avatar click and exact `@name` each reach only the intended agent;
-- an agent given a coding task moves to the most specific current repository-city object for its structured work focus and loops only an operator-approved Dig semantic while coding there;
-- multiple coding agents can occupy different safe city approach points without movement/animation state leaking between them;
+- an agent given a coding task moves to the most specific current repository-city object for its structured work focus and uses its exact model's accepted animated Idle Work/static presentation only after truthful arrival and while coding remains active;
+- multiple coding agents can occupy different safe city approach points without movement/Work-static state leaking between them;
 - push-to-talk performs one local transcription, permits final-caption edit/cancel, and routes accepted text through the same broadcast/target semantics as typed chat;
 - no agent reply is synthesized or spoken in the normal Phase 19 World;
 - stale restore, reconnect, and explicit remove are understandable and truthful;
@@ -862,4 +864,4 @@ Phase 19 is complete only when Aaron first-hand verifies that:
 
 ## 10. Next gate
 
-Task 1 is complete when the five canonical documents are structurally verified and parent verification is green. The next bounded implementation step is Task 2, but it must not begin inside this documentation-only slice. Commit/push/PR/merge, provider or external-configuration changes, Phase 20, and public actions retain their separate gates.
+Task 16 and Phase 19 are complete. The next bounded milestone is Animation Confirmations for all 23 models, including model-local Dig; Phase 20 follows only after those mappings and normal-product animation behavior are integrated and accepted. Commit/push/PR/merge, provider or external-configuration changes, release/publication, and public actions retain separate gates.

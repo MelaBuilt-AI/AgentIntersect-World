@@ -116,10 +116,10 @@ export type WorldRenderLoop = {
   readonly frameloop: "always" | "demand";
   readonly mode:
     "continuous-native" | "continuous-constrained" | "demand-reduced-motion";
-  readonly recurringIntervalMs: 42 | null;
+  readonly recurringIntervalMs: 120 | null;
 };
 
-const CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS = 42 as const;
+const CONSTRAINED_WORLD_INVALIDATION_INTERVAL_MS = 120 as const;
 
 const SOFTWARE_RENDERER_PATTERN =
   /swiftshader|llvmpipe|lavapipe|softpipe|software raster|microsoft basic render driver|software emulation/iu;

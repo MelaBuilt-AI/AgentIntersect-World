@@ -39,7 +39,7 @@ type RendererApi = {
     readonly frameloop: "always" | "demand";
     readonly mode:
       "continuous-native" | "continuous-constrained" | "demand-reduced-motion";
-    readonly recurringIntervalMs: 42 | null;
+    readonly recurringIntervalMs: 120 | null;
   };
   readonly selectWorldAvatarMotion: (
     renderQuality: {
@@ -321,11 +321,12 @@ describe("Phase 18 shared World room canvas", () => {
       mode: "continuous-native",
       recurringIntervalMs: null,
     });
-    expect(api.selectWorldRenderLoop(constrained, false)).toEqual({
-      frameloop: "demand",
-      mode: "continuous-constrained",
-      recurringIntervalMs: 42,
-    });
+    for (const renderer of [api, importedApi])
+      expect(renderer.selectWorldRenderLoop?.(constrained, false)).toEqual({
+        frameloop: "demand",
+        mode: "continuous-constrained",
+        recurringIntervalMs: 120,
+      });
     for (const quality of [full, constrained]) {
       expect(api.selectWorldRenderLoop(quality, true)).toEqual({
         frameloop: "demand",
@@ -401,11 +402,11 @@ describe("Phase 18 shared World room canvas", () => {
     });
 
     expect(scheduled).toHaveLength(1);
-    expect(scheduled[0]?.delayMs).toBe(42);
+    expect(scheduled[0]?.delayMs).toBe(120);
     scheduled[0]?.callback();
     expect(invalidations).toBe(1);
     expect(scheduled).toHaveLength(2);
-    expect(scheduled[1]?.delayMs).toBe(42);
+    expect(scheduled[1]?.delayMs).toBe(120);
     stop();
     stop();
     expect(cancelled).toEqual([scheduled[1]?.handle]);

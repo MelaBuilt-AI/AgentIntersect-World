@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
@@ -26,7 +26,21 @@ import {
   repositoryIslandQuality,
   repositoryPointerMissSelection,
 } from "../src/repository-island-canvas.js";
-import { Group, Mesh, MeshStandardMaterial, Object3D } from "three";
+import {
+  createImportedAvatarImpostorSnapshot,
+  importedAvatarImpostorPoseTime,
+  selectImportedAvatarWorldRepresentation,
+} from "../src/imported-avatar-canvas.js";
+import {
+  BoxGeometry,
+  Color,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  Object3D,
+  type WebGLRenderer,
+  WebGLRenderTarget,
+} from "three";
 
 describe("repository renderer preparation", () => {
   it("clears semantic selection on a repository canvas background miss", () => {
@@ -84,6 +98,88 @@ describe("repository renderer preparation", () => {
       armCircuitSeams: false,
       articulationPanels: false,
     });
+  });
+
+  it("uses a runtime impostor only for constrained imported avatars", () => {
+    expect(selectImportedAvatarWorldRepresentation("full")).toBe("live-model");
+    expect(selectImportedAvatarWorldRepresentation("constrained")).toBe(
+      "runtime-impostor",
+    );
+  });
+
+  it("captures imported impostors from the middle of the approved clip", () => {
+    expect(importedAvatarImpostorPoseTime(1.8)).toBeCloseTo(0.9);
+    expect(importedAvatarImpostorPoseTime(0)).toBe(0);
+    expect(importedAvatarImpostorPoseTime(Number.NaN)).toBe(0);
+  });
+
+  it("captures an imported avatar impostor and restores renderer state", () => {
+    const parent = new Group();
+    const scene = new Group();
+    scene.add(
+      new Mesh(
+        new BoxGeometry(1, 2, 1),
+        new MeshStandardMaterial({ color: "#d9a07b" }),
+      ),
+    );
+    parent.add(scene);
+    const setRenderTarget = vi.fn();
+    const setClearColor = vi.fn();
+    const render = vi.fn();
+    const renderer = {
+      getRenderTarget: () => null,
+      setRenderTarget,
+      getClearColor: (target: Color) => target,
+      getClearAlpha: () => 1,
+      setClearColor,
+      clear: vi.fn(),
+      render,
+    } as unknown as WebGLRenderer;
+
+    const snapshot = createImportedAvatarImpostorSnapshot(scene, renderer);
+
+    expect(render).toHaveBeenCalledOnce();
+    expect(setRenderTarget.mock.calls[0]?.[0]).toBe(snapshot.target);
+    expect(setRenderTarget.mock.calls.at(-1)?.[0]).toBeNull();
+    expect(setClearColor).toHaveBeenCalledWith("#000000", 0);
+    expect(scene.parent).toBe(parent);
+    expect(snapshot.sprite.userData).toMatchObject({
+      avatarSource: "imported",
+      avatarRepresentation: "runtime-impostor",
+    });
+    expect(snapshot.sprite.material.map).toBe(snapshot.target.texture);
+    snapshot.material.dispose();
+    snapshot.target.dispose();
+  });
+
+  it("disposes a failed imported-avatar impostor capture", () => {
+    const parent = new Group();
+    const scene = new Group();
+    scene.add(new Mesh(new BoxGeometry(1, 2, 1), new MeshStandardMaterial()));
+    parent.add(scene);
+    const setRenderTarget = vi.fn();
+    const setClearColor = vi.fn();
+    const dispose = vi.spyOn(WebGLRenderTarget.prototype, "dispose");
+    const renderer = {
+      getRenderTarget: () => null,
+      setRenderTarget,
+      getClearColor: (target: Color) => target,
+      getClearAlpha: () => 1,
+      setClearColor,
+      clear: vi.fn(),
+      render: () => {
+        throw new Error("imported impostor render failed");
+      },
+    } as unknown as WebGLRenderer;
+
+    expect(() => createImportedAvatarImpostorSnapshot(scene, renderer)).toThrow(
+      "imported impostor render failed",
+    );
+    expect(setRenderTarget.mock.calls.at(-1)?.[0]).toBeNull();
+    expect(setClearColor).toHaveBeenCalledTimes(2);
+    expect(scene.parent).toBe(parent);
+    expect(dispose).toHaveBeenCalledOnce();
+    dispose.mockRestore();
   });
 
   it("clones selected runtime materials without mutating the shared GLTF source", () => {
