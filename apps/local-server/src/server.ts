@@ -111,6 +111,8 @@ import type { ConstellationService } from "./constellation-service.js";
 import { registerConstellationRoutes } from "./constellation-routes.js";
 import type { ConstellationMessageService } from "./constellation-message-service.js";
 import { registerConstellationMessageRoutes } from "./constellation-message-routes.js";
+import { RepositoryIntakeService } from "./repository-intake.js";
+import { registerRepositoryIntakeRoutes } from "./repository-intake-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -136,6 +138,7 @@ export type LocalServer = FastifyInstance & {
   readonly workstreamService?: WorkstreamService;
   readonly constellationService?: ConstellationService;
   readonly constellationMessageService?: ConstellationMessageService;
+  readonly repositoryIntakeService: RepositoryIntakeService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -174,6 +177,7 @@ export type LocalServerOptions = {
   readonly workstreamService?: WorkstreamService;
   readonly constellationService?: ConstellationService;
   readonly constellationMessageService?: ConstellationMessageService;
+  readonly repositoryIntakeService?: RepositoryIntakeService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -228,6 +232,16 @@ export function createLocalServer(
     options.repositoryIndexer ?? indexRepository,
     projectSuccessfulGeneration,
   );
+  const repositoryIntakeService =
+    options.repositoryIntakeService ??
+    new RepositoryIntakeService(
+      resolve(
+        config.presentationSync.dataDir,
+        "..",
+        "repository-intake",
+        "projects.json",
+      ),
+    );
   const currentRepositorySelection = (): CurrentRepositorySelection | null => {
     const generation = repositoryIndexService.current();
     if (generation === null) return null;
@@ -335,6 +349,7 @@ export function createLocalServer(
     "constellationMessageService",
     options.constellationMessageService,
   );
+  server.decorate("repositoryIntakeService", repositoryIntakeService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -425,6 +440,10 @@ export function createLocalServer(
     const runtime = { name: "node" as const, version: process.version };
 
     registerCodeGraphRoutes(server, codeGraphService, { success, failure });
+    registerRepositoryIntakeRoutes(server, repositoryIntakeService, {
+      success,
+      failure,
+    });
     if (options.agentSessionGateway)
       registerAgentSessionRoutes(
         server,

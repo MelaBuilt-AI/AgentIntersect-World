@@ -207,7 +207,11 @@ export function classifyWorldMessage(text: string):
       readonly target: AgentMovementTarget;
     }
   | { readonly kind: "local-agent-stop" }
-  | { readonly kind: "local-repository-load"; readonly text: string }
+  | {
+      readonly kind: "local-repository-load";
+      readonly text: string;
+      readonly requestedRoot: string | null;
+    }
   | { readonly kind: "local-refusal"; readonly message: string }
   | { readonly kind: "remote-chat"; readonly text: string } {
   const semantic = resolveLocalAvatarCommand(text);
@@ -219,8 +223,14 @@ export function classifyWorldMessage(text: string):
   if (direction.kind === "refused")
     return { kind: "local-refusal", message: direction.message };
   const trimmed = text.trim();
-  if (isRepositoryLoadRequest(trimmed))
-    return { kind: "local-repository-load", text: trimmed };
+  if (isRepositoryLoadRequest(trimmed)) {
+    const explicit = /^\/repo\s+load(?:\s+(.+))?$/iu.exec(trimmed);
+    return {
+      kind: "local-repository-load",
+      text: trimmed,
+      requestedRoot: explicit?.[1]?.trim() || null,
+    };
+  }
   return { kind: "remote-chat", text: trimmed };
 }
 

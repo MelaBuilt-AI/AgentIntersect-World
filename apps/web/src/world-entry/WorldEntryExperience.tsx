@@ -76,6 +76,17 @@ import {
   type WorkstreamReference,
 } from "./workstream-client.js";
 import { resolveWorkstreamTask } from "./workstream-create.js";
+import {
+  RepositoryIntakeDialog,
+  type RepositoryProject,
+} from "./RepositoryIntakeDialog.js";
+import {
+  cloneRepositoryProject,
+  createRepositoryProject,
+  listRepositoryProjects,
+  openRepositoryProject,
+  pinRepositoryProject,
+} from "./repository-intake-client.js";
 
 const SESSION_POINTER_KEY = "aiw.agent-session.pointer.0.12";
 const SESSION_POINTER_PATTERN =
@@ -322,6 +333,14 @@ export function WorldEntryExperience({
   const [layoutGeneration, setLayoutGeneration] = useState("blank-world");
   const [activeRepositoryAuthority, setActiveRepositoryAuthority] =
     useState<WorkstreamReference | null>(null);
+  const [repositoryIntakeOpen, setRepositoryIntakeOpen] = useState(false);
+  const [repositoryProjects, setRepositoryProjects] = useState<
+    readonly RepositoryProject[]
+  >([]);
+  const [repositoryIntakeBusy, setRepositoryIntakeBusy] = useState(false);
+  const [repositoryIntakeMessage, setRepositoryIntakeMessage] = useState(
+    "Choose a repository for this World.",
+  );
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
   const [agentMovementControl, setAgentMovementControl] = useState<{
@@ -368,6 +387,7 @@ export function WorldEntryExperience({
   const processedMovementOutcomes = useRef(new Map<string, string>());
   const processedRosterMovementOutcomes = useRef(new Map<string, string>());
   const nextMovementControl = useRef(1);
+  const repositoryIntakeRequest = useRef("Load repository");
 
   useEffect(() => {
     mounted.current = true;
@@ -1023,28 +1043,38 @@ export function WorldEntryExperience({
     );
   };
 
-  const loadRequestedRepository = async (text: string) => {
+  const activateRepository = async (rootPath: string, text: string) => {
     if (!mounted.current) return;
     const acknowledgementId = `${Date.now()}-${nextMessageId.current++}`;
+    const preservingPrevious = state.world.floor === "repository";
     dispatch({ type: "REQUEST_REPOSITORY", request: text });
-    setActiveRepositoryAuthority(null);
     setRepositoryReadiness("loading");
-    setStatus("Repository loading · blank floor preserved");
-    const result = await client.loadRepository(".");
+    setStatus(
+      preservingPrevious
+        ? "Repository loading · previous World preserved"
+        : "Repository loading · blank floor preserved",
+    );
+    const result = await client.loadRepository(rootPath);
     if (!mounted.current) return;
     if (result.status === "failed") {
-      setRepositoryReadiness("error");
+      setRepositoryReadiness(preservingPrevious ? "ready" : "error");
       dispatch({
         type: "REPOSITORY_FAILED",
         reason: result.message,
       });
-      setStatus("Repository unavailable · blank floor preserved · Retry");
+      setStatus(
+        preservingPrevious
+          ? "Repository unavailable · previous World preserved · Retry"
+          : "Repository unavailable · blank floor preserved · Retry",
+      );
       updateChat({
         type: "LOCAL_REPOSITORY_RESULT",
         id: acknowledgementId,
         request: text,
         success: false,
-        message: "Repository load failed locally · blank floor preserved",
+        message: preservingPrevious
+          ? "Repository load failed locally · previous World preserved"
+          : "Repository load failed locally · blank floor preserved",
       });
       return;
     }
@@ -1080,6 +1110,78 @@ export function WorldEntryExperience({
           ? `Repository loaded locally · Previous / recovered · ${repositorySummary}`
           : `Repository loaded locally · Current · ${repositorySummary}`,
     });
+  };
+
+  const activateSelectedProject = async (
+    operation: Promise<RepositoryProject>,
+  ) => {
+    setRepositoryIntakeBusy(true);
+    setRepositoryIntakeMessage("Preparing repository…");
+    try {
+      const project = await operation;
+      setRepositoryProjects(await listRepositoryProjects());
+      setRepositoryIntakeOpen(false);
+      await activateRepository(
+        project.rootPath,
+        repositoryIntakeRequest.current,
+      );
+    } catch (error) {
+      if (!mounted.current) return;
+      setRepositoryIntakeMessage(
+        error instanceof Error
+          ? error.message
+          : "Repository intake unavailable",
+      );
+    } finally {
+      if (mounted.current) setRepositoryIntakeBusy(false);
+    }
+  };
+
+  const loadRequestedRepository = async (
+    text: string,
+    requestedRoot: string | null,
+  ) => {
+    repositoryIntakeRequest.current = text;
+    if (requestedRoot) {
+      await activateSelectedProject(
+        openRepositoryProject({ rootPath: requestedRoot }),
+      );
+      return;
+    }
+    setRepositoryIntakeBusy(true);
+    try {
+      const projects = await listRepositoryProjects();
+      const normalized = text.toLocaleLowerCase();
+      const matches = projects.filter((project) =>
+        normalized.includes(project.name.toLocaleLowerCase()),
+      );
+      if (matches.length === 1) {
+        await activateSelectedProject(
+          openRepositoryProject({
+            rootPath: matches[0]!.rootPath,
+            name: matches[0]!.name,
+          }),
+        );
+        return;
+      }
+      setRepositoryProjects(projects);
+      setRepositoryIntakeMessage(
+        matches.length > 1
+          ? "Choose the matching saved project."
+          : "Choose a repository for this World.",
+      );
+      setRepositoryIntakeOpen(true);
+    } catch (error) {
+      setRepositoryProjects([]);
+      setRepositoryIntakeMessage(
+        error instanceof Error
+          ? error.message
+          : "Repository intake unavailable",
+      );
+      setRepositoryIntakeOpen(true);
+    } finally {
+      if (mounted.current) setRepositoryIntakeBusy(false);
+    }
   };
 
   const repositoryRendered = useCallback(() => {
@@ -1255,7 +1357,7 @@ export function WorldEntryExperience({
       return;
     }
     if (classified.kind === "local-repository-load") {
-      await loadRequestedRepository(classified.text);
+      await loadRequestedRepository(classified.text, classified.requestedRoot);
       return;
     }
     const text = classified.text;
@@ -1307,6 +1409,8 @@ export function WorldEntryExperience({
     setAvatarTarget(null);
     setAgentName("");
     setMessage("");
+    setRepositoryIntakeOpen(false);
+    setRepositoryIntakeBusy(false);
     setUserAnimationCue(null);
     setObjects([]);
     setLayoutGeneration("blank-world");
@@ -1767,6 +1871,53 @@ export function WorldEntryExperience({
             Entering World
           </div>
         )}
+        {repositoryIntakeOpen ? (
+          <RepositoryIntakeDialog
+            projects={repositoryProjects}
+            busy={repositoryIntakeBusy}
+            message={repositoryIntakeMessage}
+            onOpen={(rootPath, name) =>
+              void activateSelectedProject(
+                openRepositoryProject({
+                  rootPath,
+                  ...(name ? { name } : {}),
+                }),
+              )
+            }
+            onCreate={(rootPath, name) =>
+              void activateSelectedProject(
+                createRepositoryProject({ rootPath, name }),
+              )
+            }
+            onClone={(repository, destination, name) =>
+              void activateSelectedProject(
+                cloneRepositoryProject({
+                  repository,
+                  destination,
+                  ...(name ? { name } : {}),
+                }),
+              )
+            }
+            onPin={(projectId, pinned) => {
+              setRepositoryIntakeBusy(true);
+              void pinRepositoryProject(projectId, pinned)
+                .then(() => listRepositoryProjects())
+                .then((projects) => setRepositoryProjects(projects))
+                .catch((error: unknown) =>
+                  setRepositoryIntakeMessage(
+                    error instanceof Error
+                      ? error.message
+                      : "Project pin unavailable",
+                  ),
+                )
+                .finally(() => setRepositoryIntakeBusy(false));
+            }}
+            onClose={() => {
+              setRepositoryIntakeOpen(false);
+              setStatus("Repository selection cancelled");
+            }}
+          />
+        ) : null}
         {state.step !== "world_entering" ? (
           <WorldEscapeMenu
             userName={profile.agentName}

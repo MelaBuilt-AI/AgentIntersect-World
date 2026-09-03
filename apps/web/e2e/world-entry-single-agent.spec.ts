@@ -344,6 +344,7 @@ type WorldFixtureOptions = {
   readonly restoreStatus?: boolean;
   readonly snapshot?: unknown;
   readonly phase14Current?: unknown;
+  readonly repositoryProjects?: readonly unknown[];
   readonly fulfillWorldActions?: (
     route: Route,
     pathname: string,
@@ -363,7 +364,55 @@ async function installWorldFixtures(
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     let data: unknown;
-    if (pathname.includes("/world-actions/")) {
+    if (
+      pathname.endsWith("/repository-intake/projects") &&
+      request.method() === "GET"
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          envelope({
+            projects: options.repositoryProjects ?? [
+              {
+                id: "project-approved",
+                name: "approved repository",
+                rootPath: ".",
+                source: "local",
+                pinned: true,
+                lastOpenedAt: "2026-09-02T00:00:00.000Z",
+              },
+            ],
+          }),
+        ),
+      });
+      return;
+    } else if (
+      pathname.endsWith("/repository-intake/open") &&
+      request.method() === "POST"
+    ) {
+      const body = request.postDataJSON() as {
+        readonly rootPath: string;
+        readonly name?: string;
+      };
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(
+          envelope({
+            project: {
+              id: "project-selected",
+              name: body.name ?? "Selected repository",
+              rootPath: body.rootPath,
+              source: "local",
+              pinned: false,
+              lastOpenedAt: "2026-09-02T00:00:00.000Z",
+            },
+          }),
+        ),
+      });
+      return;
+    } else if (pathname.includes("/world-actions/")) {
       if (options.fulfillWorldActions) {
         await options.fulfillWorldActions(route, pathname);
         return;
@@ -558,6 +607,46 @@ async function enterFixtureWorld(page: Page, path = "/") {
   await enterWorld.click();
   await expect(page.getByTestId("world-hud")).toBeVisible({ timeout: 30_000 });
 }
+
+test("@repository-intake selects a local project from normal World", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installWorldFixtures(page, { repositoryProjects: [] });
+  await enterFixtureWorld(page);
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  await composer.fill("Please load a repository");
+  await composer.press("Enter");
+
+  const intake = page.getByRole("dialog", { name: "Repository Intake_" });
+  await expect(intake).toBeVisible();
+  await expect(intake).toContainText("Recent / pinned");
+  await expect(intake).toContainText("Open local");
+  await expect(intake).toContainText("Create new");
+  await expect(intake).toContainText("Clone GitHub");
+
+  await intake.getByLabel("Local repository path").fill("/tmp/notes-app");
+  const openLocal = intake.getByRole("button", {
+    name: "Open local",
+    exact: true,
+  });
+  await expect(openLocal).toHaveCSS("background-image", /linear-gradient/iu);
+  await openLocal.click();
+
+  await expect(intake).not.toBeVisible();
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+    { timeout: 30_000 },
+  );
+  await expect(
+    page.getByRole("heading", { name: "Repository floor" }),
+  ).toBeVisible();
+});
 
 test("@workstream-tracer deterministic Work Inspector stays truthful and keyboard accessible", async ({
   page,

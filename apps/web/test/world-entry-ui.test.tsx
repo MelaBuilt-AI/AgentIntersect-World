@@ -689,7 +689,7 @@ describe("Phase 18 World entry experience", () => {
       "utf8",
     );
     const repositoryAwait = source.indexOf(
-      "await loadRequestedRepository(classified.text)",
+      "await loadRequestedRepository(classified.text, classified.requestedRoot)",
     );
     const remoteTurn = source.indexOf("const text = classified.text");
     expect(repositoryAwait).toBeGreaterThan(-1);

@@ -1,5 +1,6 @@
 import {
   createWorldChatState,
+  classifyWorldMessage,
   reduceWorldChat,
 } from "../src/world-entry/world-chat-model.js";
 import type { WorldAgentEvent } from "../src/sessions/session-client.js";
@@ -30,6 +31,21 @@ const startTurn = () => {
   state = reduceWorldChat(state, { type: "SEND_STARTED", id: "request" });
   return state;
 };
+
+describe("World repository intake commands", () => {
+  it("keeps the explicit /repo load path and opens intake for a general request", () => {
+    expect(classifyWorldMessage("/repo load /tmp/Notes App")).toEqual({
+      kind: "local-repository-load",
+      text: "/repo load /tmp/Notes App",
+      requestedRoot: "/tmp/Notes App",
+    });
+    expect(classifyWorldMessage("Show me a repository")).toEqual({
+      kind: "local-repository-load",
+      text: "Show me a repository",
+      requestedRoot: null,
+    });
+  });
+});
 
 describe("World chat outer-turn activity", () => {
   it("adds a local repository acknowledgement only when the load result is known", () => {
