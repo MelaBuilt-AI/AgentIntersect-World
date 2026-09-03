@@ -652,23 +652,32 @@ export function reduceWorldEntry(
         : state;
     }
     case "REPOSITORY_FAILED":
-      return state.step === "repository_loading"
-        ? {
-            ...state,
-            step: "world_blank",
-            repository: {
-              ...state.repository,
-              status: "failed",
-              error: event.reason.trim().slice(0, 160),
-            },
-            world: {
-              ...state.world,
-              floor: "blank",
-              generationId: null,
-              projectionTruth: "none",
-            },
-          }
-        : state;
+      if (state.step !== "repository_loading") return state;
+      if (state.world.floor === "repository" && state.world.generationId)
+        return {
+          ...state,
+          step: "world_repository",
+          repository: {
+            ...state.repository,
+            status: "failed",
+            error: event.reason.trim().slice(0, 160),
+          },
+        };
+      return {
+        ...state,
+        step: "world_blank",
+        repository: {
+          ...state.repository,
+          status: "failed",
+          error: event.reason.trim().slice(0, 160),
+        },
+        world: {
+          ...state.world,
+          floor: "blank",
+          generationId: null,
+          projectionTruth: "none",
+        },
+      };
     case "ACTIVATE_REPOSITORY":
       return state.step === "repository_loading" &&
         event.generationId &&

@@ -202,6 +202,7 @@ describe("complete-avatar World animation controls", () => {
     ).toEqual({
       kind: "local-repository-load",
       text: "/repo load MelaBuilt-AI/agentclutch",
+      requestedRoot: "MelaBuilt-AI/agentclutch",
     });
   });
 

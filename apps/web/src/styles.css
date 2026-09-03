@@ -1612,6 +1612,115 @@
   z-index: 90;
 }
 
+.repository-intake {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 75;
+  display: grid;
+  gap: 1rem;
+  width: min(68rem, calc(100vw - 2rem));
+  max-height: min(88dvh, 52rem);
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(56, 189, 248, 0.72);
+  border-radius: 0.85rem;
+  padding: clamp(1rem, 3vw, 1.6rem);
+  color: #f8fafc;
+  background: rgba(3, 9, 20, 0.98);
+  box-shadow:
+    0 0 0 100vmax rgba(1, 4, 10, 0.72),
+    0 1.2rem 4rem rgba(0, 0, 0, 0.58);
+}
+
+.repository-intake > header,
+.repository-intake li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+.repository-intake h2,
+.repository-intake h3,
+.repository-intake p {
+  margin: 0;
+}
+
+.repository-intake > header span,
+.repository-intake small {
+  color: #7dd3fc;
+}
+
+.repository-intake__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.repository-intake__grid > section,
+.repository-intake__grid > form {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.65rem;
+  padding: 0.9rem;
+  background: rgba(8, 14, 27, 0.92);
+}
+
+.repository-intake label,
+.repository-intake li {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.repository-intake ul {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repository-intake li {
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  padding-top: 0.65rem;
+}
+
+.repository-intake input,
+.repository-intake button {
+  min-height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 0.45rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.repository-intake input {
+  min-width: 0;
+  color: #f8fafc;
+  background: #02050b;
+}
+
+.repository-intake button {
+  color: #cbd5e1;
+  background: #111827;
+  cursor: pointer;
+}
+
+.repository-intake button.world-action--enabled {
+  border-color: var(--world-blue, #249cff);
+  color: #fff;
+  background: linear-gradient(180deg, #1585df, var(--world-blue-deep, #0b67b7));
+}
+
+.repository-intake button:disabled {
+  color: #64748b;
+  border-color: #475569;
+  cursor: not-allowed;
+}
+
 .internal-unavailable {
   display: grid;
   min-height: 100dvh;
@@ -1706,6 +1815,16 @@
   .world-escape-backdrop {
     place-items: end center;
     padding: 0.65rem;
+  }
+
+  .repository-intake {
+    width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+    padding: 0.8rem;
+  }
+
+  .repository-intake__grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .world-escape-dialog {

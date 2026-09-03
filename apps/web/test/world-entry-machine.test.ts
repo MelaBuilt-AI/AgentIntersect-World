@@ -390,5 +390,22 @@ describe("Phase 18 World entry state machine", () => {
         floor: "repository",
       },
     });
+
+    const switching = api.reduceWorldEntry(active, {
+      type: "REQUEST_REPOSITORY",
+      request: "Load Notes App",
+    });
+    const preserved = api.reduceWorldEntry(switching, {
+      type: "REPOSITORY_FAILED",
+      reason: "Replacement unavailable",
+    });
+    expect(preserved).toMatchObject({
+      step: "world_repository",
+      world: {
+        floor: "repository",
+        generationId: "generation_a",
+        projectionTruth: "previous-recovered",
+      },
+    });
   });
 });

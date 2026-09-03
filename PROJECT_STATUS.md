@@ -4,6 +4,14 @@ Updated: 2026-09-02
 
 ## Current milestone
 
+### 2026-09-02 Workbench Product Loop Slice 1 — IMPLEMENTED / PARENT GREEN / PR DELIVERY AND GREEN MERGE AUTHORIZED
+
+Aaron approved the detailed Workbench Product Loop direction and authorized Slice 1 — Repository Intake before Phase 20. The design is preserved in the Obsidian vault as `[[agentintersect-world-workbench-product-loop]]`. The implemented normal-World slice now presents a temporary Repository Intake dialog with Recent/Pinned, Open Local, Create New, and Clone GitHub paths; persists up to 50 local project records; resolves a unique saved friendly name from conversational repository requests; preserves expert `/repo load <path>` behavior; initializes a new Git repository without overwriting non-empty destinations; clones canonical GitHub HTTPS identities to an explicit destination without shell execution; and pins saved projects. A selected project reuses the existing repository index and floor transformation. Failed replacement loads keep the previous verified Repository City rather than blanking it.
+
+The implementation is intentionally direct: one local-server service, one route module, one thin web client, and one normal-product dialog. It adds no preview recipe, World View, Workstream redesign, generic executor, provider/profile mutation, wrapper framework, broad hardening, or public/release action. Pinned Node `v24.18.0` verification passes 21/21 focused tests, 39/39 corrected owning tests, full Vitest 167 files / 1,064 tests, 38/38 typechecks, 20/20 builds, architecture 11/11, focused ESLint, repository-wide Prettier, the new production-shaped browser journey, and the inherited Phase 18 repository-load journey. A disposable real-network smoke cloned `octocat/Hello-World`, verified the `.git` directory and one persisted GitHub project record, and removed its temporary root. Direct pixel inspection at 1440×900 found the dialog contained and readable with all four paths visible; a browser RED caught and corrected the enabled-button cascade so active remains blue and unavailable remains grey. Historical Phase 18 browser artifacts were restored after test-owned rewrites. Aaron authorized private feature-branch commit/push, one PR, and merge after exact-SHA CI and readiness pass. Later slices use separate PRs; Phase 20 and all public/release actions remain separately gated.
+
+### Prior accepted milestone — Animation Confirmations
+
 ### 2026-09-02 Animation Confirmations — USER-ACCEPTED; PRIVATE DELIVERY AUTHORIZED
 
 Aaron explicitly authorized **Phase 19 — Multi-Agent Constellation and Harness
