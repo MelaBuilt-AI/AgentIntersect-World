@@ -24347,7 +24347,7 @@
   "schema": "aiw.world-avatar-animation-evidence/2",
   "semanticCount": 12,
   "semanticReview": {
-    "path": "../world-animation-semantic-review-v2/semantic-review.json",
+    "path": "../world-animation-semantic-review-v2/semantic-review-phase18-5.json",
     "runtimePolicy": "pass-only-all-other-verdicts-refused",
     "schema": "aiw.world-animation-semantic-review/2",
     "totals": {

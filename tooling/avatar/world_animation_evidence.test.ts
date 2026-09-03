@@ -8,7 +8,7 @@ const root = new URL(
 );
 
 describe("bounded complete-avatar animation evidence", () => {
-  it("binds all 23 x 12 mappings to structural, temporal, and visual records", () => {
+  it("preserves the historical 23 x 12 structural, temporal, and visual record", () => {
     const summaryUrl = new URL("evidence-summary.json", root);
     expect(existsSync(summaryUrl)).toBe(true);
     if (!existsSync(summaryUrl)) return;
@@ -65,7 +65,7 @@ describe("bounded complete-avatar animation evidence", () => {
     });
     expect(summary.semanticReview).toEqual({
       schema: "aiw.world-animation-semantic-review/2",
-      path: "../world-animation-semantic-review-v2/semantic-review.json",
+      path: "../world-animation-semantic-review-v2/semantic-review-phase18-5.json",
       totals: {
         pass: 69,
         wrong_clip: 0,

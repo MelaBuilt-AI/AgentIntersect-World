@@ -891,6 +891,77 @@ describe("Phase 18 World entry experience", () => {
     expect(renderer).not.toContain("new BoxGeometry(0.9");
   });
 
+  it("projects the selected Single Agent identity instead of the Hermes fallback", () => {
+    if (!api.WorldHud) return;
+    const hud = renderToStaticMarkup(
+      createElement(component(api.WorldHud), {
+        recipient: "Codex",
+        status: "Connected · Current",
+        busy: false,
+        queuedCount: 0,
+        message: "",
+        transcript: [
+          {
+            id: "assistant-codex",
+            kind: "assistant",
+            text: "Codex completed the edit.",
+          },
+        ],
+        pushToTalkAvailable: false,
+        onMessage: () => undefined,
+        onSend: () => undefined,
+      }),
+    );
+    expect(hud).toContain("<strong>Codex</strong>");
+    expect(hud).not.toContain("<strong>Mr Fluff</strong>");
+
+    const avatar = {
+      agentName: "Codex",
+      species: "human",
+      head: "round",
+      hands: "hands",
+      feet: "feet",
+      fur: "none",
+      tail: "none",
+      markings: "solid",
+      bodyColor: "warm-light",
+      shirt: "Codex",
+      mappingConsent: false,
+      agentRef: null,
+      sourceDisclosure: "manual-local-input",
+    };
+    const room = renderToStaticMarkup(
+      createElement(component(worldRoomModule.WorldRoom), {
+        floor: "blank",
+        objects: [],
+        reducedMotion: true,
+        forceNoWebGL: true,
+        userName: "Aaron",
+        agentName: "Codex",
+        userAvatar: { ...avatar, agentName: "Aaron" },
+        agentAvatar: avatar,
+        activity: {
+          state: "completed",
+          icon: "✓",
+          label: "Mr Fluff completed the request",
+          detail: "",
+        },
+      }),
+    );
+    expect(room).toContain("Codex completed the request");
+    expect(room).not.toContain("Mr Fluff completed the request");
+  });
+
+  it("does not present passive external capability refusal as movement failure", () => {
+    const source = readFileSync(
+      new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(source).not.toMatch(
+      /if \(snapshot\.capabilityRefusal\)\s+setStatus\(`agent movement refused · \$\{snapshot\.capabilityRefusal\}`\);/u,
+    );
+  });
+
   it("defines fluid viewport sizing and bounded mobile-safe World HUD regions", () => {
     const styles = readFileSync(
       new URL("../src/styles.css", import.meta.url),

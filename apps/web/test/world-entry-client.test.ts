@@ -1205,6 +1205,35 @@ describe("Phase 18 World entry client composition", () => {
     }
   });
 
+  it("sends Single Agent Codex chat through the exact session stream", async () => {
+    if (!api.createWorldEntryClient) return;
+    const sessionClient = {
+      stream: vi.fn().mockResolvedValue({
+        finalText: "Codex edit completed.",
+        deltas: ["Codex edit completed."],
+      }),
+    };
+    const client = api.createWorldEntryClient({ sessionClient });
+    const session = worldSession({
+      adapterId: "codex",
+      adapterSessionRef: "codex-native-1",
+    });
+
+    await expect(
+      client.sendExactSession(session, "Edit src/DigAcceptance.ts", {
+        userDisplayName: "Aaron",
+      }),
+    ).resolves.toEqual({
+      finalText: "Codex edit completed.",
+      deltas: ["Codex edit completed."],
+    });
+    expect(sessionClient.stream).toHaveBeenCalledWith(
+      session,
+      "Edit src/DigAcceptance.ts",
+      expect.objectContaining({ userDisplayName: "Aaron" }),
+    );
+  });
+
   it("preserves blank-floor truth on failed indexing and returns a current projection on success", async () => {
     if (!api.createWorldEntryClient) return;
     const operation = {

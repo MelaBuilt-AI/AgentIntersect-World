@@ -238,7 +238,7 @@ export function WorldHud({
                     (item.kind === "user"
                       ? "You"
                       : item.kind === "assistant"
-                        ? "Mr Fluff"
+                        ? recipient
                         : item.kind === "tool"
                           ? "Activity"
                           : "Error")}

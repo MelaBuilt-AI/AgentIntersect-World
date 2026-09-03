@@ -1,10 +1,10 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-08-30
+Updated: 2026-09-02
 
 ## Current milestone
 
-### 2026-08-30 Phase 19 — TASK 16 COMPLETE; ANIMATION CONFIRMATIONS NEXT
+### 2026-09-02 Animation Confirmations — USER-ACCEPTED; PRIVATE DELIVERY AUTHORIZED
 
 Aaron explicitly authorized **Phase 19 — Multi-Agent Constellation and Harness
 Breadth** on 2026-08-11. Tasks 1–12 passed independent parent verification under
@@ -47,7 +47,7 @@ Task 14 is user-accepted after Aaron passed the complete 1–9 real-microphone/l
 
 **Task 16 pragmatic closeout (2026-08-30):** Aaron directed the project back to the simple functionality-first path and asked to close the completed work. The production correction changes only the constrained cooperative scheduler interval from 42 ms to 120 ms in the standard/imported renderers plus its owning tests. Strict RED→GREEN passed 21/21 renderer tests, focused format/diff checks, renderer typecheck/build, and the affected three-case browser run: animation review and the 17-agent journey passed, while Phase 18.5 reached full functional truth with render-work p95 1.0 ms and longest task 85 ms. The verifier now treats retained source fingerprints as historical metadata instead of rebinding routine development to old source bytes. The prior 76/77 fresh-copy result remains useful diagnostic history but is not a closure blocker. Task 16 and Phase 19 are complete; no broad rerun, new candidate, or native recapture is required.
 
-**Next milestone:** Animation Confirmations must extend the existing 23-model offline review package with unresolved model-local Dig, expanding the strict matrix from 207 to 230 decisions without preselection. Runtime mappings remain separate and fail closed for uncertain/unsupported decisions. Phase 20 starts only after those mappings and normal-product animation behavior are integrated and accepted.
+**Current gate:** Animation Confirmations are **USER-ACCEPTED**. Aaron first-hand passed the complete normal-product Codex sequence: exact Repository City movement, Dig only after arrival/coding, visible grounded animation, completion/Idle, selected `Codex` transcript/activity naming, and absence of the false passive Structured World Actions movement warning. Retained evidence distinguishes the later no-op repeat from a regression: the first turn had a real `FileChange`; the second repeated an already-completed edit and had none. `ANIMATION_CONFIRMATIONS_REPORT.md` records the 230/230 human authority, 299 runtime mappings, strict RED→GREEN corrections, real full-path SSE/work-focus proof, first-hand verdicts, retained roots, and remaining gates. Repository `AGENTS.md`, `AgentIntersect_WorldDD.md`, and `docs/WORLD_ENTRY_EXPERIENCE.md` are re-baselined to accepted truth without rewriting Phase 19 history; the protected repository and Obsidian `AGENTS.md` writes were applied only after Aaron explicitly reissued each approval. All canonical mirrors match. All candidate/review/proof ports are closed; protected Hermes/OpenClaw remain unchanged. Aaron authorized private commit/push of the complete accepted 40-path source worktree with exact-SHA CI; the final immutable SHA and workflow receipt remain external to avoid recursive status commits. Phase 20's dependency is satisfied, but Phase 20 remains not started and not authorized; provider/profile and all public/release actions remain closed.
 
 Provider/model/profile changes, package installation, protected
 configuration/service mutation, and destructive protected-session operations

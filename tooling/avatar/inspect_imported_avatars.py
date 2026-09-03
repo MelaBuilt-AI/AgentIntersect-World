@@ -24,11 +24,17 @@ SEMANTIC_REVIEW = (
     / "world-animation-semantic-review-v2"
     / "semantic-review.json"
 )
+APPROVED_GESTURE_ANNOTATION = (
+    ROOT
+    / "artifacts/avatar-replacement-evidence"
+    / "world-animation-operator-review-v2"
+    / "avatar-gesture-annotations.json"
+)
+APPROVED_GESTURE_ANNOTATION_SHA256 = (
+    "a1b567f89803a7fe44099cec7341a7bbe1b2465211d4ae83cd32a407a8fce5f7"
+)
 
-SEMANTICS = (
-    "Idle",
-    "Walk",
-    "Run",
+GESTURE_SEMANTICS = (
     "Jump",
     "Dance",
     "Clap",
@@ -38,55 +44,33 @@ SEMANTICS = (
     "Agree",
     "Angry",
     "Laugh",
+    "Dig",
 )
+SEMANTICS = ("Idle", "Walk", "Run", *GESTURE_SEMANTICS)
 REVIEWED_LOCOMOTION = frozenset(("Idle", "Walk", "Run"))
-OPERATOR_REVIEWED_ONE_SHOTS: dict[str, dict[str, int]] = {
-    "user-male-01": {
-        "Jump": 6,
-        "Dance": 20,
-        "Clap": 13,
-        "Cheer": 17,
-        "Wave": 7,
-        "Bow": 4,
-        "Agree": 11,
-        "Angry": 19,
-        "Laugh": 5,
-    },
-    "cat-agent-01": {
-        "Jump": 5,
-        "Dance": 11,
-        "Clap": 18,
-        "Cheer": 7,
-        "Wave": 2,
-        "Bow": 3,
-        "Agree": 17,
-        "Angry": 12,
-        "Laugh": 9,
-    },
-}
+APPROVED_GESTURE_REVIEW: dict[str, dict[str, dict[str, Any]]] = {}
 
 
 def semantic_review_decision(
     model_id: str, semantic: str, clip_index: int
 ) -> dict[str, Any]:
-    operator_clip_index = OPERATOR_REVIEWED_ONE_SHOTS.get(model_id, {}).get(
-        semantic
-    )
-    operator_reviewed = operator_clip_index is not None
-    if operator_reviewed and operator_clip_index != clip_index:
+    approved = APPROVED_GESTURE_REVIEW.get(model_id, {}).get(semantic)
+    if approved is not None and approved["clipIndex"] != clip_index:
         raise ValueError(
             f"operator receipt mapping diverged for {model_id} {semantic}"
         )
+    if approved is not None:
+        return {
+            "verdict": "pass",
+            "reviewedClipIndex": clip_index,
+            "expectedClipIndex": clip_index,
+            "rationale": approved["notes"],
+            "evidenceRefs": [approved["evidenceReference"]],
+        }
     evidence_ref = (
-        "artifacts/avatar-replacement-evidence/"
-        "world-animation-operator-review-v1/"
-        f"avatar-animation-review-{model_id}.json#{semantic}"
-        if operator_reviewed
-        else (
             "artifacts/avatar-replacement-evidence/"
             "world-animation-completion-v1/temporal-review/"
             f"{model_id}.png#{semantic}"
-        )
     )
     if semantic == "Idle":
         rationale = (
@@ -103,12 +87,6 @@ def semantic_review_decision(
             "Direct review of the retained temporal samples shows the larger-stride, "
             "faster locomotion cycle suitable for model-local Run."
         )
-    elif operator_reviewed:
-        rationale = (
-            "Aaron directly reviewed this model-local source clip and selected "
-            f"clip {operator_clip_index} for {semantic}; the preserved sanitized "
-            "operator receipt is the semantic authority."
-        )
     else:
         rationale = (
             f"The retained three-position visual record for {semantic} does not "
@@ -116,7 +94,7 @@ def semantic_review_decision(
             "Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering "
             "as semantic authority, so this mapping remains ambiguous."
         )
-    passed = semantic in REVIEWED_LOCOMOTION or operator_reviewed
+    passed = semantic in REVIEWED_LOCOMOTION
     return {
         "verdict": "pass" if passed else "ambiguous",
         "reviewedClipIndex": clip_index,
@@ -525,6 +503,74 @@ SEMANTIC_CLIPS: dict[str, dict[str, int]] = {
         "Angry": 1,
         "Laugh": 5,
     },
+}
+
+
+def load_approved_gesture_review() -> dict[str, dict[str, dict[str, Any]]]:
+    raw = APPROVED_GESTURE_ANNOTATION.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != APPROVED_GESTURE_ANNOTATION_SHA256:
+        raise ValueError("approved gesture annotation bytes are stale or unapproved")
+    document = json.loads(raw)
+    if (
+        document.get("schema") != "aiw.avatar-gesture-annotation/1"
+        or document.get("modelCount") != 23
+        or document.get("vocabulary") != list(GESTURE_SEMANTICS)
+        or document.get("progress")
+        != {"resolvedDecisionCount": 230, "remainingDecisionCount": 0}
+        or not isinstance(document.get("models"), list)
+    ):
+        raise ValueError("approved gesture annotation contract is invalid")
+    approved: dict[str, dict[str, dict[str, Any]]] = {}
+    for model in document["models"]:
+        if not isinstance(model, dict):
+            raise ValueError("approved gesture model record is invalid")
+        model_id = model.get("modelId")
+        if not isinstance(model_id, str) or model_id in approved:
+            raise ValueError("approved gesture model identity is invalid")
+        if model.get("uncertainSemantics") or model.get("unsupportedSemantics"):
+            raise ValueError(f"{model_id}: unresolved gesture authority remains")
+        decisions: dict[str, dict[str, Any]] = {}
+        for clip in model.get("clips", []):
+            annotation = clip.get("annotation") if isinstance(clip, dict) else None
+            semantic = annotation.get("decision") if isinstance(annotation, dict) else None
+            if semantic not in GESTURE_SEMANTICS:
+                continue
+            evidence = annotation.get("evidenceReference")
+            notes = annotation.get("notes")
+            clip_index = clip.get("clipIndex")
+            if (
+                semantic in decisions
+                or not isinstance(clip_index, int)
+                or not isinstance(evidence, str)
+                or not evidence.strip()
+                or not isinstance(notes, str)
+                or not notes.strip()
+            ):
+                raise ValueError(f"{model_id}: approved {semantic} evidence is invalid")
+            decisions[semantic] = {
+                "clipIndex": clip_index,
+                "evidenceReference": evidence.strip(),
+                "notes": notes.strip(),
+                "sourceGlbSha256": model.get("sourceGlbSha256"),
+            }
+        if set(decisions) != set(GESTURE_SEMANTICS):
+            raise ValueError(f"{model_id}: approved gesture coverage is incomplete")
+        approved[model_id] = decisions
+    if set(approved) != set(SEMANTIC_CLIPS):
+        raise ValueError("approved gesture model coverage is incomplete")
+    return approved
+
+
+APPROVED_GESTURE_REVIEW = load_approved_gesture_review()
+SEMANTIC_CLIPS = {
+    model_id: {
+        **mapping,
+        **{
+            semantic: decision["clipIndex"]
+            for semantic, decision in APPROVED_GESTURE_REVIEW[model_id].items()
+        },
+    }
+    for model_id, mapping in SEMANTIC_CLIPS.items()
 }
 
 COMPONENT_FORMATS = {
@@ -1029,6 +1075,12 @@ def inspect_asset(config: dict[str, Any]) -> dict[str, Any]:
     path = ASSET_DIR / config["filename"]
     thumbnail_path = ASSET_DIR / config["thumbnail"]
     raw, document, binary_offset = parse_glb(path)
+    approved_source_hashes = {
+        decision["sourceGlbSha256"]
+        for decision in APPROVED_GESTURE_REVIEW[config["id"]].values()
+    }
+    if approved_source_hashes != {sha256(raw)}:
+        raise ValueError(f"{config['id']}: approved gesture source GLB hash is stale")
     thumbnail = thumbnail_path.read_bytes()
     nodes = document.get("nodes", [])
     skins = document.get("skins", [])

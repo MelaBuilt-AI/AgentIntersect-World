@@ -566,8 +566,7 @@ export function createWorldEntryClient(
       readonly deltas: readonly string[];
     }> {
       const bounded = text.trim().slice(0, 4_000);
-      if (!bounded || session.adapterId !== "hermes")
-        throw new Error("chat unavailable_");
+      if (!bounded) throw new Error("chat unavailable_");
       const userContext =
         options.userDisplayName === undefined
           ? {}

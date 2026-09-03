@@ -1,39 +1,6 @@
 {
-  "decisionCount": 299,
+  "authorityMutation": false,
   "decisions": [
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Idle"
-      ],
-      "expectedClipIndex": 1,
-      "modelId": "cat-agent-01",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 1,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Walk"
-      ],
-      "expectedClipIndex": 19,
-      "modelId": "cat-agent-01",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 19,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Run"
-      ],
-      "expectedClipIndex": 4,
-      "modelId": "cat-agent-01",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 4,
-      "semantic": "Run",
-      "verdict": "pass"
-    },
     {
       "evidenceRefs": [
         "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-05"
@@ -118,9 +85,9 @@
       "expectedClipIndex": 20,
       "modelId": "cat-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Angry.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": 12,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -140,42 +107,9 @@
       "expectedClipIndex": 0,
       "modelId": "cat-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Dig.",
-      "reviewedClipIndex": 0,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Idle"
-      ],
-      "expectedClipIndex": 0,
-      "modelId": "cat-agent-02",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 0,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Walk"
-      ],
-      "expectedClipIndex": 8,
-      "modelId": "cat-agent-02",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 8,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Run"
-      ],
-      "expectedClipIndex": 17,
-      "modelId": "cat-agent-02",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 17,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -184,9 +118,9 @@
       "expectedClipIndex": 2,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Jump.",
-      "reviewedClipIndex": 2,
+      "reviewedClipIndex": 20,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -195,9 +129,9 @@
       "expectedClipIndex": 7,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dance.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 6,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -228,9 +162,9 @@
       "expectedClipIndex": 5,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave.",
-      "reviewedClipIndex": 5,
+      "reviewedClipIndex": 15,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -250,9 +184,9 @@
       "expectedClipIndex": 15,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Agree.",
-      "reviewedClipIndex": 15,
+      "reviewedClipIndex": 9,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -261,9 +195,9 @@
       "expectedClipIndex": 20,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Angry.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": 1,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -272,9 +206,9 @@
       "expectedClipIndex": 4,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Laugh.",
-      "reviewedClipIndex": 4,
+      "reviewedClipIndex": 7,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -283,42 +217,9 @@
       "expectedClipIndex": 14,
       "modelId": "cat-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Dig.",
-      "reviewedClipIndex": 14,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Idle"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "cat-agent-03",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 18,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Walk"
-      ],
-      "expectedClipIndex": 3,
-      "modelId": "cat-agent-03",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 3,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Run"
-      ],
-      "expectedClipIndex": 0,
-      "modelId": "cat-agent-03",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 0,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -327,9 +228,9 @@
       "expectedClipIndex": 13,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Jump.",
-      "reviewedClipIndex": 13,
+      "reviewedClipIndex": 9,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -338,9 +239,9 @@
       "expectedClipIndex": 8,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dance.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 14,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -371,9 +272,9 @@
       "expectedClipIndex": 7,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Wave.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 17,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -393,9 +294,9 @@
       "expectedClipIndex": 17,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Agree.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 4,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -404,9 +305,9 @@
       "expectedClipIndex": 9,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Angry.",
-      "reviewedClipIndex": 9,
+      "reviewedClipIndex": 16,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -415,9 +316,9 @@
       "expectedClipIndex": 12,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Laugh.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": 20,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -426,42 +327,9 @@
       "expectedClipIndex": 20,
       "modelId": "cat-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dig.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Idle"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "cat-agent-04",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 18,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Walk"
-      ],
-      "expectedClipIndex": 15,
-      "modelId": "cat-agent-04",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 15,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Run"
-      ],
-      "expectedClipIndex": 13,
-      "modelId": "cat-agent-04",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 13,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -470,9 +338,9 @@
       "expectedClipIndex": 19,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Jump.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": 12,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -481,9 +349,9 @@
       "expectedClipIndex": 14,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Dance.",
-      "reviewedClipIndex": 14,
+      "reviewedClipIndex": 0,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -514,9 +382,9 @@
       "expectedClipIndex": 5,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave.",
-      "reviewedClipIndex": 5,
+      "reviewedClipIndex": 17,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -536,9 +404,9 @@
       "expectedClipIndex": 17,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Agree.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 4,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -547,9 +415,9 @@
       "expectedClipIndex": 12,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Angry.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": 9,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -558,9 +426,9 @@
       "expectedClipIndex": 1,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Laugh.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 16,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -569,42 +437,9 @@
       "expectedClipIndex": 6,
       "modelId": "cat-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Dig.",
-      "reviewedClipIndex": 6,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Idle"
-      ],
-      "expectedClipIndex": 6,
-      "modelId": "cat-agent-05",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 6,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Walk"
-      ],
-      "expectedClipIndex": 13,
-      "modelId": "cat-agent-05",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 13,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Run"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "cat-agent-05",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 20,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -613,9 +448,9 @@
       "expectedClipIndex": 11,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Jump.",
-      "reviewedClipIndex": 11,
+      "reviewedClipIndex": 7,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -624,9 +459,9 @@
       "expectedClipIndex": 17,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dance.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 15,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -657,9 +492,9 @@
       "expectedClipIndex": 18,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Wave.",
-      "reviewedClipIndex": 18,
+      "reviewedClipIndex": 1,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -679,9 +514,9 @@
       "expectedClipIndex": 1,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Agree.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 12,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -690,9 +525,9 @@
       "expectedClipIndex": 7,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Angry.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 5,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -701,9 +536,9 @@
       "expectedClipIndex": 9,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Laugh.",
-      "reviewedClipIndex": 9,
+      "reviewedClipIndex": 17,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -712,42 +547,9 @@
       "expectedClipIndex": 19,
       "modelId": "cat-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dig.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Idle"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "cat-agent-06",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 20,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Walk"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "cat-agent-06",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 18,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Run"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "cat-agent-06",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 14,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -756,9 +558,9 @@
       "expectedClipIndex": 9,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Jump.",
-      "reviewedClipIndex": 9,
+      "reviewedClipIndex": 11,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -767,9 +569,9 @@
       "expectedClipIndex": 0,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Dance.",
-      "reviewedClipIndex": 0,
+      "reviewedClipIndex": 15,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -800,9 +602,9 @@
       "expectedClipIndex": 10,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave.",
-      "reviewedClipIndex": 10,
+      "reviewedClipIndex": 3,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -822,9 +624,9 @@
       "expectedClipIndex": 3,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree.",
-      "reviewedClipIndex": 3,
+      "reviewedClipIndex": 10,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -833,9 +635,9 @@
       "expectedClipIndex": 11,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Angry.",
-      "reviewedClipIndex": 11,
+      "reviewedClipIndex": 2,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -844,9 +646,9 @@
       "expectedClipIndex": 1,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Laugh.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 0,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -855,42 +657,9 @@
       "expectedClipIndex": 12,
       "modelId": "cat-agent-06",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Dig.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Idle"
-      ],
-      "expectedClipIndex": 8,
-      "modelId": "cat-agent-07",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 8,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Walk"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "cat-agent-07",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 18,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Run"
-      ],
-      "expectedClipIndex": 3,
-      "modelId": "cat-agent-07",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 3,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -899,9 +668,9 @@
       "expectedClipIndex": 17,
       "modelId": "cat-agent-07",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Jump.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 19,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -910,9 +679,9 @@
       "expectedClipIndex": 1,
       "modelId": "cat-agent-07",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Dance.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 6,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -943,9 +712,9 @@
       "expectedClipIndex": 10,
       "modelId": "cat-agent-07",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave.",
-      "reviewedClipIndex": 10,
+      "reviewedClipIndex": 0,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -965,9 +734,9 @@
       "expectedClipIndex": 0,
       "modelId": "cat-agent-07",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Agree.",
-      "reviewedClipIndex": 0,
+      "reviewedClipIndex": 12,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -976,9 +745,9 @@
       "expectedClipIndex": 19,
       "modelId": "cat-agent-07",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Angry.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": 4,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -998,42 +767,9 @@
       "expectedClipIndex": 9,
       "modelId": "cat-agent-07",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Dig.",
-      "reviewedClipIndex": 9,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Idle"
-      ],
-      "expectedClipIndex": 9,
-      "modelId": "dog-agent-01",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 9,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Walk"
-      ],
-      "expectedClipIndex": 1,
-      "modelId": "dog-agent-01",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 1,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Run"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "dog-agent-01",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 20,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1042,9 +778,9 @@
       "expectedClipIndex": 16,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump.",
-      "reviewedClipIndex": 16,
+      "reviewedClipIndex": 4,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1053,9 +789,9 @@
       "expectedClipIndex": 17,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dance.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 5,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1086,9 +822,9 @@
       "expectedClipIndex": 10,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave.",
-      "reviewedClipIndex": 10,
+      "reviewedClipIndex": 2,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1108,9 +844,9 @@
       "expectedClipIndex": 2,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Agree.",
-      "reviewedClipIndex": 2,
+      "reviewedClipIndex": 19,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1119,9 +855,9 @@
       "expectedClipIndex": 4,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry.",
-      "reviewedClipIndex": 4,
+      "reviewedClipIndex": 6,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1130,9 +866,9 @@
       "expectedClipIndex": 3,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Laugh.",
-      "reviewedClipIndex": 3,
+      "reviewedClipIndex": 17,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1141,42 +877,9 @@
       "expectedClipIndex": 7,
       "modelId": "dog-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Idle"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "dog-agent-02",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 14,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Walk"
-      ],
-      "expectedClipIndex": 8,
-      "modelId": "dog-agent-02",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 8,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Run"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "dog-agent-02",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 20,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1185,9 +888,9 @@
       "expectedClipIndex": 6,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Jump.",
-      "reviewedClipIndex": 6,
+      "reviewedClipIndex": 7,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1196,9 +899,9 @@
       "expectedClipIndex": 1,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Dance.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 18,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1229,9 +932,9 @@
       "expectedClipIndex": 0,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Wave.",
-      "reviewedClipIndex": 0,
+      "reviewedClipIndex": 15,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1251,9 +954,9 @@
       "expectedClipIndex": 15,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Agree.",
-      "reviewedClipIndex": 15,
+      "reviewedClipIndex": 3,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1262,9 +965,9 @@
       "expectedClipIndex": 7,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Angry.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 9,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1273,9 +976,9 @@
       "expectedClipIndex": 4,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Laugh.",
-      "reviewedClipIndex": 4,
+      "reviewedClipIndex": 11,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1284,42 +987,9 @@
       "expectedClipIndex": 13,
       "modelId": "dog-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Dig.",
-      "reviewedClipIndex": 13,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Idle"
-      ],
-      "expectedClipIndex": 1,
-      "modelId": "dog-agent-03",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 1,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Walk"
-      ],
-      "expectedClipIndex": 16,
-      "modelId": "dog-agent-03",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 16,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Run"
-      ],
-      "expectedClipIndex": 5,
-      "modelId": "dog-agent-03",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 5,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1328,9 +998,9 @@
       "expectedClipIndex": 19,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Jump.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": 17,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1339,9 +1009,9 @@
       "expectedClipIndex": 20,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": 3,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1372,9 +1042,9 @@
       "expectedClipIndex": 4,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Wave.",
-      "reviewedClipIndex": 4,
+      "reviewedClipIndex": 6,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1394,9 +1064,9 @@
       "expectedClipIndex": 6,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Agree.",
-      "reviewedClipIndex": 6,
+      "reviewedClipIndex": 0,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1405,9 +1075,9 @@
       "expectedClipIndex": 17,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Angry.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 18,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1416,9 +1086,9 @@
       "expectedClipIndex": 13,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Laugh.",
-      "reviewedClipIndex": 13,
+      "reviewedClipIndex": 20,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1427,42 +1097,9 @@
       "expectedClipIndex": 8,
       "modelId": "dog-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dig.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Idle"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "dog-agent-04",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 14,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Walk"
-      ],
-      "expectedClipIndex": 0,
-      "modelId": "dog-agent-04",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 0,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Run"
-      ],
-      "expectedClipIndex": 1,
-      "modelId": "dog-agent-04",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 1,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1471,9 +1108,9 @@
       "expectedClipIndex": 3,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Jump.",
-      "reviewedClipIndex": 3,
+      "reviewedClipIndex": 16,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1482,9 +1119,9 @@
       "expectedClipIndex": 5,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Dance.",
-      "reviewedClipIndex": 5,
+      "reviewedClipIndex": 15,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1515,9 +1152,9 @@
       "expectedClipIndex": 17,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Wave.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 19,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1537,9 +1174,9 @@
       "expectedClipIndex": 19,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Agree.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": 13,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1548,9 +1185,9 @@
       "expectedClipIndex": 16,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Angry.",
-      "reviewedClipIndex": 16,
+      "reviewedClipIndex": 18,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1559,9 +1196,9 @@
       "expectedClipIndex": 11,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Laugh.",
-      "reviewedClipIndex": 11,
+      "reviewedClipIndex": 5,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1570,42 +1207,9 @@
       "expectedClipIndex": 6,
       "modelId": "dog-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Dig.",
-      "reviewedClipIndex": 6,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Idle"
-      ],
-      "expectedClipIndex": 19,
-      "modelId": "dog-agent-05",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 19,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Walk"
-      ],
-      "expectedClipIndex": 15,
-      "modelId": "dog-agent-05",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 15,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Run"
-      ],
-      "expectedClipIndex": 9,
-      "modelId": "dog-agent-05",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 9,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1614,9 +1218,9 @@
       "expectedClipIndex": 16,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump.",
-      "reviewedClipIndex": 16,
+      "reviewedClipIndex": 1,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1625,9 +1229,9 @@
       "expectedClipIndex": 11,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Dance.",
-      "reviewedClipIndex": 11,
+      "reviewedClipIndex": 0,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1658,9 +1262,9 @@
       "expectedClipIndex": 8,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Wave.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 12,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1680,9 +1284,9 @@
       "expectedClipIndex": 12,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Agree.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": 2,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1691,9 +1295,9 @@
       "expectedClipIndex": 1,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Angry.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 3,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1702,9 +1306,9 @@
       "expectedClipIndex": 7,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Laugh.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 11,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1713,42 +1317,9 @@
       "expectedClipIndex": 20,
       "modelId": "dog-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dig.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Idle"
-      ],
-      "expectedClipIndex": 2,
-      "modelId": "robot-agent-01",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 2,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Walk"
-      ],
-      "expectedClipIndex": 13,
-      "modelId": "robot-agent-01",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 13,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Run"
-      ],
-      "expectedClipIndex": 4,
-      "modelId": "robot-agent-01",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 4,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1757,9 +1328,9 @@
       "expectedClipIndex": 9,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Jump.",
-      "reviewedClipIndex": 9,
+      "reviewedClipIndex": 1,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1768,9 +1339,9 @@
       "expectedClipIndex": 8,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dance.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 15,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1801,9 +1372,9 @@
       "expectedClipIndex": 17,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Wave.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 19,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1823,9 +1394,9 @@
       "expectedClipIndex": 19,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Agree.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": 12,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1834,9 +1405,9 @@
       "expectedClipIndex": 1,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Angry.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 11,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1845,9 +1416,9 @@
       "expectedClipIndex": 20,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Laugh.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": 8,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1856,42 +1427,9 @@
       "expectedClipIndex": 0,
       "modelId": "robot-agent-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Dig.",
-      "reviewedClipIndex": 0,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Idle"
-      ],
-      "expectedClipIndex": 5,
-      "modelId": "robot-agent-02",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 5,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Walk"
-      ],
-      "expectedClipIndex": 15,
-      "modelId": "robot-agent-02",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 15,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Run"
-      ],
-      "expectedClipIndex": 17,
-      "modelId": "robot-agent-02",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 17,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1900,9 +1438,9 @@
       "expectedClipIndex": 12,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Jump.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": 13,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1911,9 +1449,9 @@
       "expectedClipIndex": 19,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dance.",
-      "reviewedClipIndex": 19,
+      "reviewedClipIndex": 10,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1944,9 +1482,9 @@
       "expectedClipIndex": 3,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Wave.",
-      "reviewedClipIndex": 3,
+      "reviewedClipIndex": 2,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1966,9 +1504,9 @@
       "expectedClipIndex": 2,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Agree.",
-      "reviewedClipIndex": 2,
+      "reviewedClipIndex": 6,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1977,9 +1515,9 @@
       "expectedClipIndex": 13,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Angry.",
-      "reviewedClipIndex": 13,
+      "reviewedClipIndex": 11,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1988,9 +1526,9 @@
       "expectedClipIndex": 16,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Laugh.",
-      "reviewedClipIndex": 16,
+      "reviewedClipIndex": 19,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -1999,42 +1537,9 @@
       "expectedClipIndex": 7,
       "modelId": "robot-agent-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Idle"
-      ],
-      "expectedClipIndex": 6,
-      "modelId": "robot-agent-03",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 6,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Walk"
-      ],
-      "expectedClipIndex": 11,
-      "modelId": "robot-agent-03",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 11,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Run"
-      ],
-      "expectedClipIndex": 4,
-      "modelId": "robot-agent-03",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 4,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2043,9 +1548,9 @@
       "expectedClipIndex": 8,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Jump.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 10,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2054,9 +1559,9 @@
       "expectedClipIndex": 20,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": 1,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2087,9 +1592,9 @@
       "expectedClipIndex": 18,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Wave.",
-      "reviewedClipIndex": 18,
+      "reviewedClipIndex": 13,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2109,9 +1614,9 @@
       "expectedClipIndex": 13,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Agree.",
-      "reviewedClipIndex": 13,
+      "reviewedClipIndex": 14,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2120,9 +1625,9 @@
       "expectedClipIndex": 10,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Angry.",
-      "reviewedClipIndex": 10,
+      "reviewedClipIndex": 2,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2131,9 +1636,9 @@
       "expectedClipIndex": 9,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Laugh.",
-      "reviewedClipIndex": 9,
+      "reviewedClipIndex": 20,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2142,42 +1647,9 @@
       "expectedClipIndex": 17,
       "modelId": "robot-agent-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dig.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Idle"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "robot-agent-04",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 14,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Walk"
-      ],
-      "expectedClipIndex": 11,
-      "modelId": "robot-agent-04",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 11,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Run"
-      ],
-      "expectedClipIndex": 1,
-      "modelId": "robot-agent-04",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 1,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2186,9 +1658,9 @@
       "expectedClipIndex": 15,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Jump.",
-      "reviewedClipIndex": 15,
+      "reviewedClipIndex": 4,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2197,9 +1669,9 @@
       "expectedClipIndex": 17,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dance.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 16,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2230,9 +1702,9 @@
       "expectedClipIndex": 13,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Wave.",
-      "reviewedClipIndex": 13,
+      "reviewedClipIndex": 2,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2252,9 +1724,9 @@
       "expectedClipIndex": 2,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Agree.",
-      "reviewedClipIndex": 2,
+      "reviewedClipIndex": 20,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2263,9 +1735,9 @@
       "expectedClipIndex": 4,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry.",
-      "reviewedClipIndex": 4,
+      "reviewedClipIndex": 18,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2274,9 +1746,9 @@
       "expectedClipIndex": 5,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Laugh.",
-      "reviewedClipIndex": 5,
+      "reviewedClipIndex": 17,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2285,42 +1757,9 @@
       "expectedClipIndex": 12,
       "modelId": "robot-agent-04",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Dig.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Idle"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "robot-agent-05",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 18,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Walk"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "robot-agent-05",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 20,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Run"
-      ],
-      "expectedClipIndex": 9,
-      "modelId": "robot-agent-05",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 9,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2329,9 +1768,9 @@
       "expectedClipIndex": 11,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Jump.",
-      "reviewedClipIndex": 11,
+      "reviewedClipIndex": 0,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2340,9 +1779,9 @@
       "expectedClipIndex": 8,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dance.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 15,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2373,9 +1812,9 @@
       "expectedClipIndex": 12,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Wave.",
-      "reviewedClipIndex": 12,
+      "reviewedClipIndex": 1,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2395,9 +1834,9 @@
       "expectedClipIndex": 1,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Agree.",
-      "reviewedClipIndex": 1,
+      "reviewedClipIndex": 3,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2406,9 +1845,9 @@
       "expectedClipIndex": 0,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Angry.",
-      "reviewedClipIndex": 0,
+      "reviewedClipIndex": 4,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2417,9 +1856,9 @@
       "expectedClipIndex": 17,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Laugh.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 5,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2428,42 +1867,339 @@
       "expectedClipIndex": 10,
       "modelId": "robot-agent-05",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Dig.",
-      "reviewedClipIndex": 10,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Idle"
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-16"
       ],
-      "expectedClipIndex": 15,
-      "modelId": "user-male-01",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 15,
-      "semantic": "Idle",
-      "verdict": "pass"
+      "expectedClipIndex": 16,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump.",
+      "reviewedClipIndex": 13,
+      "semantic": "Jump",
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Walk"
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-20"
       ],
-      "expectedClipIndex": 2,
-      "modelId": "user-male-01",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 2,
-      "semantic": "Walk",
+      "expectedClipIndex": 20,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance.",
+      "reviewedClipIndex": 12,
+      "semantic": "Dance",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-06"
+      ],
+      "expectedClipIndex": 6,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Clap.",
+      "reviewedClipIndex": 6,
+      "semantic": "Clap",
       "verdict": "pass"
     },
     {
       "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Run"
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-18"
       ],
       "expectedClipIndex": 18,
-      "modelId": "user-male-01",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer.",
       "reviewedClipIndex": 18,
-      "semantic": "Run",
+      "semantic": "Cheer",
       "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-19"
+      ],
+      "expectedClipIndex": 19,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Wave.",
+      "reviewedClipIndex": 3,
+      "semantic": "Wave",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-14"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Bow.",
+      "reviewedClipIndex": 14,
+      "semantic": "Bow",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-03"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree.",
+      "reviewedClipIndex": 1,
+      "semantic": "Agree",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-13"
+      ],
+      "expectedClipIndex": 13,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Angry.",
+      "reviewedClipIndex": 2,
+      "semantic": "Angry",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-05"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Laugh.",
+      "reviewedClipIndex": 19,
+      "semantic": "Laugh",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-11"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "user-female-01",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Dig.",
+      "reviewedClipIndex": null,
+      "semantic": "Dig",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-00"
+      ],
+      "expectedClipIndex": 0,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Jump.",
+      "reviewedClipIndex": 3,
+      "semantic": "Jump",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-09"
+      ],
+      "expectedClipIndex": 9,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Dance.",
+      "reviewedClipIndex": 5,
+      "semantic": "Dance",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-19"
+      ],
+      "expectedClipIndex": 19,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Clap.",
+      "reviewedClipIndex": 19,
+      "semantic": "Clap",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-18"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer.",
+      "reviewedClipIndex": 18,
+      "semantic": "Cheer",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-10"
+      ],
+      "expectedClipIndex": 10,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave.",
+      "reviewedClipIndex": 14,
+      "semantic": "Wave",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-20"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Bow.",
+      "reviewedClipIndex": 20,
+      "semantic": "Bow",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-14"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Agree.",
+      "reviewedClipIndex": 1,
+      "semantic": "Agree",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-03"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Angry.",
+      "reviewedClipIndex": 6,
+      "semantic": "Angry",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-13"
+      ],
+      "expectedClipIndex": 13,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Laugh.",
+      "reviewedClipIndex": 10,
+      "semantic": "Laugh",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-07"
+      ],
+      "expectedClipIndex": 7,
+      "modelId": "user-female-02",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig.",
+      "reviewedClipIndex": null,
+      "semantic": "Dig",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-20"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Jump.",
+      "reviewedClipIndex": 4,
+      "semantic": "Jump",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-16"
+      ],
+      "expectedClipIndex": 16,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Dance.",
+      "reviewedClipIndex": 18,
+      "semantic": "Dance",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-14"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Clap.",
+      "reviewedClipIndex": 14,
+      "semantic": "Clap",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-07"
+      ],
+      "expectedClipIndex": 7,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Cheer.",
+      "reviewedClipIndex": 7,
+      "semantic": "Cheer",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-05"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave.",
+      "reviewedClipIndex": 3,
+      "semantic": "Wave",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-15"
+      ],
+      "expectedClipIndex": 15,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Bow.",
+      "reviewedClipIndex": 15,
+      "semantic": "Bow",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-03"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree.",
+      "reviewedClipIndex": 2,
+      "semantic": "Agree",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-04"
+      ],
+      "expectedClipIndex": 4,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry.",
+      "reviewedClipIndex": 1,
+      "semantic": "Angry",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-06"
+      ],
+      "expectedClipIndex": 6,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Laugh.",
+      "reviewedClipIndex": 5,
+      "semantic": "Laugh",
+      "verdict": "wrong_clip"
+    },
+    {
+      "evidenceRefs": [
+        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-19"
+      ],
+      "expectedClipIndex": 19,
+      "modelId": "user-female-03",
+      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dig.",
+      "reviewedClipIndex": null,
+      "semantic": "Dig",
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2571,42 +2307,9 @@
       "expectedClipIndex": 8,
       "modelId": "user-male-01",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dig.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Idle"
-      ],
-      "expectedClipIndex": 5,
-      "modelId": "user-male-02",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 5,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Walk"
-      ],
-      "expectedClipIndex": 3,
-      "modelId": "user-male-02",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 3,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Run"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "user-male-02",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 20,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2615,9 +2318,9 @@
       "expectedClipIndex": 8,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Jump.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 15,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2626,9 +2329,9 @@
       "expectedClipIndex": 7,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dance.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 0,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2659,9 +2362,9 @@
       "expectedClipIndex": 11,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Wave.",
-      "reviewedClipIndex": 11,
+      "reviewedClipIndex": 16,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2681,9 +2384,9 @@
       "expectedClipIndex": 16,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Agree.",
-      "reviewedClipIndex": 16,
+      "reviewedClipIndex": 11,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2692,9 +2395,9 @@
       "expectedClipIndex": 15,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Angry.",
-      "reviewedClipIndex": 15,
+      "reviewedClipIndex": 17,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2703,9 +2406,9 @@
       "expectedClipIndex": 6,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Laugh.",
-      "reviewedClipIndex": 6,
+      "reviewedClipIndex": 7,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2714,42 +2417,9 @@
       "expectedClipIndex": 18,
       "modelId": "user-male-02",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Dig.",
-      "reviewedClipIndex": 18,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Idle"
-      ],
-      "expectedClipIndex": 2,
-      "modelId": "user-male-03",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 2,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Walk"
-      ],
-      "expectedClipIndex": 5,
-      "modelId": "user-male-03",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 5,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Run"
-      ],
-      "expectedClipIndex": 0,
-      "modelId": "user-male-03",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 0,
-      "semantic": "Run",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2758,9 +2428,9 @@
       "expectedClipIndex": 4,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Jump.",
-      "reviewedClipIndex": 4,
+      "reviewedClipIndex": 17,
       "semantic": "Jump",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2769,9 +2439,9 @@
       "expectedClipIndex": 10,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Dance.",
-      "reviewedClipIndex": 10,
+      "reviewedClipIndex": 16,
       "semantic": "Dance",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2802,9 +2472,9 @@
       "expectedClipIndex": 15,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Wave.",
-      "reviewedClipIndex": 15,
+      "reviewedClipIndex": 8,
       "semantic": "Wave",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2824,9 +2494,9 @@
       "expectedClipIndex": 8,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Agree.",
-      "reviewedClipIndex": 8,
+      "reviewedClipIndex": 3,
       "semantic": "Agree",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2835,9 +2505,9 @@
       "expectedClipIndex": 17,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Angry.",
-      "reviewedClipIndex": 17,
+      "reviewedClipIndex": 1,
       "semantic": "Angry",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2846,9 +2516,9 @@
       "expectedClipIndex": 7,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Laugh.",
-      "reviewedClipIndex": 7,
+      "reviewedClipIndex": 10,
       "semantic": "Laugh",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     },
     {
       "evidenceRefs": [
@@ -2857,450 +2527,39 @@
       "expectedClipIndex": 20,
       "modelId": "user-male-03",
       "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dig.",
-      "reviewedClipIndex": 20,
+      "reviewedClipIndex": null,
       "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Idle"
-      ],
-      "expectedClipIndex": 9,
-      "modelId": "user-female-01",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 9,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Walk"
-      ],
-      "expectedClipIndex": 7,
-      "modelId": "user-female-01",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 7,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Run"
-      ],
-      "expectedClipIndex": 17,
-      "modelId": "user-female-01",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 17,
-      "semantic": "Run",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-16"
-      ],
-      "expectedClipIndex": 16,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump.",
-      "reviewedClipIndex": 16,
-      "semantic": "Jump",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-20"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance.",
-      "reviewedClipIndex": 20,
-      "semantic": "Dance",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-06"
-      ],
-      "expectedClipIndex": 6,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Clap.",
-      "reviewedClipIndex": 6,
-      "semantic": "Clap",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-18"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer.",
-      "reviewedClipIndex": 18,
-      "semantic": "Cheer",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-19"
-      ],
-      "expectedClipIndex": 19,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Wave.",
-      "reviewedClipIndex": 19,
-      "semantic": "Wave",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-14"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Bow.",
-      "reviewedClipIndex": 14,
-      "semantic": "Bow",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-03"
-      ],
-      "expectedClipIndex": 3,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree.",
-      "reviewedClipIndex": 3,
-      "semantic": "Agree",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-13"
-      ],
-      "expectedClipIndex": 13,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Angry.",
-      "reviewedClipIndex": 13,
-      "semantic": "Angry",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-05"
-      ],
-      "expectedClipIndex": 5,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Laugh.",
-      "reviewedClipIndex": 5,
-      "semantic": "Laugh",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-11"
-      ],
-      "expectedClipIndex": 11,
-      "modelId": "user-female-01",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Dig.",
-      "reviewedClipIndex": 11,
-      "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Idle"
-      ],
-      "expectedClipIndex": 12,
-      "modelId": "user-female-02",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 12,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Walk"
-      ],
-      "expectedClipIndex": 11,
-      "modelId": "user-female-02",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 11,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Run"
-      ],
-      "expectedClipIndex": 2,
-      "modelId": "user-female-02",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 2,
-      "semantic": "Run",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-00"
-      ],
-      "expectedClipIndex": 0,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Jump.",
-      "reviewedClipIndex": 0,
-      "semantic": "Jump",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-09"
-      ],
-      "expectedClipIndex": 9,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Dance.",
-      "reviewedClipIndex": 9,
-      "semantic": "Dance",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-19"
-      ],
-      "expectedClipIndex": 19,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Clap.",
-      "reviewedClipIndex": 19,
-      "semantic": "Clap",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-18"
-      ],
-      "expectedClipIndex": 18,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer.",
-      "reviewedClipIndex": 18,
-      "semantic": "Cheer",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-10"
-      ],
-      "expectedClipIndex": 10,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave.",
-      "reviewedClipIndex": 10,
-      "semantic": "Wave",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-20"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Bow.",
-      "reviewedClipIndex": 20,
-      "semantic": "Bow",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-14"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Agree.",
-      "reviewedClipIndex": 14,
-      "semantic": "Agree",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-03"
-      ],
-      "expectedClipIndex": 3,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Angry.",
-      "reviewedClipIndex": 3,
-      "semantic": "Angry",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-13"
-      ],
-      "expectedClipIndex": 13,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Laugh.",
-      "reviewedClipIndex": 13,
-      "semantic": "Laugh",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-07"
-      ],
-      "expectedClipIndex": 7,
-      "modelId": "user-female-02",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig.",
-      "reviewedClipIndex": 7,
-      "semantic": "Dig",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Idle"
-      ],
-      "expectedClipIndex": 8,
-      "modelId": "user-female-03",
-      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
-      "reviewedClipIndex": 8,
-      "semantic": "Idle",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Walk"
-      ],
-      "expectedClipIndex": 11,
-      "modelId": "user-female-03",
-      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
-      "reviewedClipIndex": 11,
-      "semantic": "Walk",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Run"
-      ],
-      "expectedClipIndex": 12,
-      "modelId": "user-female-03",
-      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
-      "reviewedClipIndex": 12,
-      "semantic": "Run",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-20"
-      ],
-      "expectedClipIndex": 20,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Jump.",
-      "reviewedClipIndex": 20,
-      "semantic": "Jump",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-16"
-      ],
-      "expectedClipIndex": 16,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Dance.",
-      "reviewedClipIndex": 16,
-      "semantic": "Dance",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-14"
-      ],
-      "expectedClipIndex": 14,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Clap.",
-      "reviewedClipIndex": 14,
-      "semantic": "Clap",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-07"
-      ],
-      "expectedClipIndex": 7,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Cheer.",
-      "reviewedClipIndex": 7,
-      "semantic": "Cheer",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-05"
-      ],
-      "expectedClipIndex": 5,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave.",
-      "reviewedClipIndex": 5,
-      "semantic": "Wave",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-15"
-      ],
-      "expectedClipIndex": 15,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Bow.",
-      "reviewedClipIndex": 15,
-      "semantic": "Bow",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-03"
-      ],
-      "expectedClipIndex": 3,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree.",
-      "reviewedClipIndex": 3,
-      "semantic": "Agree",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-04"
-      ],
-      "expectedClipIndex": 4,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry.",
-      "reviewedClipIndex": 4,
-      "semantic": "Angry",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-06"
-      ],
-      "expectedClipIndex": 6,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Laugh.",
-      "reviewedClipIndex": 6,
-      "semantic": "Laugh",
-      "verdict": "pass"
-    },
-    {
-      "evidenceRefs": [
-        "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-19"
-      ],
-      "expectedClipIndex": 19,
-      "modelId": "user-female-03",
-      "rationale": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dig.",
-      "reviewedClipIndex": 19,
-      "semantic": "Dig",
-      "verdict": "pass"
+      "verdict": "wrong_clip"
     }
   ],
-  "manualModelRecovery": "operator-identified-active-models-only",
-  "modelCount": 23,
-  "reviewAuthority": "direct-bounded-temporal-and-operator-review",
-  "runtimePolicy": "pass-only-all-other-verdicts-refused",
-  "schema": "aiw.world-animation-semantic-review/2",
-  "semanticCount": 13,
+  "diagnostics": {
+    "authorityMutation": false,
+    "complete": true,
+    "lockedLocomotionCount": 69,
+    "modelCount": 23,
+    "remainingDecisionCount": 0,
+    "resolvedDecisionCount": 230,
+    "runtimeFailClosed": true,
+    "schema": "aiw.avatar-gesture-annotation-diagnostics/1",
+    "uncertainRawClipCount": 187,
+    "uncertainSemanticCount": 0,
+    "unresolvedDecisionCount": 230,
+    "unsupportedRawClipCount": 0,
+    "valid": true
+  },
+  "reviewer": {
+    "name": "Aaron",
+    "reviewedAt": "2026-09-02T09:30:13-04:00"
+  },
+  "runtimePolicy": "proposal-only-current-authority-remains-fail-closed",
+  "schema": "aiw.avatar-gesture-semantic-proposal/1",
+  "sourceAnnotationCanonicalSha256": "ee18f6891749b27c06f787e33e8da16e1e64eb7341b01106c411443671266d97",
+  "sourceManifestCanonicalSha256": "5765e43312254ef38b02bd34f4a9657f247116f5af5b3f9627aba9446e7b03d3",
+  "sourceSemanticReviewCanonicalSha256": "e3859ab1eb9a449507e7fa805b5ef145ac94b5e72ad1291adb4c4b59be28a58f",
   "totals": {
-    "ambiguous": 0,
-    "pass": 299,
+    "pass": 81,
+    "uncertain": 0,
     "unsupported": 0,
-    "wrong_clip": 0
+    "wrong_clip": 149
   }
 }

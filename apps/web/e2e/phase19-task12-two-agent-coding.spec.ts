@@ -207,6 +207,7 @@ type SceneObservation = {
   readonly workStates: Readonly<
     Record<string, { readonly state: string; readonly objectRef: string }>
   >;
+  readonly actions: Readonly<Record<string, string>>;
   readonly positions: Readonly<
     Record<string, { readonly x: number; readonly z: number }>
   >;
@@ -853,6 +854,7 @@ async function readScene(page: Page): Promise<SceneObservation> {
         positions[match[1]!] = { x: Number(match[2]), z: Number(match[3]) };
     }
     const workStates: Record<string, { state: string; objectRef: string }> = {};
+    const actions: Record<string, string> = {};
     for (const value of (canvas?.dataset.agentWorkStates ?? "").split("|")) {
       if (!value) continue;
       const [rosterId, state, ...objectParts] = value.split(":");
@@ -872,6 +874,11 @@ async function readScene(page: Page): Promise<SceneObservation> {
             objectRef: element.dataset.objectRef ?? "",
           };
       }
+    for (const element of agentElements) {
+      const rosterId = element.dataset.rosterId;
+      const action = element.dataset.avatarAction;
+      if (rosterId && action) actions[rosterId] = action;
+    }
     return {
       capturedAt: new Date().toISOString(),
       renderer: canvas
@@ -880,6 +887,7 @@ async function readScene(page: Page): Promise<SceneObservation> {
           : "procedural"
         : "semantic",
       workStates,
+      actions,
       positions,
       agentRows,
       roomWorkState: room?.dataset.agentWorkState ?? null,
@@ -1143,8 +1151,10 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       (scene) =>
         scene.workStates[agentA.sessionId]?.state === "coding" &&
         scene.workStates[agentA.sessionId]?.objectRef === objectA &&
+        scene.actions[agentA.sessionId] === "Dig" &&
         scene.workStates[agentB.sessionId]?.state === "navigating" &&
-        scene.workStates[agentB.sessionId]?.objectRef === objectB,
+        scene.workStates[agentB.sessionId]?.objectRef === objectB &&
+        scene.actions[agentB.sessionId] === "Walk",
       8_000,
     );
     addCheck(
@@ -1152,9 +1162,11 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       "A reaches object A before B reaches object B",
       aFirst.workStates[agentA.sessionId]?.state === "coding" &&
         aFirst.workStates[agentA.sessionId]?.objectRef === objectA &&
+        aFirst.actions[agentA.sessionId] === "Dig" &&
         aFirst.workStates[agentB.sessionId]?.state === "navigating" &&
-        aFirst.workStates[agentB.sessionId]?.objectRef === objectB,
-      aFirst.workStates,
+        aFirst.workStates[agentB.sessionId]?.objectRef === objectB &&
+        aFirst.actions[agentB.sessionId] === "Walk",
+      { workStates: aFirst.workStates, actions: aFirst.actions },
     );
 
     const bothCoding = await observeUntil(
@@ -1164,16 +1176,20 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       (scene) =>
         scene.workStates[agentA.sessionId]?.state === "coding" &&
         scene.workStates[agentA.sessionId]?.objectRef === objectA &&
+        scene.actions[agentA.sessionId] === "Dig" &&
         scene.workStates[agentB.sessionId]?.state === "coding" &&
-        scene.workStates[agentB.sessionId]?.objectRef === objectB,
+        scene.workStates[agentB.sessionId]?.objectRef === objectB &&
+        scene.actions[agentB.sessionId] === "Dig",
       18_000,
     );
     addCheck(
       receipt,
       "both agents preserve exact independent object identity",
       bothCoding.workStates[agentA.sessionId]?.objectRef === objectA &&
-        bothCoding.workStates[agentB.sessionId]?.objectRef === objectB,
-      bothCoding.workStates,
+        bothCoding.workStates[agentB.sessionId]?.objectRef === objectB &&
+        bothCoding.actions[agentA.sessionId] === "Dig" &&
+        bothCoding.actions[agentB.sessionId] === "Dig",
+      { workStates: bothCoding.workStates, actions: bothCoding.actions },
     );
     addCheck(
       receipt,
@@ -1198,16 +1214,23 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       (scene) =>
         scene.workStates[agentA.sessionId]?.state === "navigating" &&
         scene.workStates[agentA.sessionId]?.objectRef === objectC &&
-        scene.workStates[agentB.sessionId]?.state === "coding",
+        scene.actions[agentA.sessionId] !== "Dig" &&
+        scene.workStates[agentB.sessionId]?.state === "coding" &&
+        scene.actions[agentB.sessionId] === "Dig",
       4_000,
     );
     addCheck(
       receipt,
-      "late stale A arrival stops coding before retarget movement",
+      "late stale A arrival stops Dig before retarget movement",
       lateOldArrival.workStates[agentA.sessionId]?.state === "navigating" &&
         lateOldArrival.workStates[agentA.sessionId]?.objectRef === objectC &&
-        lateOldArrival.workStates[agentB.sessionId]?.state === "coding",
-      lateOldArrival.workStates,
+        lateOldArrival.actions[agentA.sessionId] !== "Dig" &&
+        lateOldArrival.workStates[agentB.sessionId]?.state === "coding" &&
+        lateOldArrival.actions[agentB.sessionId] === "Dig",
+      {
+        workStates: lateOldArrival.workStates,
+        actions: lateOldArrival.actions,
+      },
     );
 
     fixture.movements.set(agentA.sessionId, {
@@ -1224,15 +1247,22 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       (scene) =>
         scene.workStates[agentA.sessionId]?.state !== "coding" &&
         scene.workStates[agentA.sessionId]?.objectRef === objectC &&
-        scene.workStates[agentB.sessionId]?.state === "coding",
+        scene.actions[agentA.sessionId] !== "Dig" &&
+        scene.workStates[agentB.sessionId]?.state === "coding" &&
+        scene.actions[agentB.sessionId] === "Dig",
       4_000,
     );
     addCheck(
       receipt,
       "wrong-generation A request cannot unlock coding",
       wrongGeneration.workStates[agentA.sessionId]?.state !== "coding" &&
-        wrongGeneration.workStates[agentB.sessionId]?.state === "coding",
-      wrongGeneration.workStates,
+        wrongGeneration.actions[agentA.sessionId] !== "Dig" &&
+        wrongGeneration.workStates[agentB.sessionId]?.state === "coding" &&
+        wrongGeneration.actions[agentB.sessionId] === "Dig",
+      {
+        workStates: wrongGeneration.workStates,
+        actions: wrongGeneration.actions,
+      },
     );
 
     const a3 = "a3000000-0000-4000-8000-000000000004";
@@ -1256,15 +1286,17 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       "A coding after exact object C arrival",
       (scene) =>
         scene.workStates[agentA.sessionId]?.state === "coding" &&
-        scene.workStates[agentA.sessionId]?.objectRef === objectC,
+        scene.workStates[agentA.sessionId]?.objectRef === objectC &&
+        scene.actions[agentA.sessionId] === "Dig",
       16_000,
     );
     addCheck(
       receipt,
       "A resumes only at exact current object C arrival",
       aRetargeted.workStates[agentA.sessionId]?.state === "coding" &&
-        aRetargeted.workStates[agentA.sessionId]?.objectRef === objectC,
-      aRetargeted.workStates,
+        aRetargeted.workStates[agentA.sessionId]?.objectRef === objectC &&
+        aRetargeted.actions[agentA.sessionId] === "Dig",
+      { workStates: aRetargeted.workStates, actions: aRetargeted.actions },
     );
 
     fixture.focuses.set(agentB.sessionId, {
@@ -1280,17 +1312,21 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
       "B terminal while A remains active",
       (scene) =>
         scene.workStates[agentB.sessionId]?.state === "idle" &&
+        scene.actions[agentB.sessionId] === "Idle" &&
         scene.workStates[agentA.sessionId]?.state === "coding" &&
-        scene.workStates[agentA.sessionId]?.objectRef === objectC,
+        scene.workStates[agentA.sessionId]?.objectRef === objectC &&
+        scene.actions[agentA.sessionId] === "Dig",
       4_000,
     );
     addCheck(
       receipt,
       "B completion stops only B while A stays coding",
       bTerminal.workStates[agentB.sessionId]?.state === "idle" &&
+        bTerminal.actions[agentB.sessionId] === "Idle" &&
         bTerminal.workStates[agentA.sessionId]?.state === "coding" &&
-        bTerminal.workStates[agentA.sessionId]?.objectRef === objectC,
-      bTerminal.workStates,
+        bTerminal.workStates[agentA.sessionId]?.objectRef === objectC &&
+        bTerminal.actions[agentA.sessionId] === "Dig",
+      { workStates: bTerminal.workStates, actions: bTerminal.actions },
     );
     fixture.focuses.set(agentB.sessionId, null);
     fixture.movements.set(agentB.sessionId, null);
@@ -1344,9 +1380,15 @@ test("desktop connection and reconnect path keeps two exact coding agents indepe
     );
     addCheck(
       receipt,
-      "no Dig semantic is claimed",
-      !/\bDig\b/u.test(documentText(await page.locator("body").innerText())) &&
-        !/\bDig\b/u.test(JSON.stringify(receipt.observations)),
+      "Dig is claimed only by exact arrived coding agents",
+      receipt.observations.some(({ scene }) =>
+        Object.values(scene.actions).includes("Dig"),
+      ) && bTerminal.actions[agentB.sessionId] === "Idle",
+      receipt.observations.map(({ label, scene }) => ({
+        label,
+        actions: scene.actions,
+        workStates: scene.workStates,
+      })),
     );
     const geometry = await viewportGeometry(page);
     addCheck(
@@ -1673,7 +1715,3 @@ test("no-WebGL normal World keeps exact two-agent semantic and accessibility tru
     await finishReceipt(receipt);
   }
 });
-
-function documentText(value: string) {
-  return value;
-}

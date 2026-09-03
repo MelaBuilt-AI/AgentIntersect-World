@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import shutil
@@ -27,7 +26,7 @@ SEMANTIC_REVIEW = (
     ROOT
     / "artifacts/avatar-replacement-evidence"
     / "world-animation-semantic-review-v2"
-    / "semantic-review.json"
+    / "semantic-review-phase18-5.json"
 )
 BROWSER_TRACE = "world-motion-user-male-02-robot-agent-05-trace.json"
 BROWSER_CAPTURES = (
@@ -280,7 +279,7 @@ def build_summary(manifest: dict[str, Any]) -> dict[str, Any]:
         "semanticReview": {
             "schema": review["schema"],
             "path": (
-                "../world-animation-semantic-review-v2/semantic-review.json"
+                "../world-animation-semantic-review-v2/semantic-review-phase18-5.json"
             ),
             "totals": review["totals"],
             "runtimePolicy": review["runtimePolicy"],
@@ -401,27 +400,19 @@ def main() -> None:
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--check", action="store_true")
     arguments = parser.parse_args()
-    manifest = read_manifest()
-    TEMPORAL_REVIEW.mkdir(parents=True, exist_ok=True)
-    if arguments.render:
-        with ThreadPoolExecutor(max_workers=2) as workers:
-            list(workers.map(render_model, manifest["assets"]))
-    summary = build_summary(manifest)
     summary_path = OUTPUT / "evidence-summary.json"
     if arguments.check:
         current = json.loads(summary_path.read_text(encoding="utf-8"))
-        if current != summary:
-            raise ValueError("world animation evidence summary is stale")
         validate(current)
-        print("verified 23 models, 12 semantics, 276 explicit semantic decisions")
+        print(
+            "verified frozen Phase 18.5 evidence: "
+            "23 models, 12 semantics, 276 historical decisions"
+        )
         return
-    build_overview(manifest)
-    validate(summary)
-    summary_path.write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    raise ValueError(
+        "Phase 18.5 evidence is frozen; current mappings are owned by "
+        "world-animation-operator-review-v2"
     )
-    print("built bounded World animation evidence for 23 x 12 mappings")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 ---
 title: AgentIntersect World — Canonical Product and Implementation Design
 created: 2026-07-19
-updated: 2026-08-30
+updated: 2026-09-02
 type: concept
 tags:
   [project, coding, ai-agent, decision, embodied-agents, spatial-development]
@@ -10,7 +10,7 @@ sources:
   - _inbox/AgentIntersect World/AIW tech stack.docx
 status: active-implementation
 product: AgentIntersect World
-version: 0.4-phase19-complete
+version: 0.4-animation-confirmations-accepted
 ---
 
 # AgentIntersect World — Canonical Product and Implementation Design
@@ -23,7 +23,7 @@ version: 0.4-phase19-complete
 
 **Superseding Phase 18 status (2026-07-25):** The bounded correction has fresh independent parent verification and private exact-SHA CI green. Aaron's subsequent clean native fixture-assisted retest passed first launch, avatar creation, chat/transcript/status presentation, and repository-floor transformation, but found the seven concrete correction families frozen in `docs/PHASE_18_ACCEPTANCE_BACKLOG.md`. Those corrections, reverification, and another first-hand retest are next. Phase 18 is not user accepted, sealed, released, deployed, or published.
 
-**Current Phase 19 authority (2026-08-30):** Tasks 13–15 are user-accepted and privately delivered on sole local/remote `main` at `b0b58bd18e4c3fd784b39e8c8a344125c9e2e6a0`; Task 16 and Phase 19 are complete under Aaron's explicit functionality-first reset. The criterion report, exact-SHA CI, first-hand Edge/RTX and duplicate-Codex acceptance, focused scheduler correction, and green affected browser behavior provide sufficient private-development closure. Retained source fingerprints and the historical 76/77 fresh-copy result remain diagnostic history rather than current build gates. Animated model-local Idle remains accepted Phase 19 Work/static truth. Animation Confirmations for all 23 models, including Dig, are next but not started; Phase 20 remains gated afterward.
+**Current Phase 19 and Animation Confirmations authority (2026-09-02):** Tasks 13–15 are user-accepted and privately delivered on sole local/remote `main` at `b0b58bd18e4c3fd784b39e8c8a344125c9e2e6a0`; Task 16 and Phase 19 are complete under Aaron's explicit functionality-first reset. The later Animation Confirmations milestone is now user-accepted: Aaron's 230/230 model-local decisions generate 299 pass mappings, real Codex Single Agent chat resolves structured file edits to exact Repository City movement, Dig begins only after arrival/coding, and first-hand testing passed visible grounded Dig, completion/Idle, selected Codex naming, and truthful movement-status presentation. `ANIMATION_CONFIRMATIONS_REPORT.md` is the criterion authority. Aaron authorized private commit/push with exact-SHA CI; final immutable delivery receipts remain external. Phase 20 is next but not started or authorized.
 
 **Decision:** AgentIntersect World is a new, separate project and repository. The original AgentIntersect repository remains untouched. Phase 0 established a one-time compatibility baseline; normal World development no longer repeatedly inspects or verifies the original checkout. When baseline code is needed, the required code may be copied into World with provenance recorded once and is then maintained as World-owned code. World may still consume compatible local HTTP/SSE/MCP/worker surfaces, but the original AgentIntersect repository is not an ongoing phase gate.
 
@@ -234,7 +234,7 @@ The operator selects a design document, sees compiled phases and acceptance crit
 
 ### v0.1 cutline
 
-The current cutline records the revised Phase 18 Single-Agent Hermes feature loop as complete and manually accepted. Its independently verified layered composition combines the Workstream orchestration/restoration correction, the accepted repository-city movement feature, and the proven developer-gated pointer recovery. Aaron authorized Phase 19 on 2026-08-11; Tasks 1–12 are parent-accepted and Tasks 13–15 are user-accepted and privately delivered on sole exact-green `main`. Task 16 is authorized for consolidated evidence mapping, only genuinely missing gates, one criterion-level closure report, and Aaron's closure verdict. Animation Confirmations follow Task 16 and must include model-local Dig for all 23 models; revised Phase 20 follows only after those mappings and normal-product animation behavior are integrated and accepted. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
+The current cutline records revised Phase 18 and Phase 19 as complete and accepted under their retained reports. Animation Confirmations are also user-accepted: all 23 models have explicit model-local Dig mappings inside a 299-mapping runtime authority, and normal-product Codex movement → arrival → Dig → completion/Idle plus selected-agent naming/status truth passed first-hand review. Private Git delivery remains a separate decision. Revised Phase 20 is the next designed milestone, but it remains not started and not authorized. LAN setup UI, custom Mr Fluff voice, public collaboration, XR, physics, cloud sync, release, and publication remain deferred or separately gated.
 
 ### Relationship to AgentIntersect and AgentClutch
 
@@ -3025,13 +3025,13 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Acceptance criteria:** The seven re-baselined decisions above and the full acceptance definition in the canonical plan are mapped to accepted or newly generated evidence. No agent enters without an explicit avatar; one complete agent never unlocks entry; two current/avatar-complete agents do; every retained stale or incomplete entry blocks; up to four distinct native bindings work; all four adapter types pass real local acceptance; every message has truthful all-or-one targeting; coding embodiment follows structured evidence, exact arrival, and animated Work/static truth; push-to-talk reuses typed routing; and Phase 16 authority remains unchanged.
 
-**Exit gate:** One criterion-level Phase 19 closure report plus Aaron's Task 16 verdict. Animation Confirmations follow closure; Phase 20 follows only after Animation Confirmations are integrated and accepted. External actions remain separately gated.
+**Exit gate:** One criterion-level Phase 19 closure report plus Aaron's Task 16 verdict. Animation Confirmations subsequently integrated and passed first-hand acceptance under `ANIMATION_CONFIRMATIONS_REPORT.md`. Phase 20 remains a separate explicit authorization; external actions remain separately gated.
 
 **Risks:** Parallel connection state can skip avatar creation, recipient ambiguity can misroute messages, and broad harness labels can overclaim support. Use ordered state transitions, explicit recipient display, adapter capability gates, and delivery-attribution tests.
 
 ## Phase 20 — Embodied Product Acceptance and Bounded Hardening
 
-**Status:** NOT STARTED / NOT AUTHORIZED; ordered after accepted Animation Confirmations.
+**Status:** NOT STARTED / NOT AUTHORIZED. Animation Confirmations were accepted on 2026-09-02, satisfying the dependency without authorizing Phase 20 implementation.
 
 **Objective:** Carry forward the former Phase 18 acceptance purpose under the new sequence: validate the complete embodied normal experience and accepted internal foundations without adding product breadth.
 
@@ -3041,7 +3041,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 **Out of scope:** New features/adapters, LAN setup UI, custom voice, unrelated visual expansion, public release, marketing, tester distribution, provider activation, Phase 13 retry, or broad speculative hardening.
 
-**Dependencies:** User-accepted revised Phases 18, 18.5, and 19; completed Phases 0–17 remain accepted.
+**Dependencies:** User-accepted revised Phases 18, 18.5, and 19 plus user-accepted Animation Confirmations; completed Phases 0–17 remain accepted.
 
 **Concrete tasks:**
 
@@ -3063,7 +3063,7 @@ Every phase is a bounded approval unit. Phase numbering is ordered, but measured
 
 ## Vertical-slice acceptance scenario
 
-The canonical future acceptance scenario is normative for revised Phase 20. The Phase 18 live single-agent journey and Phase 18.5 visual foundation must both pass before the accepted Phase 19 multi-agent journey can become the complete Phase 20 starting surface.
+The canonical future acceptance scenario is normative for revised Phase 20. Accepted Phase 18, Phase 18.5, Phase 19, and Animation Confirmations now form the complete Phase 20 starting surface; this readiness does not itself authorize Phase 20.
 
 ### Path A — Normal Single Agent experience
 

@@ -29,7 +29,7 @@ export function worldImportedAvatarSelection(
   try {
     const resolved = resolveImportedAvatarWorldClip(
       asset.id,
-      action === "Work" ? "Idle" : action,
+      action === "Work" ? "Dig" : action,
     );
     resolvedClip = {
       clipIndex: resolved.clipIndex,

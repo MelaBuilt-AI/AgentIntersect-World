@@ -8,9 +8,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Dig."
           },
           "clipIndex": 0,
           "durationSeconds": 16.416667,
@@ -18,9 +18,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Wave."
           },
           "clipIndex": 2,
           "durationSeconds": 5.625,
@@ -28,9 +28,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Bow."
           },
           "clipIndex": 3,
           "durationSeconds": 4.833333,
@@ -38,9 +38,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Jump."
           },
           "clipIndex": 5,
           "durationSeconds": 2.25,
@@ -58,9 +58,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Cheer."
           },
           "clipIndex": 7,
           "durationSeconds": 12.125,
@@ -78,9 +78,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Laugh."
           },
           "clipIndex": 9,
           "durationSeconds": 5.625,
@@ -98,9 +98,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Dance."
           },
           "clipIndex": 11,
           "durationSeconds": 12.833333,
@@ -158,9 +158,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Agree."
           },
           "clipIndex": 17,
           "durationSeconds": 3.208333,
@@ -168,9 +168,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Clap."
           },
           "clipIndex": 18,
           "durationSeconds": 10.958333,
@@ -178,9 +178,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-01/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Angry."
           },
           "clipIndex": 20,
           "durationSeconds": 3.541667,
@@ -230,9 +230,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Jump."
           },
           "clipIndex": 2,
           "durationSeconds": 2.25,
@@ -240,9 +240,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Cheer."
           },
           "clipIndex": 3,
           "durationSeconds": 12.125,
@@ -250,9 +250,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Laugh."
           },
           "clipIndex": 4,
           "durationSeconds": 5.625,
@@ -260,9 +260,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave."
           },
           "clipIndex": 5,
           "durationSeconds": 2.25,
@@ -280,9 +280,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dance."
           },
           "clipIndex": 7,
           "durationSeconds": 10.25,
@@ -330,9 +330,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Clap."
           },
           "clipIndex": 13,
           "durationSeconds": 13.708333,
@@ -340,9 +340,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Dig."
           },
           "clipIndex": 14,
           "durationSeconds": 13.125,
@@ -350,9 +350,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Agree."
           },
           "clipIndex": 15,
           "durationSeconds": 4.041667,
@@ -380,9 +380,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Bow."
           },
           "clipIndex": 19,
           "durationSeconds": 6.041667,
@@ -390,9 +390,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-02/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Angry."
           },
           "clipIndex": 20,
           "durationSeconds": 3.541667,
@@ -432,9 +432,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Clap."
           },
           "clipIndex": 1,
           "durationSeconds": 10.958333,
@@ -442,9 +442,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Cheer."
           },
           "clipIndex": 2,
           "durationSeconds": 9.666667,
@@ -482,9 +482,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Wave."
           },
           "clipIndex": 7,
           "durationSeconds": 4.5,
@@ -492,9 +492,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dance."
           },
           "clipIndex": 8,
           "durationSeconds": 10.833333,
@@ -502,9 +502,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Angry."
           },
           "clipIndex": 9,
           "durationSeconds": 3.541667,
@@ -532,9 +532,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Laugh."
           },
           "clipIndex": 12,
           "durationSeconds": 4.5,
@@ -542,9 +542,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Jump."
           },
           "clipIndex": 13,
           "durationSeconds": 2.25,
@@ -582,9 +582,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Agree."
           },
           "clipIndex": 17,
           "durationSeconds": 4.041667,
@@ -592,9 +592,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Bow."
           },
           "clipIndex": 19,
           "durationSeconds": 6.041667,
@@ -602,9 +602,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-03/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dig."
           },
           "clipIndex": 20,
           "durationSeconds": 16.416667,
@@ -654,9 +654,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Laugh."
           },
           "clipIndex": 1,
           "durationSeconds": 4.5,
@@ -694,9 +694,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave."
           },
           "clipIndex": 5,
           "durationSeconds": 2.25,
@@ -704,9 +704,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Dig."
           },
           "clipIndex": 6,
           "durationSeconds": 16.416667,
@@ -714,9 +714,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Bow."
           },
           "clipIndex": 7,
           "durationSeconds": 6.041667,
@@ -724,9 +724,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Clap."
           },
           "clipIndex": 8,
           "durationSeconds": 10.958333,
@@ -744,9 +744,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Cheer."
           },
           "clipIndex": 10,
           "durationSeconds": 9.666667,
@@ -764,9 +764,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Angry."
           },
           "clipIndex": 12,
           "durationSeconds": 3.541667,
@@ -774,9 +774,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Dance."
           },
           "clipIndex": 14,
           "durationSeconds": 2.916667,
@@ -794,9 +794,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Agree."
           },
           "clipIndex": 17,
           "durationSeconds": 4.041667,
@@ -804,9 +804,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-04/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Jump."
           },
           "clipIndex": 19,
           "durationSeconds": 2.25,
@@ -856,9 +856,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Cheer."
           },
           "clipIndex": 0,
           "durationSeconds": 12.125,
@@ -866,9 +866,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Agree."
           },
           "clipIndex": 1,
           "durationSeconds": 4.041667,
@@ -896,9 +896,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Clap."
           },
           "clipIndex": 4,
           "durationSeconds": 13.708333,
@@ -916,9 +916,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Angry."
           },
           "clipIndex": 7,
           "durationSeconds": 3.541667,
@@ -936,9 +936,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Laugh."
           },
           "clipIndex": 9,
           "durationSeconds": 5.625,
@@ -956,9 +956,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Jump."
           },
           "clipIndex": 11,
           "durationSeconds": 2.25,
@@ -976,9 +976,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Bow."
           },
           "clipIndex": 14,
           "durationSeconds": 6.041667,
@@ -1006,9 +1006,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dance."
           },
           "clipIndex": 17,
           "durationSeconds": 10.833333,
@@ -1016,9 +1016,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Wave."
           },
           "clipIndex": 18,
           "durationSeconds": 5.625,
@@ -1026,9 +1026,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-05/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dig."
           },
           "clipIndex": 19,
           "durationSeconds": 13.125,
@@ -1068,9 +1068,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Dance."
           },
           "clipIndex": 0,
           "durationSeconds": 10.25,
@@ -1078,9 +1078,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Laugh."
           },
           "clipIndex": 1,
           "durationSeconds": 4.5,
@@ -1098,9 +1098,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree."
           },
           "clipIndex": 3,
           "durationSeconds": 4.041667,
@@ -1138,9 +1138,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Cheer."
           },
           "clipIndex": 7,
           "durationSeconds": 9.666667,
@@ -1158,9 +1158,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Jump."
           },
           "clipIndex": 9,
           "durationSeconds": 1.791667,
@@ -1168,9 +1168,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave."
           },
           "clipIndex": 10,
           "durationSeconds": 9.125,
@@ -1178,9 +1178,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Angry."
           },
           "clipIndex": 11,
           "durationSeconds": 3.541667,
@@ -1188,9 +1188,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Dig."
           },
           "clipIndex": 12,
           "durationSeconds": 16.416667,
@@ -1218,9 +1218,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Bow."
           },
           "clipIndex": 16,
           "durationSeconds": 6.041667,
@@ -1228,9 +1228,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-06/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Clap."
           },
           "clipIndex": 17,
           "durationSeconds": 13.708333,
@@ -1290,9 +1290,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Agree."
           },
           "clipIndex": 0,
           "durationSeconds": 4.041667,
@@ -1300,9 +1300,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Dance."
           },
           "clipIndex": 1,
           "durationSeconds": 8.708333,
@@ -1330,9 +1330,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Clap."
           },
           "clipIndex": 5,
           "durationSeconds": 10.958333,
@@ -1350,9 +1350,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Laugh."
           },
           "clipIndex": 7,
           "durationSeconds": 5.625,
@@ -1360,9 +1360,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Dig."
           },
           "clipIndex": 9,
           "durationSeconds": 13.125,
@@ -1370,9 +1370,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave."
           },
           "clipIndex": 10,
           "durationSeconds": 3.541667,
@@ -1420,9 +1420,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Bow."
           },
           "clipIndex": 15,
           "durationSeconds": 6.041667,
@@ -1430,9 +1430,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Cheer."
           },
           "clipIndex": 16,
           "durationSeconds": 12.125,
@@ -1440,9 +1440,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Jump."
           },
           "clipIndex": 17,
           "durationSeconds": 2.25,
@@ -1450,9 +1450,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/cat-agent-07/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Angry."
           },
           "clipIndex": 19,
           "durationSeconds": 3.541667,
@@ -1502,9 +1502,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Clap."
           },
           "clipIndex": 0,
           "durationSeconds": 13.708333,
@@ -1512,9 +1512,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Agree."
           },
           "clipIndex": 2,
           "durationSeconds": 4.041667,
@@ -1522,9 +1522,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Laugh."
           },
           "clipIndex": 3,
           "durationSeconds": 5.625,
@@ -1532,9 +1532,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry."
           },
           "clipIndex": 4,
           "durationSeconds": 3.541667,
@@ -1562,9 +1562,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig."
           },
           "clipIndex": 7,
           "durationSeconds": 16.416667,
@@ -1582,9 +1582,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave."
           },
           "clipIndex": 10,
           "durationSeconds": 5.625,
@@ -1602,9 +1602,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Bow."
           },
           "clipIndex": 12,
           "durationSeconds": 6.041667,
@@ -1642,9 +1642,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump."
           },
           "clipIndex": 16,
           "durationSeconds": 2.25,
@@ -1652,9 +1652,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dance."
           },
           "clipIndex": 17,
           "durationSeconds": 10.25,
@@ -1662,9 +1662,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-01/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer."
           },
           "clipIndex": 18,
           "durationSeconds": 12.125,
@@ -1714,9 +1714,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Wave."
           },
           "clipIndex": 0,
           "durationSeconds": 2.25,
@@ -1724,9 +1724,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Dance."
           },
           "clipIndex": 1,
           "durationSeconds": 2.916667,
@@ -1734,9 +1734,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Cheer."
           },
           "clipIndex": 2,
           "durationSeconds": 9.666667,
@@ -1754,9 +1754,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Laugh."
           },
           "clipIndex": 4,
           "durationSeconds": 4.5,
@@ -1764,9 +1764,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Clap."
           },
           "clipIndex": 5,
           "durationSeconds": 10.958333,
@@ -1774,9 +1774,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Jump."
           },
           "clipIndex": 6,
           "durationSeconds": 2.25,
@@ -1784,9 +1784,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Angry."
           },
           "clipIndex": 7,
           "durationSeconds": 3.541667,
@@ -1834,9 +1834,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Dig."
           },
           "clipIndex": 13,
           "durationSeconds": 16.416667,
@@ -1844,9 +1844,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Agree."
           },
           "clipIndex": 15,
           "durationSeconds": 4.041667,
@@ -1884,9 +1884,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-02/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Bow."
           },
           "clipIndex": 19,
           "durationSeconds": 4.833333,
@@ -1956,9 +1956,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Wave."
           },
           "clipIndex": 4,
           "durationSeconds": 2.25,
@@ -1966,9 +1966,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Agree."
           },
           "clipIndex": 6,
           "durationSeconds": 4.041667,
@@ -1976,9 +1976,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Bow."
           },
           "clipIndex": 7,
           "durationSeconds": 6.041667,
@@ -1986,9 +1986,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dig."
           },
           "clipIndex": 8,
           "durationSeconds": 13.125,
@@ -1996,9 +1996,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Cheer."
           },
           "clipIndex": 9,
           "durationSeconds": 12.125,
@@ -2016,9 +2016,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Clap."
           },
           "clipIndex": 11,
           "durationSeconds": 13.708333,
@@ -2036,9 +2036,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Laugh."
           },
           "clipIndex": 13,
           "durationSeconds": 5.625,
@@ -2066,9 +2066,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Angry."
           },
           "clipIndex": 17,
           "durationSeconds": 2.833333,
@@ -2086,9 +2086,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Jump."
           },
           "clipIndex": 19,
           "durationSeconds": 2.25,
@@ -2096,9 +2096,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-03/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance."
           },
           "clipIndex": 20,
           "durationSeconds": 12.833333,
@@ -2148,9 +2148,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Jump."
           },
           "clipIndex": 3,
           "durationSeconds": 2.25,
@@ -2158,9 +2158,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Cheer."
           },
           "clipIndex": 4,
           "durationSeconds": 12.125,
@@ -2168,9 +2168,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Dance."
           },
           "clipIndex": 5,
           "durationSeconds": 10.25,
@@ -2178,9 +2178,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Dig."
           },
           "clipIndex": 6,
           "durationSeconds": 13.125,
@@ -2228,9 +2228,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Laugh."
           },
           "clipIndex": 11,
           "durationSeconds": 5.625,
@@ -2238,9 +2238,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Clap."
           },
           "clipIndex": 12,
           "durationSeconds": 10.958333,
@@ -2268,9 +2268,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Angry."
           },
           "clipIndex": 16,
           "durationSeconds": 3.541667,
@@ -2278,9 +2278,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Wave."
           },
           "clipIndex": 17,
           "durationSeconds": 5.625,
@@ -2298,9 +2298,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Agree."
           },
           "clipIndex": 19,
           "durationSeconds": 3.208333,
@@ -2308,9 +2308,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-04/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Bow."
           },
           "clipIndex": 20,
           "durationSeconds": 4.833333,
@@ -2360,9 +2360,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Angry."
           },
           "clipIndex": 1,
           "durationSeconds": 3.541667,
@@ -2400,9 +2400,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Clap."
           },
           "clipIndex": 5,
           "durationSeconds": 13.708333,
@@ -2410,9 +2410,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Bow."
           },
           "clipIndex": 6,
           "durationSeconds": 6.041667,
@@ -2420,9 +2420,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Laugh."
           },
           "clipIndex": 7,
           "durationSeconds": 4.5,
@@ -2430,9 +2430,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Wave."
           },
           "clipIndex": 8,
           "durationSeconds": 2.833333,
@@ -2450,9 +2450,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Dance."
           },
           "clipIndex": 11,
           "durationSeconds": 10.25,
@@ -2460,9 +2460,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Agree."
           },
           "clipIndex": 12,
           "durationSeconds": 4.041667,
@@ -2470,9 +2470,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Cheer."
           },
           "clipIndex": 13,
           "durationSeconds": 12.125,
@@ -2490,9 +2490,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump."
           },
           "clipIndex": 16,
           "durationSeconds": 2.25,
@@ -2520,9 +2520,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/dog-agent-05/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dig."
           },
           "clipIndex": 20,
           "durationSeconds": 16.416667,
@@ -2562,9 +2562,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Dig."
           },
           "clipIndex": 0,
           "durationSeconds": 16.416667,
@@ -2572,9 +2572,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Angry."
           },
           "clipIndex": 1,
           "durationSeconds": 2.833333,
@@ -2582,9 +2582,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Cheer."
           },
           "clipIndex": 3,
           "durationSeconds": 12.125,
@@ -2612,9 +2612,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Clap."
           },
           "clipIndex": 7,
           "durationSeconds": 13.708333,
@@ -2622,9 +2622,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dance."
           },
           "clipIndex": 8,
           "durationSeconds": 12.833333,
@@ -2632,9 +2632,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Jump."
           },
           "clipIndex": 9,
           "durationSeconds": 2.25,
@@ -2672,9 +2672,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Bow."
           },
           "clipIndex": 14,
           "durationSeconds": 4.833333,
@@ -2702,9 +2702,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Wave."
           },
           "clipIndex": 17,
           "durationSeconds": 2.833333,
@@ -2722,9 +2722,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Agree."
           },
           "clipIndex": 19,
           "durationSeconds": 4.041667,
@@ -2732,9 +2732,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-01/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Laugh."
           },
           "clipIndex": 20,
           "durationSeconds": 5.625,
@@ -2794,9 +2794,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Agree."
           },
           "clipIndex": 2,
           "durationSeconds": 3.208333,
@@ -2804,9 +2804,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Wave."
           },
           "clipIndex": 3,
           "durationSeconds": 5.625,
@@ -2814,9 +2814,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Cheer."
           },
           "clipIndex": 4,
           "durationSeconds": 9.666667,
@@ -2834,9 +2834,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig."
           },
           "clipIndex": 7,
           "durationSeconds": 13.125,
@@ -2884,9 +2884,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Jump."
           },
           "clipIndex": 12,
           "durationSeconds": 2.25,
@@ -2894,9 +2894,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Angry."
           },
           "clipIndex": 13,
           "durationSeconds": 3.541667,
@@ -2914,9 +2914,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Laugh."
           },
           "clipIndex": 16,
           "durationSeconds": 4.5,
@@ -2934,9 +2934,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dance."
           },
           "clipIndex": 19,
           "durationSeconds": 10.833333,
@@ -2944,9 +2944,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Bow."
           },
           "clipIndex": 20,
           "durationSeconds": 6.041667,
@@ -2954,9 +2954,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-02/clip-21",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 21 for Clap."
           },
           "clipIndex": 21,
           "durationSeconds": 13.708333,
@@ -2996,9 +2996,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Cheer."
           },
           "clipIndex": 0,
           "durationSeconds": 12.125,
@@ -3026,9 +3026,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Bow."
           },
           "clipIndex": 3,
           "durationSeconds": 6.041667,
@@ -3036,9 +3036,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Clap."
           },
           "clipIndex": 5,
           "durationSeconds": 13.708333,
@@ -3056,9 +3056,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Jump."
           },
           "clipIndex": 8,
           "durationSeconds": 2.25,
@@ -3066,9 +3066,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Laugh."
           },
           "clipIndex": 9,
           "durationSeconds": 5.625,
@@ -3076,9 +3076,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Angry."
           },
           "clipIndex": 10,
           "durationSeconds": 2.833333,
@@ -3096,9 +3096,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Agree."
           },
           "clipIndex": 13,
           "durationSeconds": 4.041667,
@@ -3136,9 +3136,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dig."
           },
           "clipIndex": 17,
           "durationSeconds": 16.416667,
@@ -3146,9 +3146,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Wave."
           },
           "clipIndex": 18,
           "durationSeconds": 5.625,
@@ -3166,9 +3166,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-03/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance."
           },
           "clipIndex": 20,
           "durationSeconds": 12.833333,
@@ -3218,9 +3218,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-02",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 02 for Agree."
           },
           "clipIndex": 2,
           "durationSeconds": 4.041667,
@@ -3228,9 +3228,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Bow."
           },
           "clipIndex": 3,
           "durationSeconds": 6.041667,
@@ -3238,9 +3238,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry."
           },
           "clipIndex": 4,
           "durationSeconds": 3.541667,
@@ -3248,9 +3248,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Laugh."
           },
           "clipIndex": 5,
           "durationSeconds": 4.5,
@@ -3278,9 +3278,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Clap."
           },
           "clipIndex": 8,
           "durationSeconds": 10.958333,
@@ -3298,9 +3298,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Cheer."
           },
           "clipIndex": 10,
           "durationSeconds": 9.666667,
@@ -3308,9 +3308,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Dig."
           },
           "clipIndex": 12,
           "durationSeconds": 16.416667,
@@ -3318,9 +3318,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Wave."
           },
           "clipIndex": 13,
           "durationSeconds": 2.25,
@@ -3328,9 +3328,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Jump."
           },
           "clipIndex": 15,
           "durationSeconds": 2.25,
@@ -3348,9 +3348,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-04/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Dance."
           },
           "clipIndex": 17,
           "durationSeconds": 10.25,
@@ -3420,9 +3420,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Angry."
           },
           "clipIndex": 0,
           "durationSeconds": 3.541667,
@@ -3430,9 +3430,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-01",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 01 for Agree."
           },
           "clipIndex": 1,
           "durationSeconds": 4.041667,
@@ -3480,9 +3480,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Clap."
           },
           "clipIndex": 6,
           "durationSeconds": 10.958333,
@@ -3500,9 +3500,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dance."
           },
           "clipIndex": 8,
           "durationSeconds": 18.541667,
@@ -3510,9 +3510,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Dig."
           },
           "clipIndex": 10,
           "durationSeconds": 13.125,
@@ -3520,9 +3520,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Jump."
           },
           "clipIndex": 11,
           "durationSeconds": 2.25,
@@ -3530,9 +3530,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Wave."
           },
           "clipIndex": 12,
           "durationSeconds": 3.541667,
@@ -3550,9 +3550,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Bow."
           },
           "clipIndex": 14,
           "durationSeconds": 4.833333,
@@ -3580,9 +3580,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Laugh."
           },
           "clipIndex": 17,
           "durationSeconds": 5.625,
@@ -3590,9 +3590,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/robot-agent-05/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Cheer."
           },
           "clipIndex": 19,
           "durationSeconds": 12.125,
@@ -3662,9 +3662,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree."
           },
           "clipIndex": 3,
           "durationSeconds": 4.041667,
@@ -3682,9 +3682,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Laugh."
           },
           "clipIndex": 5,
           "durationSeconds": 4.5,
@@ -3692,9 +3692,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Clap."
           },
           "clipIndex": 6,
           "durationSeconds": 13.708333,
@@ -3722,9 +3722,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Dig."
           },
           "clipIndex": 11,
           "durationSeconds": 13.125,
@@ -3742,9 +3742,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Angry."
           },
           "clipIndex": 13,
           "durationSeconds": 2.833333,
@@ -3752,9 +3752,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Bow."
           },
           "clipIndex": 14,
           "durationSeconds": 6.041667,
@@ -3772,9 +3772,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Jump."
           },
           "clipIndex": 16,
           "durationSeconds": 2.25,
@@ -3782,9 +3782,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer."
           },
           "clipIndex": 18,
           "durationSeconds": 9.666667,
@@ -3792,9 +3792,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Wave."
           },
           "clipIndex": 19,
           "durationSeconds": 4.5,
@@ -3802,9 +3802,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-01/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance."
           },
           "clipIndex": 20,
           "durationSeconds": 8.666667,
@@ -3844,9 +3844,9 @@
       "clips": [
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-00",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 00 for Jump."
           },
           "clipIndex": 0,
           "durationSeconds": 2.25,
@@ -3864,9 +3864,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Angry."
           },
           "clipIndex": 3,
           "durationSeconds": 3.541667,
@@ -3904,9 +3904,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dig."
           },
           "clipIndex": 7,
           "durationSeconds": 16.416667,
@@ -3924,9 +3924,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Dance."
           },
           "clipIndex": 9,
           "durationSeconds": 10.833333,
@@ -3934,9 +3934,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Wave."
           },
           "clipIndex": 10,
           "durationSeconds": 5.625,
@@ -3944,9 +3944,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Laugh."
           },
           "clipIndex": 13,
           "durationSeconds": 4.5,
@@ -3954,9 +3954,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Agree."
           },
           "clipIndex": 14,
           "durationSeconds": 4.041667,
@@ -3994,9 +3994,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Cheer."
           },
           "clipIndex": 18,
           "durationSeconds": 12.125,
@@ -4004,9 +4004,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Clap."
           },
           "clipIndex": 19,
           "durationSeconds": 10.958333,
@@ -4014,9 +4014,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-02/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Bow."
           },
           "clipIndex": 20,
           "durationSeconds": 6.041667,
@@ -4086,9 +4086,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-03",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 03 for Agree."
           },
           "clipIndex": 3,
           "durationSeconds": 4.041667,
@@ -4096,9 +4096,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Angry."
           },
           "clipIndex": 4,
           "durationSeconds": 2.833333,
@@ -4106,9 +4106,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Wave."
           },
           "clipIndex": 5,
           "durationSeconds": 4.5,
@@ -4116,9 +4116,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Laugh."
           },
           "clipIndex": 6,
           "durationSeconds": 5.625,
@@ -4126,9 +4126,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Cheer."
           },
           "clipIndex": 7,
           "durationSeconds": 12.125,
@@ -4166,9 +4166,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-14",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 14 for Clap."
           },
           "clipIndex": 14,
           "durationSeconds": 13.708333,
@@ -4176,9 +4176,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Bow."
           },
           "clipIndex": 15,
           "durationSeconds": 6.041667,
@@ -4186,9 +4186,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Dance."
           },
           "clipIndex": 16,
           "durationSeconds": 10.833333,
@@ -4216,9 +4216,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Dig."
           },
           "clipIndex": 19,
           "durationSeconds": 16.416667,
@@ -4226,9 +4226,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-female-03/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Jump."
           },
           "clipIndex": 20,
           "durationSeconds": 2.25,
@@ -4298,9 +4298,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Bow."
           },
           "clipIndex": 4,
           "durationSeconds": 6.041667,
@@ -4308,9 +4308,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-05",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 05 for Laugh."
           },
           "clipIndex": 5,
           "durationSeconds": 5.625,
@@ -4318,9 +4318,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Jump."
           },
           "clipIndex": 6,
           "durationSeconds": 2.25,
@@ -4328,9 +4328,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Wave."
           },
           "clipIndex": 7,
           "durationSeconds": 2.833333,
@@ -4338,9 +4338,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Dig."
           },
           "clipIndex": 8,
           "durationSeconds": 16.416667,
@@ -4368,9 +4368,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Agree."
           },
           "clipIndex": 11,
           "durationSeconds": 4.041667,
@@ -4388,9 +4388,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Clap."
           },
           "clipIndex": 13,
           "durationSeconds": 13.708333,
@@ -4418,9 +4418,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Cheer."
           },
           "clipIndex": 17,
           "durationSeconds": 9.666667,
@@ -4428,9 +4428,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Angry."
           },
           "clipIndex": 19,
           "durationSeconds": 3.541667,
@@ -4438,9 +4438,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-01/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dance."
           },
           "clipIndex": 20,
           "durationSeconds": 2.916667,
@@ -4530,9 +4530,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-06",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 06 for Laugh."
           },
           "clipIndex": 6,
           "durationSeconds": 5.625,
@@ -4540,9 +4540,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Dance."
           },
           "clipIndex": 7,
           "durationSeconds": 10.25,
@@ -4550,9 +4550,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Jump."
           },
           "clipIndex": 8,
           "durationSeconds": 2.25,
@@ -4560,9 +4560,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-09",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 09 for Cheer."
           },
           "clipIndex": 9,
           "durationSeconds": 9.666667,
@@ -4570,9 +4570,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Bow."
           },
           "clipIndex": 10,
           "durationSeconds": 6.041667,
@@ -4580,9 +4580,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-11",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 11 for Wave."
           },
           "clipIndex": 11,
           "durationSeconds": 9.125,
@@ -4620,9 +4620,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Angry."
           },
           "clipIndex": 15,
           "durationSeconds": 3.541667,
@@ -4630,9 +4630,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-16",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 16 for Agree."
           },
           "clipIndex": 16,
           "durationSeconds": 3.208333,
@@ -4650,9 +4650,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Dig."
           },
           "clipIndex": 18,
           "durationSeconds": 13.125,
@@ -4660,9 +4660,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-02/clip-19",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 19 for Clap."
           },
           "clipIndex": 19,
           "durationSeconds": 13.708333,
@@ -4722,9 +4722,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Jump",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-04",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 04 for Jump."
           },
           "clipIndex": 4,
           "durationSeconds": 2.25,
@@ -4742,9 +4742,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Laugh",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-07",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 07 for Laugh."
           },
           "clipIndex": 7,
           "durationSeconds": 4.5,
@@ -4752,9 +4752,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Agree",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-08",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 08 for Agree."
           },
           "clipIndex": 8,
           "durationSeconds": 4.041667,
@@ -4772,9 +4772,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dance",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-10",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 10 for Dance."
           },
           "clipIndex": 10,
           "durationSeconds": 12.833333,
@@ -4792,9 +4792,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Cheer",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-12",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 12 for Cheer."
           },
           "clipIndex": 12,
           "durationSeconds": 12.125,
@@ -4802,9 +4802,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Bow",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-13",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 13 for Bow."
           },
           "clipIndex": 13,
           "durationSeconds": 6.041667,
@@ -4822,9 +4822,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Wave",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-15",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 15 for Wave."
           },
           "clipIndex": 15,
           "durationSeconds": 2.833333,
@@ -4842,9 +4842,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Angry",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-17",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 17 for Angry."
           },
           "clipIndex": 17,
           "durationSeconds": 2.833333,
@@ -4852,9 +4852,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Clap",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-18",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 18 for Clap."
           },
           "clipIndex": 18,
           "durationSeconds": 10.958333,
@@ -4872,9 +4872,9 @@
         },
         {
           "annotation": {
-            "decision": "uncertain",
-            "evidenceReference": "",
-            "notes": ""
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:operator-export/sha256-79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8/user-male-03/clip-20",
+            "notes": "Aaron visually reviewed the model-local raw clip catalog and selected clip 20 for Dig."
           },
           "clipIndex": 20,
           "durationSeconds": 16.416667,
@@ -4911,13 +4911,13 @@
     }
   ],
   "progress": {
-    "remainingDecisionCount": 230,
-    "resolvedDecisionCount": 0
+    "resolvedDecisionCount": 230,
+    "remainingDecisionCount": 0
   },
   "rawNonLocomotionClipCount": 417,
   "reviewer": {
-    "name": "",
-    "reviewedAt": ""
+    "name": "Aaron",
+    "reviewedAt": "2026-09-02T09:30:13-04:00"
   },
   "schema": "aiw.avatar-gesture-annotation/1",
   "semanticReviewCanonicalSha256": "e3859ab1eb9a449507e7fa805b5ef145ac94b5e72ad1291adb4c4b59be28a58f",

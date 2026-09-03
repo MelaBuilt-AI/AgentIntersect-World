@@ -1,0 +1,3053 @@
+{
+  "decisionCount": 276,
+  "decisions": [
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Idle"
+      ],
+      "expectedClipIndex": 1,
+      "modelId": "cat-agent-01",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 1,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Walk"
+      ],
+      "expectedClipIndex": 19,
+      "modelId": "cat-agent-01",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 19,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-01.png#Run"
+      ],
+      "expectedClipIndex": 4,
+      "modelId": "cat-agent-01",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 4,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Jump"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 5,
+      "semantic": "Jump",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Dance"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 11,
+      "semantic": "Dance",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Clap"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 18 for Clap; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 18,
+      "semantic": "Clap",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Cheer"
+      ],
+      "expectedClipIndex": 7,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 7,
+      "semantic": "Cheer",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Wave"
+      ],
+      "expectedClipIndex": 2,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 2 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 2,
+      "semantic": "Wave",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Bow"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 3 for Bow; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 3,
+      "semantic": "Bow",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Agree"
+      ],
+      "expectedClipIndex": 17,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 17,
+      "semantic": "Agree",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Angry"
+      ],
+      "expectedClipIndex": 12,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 12 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 12,
+      "semantic": "Angry",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-cat-agent-01.json#Laugh"
+      ],
+      "expectedClipIndex": 9,
+      "modelId": "cat-agent-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 9 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 9,
+      "semantic": "Laugh",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Idle"
+      ],
+      "expectedClipIndex": 0,
+      "modelId": "cat-agent-02",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 0,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Walk"
+      ],
+      "expectedClipIndex": 8,
+      "modelId": "cat-agent-02",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 8,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Run"
+      ],
+      "expectedClipIndex": 17,
+      "modelId": "cat-agent-02",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 17,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 9,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-02.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-02",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Idle"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "cat-agent-03",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 18,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Walk"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "cat-agent-03",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 3,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Run"
+      ],
+      "expectedClipIndex": 0,
+      "modelId": "cat-agent-03",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 0,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 9,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-03.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-03",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Idle"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "cat-agent-04",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 18,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Walk"
+      ],
+      "expectedClipIndex": 15,
+      "modelId": "cat-agent-04",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 15,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Run"
+      ],
+      "expectedClipIndex": 13,
+      "modelId": "cat-agent-04",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 13,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 8,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 9,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-04.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-04",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Idle"
+      ],
+      "expectedClipIndex": 6,
+      "modelId": "cat-agent-05",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 6,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Walk"
+      ],
+      "expectedClipIndex": 13,
+      "modelId": "cat-agent-05",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 13,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Run"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "cat-agent-05",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 20,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-05.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-05",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Idle"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "cat-agent-06",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 20,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Walk"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "cat-agent-06",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 18,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Run"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "cat-agent-06",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 14,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-06.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-06",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Idle"
+      ],
+      "expectedClipIndex": 8,
+      "modelId": "cat-agent-07",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 8,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Walk"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "cat-agent-07",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 18,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Run"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "cat-agent-07",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 3,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/cat-agent-07.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "cat-agent-07",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Idle"
+      ],
+      "expectedClipIndex": 9,
+      "modelId": "dog-agent-01",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 9,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Walk"
+      ],
+      "expectedClipIndex": 1,
+      "modelId": "dog-agent-01",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 1,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Run"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "dog-agent-01",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 20,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-01.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-01",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Idle"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "dog-agent-02",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 14,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Walk"
+      ],
+      "expectedClipIndex": 8,
+      "modelId": "dog-agent-02",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 8,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Run"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "dog-agent-02",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 20,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 9,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-02.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-02",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Idle"
+      ],
+      "expectedClipIndex": 1,
+      "modelId": "dog-agent-03",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 1,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Walk"
+      ],
+      "expectedClipIndex": 16,
+      "modelId": "dog-agent-03",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 16,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Run"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "dog-agent-03",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 5,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 9,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-03.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-03",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Idle"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "dog-agent-04",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 14,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Walk"
+      ],
+      "expectedClipIndex": 0,
+      "modelId": "dog-agent-04",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 0,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Run"
+      ],
+      "expectedClipIndex": 1,
+      "modelId": "dog-agent-04",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 1,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-04.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-04",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Idle"
+      ],
+      "expectedClipIndex": 19,
+      "modelId": "dog-agent-05",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 19,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Walk"
+      ],
+      "expectedClipIndex": 15,
+      "modelId": "dog-agent-05",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 15,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Run"
+      ],
+      "expectedClipIndex": 9,
+      "modelId": "dog-agent-05",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 9,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/dog-agent-05.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "dog-agent-05",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Idle"
+      ],
+      "expectedClipIndex": 2,
+      "modelId": "robot-agent-01",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 2,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Walk"
+      ],
+      "expectedClipIndex": 13,
+      "modelId": "robot-agent-01",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 13,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Run"
+      ],
+      "expectedClipIndex": 4,
+      "modelId": "robot-agent-01",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 4,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-01.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-01",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 8,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Idle"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "robot-agent-02",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 5,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Walk"
+      ],
+      "expectedClipIndex": 15,
+      "modelId": "robot-agent-02",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 15,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Run"
+      ],
+      "expectedClipIndex": 17,
+      "modelId": "robot-agent-02",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 17,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 21,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-02.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-02",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Idle"
+      ],
+      "expectedClipIndex": 6,
+      "modelId": "robot-agent-03",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 6,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Walk"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "robot-agent-03",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 11,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Run"
+      ],
+      "expectedClipIndex": 4,
+      "modelId": "robot-agent-03",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 4,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-03.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-03",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Idle"
+      ],
+      "expectedClipIndex": 14,
+      "modelId": "robot-agent-04",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 14,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Walk"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "robot-agent-04",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 11,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Run"
+      ],
+      "expectedClipIndex": 1,
+      "modelId": "robot-agent-04",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 1,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 8,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-04.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-04",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Idle"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "robot-agent-05",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 18,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Walk"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "robot-agent-05",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 20,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Run"
+      ],
+      "expectedClipIndex": 9,
+      "modelId": "robot-agent-05",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 9,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/robot-agent-05.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "robot-agent-05",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Idle"
+      ],
+      "expectedClipIndex": 15,
+      "modelId": "user-male-01",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 15,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Walk"
+      ],
+      "expectedClipIndex": 2,
+      "modelId": "user-male-01",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 2,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-01.png#Run"
+      ],
+      "expectedClipIndex": 18,
+      "modelId": "user-male-01",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 18,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Jump"
+      ],
+      "expectedClipIndex": 6,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 6 for Jump; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 6,
+      "semantic": "Jump",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Dance"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 20 for Dance; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 20,
+      "semantic": "Dance",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Clap"
+      ],
+      "expectedClipIndex": 13,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 13 for Clap; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 13,
+      "semantic": "Clap",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Cheer"
+      ],
+      "expectedClipIndex": 17,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 17 for Cheer; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 17,
+      "semantic": "Cheer",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Wave"
+      ],
+      "expectedClipIndex": 7,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 7 for Wave; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 7,
+      "semantic": "Wave",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Bow"
+      ],
+      "expectedClipIndex": 4,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 4 for Bow; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 4,
+      "semantic": "Bow",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Agree"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 11 for Agree; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 11,
+      "semantic": "Agree",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Angry"
+      ],
+      "expectedClipIndex": 19,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 19 for Angry; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 19,
+      "semantic": "Angry",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/avatar-animation-review-user-male-01.json#Laugh"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "user-male-01",
+      "rationale": "Aaron directly reviewed this model-local source clip and selected clip 5 for Laugh; the preserved sanitized operator receipt is the semantic authority.",
+      "reviewedClipIndex": 5,
+      "semantic": "Laugh",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Idle"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "user-male-02",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 5,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Walk"
+      ],
+      "expectedClipIndex": 3,
+      "modelId": "user-male-02",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 3,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Run"
+      ],
+      "expectedClipIndex": 20,
+      "modelId": "user-male-02",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 20,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 0,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 9,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 11,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-02.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-02",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Idle"
+      ],
+      "expectedClipIndex": 2,
+      "modelId": "user-male-03",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 2,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Walk"
+      ],
+      "expectedClipIndex": 5,
+      "modelId": "user-male-03",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 5,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Run"
+      ],
+      "expectedClipIndex": 0,
+      "modelId": "user-male-03",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 0,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 17,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 16,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 8,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-male-03.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-male-03",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Idle"
+      ],
+      "expectedClipIndex": 9,
+      "modelId": "user-female-01",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 9,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Walk"
+      ],
+      "expectedClipIndex": 7,
+      "modelId": "user-female-01",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 7,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Run"
+      ],
+      "expectedClipIndex": 17,
+      "modelId": "user-female-01",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 17,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 13,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 12,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-01.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-01",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Idle"
+      ],
+      "expectedClipIndex": 12,
+      "modelId": "user-female-02",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 12,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Walk"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "user-female-02",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 11,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Run"
+      ],
+      "expectedClipIndex": 2,
+      "modelId": "user-female-02",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 2,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 19,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 20,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 6,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-02.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-02",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 10,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Idle"
+      ],
+      "expectedClipIndex": 8,
+      "modelId": "user-female-03",
+      "rationale": "Direct review of the retained 25%, 50%, and 75% temporal samples shows a grounded, non-traveling stance suitable for model-local Idle.",
+      "reviewedClipIndex": 8,
+      "semantic": "Idle",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Walk"
+      ],
+      "expectedClipIndex": 11,
+      "modelId": "user-female-03",
+      "rationale": "Direct review of the retained temporal samples shows alternating grounded leg phases and bounded cyclic travel suitable for model-local Walk.",
+      "reviewedClipIndex": 11,
+      "semantic": "Walk",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Run"
+      ],
+      "expectedClipIndex": 12,
+      "modelId": "user-female-03",
+      "rationale": "Direct review of the retained temporal samples shows the larger-stride, faster locomotion cycle suitable for model-local Run.",
+      "reviewedClipIndex": 12,
+      "semantic": "Run",
+      "verdict": "pass"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Jump"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Jump does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 4,
+      "semantic": "Jump",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Dance"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Dance does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 18,
+      "semantic": "Dance",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Clap"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Clap does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 14,
+      "semantic": "Clap",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Cheer"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Cheer does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 7,
+      "semantic": "Cheer",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Wave"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Wave does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 3,
+      "semantic": "Wave",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Bow"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Bow does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 15,
+      "semantic": "Bow",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Agree"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Agree does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 2,
+      "semantic": "Agree",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Angry"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Angry does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 1,
+      "semantic": "Angry",
+      "verdict": "ambiguous"
+    },
+    {
+      "evidenceRefs": [
+        "artifacts/avatar-replacement-evidence/world-animation-completion-v1/temporal-review/user-female-03.png#Laugh"
+      ],
+      "expectedClipIndex": null,
+      "modelId": "user-female-03",
+      "rationale": "The retained three-position visual record for Laugh does not independently distinguish this anonymous clip from other gestures. Aaron's Jump/Dance/Laugh contradiction invalidates structural ordering as semantic authority, so this mapping remains ambiguous.",
+      "reviewedClipIndex": 5,
+      "semantic": "Laugh",
+      "verdict": "ambiguous"
+    }
+  ],
+  "manualModelRecovery": "operator-identified-active-models-only",
+  "modelCount": 23,
+  "reviewAuthority": "direct-bounded-temporal-and-operator-review",
+  "runtimePolicy": "pass-only-all-other-verdicts-refused",
+  "schema": "aiw.world-animation-semantic-review/2",
+  "semanticCount": 12,
+  "totals": {
+    "ambiguous": 189,
+    "pass": 87,
+    "unsupported": 0,
+    "wrong_clip": 0
+  }
+}

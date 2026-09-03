@@ -36,6 +36,7 @@ export const IMPORTED_AVATAR_SEMANTICS = [
   "Agree",
   "Angry",
   "Laugh",
+  "Dig",
 ] as const;
 export type ImportedAvatarSemantic = (typeof IMPORTED_AVATAR_SEMANTICS)[number];
 export type ImportedAvatarLocomotion = "Idle" | "Walk" | "Run";
@@ -1022,7 +1023,10 @@ export function resolveImportedAvatarWorldClip(
   )
     throw new TypeError(`Semantic review refused: ${review.verdict}`);
   const oneShot =
-    semantic !== "Idle" && semantic !== "Walk" && semantic !== "Run";
+    semantic !== "Idle" &&
+    semantic !== "Walk" &&
+    semantic !== "Run" &&
+    semantic !== "Dig";
   return {
     assetId,
     clipIndex: mapping.clipIndex,

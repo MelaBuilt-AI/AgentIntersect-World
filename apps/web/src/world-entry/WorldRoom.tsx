@@ -316,6 +316,12 @@ export function WorldRoom({
           detail: "" as const,
         },
   );
+  const presentedActivity = agentAvatars?.length
+    ? activity
+    : {
+        ...activity,
+        label: activity.label.replace(/^Mr Fluff\b/u, agentName),
+      };
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
     createAgentMovementState(
@@ -1441,7 +1447,9 @@ export function WorldRoom({
   const agentAction =
     agentWorkState.state === "coding"
       ? agentUsesImported
-        ? "Idle"
+        ? reducedMotion
+          ? "Idle"
+          : (agentWorkState.codingSemantic ?? "Idle")
         : agentWorkState.action
       : agentUsesImported
         ? agentAnimation.semantic
@@ -1474,6 +1482,9 @@ export function WorldRoom({
         : movement.movementState === "moving"
           ? "Walk"
           : "Idle";
+    const usesImported =
+      agent.avatar.avatarSource?.kind === "imported" &&
+      agent.avatar.avatarSource.mode === "original";
     return {
       rosterId: agent.rosterId,
       name: agent.name,
@@ -1481,7 +1492,9 @@ export function WorldRoom({
       heading: movement.heading,
       action:
         work.state === "coding"
-          ? "Work"
+          ? usesImported && !work.mixerPaused
+            ? (work.codingSemantic ?? "Idle")
+            : work.action
           : index === 0 && movement.movementState !== "moving"
             ? agentAction
             : movementAction,
@@ -1792,14 +1805,16 @@ export function WorldRoom({
       ) : null}
       <div
         className="world-room__activity-semantic"
-        data-activity-state={activity.state}
+        data-activity-state={presentedActivity.state}
         role="status"
         aria-live="polite"
         aria-atomic="true"
       >
-        <span aria-hidden="true">{activity.icon || "○"}</span>
-        <span>{activity.label}</span>
-        {activity.detail ? <span>· {activity.detail}</span> : null}
+        <span aria-hidden="true">{presentedActivity.icon || "○"}</span>
+        <span>{presentedActivity.label}</span>
+        {presentedActivity.detail ? (
+          <span>· {presentedActivity.detail}</span>
+        ) : null}
       </div>
       <nav
         className="world-room__agent-targets"
@@ -1860,6 +1875,7 @@ export function WorldRoom({
                 data-roster-id={agent.rosterId}
                 data-work-state={state.workState}
                 data-object-ref={state.objectRef ?? ""}
+                data-avatar-action={state.action}
                 data-activity-state={agentActivity.state}
               >
                 <span>

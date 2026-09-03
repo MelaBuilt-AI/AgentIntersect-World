@@ -29,12 +29,16 @@ const arrival = (current: BrowserAgentWorkFocus): AgentWorkArrival => ({
 });
 
 describe("Phase 19 Task 12 browser work-focus gate", () => {
-  it("keeps two roster agents independent and uses generic Work only after exact arrival", () => {
+  it("keeps two roster agents independent and unlocks Dig only after exact arrival", () => {
     const a = focus("a");
     const b = focus("b");
     expect(
       deriveAgentRepositoryWorkState(a, arrival(a), a.layoutGeneration),
-    ).toMatchObject({ state: "coding", action: "Work" });
+    ).toMatchObject({
+      state: "coding",
+      action: "Work",
+      codingSemantic: "Dig",
+    });
     expect(
       deriveAgentRepositoryWorkState(b, arrival(a), b.layoutGeneration),
     ).toMatchObject({ state: "navigating", action: "Walk" });
@@ -84,7 +88,7 @@ describe("Phase 19 Task 12 browser work-focus gate", () => {
     ).toEqual({
       state: "coding",
       action: "Idle",
-      codingSemantic: "Work",
+      codingSemantic: "Dig",
       mixerPaused: true,
       objectRef: current.objectRef,
       repositoryPath: current.repositoryPath,

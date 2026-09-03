@@ -175,16 +175,40 @@ function isToolItem(item: Record<string, unknown>): boolean {
   ].includes(String(item.type));
 }
 
+function repositoryRelativeLocator(
+  locator: AdapterTurnEvent["repositoryLocator"],
+  repositoryRoot: string,
+): AdapterTurnEvent["repositoryLocator"] {
+  if (!locator) return undefined;
+  const paths = locator.paths.map((value) => {
+    if (!path.isAbsolute(value)) return value;
+    const relative = path.relative(repositoryRoot, value);
+    if (
+      relative.length === 0 ||
+      relative.startsWith(`..${path.sep}`) ||
+      relative === ".." ||
+      path.isAbsolute(relative)
+    )
+      return value;
+    return relative.split(path.sep).join("/");
+  });
+  return { ...locator, paths };
+}
+
 function codexRepositoryLocator(
   item: Record<string, unknown>,
+  repositoryRoot: string,
 ): AdapterTurnEvent["repositoryLocator"] {
   const toolName = safeToolName(item);
-  const structured = extractAdapterRepositoryLocator(
-    "codex",
-    toolName,
-    item.type === "file_change" || item.type === "command_execution"
-      ? item
-      : item.arguments,
+  const structured = repositoryRelativeLocator(
+    extractAdapterRepositoryLocator(
+      "codex",
+      toolName,
+      item.type === "file_change" || item.type === "command_execution"
+        ? item
+        : item.arguments,
+    ),
+    repositoryRoot,
   );
   if (structured || item.type !== "command_execution") return structured;
   const command = item.command;
@@ -198,9 +222,12 @@ function codexRepositoryLocator(
     .map((pattern) => pattern.exec(command))
     .find((match) => match?.[1]);
   if (!exactRead?.[1]) return undefined;
-  return extractAdapterRepositoryLocator("codex", toolName, {
-    parsed_cmd: [{ type: "read", path: exactRead[1] }],
-  });
+  return repositoryRelativeLocator(
+    extractAdapterRepositoryLocator("codex", toolName, {
+      parsed_cmd: [{ type: "read", path: exactRead[1] }],
+    }),
+    repositoryRoot,
+  );
 }
 
 export class CodexSessionAdapter implements AgentAdapter {
@@ -571,7 +598,7 @@ export class CodexSessionAdapter implements AgentAdapter {
             : undefined;
         const locator =
           event.type === "item.started"
-            ? codexRepositoryLocator(item)
+            ? codexRepositoryLocator(item, this.#options.nativeSessionRoot)
             : activityId
               ? toolLocators.get(activityId)
               : undefined;

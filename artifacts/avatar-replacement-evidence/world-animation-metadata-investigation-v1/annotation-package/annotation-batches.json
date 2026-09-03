@@ -1,5 +1,5 @@
 {
-  "annotationTemplateCanonicalSha256": "c784753cca865aec2f8a573dfcc634376452271f1eb9e55f5d22b82d25650ca1",
+  "annotationTemplateCanonicalSha256": "c6b5f48f4ec4aef079c30d607b8c90ad9e3acccbcf57629ce905742ccd2a8efc",
   "authorityMutation": false,
   "batchCount": 23,
   "batches": [
@@ -30,7 +30,7 @@
         20
       ],
       "sourceGlbSha256": "92cfc38bf44186c4ab9abd4612a07c7ce9204cba2207cb03eed698bec8f7616d",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-002",
@@ -59,7 +59,7 @@
         20
       ],
       "sourceGlbSha256": "cc528c0685f2e93e3f1bf1cfed29180066a298b888598f4caa832cf5d9075c66",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-003",
@@ -88,7 +88,7 @@
         20
       ],
       "sourceGlbSha256": "92b38d2faf78a981b213c00b31b4afb7dc2a10b46a9a274ff6fa9f14efbd87fd",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-004",
@@ -117,7 +117,7 @@
         20
       ],
       "sourceGlbSha256": "847fef9ac944ea4c6b04731b1415e342dd4b5c3037ac9eb758ac65b22e32493c",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-005",
@@ -146,7 +146,7 @@
         19
       ],
       "sourceGlbSha256": "5bc1dadf146d44cffd0d2511182741eda60b4f7be7ab6646f067e2fa54f43ed4",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-006",
@@ -176,7 +176,7 @@
         21
       ],
       "sourceGlbSha256": "32f16cbc0a445ae1d1417dffe527c57292d87af1d1619a5ff6c44ddc862e51bf",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-007",
@@ -205,7 +205,7 @@
         20
       ],
       "sourceGlbSha256": "490542acb76ab5ef174e1044e02bf1214b9110cdc322b573a09faa114e7bea0e",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-008",
@@ -234,7 +234,7 @@
         19
       ],
       "sourceGlbSha256": "bca6f9bc536c9916131af4d0f02fcb851400b94386abc2fec4bde5f6e96e41ab",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-009",
@@ -263,7 +263,7 @@
         19
       ],
       "sourceGlbSha256": "12c2f5cbacf32f3f5fee12dfc5dedb01ea5d05a9762859623cf16586dbf4982c",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-010",
@@ -292,7 +292,7 @@
         20
       ],
       "sourceGlbSha256": "3734877f7f2be04d3069fd4ee758bcfefb84fe8cba6f513f886ef68d12034e9b",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-011",
@@ -321,7 +321,7 @@
         20
       ],
       "sourceGlbSha256": "645b458c37498269a7d5705809070bc9defce4e8479ab975844487967dd51e25",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-012",
@@ -350,7 +350,7 @@
         20
       ],
       "sourceGlbSha256": "99c769f94f3b51af1bf5ab453a6c90980f3a139a33b06921caf855f51e6002d8",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-013",
@@ -379,7 +379,7 @@
         20
       ],
       "sourceGlbSha256": "0d74a25ca98d9104102c1a6b145f5ff06736389fdafb238209bb8c90ebbbf9ce",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-014",
@@ -409,7 +409,7 @@
         21
       ],
       "sourceGlbSha256": "fd3dda0e764dda2616d014b730faa9e97c27a03841a190a24b3fb8a55f2e2a56",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-015",
@@ -438,7 +438,7 @@
         20
       ],
       "sourceGlbSha256": "d6901d4a2c0e976e6f6a4dfcc2ba535674f261dd514ca5f3d54588ee6165e026",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-016",
@@ -467,7 +467,7 @@
         20
       ],
       "sourceGlbSha256": "5218e6eea25ffc7131ad08939ecafd843e91f59da0afd099c6d3c6899003003d",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-017",
@@ -496,7 +496,7 @@
         19
       ],
       "sourceGlbSha256": "f0bf5053f58e521d2b5cb4349ecaae0f4cfd984282a99186dcc02732bb6b3c7f",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-018",
@@ -525,7 +525,7 @@
         20
       ],
       "sourceGlbSha256": "4c93295ec0c5e640da62a0a28b4a7bd997c1794e2c428b6709bec17f8ab56ef9",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-019",
@@ -554,7 +554,7 @@
         20
       ],
       "sourceGlbSha256": "19f2f086efab6b0999fc46b29d4f85766f7b0bf2fb253e1e0ba13d37bc3a0f6d",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-020",
@@ -583,7 +583,7 @@
         20
       ],
       "sourceGlbSha256": "13bd0fdce7b2294fbf961156bb8613bbef05ac150f8154733e77d7c919eef27d",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-021",
@@ -613,7 +613,7 @@
         21
       ],
       "sourceGlbSha256": "24a456be65823e735ed8713af6da23989fc4e10e7b789dc69dc79d316fd9e6d7",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-022",
@@ -642,7 +642,7 @@
         19
       ],
       "sourceGlbSha256": "83e449040158b1e27e24a6bb8eb85ab9f1b0ca5f621114a76aa8b394179ea06e",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     },
     {
       "batchId": "batch-023",
@@ -671,7 +671,7 @@
         20
       ],
       "sourceGlbSha256": "56d5239307b3ed1f81631caf7562c83d7e6fb57e239a3c2ecba2afff0db6ea3c",
-      "unresolvedDecisionCount": 9
+      "unresolvedDecisionCount": 10
     }
   ],
   "checkpointFormat": "full-annotation-document",
@@ -680,12 +680,12 @@
     "resume": "import-latest-full-document-before-next-batch",
     "start": "import-latest-full-document-or-pristine-template"
   },
-  "manifestCanonicalSha256": "dc82de7c80e37ed70335dd49445fa304031aab56052f97cdc8840aaead12b6e7",
+  "manifestCanonicalSha256": "5765e43312254ef38b02bd34f4a9657f247116f5af5b3f9627aba9446e7b03d3",
   "modelCount": 23,
   "rawNonLocomotionClipCount": 417,
   "schema": "aiw.avatar-gesture-annotation-batches/1",
-  "semanticReviewCanonicalSha256": "26860a4977eda4589afa98921aa9c7b43ab3cb0d19c440891f84dfd9445acc19",
+  "semanticReviewCanonicalSha256": "e3859ab1eb9a449507e7fa805b5ef145ac94b5e72ad1291adb4c4b59be28a58f",
   "sourceAnnotationSchema": "aiw.avatar-gesture-annotation/1",
   "strategy": "one-model-per-batch",
-  "unresolvedDecisionCount": 207
+  "unresolvedDecisionCount": 230
 }

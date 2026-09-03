@@ -51,7 +51,7 @@ type ReplacementApi = typeof replacement & {
 const api = replacement as ReplacementApi;
 
 describe("replacement avatar source version 2", () => {
-  it("resolves Aaron's exact operator-reviewed one-shots for the two active models", () => {
+  it("resolves representative exact selections from Aaron's completed review", () => {
     const accepted = {
       "user-male-01": {
         Jump: 6,
@@ -63,6 +63,7 @@ describe("replacement avatar source version 2", () => {
         Agree: 11,
         Angry: 19,
         Laugh: 5,
+        Dig: 8,
       },
       "cat-agent-01": {
         Jump: 5,
@@ -72,8 +73,9 @@ describe("replacement avatar source version 2", () => {
         Wave: 2,
         Bow: 3,
         Agree: 17,
-        Angry: 12,
+        Angry: 20,
         Laugh: 9,
+        Dig: 0,
       },
     } as const;
 
@@ -85,20 +87,9 @@ describe("replacement avatar source version 2", () => {
           assetId: modelId,
           semantic,
           clipIndex,
-          oneShot: true,
+          oneShot: semantic !== "Dig",
           verification: "semantic-review-pass",
         });
-      }
-    }
-  });
-
-  it("keeps every unreviewed model fail-closed for non-locomotion semantics", () => {
-    for (const modelId of replacement.IMPORTED_AVATAR_ASSET_IDS) {
-      if (modelId === "user-male-01" || modelId === "cat-agent-01") continue;
-      for (const semantic of replacement.IMPORTED_AVATAR_SEMANTICS.slice(3)) {
-        expect(() =>
-          replacement.resolveImportedAvatarWorldClip(modelId, semantic),
-        ).toThrow(/semantic review refused/iu);
       }
     }
   });
@@ -113,7 +104,7 @@ describe("replacement avatar source version 2", () => {
         decision: review(assetId, semantic),
       })),
     );
-    expect(decisions).toHaveLength(23 * 12);
+    expect(decisions).toHaveLength(23 * 13);
     for (const { assetId, semantic, decision } of decisions) {
       expect(decision.rationale.length).toBeGreaterThan(20);
       expect(decision.evidenceRefs.length).toBeGreaterThan(0);
@@ -135,7 +126,7 @@ describe("replacement avatar source version 2", () => {
     }
   });
 
-  it("resolves 69 locomotion plus only the 18 operator-reviewed one-shots", () => {
+  it("resolves all 299 approved model-local semantics", () => {
     const resolved = replacement.IMPORTED_AVATAR_ASSET_IDS.flatMap((assetId) =>
       replacement.IMPORTED_AVATAR_SEMANTICS.flatMap((semantic) => {
         try {
@@ -148,17 +139,13 @@ describe("replacement avatar source version 2", () => {
       }),
     );
 
-    expect(resolved).toHaveLength(23 * 3 + 18);
+    expect(resolved).toHaveLength(23 * 13);
     for (const assetId of replacement.IMPORTED_AVATAR_ASSET_IDS) {
       const asset = replacement.importedAvatarAsset(assetId)!;
       const table = resolved.filter((entry) => entry.assetId === assetId);
-      const operatorReviewed =
-        assetId === "user-male-01" || assetId === "cat-agent-01";
-      expect(table).toHaveLength(operatorReviewed ? 12 : 3);
+      expect(table).toHaveLength(13);
       expect(table.map((entry) => entry.semantic)).toEqual(
-        operatorReviewed
-          ? replacement.IMPORTED_AVATAR_SEMANTICS
-          : ["Idle", "Walk", "Run"],
+        replacement.IMPORTED_AVATAR_SEMANTICS,
       );
       expect(
         table.every(
@@ -168,9 +155,7 @@ describe("replacement avatar source version 2", () => {
             entry.clipName === asset.clips[entry.clipIndex] &&
             entry.verification === "semantic-review-pass" &&
             entry.oneShot ===
-              !(["Idle", "Walk", "Run"] as const).includes(
-                entry.semantic as "Idle" | "Walk" | "Run",
-              ),
+              !new Set(["Idle", "Walk", "Run", "Dig"]).has(entry.semantic),
         ),
       ).toBe(true);
     }

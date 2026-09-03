@@ -480,7 +480,7 @@ describe("replacement imported avatar creator", () => {
     });
   });
 
-  it("uses each imported model's verified Idle clip for the temporary Work/static fallback", () => {
+  it("uses each imported model's approved Dig clip for coding Work", () => {
     expect(
       worldImportedAvatarSelection(
         importedDraft("cat-agent-02"),
@@ -490,10 +490,10 @@ describe("replacement imported avatar creator", () => {
     ).toMatchObject({
       assetId: "cat-agent-02",
       resolvedClip: {
-        clipIndex: 0,
-        clipName: "NlaTrack",
+        clipIndex: 14,
+        clipName: "NlaTrack.014",
         locomotion: "Idle",
-        semantic: "Idle",
+        semantic: "Dig",
         verification: "semantic-review-pass",
         error: "",
       },
@@ -507,10 +507,10 @@ describe("replacement imported avatar creator", () => {
     ).toMatchObject({
       assetId: "cat-agent-03",
       resolvedClip: {
-        clipIndex: 18,
-        clipName: "NlaTrack.018",
+        clipIndex: 20,
+        clipName: "NlaTrack.020",
         locomotion: "Idle",
-        semantic: "Idle",
+        semantic: "Dig",
         verification: "semantic-review-pass",
         error: "",
       },

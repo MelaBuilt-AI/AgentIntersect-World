@@ -212,6 +212,24 @@ if (isResume) {
   emit({
     type: "item.started",
     item: {
+      id: "item-file-change",
+      type: "file_change",
+      changes: [{ path: path.join(cwd, "src/DigAcceptance.ts"), kind: "update" }],
+      status: "in_progress",
+    },
+  });
+  emit({
+    type: "item.completed",
+    item: {
+      id: "item-file-change",
+      type: "file_change",
+      changes: [{ path: path.join(cwd, "src/DigAcceptance.ts"), kind: "update" }],
+      status: "completed",
+    },
+  });
+  emit({
+    type: "item.started",
+    item: {
       id: "item-compound",
       type: "command_execution",
       command: "/bin/bash -lc 'cat codex/Task15Codex.md; touch changed'",
@@ -463,6 +481,26 @@ describe("CodexSessionAdapter", () => {
         repositoryLocator: {
           operation: "read",
           paths: ["codex/Task15Codex.md"],
+        },
+        redaction: { applied: true, count: 1 },
+      },
+      {
+        type: "tool.started",
+        toolName: "file_change",
+        activityId: "item-file-change",
+        repositoryLocator: {
+          operation: "edit",
+          paths: ["src/DigAcceptance.ts"],
+        },
+        redaction: { applied: true, count: 1 },
+      },
+      {
+        type: "tool.completed",
+        toolName: "file_change",
+        activityId: "item-file-change",
+        repositoryLocator: {
+          operation: "edit",
+          paths: ["src/DigAcceptance.ts"],
         },
         redaction: { applied: true, count: 1 },
       },

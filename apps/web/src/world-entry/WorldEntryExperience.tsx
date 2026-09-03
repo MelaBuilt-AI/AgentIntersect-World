@@ -1386,8 +1386,6 @@ export function WorldEntryExperience({
           await response.json(),
           movementSessionId,
         );
-        if (snapshot.capabilityRefusal)
-          setStatus(`agent movement refused · ${snapshot.capabilityRefusal}`);
         for (const [outcomeIndex, outcome] of snapshot.outcomes.entries()) {
           if (
             processedMovementOutcomes.current.get(outcome.requestId) ===

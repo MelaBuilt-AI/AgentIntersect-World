@@ -97,7 +97,7 @@ describe("complete-avatar World animation controls", () => {
   it("routes Space and every local slash action through the accepted model-local clips", () => {
     const accepted = {
       "user-male-01": [6, 20, 13, 17, 7, 4, 11, 19, 5],
-      "cat-agent-01": [5, 11, 18, 7, 2, 3, 17, 12, 9],
+      "cat-agent-01": [5, 11, 18, 7, 2, 3, 17, 20, 9],
     } as const;
     const semantics = [
       "Jump",

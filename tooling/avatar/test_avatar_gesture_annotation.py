@@ -74,6 +74,63 @@ def complete_document() -> tuple[dict, dict, dict]:
 
 
 class AvatarGestureAnnotationTest(unittest.TestCase):
+    def test_dig_extends_every_model_without_preselection_or_prior_review_authority(self) -> None:
+        self.assertIn("Dig", annotation.GESTURE_SEMANTICS)
+        manifest, review = fixtures()
+        review["decisions"] = [
+            decision
+            for decision in review["decisions"]
+            if decision["semantic"] != "Dig"
+        ]
+        jump = next(
+            decision for decision in review["decisions"] if decision["semantic"] == "Jump"
+        )
+        jump["verdict"] = "pass"
+        jump["expectedClipIndex"] = jump["reviewedClipIndex"]
+
+        template = annotation.build_template(manifest, review)
+        batch_plan = annotation.build_batch_plan(template)
+
+        self.assertEqual(template["vocabulary"][-1], "Dig")
+        self.assertEqual(template["unresolvedDecisionCount"], 10)
+        self.assertEqual(template["progress"]["remainingDecisionCount"], 10)
+        self.assertTrue(
+            all(
+                clip["annotation"]["decision"] == "uncertain"
+                for clip in template["models"][0]["clips"]
+            )
+        )
+        self.assertEqual(batch_plan["unresolvedDecisionCount"], 10)
+        self.assertEqual(batch_plan["batches"][0]["unresolvedDecisionCount"], 10)
+
+        document = copy.deepcopy(template)
+        document["reviewer"] = {
+            "name": "Fixture Reviewer",
+            "reviewedAt": "2026-08-30T08:00:00Z",
+        }
+        for semantic, clip in zip(annotation.GESTURE_SEMANTICS, document["models"][0]["clips"]):
+            clip["annotation"] = {
+                "decision": semantic,
+                "evidenceReference": f"human-temporal-review:fixture/{semantic}",
+                "notes": f"Visible temporal review selected {semantic}.",
+            }
+        document["progress"] = {
+            "resolvedDecisionCount": 10,
+            "remainingDecisionCount": 0,
+        }
+        proposal = annotation.build_proposal(document, manifest, review)
+        dig = next(
+            decision for decision in proposal["decisions"] if decision["semantic"] == "Dig"
+        )
+        self.assertEqual(dig["verdict"], "wrong_clip")
+        self.assertIsNone(dig["reviewedClipIndex"])
+        self.assertIsInstance(dig["expectedClipIndex"], int)
+        self.assertFalse(proposal["authorityMutation"])
+        self.assertEqual(
+            proposal["runtimePolicy"],
+            "proposal-only-current-authority-remains-fail-closed",
+        )
+
     def test_template_and_output_are_deterministic_and_partial_is_fail_closed(self) -> None:
         manifest, review = fixtures()
         first = annotation.build_template(manifest, review)
@@ -82,7 +139,9 @@ class AvatarGestureAnnotationTest(unittest.TestCase):
 
         diagnostics = annotation.validate_document(first, manifest, review, require_complete=False)
         self.assertEqual(diagnostics["resolvedDecisionCount"], 0)
-        self.assertEqual(diagnostics["remainingDecisionCount"], 9)
+        self.assertEqual(
+            diagnostics["remainingDecisionCount"], len(annotation.GESTURE_SEMANTICS)
+        )
         self.assertFalse(diagnostics["complete"])
         with self.assertRaisesRegex(annotation.AnnotationError, "incomplete"):
             annotation.validate_document(first, manifest, review, require_complete=True)
@@ -284,7 +343,9 @@ class AvatarGestureAnnotationTest(unittest.TestCase):
         proposal = annotation.build_proposal(document, manifest, review)
 
         self.assertTrue(diagnostics["complete"])
-        self.assertEqual(diagnostics["resolvedDecisionCount"], 9)
+        self.assertEqual(
+            diagnostics["resolvedDecisionCount"], len(annotation.GESTURE_SEMANTICS)
+        )
         jump = next(item for item in proposal["decisions"] if item["semantic"] == "Jump")
         self.assertEqual(jump["verdict"], "wrong_clip")
         self.assertEqual(jump["reviewedClipIndex"], 3)
@@ -315,6 +376,49 @@ class AvatarGestureAnnotationTest(unittest.TestCase):
         conflict = copy.deepcopy(document)
         conflict["models"][0]["clips"][0]["annotation"]["decision"] = "Laugh"
         with self.assertRaisesRegex(annotation.AnnotationError, "both assigned and unsupported"):
+            annotation.validate_document(conflict, manifest, review, require_complete=False)
+
+    def test_model_level_uncertain_completes_review_but_keeps_runtime_fail_closed(self) -> None:
+        manifest, review, document = complete_document()
+        model = document["models"][0]
+        dig_clip = next(
+            clip for clip in model["clips"] if clip["annotation"]["decision"] == "Dig"
+        )
+        dig_clip["annotation"] = {
+            "decision": "uncertain",
+            "evidenceReference": "",
+            "notes": "",
+        }
+        model["uncertainSemantics"] = [
+            {
+                "semantic": "Dig",
+                "evidenceReference": "human-temporal-review:fixture/all-clips",
+                "notes": "All raw clips were reviewed; no clip was conclusive for Dig.",
+            }
+        ]
+
+        diagnostics = annotation.validate_document(
+            document, manifest, review, require_complete=True
+        )
+        proposal = annotation.build_proposal(document, manifest, review)
+        dig = next(
+            decision for decision in proposal["decisions"] if decision["semantic"] == "Dig"
+        )
+
+        self.assertTrue(diagnostics["complete"])
+        self.assertEqual(diagnostics["uncertainSemanticCount"], 1)
+        self.assertTrue(diagnostics["runtimeFailClosed"])
+        self.assertEqual(dig["verdict"], "uncertain")
+        self.assertIsNone(dig["expectedClipIndex"])
+        self.assertTrue(proposal["diagnostics"]["runtimeFailClosed"])
+
+        conflict = copy.deepcopy(document)
+        conflict["models"][0]["clips"][0]["annotation"] = {
+            "decision": "Dig",
+            "evidenceReference": "human-temporal-review:fixture/conflict",
+            "notes": "Conflicting Dig assignment.",
+        }
+        with self.assertRaisesRegex(annotation.AnnotationError, "both assigned and uncertain"):
             annotation.validate_document(conflict, manifest, review, require_complete=False)
 
 

@@ -120,7 +120,7 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
   await page.goto(`${origin}/${packageRelative}/viewer.html`);
   try {
     await page
-      .getByText(/0 \/ 207 gesture decisions resolved/)
+      .getByText(/0 \/ 230 gesture decisions resolved/)
       .waitFor({ timeout: 10_000 });
   } catch (error) {
     throw new Error(`viewer failed to initialize: ${errors.join(" | ")}`, {
@@ -140,12 +140,13 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
   );
   assert.doesNotMatch(
     rawIdentity ?? "",
-    /Jump|Dance|Clap|Cheer|Wave|Bow|Agree|Angry|Laugh/,
+    /Jump|Dance|Clap|Cheer|Wave|Bow|Agree|Angry|Laugh|Dig/,
   );
 
   for (const selector of ["#play", "#loop", "#speed", "#scrub"]) {
     assert.equal(await page.locator(selector).count(), 1);
   }
+  assert.equal(await page.locator('#decision option[value="Dig"]').count(), 1);
   await page.locator("#play").click();
   assert.equal(await page.locator("#play").textContent(), "Play");
   await page.locator("#play").click();
@@ -171,7 +172,32 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
     .fill(
       "Complete temporal playback was reviewed in the headless workflow test.",
     );
-  await page.getByText(/1 \/ 207 gesture decisions resolved/).waitFor();
+  await page.getByText(/1 \/ 230 gesture decisions resolved/).waitFor();
+  const jumpDecision = page.getByLabel("Jump decision", { exact: true });
+  assert.equal(await jumpDecision.inputValue(), "selected");
+  assert.match(
+    (await jumpDecision.locator("option:checked").textContent()) ?? "",
+    /^Selected · clip \d{2}$/,
+  );
+  await page
+    .getByLabel("Dig decision", { exact: true })
+    .selectOption("uncertain");
+  await page
+    .getByLabel("Dig decision evidence")
+    .fill("human-temporal-review:headless/cat-agent-01/all-clips");
+  await page
+    .getByLabel("Dig decision notes")
+    .fill("All raw clips were reviewed; Dig remains uncertain.");
+  await page.getByText(/2 \/ 230 gesture decisions resolved/).waitFor();
+  const digRefusal = page.getByLabel("Dig decision", { exact: true });
+  assert.ok(
+    (await digRefusal.evaluate(
+      (element) => element.getBoundingClientRect().width,
+    )) >= 208,
+    "Dig decision state must be visibly legible",
+  );
+  await digRefusal.selectOption("");
+  await page.getByText(/1 \/ 230 gesture decisions resolved/).waitFor();
   await page.locator("#clip").selectOption("1");
   await page.locator("#decision").selectOption("Jump");
   await page.getByText(/already has a decision/).waitFor();
@@ -185,7 +211,7 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
   };
   malformed.progress = {
     resolvedDecisionCount: 1,
-    remainingDecisionCount: 206,
+    remainingDecisionCount: 229,
   };
   await page.locator("#importFile").setInputFiles({
     name: "malformed.json",
@@ -193,7 +219,7 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
     buffer: Buffer.from(JSON.stringify(malformed)),
   });
   await page.getByText(/malformed annotation fields/).waitFor();
-  await page.getByText(/1 \/ 207 gesture decisions resolved/).waitFor();
+  await page.getByText(/1 \/ 230 gesture decisions resolved/).waitFor();
   assert.equal(await page.locator("#decision").inputValue(), "uncertain");
 
   const duplicate = clone(template);
@@ -206,7 +232,7 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
   }
   duplicate.progress = {
     resolvedDecisionCount: 1,
-    remainingDecisionCount: 206,
+    remainingDecisionCount: 229,
   };
   await page.locator("#importFile").setInputFiles({
     name: "duplicate.json",
@@ -214,7 +240,7 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
     buffer: Buffer.from(JSON.stringify(duplicate)),
   });
   await page.getByText(/duplicate semantic assignment/).waitFor();
-  await page.getByText(/1 \/ 207 gesture decisions resolved/).waitFor();
+  await page.getByText(/1 \/ 230 gesture decisions resolved/).waitFor();
 
   const conflict = clone(template);
   conflict.models[0].clips[0].annotation = {
@@ -229,14 +255,14 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
       notes: "Conflicting model-level fixture.",
     },
   ];
-  conflict.progress = { resolvedDecisionCount: 1, remainingDecisionCount: 206 };
+  conflict.progress = { resolvedDecisionCount: 1, remainingDecisionCount: 229 };
   await page.locator("#importFile").setInputFiles({
     name: "conflict.json",
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(conflict)),
   });
   await page.getByText(/both assigned and unsupported/).waitFor();
-  await page.getByText(/1 \/ 207 gesture decisions resolved/).waitFor();
+  await page.getByText(/1 \/ 230 gesture decisions resolved/).waitFor();
 
   const staleCatalog = clone(template);
   staleCatalog.models[0].clips[0].sourceName = "stale-catalog-fixture";
@@ -246,7 +272,7 @@ test("raw annotation viewer is fail-closed over its supported HTTP workflow", as
     buffer: Buffer.from(JSON.stringify(staleCatalog)),
   });
   await page.getByText(/stale raw clip identity/).waitFor();
-  await page.getByText(/1 \/ 207 gesture decisions resolved/).waitFor();
+  await page.getByText(/1 \/ 230 gesture decisions resolved/).waitFor();
   assert.equal(await page.locator("#decision").inputValue(), "uncertain");
 
   let releaseDelayedModel;

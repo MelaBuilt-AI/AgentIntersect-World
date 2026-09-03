@@ -29,7 +29,7 @@ export type AgentWorkArrival = {
 export type AgentRepositoryWorkState = {
   readonly state: "idle" | "navigating" | "coding" | "stale";
   readonly action: "Idle" | "Walk" | "Work";
-  readonly codingSemantic: "Work" | null;
+  readonly codingSemantic: "Dig" | null;
   readonly mixerPaused: boolean;
   readonly objectRef: string | null;
   readonly repositoryPath: string | null;
@@ -93,7 +93,7 @@ export function deriveAgentRepositoryWorkState(
       : recoveredArrival
         ? "Idle"
         : "Walk",
-    codingSemantic: coding ? "Work" : null,
+    codingSemantic: coding ? "Dig" : null,
     mixerPaused: reducedMotion,
     objectRef: focus.objectRef,
     repositoryPath: focus.repositoryPath,

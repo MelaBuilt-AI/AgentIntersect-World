@@ -41,7 +41,9 @@ GESTURE_SEMANTICS = (
     "Agree",
     "Angry",
     "Laugh",
+    "Dig",
 )
+SEMANTICS_WITHOUT_PRIOR_REVIEW = frozenset({"Dig"})
 ANNOTATION_DECISIONS = (*GESTURE_SEMANTICS, "unsupported", "uncertain")
 SENSITIVE_DURABLE_TEXT_PATTERNS = (
     re.compile(r"https?://", re.IGNORECASE),
@@ -169,7 +171,7 @@ def build_template(manifest: dict[str, Any], review: dict[str, Any]) -> dict[str
             )
         for semantic in GESTURE_SEMANTICS:
             decision = review_by_key.get((model_id, semantic))
-            if decision is None or decision.get("verdict") == "pass":
+            if decision is None and semantic not in SEMANTICS_WITHOUT_PRIOR_REVIEW:
                 raise AnnotationError(f"{model_id}: unresolved {semantic} authority is invalid")
             unresolved_count += 1
         locked_count += len(locked)
@@ -184,6 +186,7 @@ def build_template(manifest: dict[str, Any], review: dict[str, Any]) -> dict[str
                 "assetPath": f"apps/web/public/assets/imported-avatars/{shipped}",
                 "lockedLocomotion": locked,
                 "clips": raw_clips,
+                "uncertainSemantics": [],
                 "unsupportedSemantics": [],
             }
         )
@@ -356,6 +359,7 @@ def validate_document(
         raise AnnotationError("annotation model catalog is incomplete")
     resolved_count = 0
     uncertain_clip_count = 0
+    uncertain_semantic_count = 0
     unsupported_clip_count = 0
     for model, expected_model in zip(models, expected["models"], strict=True):
         if not isinstance(model, dict):
@@ -443,7 +447,39 @@ def validate_document(
             )
             _require_safe_durable_text(record.get("notes"), f"{model_id} {semantic} notes")
             unsupported_semantics.add(semantic)
-        resolved_count += len(assigned) + len(unsupported_semantics)
+        uncertain_records = model.get("uncertainSemantics")
+        if not isinstance(uncertain_records, list):
+            raise AnnotationError(f"{model_id}: uncertainSemantics must be a list")
+        uncertain_semantics: set[str] = set()
+        for record in uncertain_records:
+            if not isinstance(record, dict) or record.get("semantic") not in GESTURE_SEMANTICS:
+                raise AnnotationError(f"{model_id}: invalid uncertain semantic")
+            _require_exact_fields(
+                record,
+                {"semantic", "evidenceReference", "notes"},
+                f"{model_id}: uncertain semantic",
+            )
+            semantic = record["semantic"]
+            if semantic in uncertain_semantics:
+                raise AnnotationError(f"{model_id}: duplicate uncertain semantic {semantic}")
+            if semantic in assigned:
+                raise AnnotationError(
+                    f"{model_id}: {semantic} is both assigned and uncertain"
+                )
+            _require_safe_durable_text(
+                record.get("evidenceReference"), f"{model_id} {semantic} evidence"
+            )
+            _require_safe_durable_text(record.get("notes"), f"{model_id} {semantic} notes")
+            uncertain_semantics.add(semantic)
+        overlap = unsupported_semantics & uncertain_semantics
+        if overlap:
+            raise AnnotationError(
+                f"{model_id}: {sorted(overlap)[0]} is both uncertain and unsupported"
+            )
+        uncertain_semantic_count += len(uncertain_semantics)
+        resolved_count += (
+            len(assigned) + len(unsupported_semantics) + len(uncertain_semantics)
+        )
     remaining = expected["unresolvedDecisionCount"] - resolved_count
     if remaining < 0:
         raise AnnotationError("annotation progress exceeds unresolved authority")
@@ -480,9 +516,10 @@ def validate_document(
         "resolvedDecisionCount": resolved_count,
         "remainingDecisionCount": remaining,
         "uncertainRawClipCount": uncertain_clip_count,
+        "uncertainSemanticCount": uncertain_semantic_count,
         "unsupportedRawClipCount": unsupported_clip_count,
         "authorityMutation": False,
-        "runtimeFailClosed": not complete,
+        "runtimeFailClosed": True,
     }
 
 
@@ -504,9 +541,14 @@ def build_proposal(
         unsupported = {
             record["semantic"]: record for record in model["unsupportedSemantics"]
         }
+        uncertain = {
+            record["semantic"]: record for record in model["uncertainSemantics"]
+        }
         for semantic in GESTURE_SEMANTICS:
-            current = review_by_key[(model_id, semantic)]
-            reviewed_clip_index = current.get("reviewedClipIndex")
+            current = review_by_key.get((model_id, semantic))
+            reviewed_clip_index = (
+                current.get("reviewedClipIndex") if current is not None else None
+            )
             if semantic in unsupported:
                 record = unsupported[semantic]
                 decisions.append(
@@ -514,6 +556,20 @@ def build_proposal(
                         "modelId": model_id,
                         "semantic": semantic,
                         "verdict": "unsupported",
+                        "reviewedClipIndex": reviewed_clip_index,
+                        "expectedClipIndex": None,
+                        "rationale": record["notes"].strip(),
+                        "evidenceRefs": [record["evidenceReference"].strip()],
+                    }
+                )
+                continue
+            if semantic in uncertain:
+                record = uncertain[semantic]
+                decisions.append(
+                    {
+                        "modelId": model_id,
+                        "semantic": semantic,
+                        "verdict": "uncertain",
                         "reviewedClipIndex": reviewed_clip_index,
                         "expectedClipIndex": None,
                         "rationale": record["notes"].strip(),
@@ -542,7 +598,7 @@ def build_proposal(
             )
     totals = {
         verdict: sum(item["verdict"] == verdict for item in decisions)
-        for verdict in ("pass", "wrong_clip", "unsupported")
+        for verdict in ("pass", "wrong_clip", "uncertain", "unsupported")
     }
     return {
         "schema": PROPOSAL_SCHEMA,
@@ -587,7 +643,7 @@ Export the JSON from the viewer, then validate partial progress:
 python3 tooling/avatar/avatar_gesture_annotation.py validate path/to/annotations.json --allow-partial
 ```
 
-Strict validation and deterministic proposal generation require all 207 semantic decisions, reviewer identity/time, evidence references, and notes:
+Strict validation and deterministic proposal generation require all {template['unresolvedDecisionCount']} semantic decisions, reviewer identity/time, evidence references, and notes:
 
 ```bash
 python3 tooling/avatar/avatar_gesture_annotation.py validate path/to/annotations.json
@@ -724,7 +780,8 @@ VIEWER_HTML = """<!doctype html>
     .progress { font-weight: 700; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: .4rem; border-bottom: 1px solid #27435d; text-align: left; vertical-align: top; }
-    td input { min-width: 10rem; }
+    td input { min-width: 6rem; }
+    td select { min-width: 13rem; }
     .sr-only { position: absolute; width: 1px; height: 1px; clip: rect(0,0,0,0); overflow: hidden; }
     @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .annotation { border-left: 0; border-top: 1px solid #27435d; max-height: none; } }
   </style>
@@ -770,10 +827,10 @@ VIEWER_HTML = """<!doctype html>
       <label>Evidence reference<input id="evidence" placeholder="human-temporal-review:session/model/clip"></label>
       <label>Evidence-backed notes<textarea id="notes"></textarea></label>
       <p id="validation" class="status" role="status"></p>
-      <h2>Semantics absent from this model</h2>
-      <p>Use only after reviewing the complete raw clip catalog and finding no matching clip. Evidence and notes are mandatory.</p>
+      <h2>Fail-closed semantic decisions</h2>
+      <p>Exact clip assignments appear here automatically. After reviewing the complete raw clip catalog, choose uncertain when the evidence is inconclusive or unsupported when no matching clip exists. Evidence and notes are mandatory.</p>
       <table>
-        <thead><tr><th>Semantic</th><th>Unsupported</th><th>Evidence reference</th><th>Notes</th></tr></thead>
+        <thead><tr><th>Semantic</th><th>Decision state</th><th>Evidence reference</th><th>Notes</th></tr></thead>
         <tbody id="unsupported"></tbody>
       </table>
     </section>
@@ -783,7 +840,7 @@ VIEWER_HTML = """<!doctype html>
     import { GLTFLoader } from "../../../../packages/renderer-r3f/node_modules/three/examples/jsm/loaders/GLTFLoader.js";
     import { OrbitControls } from "../../../../packages/renderer-r3f/node_modules/three/examples/jsm/controls/OrbitControls.js";
 
-    const gestures = ["Jump","Dance","Clap","Cheer","Wave","Bow","Agree","Angry","Laugh"];
+    const gestures = ["Jump","Dance","Clap","Cheer","Wave","Bow","Agree","Angry","Laugh","Dig"];
     const states = ["uncertain", ...gestures, "unsupported"];
     const byId = (id) => document.getElementById(id);
     let documentState = await fetch("annotation-template.json", {cache: "no-store"}).then((response) => {
@@ -862,23 +919,26 @@ VIEWER_HTML = """<!doctype html>
             assigned.add(record.decision);
           }
         });
-        if (!Array.isArray(model.unsupportedSemantics)) throw new Error("malformed unsupported semantic catalog");
-        const unsupported = new Set();
-        for (const record of model.unsupportedSemantics) {
-          if (!sameKeys(record, ["semantic","evidenceReference","notes"]) || !gestures.includes(record.semantic) || typeof record.evidenceReference !== "string" || typeof record.notes !== "string" || !record.evidenceReference.trim() || !record.notes.trim()) throw new Error("malformed unsupported semantic record");
-          if (unsupported.has(record.semantic)) throw new Error("duplicate unsupported semantic");
-          if (assigned.has(record.semantic)) throw new Error("semantic is both assigned and unsupported");
-          unsupported.add(record.semantic);
+        const refused = new Set();
+        for (const [field, state] of [["uncertainSemantics", "uncertain"], ["unsupportedSemantics", "unsupported"]]) {
+          if (!Array.isArray(model[field])) throw new Error(`malformed ${state} semantic catalog`);
+          for (const record of model[field]) {
+            if (!sameKeys(record, ["semantic","evidenceReference","notes"]) || !gestures.includes(record.semantic) || typeof record.evidenceReference !== "string" || typeof record.notes !== "string" || !record.evidenceReference.trim() || !record.notes.trim()) throw new Error(`malformed ${state} semantic record`);
+            if (refused.has(record.semantic)) throw new Error("duplicate or conflicting semantic refusal");
+            if (assigned.has(record.semantic)) throw new Error(`semantic is both assigned and ${state}`);
+            refused.add(record.semantic);
+          }
         }
-        resolved += assigned.size + unsupported.size;
+        resolved += assigned.size + refused.size;
       });
       const progress = {resolvedDecisionCount: resolved, remainingDecisionCount: imported.unresolvedDecisionCount - resolved};
       if (!sameKeys(imported.progress, Object.keys(progress)) || !sameJson(imported.progress, progress)) throw new Error("malformed or stale progress");
     }
     function resolvedFor(model) {
       const assigned = new Set(model.clips.map((clip) => clip.annotation.decision).filter((value) => gestures.includes(value)));
+      const uncertain = new Set(model.uncertainSemantics.map((entry) => entry.semantic));
       const unsupported = new Set(model.unsupportedSemantics.map((entry) => entry.semantic));
-      return new Set([...assigned, ...unsupported]).size;
+      return new Set([...assigned, ...uncertain, ...unsupported]).size;
     }
     function updateProgress() {
       const resolved = documentState.models.reduce((sum, model) => sum + resolvedFor(model), 0);
@@ -890,14 +950,17 @@ VIEWER_HTML = """<!doctype html>
       const next = byId("decision").value;
       if (gestures.includes(next)) {
         const duplicate = currentModel().clips.find((other) => other !== clip && other.annotation.decision === next);
-        if (duplicate || currentModel().unsupportedSemantics.some((item) => item.semantic === next)) {
+        if (duplicate) {
           byId("decision").value = clip.annotation.decision;
           status(`${next} already has a decision for this model. Remove the conflicting decision first.`, true);
           return false;
         }
+        currentModel().uncertainSemantics = currentModel().uncertainSemantics.filter((item) => item.semantic !== next);
+        currentModel().unsupportedSemantics = currentModel().unsupportedSemantics.filter((item) => item.semantic !== next);
       }
       clip.annotation = {decision: next, evidenceReference: byId("evidence").value, notes: byId("notes").value};
       updateProgress();
+      renderUnsupported();
       status(next === "uncertain" ? "Uncertain remains fail closed." : "Decision stored locally; CLI validation remains authoritative.");
       return true;
     }
@@ -913,28 +976,36 @@ VIEWER_HTML = """<!doctype html>
       const body = byId("unsupported");
       body.replaceChildren();
       for (const semantic of gestures) {
-        const record = currentModel().unsupportedSemantics.find((item) => item.semantic === semantic);
+        const assignedClip = currentModel().clips.find((clip) => clip.annotation.decision === semantic);
+        const uncertainRecord = currentModel().uncertainSemantics.find((item) => item.semantic === semantic);
+        const unsupportedRecord = currentModel().unsupportedSemantics.find((item) => item.semantic === semantic);
+        const record = assignedClip?.annotation ?? uncertainRecord ?? unsupportedRecord;
+        const decisionState = assignedClip ? "selected" : uncertainRecord ? "uncertain" : unsupportedRecord ? "unsupported" : "";
         const row = document.createElement("tr");
         const name = document.createElement("td"); name.textContent = semantic;
-        const toggleCell = document.createElement("td");
-        const toggle = document.createElement("input"); toggle.type = "checkbox"; toggle.checked = Boolean(record); toggle.setAttribute("aria-label", `${semantic} unsupported`); toggleCell.append(toggle);
-        const evidenceCell = document.createElement("td"); const evidence = document.createElement("input"); evidence.value = record?.evidenceReference ?? ""; evidence.disabled = !record; evidence.setAttribute("aria-label", `${semantic} unsupported evidence`); evidenceCell.append(evidence);
-        const notesCell = document.createElement("td"); const notes = document.createElement("input"); notes.value = record?.notes ?? ""; notes.disabled = !record; notes.setAttribute("aria-label", `${semantic} unsupported notes`); notesCell.append(notes);
+        const decisionCell = document.createElement("td");
+        const decision = document.createElement("select"); decision.setAttribute("aria-label", `${semantic} decision`);
+        const options = [["", "Unresolved"], ...(assignedClip ? [["selected", `Selected · clip ${String(assignedClip.clipIndex).padStart(2,"0")}`]] : []), ["uncertain", "Uncertain"], ["unsupported", "Unsupported"]];
+        for (const [value, label] of options) { const option = document.createElement("option"); option.value = value; option.textContent = label; decision.append(option); }
+        decision.value = decisionState; decisionCell.append(decision);
+        const evidenceCell = document.createElement("td"); const evidence = document.createElement("input"); evidence.value = record?.evidenceReference ?? ""; evidence.disabled = !decisionState || decisionState === "selected"; evidence.setAttribute("aria-label", `${semantic} decision evidence`); evidenceCell.append(evidence);
+        const notesCell = document.createElement("td"); const notes = document.createElement("input"); notes.value = record?.notes ?? ""; notes.disabled = !decisionState || decisionState === "selected"; notes.setAttribute("aria-label", `${semantic} decision notes`); notesCell.append(notes);
         function save() {
           const model = currentModel();
+          model.uncertainSemantics = model.uncertainSemantics.filter((item) => item.semantic !== semantic);
           model.unsupportedSemantics = model.unsupportedSemantics.filter((item) => item.semantic !== semantic);
-          if (toggle.checked) model.unsupportedSemantics.push({semantic, evidenceReference: evidence.value, notes: notes.value});
+          if (decision.value !== "selected" && assignedClip) assignedClip.annotation = {decision: "uncertain", evidenceReference: "", notes: ""};
+          if (decision.value === "uncertain") model.uncertainSemantics.push({semantic, evidenceReference: evidence.value, notes: notes.value});
+          if (decision.value === "unsupported") model.unsupportedSemantics.push({semantic, evidenceReference: evidence.value, notes: notes.value});
+          model.uncertainSemantics.sort((a,b) => gestures.indexOf(a.semantic) - gestures.indexOf(b.semantic));
           model.unsupportedSemantics.sort((a,b) => gestures.indexOf(a.semantic) - gestures.indexOf(b.semantic));
           updateProgress();
         }
-        toggle.addEventListener("change", () => {
-          if (toggle.checked && currentModel().clips.some((clip) => clip.annotation.decision === semantic)) {
-            toggle.checked = false; status(`${semantic} already has a raw clip assignment.`, true); return;
-          }
-          evidence.disabled = !toggle.checked; notes.disabled = !toggle.checked; save();
+        decision.addEventListener("change", () => {
+          evidence.disabled = !decision.value || decision.value === "selected"; notes.disabled = !decision.value || decision.value === "selected"; save(); renderUnsupported();
         });
         evidence.addEventListener("input", save); notes.addEventListener("input", save);
-        row.append(name, toggleCell, evidenceCell, notesCell); body.append(row);
+        row.append(name, decisionCell, evidenceCell, notesCell); body.append(row);
       }
     }
     function populateModels() {

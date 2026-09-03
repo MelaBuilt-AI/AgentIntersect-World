@@ -1,0 +1,35 @@
+{
+  "derived": {
+    "canonicalSha256": "ee18f6891749b27c06f787e33e8da16e1e64eb7341b01106c411443671266d97",
+    "evidenceFieldsAdded": 230,
+    "notesFieldsAdded": 230,
+    "onlyAuthorizedMetadataDifferences": true,
+    "reviewedAtFieldsNormalized": 1,
+    "sha256": "a1b567f89803a7fe44099cec7341a7bbe1b2465211d4ae83cd32a407a8fce5f7",
+    "size": 183568
+  },
+  "original": {
+    "preservedByteIdentical": true,
+    "sha256": "79df72e163ca956959e9afe4a3b58b05dc4bc7d00ce57ab821b664e842811cb8",
+    "size": 133414
+  },
+  "proposal": {
+    "allDecisionReceiptsMatchDerivedSelections": true,
+    "authorityMutation": false,
+    "decisionCount": 230,
+    "runtimeFailClosed": true,
+    "sha256": "0a571250532b1a3aa3b9fdce49efe644bc2da3841f426a8e45a44828544fa766",
+    "size": 103979,
+    "sourceAnnotationCanonicalSha256Matches": true,
+    "sourceManifestCanonicalSha256Matches": true,
+    "sourceSemanticReviewCanonicalSha256Matches": true,
+    "totals": {
+      "pass": 81,
+      "uncertain": 0,
+      "unsupported": 0,
+      "wrong_clip": 149
+    },
+    "uniqueDecisionCount": 230
+  },
+  "schema": "aiw.animation-confirmations-verification-receipt/1"
+}
