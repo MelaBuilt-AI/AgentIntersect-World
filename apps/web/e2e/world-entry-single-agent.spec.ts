@@ -349,6 +349,10 @@ type WorldFixtureOptions = {
     route: Route,
     pathname: string,
   ) => Promise<void>;
+  readonly fulfillWorkstreams?: (
+    route: Route,
+    pathname: string,
+  ) => Promise<void>;
   readonly fulfillStream?: (
     route: Route,
     requestText: string,
@@ -427,6 +431,10 @@ async function installWorldFixtures(
           executions: [],
         }),
       });
+      return;
+    }
+    if (pathname.includes("/workstreams") && options.fulfillWorkstreams) {
+      await options.fulfillWorkstreams(route, pathname);
       return;
     }
     if (
@@ -646,6 +654,255 @@ test("@repository-intake selects a local project from normal World", async ({
   await expect(
     page.getByRole("heading", { name: "Repository floor" }),
   ).toBeVisible();
+});
+
+test("@workbench-normal drives one Workstream through normal World conversation", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+
+  const repository = {
+    repositoryId: snapshot.repositoryRef,
+    revision: "77777777-7777-4777-8777-777777777777",
+  } as const;
+  const agent = {
+    agentId: session.sessionId,
+    nativeSessionId: session.adapterSessionRef,
+    rootNativeSessionId: session.adapterSessionRef,
+    revision: "0",
+  } as const;
+  const baseWorkstream = {
+    schema: "aiw.workstream/1",
+    workstreamId: "88888888-8888-4888-8888-888888888888",
+    revision: 1,
+    title: "Build a settings panel",
+    task: "Build a settings panel",
+    repository,
+    agent,
+    authority: {
+      schema: "aiw.worktree-authority-receipt/1",
+      ownerId: "workstream-owner",
+      requestId: "workstream-authority-request",
+      worktreeId: "worktree-settings",
+      repositoryId: repository.repositoryId,
+      relativePath: "worktree-settings",
+      branch: "workstream/settings",
+      head: "a".repeat(40),
+      state: "current",
+      statusSummary: "Owned worktree is current and ready.",
+      validatedAt: "2026-09-03T15:00:00.000Z",
+      attestation: "b".repeat(64),
+    },
+    worktreeState: "current",
+    evidenceOperationRefs: [],
+    projection: {
+      currentActivity: "Owned worktree is current and ready.",
+      changedFiles: [],
+      diff: { summary: "", patch: "", truncated: false },
+      validation: [],
+      evidenceRefs: [],
+    },
+    status: "working",
+    createdAt: "2026-09-03T15:00:00.000Z",
+    updatedAt: "2026-09-03T15:00:00.000Z",
+    events: [
+      {
+        eventId: "88888888-8888-4888-8888-888888888888/event/1",
+        status: "working",
+        summary: "Owned worktree is current and ready.",
+        occurredAt: "2026-09-03T15:00:00.000Z",
+      },
+    ],
+  } as const;
+  let currentWorkstream: Record<string, unknown> | null = null;
+  let createRequests = 0;
+  const streamRequests: string[] = [];
+  await installWorldFixtures(page, {
+    restoreStatus: true,
+    repositoryProjects: [
+      {
+        id: "notes-app",
+        name: "Notes App",
+        rootPath: "/tmp/notes-app",
+        source: "local",
+        pinned: true,
+        lastOpenedAt: "2026-09-03T14:00:00.000Z",
+      },
+    ],
+    fulfillStream: async (route, requestText, userDisplayName) => {
+      streamRequests.push(requestText);
+      await route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        body: streamBody(requestText, userDisplayName),
+      });
+    },
+    fulfillWorkstreams: async (route, pathname) => {
+      const request = route.request();
+      if (
+        request.method() === "GET" &&
+        pathname.endsWith("/workstreams/current")
+      ) {
+        if (!currentWorkstream) {
+          await route.fulfill({
+            status: 404,
+            contentType: "application/json",
+            body: JSON.stringify({
+              ok: false,
+              error: { code: "not_found", message: "No current Workstream" },
+            }),
+          });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(envelope(currentWorkstream)),
+        });
+        return;
+      }
+      if (request.method() === "POST" && pathname.endsWith("/workstreams")) {
+        createRequests += 1;
+        const input = request.postDataJSON() as {
+          readonly title: string;
+          readonly task: string;
+        };
+        currentWorkstream = {
+          ...baseWorkstream,
+          title: input.title,
+          task: input.task,
+        };
+        await route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({ workstream: currentWorkstream, replayed: false }),
+          ),
+        });
+        return;
+      }
+      if (request.method() === "POST" && pathname.endsWith("/cancel")) {
+        currentWorkstream = {
+          ...baseWorkstream,
+          revision: 2,
+          status: "cancelled",
+          worktreeState: "removed",
+          projection: {
+            ...baseWorkstream.projection,
+            currentActivity: "Owned clean worktree removed.",
+          },
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({ workstream: currentWorkstream, replayed: false }),
+          ),
+        });
+        return;
+      }
+      await route.fulfill({ status: 404, body: "workstream fixture missing" });
+    },
+  });
+  await enterFixtureWorld(page);
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  await composer.fill("Let's pick up work on the Notes App");
+  await composer.press("Enter");
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+    { timeout: 30_000 },
+  );
+  await expect(
+    page.getByRole("dialog", { name: "Repository Intake_" }),
+  ).toHaveCount(0);
+
+  await composer.fill("Build a settings panel");
+  await composer.press("Enter");
+  const workstream = page.getByRole("complementary", {
+    name: "Current Workstream",
+  });
+  await expect(workstream).toBeVisible();
+  await expect(workstream).toContainText("Workbench · working");
+  await expect.poll(() => createRequests).toBe(1);
+  expect(streamRequests).toEqual([]);
+  const inspect = workstream.getByRole("button", {
+    name: "Inspect current Workstream",
+  });
+  await expect(inspect).toHaveCSS("background-image", /linear-gradient/iu);
+  const bounds = await workstream.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.y).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(1440);
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(900);
+
+  await composer.fill("inspect current workstream");
+  await composer.press("Enter");
+  await expect(
+    workstream.getByRole("region", { name: "Work Inspector" }),
+  ).toBeVisible();
+  expect(
+    await workstream
+      .locator("h2, h3, p, strong, span, button")
+      .evaluateAll((nodes) =>
+        nodes
+          .filter((node) => node.scrollWidth > node.clientWidth + 1)
+          .map((node) => node.textContent?.trim() ?? ""),
+      ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: testInfo.outputPath("workbench-normal-expanded.png"),
+  });
+
+  await composer.fill("change it to use the blue active state");
+  await composer.press("Enter");
+  await expect
+    .poll(() => streamRequests)
+    .toEqual(["change it to use the blue active state"]);
+  expect(createRequests).toBe(1);
+
+  await composer.fill("cancel current workstream");
+  await composer.press("Enter");
+  await expect(workstream).toHaveAttribute(
+    "data-workstream-status",
+    "cancelled",
+  );
+  await expect(workstream).toContainText("Owned clean worktree removed.");
+  const unavailableCancel = workstream.getByRole("button", {
+    name: "Cancel unavailable — Workstream is cancelled.",
+  });
+  await expect(unavailableCancel).toBeDisabled();
+  await expect(unavailableCancel).toHaveCSS(
+    "background-color",
+    "rgb(75, 85, 99)",
+  );
+  await expect(unavailableCancel).toHaveCSS("background-image", "none");
+  await expect(
+    page.getByRole("link", { name: /Workbench|dashboard/iu }),
+  ).toHaveCount(0);
+  await expect(page.getByText("Authoritative Workbench")).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileBounds = await workstream.boundingBox();
+  const hudBounds = await page.getByTestId("world-hud").boundingBox();
+  expect(mobileBounds).not.toBeNull();
+  expect(hudBounds).not.toBeNull();
+  expect(mobileBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(mobileBounds!.x + mobileBounds!.width).toBeLessThanOrEqual(390);
+  expect(mobileBounds!.y).toBeGreaterThanOrEqual(0);
+  expect(mobileBounds!.y + mobileBounds!.height).toBeLessThanOrEqual(
+    hudBounds!.y,
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 });
 
 test("@workstream-tracer deterministic Work Inspector stays truthful and keyboard accessible", async ({

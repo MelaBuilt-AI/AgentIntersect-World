@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -11,6 +11,7 @@ import {
   type WorkstreamEvent,
 } from "../src/world-entry/workstream-tracer.js";
 import { WorkInspector } from "../src/world-entry/WorkInspector.js";
+import * as workInspectorModule from "../src/world-entry/WorkInspector.js";
 import type { Phase14JourneyState } from "../src/phase14/phase14-client.js";
 import { projectPhase14Journey } from "../src/world-entry/workstream-tracer.js";
 import {
@@ -21,6 +22,7 @@ import {
   createLiveWorkstream,
   resolveWorkstreamTask,
 } from "../src/world-entry/workstream-create.js";
+import * as workstreamCreateModule from "../src/world-entry/workstream-create.js";
 
 const events: readonly WorkstreamEvent[] = [
   {
@@ -281,6 +283,243 @@ const apiWorkstream: WorkstreamApiRecord = {
 };
 
 describe("authoritative Workstream client", () => {
+  it("executes create, exact-bound continue, inspect, and cancel through existing authority", async () => {
+    type Execute = (
+      action:
+        | { readonly action: "inspect" | "cancel"; readonly text: string }
+        | {
+            readonly action: "request";
+            readonly text: string;
+            readonly task: string;
+          },
+      authority: {
+        repository: WorkstreamApiRecord["repository"];
+        agent: WorkstreamApiRecord["agent"];
+      } | null,
+      client: Pick<WorkstreamClient, "current" | "create" | "cancel">,
+      enqueue: (text: string, agentId: string) => void,
+      id: () => string,
+    ) => Promise<{
+      readonly workstream: ReturnType<
+        typeof projectAuthoritativeWorkstream
+      > | null;
+      readonly message: string | null;
+      readonly openInspector: boolean;
+      readonly continued: boolean;
+    }>;
+    const execute = (
+      workstreamCreateModule as typeof workstreamCreateModule & {
+        executeWorkstreamConversation?: Execute;
+      }
+    ).executeWorkstreamConversation;
+    expect(execute).toBeTypeOf("function");
+    if (!execute) return;
+
+    let current: WorkstreamApiRecord | null = null;
+    const create = vi.fn(async () => ({
+      workstream: apiWorkstream,
+      replayed: false,
+    }));
+    const cancel = vi.fn(async () => ({
+      workstream: { ...apiWorkstream, status: "cancelled" as const },
+      replayed: false,
+    }));
+    const client = {
+      current: vi.fn(async () => current),
+      create,
+      cancel,
+    };
+    const enqueue = vi.fn();
+    let nextId = 0;
+    const id = () =>
+      `00000000-0000-4000-8000-${String(++nextId).padStart(12, "0")}`;
+    const authority = {
+      repository: apiWorkstream.repository,
+      agent: apiWorkstream.agent,
+    };
+
+    const created = await execute(
+      { action: "request", text: "Build it", task: "Build it" },
+      authority,
+      client,
+      enqueue,
+      id,
+    );
+    expect(created).toMatchObject({
+      workstream: { workstreamId: apiWorkstream.workstreamId },
+      message: "Current Workstream is working.",
+      openInspector: false,
+      continued: false,
+    });
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(enqueue).not.toHaveBeenCalled();
+
+    current = apiWorkstream;
+    const continued = await execute(
+      { action: "request", text: "Change it", task: "Change it" },
+      authority,
+      client,
+      enqueue,
+      id,
+    );
+    expect(continued).toMatchObject({
+      workstream: { workstreamId: apiWorkstream.workstreamId },
+      message: null,
+      openInspector: false,
+      continued: true,
+    });
+    expect(enqueue).toHaveBeenCalledWith(
+      "Change it",
+      apiWorkstream.agent.agentId,
+    );
+    expect(create).toHaveBeenCalledTimes(1);
+
+    const inspected = await execute(
+      { action: "inspect", text: "inspect current workstream" },
+      authority,
+      client,
+      enqueue,
+      id,
+    );
+    expect(inspected).toMatchObject({
+      workstream: { workstreamId: apiWorkstream.workstreamId },
+      message: "Current Workstream is working.",
+      openInspector: true,
+      continued: false,
+    });
+
+    const cancelled = await execute(
+      { action: "cancel", text: "cancel current workstream" },
+      authority,
+      client,
+      enqueue,
+      id,
+    );
+    expect(cancel).toHaveBeenCalledWith(
+      apiWorkstream,
+      expect.objectContaining({
+        requestId: expect.stringMatching(/^cancel-/u),
+        correlationId: expect.any(String),
+      }),
+    );
+    expect(cancelled).toMatchObject({
+      workstream: { status: "cancelled" },
+      message: "Current Workstream is cancelled.",
+      openInspector: true,
+      continued: false,
+    });
+  });
+
+  it("renders one compact normal-World Workstream surface and optional Inspector", () => {
+    const Status = (
+      workInspectorModule as typeof workInspectorModule & {
+        WorldWorkstreamStatus?: typeof WorkInspector;
+      }
+    ).WorldWorkstreamStatus;
+    expect(Status).toBeTypeOf("function");
+    if (!Status) return;
+
+    const compact = renderToStaticMarkup(
+      createElement(Status as never, {
+        workstream: projectAuthoritativeWorkstream(apiWorkstream),
+        open: false,
+        pending: false,
+        message: "Current Workstream is working.",
+        onInspect: () => undefined,
+        onCancel: () => undefined,
+      }),
+    );
+    expect(compact).toContain('aria-label="Current Workstream"');
+    expect(compact).toContain("Workbench · working");
+    expect(compact).toContain("Inspect current Workstream");
+    expect(compact).toContain('aria-expanded="false"');
+    expect(compact).not.toContain("Work Inspector</h2>");
+    expect(compact).not.toContain("Authoritative Workbench");
+    expect(compact).not.toContain("Repository Asset Palette");
+
+    const expanded = renderToStaticMarkup(
+      createElement(Status as never, {
+        workstream: projectAuthoritativeWorkstream(apiWorkstream),
+        open: true,
+        pending: false,
+        message: null,
+        onInspect: () => undefined,
+        onCancel: () => undefined,
+      }),
+    );
+    expect(expanded).toContain('aria-expanded="true"');
+    expect(expanded).toContain("Close Work Inspector");
+    expect(expanded).toContain("Work Inspector</h2>");
+    expect(expanded).toContain("Cancel Workstream");
+  });
+
+  it("resolves a feature request to one create or exact-bound continuation", () => {
+    const resolve = (
+      workstreamCreateModule as typeof workstreamCreateModule & {
+        resolveWorkstreamConversationRequest?: (
+          workstream: WorkstreamApiRecord | null,
+          authority: {
+            repository: WorkstreamApiRecord["repository"];
+            agent: WorkstreamApiRecord["agent"];
+          } | null,
+          task: string,
+        ) => unknown;
+      }
+    ).resolveWorkstreamConversationRequest;
+    expect(resolve).toBeTypeOf("function");
+    if (!resolve) return;
+
+    const authority = {
+      repository: apiWorkstream.repository,
+      agent: apiWorkstream.agent,
+    };
+    expect(resolve(null, authority, "Add keyboard navigation.")).toEqual({
+      kind: "create",
+      task: "Add keyboard navigation.",
+    });
+    expect(resolve(apiWorkstream, authority, "Change it to blue.")).toEqual({
+      kind: "continue",
+      task: "Change it to blue.",
+      agentId: apiWorkstream.agent.agentId,
+    });
+    expect(
+      resolve(
+        apiWorkstream,
+        {
+          ...authority,
+          repository: { ...authority.repository, revision: "stale" },
+        },
+        "Change it to blue.",
+      ),
+    ).toEqual({
+      kind: "unavailable",
+      message:
+        "Current Workstream authority is stale. Reload the repository or reconnect its agent.",
+    });
+    expect(
+      resolve(
+        { ...apiWorkstream, status: "cleanup-required" },
+        authority,
+        "Start another change.",
+      ),
+    ).toEqual({
+      kind: "unavailable",
+      message: "Current Workstream needs cleanup before more work can start.",
+    });
+    expect(
+      resolve(
+        { ...apiWorkstream, status: "cancelled" },
+        authority,
+        "Start another change.",
+      ),
+    ).toEqual({ kind: "create", task: "Start another change." });
+    expect(resolve(null, null, "Add keyboard navigation.")).toEqual({
+      kind: "unavailable",
+      message:
+        "Load a repository and connect one agent before starting a Workstream.",
+    });
+  });
+
   it("captures only the latest bounded World user task after its turn finishes", () => {
     const transcript = [
       { id: "u1", kind: "user" as const, text: "Explain the repository." },

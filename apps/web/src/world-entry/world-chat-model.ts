@@ -192,9 +192,49 @@ export function parseAgentDirectionCommand(
 
 export function isRepositoryLoadRequest(text: string): boolean {
   return (
-    /\b(load|open|index|map|show)\b/iu.test(text) &&
-    /\b(repo|repository|project|codebase)\b/iu.test(text)
+    (/\b(load|open|index|map|show)\b/iu.test(text) &&
+      /\b(repo|repository|project|codebase)\b/iu.test(text)) ||
+    /\bpick\s+up\s+(?:the\s+)?work\s+on\b/iu.test(text)
   );
+}
+
+export type WorkstreamConversationAction =
+  | { readonly action: "inspect"; readonly text: string }
+  | { readonly action: "cancel"; readonly text: string }
+  | {
+      readonly action: "request";
+      readonly text: string;
+      readonly task: string;
+    };
+
+export function classifyWorkstreamMessage(
+  text: string,
+): WorkstreamConversationAction | null {
+  const trimmed = text.trim();
+  if (
+    /^\/work\s+(?:inspect|status)$/iu.test(trimmed) ||
+    /^(?:inspect|show)(?:\s+me)?\s+(?:the\s+)?(?:current\s+)?workstream[.!?]?$/iu.test(
+      trimmed,
+    )
+  )
+    return { action: "inspect", text: trimmed };
+  if (
+    /^\/work\s+(?:cancel|stop)$/iu.test(trimmed) ||
+    /^(?:cancel|stop)\s+(?:the\s+)?(?:current\s+)?workstream[.!?]?$/iu.test(
+      trimmed,
+    )
+  )
+    return { action: "cancel", text: trimmed };
+  const explicit = /^\/work\s+(?:start|continue)\s+(.+)$/iu.exec(trimmed);
+  if (explicit)
+    return { action: "request", text: trimmed, task: explicit[1]!.trim() };
+  if (
+    /^(?:(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:build|implement|add|fix|change|update|remove|rename|refactor|improve|create)\b|continue\b)/iu.test(
+      trimmed,
+    )
+  )
+    return { action: "request", text: trimmed, task: trimmed };
+  return null;
 }
 
 export function classifyWorldMessage(text: string):
@@ -212,6 +252,7 @@ export function classifyWorldMessage(text: string):
       readonly text: string;
       readonly requestedRoot: string | null;
     }
+  | ({ readonly kind: "local-workstream" } & WorkstreamConversationAction)
   | { readonly kind: "local-refusal"; readonly message: string }
   | { readonly kind: "remote-chat"; readonly text: string } {
   const semantic = resolveLocalAvatarCommand(text);
@@ -231,6 +272,8 @@ export function classifyWorldMessage(text: string):
       requestedRoot: explicit?.[1]?.trim() || null,
     };
   }
+  const workstream = classifyWorkstreamMessage(trimmed);
+  if (workstream) return { kind: "local-workstream", ...workstream };
   return { kind: "remote-chat", text: trimmed };
 }
 
