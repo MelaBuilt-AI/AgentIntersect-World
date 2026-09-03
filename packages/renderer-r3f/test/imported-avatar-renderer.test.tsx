@@ -374,12 +374,14 @@ describe("experimental imported avatar renderer routing", () => {
     expect(modelSource).toContain(
       "const completedGeneration = oneShotGeneration",
     );
-    expect(modelSource).toContain("if (!resolvedOneShot || !animate) return");
+    expect(modelSource).toContain(
+      'if (!resolvedOneShot || !animate || representation !== "live-model")',
+    );
     expect(modelSource).toContain(
       "onOneShotCompleteRef.current?.(resolvedSemantic, completedGeneration)",
     );
     expect(modelSource).toMatch(
-      /\[\s*animate,\s*clip,\s*invalidate,\s*mixer,\s*oneShotGeneration,/u,
+      /\[\s*animate,\s*clip,\s*invalidate,\s*mixer,\s*oneShotGeneration,\s*representation,/u,
     );
   });
 

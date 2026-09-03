@@ -976,7 +976,13 @@ test("seventeen agent stances and mounted user-directed movement work in product
     "data-user-avatar-rendered-clip",
     "NlaTrack.003",
   );
-  await page.waitForTimeout(360);
+  await expect
+    .poll(
+      async () =>
+        Number(await worldCanvas.getAttribute("data-user-avatar-action-time")),
+      { timeout: 10_000 },
+    )
+    .toBeGreaterThan(0.2);
   motionTrace.push(await readAnimationSnapshot("walk"));
   expect(motionTrace.at(-1)!.user.actionTime).toBeGreaterThan(0.2);
   expect(motionTrace.at(-1)!.user.boneName).toBe("L_Thigh");
@@ -989,7 +995,13 @@ test("seventeen agent stances and mounted user-directed movement work in product
     "data-user-avatar-rendered-clip",
     "NlaTrack.020",
   );
-  await page.waitForTimeout(360);
+  await expect
+    .poll(
+      async () =>
+        Number(await worldCanvas.getAttribute("data-user-avatar-action-time")),
+      { timeout: 10_000 },
+    )
+    .toBeGreaterThan(0.2);
   motionTrace.push(await readAnimationSnapshot("run"));
   expect(motionTrace.at(-1)!.user.actionTime).toBeGreaterThan(0.2);
   expect(motionTrace.at(-1)!.user.boneName).toBe("L_Thigh");

@@ -323,7 +323,7 @@ function ImportedAvatarModel({
     activeAction.current = next;
     mixer.update(0);
     invalidate();
-    if (!resolvedOneShot || !animate) return;
+    if (!resolvedOneShot || !animate || representation !== "live-model") return;
     const completedGeneration = oneShotGeneration;
     const finished = (event: { readonly action: AnimationAction }) => {
       if (event.action === next)
@@ -347,6 +347,7 @@ function ImportedAvatarModel({
     invalidate,
     mixer,
     oneShotGeneration,
+    representation,
     resolvedOneShot,
     resolvedSemantic,
   ]);
