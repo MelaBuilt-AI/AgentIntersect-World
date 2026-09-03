@@ -178,9 +178,6 @@ describe("acceptance command graph", () => {
       ],
       { cwd: repositoryRoot, encoding: "utf8" },
     );
-    expect(shardListing).toContain(
-      `› production boundary completes the returning-user Hermes magic slice`,
-    );
     expect(shardListing).toContain(`› ${journeyTitle}`);
   });
 

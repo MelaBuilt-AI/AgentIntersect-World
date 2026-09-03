@@ -45,6 +45,59 @@ describe("World repository intake commands", () => {
       requestedRoot: null,
     });
   });
+
+  it("resolves the broader pick-up-work phrase through Repository Intake", () => {
+    expect(classifyWorldMessage("Let's pick up work on the Notes App")).toEqual(
+      {
+        kind: "local-repository-load",
+        text: "Let's pick up work on the Notes App",
+        requestedRoot: null,
+      },
+    );
+  });
+});
+
+describe("World Workbench conversation commands", () => {
+  it.each([
+    ["Build a settings panel", "Build a settings panel"],
+    [
+      "Can you fix the clipped mobile menu?",
+      "Can you fix the clipped mobile menu?",
+    ],
+    [
+      "change it to use the blue active state",
+      "change it to use the blue active state",
+    ],
+    ["/work start Add keyboard navigation", "Add keyboard navigation"],
+    ["/work continue Keep the same layout", "Keep the same layout"],
+  ])("classifies %s as a Workstream request", (input, task) => {
+    expect(classifyWorldMessage(input)).toEqual({
+      kind: "local-workstream",
+      action: "request",
+      text: input,
+      task,
+    });
+  });
+
+  it("classifies inspect and cancel without sending them to the agent", () => {
+    expect(classifyWorldMessage("inspect current workstream")).toEqual({
+      kind: "local-workstream",
+      action: "inspect",
+      text: "inspect current workstream",
+    });
+    expect(classifyWorldMessage("cancel current workstream")).toEqual({
+      kind: "local-workstream",
+      action: "cancel",
+      text: "cancel current workstream",
+    });
+  });
+
+  it("leaves ordinary questions as remote chat", () => {
+    expect(classifyWorldMessage("What does this package do?")).toEqual({
+      kind: "remote-chat",
+      text: "What does this package do?",
+    });
+  });
 });
 
 describe("World chat outer-turn activity", () => {

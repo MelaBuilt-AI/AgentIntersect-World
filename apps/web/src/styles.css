@@ -1250,6 +1250,71 @@
   border-top: 1px solid rgba(65, 233, 255, 0.48);
 }
 
+.world-workstream-status {
+  position: absolute;
+  z-index: 13;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+  display: grid;
+  gap: 0.55rem;
+  width: min(24rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 8.5rem);
+  overflow: auto;
+  padding: 0.75rem;
+  border: 1px solid rgba(65, 233, 255, 0.48);
+  border-radius: 0.65rem;
+  background: rgba(5, 14, 29, 0.9);
+  box-shadow: 0 0 1.8rem rgba(25, 181, 255, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.world-workstream-status > header {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.world-workstream-status > header span,
+.world-workstream-status > p {
+  overflow-wrap: anywhere;
+}
+
+.world-workstream-status > p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.world-workstream-status > button {
+  min-height: 44px;
+  border: 1px solid;
+  border-radius: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+}
+
+.world-workstream-status > button:disabled {
+  border-color: #667085;
+  color: #c0c5ce;
+  background: rgba(44, 50, 61, 0.86);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.world-workstream-status .work-inspector {
+  max-height: min(58vh, 34rem);
+  overflow: auto;
+  border-top: 1px solid rgba(65, 233, 255, 0.48);
+}
+
+@media (max-width: 760px) {
+  .world-workstream-status {
+    z-index: 21;
+    top: auto;
+    bottom: max(16.25rem, calc(env(safe-area-inset-bottom) + 16rem));
+    max-height: 38dvh;
+  }
+}
+
 .work-inspector h2,
 .work-inspector h3,
 .work-inspector p,

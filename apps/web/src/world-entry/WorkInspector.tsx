@@ -156,3 +156,52 @@ export function WorkInspector({
     </section>
   );
 }
+
+export function WorldWorkstreamStatus({
+  workstream,
+  open,
+  pending,
+  message,
+  onInspect,
+  onCancel,
+}: {
+  readonly workstream: Workstream;
+  readonly open: boolean;
+  readonly pending: boolean;
+  readonly message: string | null;
+  readonly onInspect: () => void;
+  readonly onCancel: () => void;
+}) {
+  return (
+    <aside
+      className="world-workstream-status"
+      aria-label="Current Workstream"
+      data-workstream-status={workstream.status}
+    >
+      <header>
+        <strong>Workbench · {workstream.status}</strong>
+        <span>{workstream.title}</span>
+      </header>
+      <p>{workstream.currentActivity}</p>
+      {message ? <p role="status">{message}</p> : null}
+      <button
+        type="button"
+        className="world-action--enabled"
+        aria-controls="work-inspector"
+        aria-expanded={open}
+        disabled={pending}
+        onClick={onInspect}
+      >
+        {open ? "Close Work Inspector" : "Inspect current Workstream"}
+      </button>
+      {open ? (
+        <WorkInspector
+          workstream={workstream}
+          source="live"
+          onCancel={onCancel}
+          actionPending={pending}
+        />
+      ) : null}
+    </aside>
+  );
+}

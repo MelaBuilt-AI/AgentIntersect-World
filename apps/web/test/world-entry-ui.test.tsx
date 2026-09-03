@@ -696,6 +696,28 @@ describe("Phase 18 World entry experience", () => {
     expect(remoteTurn).toBeGreaterThan(repositoryAwait);
   });
 
+  it("handles Workstream conversation before remote chat and renders only contextual normal-World truth", () => {
+    const source = readFileSync(
+      new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),
+      "utf8",
+    );
+    const workstreamBranch = source.indexOf(
+      'classified.kind === "local-workstream"',
+    );
+    const remoteTurn = source.indexOf("const text = classified.text");
+    expect(workstreamBranch).toBeGreaterThan(-1);
+    expect(remoteTurn).toBeGreaterThan(workstreamBranch);
+    expect(source).toContain("executeWorkstreamConversation(");
+    expect(source).toContain("<WorldWorkstreamStatus");
+    expect(source).toContain("workstream={normalWorkstream}");
+    const styles = readFileSync(
+      new URL("../src/styles.css", import.meta.url),
+      "utf8",
+    );
+    expect(styles).toContain(".world-workstream-status {");
+    expect(styles).toContain(".world-workstream-status .work-inspector {");
+  });
+
   it("retains and forwards the exact successful repository and World-session authority", () => {
     const source = readFileSync(
       new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),

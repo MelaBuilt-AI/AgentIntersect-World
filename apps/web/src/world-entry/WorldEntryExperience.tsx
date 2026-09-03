@@ -49,6 +49,7 @@ import {
   createWorldChatState,
   reduceWorldChat,
   type AvatarOneShotSemantic,
+  type WorkstreamConversationAction,
 } from "./world-chat-model.js";
 import type {
   AgentMovementEvent,
@@ -75,7 +76,15 @@ import {
   type WorkstreamAuthorityDescriptor,
   type WorkstreamReference,
 } from "./workstream-client.js";
-import { resolveWorkstreamTask } from "./workstream-create.js";
+import {
+  executeWorkstreamConversation,
+  resolveWorkstreamTask,
+} from "./workstream-create.js";
+import {
+  projectAuthoritativeWorkstream,
+  type Workstream,
+} from "./workstream-tracer.js";
+import { WorldWorkstreamStatus } from "./WorkInspector.js";
 import {
   RepositoryIntakeDialog,
   type RepositoryProject,
@@ -341,6 +350,15 @@ export function WorldEntryExperience({
   const [repositoryIntakeMessage, setRepositoryIntakeMessage] = useState(
     "Choose a repository for this World.",
   );
+  const workstreamClient = useMemo(() => new WorkstreamClient(), []);
+  const [normalWorkstream, setNormalWorkstream] = useState<Workstream | null>(
+    null,
+  );
+  const [normalWorkstreamOpen, setNormalWorkstreamOpen] = useState(false);
+  const [normalWorkstreamPending, setNormalWorkstreamPending] = useState(false);
+  const [normalWorkstreamMessage, setNormalWorkstreamMessage] = useState<
+    string | null
+  >(null);
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
   const [agentMovementControl, setAgentMovementControl] = useState<{
@@ -1305,6 +1323,111 @@ export function WorldEntryExperience({
     }
   };
 
+  const enqueueAgentMessage = (text: string, targetRosterId?: string) => {
+    const requestId = crypto.randomUUID();
+    const pending = {
+      id: `${Date.now()}-${nextMessageId.current++}`,
+      text,
+      requestId,
+      idempotencyKey: `task11-${requestId}`,
+      ...(targetRosterId ? { targetRosterId } : {}),
+    };
+    pendingMessages.current.push(pending);
+    setQueuedCount(pendingMessages.current.length);
+    updateChat({ type: "QUEUE_MESSAGE", ...pending });
+    void processChatQueue();
+  };
+
+  const workstreamAuthorityForConversation =
+    async (): Promise<WorkstreamAuthorityDescriptor | null> => {
+      if (!activeRepositoryAuthority || !session) return null;
+      const continuingAgentId =
+        normalWorkstream?.authority &&
+        !["completed", "cancelled"].includes(normalWorkstream.status)
+          ? normalWorkstream.authority.agent.agentId
+          : null;
+      const targetAgentId =
+        continuingAgentId ??
+        (state.sessionMode === "multi"
+          ? selectedRecipientId
+          : session.sessionId);
+      if (!targetAgentId) return null;
+      const targetSession =
+        targetAgentId === session.sessionId
+          ? session
+          : await client.refreshSession(targetAgentId);
+      return {
+        repository: activeRepositoryAuthority,
+        agent: {
+          agentId: targetSession.sessionId,
+          nativeSessionId: targetSession.adapterSessionRef,
+          rootNativeSessionId:
+            typeof targetSession.adapterRootSessionRef === "string"
+              ? targetSession.adapterRootSessionRef
+              : targetSession.adapterSessionRef,
+          revision: String(targetSession.permissionRevision),
+        },
+      };
+    };
+
+  const runWorkstreamConversation = async (
+    action: WorkstreamConversationAction,
+    announceInChat = true,
+  ) => {
+    if (normalWorkstreamPending) return;
+    setNormalWorkstreamPending(true);
+    try {
+      const authority =
+        action.action === "request"
+          ? await workstreamAuthorityForConversation().catch(() => null)
+          : null;
+      const outcome = await executeWorkstreamConversation(
+        action,
+        authority,
+        workstreamClient,
+        (text, agentId) => {
+          if (
+            state.sessionMode === "multi" &&
+            !constellation?.agents.some(
+              (agent) =>
+                agent.worldSessionId === agentId &&
+                agent.connection === "connected",
+            )
+          )
+            throw new Error("Workstream agent is not connected");
+          enqueueAgentMessage(
+            text,
+            state.sessionMode === "multi" ? agentId : undefined,
+          );
+        },
+      );
+      if (outcome.workstream) setNormalWorkstream(outcome.workstream);
+      if (outcome.openInspector) setNormalWorkstreamOpen(true);
+      setNormalWorkstreamMessage(outcome.message);
+      if (outcome.message) setStatus(outcome.message);
+      else if (outcome.continued) setStatus("Continuing current Workstream");
+      if (announceInChat && !outcome.continued && outcome.message) {
+        const id = `workstream-${Date.now()}-${nextMessageId.current++}`;
+        updateChat({ type: "QUEUE_MESSAGE", id, text: action.text });
+        updateChat({ type: "SEND_STARTED", id });
+        updateChat(
+          outcome.message.startsWith("Workbench error")
+            ? { type: "SEND_FAILED", message: outcome.message }
+            : { type: "SEND_COMPLETED", text: outcome.message },
+        );
+      }
+      const boundAgentId = outcome.workstream?.authority?.agent.agentId;
+      if (boundAgentId && boundAgentId === session?.sessionId) {
+        const refreshed = await client
+          .refreshSession(boundAgentId)
+          .catch(() => null);
+        if (refreshed && mounted.current) setSession(refreshed);
+      }
+    } finally {
+      if (mounted.current) setNormalWorkstreamPending(false);
+    }
+  };
+
   const sendText = async (input: string) => {
     if (!session || !input.trim()) return;
     const classified = classifyWorldMessage(input);
@@ -1360,6 +1483,10 @@ export function WorldEntryExperience({
       await loadRequestedRepository(classified.text, classified.requestedRoot);
       return;
     }
+    if (classified.kind === "local-workstream") {
+      await runWorkstreamConversation(classified);
+      return;
+    }
     const text = classified.text;
     const oneSendRecipient = consumeOneSendRecipient(
       state.sessionMode === "multi" ? selectedRecipientId : null,
@@ -1368,20 +1495,7 @@ export function WorldEntryExperience({
       setSelectedRecipientId(oneSendRecipient.nextSelectedRecipientId);
       setStatus("Next message recipient · All agents");
     }
-    const requestId = crypto.randomUUID();
-    const pending = {
-      id: `${Date.now()}-${nextMessageId.current++}`,
-      text,
-      requestId,
-      idempotencyKey: `task11-${requestId}`,
-      ...(oneSendRecipient.targetRosterId
-        ? { targetRosterId: oneSendRecipient.targetRosterId }
-        : {}),
-    };
-    pendingMessages.current.push(pending);
-    setQueuedCount(pendingMessages.current.length);
-    updateChat({ type: "QUEUE_MESSAGE", ...pending });
-    void processChatQueue();
+    enqueueAgentMessage(text, oneSendRecipient.targetRosterId);
   };
 
   const send = async () => {
@@ -1415,6 +1529,10 @@ export function WorldEntryExperience({
     setObjects([]);
     setLayoutGeneration("blank-world");
     setActiveRepositoryAuthority(null);
+    setNormalWorkstream(null);
+    setNormalWorkstreamOpen(false);
+    setNormalWorkstreamMessage(null);
+    setNormalWorkstreamPending(false);
     setAgentMovementRequest(null);
     setAgentMovementControl(null);
     processedMovementActions.current.clear();
@@ -1473,6 +1591,35 @@ export function WorldEntryExperience({
       if (mounted.current) setStatus("Workstream session refresh unavailable_");
     }
   }, [client, session]);
+  useEffect(() => {
+    if (!inWorld) return;
+    let active = true;
+    let pending = false;
+    const load = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const current = await workstreamClient.current();
+        if (active)
+          setNormalWorkstream(
+            current ? projectAuthoritativeWorkstream(current) : null,
+          );
+      } catch {
+        if (active)
+          setNormalWorkstreamMessage(
+            "Workbench status temporarily unavailable.",
+          );
+      } finally {
+        pending = false;
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 1_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [inWorld, workstreamClient]);
   useEffect(() => {
     if (!movementSessionId) return;
     let active = true;
@@ -1871,6 +2018,29 @@ export function WorldEntryExperience({
             Entering World
           </div>
         )}
+        {state.step !== "world_entering" && normalWorkstream ? (
+          <WorldWorkstreamStatus
+            workstream={normalWorkstream}
+            open={normalWorkstreamOpen}
+            pending={normalWorkstreamPending}
+            message={normalWorkstreamMessage}
+            onInspect={() => {
+              setNormalWorkstreamOpen((open) => !open);
+              setNormalWorkstreamMessage(
+                `Current Workstream is ${normalWorkstream.status}.`,
+              );
+            }}
+            onCancel={() =>
+              void runWorkstreamConversation(
+                {
+                  action: "cancel",
+                  text: "Cancel current Workstream",
+                },
+                false,
+              )
+            }
+          />
+        ) : null}
         {repositoryIntakeOpen ? (
           <RepositoryIntakeDialog
             projects={repositoryProjects}

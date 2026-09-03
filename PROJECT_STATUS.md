@@ -1,10 +1,20 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-02
+Updated: 2026-09-03
 
 ## Current milestone
 
-### 2026-09-02 Workbench Product Loop Slice 1 — IMPLEMENTED / PARENT GREEN / PR DELIVERY AND GREEN MERGE AUTHORIZED
+### 2026-09-03 Workbench Product Loop Slice 2 — IMPLEMENTED / PARENT GREEN / PRIVATE DELIVERY AUTHORIZED
+
+Aaron authorized completion of **Slice 2 — Workbench normal-experience bridge** from clean private `main` at Slice 1 merge SHA `12b16b43e0720dbfadc41cfe31988695013afd12`. The implementation is complete on dedicated branch `feat/workbench-normal-experience`, and Aaron authorized its private commit/push/PR plus conditional merge after exact-SHA CI and readiness pass. It reuses the existing Workstream authority and Work Inspector without changing server schemas or lifecycle ownership. Normal World now resolves “pick up work on <project>” through Repository Intake; creates exactly one Workstream for a bounded feature/change request without duplicating the service-owned initial dispatch; routes “continue,” “change it,” and follow-up change requests to the exact current Workstream agent/session; opens a compact regular-DOM Workbench status and Work Inspector; and cancels through the existing ownership- and revision-bound API. Ambiguous or unknown projects still open Intake, stale repository/agent bindings fail visibly, and ordinary questions remain ordinary agent chat.
+
+Pinned Node `v24.18.0` parent verification passes focused impacted tests at 4 files / 79 tests, the complete Vitest suite at 167 files / 1,076 tests, repository typecheck at 38/38 tasks, architecture at 11/11, build at 20/20, focused ESLint, Prettier, and `git diff --check`. The production-shaped `@workbench-normal` browser journey passes the unique saved-project load, one-create/no-duplicate-send assertion, inspect, exact-bound continuation, cancel, enabled-blue styling, desktop containment, absence of internal Workbench/dashboard links, mobile 390×844 containment, HUD non-overlap, and zero horizontal overflow. The first mobile geometry run exposed the contextual panel overlapping the HUD; the smallest responsive offset/z-index correction turned the same browser proof green. The existing CI shard-canary test was updated only because adding the new browser case legitimately redistributed Playwright shard membership; the retained repository-city trace journey remains asserted and the full Vitest suite is green.
+
+The slice adds no Preview Manager, World View, arbitrary command/terminal surface, Workstream schema or authority redesign, native picker, public ingress, provider/profile mutation, Phase 20 work, or release/publication action. Private delivery is authorized through one Slice 2 PR; release, publication, deployment, tags, visibility changes, Phase 20, and later Workbench slices remain separately gated.
+
+### Prior accepted milestone — Workbench Product Loop Slice 1
+
+### 2026-09-02 Workbench Product Loop Slice 1 — COMPLETE / PRIVATELY MERGED / EXACT-SHA GREEN
 
 Aaron approved the detailed Workbench Product Loop direction and authorized Slice 1 — Repository Intake before Phase 20. The design is preserved in the Obsidian vault as `[[agentintersect-world-workbench-product-loop]]`. The implemented normal-World slice now presents a temporary Repository Intake dialog with Recent/Pinned, Open Local, Create New, and Clone GitHub paths; persists up to 50 local project records; resolves a unique saved friendly name from conversational repository requests; preserves expert `/repo load <path>` behavior; initializes a new Git repository without overwriting non-empty destinations; clones canonical GitHub HTTPS identities to an explicit destination without shell execution; and pins saved projects. A selected project reuses the existing repository index and floor transformation. Failed replacement loads keep the previous verified Repository City rather than blanking it.
 
