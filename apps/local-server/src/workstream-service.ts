@@ -151,6 +151,12 @@ const WorkstreamCancelRequestSchema = z.strictObject({
   repository: WorkstreamRepositoryReferenceSchema,
   agent: WorkstreamAgentReferenceSchema,
 });
+const WorkstreamPreviewRequestSchema = z.strictObject({
+  workstreamId: identifier,
+  expectedWorkstreamRevision: z.number().int().nonnegative(),
+  repository: WorkstreamRepositoryReferenceSchema,
+  agent: WorkstreamAgentReferenceSchema,
+});
 
 export type WorkstreamRepositoryReference = z.infer<
   typeof WorkstreamRepositoryReferenceSchema
@@ -194,6 +200,9 @@ export type WorkstreamCreateRequest = z.infer<
 export type WorkstreamCancelRequest = z.infer<
   typeof WorkstreamCancelRequestSchema
 >;
+export type WorkstreamPreviewRequest = z.infer<
+  typeof WorkstreamPreviewRequestSchema
+>;
 export type Workstream = z.infer<typeof WorkstreamSchema>;
 type WorkstreamRecord = z.infer<typeof WorkstreamRecordSchema>;
 type WorkstreamStoreEnvelope = z.infer<typeof WorkstreamStoreEnvelopeSchema>;
@@ -218,6 +227,7 @@ export type WorkstreamServiceOptions = {
     Promise<WorkstreamAgentReference | null> | WorkstreamAgentReference | null;
   readonly evidenceReader: WorkstreamEvidenceReader;
   readonly agentPort?: WorkstreamAgentPort;
+  readonly previewStop?: (workstreamId: string) => Promise<void> | void;
   readonly id?: () => string;
   readonly now?: () => number;
 };
@@ -437,6 +447,7 @@ export class WorkstreamService {
   >;
   readonly #evidenceReader: WorkstreamEvidenceReader;
   readonly #agentPort: WorkstreamAgentPort | null;
+  readonly #previewStop: (workstreamId: string) => Promise<void> | void;
   readonly #id: () => string;
   readonly #now: () => number;
   #generation = 0;
@@ -462,6 +473,7 @@ export class WorkstreamService {
     this.#connectedAgent = options.connectedAgent ?? (() => null);
     this.#evidenceReader = options.evidenceReader;
     this.#agentPort = options.agentPort ?? null;
+    this.#previewStop = options.previewStop ?? (() => undefined);
     this.#id = options.id ?? randomUUID;
     this.#now = options.now ?? Date.now;
   }
@@ -480,6 +492,82 @@ export class WorkstreamService {
     if (!this.#record || this.#record.workstream.workstreamId !== workstreamId)
       throw new WorkstreamServiceError("not-found", "Workstream not found");
     return this.#project(this.#record.workstream);
+  }
+
+  async previewBinding(input: unknown): Promise<{
+    readonly workstreamId: string;
+    readonly workstreamRevision: number;
+    readonly repository: WorkstreamRepositoryReference;
+    readonly agent: WorkstreamAgentReference;
+    readonly worktreeId: string;
+    readonly worktreeState: "current" | "dirty";
+    readonly worktreePath: string;
+  }> {
+    const parsed = WorkstreamPreviewRequestSchema.safeParse(input);
+    if (!parsed.success)
+      throw new WorkstreamServiceError(
+        "validation",
+        parsed.error.issues[0]?.message ?? "Invalid Workstream preview request",
+      );
+    await this.#ensureLoaded();
+    const workstream = this.#record?.workstream;
+    if (!workstream || workstream.workstreamId !== parsed.data.workstreamId)
+      throw new WorkstreamServiceError("not-found", "Workstream not found");
+    if (workstream.revision !== parsed.data.expectedWorkstreamRevision)
+      throw new WorkstreamServiceError(
+        "revision-conflict",
+        `Expected revision ${parsed.data.expectedWorkstreamRevision}; current is ${workstream.revision}`,
+      );
+    if (!referencesEqual(parsed.data.repository, workstream.repository))
+      throw new WorkstreamServiceError(
+        "repository-mismatch",
+        "Workstream repository reference is stale",
+      );
+    if (!referencesEqual(parsed.data.agent, workstream.agent))
+      throw new WorkstreamServiceError(
+        "agent-mismatch",
+        "Workstream agent/session reference is stale",
+      );
+    if (
+      workstream.status === "cancelled" ||
+      workstream.worktreeState === "removed" ||
+      workstream.worktreeState === "missing"
+    )
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Workstream worktree is not available for preview",
+      );
+    await this.#assertCurrentReferences(
+      workstream.repository,
+      workstream.agent,
+    );
+    let receipt: WorktreeReceipt;
+    try {
+      receipt = await this.#worktreeAuthority.restore(
+        workstream.authority as WorktreeReceipt,
+      );
+    } catch (error) {
+      throw new WorkstreamServiceError(
+        "unavailable",
+        error instanceof Error
+          ? `Workstream worktree attestation failed: ${error.message}`
+          : "Workstream worktree attestation failed",
+      );
+    }
+    if (receipt.state === "wrong-branch")
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Workstream worktree is on the wrong branch",
+      );
+    return {
+      workstreamId: workstream.workstreamId,
+      workstreamRevision: workstream.revision,
+      repository: clone(workstream.repository),
+      agent: clone(workstream.agent),
+      worktreeId: receipt.worktreeId,
+      worktreeState: receipt.state,
+      worktreePath: this.#worktreePath(workstream),
+    };
   }
 
   async contextForAgent(input: {
@@ -686,6 +774,16 @@ export class WorkstreamService {
         request.repository,
         request.agent,
       );
+      try {
+        await this.#previewStop(current.workstreamId);
+      } catch (error) {
+        throw new WorkstreamServiceError(
+          "unavailable",
+          error instanceof Error
+            ? `Owned preview did not stop: ${error.message}`
+            : "Owned preview did not stop",
+        );
+      }
       await this.#stopDispatch(current.workstreamId);
       if (this.#agentPort)
         try {

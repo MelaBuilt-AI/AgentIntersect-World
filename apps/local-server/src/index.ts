@@ -60,6 +60,7 @@ import {
 import { WorktreeAuthority } from "./worktree-authority.js";
 import { ConstellationService } from "./constellation-service.js";
 import { ConstellationMessageService } from "./constellation-message-service.js";
+import { PreviewManagerService } from "./preview-manager-service.js";
 
 const config = (() => {
   try {
@@ -330,6 +331,9 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
       return null;
     }
   };
+  const previewManager = {
+    service: undefined as PreviewManagerService | undefined,
+  };
   const workstreamService =
     coordinationGitConfig && agentSessionGateway
       ? new WorkstreamService({
@@ -383,6 +387,9 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                 );
               return [];
             },
+          },
+          previewStop: async (workstreamId) => {
+            await previewManager.service?.stopForWorkstream(workstreamId);
           },
           agentPort: {
             current: workstreamAgentBinding,
@@ -458,6 +465,24 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
       workstreamService.current(),
     );
   }
+  const previewManagerService = workstreamService
+    ? new PreviewManagerService({
+        directory: path.join(
+          config.presentationSync.dataDir,
+          "..",
+          "workbench",
+          "previews",
+        ),
+        resolveWorkstream: (request) =>
+          workstreamService.previewBinding({
+            workstreamId: request.workstreamId,
+            expectedWorkstreamRevision: request.expectedWorkstreamRevision,
+            repository: request.repository,
+            agent: request.agent,
+          }),
+      })
+    : undefined;
+  previewManager.service = previewManagerService;
   const phase17Service = new Phase17Service({
     directory:
       process.env.AIW_PHASE17_STATE_DIR ??
@@ -477,6 +502,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     coordinationService,
     phase17Service,
     ...(workstreamService ? { workstreamService } : {}),
+    ...(previewManagerService ? { previewManagerService } : {}),
     ...(constellationService ? { constellationService } : {}),
     ...(constellationMessageService ? { constellationMessageService } : {}),
     ...(voiceService ? { voiceService } : {}),
