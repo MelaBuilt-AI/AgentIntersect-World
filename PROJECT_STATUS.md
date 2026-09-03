@@ -4,9 +4,17 @@ Updated: 2026-09-03
 
 ## Current milestone
 
-### 2026-09-03 Workbench Product Loop Slice 3 — IMPLEMENTED / PARENT GREEN / PRIVATE DELIVERY AUTHORIZED
+### 2026-09-03 Workbench Product Loop Slice 4 — SELECTED NEXT / NOT STARTED / IMPLEMENTATION NOT YET AUTHORIZED
 
-Aaron authorized the first four continuation steps and Slice 3 implementation. The frozen contract is `docs/WORKBENCH_SLICE_3_SCOPE.md`. On fresh branch `feat/workbench-preview-manager` from exact clean private `main` SHA `8c041477459f275d7734638d6a320e803d4e73bb`, the implementation adds one direct World-owned General Preview Manager without changing normal-World presentation or Workstream schema authority.
+After Slice 3 reached clean private merged-main exact-SHA green, Aaron selected **Slice 4 — World View** as the next-session focus. This is a sequencing decision only: no Slice 4 production edit, implementation, branch, delivery, Phase 20 work, release/publication action, provider/profile change, public ingress, or protected-service change is authorized by this marker.
+
+A fresh session must first read `AGENTS.md`, this tracker, `docs/WORKBENCH_SLICE_3_SCOPE.md`, and the approved `[[agentintersect-world-workbench-product-loop]]` design; inspect the General Preview Manager API/client seams plus normal-World projection, focus, input, and restoration composition; and freeze the smallest browser-only vertical before asking Aaron for implementation authorization. The target is one in-World projection screen backed by exact Preview Manager truth, with embedded/expanded states, explicit World-versus-preview input ownership, exact return state, and regular-DOM/no-WebGL equivalence. Slice 5 continuous iteration, Slice 6 full-loop acceptance, native capture, and Phase 20 remain out of scope.
+
+### Prior completed milestone — Workbench Product Loop Slice 3
+
+### 2026-09-03 Workbench Product Loop Slice 3 — COMPLETE / PRIVATELY MERGED / EXACT-SHA GREEN
+
+Aaron authorized the first four continuation steps and Slice 3 implementation. The frozen contract is `docs/WORKBENCH_SLICE_3_SCOPE.md`. On fresh branch `feat/workbench-preview-manager` from exact clean private `main` SHA `8c041477459f275d7734638d6a320e803d4e73bb`, the implementation added one direct World-owned General Preview Manager without changing normal-World presentation or Workstream schema authority.
 
 A trusted local operator can explicitly approve and persist a repository-bound browser-preview recipe. Start/refresh accepts only its stable recipe ID and expected approval revision, then resolves the exact current Workstream revision, repository generation, agent/root session, attested owned worktree, and worktree state before launching. The process starts without a shell in that exact worktree, receives only bounded approved argv plus loopback `{host}`/`{port}` substitution and a reduced environment, and reports starting/ready/failed/stopped state, bounded logs, health, PID, loopback URL, and ownership timestamps without persisting or projecting the private worktree path.
 
