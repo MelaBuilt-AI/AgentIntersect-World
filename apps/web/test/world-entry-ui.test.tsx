@@ -710,6 +710,7 @@ describe("Phase 18 World entry experience", () => {
     expect(source).toContain("executeWorkstreamConversation(");
     expect(source).toContain("<WorldWorkstreamStatus");
     expect(source).toContain("workstream={normalWorkstream}");
+    expect(source).toContain("if (!inWorld || !normalWorkstreamId) return;");
     const styles = readFileSync(
       new URL("../src/styles.css", import.meta.url),
       "utf8",

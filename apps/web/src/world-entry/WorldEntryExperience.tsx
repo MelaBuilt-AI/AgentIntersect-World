@@ -1582,6 +1582,7 @@ export function WorldEntryExperience({
     () => resolveWorkstreamTask(chat.transcript, chatBusy || queuedCount > 0),
     [chat.transcript, chatBusy, queuedCount],
   );
+  const normalWorkstreamId = normalWorkstream?.workstreamId ?? null;
   const refreshWorkstreamSession = useCallback(async () => {
     if (!session) return;
     try {
@@ -1592,7 +1593,7 @@ export function WorldEntryExperience({
     }
   }, [client, session]);
   useEffect(() => {
-    if (!inWorld) return;
+    if (!inWorld || !normalWorkstreamId) return;
     let active = true;
     let pending = false;
     const load = async () => {
@@ -1619,7 +1620,7 @@ export function WorldEntryExperience({
       active = false;
       window.clearInterval(timer);
     };
-  }, [inWorld, workstreamClient]);
+  }, [inWorld, normalWorkstreamId, workstreamClient]);
   useEffect(() => {
     if (!movementSessionId) return;
     let active = true;
