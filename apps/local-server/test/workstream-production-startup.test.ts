@@ -20,6 +20,7 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 
 const executeFile = promisify(execFile);
+const nodeExecutable = process.execPath;
 const roots: string[] = [];
 const children: ReturnType<typeof startProductionServer>[] = [];
 const servers: Array<Server | HttpServer> = [];
@@ -131,6 +132,17 @@ async function productionFixture() {
   await writeFile(
     path.join(repositoryRoot, "index.ts"),
     "export const ready = true;\n",
+  );
+  await writeFile(
+    path.join(repositoryRoot, "preview.mjs"),
+    `import http from "node:http";
+const server = http.createServer((request, response) => {
+  response.statusCode = 200;
+  response.setHeader("content-type", request.url === "/health" ? "application/json" : "text/html");
+  response.end(request.url === "/health" ? JSON.stringify({ ok: true }) : "<!doctype html><title>Production preview</title><main>exact Workstream preview</main>");
+});
+server.listen(Number(process.env.PORT), process.env.HOST);
+`,
   );
   await git(repositoryRoot, ["add", "."]);
   await git(repositoryRoot, ["commit", "-m", "fixture: initial"]);
@@ -479,6 +491,53 @@ describe("production Workstream startup composition", () => {
     const read = await fetch(`${baseUrl}/workstreams/${created.workstreamId}`);
     expect(read.status).toBe(200);
 
+    const approvedRecipe = await fetch(`${baseUrl}/preview-recipes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        requestId: "approve-production-preview",
+        correlationId: "correlation-approve-production-preview",
+        recipeId: "production-web",
+        expectedRevision: null,
+        repositoryId: repository.repositoryId,
+        label: "Production Workstream preview",
+        executable: nodeExecutable,
+        args: ["preview.mjs"],
+        readinessPath: "/health",
+        browserPath: "/",
+      }),
+    });
+    expect(approvedRecipe.status, await approvedRecipe.clone().text()).toBe(
+      201,
+    );
+    const startedPreview = await fetch(
+      `${baseUrl}/workstreams/${created.workstreamId}/previews`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          requestId: "start-production-preview",
+          correlationId: "correlation-start-production-preview",
+          expectedWorkstreamRevision: currentWorkstream.revision,
+          repository,
+          agent: currentWorkstream.agent,
+          recipeId: "production-web",
+          expectedRecipeRevision: 1,
+        }),
+      },
+    );
+    const startedPreviewBody = await json<{
+      data: {
+        preview: { revision: number; state: string; url: string };
+      };
+    }>(startedPreview);
+    expect(startedPreview.status, JSON.stringify(startedPreviewBody)).toBe(201);
+    const preview = startedPreviewBody.data.preview;
+    expect(preview.state).toBe("ready");
+    expect(await (await fetch(preview.url)).text()).toContain(
+      "exact Workstream preview",
+    );
+
     const cancelled = await fetch(
       `${baseUrl}/workstreams/${created.workstreamId}/cancel`,
       {
@@ -494,6 +553,7 @@ describe("production Workstream startup composition", () => {
       },
     );
     expect(cancelled.status, await cancelled.clone().text()).toBe(200);
+    await expect(fetch(preview.url)).rejects.toThrow();
     expect(
       (
         await json<{

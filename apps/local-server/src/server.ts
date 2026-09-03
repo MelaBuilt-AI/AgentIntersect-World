@@ -113,6 +113,8 @@ import type { ConstellationMessageService } from "./constellation-message-servic
 import { registerConstellationMessageRoutes } from "./constellation-message-routes.js";
 import { RepositoryIntakeService } from "./repository-intake.js";
 import { registerRepositoryIntakeRoutes } from "./repository-intake-routes.js";
+import type { PreviewManagerService } from "./preview-manager-service.js";
+import { registerPreviewManagerRoutes } from "./preview-manager-routes.js";
 
 type EvidenceReader = Pick<EvidenceService, "latest" | "lookup">;
 
@@ -139,6 +141,7 @@ export type LocalServer = FastifyInstance & {
   readonly constellationService?: ConstellationService;
   readonly constellationMessageService?: ConstellationMessageService;
   readonly repositoryIntakeService: RepositoryIntakeService;
+  readonly previewManagerService?: PreviewManagerService;
   readonly currentRepositorySelection: () => CurrentRepositorySelection | null;
 };
 
@@ -178,6 +181,7 @@ export type LocalServerOptions = {
   readonly constellationService?: ConstellationService;
   readonly constellationMessageService?: ConstellationMessageService;
   readonly repositoryIntakeService?: RepositoryIntakeService;
+  readonly previewManagerService?: PreviewManagerService;
 };
 
 const metaSchema = "aiw.api/0.3" as const;
@@ -350,6 +354,7 @@ export function createLocalServer(
     options.constellationMessageService,
   );
   server.decorate("repositoryIntakeService", repositoryIntakeService);
+  server.decorate("previewManagerService", options.previewManagerService);
   server.decorate("currentRepositorySelection", currentRepositorySelection);
   server.addHook("onReady", async () => {
     await codeGraphService.initialize();
@@ -367,6 +372,7 @@ export function createLocalServer(
     await options.coordinationService?.dispose();
     await options.phase17Service?.dispose();
     await options.workstreamService?.dispose();
+    await options.previewManagerService?.dispose();
   });
 
   const correlationFor = (request: FastifyRequest): CorrelationId => {
@@ -481,6 +487,11 @@ export function createLocalServer(
       });
     if (options.workstreamService)
       registerWorkstreamRoutes(server, options.workstreamService, {
+        success,
+        failure,
+      });
+    if (options.previewManagerService)
+      registerPreviewManagerRoutes(server, options.previewManagerService, {
         success,
         failure,
       });

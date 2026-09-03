@@ -77,7 +77,11 @@ type Fixture = {
   currentAgent: WorkstreamAgentReference | null;
 };
 
-async function fixture(): Promise<Fixture> {
+async function fixture(
+  options: {
+    readonly previewStop?: (workstreamId: string) => Promise<void> | void;
+  } = {},
+): Promise<Fixture> {
   const root = await mkdtemp(join(tmpdir(), "aiw-workstream-service-"));
   roots.push(root);
   const repository = join(root, "repository");
@@ -104,10 +108,12 @@ async function fixture(): Promise<Fixture> {
   const service = new WorkstreamService({
     directory: store,
     worktreeAuthority: authority,
+    worktreeParent: worktrees,
     currentRepository: () => state.currentRepository,
     connectedAgent: (agentId) =>
       state.currentAgent?.agentId === agentId ? state.currentAgent : null,
     evidenceReader: { read: vi.fn(async () => []) },
+    ...(options.previewStop ? { previewStop: options.previewStop } : {}),
     id: () => "workstream-one",
     now: () => Date.parse("2026-08-07T00:00:00.000Z"),
   });
@@ -193,6 +199,41 @@ describe("WorkstreamService", () => {
       "planning",
       "working",
     ]);
+  });
+
+  it("resolves an exact attested Workstream worktree for an approved preview", async () => {
+    const value = await fixture();
+    const created = await value.service.create(createRequest());
+    const worktreePath = join(
+      value.worktrees,
+      created.workstream.authority.relativePath,
+    );
+    await writeFile(join(worktreePath, "preview-change.txt"), "preview this\n");
+
+    await expect(
+      value.service.previewBinding({
+        workstreamId: created.workstream.workstreamId,
+        expectedWorkstreamRevision: created.workstream.revision,
+        repository: created.workstream.repository,
+        agent: created.workstream.agent,
+      }),
+    ).resolves.toEqual({
+      workstreamId: created.workstream.workstreamId,
+      workstreamRevision: created.workstream.revision,
+      repository: created.workstream.repository,
+      agent: created.workstream.agent,
+      worktreeId: created.workstream.authority.worktreeId,
+      worktreeState: "dirty",
+      worktreePath,
+    });
+    await expect(
+      value.service.previewBinding({
+        workstreamId: created.workstream.workstreamId,
+        expectedWorkstreamRevision: created.workstream.revision + 1,
+        repository: created.workstream.repository,
+        agent: created.workstream.agent,
+      }),
+    ).rejects.toMatchObject({ code: "revision-conflict" });
   });
 
   it("replays duplicate request and correlation ids deterministically", async () => {
@@ -350,6 +391,32 @@ describe("WorkstreamService", () => {
 
     expect(cancelled.workstream.status).toBe("cancelled");
     expect(cancelled.replayed).toBe(false);
+    expect(await exists(worktreePath)).toBe(false);
+  });
+
+  it("stops an owned preview before cancelling its Workstream worktree", async () => {
+    let worktreePath = "";
+    const previewStop = vi.fn(async () => {
+      expect(await exists(worktreePath)).toBe(true);
+    });
+    const value = await fixture({ previewStop });
+    const created = await value.service.create(createRequest());
+    worktreePath = join(
+      value.worktrees,
+      created.workstream.authority.relativePath,
+    );
+
+    await value.service.cancel({
+      requestId: "request-cancel-with-preview",
+      correlationId: "correlation-cancel-with-preview",
+      workstreamId: created.workstream.workstreamId,
+      expectedRevision: created.workstream.revision,
+      repository: repositoryReference,
+      agent: agentReference,
+    });
+
+    expect(previewStop).toHaveBeenCalledOnce();
+    expect(previewStop).toHaveBeenCalledWith(created.workstream.workstreamId);
     expect(await exists(worktreePath)).toBe(false);
   });
 
