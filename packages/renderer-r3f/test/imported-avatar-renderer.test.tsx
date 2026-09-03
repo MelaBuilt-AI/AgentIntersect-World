@@ -360,7 +360,7 @@ describe("experimental imported avatar renderer routing", () => {
     expect(worldSource).toContain("data-agent-avatar-bone-quaternion");
   });
 
-  it("does not restart the active action when parent completion callback identity changes", () => {
+  it("reports the generation captured by each one-shot listener", () => {
     const modelSource = readFileSync(
       new URL("../src/imported-avatar-canvas.tsx", import.meta.url),
       "utf8",
@@ -372,10 +372,14 @@ describe("experimental imported avatar renderer routing", () => {
       "onOneShotCompleteRef.current = onOneShotComplete",
     );
     expect(modelSource).toContain(
-      "onOneShotCompleteRef.current?.(resolvedSemantic)",
+      "const completedGeneration = oneShotGeneration",
     );
-    expect(modelSource).not.toContain(
-      "if (event.action === next) onOneShotComplete(resolvedSemantic)",
+    expect(modelSource).toContain("if (!resolvedOneShot || !animate) return");
+    expect(modelSource).toContain(
+      "onOneShotCompleteRef.current?.(resolvedSemantic, completedGeneration)",
+    );
+    expect(modelSource).toMatch(
+      /\[\s*animate,\s*clip,\s*invalidate,\s*mixer,\s*oneShotGeneration,/u,
     );
   });
 

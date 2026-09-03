@@ -209,6 +209,7 @@ function ImportedAvatarModel({
   onRepresentationReady,
   onAnimationSample,
   onOneShotComplete,
+  oneShotGeneration = 0,
 }: {
   readonly gltf: GLTF;
   readonly selection:
@@ -222,7 +223,9 @@ function ImportedAvatarModel({
   readonly onRepresentationReady?: (() => void) | undefined;
   readonly onAnimationSample?:
     ((sample: ImportedAvatarAnimationSample) => void) | undefined;
-  readonly onOneShotComplete?: ((semantic: string) => void) | undefined;
+  readonly onOneShotComplete?:
+    ((semantic: string, generation: number) => void) | undefined;
+  readonly oneShotGeneration?: number | undefined;
 }) {
   const selectionKey = [
     selection.assetId,
@@ -320,10 +323,11 @@ function ImportedAvatarModel({
     activeAction.current = next;
     mixer.update(0);
     invalidate();
-    if (!resolvedOneShot) return;
+    if (!resolvedOneShot || !animate) return;
+    const completedGeneration = oneShotGeneration;
     const finished = (event: { readonly action: AnimationAction }) => {
       if (event.action === next)
-        onOneShotCompleteRef.current?.(resolvedSemantic);
+        onOneShotCompleteRef.current?.(resolvedSemantic, completedGeneration);
     };
     const eventMixer = mixer as unknown as {
       addEventListener(
@@ -337,7 +341,15 @@ function ImportedAvatarModel({
     };
     eventMixer.addEventListener("finished", finished);
     return () => eventMixer.removeEventListener("finished", finished);
-  }, [animate, clip, invalidate, mixer, resolvedOneShot, resolvedSemantic]);
+  }, [
+    animate,
+    clip,
+    invalidate,
+    mixer,
+    oneShotGeneration,
+    resolvedOneShot,
+    resolvedSemantic,
+  ]);
   useEffect(() => {
     if (representation === "live-model") {
       setImpostor(null);
@@ -512,8 +524,9 @@ export function ImportedAvatarWorldModel({
         rotation={resolvedRotation}
         scale={selection.scale * scale}
         onAnimationSample={(sample) => onAnimationSample?.(role, sample)}
-        onOneShotComplete={(semantic) =>
-          onOneShotComplete?.(role, semantic, animationGeneration)
+        oneShotGeneration={animationGeneration}
+        onOneShotComplete={(semantic, completedGeneration) =>
+          onOneShotComplete?.(role, semantic, completedGeneration)
         }
       />
       {representation === "live-model" ? (

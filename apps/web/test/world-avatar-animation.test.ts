@@ -297,6 +297,16 @@ describe("complete-avatar World animation controls", () => {
       expect(consume({ ...active, target })).toBe(false);
   });
 
+  it("commits keyboard one-shot authority before the rendered state can receive input", () => {
+    const source = readFileSync(
+      new URL("../src/world-entry/WorldRoom.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(source).toMatch(
+      /useLayoutEffect\(\(\) => \{\s*userAnimationRef\.current = userAnimation;/u,
+    );
+  });
+
   it("uses actor-local generations so latest one-shot wins and stale completion is a no-op", () => {
     expect(typeof animation.createAvatarAnimationState).toBe("function");
     expect(typeof animation.triggerAvatarOneShot).toBe("function");

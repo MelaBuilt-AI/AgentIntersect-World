@@ -725,22 +725,17 @@ test("seventeen agent stances and mounted user-directed movement work in product
   };
   expect(productionManifest.assets).toHaveLength(23);
   expect(
-    productionManifest.assets.every((asset) => {
-      const fullyReviewed =
-        asset.id === "cat-agent-01" || asset.id === "user-male-01";
-      return (
-        Object.keys(asset.semanticClips).length === 12 &&
+    productionManifest.assets.every(
+      (asset) =>
+        Object.keys(asset.semanticClips).length === 13 &&
         Object.values(asset.semanticEvidence).every(
           ({ verification }) => verification === "structural-temporal-evidence",
         ) &&
-        Object.values(asset.semanticReview).filter(
+        Object.values(asset.semanticReview).length === 13 &&
+        Object.values(asset.semanticReview).every(
           ({ verdict }) => verdict === "pass",
-        ).length === (fullyReviewed ? 12 : 3) &&
-        Object.values(asset.semanticReview).filter(
-          ({ verdict }) => verdict === "ambiguous",
-        ).length === (fullyReviewed ? 0 : 9)
-      );
-    }),
+        ),
+    ),
   ).toBe(true);
   await page.setViewportSize({ width: 1920, height: 1080 });
 
@@ -841,41 +836,47 @@ test("seventeen agent stances and mounted user-directed movement work in product
   const chatInput = page.getByPlaceholder("Message Mr Fluff");
   await chatInput.fill("  /DaNcE  ");
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Dance");
   await expect(worldCanvas).toHaveAttribute(
     "data-user-avatar-rendered-clip",
-    "NlaTrack.005",
+    "NlaTrack.007",
   );
   await expect(worldCanvas).toHaveAttribute(
     "data-user-avatar-animation-verification",
     "semantic-review-pass",
   );
   await page.screenshot({
-    path: `${EVIDENCE_DIR}/world-one-shot-user-dance-refused-idle.png`,
+    path: `${EVIDENCE_DIR}/world-one-shot-user-dance-accepted.png`,
   });
   expect(streamedTexts).toEqual([]);
   await expect(page.getByText("/DaNcE", { exact: false })).toHaveCount(0);
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle", {
+    timeout: 15_000,
+  });
 
   await room.focus();
   await page.keyboard.press("Space");
-  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle");
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Jump");
   await expect(worldCanvas).toHaveAttribute(
     "data-user-avatar-rendered-clip",
-    "NlaTrack.005",
+    "NlaTrack.008",
   );
   await page.screenshot({
-    path: `${EVIDENCE_DIR}/world-one-shot-user-jump-refused-idle.png`,
+    path: `${EVIDENCE_DIR}/world-one-shot-user-jump-accepted.png`,
+  });
+  await expect(room).toHaveAttribute("data-user-avatar-semantic", "Idle", {
+    timeout: 10_000,
   });
 
   await chatInput.fill("hello");
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Idle");
+  await expect(room).toHaveAttribute("data-agent-avatar-semantic", "Cheer");
   await expect(worldCanvas).toHaveAttribute(
     "data-agent-avatar-rendered-clip",
-    "NlaTrack.018",
+    "NlaTrack.019",
   );
   await page.screenshot({
-    path: `${EVIDENCE_DIR}/world-one-shot-agent-wave-refused-idle.png`,
+    path: `${EVIDENCE_DIR}/world-one-shot-agent-cheer-accepted.png`,
   });
   expect(streamedTexts).toEqual(["hello"]);
 

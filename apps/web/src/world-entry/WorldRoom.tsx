@@ -21,6 +21,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -614,7 +615,7 @@ export function WorldRoom({
     setSelectedWorkstreamId(null);
     setCityFocusPosition(null);
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     userAnimationRef.current = userAnimation;
   }, [userAnimation]);
   useEffect(() => {
