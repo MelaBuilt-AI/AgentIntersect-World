@@ -120,7 +120,7 @@ const WorkstreamSchema = z.strictObject({
   events: z.array(WorkstreamEventSchema).min(1).max(128),
 });
 const CommandRecordSchema = z.strictObject({
-  kind: z.enum(["create", "cancel"]),
+  kind: z.enum(["create", "iterate", "cancel"]),
   requestId: identifier,
   correlationId: identifier,
   canonical: z.string().min(1).max(8_192),
@@ -148,6 +148,15 @@ const WorkstreamCancelRequestSchema = z.strictObject({
   correlationId: identifier,
   workstreamId: identifier,
   expectedRevision: z.number().int().nonnegative(),
+  repository: WorkstreamRepositoryReferenceSchema,
+  agent: WorkstreamAgentReferenceSchema,
+});
+const WorkstreamIterationRequestSchema = z.strictObject({
+  requestId: identifier,
+  correlationId: identifier,
+  workstreamId: identifier,
+  expectedRevision: z.number().int().nonnegative(),
+  feedback: z.string().trim().min(1).max(2_000),
   repository: WorkstreamRepositoryReferenceSchema,
   agent: WorkstreamAgentReferenceSchema,
 });
@@ -199,6 +208,9 @@ export type WorkstreamCreateRequest = z.infer<
 >;
 export type WorkstreamCancelRequest = z.infer<
   typeof WorkstreamCancelRequestSchema
+>;
+export type WorkstreamIterationRequest = z.infer<
+  typeof WorkstreamIterationRequestSchema
 >;
 export type WorkstreamPreviewRequest = z.infer<
   typeof WorkstreamPreviewRequestSchema
@@ -731,6 +743,122 @@ export class WorkstreamService {
     });
   }
 
+  async iterate(input: unknown): Promise<{
+    readonly workstream: Workstream;
+    readonly replayed: boolean;
+  }> {
+    const request = this.#parseIteration(input);
+    return this.#serialize(async () => {
+      await this.#ensureLoaded();
+      if (
+        !this.#record ||
+        this.#record.workstream.workstreamId !== request.workstreamId
+      )
+        throw new WorkstreamServiceError("not-found", "Workstream not found");
+      const canonicalRequest = canonical({ kind: "iterate", request });
+      const replay = this.#commandReplay(
+        request.requestId,
+        request.correlationId,
+        canonicalRequest,
+      );
+      if (replay)
+        return {
+          workstream: await this.#project(replay.workstream),
+          replayed: true,
+        };
+      const current = this.#record.workstream;
+      if (request.expectedRevision !== current.revision)
+        throw new WorkstreamServiceError(
+          "revision-conflict",
+          `Expected revision ${request.expectedRevision}; current is ${current.revision}`,
+        );
+      if (!referencesEqual(request.repository, current.repository))
+        throw new WorkstreamServiceError(
+          "repository-mismatch",
+          "Workstream repository reference is stale",
+        );
+      if (!referencesEqual(request.agent, current.agent))
+        throw new WorkstreamServiceError(
+          "agent-mismatch",
+          "Workstream agent/session reference is stale",
+        );
+      if (
+        current.status === "completed" ||
+        current.status === "cancelled" ||
+        current.status === "cleanup-required" ||
+        current.worktreeState === "missing" ||
+        current.worktreeState === "removed"
+      )
+        throw new WorkstreamServiceError(
+          "unavailable",
+          "Current Workstream cannot accept another iteration",
+        );
+      await this.#assertCancellationReferences(
+        request.repository,
+        request.agent,
+      );
+      if (this.#agentPort?.busy(request.agent.agentId))
+        throw new WorkstreamServiceError(
+          "unavailable",
+          "Wait for the current Workstream agent turn to finish",
+        );
+      let receipt: WorktreeReceipt;
+      try {
+        receipt = await this.#worktreeAuthority.restore(
+          current.authority as WorktreeReceipt,
+        );
+      } catch (error) {
+        throw new WorkstreamServiceError(
+          "unavailable",
+          error instanceof Error
+            ? `Workstream worktree attestation failed: ${error.message}`
+            : "Workstream worktree attestation failed",
+        );
+      }
+      if (receipt.state === "wrong-branch")
+        throw new WorkstreamServiceError(
+          "unavailable",
+          "Workstream worktree is on the wrong branch",
+        );
+      const now = new Date(this.#now()).toISOString();
+      const summary = `Iteration requested · ${request.feedback}`.slice(0, 512);
+      const workstream = WorkstreamSchema.parse({
+        ...current,
+        revision: current.revision + 1,
+        authority: receipt,
+        worktreeState: receipt.state,
+        status: "working",
+        updatedAt: now,
+        events: [
+          ...current.events,
+          {
+            eventId: `${current.workstreamId}/event/${current.events.length + 1}`,
+            status: "working",
+            summary,
+            occurredAt: now,
+          },
+        ],
+      });
+      this.#record = WorkstreamRecordSchema.parse({
+        workstream,
+        commands: [
+          ...this.#record.commands,
+          {
+            kind: "iterate",
+            requestId: request.requestId,
+            correlationId: request.correlationId,
+            canonical: canonicalRequest,
+          },
+        ].slice(-32),
+      });
+      await this.#persist();
+      return {
+        workstream: await this.#project(workstream),
+        replayed: false,
+      };
+    });
+  }
+
   async cancel(input: unknown): Promise<{
     readonly workstream: Workstream;
     readonly replayed: boolean;
@@ -869,6 +997,17 @@ export class WorkstreamService {
       throw new WorkstreamServiceError(
         "validation",
         parsed.error.issues[0]?.message ?? "Invalid Workstream cancel request",
+      );
+    return parsed.data;
+  }
+
+  #parseIteration(input: unknown): WorkstreamIterationRequest {
+    const parsed = WorkstreamIterationRequestSchema.safeParse(input);
+    if (!parsed.success)
+      throw new WorkstreamServiceError(
+        "validation",
+        parsed.error.issues[0]?.message ??
+          "Invalid Workstream iteration request",
       );
     return parsed.data;
   }

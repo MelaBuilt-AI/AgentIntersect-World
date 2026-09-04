@@ -1,10 +1,24 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-03
+Updated: 2026-09-04
 
 ## Current milestone
 
-### 2026-09-03 Workbench Product Loop Slice 4 — COMPLETE / PARENT-GREEN / PRIVATE DELIVERY AUTHORIZED
+### 2026-09-04 Workbench Product Loop Slice 5 — COMPLETE / PARENT-GREEN / PRIVATE DELIVERY AUTHORIZED
+
+Aaron authorized Slice 5 end to end, including one private feature-branch commit/push/PR and conditional merge after terminal exact-SHA CI success. The frozen contract is `docs/WORKBENCH_SLICE_5_SCOPE.md`. On fresh branch `feat/workbench-continuous-iteration` from exact-green Slice 4 merge SHA `9bf97677983d2381f2e2f6e4d9e74db928a5d562`, the implementation connects normal-World visual feedback to the same exact Workstream, its bound agent/root session, and its attested owned worktree without creating a second Workstream or duplicate agent turn.
+
+Each iteration records one revision-bound durable Workstream event before reusing the existing exact-session conversational path. Natural bounded feedback including `change`, `make`, and explicit `/work continue` forms remains visible in normal chat. Authoritative Workstream polling then projects the changed files, diff, validation, and evidence produced by the same owned worktree. Stale revisions, repository/agent bindings, terminal or cleanup-required state, missing/removed worktrees, wrong branches, and busy agents refuse mutation instead of silently changing authority.
+
+When a verified World View is already mounted, the previous verified preview remains visible while the agent turn runs. Slice 5 shows a separate updating state, waits for the real turn to finish, rereads authoritative validation, and starts a replacement only when exactly one approved recipe exists and every reported validation entry passes. The existing Preview Manager remains sole process/readiness authority and receives only recipe ID/revision plus exact latest Workstream authority—never raw executable, argv, cwd, environment, branch, head, or path overrides. World View switches only after replacement readiness. Failed validation or preview health retains explicit previous-verified truth and a blue manual retry; successful retry clears the stale failure label. The same cycle can repeat without losing World/Preview input ownership, iframe state, user/camera state, or no-WebGL/regular-DOM equivalence.
+
+Pinned Node `v24.18.0` parent proof passes the focused service/API/client/model/UI matrix at 5 files / 46 tests, the focused conversational classifier at 17/17, repository formatting and ESLint, typecheck at 38/38 tasks, architecture at 11/11, complete Vitest at 172 files / 1,098 tests, build at 20/20 tasks, and smoke. The freshly built flagged production Chromium journey passes 1/1 in 22.7 seconds with two same-Workstream feedback cycles, exact one-turn/one-refresh behavior, old-preview retention during update, current revision replacement, failed replacement retention, enabled manual recovery, final ready truth, cancellation cleanup, containment, and strict console/page-error cleanliness.
+
+Slice 5 adds no Slice 6 real-project first-hand acceptance, Workstream status-schema redesign, multiple simultaneous Workstreams, recipe inference/editor, arbitrary validation runner, generic executor/terminal, native capture, provider/profile or protected-service change, public ingress, deployment, Phase 20 work, tag, release, publication, or visibility change. Slice 6 and Phase 20 remain not started and separately gated. Final commit, PR, merge, and exact-SHA CI identities remain external to avoid a recursive status chain.
+
+### Prior completed milestone — Workbench Product Loop Slice 4
+
+### 2026-09-03 Workbench Product Loop Slice 4 — COMPLETE / PRIVATELY MERGED / EXACT-SHA GREEN
 
 Aaron authorized corrections, full Slice 4 implementation, one private feature-branch commit/push/PR, and conditional merge after terminal exact-SHA CI success. The frozen contract is `docs/WORKBENCH_SLICE_4_SCOPE.md`. On fresh branch `feat/workbench-world-view` from exact-green correction/main SHA `9b7cdfe31c286aaa3488f0c39f008a7827388b78`, the implementation adds one typed normal-World Preview Manager client and one regular-DOM World View without changing Preview Manager process authority or Workstream schemas.
 

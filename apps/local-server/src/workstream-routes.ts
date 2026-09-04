@@ -201,6 +201,65 @@ export function registerWorkstreamRoutes(
     Params: { workstreamId: string };
     Body: Record<string, unknown>;
   }>(
+    "/workstreams/:workstreamId/iterations",
+    {
+      bodyLimit: 8 * 1024,
+      preValidation: async (request) => {
+        rejectUnknownKeys(request.body, [
+          "requestId",
+          "correlationId",
+          "expectedRevision",
+          "feedback",
+          "repository",
+          "agent",
+        ]);
+        validateReferences(request.body);
+      },
+      schema: {
+        tags,
+        summary: "Record one exact feedback iteration on an owned Workstream",
+        params,
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "requestId",
+            "correlationId",
+            "expectedRevision",
+            "feedback",
+            "repository",
+            "agent",
+          ],
+          properties: {
+            requestId: identifier,
+            correlationId: identifier,
+            expectedRevision: { type: "integer", minimum: 0 },
+            feedback: { type: "string", minLength: 1, maxLength: 2000 },
+            repository: repositoryReference,
+            agent: agentReference,
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        return envelope.success(
+          request,
+          await service.iterate({
+            ...request.body,
+            workstreamId: request.params.workstreamId,
+          }),
+        );
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
+
+  server.post<{
+    Params: { workstreamId: string };
+    Body: Record<string, unknown>;
+  }>(
     "/workstreams/:workstreamId/cancel",
     {
       bodyLimit: 8 * 1024,

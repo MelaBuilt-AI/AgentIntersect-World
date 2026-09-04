@@ -160,6 +160,46 @@ describe("Workstream API", () => {
     await server.close();
   });
 
+  it("records one exact same-Workstream feedback iteration", async () => {
+    const server = await fixture();
+    await server.inject({
+      method: "POST",
+      url: "/workstreams",
+      payload: {
+        requestId: "request-create-iteration",
+        correlationId: "correlation-create-iteration",
+        title: "Build the first preview",
+        task: "Build the first preview",
+        repository,
+        agent,
+      },
+    });
+
+    const response = await server.inject({
+      method: "POST",
+      url: "/workstreams/workstream-api-one/iterations",
+      payload: {
+        requestId: "request-iterate-one",
+        correlationId: "correlation-iterate-one",
+        expectedRevision: 1,
+        feedback: "Make the button blue.",
+        repository,
+        agent,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data).toMatchObject({
+      replayed: false,
+      workstream: {
+        workstreamId: "workstream-api-one",
+        revision: 2,
+        status: "working",
+      },
+    });
+    await server.close();
+  });
+
   it("rejects unknown and executor-shaped fields at the HTTP boundary", async () => {
     const server = await fixture();
     for (const field of ["repositoryRoot", "worktreePath", "command", "argv"]) {

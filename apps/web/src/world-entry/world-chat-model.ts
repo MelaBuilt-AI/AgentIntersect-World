@@ -229,7 +229,7 @@ export function classifyWorkstreamMessage(
   if (explicit)
     return { action: "request", text: trimmed, task: explicit[1]!.trim() };
   if (
-    /^(?:(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:build|implement|add|fix|change|update|remove|rename|refactor|improve|create)\b|continue\b)/iu.test(
+    /^(?:(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:build|implement|add|fix|change|update|remove|rename|refactor|improve|create|make)\b|continue\b)/iu.test(
       trimmed,
     )
   )

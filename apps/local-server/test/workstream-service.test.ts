@@ -236,6 +236,55 @@ describe("WorkstreamService", () => {
     ).rejects.toMatchObject({ code: "revision-conflict" });
   });
 
+  it("records a revision-bound iteration on the same owned Workstream", async () => {
+    const value = await fixture();
+    const created = await value.service.create(createRequest());
+    const beforeWorktrees = await git(value.repository, [
+      "worktree",
+      "list",
+      "--porcelain",
+    ]);
+
+    const iterated = await value.service.iterate({
+      requestId: "request-iterate-one",
+      correlationId: "correlation-iterate-one",
+      workstreamId: created.workstream.workstreamId,
+      expectedRevision: created.workstream.revision,
+      feedback: "Change the active state to blue.",
+      repository: repositoryReference,
+      agent: agentReference,
+    });
+
+    expect(iterated.replayed).toBe(false);
+    expect(iterated.workstream).toMatchObject({
+      workstreamId: created.workstream.workstreamId,
+      revision: created.workstream.revision + 1,
+      status: "working",
+      repository: repositoryReference,
+      agent: agentReference,
+      authority: { worktreeId: created.workstream.authority.worktreeId },
+    });
+    expect(iterated.workstream.events.at(-1)).toMatchObject({
+      status: "working",
+      summary: "Iteration requested · Change the active state to blue.",
+    });
+    expect(
+      await git(value.repository, ["worktree", "list", "--porcelain"]),
+    ).toBe(beforeWorktrees);
+
+    await expect(
+      value.service.iterate({
+        requestId: "request-iterate-stale",
+        correlationId: "correlation-iterate-stale",
+        workstreamId: created.workstream.workstreamId,
+        expectedRevision: created.workstream.revision,
+        feedback: "Try another stale change.",
+        repository: repositoryReference,
+        agent: agentReference,
+      }),
+    ).rejects.toMatchObject({ code: "revision-conflict" });
+  });
+
   it("replays duplicate request and correlation ids deterministically", async () => {
     const value = await fixture();
     const request = createRequest();

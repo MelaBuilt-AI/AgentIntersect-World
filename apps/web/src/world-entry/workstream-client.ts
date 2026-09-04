@@ -152,6 +152,26 @@ export class WorkstreamClient {
     return this.#mutation("/api/workstreams", input);
   }
 
+  async iterate(
+    workstream: WorkstreamApiRecord,
+    feedback: string,
+    command: { readonly requestId: string; readonly correlationId: string },
+  ): Promise<{
+    readonly workstream: WorkstreamApiRecord;
+    readonly replayed: boolean;
+  }> {
+    return this.#mutation(
+      `/api/workstreams/${encodeURIComponent(workstream.workstreamId)}/iterations`,
+      {
+        ...command,
+        expectedRevision: workstream.revision,
+        feedback,
+        repository: workstream.repository,
+        agent: workstream.agent,
+      },
+    );
+  }
+
   async cancel(
     workstream: WorkstreamApiRecord,
     command: { readonly requestId: string; readonly correlationId: string },
