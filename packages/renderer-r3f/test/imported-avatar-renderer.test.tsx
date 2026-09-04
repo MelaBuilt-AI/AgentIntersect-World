@@ -356,6 +356,8 @@ describe("experimental imported avatar renderer routing", () => {
     );
     expect(worldSource).toContain("data-user-avatar-mixer-time");
     expect(worldSource).toContain("data-agent-avatar-mixer-time");
+    expect(worldSource).toContain("data-user-avatar-sampled-clip");
+    expect(worldSource).toContain("data-agent-avatar-sampled-clip");
     expect(worldSource).toContain("data-user-avatar-bone-quaternion");
     expect(worldSource).toContain("data-agent-avatar-bone-quaternion");
   });
