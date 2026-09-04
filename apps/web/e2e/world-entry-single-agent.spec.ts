@@ -731,6 +731,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   } as const;
   let currentWorkstream: Record<string, unknown> | null = null;
   let createRequests = 0;
+  let iterationRequests = 0;
   const streamRequests: string[] = [];
   await installWorldFixtures(page, {
     restoreStatus: true,
@@ -796,10 +797,45 @@ test("@workbench-normal drives one Workstream through normal World conversation"
         });
         return;
       }
-      if (request.method() === "POST" && pathname.endsWith("/cancel")) {
+      if (request.method() === "POST" && pathname.endsWith("/iterations")) {
+        iterationRequests += 1;
+        const input = request.postDataJSON() as Record<string, unknown>;
+        expect(input).toEqual({
+          requestId: expect.stringMatching(/^iterate-/u),
+          correlationId: expect.any(String),
+          expectedRevision: 1,
+          feedback: "change it to use the blue active state",
+          repository,
+          agent,
+        });
         currentWorkstream = {
           ...baseWorkstream,
           revision: 2,
+          updatedAt: "2026-09-03T15:01:00.000Z",
+          events: [
+            ...baseWorkstream.events,
+            {
+              eventId: `${baseWorkstream.workstreamId}/event/2`,
+              status: "working",
+              summary:
+                "Iteration requested · change it to use the blue active state",
+              occurredAt: "2026-09-03T15:01:00.000Z",
+            },
+          ],
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({ workstream: currentWorkstream, replayed: false }),
+          ),
+        });
+        return;
+      }
+      if (request.method() === "POST" && pathname.endsWith("/cancel")) {
+        currentWorkstream = {
+          ...baseWorkstream,
+          revision: 3,
           status: "cancelled",
           worktreeState: "removed",
           projection: {
@@ -877,6 +913,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     .poll(() => streamRequests)
     .toEqual(["change it to use the blue active state"]);
   expect(createRequests).toBe(1);
+  expect(iterationRequests).toBe(1);
 
   await composer.fill("cancel current workstream");
   await composer.press("Enter");
