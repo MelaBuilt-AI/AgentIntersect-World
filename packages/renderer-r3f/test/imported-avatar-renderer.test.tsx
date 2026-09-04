@@ -7,6 +7,10 @@ import {
   VectorKeyframeTrack,
 } from "three";
 import { describe, expect, it, vi } from "vitest";
+import {
+  GLTFLoader,
+  type GLTF,
+} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import * as avatarKitModule from "../src/imported-avatar-canvas.js";
 import * as worldRoomModule from "../src/world-room-imported-canvas.js";
@@ -14,6 +18,7 @@ import * as worldRoomModule from "../src/world-room-imported-canvas.js";
 const avatarApi = avatarKitModule as typeof avatarKitModule & {
   readonly ImportedAvatarCanvas?: unknown;
   readonly ImportedAvatarWorldModel?: unknown;
+  readonly ImportedAvatarGLTFLoader?: typeof GLTFLoader;
   readonly configureImportedAvatarScene?: unknown;
   readonly makeImportedAvatarClipInPlace?: (
     clip: AnimationClip,
@@ -72,6 +77,72 @@ describe("experimental imported avatar renderer routing", () => {
     expect(typeof avatarApi.configureImportedAvatarScene).toBe("function");
     expect(typeof avatarApi.makeImportedAvatarClipInPlace).toBe("function");
     expect(avatarApi.IMPORTED_AVATAR_CROSSFADE_SECONDS).toBe(0.22);
+  });
+
+  it("loads imported avatar GLBs one at a time and releases after errors", async () => {
+    expect(avatarApi.ImportedAvatarGLTFLoader).toBeTypeOf("function");
+    if (!avatarApi.ImportedAvatarGLTFLoader) return;
+
+    const started: string[] = [];
+    const pending = new Map<
+      string,
+      { readonly succeed: () => void; readonly fail: () => void }
+    >();
+    let active = 0;
+    let maximumActive = 0;
+    const load = vi
+      .spyOn(GLTFLoader.prototype, "load")
+      .mockImplementation(
+        (
+          url: string,
+          onLoad: (gltf: GLTF) => void,
+          _onProgress?: (event: ProgressEvent) => void,
+          onError?: (error: unknown) => void,
+        ) => {
+          started.push(url);
+          active += 1;
+          maximumActive = Math.max(maximumActive, active);
+          pending.set(url, {
+            succeed: () => {
+              active -= 1;
+              onLoad({} as GLTF);
+            },
+            fail: () => {
+              active -= 1;
+              onError?.(new Error(`failed ${url}`));
+            },
+          });
+        },
+      );
+
+    try {
+      const loader = new avatarApi.ImportedAvatarGLTFLoader();
+      loader.load("first.glb", () => undefined);
+      loader.load(
+        "second.glb",
+        () => undefined,
+        undefined,
+        () => undefined,
+      );
+      loader.load("third.glb", () => undefined);
+      await vi.waitFor(() => expect(started).toEqual(["first.glb"]));
+
+      pending.get("first.glb")!.succeed();
+      await vi.waitFor(() =>
+        expect(started).toEqual(["first.glb", "second.glb"]),
+      );
+
+      pending.get("second.glb")!.fail();
+      await vi.waitFor(() =>
+        expect(started).toEqual(["first.glb", "second.glb", "third.glb"]),
+      );
+
+      pending.get("third.glb")!.succeed();
+      await vi.waitFor(() => expect(active).toBe(0));
+      expect(maximumActive).toBe(1);
+    } finally {
+      load.mockRestore();
+    }
   });
 
   it("routes each World role independently while retaining the custom kit branch", () => {
