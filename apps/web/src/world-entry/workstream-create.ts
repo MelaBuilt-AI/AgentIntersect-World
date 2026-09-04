@@ -63,7 +63,7 @@ export async function executeWorkstreamConversation(
   authority: WorkstreamAuthorityDescriptor | null,
   client: Pick<
     WorkstreamClient,
-    "current" | "create" | "cancel"
+    "current" | "create" | "iterate" | "cancel"
   > = new WorkstreamClient(),
   enqueue: (text: string, agentId: string) => void,
   id: () => string = () => crypto.randomUUID(),
@@ -136,9 +136,14 @@ export async function executeWorkstreamConversation(
         continued: false,
       };
     }
+    const commandId = id();
+    const iteration = await client.iterate(current!, resolution.task, {
+      requestId: `iterate-${commandId}`,
+      correlationId: id(),
+    });
     enqueue(resolution.task, resolution.agentId);
     return {
-      workstream: projectAuthoritativeWorkstream(current!),
+      workstream: projectAuthoritativeWorkstream(iteration.workstream),
       message: null,
       openInspector: false,
       continued: true,

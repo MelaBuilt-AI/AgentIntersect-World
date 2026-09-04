@@ -68,6 +68,7 @@ describe("World Workbench conversation commands", () => {
       "change it to use the blue active state",
       "change it to use the blue active state",
     ],
+    ["make the heading larger", "make the heading larger"],
     ["/work start Add keyboard navigation", "Add keyboard navigation"],
     ["/work continue Keep the same layout", "Keep the same layout"],
   ])("classifies %s as a Workstream request", (input, task) => {

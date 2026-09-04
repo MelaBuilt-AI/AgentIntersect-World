@@ -110,6 +110,11 @@ describe("World View", () => {
       createElement(WorldView, {
         workstream,
         projection: projection("current"),
+        iterationStatus: {
+          state: "updating",
+          message:
+            "Updating from visual feedback · preview revision 5 remains verified.",
+        },
         onInputOwnerChange: () => undefined,
       }),
     );
@@ -128,6 +133,10 @@ describe("World View", () => {
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain("Expand World View");
     expect(html).toContain("Current verified preview");
+    expect(html).toContain('data-iteration-state="updating"');
+    expect(html).toContain(
+      "Updating from visual feedback · preview revision 5 remains verified.",
+    );
     expect(html).not.toContain("Interact with preview");
   });
 

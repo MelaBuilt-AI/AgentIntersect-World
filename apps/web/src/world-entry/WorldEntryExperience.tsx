@@ -96,6 +96,10 @@ import {
   type WorldInputOwner,
 } from "./world-view-model.js";
 import {
+  resolveIterationRefresh,
+  type IterationStatus,
+} from "./workbench-iteration-model.js";
+import {
   RepositoryIntakeDialog,
   type RepositoryProject,
 } from "./RepositoryIntakeDialog.js";
@@ -381,9 +385,15 @@ export function WorldEntryExperience({
     readonly error: string | null;
   } | null>(null);
   const [previewActionPending, setPreviewActionPending] = useState(false);
+  const [iterationStatus, setIterationStatus] =
+    useState<IterationStatus | null>(null);
   const [worldInputOwner, setWorldInputOwner] =
     useState<WorldInputOwner>("world");
   const previewStartPending = useRef(false);
+  const pendingIterationRefresh = useRef<{
+    readonly workstreamId: string;
+    readonly recipe: PreviewRecipe;
+  } | null>(null);
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
   const [agentMovementControl, setAgentMovementControl] = useState<{
@@ -1428,17 +1438,40 @@ export function WorldEntryExperience({
       );
       if (outcome.workstream) setNormalWorkstream(outcome.workstream);
       if (outcome.openInspector) setNormalWorkstreamOpen(true);
-      setNormalWorkstreamMessage(outcome.message);
-      if (outcome.message) setStatus(outcome.message);
+      let outcomeMessage = outcome.message;
+      if (outcome.continued && outcome.workstream) {
+        const displayedPreview =
+          previewProjectionState?.workstreamId ===
+          outcome.workstream.workstreamId
+            ? previewProjectionState.projection?.display?.preview
+            : null;
+        const matchingRecipes =
+          previewRecipeState &&
+          previewRecipeState.repositoryId ===
+            outcome.workstream.authority?.repository.repositoryId
+            ? previewRecipeState.recipes
+            : [];
+        const recipe = matchingRecipes.length === 1 ? matchingRecipes[0] : null;
+        if (displayedPreview && recipe) {
+          pendingIterationRefresh.current = {
+            workstreamId: outcome.workstream.workstreamId,
+            recipe,
+          };
+          outcomeMessage = `Updating from visual feedback · preview revision ${displayedPreview.revision} remains verified.`;
+          setIterationStatus({ state: "updating", message: outcomeMessage });
+        }
+      }
+      setNormalWorkstreamMessage(outcomeMessage);
+      if (outcomeMessage) setStatus(outcomeMessage);
       else if (outcome.continued) setStatus("Continuing current Workstream");
-      if (announceInChat && !outcome.continued && outcome.message) {
+      if (announceInChat && !outcome.continued && outcomeMessage) {
         const id = `workstream-${Date.now()}-${nextMessageId.current++}`;
         updateChat({ type: "QUEUE_MESSAGE", id, text: action.text });
         updateChat({ type: "SEND_STARTED", id });
         updateChat(
-          outcome.message.startsWith("Workbench error")
-            ? { type: "SEND_FAILED", message: outcome.message }
-            : { type: "SEND_COMPLETED", text: outcome.message },
+          outcomeMessage.startsWith("Workbench error")
+            ? { type: "SEND_FAILED", message: outcomeMessage }
+            : { type: "SEND_COMPLETED", text: outcomeMessage },
         );
       }
       const boundAgentId = outcome.workstream?.authority?.agent.agentId;
@@ -1561,8 +1594,10 @@ export function WorldEntryExperience({
     setPreviewRecipeState(null);
     setPreviewProjectionState(null);
     setPreviewActionPending(false);
+    setIterationStatus(null);
     setWorldInputOwner("world");
     previewStartPending.current = false;
+    pendingIterationRefresh.current = null;
     setAgentMovementRequest(null);
     setAgentMovementControl(null);
     processedMovementActions.current.clear();
@@ -1742,6 +1777,99 @@ export function WorldEntryExperience({
       window.clearInterval(timer);
     };
   }, [inWorld, normalWorkstreamId, previewEligible, previewManagerClient]);
+  useEffect(() => {
+    const pending = pendingIterationRefresh.current;
+    if (
+      !pending ||
+      normalWorkstreamPending ||
+      chatBusy ||
+      queuedCount > 0 ||
+      previewStartPending.current
+    )
+      return;
+    pendingIterationRefresh.current = null;
+    previewStartPending.current = true;
+    setPreviewActionPending(true);
+    let active = true;
+    void (async () => {
+      try {
+        const current = await workstreamClient.current();
+        if (!active) return;
+        if (
+          !current ||
+          current.workstreamId !== pending.workstreamId ||
+          current.status === "cancelled" ||
+          current.status === "cleanup-required" ||
+          current.worktreeState === "missing" ||
+          current.worktreeState === "removed"
+        )
+          throw new Error(
+            "Current Workstream authority changed during iteration",
+          );
+        const workstream = projectAuthoritativeWorkstream(current);
+        setNormalWorkstream(workstream);
+        const readiness = resolveIterationRefresh(workstream);
+        if (!readiness.ready) {
+          setIterationStatus({ state: "failed", message: readiness.message });
+          setNormalWorkstreamMessage(readiness.message);
+          setStatus(readiness.message);
+          return;
+        }
+        setIterationStatus({ state: "refreshing", message: readiness.message });
+        setNormalWorkstreamMessage(readiness.message);
+        setStatus(readiness.message);
+        const started = await previewManagerClient.start(
+          current,
+          pending.recipe,
+        );
+        const projection = await previewManagerClient.current(
+          current.workstreamId,
+        );
+        if (!active) return;
+        setPreviewProjectionState({
+          workstreamId: current.workstreamId,
+          projection,
+          error: null,
+        });
+        if (
+          started.preview.state !== "ready" ||
+          projection.display?.preview.previewId !== started.preview.previewId
+        ) {
+          const message = `${
+            started.preview.error ?? "Replacement preview did not become ready."
+          } Verified preview retained.`;
+          setIterationStatus({ state: "failed", message });
+          setNormalWorkstreamMessage(message);
+          setStatus(message);
+          return;
+        }
+        const message = `Updated World View ready · preview revision ${started.preview.revision}.`;
+        setIterationStatus({ state: "ready", message });
+        setNormalWorkstreamMessage(message);
+        setStatus(message);
+      } catch (error) {
+        if (!active) return;
+        const message = `Iteration refresh unavailable · ${
+          error instanceof Error ? error.message : "Request failed"
+        }. Verified preview retained.`;
+        setIterationStatus({ state: "failed", message });
+        setNormalWorkstreamMessage(message);
+        setStatus(message);
+      } finally {
+        previewStartPending.current = false;
+        if (active) setPreviewActionPending(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [
+    chatBusy,
+    normalWorkstreamPending,
+    previewManagerClient,
+    queuedCount,
+    workstreamClient,
+  ]);
   const startWorldView = useCallback(async () => {
     const recipe = previewRecipes?.length === 1 ? previewRecipes[0] : null;
     if (
@@ -1772,6 +1900,16 @@ export function WorldEntryExperience({
           projection,
           error: null,
         });
+      if (
+        mounted.current &&
+        iterationStatus?.state === "failed" &&
+        projection.display?.truth === "current"
+      ) {
+        const message = `Updated World View ready · preview revision ${projection.display.preview.revision}.`;
+        setIterationStatus({ state: "ready", message });
+        setNormalWorkstreamMessage(message);
+        setStatus(message);
+      }
     } catch {
       if (mounted.current)
         setPreviewProjectionState((current) => ({
@@ -1791,6 +1929,7 @@ export function WorldEntryExperience({
     previewEligible,
     previewManagerClient,
     previewRecipes,
+    iterationStatus,
   ]);
   const worldViewLauncher = normalWorkstream
     ? resolveWorldViewLauncher({
@@ -2240,6 +2379,7 @@ export function WorldEntryExperience({
             key={previewProjection.display.preview.previewId}
             workstream={normalWorkstream}
             projection={previewProjection}
+            iterationStatus={iterationStatus}
             onInputOwnerChange={setWorldInputOwner}
           />
         ) : null}

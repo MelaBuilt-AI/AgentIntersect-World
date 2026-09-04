@@ -3,14 +3,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PreviewProjection } from "./preview-manager-client.js";
 import type { Workstream } from "./workstream-tracer.js";
 import type { WorldInputOwner } from "./world-view-model.js";
+import type { IterationStatus } from "./workbench-iteration-model.js";
 
 export function WorldView({
   workstream,
   projection,
+  iterationStatus,
   onInputOwnerChange,
 }: {
   readonly workstream: Workstream;
   readonly projection: PreviewProjection;
+  readonly iterationStatus?: IterationStatus | null;
   readonly onInputOwnerChange: (owner: WorldInputOwner) => void;
 }) {
   const display = projection.display;
@@ -77,6 +80,7 @@ export function WorldView({
       data-preview-truth={display.truth}
       data-preview-state={preview.state}
       data-preview-id={preview.previewId}
+      data-iteration-state={iterationStatus?.state ?? "idle"}
       data-world-view-expanded={expanded}
       data-input-owner={inputOwner}
       role={expanded ? "dialog" : "region"}
@@ -93,6 +97,15 @@ export function WorldView({
           {truthLabel}
         </span>
       </header>
+
+      {iterationStatus ? (
+        <p
+          className={`world-view__iteration world-view__iteration--${iterationStatus.state}`}
+          role="status"
+        >
+          {iterationStatus.message}
+        </p>
+      ) : null}
 
       <dl className="world-view__facts">
         <div>

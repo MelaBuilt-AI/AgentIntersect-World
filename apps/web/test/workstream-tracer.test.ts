@@ -296,7 +296,10 @@ describe("authoritative Workstream client", () => {
         repository: WorkstreamApiRecord["repository"];
         agent: WorkstreamApiRecord["agent"];
       } | null,
-      client: Pick<WorkstreamClient, "current" | "create" | "cancel">,
+      client: Pick<
+        WorkstreamClient,
+        "current" | "create" | "iterate" | "cancel"
+      >,
       enqueue: (text: string, agentId: string) => void,
       id: () => string,
     ) => Promise<{
@@ -324,9 +327,14 @@ describe("authoritative Workstream client", () => {
       workstream: { ...apiWorkstream, status: "cancelled" as const },
       replayed: false,
     }));
+    const iterate = vi.fn(async () => ({
+      workstream: { ...apiWorkstream, revision: apiWorkstream.revision + 1 },
+      replayed: false,
+    }));
     const client = {
       current: vi.fn(async () => current),
       create,
+      iterate,
       cancel,
     };
     const enqueue = vi.fn();
@@ -371,6 +379,14 @@ describe("authoritative Workstream client", () => {
     expect(enqueue).toHaveBeenCalledWith(
       "Change it",
       apiWorkstream.agent.agentId,
+    );
+    expect(iterate).toHaveBeenCalledWith(
+      apiWorkstream,
+      "Change it",
+      expect.objectContaining({
+        requestId: expect.stringMatching(/^iterate-/u),
+        correlationId: expect.any(String),
+      }),
     );
     expect(create).toHaveBeenCalledTimes(1);
 
