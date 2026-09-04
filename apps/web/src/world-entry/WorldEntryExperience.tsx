@@ -86,6 +86,16 @@ import {
 } from "./workstream-tracer.js";
 import { WorldWorkstreamStatus } from "./WorkInspector.js";
 import {
+  PreviewManagerClient,
+  type PreviewProjection,
+  type PreviewRecipe,
+} from "./preview-manager-client.js";
+import { WorldView } from "./WorldView.js";
+import {
+  resolveWorldViewLauncher,
+  type WorldInputOwner,
+} from "./world-view-model.js";
+import {
   RepositoryIntakeDialog,
   type RepositoryProject,
 } from "./RepositoryIntakeDialog.js";
@@ -359,6 +369,21 @@ export function WorldEntryExperience({
   const [normalWorkstreamMessage, setNormalWorkstreamMessage] = useState<
     string | null
   >(null);
+  const previewManagerClient = useMemo(() => new PreviewManagerClient(), []);
+  const [previewRecipeState, setPreviewRecipeState] = useState<{
+    readonly repositoryId: string;
+    readonly recipes: readonly PreviewRecipe[];
+    readonly error: string | null;
+  } | null>(null);
+  const [previewProjectionState, setPreviewProjectionState] = useState<{
+    readonly workstreamId: string;
+    readonly projection: PreviewProjection | null;
+    readonly error: string | null;
+  } | null>(null);
+  const [previewActionPending, setPreviewActionPending] = useState(false);
+  const [worldInputOwner, setWorldInputOwner] =
+    useState<WorldInputOwner>("world");
+  const previewStartPending = useRef(false);
   const [agentMovementRequest, setAgentMovementRequest] =
     useState<AgentMovementRequest | null>(null);
   const [agentMovementControl, setAgentMovementControl] = useState<{
@@ -1533,6 +1558,11 @@ export function WorldEntryExperience({
     setNormalWorkstreamOpen(false);
     setNormalWorkstreamMessage(null);
     setNormalWorkstreamPending(false);
+    setPreviewRecipeState(null);
+    setPreviewProjectionState(null);
+    setPreviewActionPending(false);
+    setWorldInputOwner("world");
+    previewStartPending.current = false;
     setAgentMovementRequest(null);
     setAgentMovementControl(null);
     processedMovementActions.current.clear();
@@ -1583,6 +1613,33 @@ export function WorldEntryExperience({
     [chat.transcript, chatBusy, queuedCount],
   );
   const normalWorkstreamId = normalWorkstream?.workstreamId ?? null;
+  const normalPreviewAuthority = normalWorkstream?.authority ?? null;
+  const previewEligible = Boolean(
+    normalPreviewAuthority &&
+    normalWorkstream?.status !== "cancelled" &&
+    ["current", "dirty"].includes(normalPreviewAuthority.worktreeState),
+  );
+  const previewRepositoryId = previewEligible
+    ? (normalPreviewAuthority?.repository.repositoryId ?? null)
+    : null;
+  const previewRecipes =
+    previewRecipeState?.repositoryId === previewRepositoryId
+      ? previewRecipeState.recipes
+      : null;
+  const previewRecipeError =
+    previewRecipeState?.repositoryId === previewRepositoryId
+      ? previewRecipeState.error
+      : null;
+  const previewProjection =
+    previewEligible &&
+    previewProjectionState?.workstreamId === normalWorkstreamId
+      ? previewProjectionState.projection
+      : null;
+  const previewProjectionError =
+    previewEligible &&
+    previewProjectionState?.workstreamId === normalWorkstreamId
+      ? previewProjectionState.error
+      : null;
   const refreshWorkstreamSession = useCallback(async () => {
     if (!session) return;
     try {
@@ -1621,6 +1678,130 @@ export function WorldEntryExperience({
       window.clearInterval(timer);
     };
   }, [inWorld, normalWorkstreamId, workstreamClient]);
+  useEffect(() => {
+    if (!inWorld || !previewRepositoryId) return;
+    let active = true;
+    void previewManagerClient
+      .recipes(previewRepositoryId)
+      .then((recipes) => {
+        if (!active) return;
+        setPreviewRecipeState({
+          repositoryId: previewRepositoryId,
+          recipes: recipes.filter(
+            (recipe) => recipe.repositoryId === previewRepositoryId,
+          ),
+          error: null,
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setPreviewRecipeState({
+          repositoryId: previewRepositoryId,
+          recipes: [],
+          error: "Preview Manager temporarily unavailable.",
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [inWorld, previewManagerClient, previewRepositoryId]);
+  useEffect(() => {
+    if (!inWorld || !previewEligible || !normalWorkstreamId) return;
+    let active = true;
+    let pending = false;
+    const load = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const projection =
+          await previewManagerClient.current(normalWorkstreamId);
+        if (!active) return;
+        setPreviewProjectionState({
+          workstreamId: normalWorkstreamId,
+          projection,
+          error: null,
+        });
+      } catch {
+        if (active)
+          setPreviewProjectionState((current) => ({
+            workstreamId: normalWorkstreamId,
+            projection:
+              current?.workstreamId === normalWorkstreamId
+                ? current.projection
+                : null,
+            error: "Preview Manager temporarily unavailable.",
+          }));
+      } finally {
+        pending = false;
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 1_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [inWorld, normalWorkstreamId, previewEligible, previewManagerClient]);
+  const startWorldView = useCallback(async () => {
+    const recipe = previewRecipes?.length === 1 ? previewRecipes[0] : null;
+    if (
+      !normalPreviewAuthority ||
+      !recipe ||
+      !previewEligible ||
+      previewStartPending.current
+    )
+      return;
+    previewStartPending.current = true;
+    setPreviewActionPending(true);
+    setPreviewProjectionState((current) => ({
+      workstreamId: normalPreviewAuthority.workstreamId,
+      projection:
+        current?.workstreamId === normalPreviewAuthority.workstreamId
+          ? current.projection
+          : null,
+      error: null,
+    }));
+    try {
+      await previewManagerClient.start(normalPreviewAuthority, recipe);
+      const projection = await previewManagerClient.current(
+        normalPreviewAuthority.workstreamId,
+      );
+      if (mounted.current)
+        setPreviewProjectionState({
+          workstreamId: normalPreviewAuthority.workstreamId,
+          projection,
+          error: null,
+        });
+    } catch {
+      if (mounted.current)
+        setPreviewProjectionState((current) => ({
+          workstreamId: normalPreviewAuthority.workstreamId,
+          projection:
+            current?.workstreamId === normalPreviewAuthority.workstreamId
+              ? current.projection
+              : null,
+          error: "Preview Manager temporarily unavailable.",
+        }));
+    } finally {
+      previewStartPending.current = false;
+      if (mounted.current) setPreviewActionPending(false);
+    }
+  }, [
+    normalPreviewAuthority,
+    previewEligible,
+    previewManagerClient,
+    previewRecipes,
+  ]);
+  const worldViewLauncher = normalWorkstream
+    ? resolveWorldViewLauncher({
+        workstream: normalWorkstream,
+        recipeCount: previewRecipes?.length ?? 0,
+        projection: previewProjection,
+        loading: previewEligible && previewRecipes === null,
+        pending: previewActionPending,
+        unavailableReason: previewRecipeError ?? previewProjectionError,
+      })
+    : null;
   useEffect(() => {
     if (!movementSessionId) return;
     let active = true;
@@ -1941,6 +2122,7 @@ export function WorldEntryExperience({
             objects={objects}
             reducedMotion={reducedMotion}
             forceNoWebGL={forceNoWebGL}
+            inputOwner={worldInputOwner}
             userName={profile.agentName}
             agentName={activeProposal.displayName}
             userAvatar={profile}
@@ -2040,6 +2222,25 @@ export function WorldEntryExperience({
                 false,
               )
             }
+            {...(worldViewLauncher
+              ? {
+                  worldViewAction: {
+                    ...worldViewLauncher,
+                    onStart: () => void startWorldView(),
+                  },
+                }
+              : {})}
+          />
+        ) : null}
+        {state.step !== "world_entering" &&
+        normalWorkstream &&
+        previewEligible &&
+        previewProjection?.display ? (
+          <WorldView
+            key={previewProjection.display.preview.previewId}
+            workstream={normalWorkstream}
+            projection={previewProjection}
+            onInputOwnerChange={setWorldInputOwner}
           />
         ) : null}
         {repositoryIntakeOpen ? (
