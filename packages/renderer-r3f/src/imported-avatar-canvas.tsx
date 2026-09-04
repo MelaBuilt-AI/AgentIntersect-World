@@ -40,6 +40,48 @@ export {
   makeImportedAvatarClipInPlace,
 } from "./imported-avatar-animation.js";
 
+export class ImportedAvatarGLTFLoader extends GLTFLoader {
+  private pending: Promise<void> = Promise.resolve();
+
+  override load(
+    url: string,
+    onLoad: (gltf: GLTF) => void,
+    onProgress?: ((event: ProgressEvent) => void) | undefined,
+    onError?: ((error: unknown) => void) | undefined,
+  ): void {
+    const start = () =>
+      new Promise<void>((release) => {
+        try {
+          super.load(
+            url,
+            (gltf) => {
+              try {
+                onLoad(gltf);
+              } finally {
+                release();
+              }
+            },
+            onProgress,
+            (error) => {
+              try {
+                onError?.(error);
+              } finally {
+                release();
+              }
+            },
+          );
+        } catch (error) {
+          try {
+            onError?.(error);
+          } finally {
+            release();
+          }
+        }
+      });
+    this.pending = this.pending.then(start, start);
+  }
+}
+
 export type ImportedAvatarPart = {
   readonly partId: string;
   readonly nodeName: string;
@@ -499,7 +541,7 @@ export function ImportedAvatarWorldModel({
   readonly animationGeneration: number;
   readonly representation?: ImportedAvatarWorldRepresentation | undefined;
 }) {
-  const gltf = useLoader(GLTFLoader, selection.assetUrl);
+  const gltf = useLoader(ImportedAvatarGLTFLoader, selection.assetUrl);
   const resolvedRotation: readonly [number, number, number] = [
     selection.rotation[0] + rotation[0],
     selection.rotation[1] + rotation[1],
@@ -553,7 +595,7 @@ export function ImportedAvatarCanvas({
   readonly rotation: readonly [number, number, number];
   readonly scale: number;
 }) {
-  const gltf = useLoader(GLTFLoader, selection.assetUrl);
+  const gltf = useLoader(ImportedAvatarGLTFLoader, selection.assetUrl);
   const selectionKey = [
     selection.assetId,
     selection.clipIndex,

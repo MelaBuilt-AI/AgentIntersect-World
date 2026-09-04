@@ -1352,6 +1352,7 @@ export function WorldRoomCanvas({
       }
       data-user-avatar-mixer-root={userAnimationSample?.mixerRootUuid ?? ""}
       data-user-avatar-mixer-time={userAnimationSample?.mixerTime ?? ""}
+      data-user-avatar-sampled-clip={userAnimationSample?.clipName ?? ""}
       data-user-avatar-action-time={userAnimationSample?.actionTime ?? ""}
       data-user-avatar-animation-sequence={userAnimationSample?.sequence ?? ""}
       data-user-avatar-animation-progression={
@@ -1366,6 +1367,7 @@ export function WorldRoomCanvas({
       }
       data-agent-avatar-mixer-root={agentAnimationSample?.mixerRootUuid ?? ""}
       data-agent-avatar-mixer-time={agentAnimationSample?.mixerTime ?? ""}
+      data-agent-avatar-sampled-clip={agentAnimationSample?.clipName ?? ""}
       data-agent-avatar-action-time={agentAnimationSample?.actionTime ?? ""}
       data-agent-avatar-animation-sequence={
         agentAnimationSample?.sequence ?? ""

@@ -758,7 +758,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
           sequence: Number(
             element.getAttribute("data-user-avatar-animation-sequence"),
           ),
-          clip: element.getAttribute("data-user-avatar-rendered-clip"),
+          clip: element.getAttribute("data-user-avatar-sampled-clip"),
           clipIndex: Number(
             element.getAttribute("data-user-avatar-rendered-clip-index"),
           ),
@@ -782,7 +782,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
           sequence: Number(
             element.getAttribute("data-agent-avatar-animation-sequence"),
           ),
-          clip: element.getAttribute("data-agent-avatar-rendered-clip"),
+          clip: element.getAttribute("data-agent-avatar-sampled-clip"),
           clipIndex: Number(
             element.getAttribute("data-agent-avatar-rendered-clip-index"),
           ),
@@ -799,6 +799,26 @@ test("seventeen agent stances and mounted user-directed movement work in product
       .locator("canvas")
       .getAttribute("data-user-position");
     return { ...host, worldPosition };
+  };
+
+  const readAdvancedAnimationSnapshot = async (
+    state: string,
+    expectedClip: string,
+  ) => {
+    let snapshot = await readAnimationSnapshot(state);
+    await expect
+      .poll(
+        async () => {
+          snapshot = await readAnimationSnapshot(state);
+          return {
+            actionTimeAdvanced: snapshot.user.actionTime > 0.2,
+            sampledClip: snapshot.user.clip,
+          };
+        },
+        { timeout: 10_000 },
+      )
+      .toEqual({ actionTimeAdvanced: true, sampledClip: expectedClip });
+    return snapshot;
   };
 
   const motionTrace = [await readAnimationSnapshot("idle-1")];
@@ -976,14 +996,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
     "data-user-avatar-rendered-clip",
     "NlaTrack.003",
   );
-  await expect
-    .poll(
-      async () =>
-        Number(await worldCanvas.getAttribute("data-user-avatar-action-time")),
-      { timeout: 10_000 },
-    )
-    .toBeGreaterThan(0.2);
-  motionTrace.push(await readAnimationSnapshot("walk"));
+  motionTrace.push(await readAdvancedAnimationSnapshot("walk", "NlaTrack.003"));
   expect(motionTrace.at(-1)!.user.actionTime).toBeGreaterThan(0.2);
   expect(motionTrace.at(-1)!.user.boneName).toBe("L_Thigh");
   await page.screenshot({
@@ -995,14 +1008,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
     "data-user-avatar-rendered-clip",
     "NlaTrack.020",
   );
-  await expect
-    .poll(
-      async () =>
-        Number(await worldCanvas.getAttribute("data-user-avatar-action-time")),
-      { timeout: 10_000 },
-    )
-    .toBeGreaterThan(0.2);
-  motionTrace.push(await readAnimationSnapshot("run"));
+  motionTrace.push(await readAdvancedAnimationSnapshot("run", "NlaTrack.020"));
   expect(motionTrace.at(-1)!.user.actionTime).toBeGreaterThan(0.2);
   expect(motionTrace.at(-1)!.user.boneName).toBe("L_Thigh");
   await page.screenshot({
