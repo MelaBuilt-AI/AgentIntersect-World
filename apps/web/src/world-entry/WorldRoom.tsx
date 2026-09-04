@@ -52,6 +52,7 @@ import {
   type WorldCameraLook,
 } from "./world-navigation-model.js";
 import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
+import type { WorldInputOwner } from "./world-view-model.js";
 import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
 import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
 import {
@@ -171,6 +172,7 @@ export function WorldRoom({
   objects,
   reducedMotion,
   forceNoWebGL,
+  inputOwner = "world",
   userName,
   agentName,
   userAvatar,
@@ -204,6 +206,7 @@ export function WorldRoom({
   readonly objects: readonly RepositoryRenderObject[];
   readonly reducedMotion: boolean;
   readonly forceNoWebGL: boolean;
+  readonly inputOwner?: WorldInputOwner;
   readonly userName: string;
   readonly agentName: string;
   readonly userAvatar: AvatarDraft;
@@ -1171,6 +1174,7 @@ export function WorldRoom({
   useEffect(() => {
     const activeKeys = pressedKeys.current;
     const down = (event: KeyboardEvent) => {
+      if (inputOwner !== "world") return;
       if (isEditableWorldTarget(event.target)) return;
       const key = event.key.toLocaleLowerCase();
       const dialogOpen = Boolean(
@@ -1288,6 +1292,7 @@ export function WorldRoom({
     };
     const look = (event: MouseEvent) => {
       if (
+        inputOwner !== "world" ||
         !lookOwnsPointerLock.current ||
         document.pointerLockElement !== lookSurface.current ||
         activeLookPointer.current === null
@@ -1306,6 +1311,7 @@ export function WorldRoom({
     };
     const startLook = (event: PointerEvent) => {
       if (
+        inputOwner !== "world" ||
         event.button !== 2 ||
         activeLookPointer.current !== null ||
         isInteractiveMouseTarget(event.target)
@@ -1361,12 +1367,14 @@ export function WorldRoom({
     };
     const contextMenu = (event: MouseEvent) => {
       if (
+        inputOwner !== "world" ||
         !roomRef.current?.isConnected ||
         isInteractiveMouseTarget(event.target)
       )
         return;
       event.preventDefault();
     };
+    if (inputOwner !== "world") clear();
     window.addEventListener("keydown", down, true);
     window.addEventListener("keyup", up, true);
     window.addEventListener("blur", clear);
@@ -1395,7 +1403,7 @@ export function WorldRoom({
       activeKeys.clear();
       stopMouseLook(false);
     };
-  }, [reducedMotion, stopMouseLook]);
+  }, [inputOwner, reducedMotion, stopMouseLook]);
 
   const projectedUserAction = projectWorldAvatarAction({
     role: "user",
@@ -1678,6 +1686,9 @@ export function WorldRoom({
       data-agent-position-z={agentMovement.position.z}
       data-agent-heading={agentMovement.heading}
       data-agent-velocity={`${agentMovement.velocity.x},${agentMovement.velocity.z}`}
+      data-input-owner={inputOwner}
+      data-user-position-x={userPosition.x}
+      data-user-position-z={userPosition.z}
       data-mouse-look={mouseLookActive ? "active" : "idle"}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}

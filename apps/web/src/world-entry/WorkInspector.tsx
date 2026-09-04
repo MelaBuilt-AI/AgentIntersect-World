@@ -164,6 +164,7 @@ export function WorldWorkstreamStatus({
   message,
   onInspect,
   onCancel,
+  worldViewAction,
 }: {
   readonly workstream: Workstream;
   readonly open: boolean;
@@ -171,6 +172,11 @@ export function WorldWorkstreamStatus({
   readonly message: string | null;
   readonly onInspect: () => void;
   readonly onCancel: () => void;
+  readonly worldViewAction?: {
+    readonly label: string;
+    readonly enabled: boolean;
+    readonly onStart: () => void;
+  };
 }) {
   return (
     <aside
@@ -194,6 +200,20 @@ export function WorldWorkstreamStatus({
       >
         {open ? "Close Work Inspector" : "Inspect current Workstream"}
       </button>
+      {worldViewAction ? (
+        <button
+          type="button"
+          className={
+            worldViewAction.enabled
+              ? "world-action--enabled"
+              : "world-action--unavailable"
+          }
+          disabled={!worldViewAction.enabled || pending}
+          onClick={worldViewAction.onStart}
+        >
+          {worldViewAction.label}
+        </button>
+      ) : null}
       {open ? (
         <WorkInspector
           workstream={workstream}

@@ -345,6 +345,10 @@ type WorldFixtureOptions = {
   readonly snapshot?: unknown;
   readonly phase14Current?: unknown;
   readonly repositoryProjects?: readonly unknown[];
+  readonly fulfillPreviewManager?: (
+    route: Route,
+    pathname: string,
+  ) => Promise<void>;
   readonly fulfillWorldActions?: (
     route: Route,
     pathname: string,
@@ -431,6 +435,14 @@ async function installWorldFixtures(
           executions: [],
         }),
       });
+      return;
+    }
+    if (
+      (pathname.includes("/preview-recipes") ||
+        pathname.includes("/previews")) &&
+      options.fulfillPreviewManager
+    ) {
+      await options.fulfillPreviewManager(route, pathname);
       return;
     }
     if (pathname.includes("/workstreams") && options.fulfillWorkstreams) {
@@ -903,6 +915,366 @@ test("@workbench-normal drives one Workstream through normal World conversation"
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+});
+
+test("@workbench-world-view keeps preview interaction inside the mounted World", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+
+  const repository = {
+    repositoryId: snapshot.repositoryRef,
+    revision: "77777777-7777-4777-8777-777777777777",
+  } as const;
+  const agent = {
+    agentId: session.sessionId,
+    nativeSessionId: session.adapterSessionRef,
+    rootNativeSessionId: session.adapterSessionRef,
+    revision: "0",
+  } as const;
+  const authority = {
+    schema: "aiw.worktree-authority-receipt/1",
+    ownerId: "workstream-owner",
+    requestId: "workstream-authority-request",
+    worktreeId: "worktree-world-view",
+    repositoryId: repository.repositoryId,
+    relativePath: "worktree-world-view",
+    branch: "workstream/world-view",
+    head: "a".repeat(40),
+    state: "current",
+    statusSummary: "Owned worktree is current and ready.",
+    validatedAt: "2026-09-03T20:00:00.000Z",
+    attestation: "b".repeat(64),
+  } as const;
+  const baseWorkstream = {
+    schema: "aiw.workstream/1",
+    workstreamId: "88888888-8888-4888-8888-888888888888",
+    revision: 1,
+    title: "Build World View",
+    task: "Build World View",
+    repository,
+    agent,
+    authority,
+    worktreeState: "current",
+    evidenceOperationRefs: [],
+    projection: {
+      currentActivity: "Owned worktree is current and ready.",
+      changedFiles: [],
+      diff: { summary: "", patch: "", truncated: false },
+      validation: [],
+      evidenceRefs: [],
+    },
+    status: "working",
+    createdAt: "2026-09-03T20:00:00.000Z",
+    updatedAt: "2026-09-03T20:00:00.000Z",
+    events: [],
+  } as const;
+  const recipe = {
+    schema: "aiw.preview-recipe/1",
+    recipeId: "world-view-web",
+    revision: 3,
+    repositoryId: repository.repositoryId,
+    label: "World View browser preview",
+    executable: "pnpm",
+    args: ["preview", "--host", "{host}", "--port", "{port}"],
+    readinessPath: "/",
+    browserPath: "/preview-fixture",
+    approvedAt: "2026-09-03T20:00:00.000Z",
+  } as const;
+  const preview = {
+    schema: "aiw.preview-record/1",
+    previewId: "preview-world-view",
+    revision: 4,
+    state: "ready",
+    workstreamId: baseWorkstream.workstreamId,
+    workstreamRevision: baseWorkstream.revision,
+    repository,
+    agent,
+    worktreeId: authority.worktreeId,
+    worktreeState: "current",
+    recipeId: recipe.recipeId,
+    recipeRevision: recipe.revision,
+    host: "127.0.0.1",
+    port: 45_173,
+    pid: 4321,
+    url: "http://127.0.0.1:45173/preview-fixture",
+    health: {
+      ok: true,
+      status: 200,
+      checkedAt: "2026-09-03T20:01:00.000Z",
+    },
+    logs: "ready",
+    logsTruncated: false,
+    startedAt: "2026-09-03T20:00:30.000Z",
+    readyAt: "2026-09-03T20:01:00.000Z",
+    stoppedAt: null,
+    portClosed: null,
+    recovered: false,
+    error: null,
+  } as const;
+  let currentWorkstream: Record<string, unknown> | null = null;
+  let previewReady = false;
+  let startRequests = 0;
+  const browserErrors: string[] = [];
+  await page.route("**/preview-fixture", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      body: '<!doctype html><label>Preview state<input aria-label="Preview state" value="kept"></label>',
+    }),
+  );
+  await installWorldFixtures(page, {
+    restoreStatus: true,
+    repositoryProjects: [
+      {
+        id: "notes-app",
+        name: "Notes App",
+        rootPath: "/tmp/notes-app",
+        source: "local",
+        pinned: true,
+        lastOpenedAt: "2026-09-03T19:00:00.000Z",
+      },
+    ],
+    fulfillPreviewManager: async (route, pathname) => {
+      const request = route.request();
+      if (request.method() === "GET" && pathname.endsWith("/preview-recipes")) {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(envelope([recipe])),
+        });
+        return;
+      }
+      if (
+        request.method() === "GET" &&
+        pathname.endsWith("/previews/current")
+      ) {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({
+              schema: "aiw.preview-manager/1",
+              active: previewReady ? preview : null,
+              latestAttempt: previewReady ? preview : null,
+              previousVerified: null,
+              display: previewReady ? { truth: "current", preview } : null,
+            }),
+          ),
+        });
+        return;
+      }
+      if (request.method() === "POST" && pathname.endsWith("/previews")) {
+        startRequests += 1;
+        previewReady = true;
+        const body = request.postDataJSON() as Record<string, unknown>;
+        expect(body).toEqual({
+          requestId: expect.any(String),
+          correlationId: body.requestId,
+          expectedWorkstreamRevision: baseWorkstream.revision,
+          repository,
+          agent,
+          recipeId: recipe.recipeId,
+          expectedRecipeRevision: recipe.revision,
+        });
+        expect(JSON.stringify(body)).not.toMatch(
+          /executable|args|cwd|environment|relativePath|branch|head/,
+        );
+        await route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: JSON.stringify(envelope({ preview, replayed: false })),
+        });
+        return;
+      }
+      await route.fulfill({ status: 404, body: "preview fixture missing" });
+    },
+    fulfillWorkstreams: async (route, pathname) => {
+      const request = route.request();
+      if (
+        request.method() === "GET" &&
+        pathname.endsWith("/workstreams/current")
+      ) {
+        await route.fulfill(
+          currentWorkstream
+            ? {
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify(envelope(currentWorkstream)),
+              }
+            : {
+                status: 404,
+                contentType: "application/json",
+                body: JSON.stringify({
+                  ok: false,
+                  error: {
+                    code: "not_found",
+                    message: "No current Workstream",
+                  },
+                }),
+              },
+        );
+        return;
+      }
+      if (request.method() === "POST" && pathname.endsWith("/workstreams")) {
+        currentWorkstream = baseWorkstream;
+        await route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({ workstream: currentWorkstream, replayed: false }),
+          ),
+        });
+        return;
+      }
+      if (request.method() === "POST" && pathname.endsWith("/cancel")) {
+        previewReady = false;
+        currentWorkstream = {
+          ...baseWorkstream,
+          revision: 2,
+          status: "cancelled",
+          worktreeState: "removed",
+          projection: {
+            ...baseWorkstream.projection,
+            currentActivity: "Owned clean worktree removed.",
+          },
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({ workstream: currentWorkstream, replayed: false }),
+          ),
+        });
+        return;
+      }
+      await route.fulfill({ status: 404, body: "workstream fixture missing" });
+    },
+  });
+  await enterFixtureWorld(page);
+
+  const composer = page.getByLabel("Message Mr Fluff");
+  await composer.fill("Let's pick up work on the Notes App");
+  await composer.press("Enter");
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "repository",
+    { timeout: 30_000 },
+  );
+  await composer.fill("Build World View");
+  await composer.press("Enter");
+
+  const workstream = page.getByRole("complementary", {
+    name: "Current Workstream",
+  });
+  await expect(workstream).toBeVisible();
+  page.on("console", (message) => {
+    if (message.type() === "error")
+      browserErrors.push(
+        `${message.text()}${message.location().url ? ` @ ${message.location().url}` : ""}`,
+      );
+  });
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+  page.on("response", (response) => {
+    if (response.status() >= 400)
+      browserErrors.push(`${response.status()} ${response.url()}`);
+  });
+  const launcher = workstream.getByRole("button", {
+    name: "Start World View",
+  });
+  await expect(launcher).toBeEnabled();
+  await expect(launcher).toHaveCSS("background-image", /linear-gradient/iu);
+  await launcher.click();
+  await expect.poll(() => startRequests).toBe(1);
+
+  const view = page.getByRole("region", { name: "World View" });
+  await expect(view).toBeVisible();
+  await expect(view).toHaveAttribute("data-preview-truth", "current");
+  await expect(view).toContainText("Current verified preview");
+  await expect(view).toContainText("workstream/world-view");
+  await expect(view.locator("iframe")).toHaveCount(1);
+  await expect(view.locator("canvas")).toHaveCount(0);
+  await expect.poll(() => startRequests).toBe(1);
+
+  const room = page.locator("main.world-room");
+  await room.focus();
+  await page.keyboard.down("w");
+  await page.waitForTimeout(120);
+  await page.keyboard.up("w");
+  const worldState = await room.evaluate((element) => ({
+    x: element.getAttribute("data-user-position-x"),
+    z: element.getAttribute("data-user-position-z"),
+    yaw: element.getAttribute("data-camera-yaw"),
+    pitch: element.getAttribute("data-camera-pitch"),
+  }));
+
+  await view.getByRole("button", { name: "Expand World View" }).click();
+  const expanded = page.getByRole("dialog", { name: "World View" });
+  await expect(expanded).toBeVisible();
+  await expanded.getByRole("button", { name: "Interact with preview" }).click();
+  await expect(expanded).toHaveAttribute("data-input-owner", "preview");
+  await expect(room).toHaveAttribute("data-input-owner", "preview");
+  await page.keyboard.down("w");
+  await page.waitForTimeout(120);
+  await page.keyboard.up("w");
+  await expect
+    .poll(() =>
+      room.evaluate((element) => ({
+        x: element.getAttribute("data-user-position-x"),
+        z: element.getAttribute("data-user-position-z"),
+        yaw: element.getAttribute("data-camera-yaw"),
+        pitch: element.getAttribute("data-camera-pitch"),
+      })),
+    )
+    .toEqual(worldState);
+
+  const previewFrame = page.frameLocator(
+    'iframe[title="World View preview: Build World View"]',
+  );
+  await expect(previewFrame.getByLabel("Preview state")).toHaveValue("kept");
+  await expanded.getByRole("button", { name: "Return to World" }).click();
+  await expect(room).toHaveAttribute("data-input-owner", "world");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "World View" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  await expect(
+    view.getByRole("button", { name: "Expand World View" }),
+  ).toBeFocused();
+  await view.getByRole("button", { name: "Expand World View" }).click();
+  await expect(previewFrame.getByLabel("Preview state")).toHaveValue("kept");
+  await expanded.getByRole("button", { name: "Close World View" }).click();
+  await expect(room).toHaveAttribute("data-input-owner", "world");
+
+  const bounds = await view.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.y).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(1440);
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(900);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("workbench-world-view.png"),
+  });
+
+  await composer.fill("cancel current workstream");
+  await composer.press("Enter");
+  await expect(workstream).toHaveAttribute(
+    "data-workstream-status",
+    "cancelled",
+  );
+  await expect(page.getByLabel("World View")).toHaveCount(0);
+  await expect(
+    workstream.getByRole("button", { name: /World View unavailable/iu }),
+  ).toBeDisabled();
+  expect(startRequests).toBe(1);
+  expect(browserErrors).toEqual([]);
 });
 
 test("@workstream-tracer deterministic Work Inspector stays truthful and keyboard accessible", async ({
