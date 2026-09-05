@@ -159,19 +159,22 @@ describe("experimental imported avatar renderer routing", () => {
     expect(source).toContain('role="agent"');
   });
 
-  it("frames a normalized 1.75-meter imported avatar at a useful World size", () => {
-    expect(typeof importedWorldApi.calculateWorldCameraPose).toBe("function");
-    expect(typeof importedWorldApi.projectWorldPointToViewport).toBe(
-      "function",
-    );
-    if (
-      !importedWorldApi.calculateWorldCameraPose ||
-      !importedWorldApi.projectWorldPointToViewport
-    )
-      return;
-    const camera = importedWorldApi.calculateWorldCameraPose({
+  it("uses shared single/multi-agent defaults and retains useful close-up zoom", () => {
+    const input = {
       userPosition: { x: 0, z: 0 },
       camera: { yaw: 0, pitch: 0.35 },
+    };
+    const shared = worldRoomModule.calculateWorldCameraPose(input);
+    for (const agentCount of [1, 2, 5]) {
+      expect(
+        worldRoomModule.calculateWorldCameraPose({ ...input, agentCount }),
+      ).toEqual(shared);
+    }
+    // The former single-agent close-up is now explicitly reached by wheel zoom.
+    // Keep the original pixel-size guarantee without reinstating the old default.
+    const camera = worldRoomModule.calculateWorldCameraPose({
+      ...input,
+      camera: { ...input.camera, zoom: 0.4 },
     });
     const project = (point: readonly [number, number, number]) =>
       importedWorldApi.projectWorldPointToViewport!({
