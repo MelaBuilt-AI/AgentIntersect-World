@@ -65,6 +65,30 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
       /matrix3d/,
     );
   }
+  // Native Edge can drop coplanar iframe content inside preserve-3d even
+  // while headless Chromium paints it. Keep the native-proven flat surface.
+  await expect(screen("preview").locator(".world-screen__object")).toHaveCSS(
+    "transform-style",
+    "flat",
+  );
+  await expect(screen("preview").locator(".world-screen__camera")).toHaveCSS(
+    "transform-style",
+    "preserve-3d",
+  );
+  // All cards must contribute to layout before the following Asset Inspector.
+  await palette.getByLabel("Search assets").fill("");
+  const assetGrid = palette.locator(".repository-assets__grid");
+  const cardOverflow = await assetGrid.evaluate((grid) => {
+    const gridBottom = grid.getBoundingClientRect().bottom;
+    return Math.max(
+      ...Array.from(
+        grid.querySelectorAll("li"),
+        (card) => card.getBoundingClientRect().bottom - gridBottom,
+      ),
+    );
+  });
+  expect(cardOverflow).toBeLessThanOrEqual(1);
+  await palette.getByLabel("Search assets").fill("code");
   const preview = page.getByRole("region", { name: "World View" });
   await expect(page.getByRole("dialog", { name: "World View" })).toHaveCount(0);
   const iframe = preview.locator("iframe");

@@ -1390,6 +1390,11 @@
   background: #071322;
 }
 
+/* Flatten coplanar preview contents to avoid native iframe compositing flicker. */
+.world-screen--spatial[data-world-screen="preview"] .world-screen__object {
+  transform-style: flat;
+}
+
 .world-screen--spatial .world-screen__object > .world-view {
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto;
@@ -1413,9 +1418,6 @@
 }
 .world-screen--spatial .work-inspector {
   max-height: none;
-}
-.world-screen--spatial .repository-assets__grid {
-  max-height: 360px;
 }
 
 .world-screen__toggle,

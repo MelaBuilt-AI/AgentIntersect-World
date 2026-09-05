@@ -1,8 +1,18 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-04
+Updated: 2026-09-05
 
 ## Current milestone
+
+### 2026-09-05 Spatial corrections — MANUAL PASS / CONDITIONAL MERGE AUTHORIZED
+
+Aaron first-hand accepted the corrected 45271 candidate: “perfect, all fixed!” (Discord message `1545800631653240984`, 2026-09-05). PASS: World View preview-content flicker is resolved; PASS: Live/Director Asset Inspector no longer overlaps the asset cards. His earlier unaffected spatial-checklist passes remain valid. No additional retest screenshot/video was supplied; this is the operator's explicit verdict, separate from automated proof. Commit/push, new-tip CI, merge, and runtime cleanup remain separate gates.
+
+The original candidate failed those two visual criteria; its supplied video remains at `C:\Users\Mela AI\Videos\flicker screen.mp4` and its retained diagnostic state is historical evidence, not the corrected verdict.
+
+Authorized corrections are limited to flattening the spatial preview object's coplanar contents (not its camera transform or mounted iframe) and removing the spatial-only asset-grid height cap so the inspector follows every card in normal flow. The strengthened spatial browser regression was RED against the prior build; all three affected production-shaped journeys now pass, alongside 28 focused unit tests, web/root TypeScript, focused lint/format, and the external unflagged production build. Native Edge using the built stylesheet without corrective injection retains preview content at 41/41 camera angles, versus 11/41 dropouts in the original reproduction. Built-CSS palette geometry and inspected pixels confirm no inspector overlap. Headless Chromium alone did not reproduce the native compositor defect.
+
+The accepted corrections are packaged on `feat/world-spatial-code-screens`, based on `facb44fd2c78dc729ffe18ad4861d19d5f4cab5b`. Aaron explicitly authorized commit/push and merging PR #7 only after exact-new-tip CI and readiness are green (Discord message `1545801493024608329`). This supersedes the historical delivery/merge holds below. The prior commit's green CI does not certify these corrections; final commit/run/merge receipts belong in the external delivery record, avoiding recursive status commits. The original candidate's served artifacts, browser, and state are preserved; the accepted retest and owner-validating cleanup helpers remain under `/home/mela_ai/.hermes/runs/aiw-spatial-retest-20260905`. Unrelated functionality tweaks, full Slice 6, Phase 20, original-AgentIntersect changes, protected-service/profile changes, and public/release actions remain outside scope. Runtime cleanup is separate.
 
 ### 2026-09-05 Private delivery authorized — MANUAL ACCEPTANCE NEXT / MERGE HELD
 
