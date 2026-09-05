@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -52,6 +52,64 @@ afterEach(async () => {
 });
 
 describe("repository index API/service", () => {
+  it("reads code for the selected object and refuses stale or unindexed targets", async () => {
+    const selected = await root();
+    const server = createLocalServer({ config });
+    servers.push(server);
+    const started = await server.inject({
+      method: "POST",
+      url: "/repository-indexes",
+      headers: { "idempotency-key": "code-screen" },
+      payload: { rootPath: selected },
+    });
+    await waitForTerminal(server, started.json().data.id);
+    const selection = server.currentRepositorySelection()!;
+    const file = selection.snapshot.objects.find(
+      (object) => object.kind === "file",
+    )!;
+    const query = new URLSearchParams({
+      objectRef: file.ref,
+      repositoryRef: selection.snapshot.repositoryRef,
+    });
+    const response = await server.inject({
+      method: "GET",
+      url: `/repository-code?${query}`,
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.content).toBe("export const ok = true;\n");
+    expect(response.json().data.path).toBe("index.ts");
+    expect(response.headers["cache-control"]).toBe("no-store");
+    const container = selection.snapshot.objects.find(
+      (object) => object.kind === "repository",
+    )!;
+    const directory = await server.inject({
+      method: "GET",
+      url: `/repository-code?${new URLSearchParams({ objectRef: container.ref, repositoryRef: selection.snapshot.repositoryRef })}`,
+    });
+    expect(directory.json().data.files).toContainEqual({
+      ref: file.ref,
+      path: "index.ts",
+    });
+    const outside = await root();
+    await rm(join(selected, "index.ts"));
+    await symlink(join(outside, "index.ts"), join(selected, "index.ts"));
+    expect(
+      (await server.inject({ method: "GET", url: `/repository-code?${query}` }))
+        .statusCode,
+    ).toBe(403);
+    query.set("repositoryRef", "aiw://object/wrong-repository");
+    expect(
+      (await server.inject({ method: "GET", url: `/repository-code?${query}` }))
+        .statusCode,
+    ).toBe(409);
+    query.set("repositoryRef", selection.snapshot.repositoryRef);
+    query.set("objectRef", "../../etc/passwd");
+    expect(
+      (await server.inject({ method: "GET", url: `/repository-code?${query}` }))
+        .statusCode,
+    ).toBe(404);
+  });
+
   it("creates, replays, conflicts, lists, gets, and activates the last good generation", async () => {
     const selected = await root();
     const server = createLocalServer({ config });

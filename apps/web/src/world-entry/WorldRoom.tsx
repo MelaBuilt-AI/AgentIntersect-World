@@ -45,6 +45,7 @@ import {
 } from "./world-chat-model.js";
 import {
   applyWorldCameraLook,
+  applyWorldCameraZoom,
   isEditableWorldTarget,
   moveWorldPosition,
   projectAvatarMovementPhaseFromKeys,
@@ -53,6 +54,8 @@ import {
 } from "./world-navigation-model.js";
 import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
 import type { WorldInputOwner } from "./world-view-model.js";
+import { useWorldScreens } from "./world-screen-context.js";
+import { RepositoryCodeScreen } from "./RepositoryCodeScreen.js";
 import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
 import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
 import {
@@ -163,7 +166,7 @@ const isInteractiveMouseTarget = (target: EventTarget | null): boolean =>
   target instanceof Element &&
   Boolean(
     target.closest(
-      'input, textarea, select, button, a, form, [contenteditable="true"], [role="button"], [role="link"], .world-transcript, .repository-asset-palette, .repository-asset-inspector',
+      'input, textarea, select, button, a, form, [contenteditable="true"], [role="button"], [role="link"], .world-transcript, .repository-asset-palette, .repository-asset-inspector, .world-screen__object',
     ),
   );
 
@@ -278,7 +281,20 @@ export function WorldRoom({
   readonly onRepositoryReady?: (() => void) | undefined;
   readonly onRepositoryError?: (() => void) | undefined;
 }) {
+  const screenController = useWorldScreens();
+  const [codeInspection, setCodeInspection] = useState(false);
+  const [codeInstanceId, setCodeInstanceId] = useState<string | null>(null);
+  const screenDragging =
+    (screenController?.dragging ?? false) || codeInspection;
+  const updateScreenAnchor = screenController?.updateAnchor;
+  const setScreensEnabled = screenController?.setEnabled;
   const roomRef = useRef<HTMLElement>(null);
+  const [screenEventSource, setScreenEventSource] =
+    useState<HTMLElement | null>(null);
+  const bindRoom = useCallback((element: HTMLElement | null) => {
+    roomRef.current = element;
+    setScreenEventSource(element);
+  }, []);
   const pressedKeys = useRef(new Set<string>());
   const lastFrame = useRef<number | null>(null);
   const [contextLost, setContextLost] = useState(
@@ -370,6 +386,7 @@ export function WorldRoom({
   const [camera, setCamera] = useState<WorldCameraLook>({
     yaw: 0,
     pitch: 0.35,
+    zoom: 1,
   });
   const cameraRef = useRef(camera);
   const activeLookPointer = useRef<number | null>(null);
@@ -427,6 +444,26 @@ export function WorldRoom({
         avatar.avatarSource.mode === "modular",
     );
   const noWebGL = forceNoWebGL || contextLost || modularUnsupported;
+  useLayoutEffect(() => {
+    setScreensEnabled?.(!noWebGL);
+    return () => setScreensEnabled?.(false);
+  }, [noWebGL, setScreensEnabled]);
+  useLayoutEffect(() => {
+    updateScreenAnchor?.({ ...userPosition, yaw: camera.yaw });
+  }, [camera.yaw, updateScreenAnchor, userPosition]);
+  const spatialScreensShown = Boolean(
+    screenController?.enabled &&
+    Object.values(screenController.modes).some(Boolean),
+  );
+  useEffect(() => {
+    if (!spatialScreensShown) return;
+    // Raise the initial downward exploration camera to screen height.
+    const frame = window.requestAnimationFrame(() => {
+      setCamera((current) => ({ ...current, pitch: 0 }));
+      setCityFocusPosition(null);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [spatialScreensShown]);
   const selectedCityInstance =
     city.instances.find(
       ({ instanceId }) => instanceId === selectedCityInstanceId,
@@ -613,11 +650,24 @@ export function WorldRoom({
     },
     [dispatchCity],
   );
-  const selectCityInstance = useCallback((instanceId: string) => {
-    setSelectedCityInstanceId(instanceId);
-    setSelectedWorkstreamId(null);
-    setCityFocusPosition(null);
-  }, []);
+  const selectCityInstance = useCallback(
+    (instanceId: string) => {
+      const instance = city.instances.find(
+        (item) => item.instanceId === instanceId,
+      );
+      if (!instance) return;
+      setSelectedCityInstanceId(instanceId);
+      setCodeInstanceId(instanceId);
+      setSelectedWorkstreamId(null);
+      setCityFocusPosition(instance.position);
+      setCamera((current) => ({ ...current, yaw: 0, pitch: 0 }));
+    },
+    [city.instances],
+  );
+  const codeInstance = city.instances.find(
+    (item) => item.instanceId === codeInstanceId,
+  );
+
   useLayoutEffect(() => {
     userAnimationRef.current = userAnimation;
   }, [userAnimation]);
@@ -1174,8 +1224,13 @@ export function WorldRoom({
   useEffect(() => {
     const activeKeys = pressedKeys.current;
     const down = (event: KeyboardEvent) => {
-      if (inputOwner !== "world") return;
-      if (isEditableWorldTarget(event.target)) return;
+      if (inputOwner !== "world" || screenDragging || event.defaultPrevented)
+        return;
+      if (
+        isEditableWorldTarget(event.target) ||
+        isInteractiveMouseTarget(event.target)
+      )
+        return;
       const key = event.key.toLocaleLowerCase();
       const dialogOpen = Boolean(
         document.querySelector('[role="dialog"], dialog[open]'),
@@ -1219,6 +1274,28 @@ export function WorldRoom({
         }
       }
     };
+    const wheel = (event: WheelEvent) => {
+      if (
+        inputOwner !== "world" ||
+        screenDragging ||
+        event.ctrlKey ||
+        isInteractiveMouseTarget(event.target) ||
+        !(event.target instanceof Node) ||
+        !roomRef.current?.contains(event.target) ||
+        document.querySelector('[role="dialog"], dialog[open]')
+      )
+        return;
+      event.preventDefault();
+      setCamera((current) => ({
+        ...current,
+        zoom: applyWorldCameraZoom(
+          current.zoom ?? 1,
+          event.deltaY,
+          event.deltaMode,
+        ),
+      }));
+    };
+    window.addEventListener("wheel", wheel, { passive: false });
     const up = (event: KeyboardEvent) => {
       const key = event.key.toLocaleLowerCase();
       const previousKeys = [...activeKeys];
@@ -1245,7 +1322,11 @@ export function WorldRoom({
       stopMouseLook();
     };
     const focus = (event: FocusEvent) => {
-      if (!isEditableWorldTarget(event.target)) return;
+      if (
+        !isEditableWorldTarget(event.target) &&
+        !isInteractiveMouseTarget(event.target)
+      )
+        return;
       const previousKeys = [...activeKeys];
       activeKeys.clear();
       setMovementPhase((current) =>
@@ -1312,6 +1393,7 @@ export function WorldRoom({
     const startLook = (event: PointerEvent) => {
       if (
         inputOwner !== "world" ||
+        screenDragging ||
         event.button !== 2 ||
         activeLookPointer.current !== null ||
         isInteractiveMouseTarget(event.target)
@@ -1388,6 +1470,7 @@ export function WorldRoom({
     document.addEventListener("pointerlockerror", pointerLockError);
     document.addEventListener("mousemove", look);
     return () => {
+      window.removeEventListener("wheel", wheel);
       window.removeEventListener("keydown", down, true);
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
@@ -1403,7 +1486,7 @@ export function WorldRoom({
       activeKeys.clear();
       stopMouseLook(false);
     };
-  }, [inputOwner, reducedMotion, stopMouseLook]);
+  }, [inputOwner, reducedMotion, screenDragging, stopMouseLook]);
 
   const projectedUserAction = projectWorldAvatarAction({
     role: "user",
@@ -1636,9 +1719,13 @@ export function WorldRoom({
 
   return (
     <main
-      ref={roomRef}
+      ref={bindRoom}
       className="world-room"
       data-scene-id="world-room"
+      data-spatial-screens={Boolean(
+        screenController?.enabled &&
+        screenController.screens.some((screen) => screen.spatial),
+      )}
       data-floor-state={floor}
       data-renderer={noWebGL ? "semantic" : "webgl"}
       data-user-avatar-species={userAvatar.species}
@@ -1692,6 +1779,7 @@ export function WorldRoom({
       data-mouse-look={mouseLookActive ? "active" : "idle"}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
+      data-camera-zoom={camera.zoom ?? 1}
       data-repository-readiness={repositoryReadiness}
       data-repository-city-count={city.instances.length}
       data-repository-city-mode={cityMode}
@@ -1733,13 +1821,23 @@ export function WorldRoom({
         if (event.pointerId === activeLookPointer.current) stopMouseLook();
       }}
     >
+      {floor === "repository" && codeInstance ? (
+        <RepositoryCodeScreen
+          key={codeInstance.instanceId}
+          instance={codeInstance}
+          onClose={() => setCodeInstanceId(null)}
+          onInspectionChange={setCodeInspection}
+        />
+      ) : null}
       {showControlHints ? (
         <section
           className="world-room__controls"
           aria-label="World controls"
           role="status"
         >
-          <span>Hold right mouse on canvas: look · release: stop</span>
+          <span>
+            Hold right mouse on canvas: look · release: stop · Wheel: zoom
+          </span>
           <span>WASD / arrows: move · Shift: sprint · Space: jump</span>
           <strong>
             {mouseLookActive ? "Mouse look active" : "Mouse look idle"}
@@ -1920,7 +2018,15 @@ export function WorldRoom({
             >
               {objects.slice(0, 160).map((object) => (
                 <li key={object.ref}>
-                  {repositoryVisualFamily(object)}: {object.name}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectCityInstance(`repository:${object.ref}`)
+                    }
+                    aria-label={`Inspect code: ${object.name}`}
+                  >
+                    {repositoryVisualFamily(object)}: {object.name}
+                  </button>
                 </li>
               ))}
             </ol>
@@ -1955,6 +2061,10 @@ export function WorldRoom({
             <Suspense fallback={null}>
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
+                  screenEventSource={screenEventSource ?? undefined}
+                  screens={screenController?.screens}
+                  onScreenMove={screenController?.move}
+                  onScreenDrag={screenController?.setDragging}
                   floor={floor}
                   objects={objects}
                   cityInstances={city.instances}
@@ -1998,6 +2108,10 @@ export function WorldRoom({
                 />
               ) : (
                 <WorldRoomCanvas
+                  screenEventSource={screenEventSource ?? undefined}
+                  screens={screenController?.screens}
+                  onScreenMove={screenController?.move}
+                  onScreenDrag={screenController?.setDragging}
                   floor={floor}
                   objects={objects}
                   cityInstances={city.instances}

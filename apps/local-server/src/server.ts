@@ -1,3 +1,4 @@
+import { registerRepositoryCodeRoute } from "./repository-code-route.js";
 import { createHash, timingSafeEqual } from "node:crypto";
 import net from "node:net";
 import { resolve } from "node:path";
@@ -1457,6 +1458,7 @@ export function createLocalServer(
           success(request, { operations: repositoryIndexService.list() }),
         ),
     );
+    registerRepositoryCodeRoute(server, currentRepositorySelection);
     server.get(
       "/repository-indexes/current",
       { schema: { tags: ["repository-indexes"] } },

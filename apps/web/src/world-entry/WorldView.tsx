@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
+import { useSpatialScreen } from "./world-screen-context.js";
+
 import type { PreviewProjection } from "./preview-manager-client.js";
 import type { Workstream } from "./workstream-tracer.js";
 import type { WorldInputOwner } from "./world-view-model.js";
@@ -16,6 +19,7 @@ export function WorldView({
   readonly iterationStatus?: IterationStatus | null;
   readonly onInputOwnerChange: (owner: WorldInputOwner) => void;
 }) {
+  const spatial = useSpatialScreen("preview");
   const display = projection.display;
   const [expanded, setExpanded] = useState(false);
   const [inputOwner, setInputOwner] = useState<WorldInputOwner>("world");
@@ -38,7 +42,7 @@ export function WorldView({
   }, [assignInputOwner]);
 
   useEffect(() => {
-    if (!expanded) return;
+    if (!expanded && inputOwner !== "preview") return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
       event.preventDefault();
@@ -52,7 +56,7 @@ export function WorldView({
     };
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [assignInputOwner, collapse, expanded, inputOwner]);
+  }, [assignInputOwner, collapse, expanded, inputOwner, spatial]);
 
   useEffect(
     () => () => {
@@ -73,129 +77,133 @@ export function WorldView({
     preview.readyAt ?? preview.health?.checkedAt ?? preview.startedAt;
 
   return (
-    <section
-      className={`world-view${expanded ? " world-view--expanded" : ""}`}
-      aria-label="World View"
-      aria-modal={expanded ? true : undefined}
-      data-preview-truth={display.truth}
-      data-preview-state={preview.state}
-      data-preview-id={preview.previewId}
-      data-iteration-state={iterationStatus?.state ?? "idle"}
-      data-world-view-expanded={expanded}
-      data-input-owner={inputOwner}
-      role={expanded ? "dialog" : "region"}
-    >
-      <header className="world-view__header">
-        <div>
-          <span className="world-view__eyebrow">World View</span>
-          <strong>{workstream.title}</strong>
-        </div>
-        <span
-          className={`world-view__truth world-view__truth--${display.truth}`}
-          role="status"
-        >
-          {truthLabel}
-        </span>
-      </header>
-
-      {iterationStatus ? (
-        <p
-          className={`world-view__iteration world-view__iteration--${iterationStatus.state}`}
-          role="status"
-        >
-          {iterationStatus.message}
-        </p>
-      ) : null}
-
-      <dl className="world-view__facts">
-        <div>
-          <dt>Repository</dt>
-          <dd>{preview.repository.repositoryId}</dd>
-        </div>
-        <div>
-          <dt>Branch</dt>
-          <dd>{branch}</dd>
-        </div>
-        <div>
-          <dt>Worktree</dt>
-          <dd>{preview.worktreeId}</dd>
-        </div>
-        <div>
-          <dt>Revision</dt>
-          <dd>Preview revision {preview.revision}</dd>
-        </div>
-        <div>
-          <dt>Ready</dt>
-          <dd>
-            <time dateTime={readyAt}>{readyAt}</time>
-          </dd>
-        </div>
-      </dl>
-
-      <div className="world-view__screen">
-        <iframe
-          ref={iframe}
-          className={`world-view__iframe${
-            inputOwner === "preview" ? " world-view__iframe--interactive" : ""
-          }`}
-          src={previewUrl}
-          title={`World View preview: ${workstream.title}`}
-          sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
-          referrerPolicy="no-referrer"
-          tabIndex={inputOwner === "preview" ? 0 : -1}
-        />
-        {!expanded ? (
-          <button
-            ref={opener}
-            type="button"
-            className="world-view__expand world-action--enabled"
-            aria-expanded="false"
-            onClick={() => {
-              setExpanded(true);
-              assignInputOwner("world");
-            }}
+    <WorldScreen id="preview">
+      <section
+        className={`world-view${expanded && !spatial ? " world-view--expanded" : ""}`}
+        aria-label="World View"
+        aria-modal={expanded && !spatial ? true : undefined}
+        data-preview-truth={display.truth}
+        data-preview-state={preview.state}
+        data-preview-id={preview.previewId}
+        data-iteration-state={iterationStatus?.state ?? "idle"}
+        data-world-view-expanded={expanded}
+        data-input-owner={inputOwner}
+        role={expanded && !spatial ? "dialog" : "region"}
+      >
+        <header className="world-view__header">
+          <WorldScreenToggle id="preview" />
+          <div>
+            <span className="world-view__eyebrow">World View</span>
+            <strong>{workstream.title}</strong>
+          </div>
+          <span
+            className={`world-view__truth world-view__truth--${display.truth}`}
+            role="status"
           >
-            Expand World View
-          </button>
-        ) : null}
-      </div>
+            {truthLabel}
+          </span>
+        </header>
 
-      {expanded ? (
-        <footer className="world-view__controls">
-          {inputOwner === "world" ? (
+        {iterationStatus ? (
+          <p
+            className={`world-view__iteration world-view__iteration--${iterationStatus.state}`}
+            role="status"
+          >
+            {iterationStatus.message}
+          </p>
+        ) : null}
+
+        <dl className="world-view__facts">
+          <div>
+            <dt>Repository</dt>
+            <dd>{preview.repository.repositoryId}</dd>
+          </div>
+          <div>
+            <dt>Branch</dt>
+            <dd>{branch}</dd>
+          </div>
+          <div>
+            <dt>Worktree</dt>
+            <dd>{preview.worktreeId}</dd>
+          </div>
+          <div>
+            <dt>Revision</dt>
+            <dd>Preview revision {preview.revision}</dd>
+          </div>
+          <div>
+            <dt>Ready</dt>
+            <dd>
+              <time dateTime={readyAt}>{readyAt}</time>
+            </dd>
+          </div>
+        </dl>
+
+        <div className="world-view__screen">
+          <iframe
+            ref={iframe}
+            className={`world-view__iframe${
+              inputOwner === "preview" ? " world-view__iframe--interactive" : ""
+            }`}
+            src={previewUrl}
+            title={`World View preview: ${workstream.title}`}
+            sandbox="allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
+            referrerPolicy="no-referrer"
+            tabIndex={inputOwner === "preview" ? 0 : -1}
+          />
+          {!expanded && !spatial ? (
             <button
-              ref={returnControl}
+              ref={opener}
               type="button"
-              className="world-action--enabled"
+              className="world-view__expand world-action--enabled"
+              aria-expanded="false"
               onClick={() => {
-                assignInputOwner("preview");
-                window.requestAnimationFrame(() => iframe.current?.focus());
+                setExpanded(true);
+                assignInputOwner("world");
               }}
             >
-              Interact with preview
+              Expand World View
             </button>
-          ) : (
+          ) : null}
+        </div>
+
+        {expanded || spatial || inputOwner === "preview" ? (
+          <footer className="world-view__controls">
+            {inputOwner === "world" ? (
+              <button
+                ref={returnControl}
+                type="button"
+                className="world-action--enabled"
+                onClick={() => {
+                  assignInputOwner("preview");
+                  window.requestAnimationFrame(() => iframe.current?.focus());
+                }}
+              >
+                Interact with preview
+              </button>
+            ) : (
+              <button
+                ref={returnControl}
+                type="button"
+                className="world-action--enabled"
+                onClick={() => assignInputOwner("world")}
+              >
+                Return to World
+              </button>
+            )}
+            <span role="status">
+              Input: {inputOwner === "preview" ? "Preview" : "World"}
+            </span>
             <button
-              ref={returnControl}
               type="button"
-              className="world-action--enabled"
-              onClick={() => assignInputOwner("world")}
+              className="world-view__close world-action--enabled"
+              onClick={collapse}
+              hidden={spatial}
             >
-              Return to World
+              Close World View
             </button>
-          )}
-          <span role="status">
-            Input: {inputOwner === "preview" ? "Preview" : "World"}
-          </span>
-          <button
-            type="button"
-            className="world-view__close world-action--enabled"
-            onClick={collapse}
-          >
-            Close World View
-          </button>
-        </footer>
-      ) : null}
-    </section>
+          </footer>
+        ) : null}
+      </section>
+    </WorldScreen>
   );
 }

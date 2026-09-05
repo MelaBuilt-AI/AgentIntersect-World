@@ -1,6 +1,7 @@
 export type RenderObjectKind = "package" | "directory" | "file" | "symbol";
 export * from "./repository-asset-manifest.js";
 export * from "./repository-city-state.js";
+export * from "./world-screen-types.js";
 export const REPOSITORY_VISUAL_FAMILIES = [
   "package-workspace-hub",
   "directory-archive-gate",

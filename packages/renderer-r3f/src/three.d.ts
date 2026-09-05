@@ -1,6 +1,20 @@
 declare module "three" {
   export type ColorRepresentation = string | number | Color;
+  export class Vector2 {
+    constructor(x?: number, y?: number);
+    set(x: number, y: number): this;
+  }
+  export class Plane {
+    constructor(normal?: Vector3, constant?: number);
+  }
+  export class Raycaster {
+    ray: { intersectPlane(plane: Plane, target: Vector3): Vector3 | null };
+    setFromCamera(coords: Vector2, camera: Object3D): void;
+  }
   export class Vector3 {
+    constructor(x?: number, y?: number, z?: number);
+    clone(): Vector3;
+    applyMatrix4(matrix: Matrix4): this;
     x: number;
     y: number;
     z: number;
@@ -14,6 +28,7 @@ declare module "three" {
     z: number;
   }
   export class Quaternion {
+    setFromAxisAngle(axis: Vector3, angle: number): this;
     x: number;
     y: number;
     z: number;
@@ -36,7 +51,9 @@ declare module "three" {
     updateMatrixWorld(force?: boolean): void;
   }
   export class Group extends Object3D {}
+  export const NoBlending: number;
   export class Material {
+    blending: number;
     name: string;
     opacity: number;
     transparent: boolean;
@@ -70,12 +87,16 @@ declare module "three" {
     renderOrder: number;
   }
   export class Mesh extends Object3D {
+    renderOrder: number;
     constructor(geometry?: unknown, material?: unknown);
     material: Material | Material[];
   }
   export class BufferGeometry {
     setFromPoints(points: readonly Vector3[]): this;
     rotateX(angle: number): this;
+  }
+  export class PlaneGeometry extends BufferGeometry {
+    constructor(width?: number, height?: number);
   }
   export class BoxGeometry extends BufferGeometry {
     constructor(
@@ -138,6 +159,7 @@ declare module "three" {
     emissive: Color;
     emissiveIntensity: number;
     roughness: number;
+    metalness: number;
   }
   export class MeshBasicMaterial extends Material {
     constructor(parameters?: {
@@ -207,6 +229,8 @@ declare module "three" {
   }
 
   export class Matrix4 {
+    elements: number[];
+    compose(position: Vector3, quaternion: Quaternion, scale: Vector3): this;
     fromArray(array: ArrayLike<number>, offset?: number): this;
   }
 

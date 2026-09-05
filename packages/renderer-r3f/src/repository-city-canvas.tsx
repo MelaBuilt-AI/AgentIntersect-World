@@ -235,7 +235,12 @@ function RepositoryCityModel({
         instance.position.z,
       ]}
       scale={definition.defaultScale}
-      onClick={(event: { stopPropagation: () => void }) => {
+      onClick={(event: {
+        button: number;
+        delta: number;
+        stopPropagation: () => void;
+      }) => {
+        if (event.button !== 0 || event.delta > 5) return;
         event.stopPropagation();
         onSelect(instance.instanceId);
       }}
