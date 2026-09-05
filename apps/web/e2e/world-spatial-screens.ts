@@ -5,6 +5,9 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   page.setDefaultTimeout(10_000);
   const room = page.locator("main.world-room");
   const screen = (id: string) => page.locator(`[data-world-screen="${id}"]`);
+  await expect(room).toHaveAttribute("data-repository-readiness", "ready", {
+    timeout: 30_000,
+  });
   await expect(
     page.locator('canvas[data-scene-id="world-room"]'),
   ).toBeVisible();

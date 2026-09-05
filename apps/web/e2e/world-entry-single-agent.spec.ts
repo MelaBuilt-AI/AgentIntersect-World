@@ -1361,6 +1361,18 @@ for (const screenJourney of ["hud", "spatial", "code"])
           });
         },
       });
+      // Preview readiness must not stand in for the independently loaded city.
+      // Hold real city assets until the spatial assertions have started.
+      let releaseCityAssets: (() => void) | undefined;
+      if (screenJourney === "spatial") {
+        const cityAssetsReleased = new Promise<void>((resolve) => {
+          releaseCityAssets = resolve;
+        });
+        await page.route("**/assets/repository-city/**", async (route) => {
+          await cityAssetsReleased;
+          await route.continue();
+        });
+      }
       await enterFixtureWorld(page);
 
       const composer = page.getByLabel("Message Mr Fluff");
@@ -1417,7 +1429,19 @@ for (const screenJourney of ["hud", "spatial", "code"])
       if (screenJourney === "spatial") {
         const { exerciseSpatialScreens } =
           await import("./world-spatial-screens.js");
-        await exerciseSpatialScreens(page, testInfo);
+        // Deliberately outlast the 5s visibility assertion; synchronization must
+        // use renderer readiness, not an assumed asset-load duration.
+        await expect(room).toHaveAttribute(
+          "data-repository-readiness",
+          "loading",
+        );
+        const releaseTimer = setTimeout(() => releaseCityAssets?.(), 6_500);
+        try {
+          await exerciseSpatialScreens(page, testInfo);
+        } finally {
+          clearTimeout(releaseTimer);
+          releaseCityAssets?.();
+        }
         expect(browserErrors).toEqual([]);
         expect(startRequests).toBe(1);
         return;
@@ -2312,6 +2336,10 @@ async function completeJourney(
     "blank",
     { timeout: 30_000 },
   );
+  // The blank floor mounts before the entry transition releases the HUD.
+  await expect(
+    page.getByRole("status").filter({ hasText: /^Entering World$/ }),
+  ).toBeHidden({ timeout: 30_000 });
   await expect(page.getByTestId("world-hud")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Push to talk/ }),
@@ -2365,8 +2393,16 @@ async function completeJourney(
     } finally {
       await page.keyboard.up("KeyW");
     }
-    const movedPosition = await canvas.getAttribute("data-user-position");
     await page.getByLabel("Message Mr Fluff").focus();
+    // Stop World input, then synchronize the renderer with authoritative position
+    // before checking that typing cannot move the avatar.
+    const movedPosition = await page
+      .locator("main.world-room")
+      .evaluate(
+        (room) =>
+          `${room.getAttribute("data-user-position-x")},${room.getAttribute("data-user-position-z")}`,
+      );
+    await expect(canvas).toHaveAttribute("data-user-position", movedPosition);
     await page.keyboard.press("KeyA");
     await page.waitForTimeout(80);
     await expect(canvas).toHaveAttribute(
