@@ -67,7 +67,9 @@ export function WorldEscapeMenu({
       if (isEditableWorldTarget(event.target)) return;
       if (
         document.querySelector('[role="dialog"][aria-modal="true"]') ||
-        document.querySelector('[data-mouse-look="active"]')
+        document.querySelector(
+          '[data-mouse-look="active"], [data-screen-dragging="true"], [data-code-focused="true"], .world-view[data-input-owner="preview"]',
+        )
       )
         return;
       openerRef.current =

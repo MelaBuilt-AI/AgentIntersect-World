@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import { RepositoryAssetPalette } from "../src/world-entry/RepositoryAssetPalette.js";
 import { WorldView } from "../src/world-entry/WorldView.js";
 import { resolveWorldViewLauncher } from "../src/world-entry/world-view-model.js";
 import { WorldWorkstreamStatus } from "../src/world-entry/WorkInspector.js";
@@ -105,6 +106,48 @@ const projection = (
 });
 
 describe("World View", () => {
+  it("offers accessible spatial toggles for all three existing surfaces", () => {
+    const surfaces = [
+      {
+        id: "director",
+        label: "Live / Director",
+        element: createElement(RepositoryAssetPalette, {
+          mode: "live",
+          selected: null,
+          onMode: () => undefined,
+          onPlace: () => undefined,
+        }),
+      },
+      {
+        id: "workbench",
+        label: "Workbench",
+        element: createElement(WorldWorkstreamStatus, {
+          workstream,
+          open: false,
+          pending: false,
+          message: null,
+          onInspect: () => undefined,
+          onCancel: () => undefined,
+        }),
+      },
+      {
+        id: "preview",
+        label: "World View",
+        element: createElement(WorldView, {
+          workstream,
+          projection: projection("current"),
+          onInputOwnerChange: () => undefined,
+        }),
+      },
+    ];
+    for (const surface of surfaces) {
+      const html = renderToStaticMarkup(surface.element);
+      expect(html).toContain(`data-world-screen="${surface.id}"`);
+      expect(html).toContain(`Place ${surface.label} in World`);
+      expect(html).toContain('data-screen-mode="hud"');
+    }
+  });
+
   it("renders the exact current Preview Manager display as an embedded view-only screen", () => {
     const html = renderToStaticMarkup(
       createElement(WorldView, {
@@ -173,7 +216,7 @@ describe("World View", () => {
     expect(enabled).toMatch(
       /class="world-action--enabled"[^>]*>Start World View</,
     );
-    expect(enabled).not.toContain("disabled");
+    expect(enabled).not.toMatch(/<button[^>]*disabled[^>]*>Start World View</);
     expect(unavailable).toMatch(
       /class="world-action--unavailable"[^>]*disabled=""[^>]*>World View unavailable/,
     );

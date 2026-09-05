@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
 
 import type {
   Workstream,
@@ -179,49 +180,52 @@ export function WorldWorkstreamStatus({
   };
 }) {
   return (
-    <aside
-      className="world-workstream-status"
-      aria-label="Current Workstream"
-      data-workstream-status={workstream.status}
-    >
-      <header>
-        <strong>Workbench · {workstream.status}</strong>
-        <span>{workstream.title}</span>
-      </header>
-      <p>{workstream.currentActivity}</p>
-      {message ? <p role="status">{message}</p> : null}
-      <button
-        type="button"
-        className="world-action--enabled"
-        aria-controls="work-inspector"
-        aria-expanded={open}
-        disabled={pending}
-        onClick={onInspect}
+    <WorldScreen id="workbench">
+      <aside
+        className="world-workstream-status"
+        aria-label="Current Workstream"
+        data-workstream-status={workstream.status}
       >
-        {open ? "Close Work Inspector" : "Inspect current Workstream"}
-      </button>
-      {worldViewAction ? (
+        <header>
+          <WorldScreenToggle id="workbench" />
+          <strong>Workbench · {workstream.status}</strong>
+          <span>{workstream.title}</span>
+        </header>
+        <p>{workstream.currentActivity}</p>
+        {message ? <p role="status">{message}</p> : null}
         <button
           type="button"
-          className={
-            worldViewAction.enabled
-              ? "world-action--enabled"
-              : "world-action--unavailable"
-          }
-          disabled={!worldViewAction.enabled || pending}
-          onClick={worldViewAction.onStart}
+          className="world-action--enabled"
+          aria-controls="work-inspector"
+          aria-expanded={open}
+          disabled={pending}
+          onClick={onInspect}
         >
-          {worldViewAction.label}
+          {open ? "Close Work Inspector" : "Inspect current Workstream"}
         </button>
-      ) : null}
-      {open ? (
-        <WorkInspector
-          workstream={workstream}
-          source="live"
-          onCancel={onCancel}
-          actionPending={pending}
-        />
-      ) : null}
-    </aside>
+        {worldViewAction ? (
+          <button
+            type="button"
+            className={
+              worldViewAction.enabled
+                ? "world-action--enabled"
+                : "world-action--unavailable"
+            }
+            disabled={!worldViewAction.enabled || pending}
+            onClick={worldViewAction.onStart}
+          >
+            {worldViewAction.label}
+          </button>
+        ) : null}
+        {open ? (
+          <WorkInspector
+            workstream={workstream}
+            source="live"
+            onCancel={onCancel}
+            actionPending={pending}
+          />
+        ) : null}
+      </aside>
+    </WorldScreen>
   );
 }

@@ -1,0 +1,309 @@
+import "./repository-code-screen.css";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { WEB_API_BASE_PATH } from "@agentintersect-world/config";
+import {
+  REPOSITORY_ASSET_BY_ID,
+  type RepositoryCityInstance,
+} from "@agentintersect-world/renderer-r3f";
+import { WorldScreen } from "./WorldScreen.js";
+import { useWorldScreens } from "./world-screen-context.js";
+
+type CodeResult = {
+  objectRef: string;
+  repositoryRef: string;
+  path: string;
+  kind: string;
+  content: string | null;
+  files: { ref: string; path: string }[];
+  message: string;
+};
+
+export function RepositoryCodeScreen({
+  instance,
+  onClose,
+  onInspectionChange,
+}: {
+  readonly instance: RepositoryCityInstance;
+  readonly onClose: () => void;
+  readonly onInspectionChange: (active: boolean) => void;
+}) {
+  const controller = useWorldScreens();
+  const enabled = controller?.enabled ?? false;
+  const [fullscreen, setFullscreen] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const originalRef =
+    typeof instance.linkedRepoData?.ref === "string"
+      ? instance.linkedRepoData.ref
+      : null;
+  const repositoryRef =
+    typeof instance.linkedRepoData?.repositoryRef === "string"
+      ? instance.linkedRepoData.repositoryRef
+      : null;
+  const [fileRef, setFileRef] = useState(originalRef);
+  const [result, setResult] = useState<{
+    ref: string;
+    data?: CodeResult;
+    error?: string;
+  } | null>(null);
+  const scroll = useRef<HTMLDivElement>(null);
+  const scrollTop = useRef(0);
+  const spatial = enabled && !fullscreen;
+  const inspecting = fullscreen || focused;
+  const pose = useMemo(
+    () => ({
+      x: instance.position.x,
+      z:
+        instance.position.z +
+        (REPOSITORY_ASSET_BY_ID.get(instance.assetId)?.footprint[1] ?? 2) / 2 +
+        1,
+      yaw: 0,
+    }),
+    [instance.assetId, instance.position.x, instance.position.z],
+  );
+  const data = result?.ref === fileRef ? result.data : undefined;
+  const error = result?.ref === fileRef ? result.error : undefined;
+
+  useEffect(() => {
+    if (!fileRef || !repositoryRef) return;
+    const abort = new AbortController();
+    const query = new URLSearchParams({ repositoryRef, objectRef: fileRef });
+    void fetch(`${WEB_API_BASE_PATH}/repository-code?${query}`, {
+      signal: abort.signal,
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const body = await response.json();
+        if (!response.ok)
+          throw new Error(
+            typeof body.error === "string"
+              ? body.error
+              : "Source is unavailable.",
+          );
+        const value = body.data as CodeResult;
+        if (
+          value.objectRef !== fileRef ||
+          value.repositoryRef !== repositoryRef ||
+          (value.content !== null && typeof value.content !== "string") ||
+          !Array.isArray(value.files)
+        )
+          throw new Error("Invalid source response.");
+        if (!abort.signal.aborted) setResult({ ref: fileRef, data: value });
+      })
+      .catch((failure: unknown) => {
+        if (!abort.signal.aborted)
+          setResult({
+            ref: fileRef,
+            error:
+              failure instanceof Error
+                ? failure.message
+                : "Source is unavailable.",
+          });
+      });
+    return () => abort.abort();
+  }, [fileRef, repositoryRef]);
+
+  useEffect(() => {
+    const viewport = scroll.current;
+    if (!viewport) return;
+    // Chromium can dispatch wheel events into CSS3D content without scrolling
+    // its compositor layer. Own the bounded viewport scroll, not World zoom.
+    const wheel = (event: WheelEvent) => {
+      if (event.ctrlKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const scale =
+        event.deltaMode === 1
+          ? 20
+          : event.deltaMode === 2
+            ? viewport.clientHeight
+            : 1;
+      viewport.scrollTop += event.shiftKey ? 0 : event.deltaY * scale;
+      viewport.scrollLeft +=
+        (event.deltaX || (event.shiftKey ? event.deltaY : 0)) * scale;
+    };
+    viewport.addEventListener("wheel", wheel, { passive: false });
+    return () => viewport.removeEventListener("wheel", wheel);
+  }, []);
+
+  useLayoutEffect(() => {
+    onInspectionChange(inspecting);
+    return () => onInspectionChange(false);
+  }, [inspecting, onInspectionChange]);
+  useLayoutEffect(() => {
+    if (scroll.current) scroll.current.scrollTop = scrollTop.current;
+  }, [spatial]);
+  useEffect(() => {
+    const keys = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat) return;
+      if (
+        event.code === "Digit4" &&
+        event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.shiftKey &&
+        !(
+          event.target instanceof Element &&
+          event.target.closest(
+            'input, textarea, select, [contenteditable="true"]',
+          )
+        )
+      ) {
+        event.preventDefault();
+        setFullscreen((value) => !value);
+      } else if (event.key === "Escape" && inspecting) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (fullscreen) setFullscreen(false);
+        else setFocused(false);
+      }
+    };
+    window.addEventListener("keydown", keys, true);
+    return () => window.removeEventListener("keydown", keys, true);
+  }, [fullscreen, inspecting]);
+
+  return (
+    <WorldScreen
+      id="code"
+      spatial={spatial}
+      pose={pose}
+      focused={spatial && focused}
+      movable={false}
+    >
+      <section
+        className={`repository-code-screen${spatial ? "" : " repository-code-screen--fullscreen"}`}
+        role={spatial ? "region" : "dialog"}
+        aria-modal={spatial ? undefined : true}
+        aria-label="Repository code"
+        data-code-object={instance.instanceId}
+        data-code-focused={inspecting}
+        data-code-fullscreen={!spatial}
+      >
+        <header>
+          <div>
+            <strong>Repository code · read only</strong>
+            <p>
+              {data?.path ||
+                String(
+                  instance.linkedRepoData?.path ??
+                    instance.linkedRepoData?.label ??
+                    "Unlinked object",
+                )}
+            </p>
+          </div>
+          <div className="repository-code-screen__actions">
+            {spatial ? (
+              <button
+                type="button"
+                className="world-action--enabled"
+                onClick={() => setFocused(true)}
+              >
+                Focus code view
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="world-action--enabled"
+              aria-keyshortcuts="Alt+4"
+              disabled={!enabled}
+              onClick={() => setFullscreen((value) => !value)}
+            >
+              {spatial ? "Fullscreen code" : "Return code to object"} · Alt+4
+            </button>
+            {inspecting ? (
+              <button
+                type="button"
+                className="world-action--enabled"
+                onClick={() => {
+                  setFocused(false);
+                  setFullscreen(false);
+                }}
+              >
+                Return to World
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="world-action--enabled"
+              onClick={onClose}
+            >
+              Close code
+            </button>
+          </div>
+        </header>
+        <p className="repository-code-screen__hint">
+          Click code to focus · scroll to inspect · Alt+4 fullscreen / object ·
+          Escape releases focus
+        </p>
+        <div
+          ref={scroll}
+          className="repository-code-screen__scroll"
+          tabIndex={0}
+          role="region"
+          aria-label="Source code viewport"
+          onClick={() => {
+            if (spatial) setFocused(true);
+            scroll.current?.focus({ preventScroll: true });
+          }}
+          onScroll={(event) => {
+            scrollTop.current = event.currentTarget.scrollTop;
+          }}
+        >
+          {!fileRef || !repositoryRef ? (
+            <p>No repository source is linked to this object.</p>
+          ) : error ? (
+            <p role="alert">{error}</p>
+          ) : !data ? (
+            <p role="status">Loading repository source…</p>
+          ) : data.content !== null ? (
+            <pre>
+              <code>
+                {data.content.split("\n").map((line, index) => (
+                  <span className="repository-code-screen__line" key={index}>
+                    <span aria-hidden="true">{index + 1}</span>
+                    {line}
+                    {"\n"}
+                  </span>
+                ))}
+              </code>
+            </pre>
+          ) : (
+            <>
+              <p>{data.message}</p>
+              <ul>
+                {data.files.map((file) => (
+                  <li key={file.ref}>
+                    <button
+                      type="button"
+                      className="world-action--enabled"
+                      onClick={() => {
+                        scrollTop.current = 0;
+                        setFileRef(file.ref);
+                      }}
+                    >
+                      {file.path}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+        <footer>
+          {data?.message ?? "Read-only repository inspection"}
+          {fileRef !== originalRef ? (
+            <button
+              type="button"
+              className="world-action--enabled"
+              onClick={() => {
+                scrollTop.current = 0;
+                setFileRef(originalRef);
+              }}
+            >
+              Back to object files
+            </button>
+          ) : null}
+        </footer>
+      </section>
+    </WorldScreen>
+  );
+}

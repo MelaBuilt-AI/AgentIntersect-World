@@ -1,0 +1,106 @@
+/* Inspection temporarily clears obstructing HUD panels without unmounting them. */
+body:has(.repository-code-screen)
+  .world-screen--hud:not([data-world-screen="code"])
+  .world-screen__object
+  > * {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+body:has([data-code-focused="true"])
+  :is(.world-hud, .world-room__controls, .world-room__agent-target-shell) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.repository-code-screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #091422;
+  color: #e2e8f0;
+  border: 1px solid #38bdf8;
+  box-sizing: border-box;
+  font:
+    16px/1.55 Consolas,
+    monospace;
+}
+.repository-code-screen--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100dvh;
+}
+.repository-code-screen header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #26425e;
+}
+.repository-code-screen header p {
+  margin: 0;
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+.repository-code-screen__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.repository-code-screen button {
+  border: 1px solid #38bdf8;
+  background: #075985;
+  color: #f0f9ff;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  cursor: pointer;
+}
+.repository-code-screen button:disabled {
+  border-color: #64748b;
+  background: #374151;
+  color: #cbd5e1;
+  cursor: default;
+}
+.repository-code-screen__hint,
+.repository-code-screen footer {
+  margin: 0;
+  padding: 0.45rem 1rem;
+  color: #94a3b8;
+  font-size: 0.8em;
+}
+.repository-code-screen footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.repository-code-screen__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0.5rem 1rem;
+  outline-offset: -2px;
+  user-select: text;
+}
+.repository-code-screen__scroll pre {
+  margin: 0;
+  font: inherit;
+  white-space: pre;
+  color: #d2e8ff;
+}
+.repository-code-screen__line > span {
+  display: inline-block;
+  min-width: 4ch;
+  margin-right: 2ch;
+  color: #6b829c;
+  text-align: right;
+  user-select: none;
+}

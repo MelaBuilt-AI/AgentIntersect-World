@@ -8,6 +8,7 @@ import {
 } from "@agentintersect-world/renderer-r3f";
 import { useMemo, useState } from "react";
 
+import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
 import { WorkInspector } from "./WorkInspector.js";
 import type {
   Workstream,
@@ -76,231 +77,234 @@ export function RepositoryAssetPalette({
     Boolean(workstream) &&
     workstream?.workstreamId === availableWorkstream?.workstreamId;
   return (
-    <aside className="repository-assets" aria-label="Repository assets">
-      <details open>
-        <summary>Repository Asset Palette</summary>
-        <div className="repository-assets__controls">
-          <div
-            className="repository-assets__modes"
-            aria-label="Asset placement mode"
-          >
-            <button
-              type="button"
-              aria-pressed={mode === "live"}
-              onClick={() => onMode("live")}
+    <WorldScreen id="director">
+      <aside className="repository-assets" aria-label="Repository assets">
+        <WorldScreenToggle id="director" />
+        <details open>
+          <summary>Repository Asset Palette</summary>
+          <div className="repository-assets__controls">
+            <div
+              className="repository-assets__modes"
+              aria-label="Asset placement mode"
             >
-              Live
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === "director"}
-              onClick={() => onMode("director")}
-            >
-              Director
-            </button>
-          </div>
-          <label>
-            <span>Search assets</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.currentTarget.value)}
-              type="search"
-            />
-          </label>
-          <label>
-            <span>Category</span>
-            <select
-              value={category}
-              onChange={(event) =>
-                setCategory(event.currentTarget.value as typeof category)
-              }
-            >
-              <option value="all">All categories</option>
-              {REPOSITORY_ASSET_CATEGORIES.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </label>
-          {mode === "director" ? (
-            <p>Drag to the repository grid or use Place on grid.</p>
-          ) : (
-            <p>Live events choose assets automatically.</p>
-          )}
-        </div>
-        <ul className="repository-assets__grid" aria-live="polite">
-          {visible.map((asset) => (
-            <li key={asset.id}>
-              <article
-                className="repository-assets__card"
-                draggable={mode === "director"}
-                onDragStart={(event) => {
-                  event.dataTransfer.setData(
-                    "application/x-aiw-repository-asset",
-                    asset.id,
-                  );
-                  event.dataTransfer.effectAllowed = "copy";
-                }}
-              >
-                <img
-                  className="repository-assets__thumbnail"
-                  src={asset.thumbnailUrl}
-                  alt=""
-                  loading="lazy"
-                />
-                <strong>{asset.label}</strong>
-                <small>{asset.category}</small>
-                <button
-                  type="button"
-                  disabled={mode !== "director"}
-                  onClick={() => onPlace(asset.id)}
-                >
-                  Place on grid
-                </button>
-              </article>
-            </li>
-          ))}
-        </ul>
-      </details>
-      {availableWorkstream || tracerMessage ? (
-        <section
-          className="workstream-tracer-control"
-          aria-label={
-            workstreamSource === "live"
-              ? "Authoritative Workbench"
-              : workstreamSource === "phase14"
-                ? "Phase 14 diagnostic tracer"
-                : "Workbench tracer demo"
-          }
-        >
-          <strong>
-            {workstreamSource === "live"
-              ? "Authoritative Workbench · current local Workstream"
-              : workstreamSource === "phase14"
-                ? "Phase 14 diagnostic tracer · read-only"
-                : "Workbench tracer · demo fixture"}
-          </strong>
-          {tracerMessage ? <p role="status">{tracerMessage}</p> : null}
-          {availableWorkstream ? (
-            <button
-              type="button"
-              aria-controls="work-inspector"
-              aria-expanded={workstreamOpen}
-              onClick={() =>
-                onSelectWorkstream?.(availableWorkstream.workstreamId)
-              }
-            >
-              {workstreamOpen
-                ? "Work Inspector open"
-                : workstreamSource === "live"
-                  ? "Inspect current Workstream"
-                  : workstreamSource === "phase14"
-                    ? "Inspect current Phase 14 workstream"
-                    : "Inspect demo workstream"}
-            </button>
-          ) : null}
-          {workstreamSource === "live" && !availableWorkstream ? (
-            <>
               <button
                 type="button"
-                className={
-                  onCreateWorkstream &&
-                  workstreamTask &&
-                  !workstreamCreateUnavailableReason &&
-                  !workstreamActionPending
-                    ? "world-action--enabled"
-                    : undefined
-                }
-                disabled={
-                  !onCreateWorkstream ||
-                  !workstreamTask ||
-                  Boolean(workstreamCreateUnavailableReason) ||
-                  workstreamActionPending
-                }
-                onClick={onCreateWorkstream}
+                aria-pressed={mode === "live"}
+                onClick={() => onMode("live")}
               >
-                {workstreamActionPending
-                  ? "Creating Workstream…"
-                  : "Create Workstream"}
+                Live
               </button>
-              {!workstreamTask || workstreamCreateUnavailableReason ? (
-                <p role="status">
-                  {workstreamCreateUnavailableReason ??
-                    "Send a feature request in World chat first."}
-                </p>
-              ) : null}
-            </>
-          ) : null}
-        </section>
-      ) : null}
-      {workstream ? (
-        <WorkInspector
-          workstream={workstream}
-          source={workstreamSource}
-          onCancel={onCancelWorkstream}
-          actionPending={workstreamActionPending}
-        />
-      ) : null}
-      {selected && selectedAsset ? (
-        <section
-          className="repository-asset-inspector"
-          aria-label="Asset Inspector"
-        >
-          <h2>Asset Inspector</h2>
-          <h3>{selectedAsset.label}</h3>
-          <p>{selectedAsset.inspectorCopy}</p>
-          <p>
-            <strong>
-              {REPOSITORY_STATUS_PRESENTATION[selected.status].marker}{" "}
-              {REPOSITORY_STATUS_PRESENTATION[selected.status].label}
-            </strong>
-          </p>
-          {selected.linkedRepoData ? (
-            <dl>
-              {Object.entries(selected.linkedRepoData).map(([key, value]) => (
-                <div key={key}>
-                  <dt>{key}</dt>
-                  <dd>{String(value)}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p>Manual director placement · no linked repository item.</p>
-          )}
-          <div className="repository-asset-inspector__actions">
-            <button
-              type="button"
-              onClick={() => onFocus?.(selected.instanceId)}
-            >
-              Focus
-            </button>
-            <button
-              type="button"
-              onClick={() => onPin?.(selected.instanceId, !selected.pinned)}
-            >
-              {selected.pinned ? "Unpin" : "Pin"}
-            </button>
-            <button
-              type="button"
-              disabled={!selected.manual}
-              onClick={() => onRemove?.(selected.instanceId)}
-            >
-              Remove
-            </button>
-            <button
-              type="button"
-              disabled
-              title="Repository navigation is not connected in this World view"
-            >
-              Locate Repo Item
-            </button>
-            <button type="button" onClick={() => onAskAgent?.(selected)}>
-              Ask Agent to Explain
-            </button>
+              <button
+                type="button"
+                aria-pressed={mode === "director"}
+                onClick={() => onMode("director")}
+              >
+                Director
+              </button>
+            </div>
+            <label>
+              <span>Search assets</span>
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.currentTarget.value)}
+                type="search"
+              />
+            </label>
+            <label>
+              <span>Category</span>
+              <select
+                value={category}
+                onChange={(event) =>
+                  setCategory(event.currentTarget.value as typeof category)
+                }
+              >
+                <option value="all">All categories</option>
+                {REPOSITORY_ASSET_CATEGORIES.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {mode === "director" ? (
+              <p>Drag to the repository grid or use Place on grid.</p>
+            ) : (
+              <p>Live events choose assets automatically.</p>
+            )}
           </div>
-        </section>
-      ) : null}
-    </aside>
+          <ul className="repository-assets__grid" aria-live="polite">
+            {visible.map((asset) => (
+              <li key={asset.id}>
+                <article
+                  className="repository-assets__card"
+                  draggable={mode === "director"}
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData(
+                      "application/x-aiw-repository-asset",
+                      asset.id,
+                    );
+                    event.dataTransfer.effectAllowed = "copy";
+                  }}
+                >
+                  <img
+                    className="repository-assets__thumbnail"
+                    src={asset.thumbnailUrl}
+                    alt=""
+                    loading="lazy"
+                  />
+                  <strong>{asset.label}</strong>
+                  <small>{asset.category}</small>
+                  <button
+                    type="button"
+                    disabled={mode !== "director"}
+                    onClick={() => onPlace(asset.id)}
+                  >
+                    Place on grid
+                  </button>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </details>
+        {availableWorkstream || tracerMessage ? (
+          <section
+            className="workstream-tracer-control"
+            aria-label={
+              workstreamSource === "live"
+                ? "Authoritative Workbench"
+                : workstreamSource === "phase14"
+                  ? "Phase 14 diagnostic tracer"
+                  : "Workbench tracer demo"
+            }
+          >
+            <strong>
+              {workstreamSource === "live"
+                ? "Authoritative Workbench · current local Workstream"
+                : workstreamSource === "phase14"
+                  ? "Phase 14 diagnostic tracer · read-only"
+                  : "Workbench tracer · demo fixture"}
+            </strong>
+            {tracerMessage ? <p role="status">{tracerMessage}</p> : null}
+            {availableWorkstream ? (
+              <button
+                type="button"
+                aria-controls="work-inspector"
+                aria-expanded={workstreamOpen}
+                onClick={() =>
+                  onSelectWorkstream?.(availableWorkstream.workstreamId)
+                }
+              >
+                {workstreamOpen
+                  ? "Work Inspector open"
+                  : workstreamSource === "live"
+                    ? "Inspect current Workstream"
+                    : workstreamSource === "phase14"
+                      ? "Inspect current Phase 14 workstream"
+                      : "Inspect demo workstream"}
+              </button>
+            ) : null}
+            {workstreamSource === "live" && !availableWorkstream ? (
+              <>
+                <button
+                  type="button"
+                  className={
+                    onCreateWorkstream &&
+                    workstreamTask &&
+                    !workstreamCreateUnavailableReason &&
+                    !workstreamActionPending
+                      ? "world-action--enabled"
+                      : undefined
+                  }
+                  disabled={
+                    !onCreateWorkstream ||
+                    !workstreamTask ||
+                    Boolean(workstreamCreateUnavailableReason) ||
+                    workstreamActionPending
+                  }
+                  onClick={onCreateWorkstream}
+                >
+                  {workstreamActionPending
+                    ? "Creating Workstream…"
+                    : "Create Workstream"}
+                </button>
+                {!workstreamTask || workstreamCreateUnavailableReason ? (
+                  <p role="status">
+                    {workstreamCreateUnavailableReason ??
+                      "Send a feature request in World chat first."}
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+          </section>
+        ) : null}
+        {workstream ? (
+          <WorkInspector
+            workstream={workstream}
+            source={workstreamSource}
+            onCancel={onCancelWorkstream}
+            actionPending={workstreamActionPending}
+          />
+        ) : null}
+        {selected && selectedAsset ? (
+          <section
+            className="repository-asset-inspector"
+            aria-label="Asset Inspector"
+          >
+            <h2>Asset Inspector</h2>
+            <h3>{selectedAsset.label}</h3>
+            <p>{selectedAsset.inspectorCopy}</p>
+            <p>
+              <strong>
+                {REPOSITORY_STATUS_PRESENTATION[selected.status].marker}{" "}
+                {REPOSITORY_STATUS_PRESENTATION[selected.status].label}
+              </strong>
+            </p>
+            {selected.linkedRepoData ? (
+              <dl>
+                {Object.entries(selected.linkedRepoData).map(([key, value]) => (
+                  <div key={key}>
+                    <dt>{key}</dt>
+                    <dd>{String(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p>Manual director placement · no linked repository item.</p>
+            )}
+            <div className="repository-asset-inspector__actions">
+              <button
+                type="button"
+                onClick={() => onFocus?.(selected.instanceId)}
+              >
+                Focus
+              </button>
+              <button
+                type="button"
+                onClick={() => onPin?.(selected.instanceId, !selected.pinned)}
+              >
+                {selected.pinned ? "Unpin" : "Pin"}
+              </button>
+              <button
+                type="button"
+                disabled={!selected.manual}
+                onClick={() => onRemove?.(selected.instanceId)}
+              >
+                Remove
+              </button>
+              <button
+                type="button"
+                disabled
+                title="Repository navigation is not connected in this World view"
+              >
+                Locate Repo Item
+              </button>
+              <button type="button" onClick={() => onAskAgent?.(selected)}>
+                Ask Agent to Explain
+              </button>
+            </div>
+          </section>
+        ) : null}
+      </aside>
+    </WorldScreen>
   );
 }

@@ -91,6 +91,7 @@ import {
   type PreviewRecipe,
 } from "./preview-manager-client.js";
 import { WorldView } from "./WorldView.js";
+import { WorldScreenProvider } from "./WorldScreenProvider.js";
 import {
   resolveWorldViewLauncher,
   type WorldInputOwner,
@@ -2245,204 +2246,213 @@ export function WorldEntryExperience({
         </main>
       );
     return (
-      <div
-        className="world-experience world-experience--room"
-        data-repository-readiness={repositoryReadiness}
-      >
-        <Suspense
-          fallback={
-            <p className="world-entry-overlay" role="status">
-              Loading World
-            </p>
-          }
+      <WorldScreenProvider>
+        <div
+          className="world-experience world-experience--room"
+          data-repository-readiness={repositoryReadiness}
         >
-          <LazyWorldRoom
-            floor={state.world.floor}
-            objects={objects}
-            reducedMotion={reducedMotion}
-            forceNoWebGL={forceNoWebGL}
-            inputOwner={worldInputOwner}
-            userName={profile.agentName}
-            agentName={activeProposal.displayName}
-            userAvatar={profile}
-            agentAvatar={activeAgentAvatar}
-            {...(state.sessionMode === "multi"
-              ? { agentAvatars: worldAgentAvatars }
-              : {})}
-            selectedRecipientId={selectedRecipientId}
-            onSelectRecipient={(rosterId) => {
-              setSelectedRecipientId(rosterId);
-              const target = worldAgentAvatars.find(
-                (agent) => agent.rosterId === rosterId,
-              );
-              if (target) setStatus(`Next message recipient · ${target.name}`);
-            }}
-            onClearRecipient={() => {
-              setSelectedRecipientId(null);
-              setStatus("Next message recipient · All agents");
-            }}
-            activity={chat.activity}
-            activeAgentRosterIds={activeMessageRosterIds}
-            userCue={userAnimationCue}
-            agentCue={chat.animationCue}
-            agentActorId={movementSessionId}
-            agentMovementRequest={agentMovementRequest}
-            agentMovementControl={agentMovementControl}
-            agentWorkFocus={movementSessionId ? agentWorkFocus : null}
-            {...(state.sessionMode === "multi"
-              ? {
-                  agentMovementBindings: worldAgentAvatars.map((agent) => ({
-                    rosterId: agent.rosterId,
-                    actorId: agent.worldSessionId,
-                    request: rosterMovementRequests[agent.rosterId] ?? null,
-                    control: rosterMovementControls[agent.rosterId] ?? null,
-                    workFocus: rosterWorkFocus[agent.rosterId] ?? null,
-                  })),
-                }
-              : {})}
-            layoutGeneration={layoutGeneration}
-            onAgentMovementEvent={reportAgentMovementEvent}
-            showControlHints={preferences.showControlHints}
-            repositoryReadiness={repositoryReadiness}
-            workstreamAuthority={workstreamAuthority}
-            workstreamTask={workstreamTask.task}
-            workstreamCreateUnavailableReason={workstreamTask.unavailableReason}
-            onWorkstreamSessionChanged={refreshWorkstreamSession}
-            onRepositoryReady={repositoryRendered}
-            onRepositoryError={repositoryRenderFailed}
-            onAskAgent={(prompt) =>
-              setMessage(`@${activeProposal.displayName} ${prompt}`)
+          <Suspense
+            fallback={
+              <p className="world-entry-overlay" role="status">
+                Loading World
+              </p>
             }
-          />
-        </Suspense>
-        {state.step !== "world_entering" ? (
-          <WorldHud
-            recipient={
-              state.sessionMode === "multi"
-                ? (worldAgentAvatars.find(
-                    (agent) => agent.rosterId === selectedRecipientId,
-                  )?.name ?? "All agents")
-                : activeProposal.displayName
-            }
-            status={status}
-            busy={chatBusy || state.step === "repository_loading"}
-            queuedCount={queuedCount}
-            message={message}
-            transcript={chat.transcript}
-            pushToTalkAvailable={Boolean(session)}
-            voiceSession={session}
-            onMessage={setMessage}
-            onSend={() => void send()}
-            onVoiceSend={(text) => void sendText(text)}
-          />
-        ) : (
-          <div className="world-entry-overlay" role="status" aria-live="polite">
-            Entering World
-          </div>
-        )}
-        {state.step !== "world_entering" && normalWorkstream ? (
-          <WorldWorkstreamStatus
-            workstream={normalWorkstream}
-            open={normalWorkstreamOpen}
-            pending={normalWorkstreamPending}
-            message={normalWorkstreamMessage}
-            onInspect={() => {
-              setNormalWorkstreamOpen((open) => !open);
-              setNormalWorkstreamMessage(
-                `Current Workstream is ${normalWorkstream.status}.`,
-              );
-            }}
-            onCancel={() =>
-              void runWorkstreamConversation(
-                {
-                  action: "cancel",
-                  text: "Cancel current Workstream",
-                },
-                false,
-              )
-            }
-            {...(worldViewLauncher
-              ? {
-                  worldViewAction: {
-                    ...worldViewLauncher,
-                    onStart: () => void startWorldView(),
+          >
+            <LazyWorldRoom
+              floor={state.world.floor}
+              objects={objects}
+              reducedMotion={reducedMotion}
+              forceNoWebGL={forceNoWebGL}
+              inputOwner={worldInputOwner}
+              userName={profile.agentName}
+              agentName={activeProposal.displayName}
+              userAvatar={profile}
+              agentAvatar={activeAgentAvatar}
+              {...(state.sessionMode === "multi"
+                ? { agentAvatars: worldAgentAvatars }
+                : {})}
+              selectedRecipientId={selectedRecipientId}
+              onSelectRecipient={(rosterId) => {
+                setSelectedRecipientId(rosterId);
+                const target = worldAgentAvatars.find(
+                  (agent) => agent.rosterId === rosterId,
+                );
+                if (target)
+                  setStatus(`Next message recipient · ${target.name}`);
+              }}
+              onClearRecipient={() => {
+                setSelectedRecipientId(null);
+                setStatus("Next message recipient · All agents");
+              }}
+              activity={chat.activity}
+              activeAgentRosterIds={activeMessageRosterIds}
+              userCue={userAnimationCue}
+              agentCue={chat.animationCue}
+              agentActorId={movementSessionId}
+              agentMovementRequest={agentMovementRequest}
+              agentMovementControl={agentMovementControl}
+              agentWorkFocus={movementSessionId ? agentWorkFocus : null}
+              {...(state.sessionMode === "multi"
+                ? {
+                    agentMovementBindings: worldAgentAvatars.map((agent) => ({
+                      rosterId: agent.rosterId,
+                      actorId: agent.worldSessionId,
+                      request: rosterMovementRequests[agent.rosterId] ?? null,
+                      control: rosterMovementControls[agent.rosterId] ?? null,
+                      workFocus: rosterWorkFocus[agent.rosterId] ?? null,
+                    })),
+                  }
+                : {})}
+              layoutGeneration={layoutGeneration}
+              onAgentMovementEvent={reportAgentMovementEvent}
+              showControlHints={preferences.showControlHints}
+              repositoryReadiness={repositoryReadiness}
+              workstreamAuthority={workstreamAuthority}
+              workstreamTask={workstreamTask.task}
+              workstreamCreateUnavailableReason={
+                workstreamTask.unavailableReason
+              }
+              onWorkstreamSessionChanged={refreshWorkstreamSession}
+              onRepositoryReady={repositoryRendered}
+              onRepositoryError={repositoryRenderFailed}
+              onAskAgent={(prompt) =>
+                setMessage(`@${activeProposal.displayName} ${prompt}`)
+              }
+            />
+          </Suspense>
+          {state.step !== "world_entering" ? (
+            <WorldHud
+              recipient={
+                state.sessionMode === "multi"
+                  ? (worldAgentAvatars.find(
+                      (agent) => agent.rosterId === selectedRecipientId,
+                    )?.name ?? "All agents")
+                  : activeProposal.displayName
+              }
+              status={status}
+              busy={chatBusy || state.step === "repository_loading"}
+              queuedCount={queuedCount}
+              message={message}
+              transcript={chat.transcript}
+              pushToTalkAvailable={Boolean(session)}
+              voiceSession={session}
+              onMessage={setMessage}
+              onSend={() => void send()}
+              onVoiceSend={(text) => void sendText(text)}
+            />
+          ) : (
+            <div
+              className="world-entry-overlay"
+              role="status"
+              aria-live="polite"
+            >
+              Entering World
+            </div>
+          )}
+          {state.step !== "world_entering" && normalWorkstream ? (
+            <WorldWorkstreamStatus
+              workstream={normalWorkstream}
+              open={normalWorkstreamOpen}
+              pending={normalWorkstreamPending}
+              message={normalWorkstreamMessage}
+              onInspect={() => {
+                setNormalWorkstreamOpen((open) => !open);
+                setNormalWorkstreamMessage(
+                  `Current Workstream is ${normalWorkstream.status}.`,
+                );
+              }}
+              onCancel={() =>
+                void runWorkstreamConversation(
+                  {
+                    action: "cancel",
+                    text: "Cancel current Workstream",
                   },
-                }
-              : {})}
-          />
-        ) : null}
-        {state.step !== "world_entering" &&
-        normalWorkstream &&
-        previewEligible &&
-        previewProjection?.display ? (
-          <WorldView
-            key={previewProjection.display.preview.previewId}
-            workstream={normalWorkstream}
-            projection={previewProjection}
-            iterationStatus={iterationStatus}
-            onInputOwnerChange={setWorldInputOwner}
-          />
-        ) : null}
-        {repositoryIntakeOpen ? (
-          <RepositoryIntakeDialog
-            projects={repositoryProjects}
-            busy={repositoryIntakeBusy}
-            message={repositoryIntakeMessage}
-            onOpen={(rootPath, name) =>
-              void activateSelectedProject(
-                openRepositoryProject({
-                  rootPath,
-                  ...(name ? { name } : {}),
-                }),
-              )
-            }
-            onCreate={(rootPath, name) =>
-              void activateSelectedProject(
-                createRepositoryProject({ rootPath, name }),
-              )
-            }
-            onClone={(repository, destination, name) =>
-              void activateSelectedProject(
-                cloneRepositoryProject({
-                  repository,
-                  destination,
-                  ...(name ? { name } : {}),
-                }),
-              )
-            }
-            onPin={(projectId, pinned) => {
-              setRepositoryIntakeBusy(true);
-              void pinRepositoryProject(projectId, pinned)
-                .then(() => listRepositoryProjects())
-                .then((projects) => setRepositoryProjects(projects))
-                .catch((error: unknown) =>
-                  setRepositoryIntakeMessage(
-                    error instanceof Error
-                      ? error.message
-                      : "Project pin unavailable",
-                  ),
+                  false,
                 )
-                .finally(() => setRepositoryIntakeBusy(false));
-            }}
-            onClose={() => {
-              setRepositoryIntakeOpen(false);
-              setStatus("Repository selection cancelled");
-            }}
-          />
-        ) : null}
-        {state.step !== "world_entering" ? (
-          <WorldEscapeMenu
-            userName={profile.agentName}
-            agentName={activeProposal.displayName}
-            preferences={preferences}
-            onPreferences={updatePreferences}
-            onLogout={() => leaveWorld("session_select")}
-            onResetSession={() => leaveWorld("session_select")}
-            onChangeAvatar={setAvatarTarget}
-            onChangeAgent={() => leaveWorld("agent_prompt")}
-          />
-        ) : null}
-      </div>
+              }
+              {...(worldViewLauncher
+                ? {
+                    worldViewAction: {
+                      ...worldViewLauncher,
+                      onStart: () => void startWorldView(),
+                    },
+                  }
+                : {})}
+            />
+          ) : null}
+          {state.step !== "world_entering" &&
+          normalWorkstream &&
+          previewEligible &&
+          previewProjection?.display ? (
+            <WorldView
+              key={previewProjection.display.preview.previewId}
+              workstream={normalWorkstream}
+              projection={previewProjection}
+              iterationStatus={iterationStatus}
+              onInputOwnerChange={setWorldInputOwner}
+            />
+          ) : null}
+          {repositoryIntakeOpen ? (
+            <RepositoryIntakeDialog
+              projects={repositoryProjects}
+              busy={repositoryIntakeBusy}
+              message={repositoryIntakeMessage}
+              onOpen={(rootPath, name) =>
+                void activateSelectedProject(
+                  openRepositoryProject({
+                    rootPath,
+                    ...(name ? { name } : {}),
+                  }),
+                )
+              }
+              onCreate={(rootPath, name) =>
+                void activateSelectedProject(
+                  createRepositoryProject({ rootPath, name }),
+                )
+              }
+              onClone={(repository, destination, name) =>
+                void activateSelectedProject(
+                  cloneRepositoryProject({
+                    repository,
+                    destination,
+                    ...(name ? { name } : {}),
+                  }),
+                )
+              }
+              onPin={(projectId, pinned) => {
+                setRepositoryIntakeBusy(true);
+                void pinRepositoryProject(projectId, pinned)
+                  .then(() => listRepositoryProjects())
+                  .then((projects) => setRepositoryProjects(projects))
+                  .catch((error: unknown) =>
+                    setRepositoryIntakeMessage(
+                      error instanceof Error
+                        ? error.message
+                        : "Project pin unavailable",
+                    ),
+                  )
+                  .finally(() => setRepositoryIntakeBusy(false));
+              }}
+              onClose={() => {
+                setRepositoryIntakeOpen(false);
+                setStatus("Repository selection cancelled");
+              }}
+            />
+          ) : null}
+          {state.step !== "world_entering" ? (
+            <WorldEscapeMenu
+              userName={profile.agentName}
+              agentName={activeProposal.displayName}
+              preferences={preferences}
+              onPreferences={updatePreferences}
+              onLogout={() => leaveWorld("session_select")}
+              onResetSession={() => leaveWorld("session_select")}
+              onChangeAvatar={setAvatarTarget}
+              onChangeAgent={() => leaveWorld("agent_prompt")}
+            />
+          ) : null}
+        </div>
+      </WorldScreenProvider>
     );
   }
 

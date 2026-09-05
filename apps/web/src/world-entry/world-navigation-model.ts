@@ -11,6 +11,7 @@ const quantized = (value: number) => {
 export type WorldCameraLook = {
   readonly yaw: number;
   readonly pitch: number;
+  readonly zoom?: number;
 };
 
 export function projectAvatarMovementPhaseFromKeys({
@@ -79,12 +80,22 @@ export function shouldConsumeWorldJump({
   );
 }
 
+export function applyWorldCameraZoom(
+  zoom: number,
+  deltaY: number,
+  deltaMode = 0,
+): number {
+  const pixels = deltaY * (deltaMode === 1 ? 16 : deltaMode === 2 ? 800 : 1);
+  return Math.max(0.2, Math.min(2.5, zoom * Math.exp(pixels * 0.001)));
+}
+
 export function applyWorldCameraLook(
   camera: WorldCameraLook,
   input: { readonly movementX: number; readonly movementY: number },
 ): WorldCameraLook {
   const pitchLimit = Math.PI / 2 - 0.1;
   return {
+    ...camera,
     yaw: camera.yaw + input.movementX * 0.0025,
     pitch: Math.max(
       -pitchLimit,

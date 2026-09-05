@@ -1,3 +1,4 @@
+import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import {
   Canvas,
   events as createPointerEvents,
@@ -60,6 +61,20 @@ export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 export function createWorldPointerEvents(store: RootStore) {
   const events = createPointerEvents(store);
   const connect = events.connect;
+  if (events.handlers) {
+    const handlers = events.handlers;
+    for (const name of Object.keys(handlers) as (keyof typeof handlers)[]) {
+      const handler = handlers[name];
+      handlers[name] = (event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest(".world-screen__object")
+        )
+          return;
+        handler(event);
+      };
+    }
+  }
   return {
     ...events,
     connect(target: HTMLElement) {
@@ -87,6 +102,7 @@ export type WorldRoomFloor = "blank" | "repository";
 export type WorldRoomCamera = {
   readonly yaw: number;
   readonly pitch: number;
+  readonly zoom?: number;
 };
 export type WorldRoomActivity = {
   readonly state:
@@ -273,7 +289,6 @@ export function calculateControlledAvatarYaw(cameraYaw: number): number {
 export function calculateWorldCameraPose({
   userPosition,
   camera,
-  agentCount = 1,
   viewportAspect = 16 / 9,
 }: {
   readonly userPosition: Readonly<{ x: number; z: number }>;
@@ -285,7 +300,7 @@ export function calculateWorldCameraPose({
   readonly target: readonly [number, number, number];
 } {
   const constellationDistance =
-    agentCount > 1 ? 13.2 * Math.max(1, 1.3 / viewportAspect) : 10.1;
+    13.2 * Math.max(1, 1.3 / viewportAspect) * (camera.zoom ?? 1);
   const horizontalDistance = Math.cos(camera.pitch) * constellationDistance;
   return {
     position: [
@@ -293,7 +308,7 @@ export function calculateWorldCameraPose({
       cameraValue(1.54 + Math.sin(camera.pitch) * constellationDistance),
       cameraValue(userPosition.z + Math.cos(camera.yaw) * horizontalDistance),
     ],
-    target: [userPosition.x + (agentCount > 1 ? 0 : 1), 0.7, userPosition.z],
+    target: [userPosition.x, 0.7, userPosition.z],
   };
 }
 
@@ -984,6 +999,10 @@ function WorldRoomScene({
 }
 
 export function WorldRoomCanvas({
+  screenEventSource,
+  screens,
+  onScreenMove,
+  onScreenDrag,
   floor,
   objects,
   cityInstances,
@@ -1029,7 +1048,7 @@ export function WorldRoomCanvas({
   readonly onCitySelect: (instanceId: string) => void;
   readonly onCitySettled: (instanceId: string) => void;
   readonly onCityReady: () => void;
-}) {
+} & WorldScreensProps) {
   const [renderQuality] = useState(() =>
     selectWorldRenderQuality(
       typeof navigator === "undefined"
@@ -1063,6 +1082,8 @@ export function WorldRoomCanvas({
   return (
     <Canvas
       events={createWorldPointerEvents}
+      {...(screenEventSource ? { eventSource: screenEventSource } : {})}
+      eventPrefix="client"
       aria-hidden="true"
       className="world-room__canvas"
       data-testid="world-room-canvas"
@@ -1124,6 +1145,11 @@ export function WorldRoomCanvas({
       {renderLoop.mode === "continuous-constrained" ? (
         <CooperativeWorldInvalidation />
       ) : null}
+      <WorldScreens
+        screens={screens}
+        onScreenMove={onScreenMove}
+        onScreenDrag={onScreenDrag}
+      />
       <WorldRoomScene
         floor={floor}
         objects={objects}

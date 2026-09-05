@@ -212,7 +212,7 @@ describe("Phase 18 shared World room canvas", () => {
       positions,
     );
   });
-  it("pulls back a four-agent portrait camera without changing the accepted single-agent framing", () => {
+  it("matches single-agent framing to multi-agent defaults, including portrait pullback", () => {
     expect(typeof api.calculateWorldCameraPose).toBe("function");
     expect(typeof importedApi.calculateWorldCameraPose).toBe("function");
     const input = {
@@ -230,9 +230,16 @@ describe("Phase 18 shared World room canvas", () => {
       agentCount: 4,
       viewportAspect: 390 / 844,
     });
-    expect(single.position[2]).toBeLessThan(desktop.position[2]);
+    expect(single).toEqual(desktop);
+    expect(
+      importedApi.calculateWorldCameraPose!({
+        ...input,
+        agentCount: 1,
+        viewportAspect: 390 / 844,
+      }),
+    ).toEqual(portrait);
     expect(desktop.position[2]).toBeLessThan(portrait.position[2]);
-    expect(single.target).toEqual([1, 0.7, 0]);
+    expect(single.target).toEqual([0, 0.7, 0]);
     expect(desktop.target).toEqual([0, 0.7, 0]);
     expect(portrait.target).toEqual([0, 0.7, 0]);
     const proceduralSingle = api.calculateWorldCameraPose!(input);
@@ -246,9 +253,14 @@ describe("Phase 18 shared World room canvas", () => {
       agentCount: 4,
       viewportAspect: 390 / 844,
     });
-    expect(proceduralSingle.position[2]).toBeLessThan(
-      proceduralDesktop.position[2],
-    );
+    expect(proceduralSingle).toEqual(proceduralDesktop);
+    expect(
+      api.calculateWorldCameraPose!({
+        ...input,
+        agentCount: 1,
+        viewportAspect: 390 / 844,
+      }),
+    ).toEqual(proceduralPortrait);
     expect(proceduralDesktop.position[2]).toBeLessThan(
       proceduralPortrait.position[2],
     );
@@ -467,8 +479,8 @@ describe("Phase 18 shared World room canvas", () => {
         camera: { yaw: Math.PI / 2, pitch: 0 },
       }),
     ).toEqual({
-      position: [-6.1, 1.54, -2],
-      target: [5, 0.7, -2],
+      position: [4 - 13.2, 1.54, -2],
+      target: [4, 0.7, -2],
     });
   });
 

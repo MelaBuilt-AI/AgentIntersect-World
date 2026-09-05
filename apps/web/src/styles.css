@@ -1020,6 +1020,19 @@
   pointer-events: none;
 }
 
+.world-room[data-spatial-screens="true"] .world-room__agent-targets {
+  z-index: 4;
+  inset: auto 1rem 7rem auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.world-room[data-spatial-screens="true"] .world-room__agent-target-shell {
+  position: relative;
+  inset: auto;
+}
+
 .world-room__agent-target-shell {
   position: absolute;
   pointer-events: none;
@@ -1306,6 +1319,151 @@
   border-top: 1px solid rgba(65, 233, 255, 0.48);
 }
 
+/* The canvas depth mask lets avatars/scenery occlude the real DOM screens. */
+.world-room[data-spatial-screens="true"] .world-room__canvas-host {
+  z-index: 3;
+  pointer-events: none;
+}
+.world-room[data-spatial-screens="true"] .world-room__canvas {
+  pointer-events: none !important;
+}
+
+/* One mounted DOM tree, either HUD-positioned or camera-projected in World. */
+.world-screen--hud,
+.world-screen--hud > .world-screen__camera,
+.world-screen--hud .world-screen__object {
+  display: contents;
+}
+
+.world-screen--spatial {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  perspective-origin: 50% 50%;
+}
+
+.world-screen--spatial .world-screen__camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.world-screen--spatial .world-screen__object {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  visibility: hidden;
+  color: #e6fbff;
+  background: #071322;
+  border: 5px solid #263e57;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 2px #42b8ff,
+    inset 0 0 24px #082c48;
+}
+
+.world-screen--spatial
+  .world-screen__object
+  > :is(.repository-assets, .world-workstream-status, .world-view) {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  transform: none;
+  overflow: auto;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  backdrop-filter: none;
+  box-shadow: none;
+  background: #071322;
+}
+
+/* Flatten coplanar preview contents to avoid native iframe compositing flicker. */
+.world-screen--spatial[data-world-screen="preview"] .world-screen__object {
+  transform-style: flat;
+}
+
+.world-screen--spatial .world-screen__object > .world-view {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.world-screen--spatial .world-view__screen {
+  grid-row: 4;
+  min-height: 0;
+}
+
+.world-screen--spatial .world-view__iframe {
+  min-height: 0;
+}
+
+.world-screen--spatial .world-view__controls {
+  grid-row: 5;
+}
+.world-screen--spatial .world-workstream-status {
+  align-content: start;
+}
+.world-screen--spatial .work-inspector {
+  max-height: none;
+}
+
+.world-screen__toggle,
+.world-screen__base {
+  min-height: 36px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #42b8ff;
+  border-radius: 5px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.world-screen__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.world-screen__toggle small {
+  white-space: nowrap;
+}
+.world-screen__toggle:disabled {
+  color: #c0c5ce;
+  border-color: #667085;
+  background: #2c323d;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.world-screen__base {
+  flex: 0 0 42px;
+  width: 100%;
+  color: #b9edff;
+  background: #123c5f;
+  cursor: grab;
+  touch-action: none;
+}
+.world-screen__base[hidden] {
+  display: none;
+}
+.world-screen[data-screen-dragging="true"] .world-screen__object {
+  pointer-events: none;
+}
+.world-screen__base:active {
+  cursor: grabbing;
+}
+
 .world-view {
   position: fixed;
   top: max(0.75rem, env(safe-area-inset-top));
@@ -1459,9 +1617,17 @@
   margin-inline-start: auto;
 }
 
-.world-view--expanded .world-view__screen,
+.world-view--expanded .world-view__screen {
+  grid-row: 4;
+  min-height: 0;
+}
+
 .world-view--expanded .world-view__iframe {
   min-height: 0;
+}
+
+.world-view--expanded .world-view__controls {
+  grid-row: 5;
 }
 
 @media (max-width: 760px) {
