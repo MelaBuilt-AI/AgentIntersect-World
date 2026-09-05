@@ -1,3 +1,4 @@
+import { WorldEnvironment } from "./world-environment.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import {
   Canvas,
@@ -15,15 +16,11 @@ import {
   type ReactNode,
 } from "react";
 import {
-  BoxGeometry,
   CanvasTexture,
-  GridHelper,
   Group,
   InstancedMesh,
   LinearFilter,
   Matrix4,
-  Mesh,
-  MeshStandardMaterial,
   Sprite,
   SpriteMaterial,
   Vector3,
@@ -51,10 +48,7 @@ import {
   RepositoryCityModels,
   selectRepositoryCityRenderPlan,
 } from "./repository-city-canvas.js";
-import {
-  REPOSITORY_CITY_FLOOR_SIZE,
-  type RepositoryCityInstance,
-} from "./repository-city-state.js";
+import { type RepositoryCityInstance } from "./repository-city-state.js";
 
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 
@@ -742,32 +736,6 @@ function WorldRoomScene({
     () => calculateRepositoryTransform(objects),
     [objects],
   );
-  const floorMesh = useMemo(() => {
-    const mesh = new Mesh(
-      new BoxGeometry(
-        REPOSITORY_CITY_FLOOR_SIZE,
-        0.2,
-        REPOSITORY_CITY_FLOOR_SIZE,
-      ),
-      new MeshStandardMaterial({
-        color: floor === "blank" ? "#111827" : "#071b33",
-        roughness: 0.9,
-      }),
-    );
-    mesh.position.set(0, -0.1, 0);
-    mesh.name = `world-room-${floor}-floor`;
-    return mesh;
-  }, [floor]);
-  const grid = useMemo(
-    () =>
-      new GridHelper(
-        REPOSITORY_CITY_FLOOR_SIZE,
-        REPOSITORY_CITY_FLOOR_SIZE / 2,
-        "#249cff",
-        "#1f2937",
-      ),
-    [],
-  );
   useEffect(() => {
     const pose = calculateWorldCameraPose({
       userPosition: cityFocusPosition ?? userPosition,
@@ -871,10 +839,6 @@ function WorldRoomScene({
   }, [camera, gl, scene]);
   return (
     <>
-      <ambientLight intensity={0.9} />
-      <directionalLight position={[6, 10, 5]} intensity={1.6} />
-      <primitive object={floorMesh} />
-      <primitive object={grid} />
       {floor === "repository" ? (
         <>
           <group name="world-room-repository-city">
@@ -1133,7 +1097,8 @@ export function WorldRoomCanvas({
       data-avatar-render-ready={
         avatarReady.user && avatarReady.agent ? "true" : "false"
       }
-      camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46 }}
+      shadows
+      camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46, far: 1000 }}
       dpr={renderQuality.dpr}
       frameloop={renderLoop.frameloop}
       gl={{
@@ -1145,6 +1110,13 @@ export function WorldRoomCanvas({
       {renderLoop.mode === "continuous-constrained" ? (
         <CooperativeWorldInvalidation />
       ) : null}
+      <WorldEnvironment
+        floor={floor}
+        objectCount={objects.length}
+        instances={cityInstances}
+        screens={screens}
+        userPosition={userPosition}
+      />
       <WorldScreens
         screens={screens}
         onScreenMove={onScreenMove}

@@ -119,7 +119,35 @@ const hashText = (value: string) => {
   return hash >>> 0;
 };
 
-export const REPOSITORY_CITY_FLOOR_SIZE = 34;
+export const REPOSITORY_CITY_FLOOR_SIZE = 68;
+
+/** Monotonic session extent, including real footprints and room for the operator. */
+export function worldFloorSize(
+  previous: number,
+  repositoryObjectCount: number,
+  instances: readonly RepositoryCityInstance[],
+  occupants: readonly { x: number; z: number; radius: number }[],
+): number {
+  let half =
+    Math.max(
+      previous,
+      REPOSITORY_CITY_FLOOR_SIZE,
+      Math.sqrt(repositoryObjectCount) * 3 + 16,
+    ) / 2;
+  for (const instance of instances) {
+    const [width, depth] = REPOSITORY_ASSET_BY_ID.get(
+      instance.assetId,
+    )!.footprint;
+    half = Math.max(
+      half,
+      Math.abs(instance.position.x) + width / 2 + 4,
+      Math.abs(instance.position.z) + depth / 2 + 4,
+    );
+  }
+  for (const { x, z, radius } of occupants)
+    half = Math.max(half, Math.abs(x) + radius + 4, Math.abs(z) + radius + 4);
+  return Math.ceil((half * 2) / 4) * 4;
+}
 export const REPOSITORY_CITY_PLACEMENT_CLEARANCE = 0.5;
 export const MAX_REPOSITORY_CITY_INSTANCES = 48;
 const PLACEMENT_STEP = 3;
@@ -145,7 +173,7 @@ const withinFloor = (
   position: RepositoryCityPosition,
 ): boolean => {
   const [width, depth] = REPOSITORY_ASSET_BY_ID.get(assetId)!.footprint;
-  const halfFloor = REPOSITORY_CITY_FLOOR_SIZE / 2;
+  const halfFloor = Math.max(REPOSITORY_CITY_FLOOR_SIZE / 2, 64);
   return (
     Math.abs(position.x) + width / 2 + REPOSITORY_CITY_PLACEMENT_CLEARANCE <=
       halfFloor &&

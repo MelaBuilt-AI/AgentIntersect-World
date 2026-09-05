@@ -42,6 +42,9 @@ declare module "three" {
     quaternion: Quaternion;
     name: string;
     visible: boolean;
+    scale: Vector3;
+    castShadow: boolean;
+    receiveShadow: boolean;
     userData: Record<string, unknown>;
     clone(recursive?: boolean): this;
     add(...objects: Object3D[]): this;
@@ -52,8 +55,18 @@ declare module "three" {
   }
   export class Group extends Object3D {}
   export const NoBlending: number;
+  export const DoubleSide: number;
+  export const BackSide: number;
+  export const AdditiveBlending: number;
+  export const RepeatWrapping: number;
+  export const SRGBColorSpace: string;
   export class Material {
+    needsUpdate: boolean;
     blending: number;
+    side: number;
+    depthWrite: boolean;
+    fog: boolean;
+    toneMapped: boolean;
     name: string;
     opacity: number;
     transparent: boolean;
@@ -65,7 +78,16 @@ declare module "three" {
     minFilter: unknown;
     magFilter: unknown;
     generateMipmaps: boolean;
+    colorSpace: string;
+    wrapS: number;
+    wrapT: number;
+    repeat: Vector2;
+    anisotropy: number;
+    needsUpdate: boolean;
     dispose(): void;
+  }
+  export class TextureLoader {
+    load(url: string, onLoad?: (texture: Texture) => void): Texture;
   }
   export class CanvasTexture extends Texture {
     constructor(canvas: HTMLCanvasElement);
@@ -92,6 +114,7 @@ declare module "three" {
     material: Material | Material[];
   }
   export class BufferGeometry {
+    dispose(): void;
     setFromPoints(points: readonly Vector3[]): this;
     rotateX(angle: number): this;
   }
@@ -117,6 +140,8 @@ declare module "three" {
       radiusBottom?: number,
       height?: number,
       radialSegments?: number,
+      heightSegments?: number,
+      openEnded?: boolean,
     );
   }
   export class IcosahedronGeometry extends BufferGeometry {
@@ -148,6 +173,8 @@ declare module "three" {
     );
   }
   export class MeshStandardMaterial extends Material {
+    map: Texture | null;
+    emissiveMap: Texture | null;
     constructor(parameters?: {
       color?: ColorRepresentation;
       roughness?: number;
@@ -162,6 +189,7 @@ declare module "three" {
     metalness: number;
   }
   export class MeshBasicMaterial extends Material {
+    map: Texture | null;
     constructor(parameters?: {
       color?: ColorRepresentation;
       transparent?: boolean;
@@ -201,6 +229,7 @@ declare module "three" {
     dispose(): void;
   }
   export class WebGLRenderer {
+    capabilities: { getMaxAnisotropy(): number };
     domElement: HTMLCanvasElement;
     getContext(): WebGLRenderingContext | WebGL2RenderingContext;
     getRenderTarget(): WebGLRenderTarget | null;
@@ -216,10 +245,13 @@ declare module "three" {
     intensity: number;
   }
   export class DirectionalLight extends Object3D {
+    target: Object3D;
     constructor(color?: ColorRepresentation, intensity?: number);
     intensity: number;
   }
   export class GridHelper extends Object3D {
+    geometry: BufferGeometry;
+    material: Material | Material[];
     constructor(
       size?: number,
       divisions?: number,

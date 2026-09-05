@@ -283,7 +283,11 @@ export function WorldRoom({
 }) {
   const screenController = useWorldScreens();
   const [codeInspection, setCodeInspection] = useState(false);
-  const [codeInstanceId, setCodeInstanceId] = useState<string | null>(null);
+  const [codeOpening, setCodeOpening] = useState<{
+    id: string;
+    yaw: number;
+    sequence: number;
+  } | null>(null);
   const screenDragging =
     (screenController?.dragging ?? false) || codeInspection;
   const updateScreenAnchor = screenController?.updateAnchor;
@@ -657,15 +661,19 @@ export function WorldRoom({
       );
       if (!instance) return;
       setSelectedCityInstanceId(instanceId);
-      setCodeInstanceId(instanceId);
+      setCodeOpening((current) => ({
+        id: instanceId,
+        yaw: cameraRef.current.yaw,
+        sequence: (current?.sequence ?? 0) + 1,
+      }));
       setSelectedWorkstreamId(null);
-      setCityFocusPosition(instance.position);
-      setCamera((current) => ({ ...current, yaw: 0, pitch: 0 }));
+      // Selection does not teleport/rotate the camera; explicit code focus does.
+      setCityFocusPosition(null);
     },
     [city.instances],
   );
   const codeInstance = city.instances.find(
-    (item) => item.instanceId === codeInstanceId,
+    (item) => item.instanceId === codeOpening?.id,
   );
 
   useLayoutEffect(() => {
@@ -1823,9 +1831,11 @@ export function WorldRoom({
     >
       {floor === "repository" && codeInstance ? (
         <RepositoryCodeScreen
-          key={codeInstance.instanceId}
+          key={`${codeInstance.instanceId}:${codeOpening?.sequence}`}
           instance={codeInstance}
-          onClose={() => setCodeInstanceId(null)}
+          openingYaw={codeOpening?.yaw ?? camera.yaw}
+          reducedMotion={reducedMotion}
+          onClose={() => setCodeOpening(null)}
           onInspectionChange={setCodeInspection}
         />
       ) : null}

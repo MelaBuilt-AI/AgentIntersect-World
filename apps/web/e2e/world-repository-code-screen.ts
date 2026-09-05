@@ -1,9 +1,9 @@
+import { writeFileSync } from "node:fs";
 import { expect, type Page, type TestInfo } from "@playwright/test";
-import { REPOSITORY_ASSET_BY_ID } from "@agentintersect-world/renderer-r3f";
 import {
   calculateWorldCameraPose,
   projectWorldPointToViewport,
-} from "../../../packages/renderer-r3f/src/world-room-canvas.js";
+} from "../../../packages/renderer-r3f/src/world-room-imported-canvas.js";
 
 export async function exerciseRepositoryCodeScreen(
   page: Page,
@@ -36,6 +36,23 @@ export async function exerciseRepositoryCodeScreen(
     timeout: 30_000,
   });
   await expect(canvas).toBeVisible();
+  let openingYaw = Number(await room.getAttribute("data-camera-yaw"));
+  const openingPitch = await room.getAttribute("data-camera-pitch");
+  await page.evaluate(() => {
+    const samples: number[] = [];
+    Object.assign(window, { codeRevealSamples: samples });
+    new MutationObserver((records) => {
+      for (const record of records) {
+        const element = record.target as HTMLElement;
+        if (element.dataset.worldScreen === "code")
+          samples.push(Number(element.dataset.screenReveal));
+      }
+    }).observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-screen-reveal"],
+    });
+  });
   // First prove the keyboard-equivalent object selection, then actual mesh input.
   await page
     .getByRole("button", { name: "Inspect code: WorldRoom.tsx", exact: true })
@@ -44,24 +61,49 @@ export async function exerciseRepositoryCodeScreen(
   await expect(panel).toHaveAttribute("data-screen-mode", "spatial");
   await expect(panel).toContainText("code-screen-1");
   await expect(panel).toHaveAttribute("data-screen-projected", "true");
+  await expect(panel).toHaveAttribute("data-screen-reveal", "1.000");
+  expect(Number(await panel.getAttribute("data-screen-yaw"))).toBeCloseTo(
+    -openingYaw,
+  );
+  await expect(room).toHaveAttribute("data-camera-pitch", openingPitch!);
+  expect(Number(await room.getAttribute("data-camera-yaw"))).toBe(openingYaw);
+  const revealSamples = await page.evaluate(
+    () =>
+      (window as unknown as { codeRevealSamples: number[] }).codeRevealSamples,
+  );
+  expect(revealSamples.every((value) => value === 1)).toBe(true);
+  writeFileSync(
+    testInfo.outputPath("code-reveal-reduced-motion.json"),
+    JSON.stringify(revealSamples),
+  );
   const objectId = await panel
     .locator("section")
     .getAttribute("data-code-object");
   const objectPosition = {
     x: Number(await panel.getAttribute("data-screen-x")),
-    z:
-      Number(await panel.getAttribute("data-screen-z")) -
-      REPOSITORY_ASSET_BY_ID.get("01-code-slab")!.footprint[1] / 2 -
-      1,
+    z: Number(await panel.getAttribute("data-screen-z")),
   };
+  await page.screenshot({
+    path: testInfo.outputPath("repository-keyboard-open.png"),
+  });
+  // Keyboard inspection can select an object outside the current camera frustum.
+  // Fullscreen is the accessible way to reach it without snapping the camera.
+  await page.keyboard.press("Alt+Digit4");
   await panel.getByRole("button", { name: "Close code", exact: true }).click();
   await expect(panel).toHaveCount(0);
   const bounds = (await canvas.boundingBox())!;
   const pick = projectWorldPointToViewport({
     point: [objectPosition.x, 0.6, objectPosition.z],
     camera: calculateWorldCameraPose({
-      userPosition: objectPosition,
-      camera: { yaw: 0, pitch: 0, zoom: 1 },
+      userPosition: {
+        x: Number(await room.getAttribute("data-user-position-x")),
+        z: Number(await room.getAttribute("data-user-position-z")),
+      },
+      camera: {
+        yaw: openingYaw,
+        pitch: Number(openingPitch),
+        zoom: Number(await room.getAttribute("data-camera-zoom")),
+      },
       viewportAspect: bounds.width / bounds.height,
     }),
     viewport: bounds,
@@ -73,6 +115,9 @@ export async function exerciseRepositoryCodeScreen(
     objectId!,
   );
   await expect(panel).toHaveAttribute("data-screen-projected", "true");
+  expect(Number(await panel.getAttribute("data-screen-yaw"))).toBeCloseTo(
+    -openingYaw,
+  );
   await page.screenshot({
     path: testInfo.outputPath("repository-code-open.png"),
   });
@@ -137,6 +182,46 @@ export async function exerciseRepositoryCodeScreen(
     "false",
   );
   await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  // Changing the actual view while open must not turn this into a billboard.
+  await page.mouse.move(720, 610);
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(680, 610, { steps: 5 });
+  await page.mouse.up({ button: "right" });
+  await expect
+    .poll(async () => Number(await room.getAttribute("data-camera-yaw")))
+    .not.toBe(openingYaw);
+  expect(Number(await panel.getAttribute("data-screen-yaw"))).toBeCloseTo(
+    -openingYaw,
+  );
+  openingYaw = Number(await room.getAttribute("data-camera-yaw"));
+  await page.keyboard.press("Alt+Digit4");
+  await panel.getByRole("button", { name: "Close code", exact: true }).click();
+  await expect(panel).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(canvas).toHaveAttribute("data-render-loop", "continuous");
+  await page.evaluate(() => {
+    (
+      window as unknown as { codeRevealSamples: number[] }
+    ).codeRevealSamples.length = 0;
+  });
+  await page
+    .getByRole("button", { name: "Inspect code: WorldRoom.tsx", exact: true })
+    .press("Enter");
+  await expect(panel).toHaveAttribute("data-screen-mode", "spatial");
+  expect(Number(await panel.getAttribute("data-screen-yaw"))).toBeCloseTo(
+    -openingYaw,
+  );
+  await expect(panel).toHaveAttribute("data-screen-reveal", "1.000");
+  const animatedSamples = await page.evaluate(
+    () =>
+      (window as unknown as { codeRevealSamples: number[] }).codeRevealSamples,
+  );
+  expect(animatedSamples.some((value) => value > 0 && value < 1)).toBe(true);
+  writeFileSync(
+    testInfo.outputPath("code-reveal-animated.json"),
+    JSON.stringify(animatedSamples),
+  );
+  await page.keyboard.press("Alt+Digit4");
   await panel.getByRole("button", { name: "Close code", exact: true }).click();
   await expect(panel).toHaveCount(0);
   await expect(

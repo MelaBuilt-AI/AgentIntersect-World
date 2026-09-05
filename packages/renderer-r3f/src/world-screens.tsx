@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
+import { useCodeTexture } from "./code-world-texture.js";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
   NoBlending,
+  DoubleSide,
+  AdditiveBlending,
+  Group,
   Matrix4,
   Plane,
   Quaternion,
@@ -12,6 +16,8 @@ import {
 import {
   WORLD_SCREEN_CENTER_Y,
   WORLD_SCREEN_SCALE,
+  rotateWorldScreen,
+  worldScreenReveal,
   type WorldScreenBinding,
   type WorldScreenId,
   type WorldScreenPose,
@@ -44,6 +50,7 @@ export function WorldScreens({
   onScreenDrag,
 }: WorldScreensProps) {
   const { camera, gl, size, invalidate } = useThree();
+  const screenTexture = useCodeTexture("02_terminal_rain");
   const drag = useRef<{
     id: WorldScreenId;
     pointerId: number;
@@ -99,11 +106,25 @@ export function WorldScreens({
       event.preventDefault();
       const hit = point(event.clientX, event.clientY);
       if (!hit) return;
-      onScreenMove?.(active.id, {
+      active.pose = {
         ...active.pose,
         x: Math.max(-60, Math.min(60, hit.x + active.offset.x)),
         z: Math.max(-60, Math.min(60, hit.z + active.offset.z)),
-      });
+      };
+      onScreenMove?.(active.id, active.pose);
+      invalidate();
+    };
+    const wheel = (event: WheelEvent) => {
+      const active = drag.current;
+      if (!active || event.ctrlKey) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      active.pose = rotateWorldScreen(
+        active.pose,
+        event.deltaY,
+        event.deltaMode,
+      );
+      onScreenMove?.(active.id, active.pose);
       invalidate();
     };
     const end = () => {
@@ -128,6 +149,7 @@ export function WorldScreens({
       capture: true,
       passive: false,
     });
+    window.addEventListener("wheel", wheel, { capture: true, passive: false });
     window.addEventListener("pointerup", release, true);
     window.addEventListener("pointercancel", release, true);
     window.addEventListener("blur", end);
@@ -137,6 +159,7 @@ export function WorldScreens({
     return () => {
       for (const screen of screens) delete screen.startDrag;
       window.removeEventListener("pointermove", move, true);
+      window.removeEventListener("wheel", wheel, true);
       window.removeEventListener("pointerup", release, true);
       window.removeEventListener("pointercancel", release, true);
       window.removeEventListener("blur", end);
@@ -183,12 +206,12 @@ export function WorldScreens({
         ) * 1.18;
       camera.position.set(
         focusedScreen.pose.x + Math.sin(focusedScreen.pose.yaw) * distance,
-        WORLD_SCREEN_CENTER_Y,
+        focusedScreen.pose.y ?? WORLD_SCREEN_CENTER_Y,
         focusedScreen.pose.z + Math.cos(focusedScreen.pose.yaw) * distance,
       );
       camera.lookAt(
         focusedScreen.pose.x,
-        WORLD_SCREEN_CENTER_Y,
+        focusedScreen.pose.y ?? WORLD_SCREEN_CENTER_Y,
         focusedScreen.pose.z,
       );
       camera.updateMatrixWorld();
@@ -203,6 +226,7 @@ export function WorldScreens({
         screen.cameraElement.style.cssText = "";
         screen.element.style.transform = "";
         screen.element.style.visibility = "";
+        screen.element.style.clipPath = "";
         screen.element.inert = false;
         continue;
       }
@@ -212,12 +236,23 @@ export function WorldScreens({
       screen.cameraElement.style.height = `${size.height}px`;
       tools.position.set(
         screen.pose.x,
-        WORLD_SCREEN_CENTER_Y,
-        screen.pose.z + 0.01,
+        screen.pose.y ?? WORLD_SCREEN_CENTER_Y,
+        screen.pose.z,
       );
       tools.rotation.setFromAxisAngle(new Vector3(0, 1, 0), screen.pose.yaw);
       tools.matrix.compose(tools.position, tools.rotation, tools.scale);
       screen.element.style.transform = screenObjectCss(tools.matrix);
+      const reveal =
+        screen.revealStartedAt === undefined
+          ? 1
+          : worldScreenReveal(
+              (performance.now() - screen.revealStartedAt) / 1000,
+              screen.reducedMotion ?? false,
+            );
+      screen.element.style.clipPath =
+        reveal < 1 ? `inset(${(1 - reveal) * 100}% 0 0)` : "";
+      screen.viewport.dataset.screenReveal = reveal.toFixed(3);
+      if (reveal < 1) invalidate();
       const front =
         (camera.position.x - screen.pose.x) * Math.sin(screen.pose.yaw) +
           (camera.position.z - screen.pose.z) * Math.cos(screen.pose.yaw) >
@@ -251,81 +286,115 @@ export function WorldScreens({
     <group name="world-spatial-screens">
       {screens
         .filter((screen) => screen.spatial)
-        .map((screen) => {
-          const width = screen.width * WORLD_SCREEN_SCALE;
-          const height = screen.height * WORLD_SCREEN_SCALE;
-          const standHeight = WORLD_SCREEN_CENTER_Y - height / 2 - 0.16;
-          return (
-            <group
-              key={screen.id}
-              name={`world-screen-${screen.id}`}
-              position={[screen.pose.x, 0, screen.pose.z]}
-              rotation={[0, screen.pose.yaw, 0]}
-            >
-              <mesh
-                name={`world-screen-mask-${screen.id}`}
-                position={[0, WORLD_SCREEN_CENTER_Y, 0.01]}
-                renderOrder={-1}
-              >
-                <planeGeometry args={[width, height]} />
-                <meshBasicMaterial
-                  color="#000000"
-                  blending={NoBlending}
-                  opacity={0}
-                />
-              </mesh>
-              <mesh position={[0, WORLD_SCREEN_CENTER_Y, -0.11]}>
-                <boxGeometry args={[width + 0.2, height + 0.2, 0.2]} />
-                <meshStandardMaterial
-                  color="#0c1728"
-                  metalness={0.65}
-                  roughness={0.3}
-                />
-              </mesh>
-              <mesh position={[0, 0.16 + standHeight / 2, -0.12]}>
-                <boxGeometry args={[0.18, standHeight, 0.18]} />
-                <meshStandardMaterial
-                  color="#36506b"
-                  metalness={0.75}
-                  roughness={0.25}
-                />
-              </mesh>
-              <mesh
-                name={`world-screen-base-${screen.id}`}
-                position={[0, 0.16, 0]}
-                onPointerDown={(event: {
-                  button: number;
-                  clientX: number;
-                  clientY: number;
-                  pointerId: number;
-                  stopPropagation: () => void;
-                }) => {
-                  if (event.button !== 0) return;
-                  event.stopPropagation();
-                  screen.startDrag?.(
-                    event.clientX,
-                    event.clientY,
-                    event.pointerId,
-                  );
-                }}
-                onPointerOver={() => {
-                  gl.domElement.style.cursor = "grab";
-                }}
-                onPointerOut={() => {
-                  gl.domElement.style.cursor = "";
-                }}
-              >
-                <boxGeometry args={[width * 0.65, 0.32, 1.2]} />
-                <meshStandardMaterial
-                  color="#1575be"
-                  emissive="#073657"
-                  metalness={0.55}
-                  roughness={0.35}
-                />
-              </mesh>
-            </group>
+        .map((screen) => (
+          <ProjectedScreen
+            key={screen.id}
+            screen={screen}
+            texture={screenTexture}
+          />
+        ))}
+    </group>
+  );
+}
+
+function ProjectedScreen({
+  screen,
+  texture,
+}: {
+  readonly screen: WorldScreenBinding;
+  readonly texture: import("three").Texture | null;
+}) {
+  const face = useRef<Group>(null);
+  const { invalidate } = useThree();
+  const width = screen.width * WORLD_SCREEN_SCALE;
+  const height = screen.height * WORLD_SCREEN_SCALE;
+  const bottom = (screen.pose.y ?? WORLD_SCREEN_CENTER_Y) - height / 2;
+  const originY = screen.id === "code" ? 1.15 : 0;
+  const beamHeight = bottom - originY;
+  useFrame(() => {
+    if (!face.current) return;
+    const reveal =
+      screen.revealStartedAt === undefined
+        ? 1
+        : worldScreenReveal(
+            (performance.now() - screen.revealStartedAt) / 1000,
+            screen.reducedMotion ?? false,
           );
-        })}
+    face.current.scale.y = Math.max(0.001, reveal);
+    face.current.position.y = bottom + (height * reveal) / 2;
+    if (reveal < 1) invalidate();
+  });
+  return (
+    <group
+      name={`world-screen-${screen.id}`}
+      position={[screen.pose.x, 0, screen.pose.z]}
+      rotation={[0, screen.pose.yaw, 0]}
+    >
+      <group ref={face} position={[0, bottom + height / 2, 0]}>
+        <mesh
+          name={`world-screen-mask-${screen.id}`}
+          position={[0, 0, 0.01]}
+          renderOrder={-1}
+        >
+          <planeGeometry args={[width, height]} />
+          <meshBasicMaterial
+            color="#000000"
+            blending={NoBlending}
+            opacity={0}
+          />
+        </mesh>
+        <mesh
+          name={`world-screen-code-shell-${screen.id}`}
+          position={[0, 0, -0.075]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[width + 0.1, height + 0.1, 0.14]} />
+          <meshStandardMaterial
+            onUpdate={(material) => {
+              material.needsUpdate = true;
+            }}
+            map={texture}
+            emissiveMap={texture}
+            color="#b5e8fa"
+            emissive="#5bd9ff"
+            emissiveIntensity={0.55}
+            metalness={0.25}
+            roughness={0.55}
+          />
+        </mesh>
+      </group>
+      {/* Light only: no stand, physical base, raycast handler or drag authority. */}
+      <group name={`world-screen-projection-${screen.id}`}>
+        <mesh
+          position={[0, originY + beamHeight / 2, -0.1]}
+          scale={[width / 2, beamHeight, 0.34]}
+        >
+          <cylinderGeometry args={[1, 0.06, 1, 4, 1, true]} />
+          <meshBasicMaterial
+            color="#36dfff"
+            transparent
+            opacity={0.1}
+            blending={AdditiveBlending}
+            side={DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+        <mesh
+          position={[0, originY + 0.015, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          scale={[1, 0.36, 1]}
+        >
+          <ringGeometry args={[0.18, 0.8, 48]} />
+          <meshBasicMaterial
+            color="#43e5ff"
+            transparent
+            opacity={0.32}
+            blending={AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
     </group>
   );
 }

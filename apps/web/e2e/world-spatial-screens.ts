@@ -11,6 +11,9 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   await expect(
     page.locator('canvas[data-scene-id="world-room"]'),
   ).toBeVisible();
+  await expect(
+    page.locator('canvas[data-scene-id="world-room"]'),
+  ).toHaveAttribute("data-world-textures-ready", "true");
   await expect(room).toHaveAttribute("data-camera-zoom", "1");
   await page.mouse.move(720, 520);
   await page.mouse.wheel(0, 240);
@@ -125,31 +128,63 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
       x: await panel.getAttribute("data-screen-x"),
       z: await panel.getAttribute("data-screen-z"),
     };
-    // Raycast the physical floor base, not merely the DOM grab strip.
-    const bounds = {
-      x: Number(await panel.getAttribute("data-base-client-x")),
-      y: Number(await panel.getAttribute("data-base-client-y")),
-      width: 0,
-      height: 0,
-    };
-    expect(bounds.x).toBeGreaterThan(0);
-    expect(bounds.x).toBeLessThan(1440);
-    expect(bounds.y).toBeGreaterThan(0);
-    expect(bounds.y).toBeLessThan(900);
-    await page.mouse.move(
-      bounds!.x + bounds!.width / 2,
-      bounds!.y + bounds!.height / 2,
-    );
+    // The decorative floor emitter has no drag authority.
+    const emitter = await panel.evaluate((element) => {
+      const x = Number((element as HTMLElement).dataset.baseClientX);
+      const y = Number((element as HTMLElement).dataset.baseClientY);
+      // A moved panel can overlay another emitter. Test the World hit target,
+      // not a different panel's legitimately draggable footer above it.
+      return [0, 12, 24, 36]
+        .map((offset) => ({ x, y: y + offset }))
+        .find(
+          (point) =>
+            !document
+              .elementFromPoint(point.x, point.y)
+              ?.closest(".world-screen__object"),
+        );
+    });
+    expect(emitter).toBeDefined();
+    await page.mouse.move(emitter!.x, emitter!.y);
+    await page.mouse.down();
+    await expect(panel).toHaveAttribute("data-screen-dragging", "false");
+    // A hold/move is not a click on a repository object beneath the light.
+    await page.mouse.move(emitter!.x + 12, emitter!.y, { steps: 3 });
+    await page.mouse.up();
+    await expect(page.locator('[data-world-screen="code"]')).toHaveCount(0);
+    const handle = panel.locator(".world-screen__base");
+    await expect(handle).toContainText("Hold here to move");
+    const grab = await handle.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return [0.15, 0.85, 0.35, 0.65]
+        .map((fraction) => ({
+          x: box.x + box.width * fraction,
+          y: box.y + box.height / 2,
+        }))
+        .find((point) =>
+          element.contains(document.elementFromPoint(point.x, point.y)),
+        );
+    });
+    expect(grab).toBeDefined();
+    const yawBefore = await panel.getAttribute("data-screen-yaw");
+    const zoomBefore = await room.getAttribute("data-camera-zoom");
+    await page.mouse.move(grab!.x, grab!.y);
     await page.screenshot({
       path: testInfo.outputPath(`before-drag-${id}.png`),
     });
+    await page.mouse.down({ button: "right" });
+    await expect(panel).toHaveAttribute("data-screen-dragging", "false");
+    await page.mouse.up({ button: "right" });
     await page.mouse.down({ button: "left" });
     await expect(panel).toHaveAttribute("data-screen-dragging", "true");
-    await page.mouse.move(
-      bounds!.x + bounds!.width / 2 + 45,
-      bounds!.y + bounds!.height / 2 + 16,
-      { steps: 5 },
-    );
+    await page.mouse.move(grab!.x + 45, grab!.y + 16, { steps: 5 });
+    await page.mouse.wheel(0, 60);
+    await expect
+      .poll(() => panel.getAttribute("data-screen-yaw"))
+      .not.toBe(yawBefore);
+    const droppedYaw = await panel.getAttribute("data-screen-yaw");
+    await page.mouse.move(grab!.x + 48, grab!.y + 18, { steps: 3 });
+    await expect(panel).toHaveAttribute("data-screen-yaw", droppedYaw!);
+    await expect(room).toHaveAttribute("data-camera-zoom", zoomBefore!);
     await page.mouse.up({ button: "left" });
     await expect(panel).toHaveAttribute("data-screen-dragging", "false");
     await expect
@@ -166,12 +201,13 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
     await expect(panel).toHaveAttribute("data-screen-mode", "spatial");
     await expect(panel).toHaveAttribute("data-screen-x", dropped.x!);
     await expect(panel).toHaveAttribute("data-screen-z", dropped.z!);
+    await expect(panel).toHaveAttribute("data-screen-yaw", droppedYaw!);
   }
   expect(
     await iframe.evaluate((node, original) => node === original, iframeHandle),
   ).toBe(true);
   const grab = screen("director").getByRole("button", {
-    name: "Move Live / Director screen base",
+    name: "Move Live / Director screen",
   });
   const grabBox = await grab.boundingBox();
   await page.mouse.move(
@@ -241,6 +277,7 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
               mode: (node as HTMLElement).dataset.screenMode,
               x: (node as HTMLElement).dataset.screenX,
               z: (node as HTMLElement).dataset.screenZ,
+              yaw: (node as HTMLElement).dataset.screenYaw,
             })),
           ),
         previewNodePreserved: await iframe.evaluate(

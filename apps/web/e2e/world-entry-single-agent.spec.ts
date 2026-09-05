@@ -1401,6 +1401,15 @@ for (const screenJourney of ["hud", "spatial", "code"])
         if (response.status() >= 400)
           browserErrors.push(`${response.status()} ${response.url()}`);
       });
+      if (screenJourney !== "spatial") {
+        // These journeys do not exercise pending city loads. Wait for the
+        // renderer's independent startup before starting preview work.
+        await expect(page.locator("main.world-room")).toHaveAttribute(
+          "data-repository-readiness",
+          "ready",
+          { timeout: 30_000 },
+        );
+      }
       const launcher = workstream.getByRole("button", {
         name: "Start World View",
       });
@@ -1435,6 +1444,10 @@ for (const screenJourney of ["hud", "spatial", "code"])
           "data-repository-readiness",
           "loading",
         );
+        // A new city load must not suspend the mounted World/canvas.
+        await expect(
+          page.locator('canvas[data-scene-id="world-room"]'),
+        ).toBeVisible();
         const releaseTimer = setTimeout(() => releaseCityAssets?.(), 6_500);
         try {
           await exerciseSpatialScreens(page, testInfo);

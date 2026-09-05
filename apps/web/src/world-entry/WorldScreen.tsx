@@ -44,11 +44,15 @@ export function WorldScreen({
   pose: controlledPose,
   focused = false,
   movable = true,
+  revealStartedAt,
+  reducedMotion = false,
 }: {
   readonly spatial?: boolean;
   readonly pose?: WorldScreenPose;
   readonly focused?: boolean;
   readonly movable?: boolean;
+  readonly revealStartedAt?: number;
+  readonly reducedMotion?: boolean;
   readonly id: WorldScreenId;
   readonly children: ReactNode;
 }) {
@@ -75,6 +79,8 @@ export function WorldScreen({
       spatial,
       focused,
       movable,
+      ...(revealStartedAt === undefined ? {} : { revealStartedAt }),
+      reducedMotion,
       pose,
       width,
       height,
@@ -88,7 +94,18 @@ export function WorldScreen({
       binding.current = null;
       unregister();
     };
-  }, [focused, height, id, movable, pose, register, spatial, width]);
+  }, [
+    focused,
+    height,
+    id,
+    movable,
+    pose,
+    reducedMotion,
+    register,
+    revealStartedAt,
+    spatial,
+    width,
+  ]);
   return (
     <div
       ref={viewport}
@@ -112,8 +129,8 @@ export function WorldScreen({
               type="button"
               className="world-screen__base"
               hidden={!spatial}
-              aria-label={`Move ${SCREEN_LABELS[id]} screen base`}
-              title="Hold left mouse and drag to move · arrow keys to nudge"
+              aria-label={`Move ${SCREEN_LABELS[id]} screen`}
+              title="Left click and hold here to move · while holding, scroll to rotate · arrow keys to nudge"
               onPointerDown={(event) => {
                 if (event.button !== 0) return;
                 event.preventDefault();
@@ -141,7 +158,8 @@ export function WorldScreen({
                 });
               }}
             >
-              ⠿ {SCREEN_LABELS[id]} · hold base to move
+              ⠿ {SCREEN_LABELS[id]} · Hold here to move
+              <small>Hold + scroll to rotate</small>
             </button>
           ) : null}
         </div>
