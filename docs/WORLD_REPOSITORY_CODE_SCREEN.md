@@ -15,7 +15,7 @@
 - `RepositoryCodeScreen.tsx` keeps one read-only, line-numbered viewport mounted while the screen switches between an object-bound World pose and a fixed fullscreen dialog. The camera fits the selected screen on code-click; Return to World / Escape restores the prior view. Alt+4 works independently of Alt+1/2/3.
 - Files open directly. Directory/package objects list their indexed descendants. Decorative instances without a repository reference show an explicit unavailable state; no source content is invented.
 - Existing 2D panel HUDs are hidden (not unmounted) while the code screen is open. Chat/navigation/status overlays are additionally hidden during focused reading. Closing restores them. Viewport wheel events scroll the code rather than the camera, including CSS3D Chromium compositor cases.
-- `GET /api/world/repository-code?objectRef=...&fileRef=...` reads from the server-selected repository only. It validates indexed object/file membership, resolves canonical paths within the root, refuses non-regular or binary files, caps reads at 512 KiB, and uses `Cache-Control: no-store`. It returns current working-file text, not an immutable historical generation; there are no edit/save/execution controls.
+- `GET /repository-code?repositoryRef=...&objectRef=...` (through the web proxy: `/api/world/repository-code`) reads from the server-selected repository only. It validates indexed object/file membership, resolves canonical paths within the root, refuses non-regular or binary files, caps reads at 512 KiB, and uses `Cache-Control: no-store`. It returns current working-file text, not an immutable historical generation; there are no edit/save/execution controls.
 
 ## Verification boundary
 
