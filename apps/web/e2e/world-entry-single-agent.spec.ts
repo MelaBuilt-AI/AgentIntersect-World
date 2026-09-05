@@ -914,6 +914,14 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     .toEqual(["change it to use the blue active state"]);
   expect(createRequests).toBe(1);
   expect(iterationRequests).toBe(1);
+  // This sequential journey waits for the turn to finish; FIFO-in-flight behavior
+  // has separate coverage below. A received stream request is not turn completion.
+  await expect(
+    workstream.getByRole("button", {
+      name: "Close Work Inspector",
+      exact: true,
+    }),
+  ).toBeEnabled();
 
   await composer.fill("cancel current workstream");
   await composer.press("Enter");
@@ -2443,7 +2451,7 @@ async function completeJourney(
   if (evidence === "desktop") {
     const room = page.locator("main.world-room");
     const canvas = page.locator('canvas[data-floor-state="repository"]');
-    await page.getByRole("button", { name: "Director" }).click();
+    await page.getByRole("button", { name: "Director", exact: true }).click();
     await page.getByLabel("Search assets").fill("deployment");
     await page.getByRole("button", { name: "Place on grid" }).click();
     const inspector = page.getByRole("region", { name: "Asset Inspector" });
@@ -2456,7 +2464,7 @@ async function completeJourney(
     await inspector.getByRole("button", { name: "Remove" }).click();
     await expect(canvas).toHaveAttribute("data-camera-focus", "user");
     await page.getByLabel("Search assets").fill("");
-    await page.getByRole("button", { name: "Live" }).click();
+    await page.getByRole("button", { name: "Live", exact: true }).click();
     await expect(room).toHaveAttribute("data-repository-city-mode", "live");
   }
   if (
@@ -3927,7 +3935,7 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
   const cityCount = Number(
     await room.getAttribute("data-repository-city-count"),
   );
-  await page.getByRole("button", { name: "Director" }).click();
+  await page.getByRole("button", { name: "Director", exact: true }).click();
   await page.getByLabel("Search assets").fill("deployment");
   await expect(page.locator(".repository-assets__card")).toHaveCount(1);
   await page.getByRole("button", { name: "Place on grid" }).click();
