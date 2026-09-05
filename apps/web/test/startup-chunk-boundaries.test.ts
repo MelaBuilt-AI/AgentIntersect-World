@@ -39,6 +39,8 @@ describe("production startup chunk boundaries", () => {
       configFile: resolve(webRoot, "vite.config.ts"),
       logLevel: "error",
       build: {
+        // This test governs JS chunk edges, not the 580 MB public asset copy.
+        copyPublicDir: false,
         emptyOutDir: true,
         manifest: true,
         minify: "esbuild",

@@ -3279,6 +3279,10 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
 test("held right-button canvas look follows both axes and clears every exit guard @pointer-lock", async ({
   page,
 }) => {
+  // Both fresh hosted runs exhausted 30s near the final movement checks;
+  // the same full journey passed in a faithful local two-CPU scope (12.6s).
+  // Preserve each action/assertion budget while allowing cold hosted rendering.
+  test.setTimeout(60_000);
   await page.setViewportSize({ width: 1280, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
   await restoreFixtureWorld(page);
