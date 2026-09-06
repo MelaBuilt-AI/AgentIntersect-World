@@ -27,6 +27,24 @@
       "size": [4096, 4096],
       "bytes": 3389386,
       "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    },
+    {
+      "source": "17_aurora_code_sky.png",
+      "sourceSha256": "cb9b9a748e1a1faa59e8862319a06e118a9f56325041c9e0ae1c09e752637698",
+      "runtime": "17_aurora_code_sky.webp",
+      "runtimeSha256": "45c322d12274c3bece65b4f1ea2a0e4f65b1308af44634ff4f2f819045a8dcf5",
+      "size": [4096, 4096],
+      "bytes": 10765950,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    },
+    {
+      "source": "15_code_nebula_sky.png",
+      "sourceSha256": "bcdad03a459cfab9ff37313af859a012fc660169d2eb9b628ec182ea521ee186",
+      "runtime": "15_code_nebula_sky.webp",
+      "runtimeSha256": "2d7477e3d29c3064eed9d56447953523dd292ede00a6c78e6c2fcb787fb03d58",
+      "size": [4096, 4096],
+      "bytes": 9803782,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
     }
   ]
 }

@@ -42,6 +42,13 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   // Typing does not undock a panel, including an Alt shortcut in the input.
   await palette.getByLabel("Search assets").press("Alt+Digit1");
   await expect(screen("director")).toHaveAttribute("data-screen-mode", "hud");
+  const cameraBeforeUndock = await room.evaluate((element) => ({
+    yaw: element.getAttribute("data-camera-yaw"),
+    pitch: element.getAttribute("data-camera-pitch"),
+    zoom: element.getAttribute("data-camera-zoom"),
+    x: element.getAttribute("data-user-position-x"),
+    z: element.getAttribute("data-user-position-z"),
+  }));
   await room.focus();
   await page.keyboard.press("Alt+Digit1");
   await expect(screen("director")).toHaveAttribute(
@@ -52,6 +59,22 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
     "data-screen-projected",
     "true",
   );
+  // Wait for real render frames: an effect must not move the camera after spawn.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  expect(
+    await room.evaluate((element) => ({
+      yaw: element.getAttribute("data-camera-yaw"),
+      pitch: element.getAttribute("data-camera-pitch"),
+      zoom: element.getAttribute("data-camera-zoom"),
+      x: element.getAttribute("data-user-position-x"),
+      z: element.getAttribute("data-user-position-z"),
+    })),
+  ).toEqual(cameraBeforeUndock);
   await expect(palette.getByLabel("Search assets")).toHaveValue("code");
   await page.screenshot({ path: testInfo.outputPath("director-undocked.png") });
   await palette.getByRole("button", { name: "Director", exact: true }).click();
@@ -291,6 +314,107 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
       2,
     ),
   );
+  // The movement authority and renderer must share the same expanding floor.
+  const canvas = page.locator('canvas[data-scene-id="world-room"]');
+  await room.focus();
+  await page.keyboard.down("Shift");
+  await page.keyboard.down("d");
+  try {
+    await expect
+      .poll(
+        async () => Number(await room.getAttribute("data-user-position-x")),
+        { timeout: 12_000 },
+      )
+      .toBeGreaterThan(38);
+  } finally {
+    await page.keyboard.up("d");
+    await page.keyboard.up("Shift");
+  }
+  await expect(canvas).toHaveAttribute(
+    "data-user-position",
+    `${await room.getAttribute("data-user-position-x")},${await room.getAttribute("data-user-position-z")}`,
+  );
+  const expandedFloor = Number(
+    await room.getAttribute("data-world-floor-size"),
+  );
+  expect(expandedFloor).toBeGreaterThan(68);
+  await expect(canvas).toHaveAttribute(
+    "data-world-floor-size",
+    String(expandedFloor),
+  );
+  await page.keyboard.down("Shift");
+  await page.keyboard.down("a");
+  try {
+    await expect
+      .poll(
+        async () => Number(await room.getAttribute("data-user-position-x")),
+        { timeout: 12_000 },
+      )
+      .toBeLessThan(5);
+  } finally {
+    await page.keyboard.up("a");
+    await page.keyboard.up("Shift");
+  }
+  await expect(room).toHaveAttribute(
+    "data-world-floor-size",
+    String(expandedFloor),
+  );
+
+  await page.keyboard.press("Alt+Digit1");
+  const motion = () =>
+    canvas.evaluate((node) => {
+      const data = (node as HTMLCanvasElement).dataset;
+      return {
+        floor: data.floorTextureOffset,
+        screen: data.screenTextureOffset,
+        sky: data.skyRotation,
+        flow: data.skyFlowTime,
+      };
+    });
+  const reduced = await motion();
+  await page.waitForTimeout(400);
+  expect(await motion()).toEqual(reduced);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect.poll(async () => (await motion()).flow).not.toBe(reduced.flow);
+  const movingBefore = await motion();
+  await page.screenshot({
+    path: testInfo.outputPath("code-motion-before.png"),
+  });
+  await expect
+    .poll(async () => Number((await motion()).flow), { timeout: 8_000 })
+    .toBeGreaterThan(Number(movingBefore.flow) + 2);
+  const movingAfter = await motion();
+  expect(movingAfter.floor).not.toBe(movingBefore.floor);
+  expect(movingAfter.screen).not.toBe(movingBefore.screen);
+  expect(movingAfter.sky).toBe(movingBefore.sky);
+  await expect(canvas).toHaveAttribute("data-sky-layers", "rain,aurora,nebula");
+  await page.screenshot({ path: testInfo.outputPath("code-motion-after.png") });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  // Await React's preference transition before taking the held-state baseline.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  const paused = await motion();
+  await page.waitForTimeout(500);
+  expect(await motion()).toEqual(paused);
+  writeFileSync(
+    testInfo.outputPath("code-world-motion-navigation.json"),
+    JSON.stringify(
+      {
+        expandedFloor,
+        movingBefore,
+        movingAfter,
+        reduced,
+        paused,
+      },
+      null,
+      2,
+    ),
+  );
+  await page.keyboard.press("Alt+Digit1");
   // Actual context loss returns the mounted surfaces to accessible HUD mode.
   await page.keyboard.press("Alt+Digit1");
   await expect(screen("director")).toHaveAttribute(

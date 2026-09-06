@@ -2,6 +2,10 @@ declare module "three" {
   export type ColorRepresentation = string | number | Color;
   export class Vector2 {
     constructor(x?: number, y?: number);
+    x: number;
+    y: number;
+    clone(): Vector2;
+    toArray(): number[];
     set(x: number, y: number): this;
   }
   export class Plane {
@@ -61,6 +65,11 @@ declare module "three" {
   export const RepeatWrapping: number;
   export const SRGBColorSpace: string;
   export class Material {
+    onBeforeCompile(
+      shader: { uniforms: Record<string, unknown>; fragmentShader: string },
+      renderer: WebGLRenderer,
+    ): void;
+    customProgramCacheKey(): string;
     needsUpdate: boolean;
     blending: number;
     side: number;
@@ -82,6 +91,8 @@ declare module "three" {
     wrapS: number;
     wrapT: number;
     repeat: Vector2;
+    offset: Vector2;
+    source: unknown;
     anisotropy: number;
     needsUpdate: boolean;
     dispose(): void;

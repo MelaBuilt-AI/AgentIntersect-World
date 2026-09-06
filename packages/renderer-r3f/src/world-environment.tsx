@@ -1,45 +1,52 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { BackSide, GridHelper, Group, Object3D } from "three";
-import { useCodeTexture } from "./code-world-texture.js";
+import { AdditiveBlending, BackSide, GridHelper, Group, Object3D } from "three";
 import {
-  REPOSITORY_CITY_FLOOR_SIZE,
-  worldFloorSize,
-  type RepositoryCityInstance,
-} from "./repository-city-state.js";
-import {
-  WORLD_SCREEN_SCALE,
-  type WorldScreenBinding,
-} from "./world-screen-types.js";
+  CODE_SKY_LAYERS,
+  animateCodeSky,
+  configureCodeSky,
+  useCodeTexture,
+} from "./code-world-texture.js";
 
 export function WorldEnvironment({
   floor,
-  objectCount,
-  instances,
-  screens = [],
+  size,
+  reducedMotion,
   userPosition,
 }: {
   readonly floor: "blank" | "repository";
-  readonly objectCount: number;
-  readonly instances: readonly RepositoryCityInstance[];
-  readonly screens?: readonly WorldScreenBinding[] | undefined;
+  readonly size: number;
+  readonly reducedMotion: boolean;
   readonly userPosition: { readonly x: number; readonly z: number };
 }) {
   const { camera, gl, invalidate } = useThree();
-  const [extent, setExtent] = useState(REPOSITORY_CITY_FLOOR_SIZE);
-  const size = worldFloorSize(extent, objectCount, instances, [
-    { ...userPosition, radius: 10 },
-    ...screens
-      .filter((screen) => screen.spatial)
-      .map((screen) => ({
-        ...screen.pose,
-        radius: (screen.width * WORLD_SCREEN_SCALE) / 2,
-      })),
-  ]);
-  if (size > extent) setExtent(size);
-  const floorTexture = useCodeTexture("12_repository_map_floor");
-  const skyTexture = useCodeTexture("16_constellation_graph_sky");
+  const floorTexture = useCodeTexture(
+    "12_repository_map_floor",
+    "floor",
+    reducedMotion,
+  );
+  const rainTexture = useCodeTexture("02_terminal_rain");
+  const auroraTexture = useCodeTexture("17_aurora_code_sky");
+  const nebulaTexture = useCodeTexture("15_code_nebula_sky");
+  const skyTextures = {
+    rain: rainTexture,
+    aurora: auroraTexture,
+    nebula: nebulaTexture,
+  };
   const sky = useRef<Group>(null);
+  const skyTime = useMemo(() => ({ value: 0 }), []);
+  const skyShaders = useMemo(
+    () =>
+      CODE_SKY_LAYERS.map(
+        (layer) =>
+          (shader: {
+            uniforms: Record<string, unknown>;
+            fragmentShader: string;
+          }) =>
+            configureCodeSky(shader, skyTime, layer.kind),
+      ),
+    [skyTime],
+  );
   const lightTarget = useMemo(() => new Object3D(), []);
   const grid = useMemo(() => {
     const object = new GridHelper(size, size / 4, "#277099", "#122c48");
@@ -48,13 +55,22 @@ export function WorldEnvironment({
   }, [size]);
   useEffect(() => {
     floorTexture?.repeat.set(size / 12, size / 12);
-    skyTexture?.repeat.set(6, 3);
+    for (const texture of [rainTexture, auroraTexture, nebulaTexture])
+      texture?.repeat.set(6, 3);
     gl.domElement.dataset.worldFloorSize = String(size);
     gl.domElement.dataset.worldTexturesReady = String(
-      Boolean(floorTexture && skyTexture),
+      Boolean(floorTexture && rainTexture && auroraTexture && nebulaTexture),
     );
     invalidate();
-  }, [floorTexture, gl, invalidate, size, skyTexture]);
+  }, [
+    floorTexture,
+    gl,
+    invalidate,
+    size,
+    rainTexture,
+    auroraTexture,
+    nebulaTexture,
+  ]);
   useEffect(() => {
     lightTarget.position.set(userPosition.x, 0, userPosition.z);
     lightTarget.updateMatrixWorld();
@@ -70,8 +86,13 @@ export function WorldEnvironment({
     },
     [grid],
   );
-  useFrame(() => {
-    sky.current?.position.copy(camera.position);
+  useFrame((_, delta) => {
+    if (!sky.current) return;
+    sky.current.position.copy(camera.position);
+    animateCodeSky(sky.current, skyTime, delta, reducedMotion);
+    gl.domElement.dataset.skyRotation = sky.current.rotation.y.toFixed(6);
+    gl.domElement.dataset.skyFlowTime = skyTime.value.toFixed(6);
+    gl.domElement.dataset.skyLayers = "rain,aurora,nebula";
   });
   return (
     <group name="world-code-environment">
@@ -120,20 +141,31 @@ export function WorldEnvironment({
       </mesh>
       <primitive object={grid} />
       <group ref={sky} name="world-code-sky">
-        <mesh renderOrder={-10}>
-          <sphereGeometry args={[450, 48, 24]} />
-          <meshBasicMaterial
-            onUpdate={(material) => {
-              material.needsUpdate = true;
-            }}
-            map={skyTexture}
-            color="#7892b8"
-            side={BackSide}
-            depthWrite={false}
-            fog={false}
-            toneMapped={false}
-          />
-        </mesh>
+        {CODE_SKY_LAYERS.map((layer, index) => (
+          <mesh
+            key={layer.kind}
+            name={`world-code-sky-${layer.kind}`}
+            renderOrder={layer.renderOrder}
+          >
+            <sphereGeometry args={[layer.radius, 48, 24]} />
+            <meshBasicMaterial
+              onUpdate={(material) => {
+                material.needsUpdate = true;
+              }}
+              onBeforeCompile={skyShaders[index]!}
+              customProgramCacheKey={() => `aiw-streaming-sky-${layer.kind}-1`}
+              map={skyTextures[layer.kind]}
+              color="#ffffff"
+              transparent
+              opacity={layer.opacity}
+              blending={AdditiveBlending}
+              side={BackSide}
+              depthWrite={false}
+              fog={false}
+              toneMapped={false}
+            />
+          </mesh>
+        ))}
       </group>
     </group>
   );

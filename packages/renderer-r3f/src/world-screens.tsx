@@ -1,4 +1,8 @@
 import { useEffect, useRef } from "react";
+import {
+  REPOSITORY_CITY_FLOOR_SIZE,
+  worldFloorBounds,
+} from "./repository-city-state.js";
 import { useCodeTexture } from "./code-world-texture.js";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
@@ -24,6 +28,8 @@ import {
 } from "./world-screen-types.js";
 
 export type WorldScreensProps = {
+  readonly floorSize?: number | undefined;
+  readonly reducedMotion?: boolean | undefined;
   readonly screenEventSource?: HTMLElement | undefined;
   readonly screens?: readonly WorldScreenBinding[] | undefined;
   readonly onScreenMove?:
@@ -46,11 +52,17 @@ export function screenObjectCss(matrix: Matrix4): string {
 
 export function WorldScreens({
   screens = EMPTY_SCREENS,
+  floorSize = REPOSITORY_CITY_FLOOR_SIZE,
+  reducedMotion = false,
   onScreenMove,
   onScreenDrag,
 }: WorldScreensProps) {
   const { camera, gl, size, invalidate } = useThree();
-  const screenTexture = useCodeTexture("02_terminal_rain");
+  const screenTexture = useCodeTexture(
+    "02_terminal_rain",
+    "screen",
+    reducedMotion,
+  );
   const drag = useRef<{
     id: WorldScreenId;
     pointerId: number;
@@ -73,6 +85,7 @@ export function WorldScreens({
 
   useEffect(() => {
     const tools = scratch.current;
+    const bounds = worldFloorBounds(floorSize);
     const point = (x: number, y: number) => {
       const rect = gl.domElement.getBoundingClientRect();
       tools.pointer.set(
@@ -108,8 +121,14 @@ export function WorldScreens({
       if (!hit) return;
       active.pose = {
         ...active.pose,
-        x: Math.max(-60, Math.min(60, hit.x + active.offset.x)),
-        z: Math.max(-60, Math.min(60, hit.z + active.offset.z)),
+        x: Math.max(
+          bounds.minX,
+          Math.min(bounds.maxX, hit.x + active.offset.x),
+        ),
+        z: Math.max(
+          bounds.minZ,
+          Math.min(bounds.maxZ, hit.z + active.offset.z),
+        ),
       };
       onScreenMove?.(active.id, active.pose);
       invalidate();
@@ -166,7 +185,7 @@ export function WorldScreens({
       window.removeEventListener("keydown", escape, true);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [camera, gl, invalidate, onScreenDrag, onScreenMove, screens]);
+  }, [camera, floorSize, gl, invalidate, onScreenDrag, onScreenMove, screens]);
   useEffect(
     () => () => {
       drag.current = null;

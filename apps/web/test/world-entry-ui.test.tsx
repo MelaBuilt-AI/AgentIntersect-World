@@ -150,13 +150,13 @@ describe("Phase 18 World entry experience", () => {
     ).toEqual({ x: 1.5, z: 0 });
     expect(
       roomApi.moveWorldPosition({
-        position: { x: 14.9, z: -14.9 },
+        position: { x: 33.4, z: -14.9 },
         keys: ["w", "d"],
         yaw: Math.PI / 2,
         elapsedSeconds: 1,
         sprint: true,
       }),
-    ).toEqual({ x: 15, z: -6.415 });
+    ).toEqual({ x: 33.5, z: -6.415 });
     const lookRight = roomApi.applyWorldCameraLook(
       { yaw: 0, pitch: 0 },
       { movementX: 100, movementY: 0 },

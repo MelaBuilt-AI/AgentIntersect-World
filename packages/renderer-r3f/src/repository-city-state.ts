@@ -121,6 +121,12 @@ const hashText = (value: string) => {
 
 export const REPOSITORY_CITY_FLOOR_SIZE = 68;
 
+/** Shared rendered-floor navigation bounds with avatar edge clearance. */
+export function worldFloorBounds(size: number) {
+  const half = size / 2 - 0.5;
+  return { minX: -half, maxX: half, minZ: -half, maxZ: half };
+}
+
 /** Monotonic session extent, including real footprints and room for the operator. */
 export function worldFloorSize(
   previous: number,
@@ -168,20 +174,6 @@ const placementCandidate = (
 const gridPosition = (key: string): RepositoryCityPosition =>
   placementCandidate(key, 0);
 
-const withinFloor = (
-  assetId: RepositoryAssetId,
-  position: RepositoryCityPosition,
-): boolean => {
-  const [width, depth] = REPOSITORY_ASSET_BY_ID.get(assetId)!.footprint;
-  const halfFloor = Math.max(REPOSITORY_CITY_FLOOR_SIZE / 2, 64);
-  return (
-    Math.abs(position.x) + width / 2 + REPOSITORY_CITY_PLACEMENT_CLEARANCE <=
-      halfFloor &&
-    Math.abs(position.z) + depth / 2 + REPOSITORY_CITY_PLACEMENT_CLEARANCE <=
-      halfFloor
-  );
-};
-
 const overlapsInstance = (
   instances: readonly RepositoryCityInstance[],
   assetId: RepositoryAssetId,
@@ -208,7 +200,6 @@ const nonOverlappingPosition = (
 ): RepositoryCityPosition => {
   if (
     Math.hypot(preferred.x, preferred.z) >= 6 &&
-    withinFloor(assetId, preferred) &&
     !overlapsInstance(instances, assetId, preferred)
   )
     return preferred;
@@ -216,7 +207,6 @@ const nonOverlappingPosition = (
     const candidate = placementCandidate(key, attempt);
     if (
       Math.hypot(candidate.x, candidate.z) >= 6 &&
-      withinFloor(assetId, candidate) &&
       !overlapsInstance(instances, assetId, candidate)
     )
       return candidate;

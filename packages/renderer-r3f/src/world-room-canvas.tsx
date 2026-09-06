@@ -964,6 +964,7 @@ function WorldRoomScene({
 
 export function WorldRoomCanvas({
   screenEventSource,
+  floorSize = 68,
   screens,
   onScreenMove,
   onScreenDrag,
@@ -1112,12 +1113,13 @@ export function WorldRoomCanvas({
       ) : null}
       <WorldEnvironment
         floor={floor}
-        objectCount={objects.length}
-        instances={cityInstances}
-        screens={screens}
+        size={floorSize}
+        reducedMotion={reducedMotion}
         userPosition={userPosition}
       />
       <WorldScreens
+        floorSize={floorSize}
+        reducedMotion={reducedMotion}
         screens={screens}
         onScreenMove={onScreenMove}
         onScreenDrag={onScreenDrag}
