@@ -4,6 +4,22 @@ Updated: 2026-09-06
 
 ## Current milestone
 
+### 2026-09-06 PR8 complete — AGENT MOVEMENT NEXT; AUDIO / CODE WHEEL LATER
+
+PR #8 is manually accepted and merged. Product merge `69f74a22cb88e023e5de671617d92252d7d6c444` passed all seven jobs of post-merge main workflow `34045713595` on attempt 1. PR head `4efc62e135c96edc07d2e84e3c621102564c89bf` passed push `34042616986` on attempt 1 and PR `34042619152` on attempt 2: one authorized unchanged-SHA rerun of failed shard 1 passed 21/21; the other six jobs carried forward. Original timeout evidence remains preserved, not relabeled a causal code repair or proven GitHub fault. No assertions, timeouts, retries, product code, or accepted visuals changed in that final diagnostic. Final receipts: `/home/mela_ai/.hermes/runs/aiw-pr8-timeout-20260906/OUTCOME.md`.
+
+Aaron selected this order at end-session (`1546206333965963314`). These are next-session priorities, not implementation performed during closeout:
+
+1. **Agent movement — NEXT / NOT STARTED.** Diagnose and fix the reported failures in conversational follow/move and explicit `/agent follow`, then improve/elevate movement before adding other features. First establish the exact requested improvement scope; “elevated” does not prescribe a particular new navigation design. Prove actual main-World movement rather than narration, truthful targeting/state, follow and stop behavior, and preserve accepted visuals. Use a focused reproducible failure, owning-boundary correction, affected checks, and first-hand normal-World acceptance. `/agent stop` has no new independent PASS; the green fixture-based imported-avatar journey does not certify the reported live flow.
+2. **Audio addition pass with a built-in music player — PLANNED / NOT STARTED.** After movement works and its improvement pass is accepted, obtain Aaron's planned requirements before design/implementation. Sources, formats, controls, persistence, autoplay, and integration choices are not decided here.
+3. **In-world “Code Wheel” — PLANNED / NOT STARTED.** A menu/function control mechanism, after movement and the audio pass. Obtain Aaron's planned interaction/function scope before design/implementation; do not infer specific menu contents or controls.
+
+Keep each build as a separate verifiable slice. Full Slice 6 normal-World new-repository iteration acceptance and Phase 20 remain separate gates; no implicit approval for provider/profile changes, original-AgentIntersect edits, releases/publication, public exposure, branch deletion, or cleanup of retained operator runtimes. The accepted preview at 45275 remains frozen and retained.
+
+This sequencing/status-only marker follows the independently green product merge. Its own commit and CI outcome are recorded externally in the latest handoff; do not infer that newer marker CI passed from the product predecessor or create recursive receipt commits. All older CI-blocked, unmerged, and pending-visual statements below are historical and superseded by this current section, except the explicitly retained movement/Slice 6/Phase 20 caveats.
+
+## Historical PR8 diagnostics and acceptance
+
 ### 2026-09-06 Motion/rendering stability — NATIVE MANUAL PASS; CI STILL BLOCKED
 
 Aaron's report (`1546167493268344862`) passed walking/running, rapid/all-angle camera movement, repeating with an added 3D screen, and no observed freezes, hangs, texture errors or tearing in accepted preview 45275. Reduced Motion froze all texture flow; returning to **No emulation** resumed it correctly. His Edge dropdown has no explicit no-preference option: that earlier checklist instruction is superseded, not a product failure. This adds first-hand stability and freeze/resume acceptance to the earlier aesthetic PASS; it does not certify unlimited-duration or constrained-CI performance.
