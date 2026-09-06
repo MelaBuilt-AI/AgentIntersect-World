@@ -965,7 +965,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
 for (const screenJourney of ["hud", "spatial", "code"])
   test(
     screenJourney === "code"
-      ? "@repository-code-screen inspects an object in World and fullscreen"
+      ? "@repository-code-screen @pointer-lock inspects an object in World and fullscreen"
       : screenJourney === "spatial"
         ? "@spatial-screens toggles and moves three interactive World screens"
         : "@workbench-world-view keeps preview interaction inside the mounted World",
@@ -1383,8 +1383,17 @@ for (const screenJourney of ["hud", "spatial", "code"])
         "repository",
         { timeout: 30_000 },
       );
+      // The floor can switch before the repository-load conversation settles.
+      await expect(
+        page.getByRole("log", { name: "Conversation and activity" }),
+      ).toContainText("Repository loaded locally");
       await composer.fill("Build World View");
-      await composer.press("Enter");
+      await expect(
+        page.getByRole("button", { name: "Send", exact: true }),
+      ).toBeEnabled();
+      await expect(composer).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect.poll(() => currentWorkstream).not.toBeNull();
 
       const workstream = page.getByRole("complementary", {
         name: "Current Workstream",

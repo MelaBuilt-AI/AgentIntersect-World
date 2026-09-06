@@ -185,6 +185,11 @@ export async function exerciseRepositoryCodeScreen(
   // Changing the actual view while open must not turn this into a billboard.
   await page.mouse.move(720, 610);
   await page.mouse.down({ button: "right" });
+  // Pointer capture is asynchronous; moving before acquisition loses the look.
+  await expect(room).toHaveAttribute("data-mouse-look", "active");
+  await expect
+    .poll(() => canvas.evaluate((node) => document.pointerLockElement === node))
+    .toBe(true);
   await page.mouse.move(680, 610, { steps: 5 });
   await page.mouse.up({ button: "right" });
   await expect
