@@ -362,8 +362,10 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
 
   await page.keyboard.press("Alt+Digit1");
   const motion = () =>
-    canvas.evaluate((node) => {
-      const data = (node as HTMLCanvasElement).dataset;
+    page.evaluate(() => {
+      const data = document.querySelector<HTMLCanvasElement>(
+        'canvas[data-scene-id="world-room"]',
+      )!.dataset;
       return {
         floor: data.floorTextureOffset,
         screen: data.screenTextureOffset,
@@ -388,8 +390,12 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
           event: "poll-start",
           elapsedMs: Date.now() - resumeStarted,
         });
-        const sample = await canvas.evaluate((node) => {
-          const data = (node as HTMLCanvasElement).dataset;
+        // One browser call: avoid resolving/adopting/disposing an element handle
+        // between frames of this already-mounted canvas. Keep the 5s deadline.
+        const sample = await page.evaluate(() => {
+          const data = document.querySelector<HTMLCanvasElement>(
+            'canvas[data-scene-id="world-room"]',
+          )!.dataset;
           return {
             flow: data.skyFlowTime,
             floor: data.floorTextureOffset,

@@ -1,8 +1,20 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-05
+Updated: 2026-09-06
 
 ## Current milestone
+
+### 2026-09-06 Motion/rendering stability — NATIVE MANUAL PASS; CI STILL BLOCKED
+
+Aaron's report (`1546167493268344862`) passed walking/running, rapid/all-angle camera movement, repeating with an added 3D screen, and no observed freezes, hangs, texture errors or tearing in accepted preview 45275. Reduced Motion froze all texture flow; returning to **No emulation** resumed it correctly. His Edge dropdown has no explicit no-preference option: that earlier checklist instruction is superseded, not a product failure. This adds first-hand stability and freeze/resume acceptance to the earlier aesthetic PASS; it does not certify unlimited-duration or constrained-CI performance.
+
+The first authorized diagnostic round ended unresolved. Both workflows for test-only head `0658045` failed; no causal renderer fix is established and no assertion/timeout was relaxed. Push motion polling never returned its first browser-state result within the deadline; the PR journey failed earlier while approved preview recipes were still loading. Other hosted UI/texture failures remain unresolved. Details: `/home/mela_ai/.hermes/runs/aiw-pr8-motion-one-round-20260906/REPORT.md`.
+
+Aaron explicitly authorized **one additional bounded CI correction/testing round** (`1546170827068674078`): inspect/reproduce the observed failures, apply evidence-backed corrections, run affected local proof and one candidate's normal push/PR workflows, then reconcile. Keep accepted visuals unchanged; no failed-gate merge exception, assertion weakening, new features, or preview cleanup. PR8 remains draft/unmerged until the retained exact-tip green/readiness conditions hold. Round evidence: `/home/mela_ai/.hermes/runs/aiw-pr8-ci-round2-20260906/`.
+
+The second-round test-only candidate adds response/readiness prerequisites for Workstream creation, preview recipes and avatar loading before reload, plus single-call motion sampling under the unchanged five-second assertion. A controlled eight-second recipe response reproduces the missing launcher and is retained as a regression. All seven affected/neighboring local browser journeys passed without skips or retries, as did four command-graph tests, focused lint/typecheck and build. Full hosted push/PR verification remains the promotion gate; local success does not establish hosted remediation. Production and accepted preview inputs are unchanged. Final exact-head results are recorded externally rather than through another status-only commit.
+
+**Next separate bugfix:** Aaron now reports both conversational follow/move and explicit `/agent follow` fail. This supersedes the historical explicit-command UNTESTED label below. Agent movement is not fixed or accepted and is not being mixed into this PR8 CI round. Full Slice6 remains separate.
 
 ### Delivery authorization — accepted Code World corrections
 

@@ -825,6 +825,11 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
   const fixture = await installSessionFixture(page);
   await page.goto("/");
   await openRestoredWorld(page);
+  // Restore/detach state is the contract; do not cancel pending GLB decoding
+  // with the next reload and mistake that navigation abort for a texture fault.
+  await expect(
+    page.locator('canvas[data-scene-id="world-room"]'),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
 
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Reset Session" }).click();
@@ -856,6 +861,11 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
   }, sessionId);
   await page.reload();
   await openRestoredWorld(page);
+  // Restore/detach state is the contract; do not cancel pending GLB decoding
+  // with the next reload and mistake that navigation abort for a texture fault.
+  await expect(
+    page.locator('canvas[data-scene-id="world-room"]'),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Change Agent" }).click();
   await expect(page.getByLabel("Agent name")).toBeVisible();
@@ -866,6 +876,11 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
   }, sessionId);
   await page.reload();
   await openRestoredWorld(page);
+  // Restore/detach state is the contract; do not cancel pending GLB decoding
+  // with the next reload and mistake that navigation abort for a texture fault.
+  await expect(
+    page.locator('canvas[data-scene-id="world-room"]'),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Logout" }).click();
   await expect(

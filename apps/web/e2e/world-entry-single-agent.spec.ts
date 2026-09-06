@@ -869,8 +869,25 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     page.getByRole("dialog", { name: "Repository Intake_" }),
   ).toHaveCount(0);
 
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-repository-readiness",
+    "ready",
+    { timeout: 30_000 },
+  );
   await composer.fill("Build a settings panel");
-  await composer.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Send", exact: true }),
+  ).toBeEnabled();
+  const [createdWorkstream] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname.endsWith("/workstreams") &&
+        response.request().method() === "POST",
+    ),
+    composer.press("Enter"),
+  ]);
+  expect(createdWorkstream.ok()).toBe(true);
+  expect(await createdWorkstream.finished()).toBeNull();
   const workstream = page.getByRole("complementary", {
     name: "Current Workstream",
   });
@@ -1151,6 +1168,9 @@ for (const screenJourney of ["hud", "spatial", "code"])
             request.method() === "GET" &&
             pathname.endsWith("/preview-recipes")
           ) {
+            // Reproduce hosted recipe loading outlasting the UI assertion.
+            if (screenJourney === "spatial")
+              await new Promise((resolve) => setTimeout(resolve, 8_000));
             await route.fulfill({
               status: 200,
               contentType: "application/json",
@@ -1375,6 +1395,11 @@ for (const screenJourney of ["hud", "spatial", "code"])
       }
       await enterFixtureWorld(page);
 
+      const recipesResponse = page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname.endsWith("/preview-recipes") &&
+          response.request().method() === "GET",
+      );
       const composer = page.getByLabel("Message Mr Fluff");
       await composer.fill("Let's pick up work on the Notes App");
       await composer.press("Enter");
@@ -1392,7 +1417,16 @@ for (const screenJourney of ["hud", "spatial", "code"])
         page.getByRole("button", { name: "Send", exact: true }),
       ).toBeEnabled();
       await expect(composer).toBeFocused();
-      await page.keyboard.press("Enter");
+      const [createdWorkstream] = await Promise.all([
+        page.waitForResponse(
+          (response) =>
+            new URL(response.url()).pathname.endsWith("/workstreams") &&
+            response.request().method() === "POST",
+        ),
+        page.keyboard.press("Enter"),
+      ]);
+      expect(createdWorkstream.ok()).toBe(true);
+      expect(await createdWorkstream.finished()).toBeNull();
       await expect.poll(() => currentWorkstream).not.toBeNull();
 
       const workstream = page.getByRole("complementary", {
@@ -1419,6 +1453,11 @@ for (const screenJourney of ["hud", "spatial", "code"])
           { timeout: 30_000 },
         );
       }
+      // Recipe loading is an independent network boundary, not a disabled
+      // Start button. Keep the UI assertion's original budget after it settles.
+      const loadedRecipes = await recipesResponse;
+      expect(loadedRecipes.ok()).toBe(true);
+      expect(await loadedRecipes.finished()).toBeNull();
       const launcher = workstream.getByRole("button", {
         name: "Start World View",
       });
@@ -2304,6 +2343,14 @@ async function completeJourney(
       "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
     ),
   ).toBeVisible();
+  // This tests persisted consent across reload, not cancellation of a GLB
+  // texture decode. Finish the actual preview before navigating away.
+  if (evidence === "desktop" || evidence === "large-desktop")
+    await expect(
+      page.locator(
+        '.imported-avatar-canvas[data-avatar-imported-id="cat-agent-01"]',
+      ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
