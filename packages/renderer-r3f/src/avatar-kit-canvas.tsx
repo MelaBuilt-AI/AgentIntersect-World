@@ -147,6 +147,8 @@ export function configureAvatarScene(
     `LOD2_SHIRT_${selection.shirt}`,
   ]);
   scene.traverse((object: Object3D) => {
+    object.castShadow = true;
+    object.receiveShadow = true;
     if (modularPrefixes.some((prefix) => object.name.startsWith(prefix)))
       object.visible = visible.has(object.name);
     if (object.name.startsWith("LOD2_"))

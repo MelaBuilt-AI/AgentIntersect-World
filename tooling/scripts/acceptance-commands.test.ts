@@ -98,7 +98,10 @@ describe("acceptance command graph", () => {
     const projects = config.projects ?? [];
 
     expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
-    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(2);
+    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(3);
+    expect(worldEntrySpec).toContain(
+      "@repository-code-screen @pointer-lock inspects an object in World and fullscreen",
+    );
     expect(config.testIgnore).toEqual([
       "**/world-entry-internal-fail-closed.spec.ts",
       "**/phase19-task12-two-agent-coding.spec.ts",

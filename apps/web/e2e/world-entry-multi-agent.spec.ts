@@ -95,6 +95,7 @@ async function fulfillJson(route: Route, data: unknown, status = 200) {
 async function installFixture(page: Page) {
   const transcriptionBodies: unknown[] = [];
   const groupedBodies: Array<Record<string, unknown>> = [];
+  let nextGroupedResponse: Promise<void> | undefined;
   const resolvedTargetRosterIds: Array<string | null> = [];
   const hermesHistoryMessages: Array<{
     readonly role: "user" | "assistant";
@@ -475,7 +476,9 @@ async function installFixture(page: Page) {
           { role: "assistant", text: `Mr Fluff received ${text}` },
         );
       }
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      const responseReady = nextGroupedResponse;
+      nextGroupedResponse = undefined;
+      await responseReady;
       await fulfillJson(
         route,
         envelope({
@@ -518,6 +521,13 @@ async function installFixture(page: Page) {
     transcriptionBodies,
     groupedBodies,
     resolvedTargetRosterIds,
+    holdNextGroupedResponse: () => {
+      let release!: () => void;
+      nextGroupedResponse = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      return release;
+    },
     delayConstellationReadyUntilRestore: () => {
       constellationReadyAfterRestore = false;
     },
@@ -662,17 +672,23 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
   const finalCaption = page.getByLabel("Final caption");
   await expect(finalCaption).toHaveValue("voice final 3");
   await finalCaption.fill("edited broadcast caption");
+  // Keep the real request pending until its activity state is observed.
+  const releaseBroadcast = fixture.holdNextGroupedResponse();
   await page
     .getByRole("region", { name: "Final voice caption" })
     .getByRole("button", { name: "Send" })
     .click();
-  await expect
-    .poll(() =>
-      agentActivityStates.evaluateAll((items) =>
-        items.map((item) => item.getAttribute("data-activity-state")),
-      ),
-    )
-    .toEqual(["thinking", "thinking", "thinking", "thinking"]);
+  try {
+    await expect
+      .poll(() =>
+        agentActivityStates.evaluateAll((items) =>
+          items.map((item) => item.getAttribute("data-activity-state")),
+        ),
+      )
+      .toEqual(["thinking", "thinking", "thinking", "thinking"]);
+  } finally {
+    releaseBroadcast();
+  }
   await expect
     .poll(() =>
       agentActivityStates.evaluateAll((items) =>
@@ -699,17 +715,22 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
   await expect(pushToTalk).toContainText("Listening");
   await page.keyboard.up("Space");
   await expect(page.getByLabel("Final caption")).toHaveValue("voice final 4");
+  const releaseTargeted = fixture.holdNextGroupedResponse();
   await page
     .getByRole("region", { name: "Final voice caption" })
     .getByRole("button", { name: "Send" })
     .click();
-  await expect
-    .poll(() =>
-      agentActivityStates.evaluateAll((items) =>
-        items.map((item) => item.getAttribute("data-activity-state")),
-      ),
-    )
-    .toEqual(["idle", "idle", "thinking", "idle"]);
+  try {
+    await expect
+      .poll(() =>
+        agentActivityStates.evaluateAll((items) =>
+          items.map((item) => item.getAttribute("data-activity-state")),
+        ),
+      )
+      .toEqual(["idle", "idle", "thinking", "idle"]);
+  } finally {
+    releaseTargeted();
+  }
   await expect
     .poll(() =>
       agentActivityStates.evaluateAll((items) =>

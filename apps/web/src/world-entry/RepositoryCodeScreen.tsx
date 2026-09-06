@@ -1,10 +1,7 @@
 import "./repository-code-screen.css";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { WEB_API_BASE_PATH } from "@agentintersect-world/config";
-import {
-  REPOSITORY_ASSET_BY_ID,
-  type RepositoryCityInstance,
-} from "@agentintersect-world/renderer-r3f";
+import { type RepositoryCityInstance } from "@agentintersect-world/renderer-r3f";
 import { WorldScreen } from "./WorldScreen.js";
 import { useWorldScreens } from "./world-screen-context.js";
 
@@ -20,10 +17,14 @@ type CodeResult = {
 
 export function RepositoryCodeScreen({
   instance,
+  openingYaw,
+  reducedMotion,
   onClose,
   onInspectionChange,
 }: {
   readonly instance: RepositoryCityInstance;
+  readonly openingYaw: number;
+  readonly reducedMotion: boolean;
   readonly onClose: () => void;
   readonly onInspectionChange: (active: boolean) => void;
 }) {
@@ -49,17 +50,15 @@ export function RepositoryCodeScreen({
   const scrollTop = useRef(0);
   const spatial = enabled && !fullscreen;
   const inspecting = fullscreen || focused;
-  const pose = useMemo(
-    () => ({
-      x: instance.position.x,
-      z:
-        instance.position.z +
-        (REPOSITORY_ASSET_BY_ID.get(instance.assetId)?.footprint[1] ?? 2) / 2 +
-        1,
-      yaw: 0,
-    }),
-    [instance.assetId, instance.position.x, instance.position.z],
-  );
+  // This component is keyed to an opening, not camera updates. A projection
+  // stays above its object, facing the view from which it was selected.
+  const [pose] = useState(() => ({
+    x: instance.position.x,
+    z: instance.position.z,
+    y: 3.7,
+    yaw: -openingYaw,
+  }));
+  const [revealStartedAt] = useState(() => performance.now());
   const data = result?.ref === fileRef ? result.data : undefined;
   const error = result?.ref === fileRef ? result.error : undefined;
 
@@ -168,6 +167,8 @@ export function RepositoryCodeScreen({
       pose={pose}
       focused={spatial && focused}
       movable={false}
+      revealStartedAt={revealStartedAt}
+      reducedMotion={reducedMotion}
     >
       <section
         className={`repository-code-screen${spatial ? "" : " repository-code-screen--fullscreen"}`}

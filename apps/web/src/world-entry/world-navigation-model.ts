@@ -2,7 +2,10 @@ import type { AvatarMovementPhase } from "@agentintersect-world/avatar-system";
 
 import { isOperatorMovementKey } from "../world-actions/operator-navigation.js";
 
-const bounded = (value: number) => Math.max(-15, Math.min(15, value));
+import {
+  REPOSITORY_CITY_FLOOR_SIZE,
+  worldFloorBounds,
+} from "@agentintersect-world/renderer-r3f";
 const quantized = (value: number) => {
   const result = Math.round(value * 1_000) / 1_000;
   return Object.is(result, -0) ? 0 : result;
@@ -110,13 +113,18 @@ export function moveWorldPosition({
   yaw,
   elapsedSeconds,
   sprint,
+  floorSize = REPOSITORY_CITY_FLOOR_SIZE,
 }: {
   readonly position: Readonly<{ x: number; z: number }>;
   readonly keys: readonly string[];
   readonly yaw: number;
   readonly elapsedSeconds: number;
   readonly sprint: boolean;
+  readonly floorSize?: number;
 }): { readonly x: number; readonly z: number } {
+  const bounds = worldFloorBounds(floorSize);
+  const bounded = (value: number) =>
+    Math.max(bounds.minX, Math.min(bounds.maxX, value));
   const normalized = new Set(keys.map((key) => key.toLocaleLowerCase()));
   const forwardInput =
     Number(normalized.has("w") || normalized.has("arrowup")) -

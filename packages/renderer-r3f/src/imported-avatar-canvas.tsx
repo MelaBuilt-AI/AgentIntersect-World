@@ -229,6 +229,8 @@ export function configureImportedAvatarScene(
     parts.map((part) => [part.nodeName, !hidden.has(part.partId)]),
   );
   scene.traverse((object: Object3D) => {
+    object.castShadow = true;
+    object.receiveShadow = true;
     const visible = visibility.get(object.name);
     if (visible !== undefined) object.visible = visible;
   });

@@ -2,3 +2,4 @@ apps/web/public/assets/imported-avatars/*.glb filter=lfs diff=lfs merge=lfs -tex
 apps/web/public/assets/repository-city/*.glb filter=lfs diff=lfs merge=lfs -text
 apps/web/public/assets/repository-city/*.png filter=lfs diff=lfs merge=lfs -text
 artifacts/phase18/repository-city-director.png filter=lfs diff=lfs merge=lfs -text
+apps/web/public/assets/code-world/*.webp filter=lfs diff=lfs merge=lfs -text

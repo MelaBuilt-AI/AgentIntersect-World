@@ -1,0 +1,50 @@
+{
+  "provenance": "User-supplied AgentIntersect Texture Pack 20, generated/upscaled decorative color maps. Not live repository source, executable code, HDR or cubemap.",
+  "textures": [
+    {
+      "source": "02_terminal_rain.png",
+      "sourceSha256": "04d3085001eb203b1f6fc8d635263c070fab2b825bdd4bda52e8d0b7b04e59eb",
+      "runtime": "02_terminal_rain.webp",
+      "runtimeSha256": "d04ed6d1570ac038cae499aae1f8f60a42491a9f647626520a932fe5ea82a93b",
+      "size": [4096, 4096],
+      "bytes": 7071446,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    },
+    {
+      "source": "12_repository_map_floor.png",
+      "sourceSha256": "3d0d7db99d5dbf1751442d87aa569cb621ac36906b9f767d0306c6c8002cec17",
+      "runtime": "12_repository_map_floor.webp",
+      "runtimeSha256": "81f32c90227e0c60aa2d1b377a75634415aff8a1b23c38f2bfa670e4530d20b0",
+      "size": [4096, 4096],
+      "bytes": 9472330,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    },
+    {
+      "source": "16_constellation_graph_sky.png",
+      "sourceSha256": "d55b59d67b42fec1fe3c087e9dda1821d1488c126964c59c428cb8e3185cd64e",
+      "runtime": "16_constellation_graph_sky.webp",
+      "runtimeSha256": "77de40a2e2d081eef6c862cf6dd4a8bad23df6bb18020e8ccd6e2271c15c5d70",
+      "size": [4096, 4096],
+      "bytes": 3389386,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    },
+    {
+      "source": "17_aurora_code_sky.png",
+      "sourceSha256": "cb9b9a748e1a1faa59e8862319a06e118a9f56325041c9e0ae1c09e752637698",
+      "runtime": "17_aurora_code_sky.webp",
+      "runtimeSha256": "45c322d12274c3bece65b4f1ea2a0e4f65b1308af44634ff4f2f819045a8dcf5",
+      "size": [4096, 4096],
+      "bytes": 10765950,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    },
+    {
+      "source": "15_code_nebula_sky.png",
+      "sourceSha256": "bcdad03a459cfab9ff37313af859a012fc660169d2eb9b628ec182ea521ee186",
+      "runtime": "15_code_nebula_sky.webp",
+      "runtimeSha256": "2d7477e3d29c3064eed9d56447953523dd292ede00a6c78e6c2fcb787fb03d58",
+      "size": [4096, 4096],
+      "bytes": 9803782,
+      "conversion": "Lossless RGB WebP; identical decoded pixels to supplied seamless-4k PNG"
+    }
+  ]
+}

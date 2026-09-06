@@ -869,8 +869,25 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     page.getByRole("dialog", { name: "Repository Intake_" }),
   ).toHaveCount(0);
 
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-repository-readiness",
+    "ready",
+    { timeout: 30_000 },
+  );
   await composer.fill("Build a settings panel");
-  await composer.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Send", exact: true }),
+  ).toBeEnabled();
+  const [createdWorkstream] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname.endsWith("/workstreams") &&
+        response.request().method() === "POST",
+    ),
+    composer.press("Enter"),
+  ]);
+  expect(createdWorkstream.ok()).toBe(true);
+  expect(await createdWorkstream.finished()).toBeNull();
   const workstream = page.getByRole("complementary", {
     name: "Current Workstream",
   });
@@ -965,7 +982,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
 for (const screenJourney of ["hud", "spatial", "code"])
   test(
     screenJourney === "code"
-      ? "@repository-code-screen inspects an object in World and fullscreen"
+      ? "@repository-code-screen @pointer-lock inspects an object in World and fullscreen"
       : screenJourney === "spatial"
         ? "@spatial-screens toggles and moves three interactive World screens"
         : "@workbench-world-view keeps preview interaction inside the mounted World",
@@ -1151,6 +1168,9 @@ for (const screenJourney of ["hud", "spatial", "code"])
             request.method() === "GET" &&
             pathname.endsWith("/preview-recipes")
           ) {
+            // Reproduce hosted recipe loading outlasting the UI assertion.
+            if (screenJourney === "spatial")
+              await new Promise((resolve) => setTimeout(resolve, 8_000));
             await route.fulfill({
               status: 200,
               contentType: "application/json",
@@ -1375,6 +1395,11 @@ for (const screenJourney of ["hud", "spatial", "code"])
       }
       await enterFixtureWorld(page);
 
+      const recipesResponse = page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname.endsWith("/preview-recipes") &&
+          response.request().method() === "GET",
+      );
       const composer = page.getByLabel("Message Mr Fluff");
       await composer.fill("Let's pick up work on the Notes App");
       await composer.press("Enter");
@@ -1383,8 +1408,26 @@ for (const screenJourney of ["hud", "spatial", "code"])
         "repository",
         { timeout: 30_000 },
       );
+      // The floor can switch before the repository-load conversation settles.
+      await expect(
+        page.getByRole("log", { name: "Conversation and activity" }),
+      ).toContainText("Repository loaded locally");
       await composer.fill("Build World View");
-      await composer.press("Enter");
+      await expect(
+        page.getByRole("button", { name: "Send", exact: true }),
+      ).toBeEnabled();
+      await expect(composer).toBeFocused();
+      const [createdWorkstream] = await Promise.all([
+        page.waitForResponse(
+          (response) =>
+            new URL(response.url()).pathname.endsWith("/workstreams") &&
+            response.request().method() === "POST",
+        ),
+        page.keyboard.press("Enter"),
+      ]);
+      expect(createdWorkstream.ok()).toBe(true);
+      expect(await createdWorkstream.finished()).toBeNull();
+      await expect.poll(() => currentWorkstream).not.toBeNull();
 
       const workstream = page.getByRole("complementary", {
         name: "Current Workstream",
@@ -1401,6 +1444,20 @@ for (const screenJourney of ["hud", "spatial", "code"])
         if (response.status() >= 400)
           browserErrors.push(`${response.status()} ${response.url()}`);
       });
+      if (screenJourney !== "spatial") {
+        // These journeys do not exercise pending city loads. Wait for the
+        // renderer's independent startup before starting preview work.
+        await expect(page.locator("main.world-room")).toHaveAttribute(
+          "data-repository-readiness",
+          "ready",
+          { timeout: 30_000 },
+        );
+      }
+      // Recipe loading is an independent network boundary, not a disabled
+      // Start button. Keep the UI assertion's original budget after it settles.
+      const loadedRecipes = await recipesResponse;
+      expect(loadedRecipes.ok()).toBe(true);
+      expect(await loadedRecipes.finished()).toBeNull();
       const launcher = workstream.getByRole("button", {
         name: "Start World View",
       });
@@ -1435,6 +1492,10 @@ for (const screenJourney of ["hud", "spatial", "code"])
           "data-repository-readiness",
           "loading",
         );
+        // A new city load must not suspend the mounted World/canvas.
+        await expect(
+          page.locator('canvas[data-scene-id="world-room"]'),
+        ).toBeVisible();
         const releaseTimer = setTimeout(() => releaseCityAssets?.(), 6_500);
         try {
           await exerciseSpatialScreens(page, testInfo);
@@ -2282,6 +2343,14 @@ async function completeJourney(
       "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
     ),
   ).toBeVisible();
+  // This tests persisted consent across reload, not cancellation of a GLB
+  // texture decode. Finish the actual preview before navigating away.
+  if (evidence === "desktop" || evidence === "large-desktop")
+    await expect(
+      page.locator(
+        '.imported-avatar-canvas[data-avatar-imported-id="cat-agent-01"]',
+      ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
@@ -3266,6 +3335,10 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
 test("held right-button canvas look follows both axes and clears every exit guard @pointer-lock", async ({
   page,
 }) => {
+  // Both fresh hosted runs exhausted 30s near the final movement checks;
+  // the same full journey passed in a faithful local two-CPU scope (12.6s).
+  // Preserve each action/assertion budget while allowing cold hosted rendering.
+  test.setTimeout(60_000);
   await page.setViewportSize({ width: 1280, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
   await restoreFixtureWorld(page);

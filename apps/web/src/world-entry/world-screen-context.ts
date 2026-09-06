@@ -21,7 +21,7 @@ export const SCREEN_DIMENSIONS = {
   director: [620, 680],
   workbench: [720, 680],
   preview: [1100, 720],
-  code: [1000, 720],
+  code: [880, 480],
 } as const;
 export const DEFAULT_SCREEN_POSE: WorldScreenPose = { x: 0, z: -6, yaw: 0 };
 

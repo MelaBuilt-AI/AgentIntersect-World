@@ -1,5 +1,9 @@
 import {
   createRepositoryCityState,
+  REPOSITORY_CITY_FLOOR_SIZE,
+  WORLD_SCREEN_SCALE,
+  worldFloorSize,
+  worldFloorBounds,
   projectRepositoryObjects,
   REPOSITORY_ASSET_BY_ID,
   reduceRepositoryCity,
@@ -283,7 +287,11 @@ export function WorldRoom({
 }) {
   const screenController = useWorldScreens();
   const [codeInspection, setCodeInspection] = useState(false);
-  const [codeInstanceId, setCodeInstanceId] = useState<string | null>(null);
+  const [codeOpening, setCodeOpening] = useState<{
+    id: string;
+    yaw: number;
+    sequence: number;
+  } | null>(null);
   const screenDragging =
     (screenController?.dragging ?? false) || codeInspection;
   const updateScreenAnchor = screenController?.updateAnchor;
@@ -400,6 +408,35 @@ export function WorldRoom({
     undefined,
     createRepositoryCityState,
   );
+  const [floorExtent, setFloorExtent] = useState(REPOSITORY_CITY_FLOOR_SIZE);
+  const floorSize = worldFloorSize(
+    floorExtent,
+    objects.length,
+    city.instances,
+    [
+      { ...userPosition, radius: 10 },
+      { ...agentMovement.position, radius: 1 },
+      ...Object.values(secondaryMovements).map(({ position }) => ({
+        ...position,
+        radius: 1,
+      })),
+      ...(screenController?.screens ?? [])
+        .filter((screen) => screen.spatial)
+        .map((screen) => ({
+          ...screen.pose,
+          radius: (screen.width * WORLD_SCREEN_SCALE) / 2,
+        })),
+    ],
+  );
+  if (floorSize > floorExtent) setFloorExtent(floorSize);
+  const floorSizeRef = useRef(floorSize);
+  useLayoutEffect(() => {
+    floorSizeRef.current = floorSize;
+  }, [floorSize]);
+  const movementBounds = useMemo(
+    () => worldFloorBounds(floorSize),
+    [floorSize],
+  );
   const [cityMode, setCityMode] = useState<"live" | "director">("live");
   const [selectedCityInstanceId, setSelectedCityInstanceId] = useState<
     string | null
@@ -451,19 +488,6 @@ export function WorldRoom({
   useLayoutEffect(() => {
     updateScreenAnchor?.({ ...userPosition, yaw: camera.yaw });
   }, [camera.yaw, updateScreenAnchor, userPosition]);
-  const spatialScreensShown = Boolean(
-    screenController?.enabled &&
-    Object.values(screenController.modes).some(Boolean),
-  );
-  useEffect(() => {
-    if (!spatialScreensShown) return;
-    // Raise the initial downward exploration camera to screen height.
-    const frame = window.requestAnimationFrame(() => {
-      setCamera((current) => ({ ...current, pitch: 0 }));
-      setCityFocusPosition(null);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [spatialScreensShown]);
   const selectedCityInstance =
     city.instances.find(
       ({ instanceId }) => instanceId === selectedCityInstanceId,
@@ -657,15 +681,19 @@ export function WorldRoom({
       );
       if (!instance) return;
       setSelectedCityInstanceId(instanceId);
-      setCodeInstanceId(instanceId);
+      setCodeOpening((current) => ({
+        id: instanceId,
+        yaw: cameraRef.current.yaw,
+        sequence: (current?.sequence ?? 0) + 1,
+      }));
       setSelectedWorkstreamId(null);
-      setCityFocusPosition(instance.position);
-      setCamera((current) => ({ ...current, yaw: 0, pitch: 0 }));
+      // Selection does not teleport/rotate the camera; explicit code focus does.
+      setCityFocusPosition(null);
     },
     [city.instances],
   );
   const codeInstance = city.instances.find(
-    (item) => item.instanceId === codeInstanceId,
+    (item) => item.instanceId === codeOpening?.id,
   );
 
   useLayoutEffect(() => {
@@ -754,7 +782,7 @@ export function WorldRoom({
   }, [agentCue, reducedMotion]);
   const agentMovementContext = useMemo(
     () => ({
-      bounds: { minX: -15, maxX: 15, minZ: -15, maxZ: 15 },
+      bounds: movementBounds,
       userPosition,
       layoutGeneration,
       resolveRepositoryObject: (
@@ -822,7 +850,7 @@ export function WorldRoom({
           : null;
       },
     }),
-    [city.instances, layoutGeneration, userPosition],
+    [city.instances, layoutGeneration, movementBounds, userPosition],
   );
   const agentMovementContextRef = useRef(agentMovementContext);
   useEffect(() => {
@@ -830,7 +858,7 @@ export function WorldRoom({
   }, [agentMovementContext]);
   const secondaryMovementContext = useCallback(
     (rosterId: string, movement: AgentMovementState) => ({
-      bounds: { minX: -15, maxX: 15, minZ: -15, maxZ: 15 },
+      bounds: movementBounds,
       userPosition,
       layoutGeneration,
       resolveRepositoryObject: (
@@ -903,7 +931,7 @@ export function WorldRoom({
           : null;
       },
     }),
-    [city.instances, layoutGeneration, userPosition],
+    [city.instances, layoutGeneration, movementBounds, userPosition],
   );
   useEffect(() => {
     if (
@@ -1194,6 +1222,7 @@ export function WorldRoom({
             yaw: cameraRef.current.yaw,
             elapsedSeconds,
             sprint: pressedKeys.current.has("shift"),
+            floorSize: floorSizeRef.current,
           }),
         );
       frame = window.requestAnimationFrame(tick);
@@ -1722,6 +1751,7 @@ export function WorldRoom({
       ref={bindRoom}
       className="world-room"
       data-scene-id="world-room"
+      data-world-floor-size={floorSize}
       data-spatial-screens={Boolean(
         screenController?.enabled &&
         screenController.screens.some((screen) => screen.spatial),
@@ -1823,9 +1853,11 @@ export function WorldRoom({
     >
       {floor === "repository" && codeInstance ? (
         <RepositoryCodeScreen
-          key={codeInstance.instanceId}
+          key={`${codeInstance.instanceId}:${codeOpening?.sequence}`}
           instance={codeInstance}
-          onClose={() => setCodeInstanceId(null)}
+          openingYaw={codeOpening?.yaw ?? camera.yaw}
+          reducedMotion={reducedMotion}
+          onClose={() => setCodeOpening(null)}
           onInspectionChange={setCodeInspection}
         />
       ) : null}
@@ -2063,6 +2095,7 @@ export function WorldRoom({
                 <ImportedWorldRoomCanvas
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
+                  floorSize={floorSize}
                   onScreenMove={screenController?.move}
                   onScreenDrag={screenController?.setDragging}
                   floor={floor}
@@ -2110,6 +2143,7 @@ export function WorldRoom({
                 <WorldRoomCanvas
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
+                  floorSize={floorSize}
                   onScreenMove={screenController?.move}
                   onScreenDrag={screenController?.setDragging}
                   floor={floor}

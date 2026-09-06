@@ -1,5 +1,12 @@
 import { useFrame, useLoader } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from "three";
 import {
   GLTFLoader,
@@ -160,6 +167,8 @@ function RepositoryCityModel({
     const ownedMaterials: MeshStandardMaterial[] = [];
     copy.traverse((object) => {
       if (!(object instanceof Mesh)) return;
+      object.castShadow = true;
+      object.receiveShadow = true;
       const source = Array.isArray(object.material)
         ? object.material
         : [object.material];
@@ -187,7 +196,10 @@ function RepositoryCityModel({
     const start = startedAt.current ?? clock.elapsedTime;
     startedAt.current = start;
     const elapsed = clock.elapsedTime - start;
-    const frame = repositoryMaterializationFrame(elapsed / 1.05, reducedMotion);
+    const frame = repositoryMaterializationFrame(
+      instance.lifecycle === "idle" ? 1 : elapsed / 1.05,
+      reducedMotion,
+    );
     const idle = frame.settled && !reducedMotion;
     const hover = idle
       ? Math.sin(clock.elapsedTime * 1.35 + instance.position.x) * 0.07
@@ -231,7 +243,7 @@ function RepositoryCityModel({
       name={`repository-city-${instance.instanceId}`}
       position={[
         instance.position.x,
-        reducedMotion ? 0 : -2.5,
+        reducedMotion || instance.lifecycle === "idle" ? 0 : -2.5,
         instance.position.z,
       ]}
       scale={definition.defaultScale}
@@ -303,31 +315,47 @@ export function RepositoryCityModels({
   readonly onSettled: (instanceId: string) => void;
   readonly onReady: () => void;
 }) {
-  const urls = useMemo(
-    () => [
-      ...new Set(
-        instances.map(
-          (instance) => REPOSITORY_ASSET_BY_ID.get(instance.assetId)!.glbUrl,
-        ),
-      ),
-    ],
-    [instances],
+  const [readyIds, setReadyIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
   );
-  const loaded = useLoader(RepositoryCityGLTFLoader, urls);
-  const byUrl = new Map(urls.map((url, index) => [url, loaded[index]!]));
-  useEffect(onReady, [onReady, urls]);
-  return instances.map((instance) => {
-    const definition = REPOSITORY_ASSET_BY_ID.get(instance.assetId)!;
-    return (
-      <RepositoryCityModel
-        key={instance.instanceId}
+  const ready = useCallback((id: string) => {
+    setReadyIds((current) =>
+      current.has(id) ? current : new Set([...current, id]),
+    );
+  }, []);
+  useEffect(() => {
+    if (instances.every(({ instanceId }) => readyIds.has(instanceId)))
+      onReady();
+  }, [instances, onReady, readyIds]);
+  return instances.map((instance) => (
+    <Suspense key={instance.instanceId} fallback={null}>
+      <LoadedRepositoryCityModel
         instance={instance}
-        gltf={byUrl.get(definition.glbUrl)!}
         reducedMotion={reducedMotion}
         selected={selectedInstanceId === instance.instanceId}
         onSelect={onSelect}
         onSettled={onSettled}
+        onReady={ready}
       />
-    );
-  });
+    </Suspense>
+  ));
+}
+
+// Only the new object waits for its asset. Existing city objects, avatars,
+// floor, screens and their animation clocks stay mounted throughout loading.
+function LoadedRepositoryCityModel({
+  onReady,
+  ...props
+}: Omit<Parameters<typeof RepositoryCityModel>[0], "gltf"> & {
+  readonly onReady: (id: string) => void;
+}) {
+  const gltf = useLoader(
+    RepositoryCityGLTFLoader,
+    REPOSITORY_ASSET_BY_ID.get(props.instance.assetId)!.glbUrl,
+  );
+  useEffect(
+    () => onReady(props.instance.instanceId),
+    [onReady, props.instance.instanceId],
+  );
+  return <RepositoryCityModel {...props} gltf={gltf} />;
 }

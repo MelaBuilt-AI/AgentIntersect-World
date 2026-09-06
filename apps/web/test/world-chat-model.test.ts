@@ -58,6 +58,26 @@ describe("World repository intake commands", () => {
 });
 
 describe("World Workbench conversation commands", () => {
+  it("distinguishes demo intake, ordinary chat and explicit Workstream setup", () => {
+    expect(classifyWorldMessage("Let's pick up work")).toEqual({
+      kind: "remote-chat",
+      text: "Let's pick up work",
+    });
+    expect(
+      classifyWorldMessage("Let's pick up work on the spatial-screen demo")
+        .kind,
+    ).toBe("local-repository-load");
+    expect(
+      classifyWorldMessage(
+        "/work start Inspect this demo without changing files",
+      ),
+    ).toEqual({
+      kind: "local-workstream",
+      action: "request",
+      text: "/work start Inspect this demo without changing files",
+      task: "Inspect this demo without changing files",
+    });
+  });
   it.each([
     ["Build a settings panel", "Build a settings panel"],
     [
