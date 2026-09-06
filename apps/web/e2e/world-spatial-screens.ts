@@ -374,8 +374,54 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   const reduced = await motion();
   await page.waitForTimeout(400);
   expect(await motion()).toEqual(reduced);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect.poll(async () => (await motion()).flow).not.toBe(reduced.flow);
+  const resumeStarted = Date.now();
+  const resumeSamples: unknown[] = [];
+  try {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    resumeSamples.push({
+      event: "media-applied",
+      elapsedMs: Date.now() - resumeStarted,
+    });
+    await expect
+      .poll(async () => {
+        resumeSamples.push({
+          event: "poll-start",
+          elapsedMs: Date.now() - resumeStarted,
+        });
+        const sample = await canvas.evaluate((node) => {
+          const data = (node as HTMLCanvasElement).dataset;
+          return {
+            flow: data.skyFlowTime,
+            floor: data.floorTextureOffset,
+            screen: data.screenTextureOffset,
+            renderLoopMode: data.renderLoopMode,
+            texturesReady: data.worldTexturesReady,
+            reducedMotion: matchMedia("(prefers-reduced-motion: reduce)")
+              .matches,
+            visibility: document.visibilityState,
+            browserTimeMs: performance.now(),
+          };
+        });
+        resumeSamples.push({
+          event: "poll-result",
+          elapsedMs: Date.now() - resumeStarted,
+          ...sample,
+        });
+        return sample.flow;
+      })
+      .not.toBe(reduced.flow);
+  } finally {
+    const evidence = {
+      baseline: reduced,
+      elapsedMs: Date.now() - resumeStarted,
+      samples: resumeSamples,
+    };
+    writeFileSync(
+      testInfo.outputPath("motion-resume.json"),
+      JSON.stringify(evidence, null, 2),
+    );
+    console.info("Motion resume:", JSON.stringify(evidence));
+  }
   const movingBefore = await motion();
   await page.screenshot({
     path: testInfo.outputPath("code-motion-before.png"),
