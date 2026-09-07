@@ -62,7 +62,9 @@ export function createWorldPointerEvents(store: RootStore) {
       handlers[name] = (event) => {
         if (
           event.target instanceof Element &&
-          event.target.closest(".world-screen__object")
+          event.target.closest(
+            '.world-screen__object, [data-world-ui], button, input, textarea, select, a, form, [role="button"], [role="dialog"], [contenteditable="true"], .world-transcript, .repository-asset-palette',
+          )
         )
           return;
         handler(event);

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { WORLD_ACTION_LIMITS } from "@agentintersect-world/world-action-protocol";
 import type { Page } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -968,7 +969,10 @@ test("seventeen agent stances and mounted user-directed movement work in product
     .toBe(true);
 
   const proposalCountBeforeRefusal = movementProposals.length;
-  await chatInput.fill("/agent move 16 0");
+  // Transport rejection must exceed the protocol range, not the old floor size.
+  await chatInput.fill(
+    `/agent move ${WORLD_ACTION_LIMITS.maximumWorldCoordinate + 1} 0`,
+  );
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.locator(".world-hud__captions")).toContainText(
     "agent movement refused",

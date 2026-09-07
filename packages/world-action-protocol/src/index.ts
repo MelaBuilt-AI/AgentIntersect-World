@@ -21,6 +21,7 @@ export const WORLD_ACTION_LIMITS = Object.freeze({
   maximumConfirmedHops: 24,
   maximumVisibleTimelineRows: 50,
   maximumAgentMovementDistance: 30,
+  maximumWorldCoordinate: 1_000_000,
   maximumAgentMovementSpeed: 12,
   minimumAgentStoppingRadius: 0.25,
   maximumAgentStoppingRadius: 5,
@@ -119,7 +120,13 @@ const CancelSchema = z
   })
   .strict();
 
-const FiniteWorldCoordinateSchema = z.number().finite().min(-15).max(15);
+// Transport coordinates share the arrival-position range; the live consumer
+// checks the actual current floor bounds before executing a destination.
+const FiniteWorldCoordinateSchema = z
+  .number()
+  .finite()
+  .min(-WORLD_ACTION_LIMITS.maximumWorldCoordinate)
+  .max(WORLD_ACTION_LIMITS.maximumWorldCoordinate);
 const StoppingRadiusSchema = z
   .number()
   .finite()

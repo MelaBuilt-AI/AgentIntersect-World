@@ -21,16 +21,24 @@ export function RepositoryCodeScreen({
   reducedMotion,
   onClose,
   onInspectionChange,
+  fullscreen: controlledFullscreen,
+  onFullscreenChange,
 }: {
   readonly instance: RepositoryCityInstance;
   readonly openingYaw: number;
   readonly reducedMotion: boolean;
   readonly onClose: () => void;
   readonly onInspectionChange: (active: boolean) => void;
+  readonly fullscreen?: boolean;
+  readonly onFullscreenChange?: import("react").Dispatch<
+    import("react").SetStateAction<boolean>
+  >;
 }) {
   const controller = useWorldScreens();
   const enabled = controller?.enabled ?? false;
-  const [fullscreen, setFullscreen] = useState(false);
+  const [localFullscreen, setLocalFullscreen] = useState(false);
+  const fullscreen = controlledFullscreen ?? localFullscreen;
+  const setFullscreen = onFullscreenChange ?? setLocalFullscreen;
   const [focused, setFocused] = useState(false);
   const originalRef =
     typeof instance.linkedRepoData?.ref === "string"
@@ -158,7 +166,7 @@ export function RepositoryCodeScreen({
     };
     window.addEventListener("keydown", keys, true);
     return () => window.removeEventListener("keydown", keys, true);
-  }, [fullscreen, inspecting]);
+  }, [fullscreen, inspecting, setFullscreen]);
 
   return (
     <WorldScreen

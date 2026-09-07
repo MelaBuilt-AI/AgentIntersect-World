@@ -161,6 +161,38 @@ describe("World Action HTTP boundary", () => {
       },
     });
     expect(hostile.statusCode).toBe(400);
+    // User-owned presentation movement does not require native autonomous tools.
+    context.worldActionsEnabled = false;
+    const manualAction = {
+      kind: "move-agent",
+      schema: "aiw.agent-movement/1",
+      actorId: sessionId,
+      source: "user-directed",
+      speed: 4,
+      target: { kind: "follow-user", stoppingRadius: 1.5 },
+    };
+    const manual = await server.inject({
+      method: "POST",
+      url: `/world-actions/${sessionId}/proposals`,
+      payload: { actions: [manualAction] },
+    });
+    expect(manual.statusCode).toBe(202);
+    const autonomous = await server.inject({
+      method: "POST",
+      url: `/world-actions/${sessionId}/proposals`,
+      payload: { actions: [{ ...manualAction, source: "agent-autonomous" }] },
+    });
+    expect(autonomous.statusCode).toBe(409);
+    const wrongActor = await server.inject({
+      method: "POST",
+      url: `/world-actions/${sessionId}/proposals`,
+      payload: {
+        actions: [
+          { ...manualAction, actorId: "00000000-0000-4000-8000-000000000099" },
+        ],
+      },
+    });
+    expect(wrongActor.statusCode).toBe(409);
     await server.close();
   });
 });

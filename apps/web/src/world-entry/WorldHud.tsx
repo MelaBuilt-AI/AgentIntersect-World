@@ -253,81 +253,87 @@ export function WorldHud({
           </ol>
         )}
       </div>
-      <div className="world-hud__controls">
-        <form
-          className="world-chat"
-          aria-busy={busy}
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!sendUnavailable) {
-              inputHistory.current = recordWorldChatSubmission(
-                inputHistory.current,
-                message,
-              );
-              onSend();
-            }
-          }}
-        >
-          <label className="sr-only" htmlFor="world-chat-message">
-            Message {recipient}
-          </label>
-          <input
-            ref={inputRef}
-            id="world-chat-message"
-            aria-label={`Message ${recipient}`}
-            value={message}
-            maxLength={4_000}
-            placeholder={`Message ${recipient}`}
-            onChange={(event) => {
-              if (inputHistory.current.index !== null)
-                inputHistory.current = {
-                  ...inputHistory.current,
-                  index: null,
-                  draft: event.target.value,
-                };
-              onMessage(event.target.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-              const direction = event.key === "ArrowUp" ? "up" : "down";
-              if (
-                inputHistory.current.entries.length === 0 ||
-                (direction === "down" && inputHistory.current.index === null)
-              )
-                return;
+      <div className="world-hud__chat-dock">
+        <p className="world-hud__wheel-hint">
+          Press Middle Mouse to open the Code Wheel
+        </p>
+        <div className="world-hud__controls">
+          <form
+            className="world-chat"
+            aria-busy={busy}
+            onSubmit={(event) => {
               event.preventDefault();
-              const recalled = recallWorldChatHistory(
-                inputHistory.current,
-                direction,
-                message,
-              );
-              inputHistory.current = recalled.history;
-              onMessage(recalled.message);
-              window.requestAnimationFrame(() => {
-                const input = inputRef.current;
-                if (!input) return;
-                const end = input.value.length;
-                input.setSelectionRange(end, end);
-              });
+              if (!sendUnavailable) {
+                inputHistory.current = recordWorldChatSubmission(
+                  inputHistory.current,
+                  message,
+                );
+                onSend();
+              }
             }}
-          />
-          <button
-            type="submit"
-            className={
-              sendUnavailable
-                ? "world-chat__send world-action--unavailable"
-                : "world-chat__send world-action--enabled"
-            }
-            disabled={sendUnavailable}
           >
-            Send
-          </button>
-        </form>
-        <WorldPushToTalk
-          available={pushToTalkAvailable}
-          session={voiceSession}
-          onAcceptedText={onVoiceSend}
-        />
+            <label className="sr-only" htmlFor="world-chat-message">
+              Message {recipient}
+            </label>
+            <input
+              ref={inputRef}
+              id="world-chat-message"
+              aria-label={`Message ${recipient}`}
+              value={message}
+              maxLength={4_000}
+              placeholder={`Message ${recipient}`}
+              onChange={(event) => {
+                if (inputHistory.current.index !== null)
+                  inputHistory.current = {
+                    ...inputHistory.current,
+                    index: null,
+                    draft: event.target.value,
+                  };
+                onMessage(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== "ArrowUp" && event.key !== "ArrowDown")
+                  return;
+                const direction = event.key === "ArrowUp" ? "up" : "down";
+                if (
+                  inputHistory.current.entries.length === 0 ||
+                  (direction === "down" && inputHistory.current.index === null)
+                )
+                  return;
+                event.preventDefault();
+                const recalled = recallWorldChatHistory(
+                  inputHistory.current,
+                  direction,
+                  message,
+                );
+                inputHistory.current = recalled.history;
+                onMessage(recalled.message);
+                window.requestAnimationFrame(() => {
+                  const input = inputRef.current;
+                  if (!input) return;
+                  const end = input.value.length;
+                  input.setSelectionRange(end, end);
+                });
+              }}
+            />
+            <button
+              type="submit"
+              className={
+                sendUnavailable
+                  ? "world-chat__send world-action--unavailable"
+                  : "world-chat__send world-action--enabled"
+              }
+              disabled={sendUnavailable}
+            >
+              Send
+            </button>
+          </form>
+          <WorldPushToTalk
+            available={pushToTalkAvailable}
+            session={voiceSession}
+            onAcceptedText={onVoiceSend}
+          />
+        </div>
       </div>
     </div>
   );

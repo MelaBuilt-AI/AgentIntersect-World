@@ -5,11 +5,119 @@ import {
   parseAgentMovementAuthoritySnapshot,
   postUserDirectedMovement,
   postUserDirectedStop,
+  resolveDirectedMovementRecipients,
 } from "../src/world-entry/world-agent-direction.js";
 
 const sessionId = "11111111-1111-4111-8111-111111111111";
 
 describe("normal World user-directed movement transport", () => {
+  it("routes movement to the selected avatar, exact mention, or connected broadcast", () => {
+    const agents = [
+      {
+        rosterId: "one",
+        worldSessionId: sessionId,
+        displayName: "Mr Fluff",
+        connection: "connected",
+      },
+      {
+        rosterId: "two",
+        worldSessionId: "second-session",
+        displayName: "Codex",
+        connection: "connected",
+      },
+      {
+        rosterId: "three",
+        worldSessionId: "offline-session",
+        displayName: "Offline",
+        connection: "disconnected",
+      },
+    ];
+    expect(
+      resolveDirectedMovementRecipients("/agent follow", agents, "two"),
+    ).toEqual({ text: "/agent follow", sessionIds: ["second-session"] });
+    expect(
+      resolveDirectedMovementRecipients("@Mr Fluff follow me", agents, null),
+    ).toEqual({ text: "follow me", sessionIds: [sessionId] });
+    expect(
+      resolveDirectedMovementRecipients("/agent stop", agents, null).sessionIds,
+    ).toEqual([sessionId, "second-session"]);
+    expect(
+      resolveDirectedMovementRecipients("/agent follow", agents, "three")
+        .sessionIds,
+    ).toEqual([]);
+    expect(
+      resolveDirectedMovementRecipients("@Nobody follow me", agents, null)
+        .sessionIds,
+    ).toEqual([]);
+  });
+  it("lets an explicit multiword movement mention override the selected recipient", () => {
+    const agents = [
+      {
+        rosterId: "one",
+        worldSessionId: "session-one",
+        displayName: "Movement One",
+        connection: "connected",
+      },
+      {
+        rosterId: "two",
+        worldSessionId: "session-two",
+        displayName: "Movement Two",
+        connection: "connected",
+      },
+    ];
+    expect(
+      resolveDirectedMovementRecipients(
+        "@Movement Two /agent follow",
+        agents,
+        "one",
+      ),
+    ).toEqual({ text: "/agent follow", sessionIds: ["session-two"] });
+    expect(
+      resolveDirectedMovementRecipients(
+        "@Movement Two /agent stop",
+        agents,
+        "one",
+      ),
+    ).toEqual({ text: "/agent stop", sessionIds: ["session-two"] });
+    expect(
+      resolveDirectedMovementRecipients("/agent move right 2", agents, "one"),
+    ).toEqual({ text: "/agent move right 2", sessionIds: ["session-one"] });
+  });
+
+  it("keeps unresolved or ambiguous explicit movement local with no recipients", () => {
+    const agents = [
+      {
+        rosterId: "one",
+        worldSessionId: "session-one",
+        displayName: "Movement Two",
+        connection: "connected",
+      },
+      {
+        rosterId: "two",
+        worldSessionId: "session-two",
+        displayName: "Movement Two",
+        connection: "connected",
+      },
+    ];
+    for (const text of [
+      "@Movement Two /agent follow",
+      "@Unknown Agent /agent follow",
+      "@Unknown Agent follow me",
+    ]) {
+      expect(resolveDirectedMovementRecipients(text, agents, "one")).toEqual({
+        text: text.endsWith("/agent follow") ? "/agent follow" : "follow me",
+        sessionIds: [],
+      });
+    }
+    expect(
+      resolveDirectedMovementRecipients(
+        "@Unknown Agent explain following",
+        agents,
+        "one",
+      ),
+    ).toEqual({ text: "@Unknown Agent explain following", sessionIds: [] });
+  });
+
   it("accepts movement only from a validated accepted World Action envelope", () => {
     const actionId = "66666666-6666-4666-8666-666666666666";
     const envelope = {

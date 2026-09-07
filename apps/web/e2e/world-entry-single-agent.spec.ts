@@ -3796,7 +3796,7 @@ traceTest(repositoryCityCorrectionTitle, async ({ page }) => {
   ) => {
     movement = {
       actionId:
-        source === "user-directed"
+        target.kind === "relative"
           ? "66666666-6666-4666-8666-666666666666"
           : "77777777-7777-4777-8777-777777777777",
       source,
@@ -3830,16 +3830,9 @@ traceTest(repositoryCityCorrectionTitle, async ({ page }) => {
         };
         const action = body.actions?.[0];
         expect(action?.source).toBe("user-directed");
-        expect(action?.target).toEqual({
-          kind: "relative",
-          direction: "left",
-          distance: 5,
-        });
-        activateMovement("user-directed", {
-          kind: "relative",
-          direction: "left",
-          distance: 5,
-        });
+        const target = action?.target as MovementFixture["target"];
+        expect(["relative", "follow-user"]).toContain(target.kind);
+        activateMovement("user-directed", target);
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -3989,9 +3982,7 @@ traceTest(repositoryCityCorrectionTitle, async ({ page }) => {
   const followBefore = await position();
   await composer.fill("follow me");
   await composer.press("Enter");
-  await expect
-    .poll(() => streamedMessages, { timeout: 30_000 })
-    .toEqual(["follow me"]);
+  expect(streamedMessages).toEqual([]);
   await expect
     .poll(
       async () => {
@@ -4005,6 +3996,35 @@ traceTest(repositoryCityCorrectionTitle, async ({ page }) => {
     )
     .toBeGreaterThan(0.2);
   const followAfter = await position();
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle");
+  const resting = await position();
+  await composer.blur();
+  await page.keyboard.down("KeyW");
+  try {
+    await expect
+      .poll(
+        async () => {
+          const current = await position();
+          return Math.hypot(current.x - resting.x, current.z - resting.z);
+        },
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(0.25);
+  } finally {
+    await page.keyboard.up("KeyW");
+  }
+  await composer.fill("/agent stop");
+  await composer.press("Enter");
+  await expect(room).toHaveAttribute("data-agent-movement-state", "idle");
+  const stopped = await position();
+  await composer.blur();
+  await page.keyboard.down("KeyD");
+  try {
+    await page.waitForTimeout(800);
+    expect(await position()).toEqual(stopped);
+  } finally {
+    await page.keyboard.up("KeyD");
+  }
 
   writeFileSync(
     resolve(evidenceDirectory, "movement-proof.json"),

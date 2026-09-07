@@ -59,6 +59,7 @@ import {
   parseAgentMovementAuthoritySnapshot,
   postUserDirectedMovement,
   postUserDirectedStop,
+  resolveDirectedMovementRecipients,
 } from "./world-agent-direction.js";
 import {
   DEFAULT_WORLD_DISPLAY_PREFERENCES,
@@ -332,6 +333,7 @@ export function WorldEntryExperience({
   );
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [status, setStatus] = useState("Restored user avatar · Current");
+  const [directionRefusal, setDirectionRefusal] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [chat, updateChat] = useReducer(
@@ -370,6 +372,8 @@ export function WorldEntryExperience({
     null,
   );
   const [normalWorkstreamOpen, setNormalWorkstreamOpen] = useState(false);
+  const [wheelTaskOpen, setWheelTaskOpen] = useState(false);
+  const [wheelTask, setWheelTask] = useState("");
   const [normalWorkstreamPending, setNormalWorkstreamPending] = useState(false);
   const [normalWorkstreamMessage, setNormalWorkstreamMessage] = useState<
     string | null
@@ -1385,7 +1389,9 @@ export function WorldEntryExperience({
       const targetAgentId =
         continuingAgentId ??
         (state.sessionMode === "multi"
-          ? selectedRecipientId
+          ? (constellation?.agents.find(
+              (agent) => agent.rosterId === selectedRecipientId,
+            )?.worldSessionId ?? null)
           : session.sessionId);
       if (!targetAgentId) return null;
       const targetSession =
@@ -1487,9 +1493,25 @@ export function WorldEntryExperience({
     }
   };
 
+  const [movementRefresh, setMovementRefresh] = useState(0);
   const sendText = async (input: string) => {
     if (!session || !input.trim()) return;
-    const classified = classifyWorldMessage(input);
+    setDirectionRefusal(null);
+    const movementRecipients =
+      state.sessionMode === "multi"
+        ? resolveDirectedMovementRecipients(
+            input,
+            constellation?.agents ?? [],
+            selectedRecipientId,
+          )
+        : { text: input, sessionIds: [session.sessionId] };
+    const directed = classifyWorldMessage(movementRecipients.text);
+    const classified =
+      directed.kind === "local-agent-movement" ||
+      directed.kind === "local-agent-stop" ||
+      directed.kind === "local-refusal"
+        ? directed
+        : classifyWorldMessage(input);
     if (classified.kind === "local-animation") {
       setUserAnimationCue({
         sequence: nextUserAnimationCue.current++,
@@ -1499,42 +1521,73 @@ export function WorldEntryExperience({
       return;
     }
     if (classified.kind === "local-refusal") {
-      setStatus(classified.message);
+      setDirectionRefusal(classified.message);
       return;
     }
-    if (classified.kind === "local-agent-movement") {
-      setStatus("agent movement requested · user-directed");
-      try {
-        await postUserDirectedMovement(
-          fetch,
-          session.sessionId,
-          classified.target,
-        );
-        if (mounted.current)
-          setStatus("agent movement accepted · user-directed");
-      } catch {
-        if (mounted.current) setStatus("agent movement refused · unavailable");
+    if (
+      classified.kind === "local-agent-movement" ||
+      classified.kind === "local-agent-stop"
+    ) {
+      if (!movementRecipients.sessionIds.length) {
+        setDirectionRefusal("agent movement refused · recipient unavailable");
+        return;
       }
-      return;
-    }
-    if (classified.kind === "local-agent-stop") {
-      setStatus("agent movement cancellation requested");
-      try {
-        await postUserDirectedStop(fetch, session.sessionId);
-        if (mounted.current) {
+      if (state.sessionMode === "multi") setSelectedRecipientId(null);
+      const stopping = classified.kind === "local-agent-stop";
+      setStatus(
+        stopping
+          ? "agent movement cancellation requested"
+          : "agent movement requested · user-directed",
+      );
+      // Stop the visible actor immediately; the authority interrupt prevents
+      // later polls from reviving the request.
+      if (stopping) {
+        if (
+          agentMovementRequest &&
+          movementRecipients.sessionIds.includes(agentMovementRequest.actorId)
+        ) {
+          setAgentMovementControl({
+            sequence: nextMovementControl.current++,
+            requestId: agentMovementRequest.requestId,
+            state: "interrupted",
+            reason: "user-directed-stop",
+          });
           setAgentMovementRequest(null);
-          if (agentMovementRequest)
-            setAgentMovementControl({
+        }
+        for (const agent of constellation?.agents ?? []) {
+          const request = rosterMovementRequests[agent.rosterId];
+          if (
+            !request ||
+            !movementRecipients.sessionIds.includes(agent.worldSessionId)
+          )
+            continue;
+          setRosterMovementControls((current) => ({
+            ...current,
+            [agent.rosterId]: {
               sequence: nextMovementControl.current++,
-              requestId: agentMovementRequest.requestId,
+              requestId: request.requestId,
               state: "interrupted",
               reason: "user-directed-stop",
-            });
-          setStatus("agent movement cancelled · Idle");
+            },
+          }));
         }
-      } catch {
-        if (mounted.current)
-          setStatus("agent movement stop refused · unavailable");
+      }
+      const results = await Promise.allSettled(
+        movementRecipients.sessionIds.map((id) =>
+          classified.kind === "local-agent-stop"
+            ? postUserDirectedStop(fetch, id)
+            : postUserDirectedMovement(fetch, id, classified.target),
+        ),
+      );
+      if (mounted.current) {
+        setMovementRefresh((value) => value + 1);
+        setStatus(
+          results.some((result) => result.status === "rejected")
+            ? "agent movement authority unavailable · some commands were not confirmed"
+            : stopping
+              ? "agent movement cancelled · Idle"
+              : "agent movement accepted · user-directed",
+        );
       }
       return;
     }
@@ -2017,7 +2070,7 @@ export function WorldEntryExperience({
       active = false;
       window.clearInterval(timer);
     };
-  }, [movementSessionId]);
+  }, [movementSessionId, movementRefresh]);
 
   useEffect(() => {
     if (!movementSessionId) return;
@@ -2061,8 +2114,11 @@ export function WorldEntryExperience({
               agent.worldSessionId,
             );
             const request = snapshot.requests.at(-1) ?? null;
-            const terminal = snapshot.outcomes.findLast((outcome) =>
-              request ? outcome.requestId === request.requestId : false,
+            const terminal = snapshot.outcomes.find(
+              (outcome) =>
+                outcome.state === "cancelled" ||
+                outcome.state === "interrupted" ||
+                outcome.state === "refused",
             );
             setRosterMovementRequests((current) => ({
               ...current,
@@ -2113,7 +2169,13 @@ export function WorldEntryExperience({
       active = false;
       window.clearInterval(timer);
     };
-  }, [constellation, groupedClient, inWorld, state.sessionMode]);
+  }, [
+    constellation,
+    groupedClient,
+    inWorld,
+    state.sessionMode,
+    movementRefresh,
+  ]);
 
   const reportAgentMovementEvent = (
     movementEvent: AgentMovementEvent,
@@ -2315,6 +2377,23 @@ export function WorldEntryExperience({
               onWorkstreamSessionChanged={refreshWorkstreamSession}
               onRepositoryReady={repositoryRendered}
               onRepositoryError={repositoryRenderFailed}
+              onCodeWheelAction={(action) => {
+                if (action === "follow" || action === "stop") {
+                  void sendText(
+                    action === "follow" ? "/agent follow" : "/agent stop",
+                  );
+                  return;
+                }
+                if (action === "load-repo") {
+                  void loadRequestedRepository("/repo load", null);
+                  return;
+                }
+                if (action === "workbench" && normalWorkstream) {
+                  setNormalWorkstreamOpen(true);
+                  return;
+                }
+                setWheelTaskOpen(true);
+              }}
               onAskAgent={(prompt) =>
                 setMessage(`@${activeProposal.displayName} ${prompt}`)
               }
@@ -2329,7 +2408,7 @@ export function WorldEntryExperience({
                     )?.name ?? "All agents")
                   : activeProposal.displayName
               }
-              status={status}
+              status={directionRefusal ?? status}
               busy={chatBusy || state.step === "repository_loading"}
               queuedCount={queuedCount}
               message={message}
@@ -2391,6 +2470,104 @@ export function WorldEntryExperience({
               iterationStatus={iterationStatus}
               onInputOwnerChange={setWorldInputOwner}
             />
+          ) : null}
+          {wheelTaskOpen ? (
+            <section
+              className="code-wheel-task"
+              data-world-ui="true"
+              role="dialog"
+              aria-label="New Workstream"
+            >
+              <h2>
+                {normalWorkstream
+                  ? "New Workstream"
+                  : "Workbench · no current Workstream"}
+              </h2>
+              <p>
+                Choose one agent and load a repository, then describe the task.
+                Starting creates an owned workspace and sends the task to that
+                agent.
+              </p>
+              <p>
+                Agent:{" "}
+                {state.sessionMode === "multi"
+                  ? (worldAgentAvatars.find(
+                      (agent) => agent.rosterId === selectedRecipientId,
+                    )?.name ?? "Select one agent in the wheel")
+                  : activeProposal.displayName}
+              </p>
+              <p>
+                Repository:{" "}
+                {activeRepositoryAuthority
+                  ? "Current loaded repository"
+                  : "Load a repository first"}
+              </p>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (
+                    !wheelTask.trim() ||
+                    !activeRepositoryAuthority ||
+                    (state.sessionMode === "multi" && !selectedRecipientId) ||
+                    normalWorkstreamPending ||
+                    (normalWorkstream &&
+                      !["completed", "cancelled"].includes(
+                        normalWorkstream.status,
+                      ))
+                  )
+                    return;
+                  void runWorkstreamConversation({
+                    action: "request",
+                    text: `/work start ${wheelTask.trim()}`,
+                    task: wheelTask.trim(),
+                  });
+                  setWheelTaskOpen(false);
+                }}
+              >
+                <label>
+                  Task
+                  <textarea
+                    aria-label="New Workstream task"
+                    value={wheelTask}
+                    onChange={(event) => setWheelTask(event.target.value)}
+                  />
+                </label>
+                {normalWorkstream &&
+                !["completed", "cancelled"].includes(
+                  normalWorkstream.status,
+                ) ? (
+                  <p>
+                    Finish or cancel the current Workstream before starting
+                    another.
+                  </p>
+                ) : null}
+                <button
+                  className="world-action--enabled"
+                  type="submit"
+                  disabled={
+                    !wheelTask.trim() ||
+                    !activeRepositoryAuthority ||
+                    (state.sessionMode === "multi" && !selectedRecipientId) ||
+                    normalWorkstreamPending ||
+                    Boolean(
+                      normalWorkstream &&
+                      !["completed", "cancelled"].includes(
+                        normalWorkstream.status,
+                      ),
+                    )
+                  }
+                >
+                  Start Workstream
+                </button>
+                <button
+                  className="world-action--enabled"
+                  type="button"
+                  onClick={() => setWheelTaskOpen(false)}
+                >
+                  Close
+                </button>
+              </form>
+            </section>
           ) : null}
           {repositoryIntakeOpen ? (
             <RepositoryIntakeDialog

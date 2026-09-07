@@ -425,7 +425,11 @@ export class CodexSessionAdapter implements AgentAdapter {
       ["--version"],
       "Codex CLI attestation timed out",
     );
-    if (version !== `codex-cli ${CODEX_CLI_VERSION}`)
+    if (
+      ![CODEX_CLI_VERSION, "0.153.4"].some(
+        (supported) => version === `codex-cli ${supported}`,
+      )
+    )
       throw codexFailure("Codex CLI version mismatch", "offline");
     const execHelp = await this.#plain(
       ["exec", "--help"],
@@ -450,7 +454,7 @@ export class CodexSessionAdapter implements AgentAdapter {
     return AgentCapabilityManifestSchema.parse({
       schema: "aiw.agent-capabilities/0.12",
       adapterId: "codex",
-      adapterVersion: `0.19.0-codex-${CODEX_CLI_VERSION}`,
+      adapterVersion: `0.19.0-codex-${version.slice("codex-cli ".length)}`,
       transport: "loopback-http-sse",
       origin: "local",
       auth: "server-bearer",

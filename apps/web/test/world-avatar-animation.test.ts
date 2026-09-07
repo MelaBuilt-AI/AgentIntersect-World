@@ -151,6 +151,10 @@ describe("complete-avatar World animation controls", () => {
       target: { kind: "follow-user", stoppingRadius: 2.25 },
     });
     expect(parse("/agent stop")).toEqual({ kind: "stop" });
+    expect(parse("/agent move 30 0")).toEqual({
+      kind: "movement",
+      target: { kind: "coordinate", x: 30, z: 0 },
+    });
   });
 
   it("keeps malformed agent commands local while unknown slash and ordinary text remain chat", () => {
@@ -161,7 +165,7 @@ describe("complete-avatar World animation controls", () => {
     for (const text of [
       "/agent",
       "/agent move",
-      "/agent move 16 0",
+      "/agent move 1000001 0",
       "/agent move forward 31",
       "/agent follow 0",
       "/agent stop now",

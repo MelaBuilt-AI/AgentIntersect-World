@@ -368,6 +368,12 @@ async function waitForProcessExit(pid: number): Promise<void> {
 }
 
 describe("CodexSessionAdapter", () => {
+  it("attests the installed 0.153.4 CLI and reports its real version", async () => {
+    const fixture = await fixtureExecutable({ version: "0.153.4" });
+    await expect(adapter(fixture).attest()).resolves.toMatchObject({
+      adapterVersion: "0.19.0-codex-0.153.4",
+    });
+  });
   it("attests the exact bounded Codex CLI contract with an allowlisted environment", async () => {
     const fixture = await fixtureExecutable();
     process.env.CODEX_ADAPTER_SECRET_CANARY = "must-not-pass";

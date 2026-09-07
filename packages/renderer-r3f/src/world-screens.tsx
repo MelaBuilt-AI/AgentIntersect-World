@@ -96,6 +96,48 @@ export function WorldScreens({
       return tools.ray.ray.intersectPlane(ground, tools.hit);
     };
     for (const screen of screens) {
+      // Use the actual active renderer camera, never an approximate second camera.
+      screen.projectPlacement = (
+        pose,
+        width = screen.width,
+        height = screen.height,
+      ) => {
+        const bounds = gl.domElement.getBoundingClientRect();
+        const points = [-1, 1].flatMap((horizontal) =>
+          [-1, 1].map((vertical) => {
+            const halfWidth = (width * WORLD_SCREEN_SCALE) / 2;
+            return new Vector3(
+              pose.x + horizontal * halfWidth * Math.cos(pose.yaw),
+              (pose.y ?? WORLD_SCREEN_CENTER_Y) +
+                (vertical * height * WORLD_SCREEN_SCALE) / 2,
+              pose.z - horizontal * halfWidth * Math.sin(pose.yaw),
+            )
+              .applyMatrix4(camera.matrixWorldInverse)
+              .applyMatrix4(camera.projectionMatrix);
+          }),
+        );
+        if (points.some((point) => point.z < -1 || point.z > 1)) return null;
+        return {
+          left:
+            bounds.left +
+            ((1 + Math.min(...points.map((point) => point.x))) * bounds.width) /
+              2,
+          right:
+            bounds.left +
+            ((1 + Math.max(...points.map((point) => point.x))) * bounds.width) /
+              2,
+          top:
+            bounds.top +
+            ((1 - Math.max(...points.map((point) => point.y))) *
+              bounds.height) /
+              2,
+          bottom:
+            bounds.top +
+            ((1 - Math.min(...points.map((point) => point.y))) *
+              bounds.height) /
+              2,
+        };
+      };
       screen.startDrag = (x, y, pointerId) => {
         if (!screen.spatial || screen.movable === false || drag.current) return;
         const hit = point(x, y);
@@ -176,7 +218,10 @@ export function WorldScreens({
     document.addEventListener("visibilitychange", visibility);
     invalidate();
     return () => {
-      for (const screen of screens) delete screen.startDrag;
+      for (const screen of screens) {
+        delete screen.startDrag;
+        delete screen.projectPlacement;
+      }
       window.removeEventListener("pointermove", move, true);
       window.removeEventListener("wheel", wheel, true);
       window.removeEventListener("pointerup", release, true);

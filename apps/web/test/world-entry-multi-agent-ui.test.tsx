@@ -122,7 +122,7 @@ describe("Phase 19 Task 10 multi-agent entry UI", () => {
     expect(html).toContain('disabled=""');
   });
 
-  it("renders one user plus four semantic agent recipient buttons", () => {
+  it("renders one user and four semantic agents without the retired floating controls", () => {
     const WorldRoom = component(
       (roomModule as Record<string, unknown>).WorldRoom,
     );
@@ -154,13 +154,10 @@ describe("Phase 19 Task 10 multi-agent entry UI", () => {
     );
 
     expect(html).toContain("Mela · user avatar");
-    expect(
-      html.match(/class="world-room__agent-target world-action--enabled/g),
-    ).toHaveLength(4);
-    expect(html).toContain('aria-pressed="true"');
-    expect(html).toContain("Send next message to Claude");
-    expect(html).toContain('aria-label="Clear Claude and send to all agents"');
-    expect(html).toContain("world-room__agent-target-clear");
+    expect(html.match(/connected agent avatar/g)).toHaveLength(4);
+    expect(html).not.toContain("world-room__agent-target");
+    expect(html).not.toContain('aria-label="Code Wheel"'); // closed until requested
+    expect(html).toContain("Claude");
     expect(html).toContain("position -4.2,0.8");
     expect(html).toContain("position 4.2,0.8");
     expect(html).toContain("position -3.2,-4");

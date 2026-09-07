@@ -47,6 +47,70 @@ const request = (
 });
 
 describe("authoritative World-owned agent movement", () => {
+  it("keeps multiple followers in separate user-relative slots", () => {
+    const positions = [-1, 1].map((side) => {
+      const followContext = {
+        ...context,
+        userPosition: { x: 0, z: -10 },
+        followDirection: { x: side, z: 0 },
+      };
+      let result = requestAgentMovement(
+        createAgentMovementState("agent-session-1", { x: side * 4, z: 0 }),
+        request("formation", "user-directed", {
+          kind: "follow-user",
+          stoppingRadius: 1.5,
+        }),
+        followContext,
+      );
+      for (let i = 0; i < 100; i++)
+        result = advanceAgentMovement(result.state, 0.1, followContext);
+      expect(result.state.activeRequest?.requestId).toBe("formation");
+      expect(result.state.animationSemantic).toBe("Idle");
+      return result.state.position;
+    });
+    expect(
+      Math.hypot(
+        positions[1]!.x - positions[0]!.x,
+        positions[1]!.z - positions[0]!.z,
+      ),
+    ).toBeGreaterThan(2);
+  });
+
+  it("keeps following after catching up, faces the user, and resumes without a new command", () => {
+    let result = requestAgentMovement(
+      createAgentMovementState("agent-session-1", { x: 0, z: 0 }),
+      request("persistent-follow", "user-directed", {
+        kind: "follow-user",
+        stoppingRadius: 1.5,
+      }),
+      context,
+    );
+    const events = [...result.events];
+    for (let frame = 0; frame < 40; frame += 1) {
+      result = advanceAgentMovement(result.state, 0.1, context);
+      events.push(...result.events);
+    }
+    expect(result.state.animationSemantic).toBe("Idle");
+    expect(result.state.activeRequest?.requestId).toBe("persistent-follow");
+    expect(events.some(({ state }) => state === "arrived")).toBe(false);
+    const restingPosition = result.state.position;
+    result = advanceAgentMovement(result.state, 0.1, {
+      ...context,
+      userPosition: { x: restingPosition.x, z: 1 },
+    });
+    expect(result.state.position).toEqual(restingPosition);
+    expect(result.state.heading).toBeCloseTo(0);
+    result = advanceAgentMovement(result.state, 0.1, {
+      ...context,
+      userPosition: { x: 8, z: 2 },
+    });
+    expect(result.state.position.x).toBeGreaterThan(restingPosition.x);
+    expect(result.state.movementState).toBe("moving");
+    result = cancelAgentMovement(result.state, "user-directed-stop", context);
+    const stopped = result.state;
+    result = advanceAgentMovement(stopped, 0.1, context);
+    expect(result.state).toEqual(stopped);
+  });
   it("accepts coordinate, relative, and follow targets and integrates bounded elapsed time", () => {
     const state = createAgentMovementState("agent-session-1", { x: 0, z: 0 });
     let result = requestAgentMovement(
@@ -140,7 +204,8 @@ describe("authoritative World-owned agent movement", () => {
     for (let index = 0; index < 10 && short.state.activeRequest; index += 1)
       short = advanceAgentMovement(short.state, 0.1, nearContext);
     expect(short.state.animationSemantic).toBe("Idle");
-    expect(short.events.at(-1)?.state).toBe("arrived");
+    expect(short.state.activeRequest?.target.kind).toBe("follow-user");
+    expect(short.events).toEqual([]);
   });
 
   it("emits arrival on the step that reaches the quantized stopping boundary", () => {
@@ -446,10 +511,8 @@ describe("authoritative World-owned agent movement", () => {
     }
 
     expect(enteredRepositoryOccupancy).toBe(true);
-    expect(result.events.at(-1)).toMatchObject({
-      requestId: "follow-through-city",
-      state: "arrived",
-    });
+    expect(result.state.activeRequest?.requestId).toBe("follow-through-city");
+    expect(result.state.animationSemantic).toBe("Idle");
   });
 
   it("cancels an active request when the World boundary changes", () => {
