@@ -550,7 +550,12 @@ export class WorldActionService {
     }
     let outcome: WorldActionOutcome;
     if (event === "moving") {
-      if (record.outcome.state !== "path-planned")
+      const action = record.envelope.actions[record.actionIndex];
+      const followHeartbeat =
+        record.outcome.state === "moving" &&
+        action?.kind === "move-agent" &&
+        action.target.kind === "follow-user";
+      if (record.outcome.state !== "path-planned" && !followHeartbeat)
         throw new Error("Movement requires a planned path");
       outcome = { ...record.outcome, state: "moving", arrived: false };
     } else if (event === "arrived") {
@@ -561,10 +566,14 @@ export class WorldActionService {
           !context.actorPosition ||
           !Number.isFinite(context.actorPosition.x) ||
           !Number.isFinite(context.actorPosition.z) ||
-          Math.abs(context.actorPosition.x) > 15 ||
-          Math.abs(context.actorPosition.z) > 15
+          Math.abs(context.actorPosition.x) >
+            WORLD_ACTION_LIMITS.maximumWorldCoordinate ||
+          Math.abs(context.actorPosition.z) >
+            WORLD_ACTION_LIMITS.maximumWorldCoordinate
         )
-          throw new Error("Agent movement arrival is outside World bounds");
+          throw new Error(
+            "Agent movement arrival is outside the supported coordinate range",
+          );
         outcome = { ...record.outcome, state: "arrived", arrived: true };
       } else {
         const target = record.outcome.requestedTarget

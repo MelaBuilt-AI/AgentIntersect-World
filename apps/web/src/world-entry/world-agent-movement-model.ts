@@ -83,6 +83,7 @@ export type RepositoryApproachPoint = {
 export type AgentMovementContext = {
   readonly bounds: WorldBounds;
   readonly userPosition: WorldPoint;
+  readonly followDirection?: WorldPoint | undefined;
   readonly layoutGeneration: string;
   readonly resolveRepositoryObject: (
     objectId: string,
@@ -223,7 +224,7 @@ function resolveDestination(
       readonly stale: string;
     }
   | { readonly refused: string } {
-  const stoppingRadius = request.target.stoppingRadius ?? MIN_STOPPING_RADIUS;
+  let stoppingRadius = request.target.stoppingRadius ?? MIN_STOPPING_RADIUS;
   let destination: WorldPoint;
   if (request.target.kind === "coordinate")
     destination = { x: request.target.x, z: request.target.z };
@@ -238,9 +239,28 @@ function resolveDestination(
       x: state.position.x + direction.x * request.target.distance,
       z: state.position.z + direction.z * request.target.distance,
     };
-  } else if (request.target.kind === "follow-user")
+  } else if (request.target.kind === "follow-user") {
     destination = context.userPosition;
-  else {
+    if (context.followDirection) {
+      destination = {
+        x: Math.max(
+          context.bounds.minX,
+          Math.min(
+            context.bounds.maxX,
+            destination.x + context.followDirection.x * stoppingRadius,
+          ),
+        ),
+        z: Math.max(
+          context.bounds.minZ,
+          Math.min(
+            context.bounds.maxZ,
+            destination.z + context.followDirection.z * stoppingRadius,
+          ),
+        ),
+      };
+      stoppingRadius = MIN_STOPPING_RADIUS;
+    }
+  } else {
     if (request.target.layoutGeneration !== context.layoutGeneration)
       return { stale: "layout-generation-mismatch" };
     const resolved = context.resolveRepositoryObject(request.target.objectId);
@@ -379,12 +399,12 @@ export function advanceAgentMovement(
 ): AgentMovementResult {
   const request = state.activeRequest;
   if (!request || !state.destination) return { state, events: [] };
-  let destination =
-    request.target.kind === "follow-user"
-      ? context.userPosition
-      : state.destination;
+  let destination = state.destination;
   let stoppingRadius = request.stoppingRadius;
-  if (request.target.kind === "repository-object") {
+  if (
+    request.target.kind === "repository-object" ||
+    request.target.kind === "follow-user"
+  ) {
     const resolved = resolveDestination(state, request, context);
     if ("stale" in resolved)
       return finishMovement(state, request, "target-stale", resolved.stale);
@@ -398,7 +418,34 @@ export function advanceAgentMovement(
   const dx = destination.x - state.position.x;
   const dz = destination.z - state.position.z;
   const distance = Math.hypot(dx, dz);
-  if (distance <= stoppingRadius)
+  const following = request.target.kind === "follow-user";
+  // Keep the follow intent alive while resting. A small deadband prevents
+  // walking/idle chatter when the user is standing at the stopping radius.
+  if (
+    following &&
+    distance <= stoppingRadius + (state.movementState === "idle" ? 0.2 : 0.001)
+  )
+    return {
+      state: {
+        ...state,
+        destination,
+        heading:
+          Math.hypot(
+            context.userPosition.x - state.position.x,
+            context.userPosition.z - state.position.z,
+          ) > 0.001
+            ? Math.atan2(
+                context.userPosition.x - state.position.x,
+                context.userPosition.z - state.position.z,
+              )
+            : state.heading,
+        movementState: "idle",
+        animationSemantic: "Idle",
+        velocity: { x: 0, z: 0 },
+      },
+      events: [],
+    };
+  if (!following && distance <= stoppingRadius)
     return finishMovement({ ...state, destination }, request, "arrived");
   const elapsed = Math.max(
     0,
@@ -427,7 +474,7 @@ export function advanceAgentMovement(
     destination.x - position.x,
     destination.z - position.z,
   );
-  if (remainingDistance <= stoppingRadius + 0.001)
+  if (!following && remainingDistance <= stoppingRadius + 0.001)
     return finishMovement(
       { ...state, position, destination, heading },
       request,
@@ -441,6 +488,7 @@ export function advanceAgentMovement(
       position,
       destination,
       heading,
+      movementState: "moving",
       animationSemantic: movementAnimation(
         request.speed,
         Math.hypot(destination.x - position.x, destination.z - position.z),

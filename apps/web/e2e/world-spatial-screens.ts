@@ -1,5 +1,38 @@
 import { writeFileSync } from "node:fs";
-import { expect, type Page, type TestInfo } from "@playwright/test";
+import {
+  expect,
+  type Locator,
+  type Page,
+  type TestInfo,
+} from "@playwright/test";
+
+async function exposedFooterPoint(handle: Locator) {
+  let point: { x: number; y: number } | undefined;
+  await expect
+    .poll(
+      async () => {
+        point = await handle.evaluate((element) => {
+          const box = element.getBoundingClientRect();
+          // A CSS3D footer is a sloped quadrilateral, not its horizontal AABB midline.
+          const fractions = Array.from(
+            { length: 19 },
+            (_, i) => (i + 1) / 20,
+          ).sort((a, b) => Math.abs(a - 0.5) - Math.abs(b - 0.5));
+          for (const fy of fractions)
+            for (const fx of fractions) {
+              const x = box.x + box.width * fx,
+                y = box.y + box.height * fy;
+              const hit = document.elementFromPoint(x, y);
+              if (hit && element.contains(hit)) return { x, y };
+            }
+        });
+        return point;
+      },
+      { message: "The projected footer must expose a real pointer target" },
+    )
+    .toBeDefined();
+  return point!;
+}
 
 export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   page.setDefaultTimeout(10_000);
@@ -77,12 +110,114 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   ).toEqual(cameraBeforeUndock);
   await expect(palette.getByLabel("Search assets")).toHaveValue("code");
   await page.screenshot({ path: testInfo.outputPath("director-undocked.png") });
+  // Exercise the shared decorative-emitter boundary while its World hit is
+  // exposed, before other panels can legitimately cover it. All three footers
+  // are still drag-tested below with the complete spatial composition present.
+  {
+    const id = "director";
+    const panel = screen(id);
+    // The decorative floor emitter has no drag authority.
+    const readEmitter = () =>
+      panel.evaluate((element) => {
+        const x = Number((element as HTMLElement).dataset.baseClientX);
+        const y = Number((element as HTMLElement).dataset.baseClientY);
+        // A moved panel can overlay another emitter. Test the World hit target,
+        // not a different panel's legitimately draggable footer above it.
+        return [0, 12, 24, 36]
+          .map((offset) => ({ x, y: y + offset }))
+          .find((point) => {
+            if (!Number.isFinite(point.x) || !Number.isFinite(point.y))
+              return false;
+            const hit = document.elementFromPoint(point.x, point.y);
+            return (
+              (hit?.tagName === "CANVAS" || hit?.matches(".world-room")) &&
+              !!hit.closest(".world-room") &&
+              !hit.closest(".world-screen__object")
+            );
+          });
+      });
+    let emitter: { x: number; y: number } | undefined;
+    try {
+      await expect
+        .poll(async () => {
+          emitter = await readEmitter();
+          return emitter;
+        })
+        .toBeDefined();
+    } catch (error) {
+      await testInfo.attach(`emitter-${id}`, {
+        contentType: "application/json",
+        body: JSON.stringify(
+          await panel.evaluate((element) => {
+            const x = Number((element as HTMLElement).dataset.baseClientX),
+              y = Number((element as HTMLElement).dataset.baseClientY);
+            return {
+              dataset: { ...(element as HTMLElement).dataset },
+              points: [0, 12, 24, 36].map((offset) => ({
+                x,
+                y: y + offset,
+                target: document
+                  .elementFromPoint(x, y + offset)
+                  ?.outerHTML.slice(0, 500),
+              })),
+            };
+          }),
+        ),
+      });
+      await page.screenshot({
+        path: testInfo.outputPath(`emitter-blocked-${id}.png`),
+      });
+      throw error;
+    }
+    expect(emitter).toBeDefined();
+    await page.mouse.move(emitter!.x, emitter!.y);
+    await page.mouse.down();
+    await expect(panel).toHaveAttribute("data-screen-dragging", "false");
+    // A hold/move is not a click on a repository object beneath the light.
+    await page.mouse.move(emitter!.x + 12, emitter!.y, { steps: 3 });
+    await page.mouse.up();
+    await expect(page.locator('[data-world-screen="code"]')).toHaveCount(0);
+  }
   await palette.getByRole("button", { name: "Director", exact: true }).click();
   await expect(room).toHaveAttribute("data-repository-city-mode", "director");
   await palette.getByRole("button", { name: "Live", exact: true }).click();
   await page.keyboard.press("Alt+Digit1");
   await expect(screen("director")).toHaveAttribute("data-screen-mode", "hud");
   await palette.locator(".world-screen__toggle").click();
+  await room.focus();
+  // This crowded camera view cannot fit Workbench without covering hints or
+  // another panel. Verify refusal, then clear optional HUD clutter via real UI.
+  await page.keyboard.press("Alt+Digit2");
+  await expect(screen("workbench")).toHaveAttribute("data-screen-mode", "hud");
+  const roomBounds = (await room.boundingBox())!;
+  const wheelPoint = {
+    x: roomBounds.x + roomBounds.width * 0.25,
+    y: roomBounds.y + roomBounds.height * 0.55,
+  };
+  await page.mouse.click(wheelPoint.x, wheelPoint.y, { button: "middle" });
+  await expect(page.locator(".code-wheel__message")).toContainText(
+    "No clear screen space nearby",
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("crowded-placement-refusal.png"),
+  });
+  await page.mouse.click(wheelPoint.x, wheelPoint.y, { button: "middle" });
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("dialog", { name: "World menu", exact: true })
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  const settings = page.getByRole("dialog", {
+    name: "World settings",
+    exact: true,
+  });
+  await settings.getByLabel("Show World control hints").uncheck();
+  await settings
+    .getByRole("button", { name: "Close World menu", exact: true })
+    .click();
+  await expect(
+    room.getByRole("status", { name: "World controls", exact: true }),
+  ).toHaveCount(0);
   await room.focus();
   await page.keyboard.press("Alt+Digit2");
   await page.keyboard.press("Alt+Digit3");
@@ -94,6 +229,54 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
       /matrix3d/,
     );
   }
+  const spawnBounds = await Promise.all(
+    ["director", "workbench", "preview"].map(async (id) => ({
+      id,
+      box: await screen(id)
+        .locator(".world-screen__object")
+        .evaluate((element) => element.getBoundingClientRect().toJSON()),
+    })),
+  );
+  const controlHints = room.getByRole("status", {
+    name: "World controls",
+    exact: true,
+  });
+  if (await controlHints.isVisible()) {
+    spawnBounds.push({
+      id: "World controls",
+      box: await controlHints.evaluate((element) =>
+        element.getBoundingClientRect().toJSON(),
+      ),
+    });
+  }
+  const spawnOverlaps = spawnBounds.flatMap((a, i) =>
+    spawnBounds
+      .slice(i + 1)
+      .filter(
+        (b) =>
+          Math.min(a.box.right, b.box.right) -
+            Math.max(a.box.left, b.box.left) >
+            1 &&
+          Math.min(a.box.bottom, b.box.bottom) -
+            Math.max(a.box.top, b.box.top) >
+            1,
+      )
+      .map((b) => `${a.id}/${b.id}`),
+  );
+  await testInfo.attach("initial-screen-bounds", {
+    contentType: "application/json",
+    body: JSON.stringify({
+      spawnBounds,
+      spawnOverlaps,
+    }),
+  });
+  await page.screenshot({
+    path: testInfo.outputPath("initial-screen-placement.png"),
+  });
+  expect(
+    spawnOverlaps,
+    "New screens must not spawn over existing on-screen panels",
+  ).toEqual([]);
   // Native Edge can drop coplanar iframe content inside preserve-3d even
   // while headless Chromium paints it. Keep the native-proven flat surface.
   await expect(screen("preview").locator(".world-screen__object")).toHaveCSS(
@@ -151,43 +334,9 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
       x: await panel.getAttribute("data-screen-x"),
       z: await panel.getAttribute("data-screen-z"),
     };
-    // The decorative floor emitter has no drag authority.
-    const emitter = await panel.evaluate((element) => {
-      const x = Number((element as HTMLElement).dataset.baseClientX);
-      const y = Number((element as HTMLElement).dataset.baseClientY);
-      // A moved panel can overlay another emitter. Test the World hit target,
-      // not a different panel's legitimately draggable footer above it.
-      return [0, 12, 24, 36]
-        .map((offset) => ({ x, y: y + offset }))
-        .find(
-          (point) =>
-            !document
-              .elementFromPoint(point.x, point.y)
-              ?.closest(".world-screen__object"),
-        );
-    });
-    expect(emitter).toBeDefined();
-    await page.mouse.move(emitter!.x, emitter!.y);
-    await page.mouse.down();
-    await expect(panel).toHaveAttribute("data-screen-dragging", "false");
-    // A hold/move is not a click on a repository object beneath the light.
-    await page.mouse.move(emitter!.x + 12, emitter!.y, { steps: 3 });
-    await page.mouse.up();
-    await expect(page.locator('[data-world-screen="code"]')).toHaveCount(0);
     const handle = panel.locator(".world-screen__base");
     await expect(handle).toContainText("Hold here to move");
-    const grab = await handle.evaluate((element) => {
-      const box = element.getBoundingClientRect();
-      return [0.15, 0.85, 0.35, 0.65]
-        .map((fraction) => ({
-          x: box.x + box.width * fraction,
-          y: box.y + box.height / 2,
-        }))
-        .find((point) =>
-          element.contains(document.elementFromPoint(point.x, point.y)),
-        );
-    });
-    expect(grab).toBeDefined();
+    const grab = await exposedFooterPoint(handle);
     const yawBefore = await panel.getAttribute("data-screen-yaw");
     const zoomBefore = await room.getAttribute("data-camera-zoom");
     await page.mouse.move(grab!.x, grab!.y);
@@ -232,11 +381,8 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   const grab = screen("director").getByRole("button", {
     name: "Move Live / Director screen",
   });
-  const grabBox = await grab.boundingBox();
-  await page.mouse.move(
-    grabBox!.x + grabBox!.width / 2,
-    grabBox!.y + grabBox!.height / 2,
-  );
+  const escapeGrab = await exposedFooterPoint(grab);
+  await page.mouse.move(escapeGrab.x, escapeGrab.y);
   await page.mouse.down();
   await expect(screen("director")).toHaveAttribute(
     "data-screen-dragging",

@@ -11,7 +11,15 @@ import type {
   WorldScreenId,
   WorldScreenPose,
 } from "@agentintersect-world/renderer-r3f";
-import { WorldScreenContext, SCREEN_KEYS } from "./world-screen-context.js";
+import {
+  WorldScreenContext,
+  SCREEN_KEYS,
+  SCREEN_DIMENSIONS,
+} from "./world-screen-context.js";
+import {
+  nearestScreenPlacement,
+  type ScreenPlacementScene,
+} from "./world-screen-placement.js";
 
 export function WorldScreenProvider({
   children,
@@ -28,6 +36,14 @@ export function WorldScreenProvider({
   >({});
   const [screens, setScreens] = useState<readonly WorldScreenBinding[]>([]);
   const anchor = useRef({ x: 0, z: 0, yaw: 0 });
+  const placementScene = useRef<ScreenPlacementScene>({
+    floorSize: 68,
+    obstacles: [],
+  });
+  const [placementMessage, setPlacementMessage] = useState<string | null>(null);
+  const updatePlacementScene = useCallback((scene: ScreenPlacementScene) => {
+    placementScene.current = scene;
+  }, []);
   const updateAnchor = useCallback((pose: WorldScreenPose) => {
     anchor.current = pose;
   }, []);
@@ -45,24 +61,95 @@ export function WorldScreenProvider({
   const toggle = useCallback(
     (id: WorldScreenId) => {
       if (!enabled || dragging) return;
-      const view = anchor.current;
-      const side = { director: -4.7, workbench: 0, preview: 5.6, code: 0 }[id];
-      setPoses((current) =>
-        current[id]
-          ? current
-          : {
-              ...current,
-              [id]: {
-                x: view.x + Math.sin(view.yaw) * 6 + Math.cos(view.yaw) * side,
-                z: view.z - Math.cos(view.yaw) * 6 + Math.sin(view.yaw) * side,
-                yaw: -view.yaw,
-              },
-            },
-      );
+      setPlacementMessage(null);
+      if (!modes[id] && !poses[id]) {
+        const obstacles = [
+          ...placementScene.current.obstacles,
+          ...screens
+            .filter((screen) => screen.spatial && screen.id !== id)
+            .map((screen) => ({
+              x: screen.pose.x,
+              z: screen.pose.z,
+              halfWidth:
+                Math.abs(Math.cos(screen.pose.yaw)) * screen.width * 0.003 +
+                0.5,
+              halfDepth:
+                Math.abs(Math.sin(screen.pose.yaw)) * screen.width * 0.003 +
+                0.5,
+            })),
+        ];
+        // Every binding uses the same renderer camera. A new binding may not
+        // have its callback yet; use any ready one with explicit dimensions.
+        const projectedBounds = screens.find(
+          (screen) => screen.projectPlacement,
+        )?.projectPlacement;
+        if (!projectedBounds) {
+          setPlacementMessage(
+            "Screen projection is getting ready. Try again in a moment.",
+          );
+          return;
+        }
+        const occupiedBounds = screens
+          .filter((screen) => screen.id !== id)
+          .flatMap((screen) => {
+            if (screen.spatial) {
+              // Project the current pose even before the next CSS3D paint.
+              const bounds = projectedBounds(
+                screen.pose,
+                screen.width,
+                screen.height,
+              );
+              return bounds ? [bounds] : [];
+            }
+            // HUD wrappers use display:contents; measure their mounted children.
+            return Array.from(screen.element.children ?? []).map((child) =>
+              child.getBoundingClientRect(),
+            );
+          })
+          .concat(
+            Array.from(
+              document.querySelectorAll(".world-room__controls"),
+              (element) => element.getBoundingClientRect(),
+            ),
+          )
+          .filter(
+            (bounds) =>
+              bounds.right > bounds.left && bounds.bottom > bounds.top,
+          );
+        const pose = nearestScreenPlacement(
+          anchor.current,
+          SCREEN_DIMENSIONS[id][0],
+          { ...placementScene.current, obstacles },
+          (candidate) => {
+            const bounds = projectedBounds(candidate, ...SCREEN_DIMENSIONS[id]);
+            return Boolean(
+              bounds &&
+              bounds.left >= 8 &&
+              bounds.top >= 8 &&
+              bounds.right <= window.innerWidth - 8 &&
+              bounds.bottom <= window.innerHeight - 8 &&
+              occupiedBounds.every(
+                (occupied) =>
+                  bounds.right < occupied.left ||
+                  bounds.left > occupied.right ||
+                  bounds.bottom < occupied.top ||
+                  bounds.top > occupied.bottom,
+              ),
+            );
+          },
+        );
+        if (!pose) {
+          setPlacementMessage(
+            "No clear screen space nearby. Move to an open part of the floor and try again.",
+          );
+          return;
+        }
+        setPoses((current) => ({ ...current, [id]: pose }));
+      }
       setModes((current) => ({ ...current, [id]: !current[id] }));
       if (document.pointerLockElement) document.exitPointerLock();
     },
-    [dragging, enabled],
+    [dragging, enabled, modes, poses, screens],
   );
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
@@ -95,6 +182,8 @@ export function WorldScreenProvider({
   const value = useMemo(
     () => ({
       enabled,
+      placementMessage,
+      updatePlacementScene,
       dragging,
       modes,
       poses,
@@ -108,6 +197,8 @@ export function WorldScreenProvider({
     }),
     [
       enabled,
+      placementMessage,
+      updatePlacementScene,
       dragging,
       modes,
       poses,

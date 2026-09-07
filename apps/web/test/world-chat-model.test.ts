@@ -33,6 +33,26 @@ const startTurn = () => {
 };
 
 describe("World repository intake commands", () => {
+  it("recognizes unambiguous conversational follow, relative movement, and stop without hijacking questions", () => {
+    expect(classifyWorldMessage("Could you follow me please?")).toEqual({
+      kind: "local-agent-movement",
+      target: { kind: "follow-user", stoppingRadius: 1.5 },
+    });
+    expect(classifyWorldMessage("Please move left 3")).toEqual({
+      kind: "local-agent-movement",
+      target: { kind: "relative", direction: "left", distance: 3 },
+    });
+    expect(classifyWorldMessage("stop following me")).toEqual({
+      kind: "local-agent-stop",
+    });
+    expect(classifyWorldMessage("How does follow me work?").kind).toBe(
+      "remote-chat",
+    );
+    expect(
+      classifyWorldMessage("Please follow me through this explanation").kind,
+    ).toBe("remote-chat");
+    expect(classifyWorldMessage("stop the build").kind).toBe("remote-chat");
+  });
   it("keeps the explicit /repo load path and opens intake for a general request", () => {
     expect(classifyWorldMessage("/repo load /tmp/Notes App")).toEqual({
       kind: "local-repository-load",

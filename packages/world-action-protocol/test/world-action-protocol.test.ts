@@ -88,6 +88,7 @@ describe("aiw.world-action/0.13", () => {
   it("validates bounded browser-safe agent movement targets and rejects transform authority", () => {
     const validTargets = [
       { kind: "coordinate", x: 2, z: -3, stoppingRadius: 0.5 },
+      { kind: "coordinate", x: 30, z: 0 },
       { kind: "relative", direction: "right", distance: 4 },
       { kind: "follow-user", stoppingRadius: 1.5 },
       {
@@ -114,6 +115,7 @@ describe("aiw.world-action/0.13", () => {
       ).toBe(true);
     for (const invalid of [
       { kind: "coordinate", x: Number.NaN, z: 0 },
+      { kind: "coordinate", x: 1_000_001, z: 0 },
       { kind: "relative", direction: "forward", distance: 101 },
       { kind: "follow-user", stoppingRadius: 0 },
       { kind: "repository-object", objectId: "mesh-4", layoutGeneration: "x" },

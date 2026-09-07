@@ -548,6 +548,44 @@ describe("durable World Action service", () => {
     ).toMatchObject({ state: "superseded", arrived: false });
   });
 
+  it("records bounded movement arrival on the expanded World floor", async () => {
+    const service = new WorldActionService(temporary());
+    const accepted = await service.propose(
+      sessionId,
+      {
+        actions: [
+          {
+            kind: "move-agent",
+            schema: "aiw.agent-movement/1",
+            actorId: sessionId,
+            source: "user-directed",
+            speed: 4,
+            target: { kind: "coordinate", x: 30, z: 0 },
+          },
+        ],
+      },
+      context,
+    );
+    if (!accepted.accepted) throw new Error("fixture proposal rejected");
+    const actionId = accepted.envelope.actions[0]!.actionId;
+    service.transition(sessionId, actionId, "moving", context);
+    expect(() =>
+      service.transition(sessionId, actionId, "arrived", {
+        ...context,
+        actorPosition: { x: 1_000_001, z: 0 },
+      }),
+    ).toThrow();
+    service.transition(sessionId, actionId, "arrived", {
+      ...context,
+      actorPosition: { x: 29.755, z: -0.052 },
+    });
+    expect(
+      service
+        .timeline(sessionId)
+        .find((action) => action.actionId === actionId),
+    ).toMatchObject({ state: "arrived", arrived: true });
+  });
+
   it("does not mutate repository content while presenting actions", async () => {
     const repository = temporary();
     const sentinel = path.join(repository, "sentinel.txt");
@@ -769,6 +807,41 @@ describe("durable World Action service", () => {
     expect(first).toMatchObject({ accepted: true, envelope: { sequence: 1 } });
     expect(second).toMatchObject({ accepted: true, envelope: { sequence: 2 } });
     expect(service.timeline(sessionId)).toHaveLength(2);
+  });
+
+  it("renews a live follow lease without resurrecting a stopped action", async () => {
+    let now = Date.parse("2026-07-21T12:00:00.000Z");
+    const service = new WorldActionService(temporary(), { now: () => now });
+    const accepted = await service.propose(
+      sessionId,
+      {
+        actions: [
+          {
+            kind: "move-agent",
+            schema: "aiw.agent-movement/1",
+            actorId: sessionId,
+            source: "user-directed",
+            speed: 4,
+            target: { kind: "follow-user", stoppingRadius: 1.5 },
+          },
+        ],
+      },
+      context,
+    );
+    if (!accepted.accepted) throw new Error("fixture proposal rejected");
+    const actionId = accepted.envelope.actions[0]!.actionId;
+    service.transition(sessionId, actionId, "moving", context);
+    now += 20_000;
+    expect(() =>
+      service.transition(sessionId, actionId, "moving", context),
+    ).not.toThrow();
+    now += 20_000;
+    expect(service.timeline(sessionId)[0]?.state).toBe("moving");
+    service.interrupt(sessionId, "cancel");
+    expect(() =>
+      service.transition(sessionId, actionId, "moving", context),
+    ).toThrow();
+    expect(service.movementExecutions(sessionId)).toEqual([]);
   });
 
   it("interrupts abandoned durable movement when its bounded server lease expires", async () => {

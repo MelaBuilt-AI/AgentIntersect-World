@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import type { ScreenPlacementScene } from "./world-screen-placement.js";
 import type {
   WorldScreenBinding,
   WorldScreenId,
@@ -26,6 +27,8 @@ export const SCREEN_DIMENSIONS = {
 export const DEFAULT_SCREEN_POSE: WorldScreenPose = { x: 0, z: -6, yaw: 0 };
 
 export type ScreenController = {
+  readonly placementMessage?: string | null;
+  readonly updatePlacementScene?: (scene: ScreenPlacementScene) => void;
   readonly enabled: boolean;
   readonly dragging: boolean;
   readonly modes: Partial<Record<WorldScreenId, boolean>>;

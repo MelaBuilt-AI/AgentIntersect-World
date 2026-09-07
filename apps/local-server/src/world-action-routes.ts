@@ -1,6 +1,9 @@
 import type { FastifyInstance } from "fastify";
 
-import { WorldActionProposalSchema } from "@agentintersect-world/world-action-protocol";
+import {
+  WORLD_ACTION_LIMITS,
+  WorldActionProposalSchema,
+} from "@agentintersect-world/world-action-protocol";
 
 import {
   WorldActionService,
@@ -67,10 +70,18 @@ export function registerWorldActionRoutes(
       const context = await contextFor(request.params.sessionId);
       if (!context)
         return reply.code(404).send({ error: "World session is unavailable" });
+      // Local user direction is World-owned presentation, not a native tool.
+      // Keep the adapter capability gate for every other proposal kind/source.
+      const userDirection = parsed.data.actions.every(
+        (action) =>
+          action.kind === "move-agent" &&
+          action.source === "user-directed" &&
+          action.actorId === context.binding.sessionId,
+      );
       const result = await service.propose(
         request.params.sessionId,
         parsed.data,
-        context,
+        userDirection ? { ...context, worldActionsEnabled: true } : context,
       );
       if (!result.accepted) {
         const status = result.reason === "capability-unavailable" ? 409 : 400;
@@ -158,8 +169,16 @@ export function registerWorldActionRoutes(
               additionalProperties: false,
               required: ["x", "z"],
               properties: {
-                x: { type: "number", minimum: -1_000_000, maximum: 1_000_000 },
-                z: { type: "number", minimum: -1_000_000, maximum: 1_000_000 },
+                x: {
+                  type: "number",
+                  minimum: -WORLD_ACTION_LIMITS.maximumWorldCoordinate,
+                  maximum: WORLD_ACTION_LIMITS.maximumWorldCoordinate,
+                },
+                z: {
+                  type: "number",
+                  minimum: -WORLD_ACTION_LIMITS.maximumWorldCoordinate,
+                  maximum: WORLD_ACTION_LIMITS.maximumWorldCoordinate,
+                },
               },
             },
           },

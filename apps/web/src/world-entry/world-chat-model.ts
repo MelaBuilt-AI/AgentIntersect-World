@@ -145,6 +145,33 @@ const parseFiniteNumber = (value: string): number | null => {
 export function parseAgentDirectionCommand(
   text: string,
 ): AgentDirectionCommand {
+  const spoken = text
+    .trim()
+    .replace(
+      /^(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:please\s+)?/iu,
+      "",
+    )
+    .replace(/[.!?]+$/u, "")
+    .replace(/\s+please$/iu, "");
+  if (/^follow me$/iu.test(spoken))
+    return {
+      kind: "movement",
+      target: { kind: "follow-user", stoppingRadius: 1.5 },
+    };
+  if (
+    /^(?:stop(?: following(?: me)?)?|stay(?: here| there)?|stop moving)$/iu.test(
+      spoken,
+    )
+  )
+    return { kind: "stop" };
+  const relative =
+    /^(?:move|walk|go) (forward|backward|left|right) ([+\-\d.]+)(?: (?:steps?|met(?:er|re)s?))?$/iu.exec(
+      spoken,
+    );
+  if (relative)
+    return parseAgentDirectionCommand(
+      `/agent move ${relative[1]} ${relative[2]}`,
+    );
   const tokens = text.trim().split(/\s+/u);
   if (tokens[0]?.toLocaleLowerCase() !== "/agent")
     return { kind: "not-agent-command" };

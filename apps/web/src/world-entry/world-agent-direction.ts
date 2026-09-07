@@ -8,6 +8,7 @@ import {
   type WorldActionProposal,
 } from "@agentintersect-world/world-action-protocol";
 import type { AgentMovementRequest } from "./world-agent-movement-model.js";
+import { parseAgentDirectionCommand } from "./world-chat-model.js";
 
 export type WorldDirectionFetcher = (
   input: RequestInfo | URL,
@@ -108,6 +109,57 @@ export function parseAgentMovementAuthoritySnapshot(
       });
     }
   return { capabilityRefusal, requests, outcomes };
+}
+
+export function resolveDirectedMovementRecipients(
+  input: string,
+  agents: readonly {
+    readonly rosterId: string;
+    readonly worldSessionId: string;
+    readonly displayName: string;
+    readonly connection: string;
+  }[],
+  selectedRosterId: string | null,
+): { readonly text: string; readonly sessionIds: readonly string[] } {
+  const text = input.trim();
+  const connected = agents.filter((agent) => agent.connection === "connected");
+  if (text.startsWith("@")) {
+    const normalize = (value: string) =>
+      value.normalize("NFKC").trim().toLocaleLowerCase("en-US");
+    const matches = connected.flatMap((agent) => {
+      for (let end = 2; end <= Math.min(text.length, 82); end += 1) {
+        if (
+          (end === text.length || /\s/u.test(text[end]!)) &&
+          normalize(text.slice(1, end)) === normalize(agent.displayName)
+        )
+          return [{ agent, end }];
+      }
+      return [];
+    });
+    if (matches.length !== 1) {
+      // Keep an unresolved explicit direction local so it cannot fall through
+      // to ordinary chat (or silently use the selected/broadcast recipient).
+      for (let end = 2; end <= Math.min(text.length, 82); end += 1) {
+        if (!/\s/u.test(text[end]!)) continue;
+        const command = text.slice(end).trim();
+        if (parseAgentDirectionCommand(command).kind !== "not-agent-command")
+          return { text: command, sessionIds: [] };
+      }
+      return { text, sessionIds: [] };
+    }
+    return {
+      text: text.slice(matches[0]!.end).trim(),
+      sessionIds: [matches[0]!.agent.worldSessionId],
+    };
+  }
+  if (selectedRosterId)
+    return {
+      text,
+      sessionIds: connected
+        .filter((agent) => agent.rosterId === selectedRosterId)
+        .map((agent) => agent.worldSessionId),
+    };
+  return { text, sessionIds: connected.map((agent) => agent.worldSessionId) };
 }
 
 export function createUserDirectedMovementProposal(

@@ -4,6 +4,77 @@ Updated: 2026-09-06
 
 ## Current milestone
 
+### 2026-09-06 Accepted movement + Code Wheel — authorized delivery
+
+Aaron `1546354534559916052` explicitly authorized commit/push/PR and merge **only after CI and readiness are green**. Movement and Code Wheel retain first-hand PASS. This scope includes movement routing/follow fixes, shared pointer isolation, the persistent Code Wheel and discovery hint, and spatial-screen placement corrections. It does not claim general repository-coding or World View integration readiness. See `docs/CODE_WHEEL_ACCEPTANCE.md` for the acceptance cutline.
+
+**Next PR — explicitly deferred by Aaron, not blockers for this accepted slice:**
+
+- Fix overlapping stale-agent roster rows on the connection form.
+- Bind the selected repository to the correct owned worktree and native Codex working directory/task context; never fall back to the World checkout for an empty test repository.
+- Wire supported local preview recipes into World View without an unintended external Sites detour.
+- Correct terminal failure/timeout, quarantine/recovery, and misleading chat/Workstream status reporting.
+
+The failed integration lane and homepage remain preserved for diagnosis. No integration or stale-row repair is included in this PR. Release/publication/visibility changes and external Sites cleanup are not authorized. CI receipts and the final merge SHA will be recorded outside this commit to avoid recursive status commits. The dated entries below are historical evidence, not current authorization gates.
+
+### Historical — 2026-09-06 Code Wheel USER-PASS; repository execution / World View FAIL
+
+Aaron `1546348979577692250` explicitly reports Code Wheel worked perfectly for all tests. Preserve that PASS independently. New test sequence: loaded `/home/mela_ai/projects/test`, started a homepage Workstream, received completion, requested World View, then saw `chat unavailable_` with no preview. Diagnosis found the candidate launcher rooted Workstreams to World instead of the selected test repository; the allocated World worktree remained clean. Codex native cwd remained candidate `state/codex-sessions` and it wrote the homepage there, outside both selected repo and worktree. Native trace shows no World source edits; main HEAD/path inventory remained unchanged and no source mtimes advanced during the test. It tried local server binds (both EPERM), then the Sites connector. Native response reports creation of an external Sites project (no deployed version/live URL in that response), despite World's tool-failed projection; hosting.json saved locally. No remote cleanup or publication was performed by Mr Fluff. Last turn lacks completion and ended near the adapter's 120-second timeout, the leading explanation rather than a recovered exact terminal error. UI still shows Workstream working and no approved preview recipe. Diagnosis only; no repair, retry, cancellation, or delivery authorized. Failed lane/evidence retained. Report: `/home/mela_ai/.hermes/runs/aiw-code-wheel-clean-20260906/DIAGNOSIS.md`.
+
+### Historical — 2026-09-06 Latest preview — clean setup restored; manual pending
+
+Aaron reported the reopened latest-code preview still contained Movement QA and Movement One/Two (`1546345496606547978`, screenshot `/home/mela_ai/.hermes/cache/images/img_8f683c20ae42.png`). This was an operational setup mistake: the old browser profile and backend roster had been reused. Screenshot shows both agents Stale, blocked entry, and roster rows overlapping the connection form. The overlap remains a separate reported UI defect, not diagnosed or fixed by resetting state. Code Wheel acceptance was not reached.
+
+The old 45275/43875 and 45276/43876 previews are now stopped; saved data retained. Latest built frontend/backend now run at `http://127.0.0.1:45277/` / `127.0.0.1:43877` in tmux `aiw-code-wheel-clean-20260906`, using an empty state root `/home/mela_ai/.hermes/runs/aiw-code-wheel-clean-20260906/state` and fresh Edge profile `aiw-code-wheel-clean-20260906-edge` (CDP 9347). Read-only native DOM verifies the Create Avatar entry screen and no Movement QA/One/Two text; same-origin backend health is OK. No agents seeded or attached and no app interaction performed. This remains the Codex-only test configuration, not Hermes readiness evidence. Manual acceptance and Git delivery remain pending; no product source edits made for this reset.
+
+### Historical — 2026-09-06 Code Wheel discovery hint — LOCAL PASS
+
+Added Aaron's exact `Press Middle Mouse to open the Code Wheel` hint directly above the chat panel, in quiet UI-matched text. World-local discovery state dismisses it only after an eligible middle press opens the wheel; blocked UI presses leave it visible, closing the wheel does not restore it, and fresh World loading restores it without a persisted seen flag. The affected built Code Wheel browser journey passed including first-load position, blocked input, dismissal, retained dismissal and fresh portrait reload; 3 focused UI tests, web typecheck, lint, production build and diff check passed. Desktop/portrait hint screenshots inspected. Evidence: `/home/mela_ai/.hermes/runs/aiw-code-wheel-hint-20260906/`. Retained previews remain unchanged; user manual acceptance and Git delivery remain separate.
+
+### Historical — 2026-09-06 Movement USER-PASS; Code Wheel LOCAL TECHNICAL PASS / MANUAL PENDING
+
+Aaron `1546300130083340388` explicitly passed broadcast follow with no selection, `/agent stop`, and separate @mentions (full movement PASS). Separate HUD defects: agent buttons click through to repository code and relocate/become non-interactive with spatial screens; original video `C:\Users\Mela AI\Videos\agent buttons issues.mp4` retained. This is not a movement failure or overall defect-free UI verdict.
+
+Aaron `1546303086560153650` authorized direct Code Wheel implementation: persistent middle-click radial menu, live agent names/X, existing actions and grouped screens, retired floating agent buttons, preserved slash commands. Added exact streaming screen-texture bezels with solid button faces and nearest-unoccupied screen placement. Near-edge fitting accepted. Code Wheel now precedes separately scoped audio/music. Plan: `.hermes/plans/2026-09-06_192505-code-wheel.md`. No commit/push/PR/merge authorization; full Slice6/Phase20 remain separate. Existing operator runtime and dirty files retained. Code Wheel and its remaining spatial-screen regression now have local technical PASS: three consecutive full spatial-screen runs plus the affected Code Wheel journey passed on the final production build, zero retries; 31 freshly focused tests passed. Corrected sloped-footer hit sampling, emitter-test occlusion, initial projected panel/HUD overlap, and a projection-binding registration gap. The dense fixture now proves no-space refusal and recovery through the existing control-hints setting before all-three-screen interaction proof. Manual/native acceptance remains PENDING, not implied by fixture screenshots. No new acceptance preview was launched or retained preview replaced. Evidence: `/home/mela_ai/.hermes/runs/aiw-code-wheel-20260906/SPATIAL-OUTCOME.md` and `spatial-verification-receipt.json`.
+
+### Historical — Movement local verification before Aaron's PASS
+
+Aaron authorized the continuation end to end (`1546232364215308388`). Mr Fluff implemented directly; all changes remain local/uncommitted on main `eb2f476dc28e92ef9f9f55da6486be31df073ecc`. No new hosted CI, commit, push, PR or merge.
+
+**Fixed:** explicit leading movement mentions override selection (including multiword names), ordinary chat preserves existing routing, unknown/ambiguous recipients and malformed mentioned commands refuse without dispatch/broadcast, and late arrival updates no longer erase refusal feedback. The persistent follow/rest/resume/lease, stable secondary RAF, follow slots/facing and prompt retarget/stop improvements remain intact. Native larger-floor testing reproduced and corrected both the old ±15 command-schema ceiling and the separate server arrival check; shared finite transport coordinates now accept expanded-floor arrival while live floor bounds still refuse out-of-floor destinations.
+
+**Verified:**395 tests across70 files PASS; affected lint/format, web/server typechecks, producer/web/server builds PASS; final affected browser journeys2/2 PASS. Native Edge proves exact recipient isolation, held-input secondary follow, long-rest resume, direction changes, formation/facing, rapid retarget/stop, Reduced Motion, x30/beyond arrival, boundary refusal and stopped reload. Real Repository City load/traversal preserves geometry; final native catch-up/rest and stop-hold independently verified. No full monorepo or dirty-SHA CI claim.
+
+Codex's bounded functional QA saved passing native routing,36-second rest/resume and city evidence but exited124 at its hard deadline before a final report. Mr Fluff independently reconciled raw samples/HTTP outcomes/pixels and completed native city/rest/stop fallback; **no completed Codex sign-off claimed**. All final recorded movement HTTP outcomes200/202, page-error arrays empty. Harness failures remain preserved and identified separately. Evidence: `/home/mela_ai/.hermes/runs/aiw-movement-20260906/continuation/OUTCOME.md`.
+
+- [x] Selected + explicit mention routing, native recipient isolation, browser regression.
+- [x] Bounded movement responsiveness/interaction proof and observed expanded-floor corrections.
+- [x] Affected gates, native QA evidence reconciliation and own-browser fallback.
+- [ ] **Aaron's feel/visual inspection** on http://127.0.0.1:45276/ (backend43876, dedicated Edge9346), left stopped/idle with real disposable repository city loaded. Do not rebuild underneath inspection; preview serves current workspace dist.
+- [ ] Commit/push/PR/merge only with corresponding authorization. Accepted45275/43875 and other protected generations remain untouched.
+- [ ] Audio/music player, Code Wheel, fullSlice6 and Phase20 remain separate; no implementation started.
+
+Project continuation plan is updated with the final evidence pointer. Test listeners are gone and Codex scope inactive; candidate services and dedicated Edge intentionally retained for inspection.
+
+### Historical — 2026-09-06 partial movement handoff (superseded)
+
+Aaron authorized direct end-to-end movement repair and a more interactive/responsive embodied agent, with Codex native-browser functional QA and Mr Fluff's own browser/computer-use fallback; Aaron retains later feel/visual acceptance (`1546211487402561556`). At end-session (`1546229840703787011`), he selected **more movement work and the @mention bug fix** for continuation. No implementation is being resumed during this handoff.
+
+The uncommitted movement slice now supports persistent follow/rest/resume, live lease renewal, local user movement independent of native autonomous-tool capability, secondary-agent RAF continuity, separate follow positions/facing and direct unambiguous conversational commands. Codex0.153.4 compatibility was added alongside0.149.1 without bypassing attestation or changing the installed CLI. Native Windows Edge proof passed broadcast follow → catch-up →35-second rest → continuous-user-motion resume → separate settling → stop → hold. Earlier real relative movement passed. Final affected Repository City browser regression passed1/1 in48.4s. Latest impacted milestone:68 files /383 tests, lint/format, web/server types/builds passed; not a full monorepo or hosted CI pass for the dirty slice. Aaron has not accepted its feel/visuals.
+
+**Confirmed remaining bug:** with Movement One selected, `@Movement Two /agent follow` fell into ordinary chat, yielded a textual reply, and did not move either avatar. `resolveDirectedMovementRecipients` returns for the selection before parsing the mention. Resolve the precedence contract explicitly, preserve ordinary @mention chat, and add RED/GREEN plus native recipient-isolation proof. The failed recipient script did not reach its later stop/selected-move checks; do not label them passed.
+
+**Project-local continuation plan:** [Agent movement continuation](.hermes/plans/2026-09-06_144547-agent-movement-continuation.md). It records exact paths, evidence, recommended mention precedence, focused checks, further movement acceptance and delivery boundaries. Evidence root: `/home/mela_ai/.hermes/runs/aiw-movement-20260906/`.
+
+- [ ] Fix selected-recipient + explicit mention movement routing and prove exact actor isolation/follow/stop in the native browser.
+- [ ] Continue bounded responsiveness/interaction work: direction changes, rapid retarget/stop, stable follow spacing/facing, truthful animation and Reduced Motion/edge/city checks; fix observed defects, not speculative redesign.
+- [ ] Finish affected gates and Codex QA (own-browser fallback), then Aaron's feel/visual inspection. Commit/push/PR/merge remain separately authorized.
+- [ ] After accepted movement, obtain Aaron's audio/built-in music player plan, then his in-world Code Wheel plan. Full Slice6 and Phase20 remain separate.
+
+Baseline remains main`eb2f476dc28e92ef9f9f55da6486be31df073ecc`; its marker CI34047923164 was refreshed to SUCCESS during diagnosis. The movement work and this continuation marker are local/uncommitted; no new remote delivery claim. Candidate45276/backend43876 has separate disposable state and is retained for continuation/inspection; accepted45275 and other protected generations remain unchanged.
+
+## Prior PR8 closeout and original movement roadmap (historical)
+
 ### 2026-09-06 PR8 complete — AGENT MOVEMENT NEXT; AUDIO / CODE WHEEL LATER
 
 PR #8 is manually accepted and merged. Product merge `69f74a22cb88e023e5de671617d92252d7d6c444` passed all seven jobs of post-merge main workflow `34045713595` on attempt 1. PR head `4efc62e135c96edc07d2e84e3c621102564c89bf` passed push `34042616986` on attempt 1 and PR `34042619152` on attempt 2: one authorized unchanged-SHA rerun of failed shard 1 passed 21/21; the other six jobs carried forward. Original timeout evidence remains preserved, not relabeled a causal code repair or proven GitHub fault. No assertions, timeouts, retries, product code, or accepted visuals changed in that final diagnostic. Final receipts: `/home/mela_ai/.hermes/runs/aiw-pr8-timeout-20260906/OUTCOME.md`.

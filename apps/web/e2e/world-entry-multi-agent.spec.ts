@@ -1,6 +1,12 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 
 import { seedConfiguredAvatar } from "./helpers.js";
+import { randomUUID } from "node:crypto";
+import { RepositoryIndexOperationSchema } from "@agentintersect-world/world-schema";
+import {
+  WorldActionEnvelopeSchema,
+  WorldActionProposalSchema,
+} from "@agentintersect-world/world-action-protocol";
 
 const worldInstanceId = "80000000-0000-4000-8000-000000000008";
 const agents = [
@@ -517,6 +523,70 @@ async function installFixture(page: Page) {
     });
   });
 
+  await page.route("**/api/repository-intake/projects", (route) =>
+    route.fulfill({ json: { ok: true, data: { projects: [] } } }),
+  );
+  await page.route("**/api/repository-intake/open", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        data: {
+          project: {
+            id: "code-wheel-project",
+            name: "Code Wheel fixture",
+            rootPath: "/fixture",
+            source: "local",
+            pinned: false,
+            lastOpenedAt: "2026-05-23T00:00:00Z",
+          },
+        },
+      },
+    }),
+  );
+  await page.route("**/api/repository-indexes", (route) =>
+    fulfillJson(
+      route,
+      envelope(
+        RepositoryIndexOperationSchema.parse({
+          id: "66666666-6666-4666-8666-666666666666",
+          rootPath: ".",
+          status: "succeeded",
+          generation: {
+            id: "77777777-7777-4777-8777-777777777777",
+            fingerprint: "b".repeat(64),
+            rootPath: ".",
+            repositoryName: "fixture",
+            startedAt: "2026-07-25T00:00:00.000Z",
+            completedAt: "2026-07-25T00:00:01.000Z",
+            durationMs: 1_000,
+            git: { present: false, branch: null, head: null, dirty: false },
+            directories: [],
+            files: [],
+            packages: [],
+            coverage: {
+              discoveredFiles: 0,
+              indexedFiles: 0,
+              prunedEntries: 0,
+              skippedSymlinks: 0,
+              directories: 0,
+              packages: 0,
+              binaryFiles: 0,
+              oversizedFiles: 0,
+              bytesHashed: 0,
+            },
+          },
+          createdAt: "2026-07-25T00:00:00.000Z",
+          updatedAt: "2026-07-25T00:00:01.000Z",
+          progress: {
+            phase: "complete",
+            discoveredFiles: 1,
+            indexedFiles: 1,
+            bytesHashed: 4800,
+          },
+        }),
+      ),
+    ),
+  );
   return {
     transcriptionBodies,
     groupedBodies,
@@ -533,6 +603,359 @@ async function installFixture(page: Page) {
     },
   };
 }
+
+async function openCodeWheel(page: Page) {
+  if (
+    await page.getByRole("group", { name: "Code Wheel", exact: true }).count()
+  )
+    return;
+  // A normal middle press on exposed World; never dispatch a synthetic UI click.
+  const point = await page.locator("main.world-room").evaluate((room) => {
+    const bounds = room.getBoundingClientRect();
+    for (const x of [
+      bounds.left + bounds.width * 0.65,
+      bounds.left + bounds.width * 0.5,
+      bounds.left + bounds.width * 0.8,
+    ]) {
+      for (const y of [
+        bounds.top + bounds.height * 0.45,
+        bounds.top + bounds.height * 0.3,
+      ]) {
+        const target = document.elementFromPoint(x, y);
+        if (
+          target &&
+          room.contains(target) &&
+          !target.closest(
+            'button, input, [role="button"], .world-screen__object, .repository-asset-palette',
+          )
+        )
+          return { x, y };
+      }
+    }
+    throw new Error("No exposed World input point");
+  });
+  await page.mouse.click(point.x, point.y, { button: "middle" });
+  await expect(
+    page.getByRole("group", { name: "Code Wheel", exact: true }),
+  ).toBeVisible();
+}
+
+test("@code-wheel real controls isolate scene input, retain targeting and spatial state", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const fixture = await installFixture(page);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const repository = {
+    repositoryId: "aiw://object/22222222222222222222222222222222",
+    revision: "77777777-7777-4777-8777-777777777777",
+  };
+  const agent = {
+    agentId: agents[1].worldSessionId,
+    nativeSessionId: agents[1].nativeRootSessionRef,
+    rootNativeSessionId: agents[1].nativeRootSessionRef,
+    revision: "0",
+  };
+  const baseWorkstream = {
+    schema: "aiw.workstream/1",
+    workstreamId: "88888888-8888-4888-8888-888888888888",
+    revision: 1,
+    title: "Build a settings panel",
+    task: "Build a settings panel",
+    repository,
+    agent,
+    authority: {
+      schema: "aiw.worktree-authority-receipt/1",
+      ownerId: "workstream-owner",
+      requestId: "workstream-authority-request",
+      worktreeId: "worktree-settings",
+      repositoryId: repository.repositoryId,
+      relativePath: "worktree-settings",
+      branch: "workstream/settings",
+      head: "a".repeat(40),
+      state: "current",
+      statusSummary: "Owned worktree is current and ready.",
+      validatedAt: "2026-09-03T15:00:00.000Z",
+      attestation: "b".repeat(64),
+    },
+    worktreeState: "current",
+    evidenceOperationRefs: [],
+    projection: {
+      currentActivity: "Owned worktree is current and ready.",
+      changedFiles: [],
+      diff: { summary: "", patch: "", truncated: false },
+      validation: [],
+      evidenceRefs: [],
+    },
+    status: "working",
+    createdAt: "2026-09-03T15:00:00.000Z",
+    updatedAt: "2026-09-03T15:00:00.000Z",
+    events: [
+      {
+        eventId: "88888888-8888-4888-8888-888888888888/event/1",
+        status: "working",
+        summary: "Owned worktree is current and ready.",
+        occurredAt: "2026-09-03T15:00:00.000Z",
+      },
+    ],
+  } as const;
+  let currentWorkstream: Record<string, unknown> | null = null;
+  const createRequests: Record<string, unknown>[] = [];
+  await page.route("**/api/workstreams**", async (route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON();
+      createRequests.push(body);
+      currentWorkstream = { ...baseWorkstream, ...body };
+      await route.fulfill({
+        json: {
+          ok: true,
+          data: { workstream: currentWorkstream, replayed: false },
+        },
+      });
+    } else if (currentWorkstream)
+      await route.fulfill({ json: { ok: true, data: currentWorkstream } });
+    else
+      await route.fulfill({
+        status: 404,
+        json: {
+          ok: false,
+          error: { code: "not_found", message: "No current Workstream" },
+        },
+      });
+  });
+  const movement: { path: string; body: unknown }[] = [];
+  await page.route("**/api/world-actions/**", async (route) => {
+    const req = route.request();
+    if (req.method() === "POST") {
+      movement.push({
+        path: new URL(req.url()).pathname,
+        body: req.postDataJSON(),
+      });
+      await fulfillJson(
+        route,
+        {},
+        req.url().endsWith("/proposals") ? 202 : 200,
+      );
+    } else
+      await fulfillJson(route, {
+        capability: { enabled: true },
+        actions: [],
+        executions: [],
+      });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
+  await page.getByRole("button", { name: "Enter World", exact: true }).click();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-renderer",
+    "webgl",
+  );
+  await expect(page.locator(".world-room__agent-targets")).toHaveCount(0);
+  const wheelHint = page.getByText(
+    "Press Middle Mouse to open the Code Wheel",
+    { exact: true },
+  );
+  await expect(wheelHint).toBeVisible();
+  const hintBox = (await wheelHint.boundingBox())!;
+  const chatBox = (await page.locator(".world-hud__controls").boundingBox())!;
+  expect(hintBox.y + hintBox.height).toBeLessThanOrEqual(chatBox.y);
+  expect(chatBox.y - hintBox.y - hintBox.height).toBeLessThan(16);
+  await page.screenshot({
+    path: testInfo.outputPath("code-wheel-first-load-hint.png"),
+  });
+  await page
+    .getByRole("textbox", { name: /^Message / })
+    .click({ button: "middle" });
+  await expect(wheelHint).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "Code Wheel", exact: true }),
+  ).toHaveCount(0);
+  await openCodeWheel(page);
+  await expect(wheelHint).toBeHidden();
+  const wheel = page.getByRole("group", { name: "Code Wheel", exact: true });
+  const nameButton = (name: string) =>
+    wheel.getByRole("button", {
+      name: `Send next message to ${name}`,
+      exact: true,
+    });
+  await expect(
+    wheel.getByRole("button", { name: /^Send next message to / }),
+  ).toHaveCount(4);
+  const selectedCodeBefore = await page
+    .locator(".repository-code-screen")
+    .count();
+  await nameButton("Claw").click();
+  await expect(
+    page.getByRole("textbox", { name: "Message Claw", exact: true }),
+  ).toBeVisible();
+  await wheel
+    .getByRole("button", {
+      name: "Clear Claw and send to all agents",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Message All agents", exact: true }),
+  ).toBeVisible();
+  expect(await page.locator(".repository-code-screen").count()).toBe(
+    selectedCodeBefore,
+  );
+  const draft = page.getByRole("textbox", { name: /^Message / });
+  await draft.fill("keep this unsent draft");
+  await nameButton("Claw").click();
+  await wheel.getByRole("button", { name: "Follow me", exact: true }).click();
+  await expect
+    .poll(() => movement.filter((x) => x.path.endsWith("/proposals")).length)
+    .toBe(1);
+  expect(movement[0]!.path).toContain(agents[1].worldSessionId);
+  await expect(draft).toHaveValue("keep this unsent draft");
+  await wheel.getByRole("button", { name: "Agent Stop", exact: true }).click();
+  await expect
+    .poll(() => movement.filter((x) => x.path.endsWith("/interrupt")).length)
+    .toBe(4);
+  expect(fixture.groupedBodies).toHaveLength(0);
+  await wheel
+    .getByRole("button", { name: "New Workstream", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "New Workstream", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Start Workstream", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("dialog", { name: "New Workstream", exact: true })
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
+  await expect(wheel).toBeVisible();
+  await wheel.getByRole("button", { name: "Load Repo", exact: true }).click();
+  await page.getByLabel("Local repository path").fill("/fixture");
+  await page.getByRole("button", { name: "Open local", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Place Live / Director in World" }),
+  ).toBeVisible();
+  await wheel.getByRole("button", { name: "Screens", exact: true }).click();
+  const beforePlacement = await wheel.boundingBox();
+  await page
+    .locator(".code-wheel__outer")
+    .getByRole("button", { name: "Live / Director", exact: true })
+    .click();
+  await expect(
+    page.locator(
+      '[data-world-screen="director"][data-screen-mode="spatial"] .world-screen__object',
+    ),
+  ).toBeVisible();
+  expect(await wheel.boundingBox()).toEqual(beforePlacement);
+  await wheel
+    .getByRole("button", { name: "Send next message to Claw" })
+    .click();
+  await expect(page.getByLabel("Message Claw")).toBeVisible();
+  await page
+    .locator(".code-wheel__outer")
+    .getByRole("button", { name: "Live / Director", exact: true })
+    .click();
+  expect(await wheel.boundingBox()).toEqual(beforePlacement);
+  await wheel.getByRole("button", { name: "All agents", exact: true }).click();
+  await wheel.getByRole("button", { name: "Screens", exact: true }).click();
+  await wheel.getByRole("button", { name: "Screens", exact: true }).click();
+  await expect(
+    wheel.getByRole("button", { name: "World View", exact: true }),
+  ).toHaveAttribute("aria-disabled", "true");
+  // Explicit confirmation reaches the existing Workstream API exactly once.
+  expect(createRequests).toHaveLength(0);
+  await nameButton("Claw").click();
+  await wheel
+    .getByRole("button", { name: "New Workstream", exact: true })
+    .click();
+  expect(createRequests).toHaveLength(0);
+  const taskDialog = page.getByRole("dialog", {
+    name: "New Workstream",
+    exact: true,
+  });
+  await taskDialog
+    .getByRole("textbox")
+    .fill("Build the fixture settings panel");
+  await taskDialog
+    .getByRole("button", { name: "Start Workstream", exact: true })
+    .click();
+  await expect.poll(() => createRequests.length).toBe(1);
+  expect(createRequests[0]).toMatchObject({
+    task: "Build the fixture settings panel",
+    agent: { agentId: agents[1].worldSessionId },
+  });
+  await expect(
+    page.getByRole("complementary", { name: "Current Workstream" }),
+  ).toBeVisible();
+  await wheel
+    .getByRole("button", { name: "Workbench", exact: true })
+    .first()
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Work Inspector" }),
+  ).toBeVisible();
+  const screenButtons = page.locator(".code-wheel__outer");
+  await screenButtons
+    .getByRole("button", { name: "Live / Director", exact: true })
+    .click();
+  await screenButtons
+    .getByRole("button", { name: "Workbench", exact: true })
+    .click();
+  const screenPoses = await page
+    .locator('[data-world-screen][data-screen-mode="spatial"]')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        id: node.getAttribute("data-world-screen"),
+        x: Number(node.getAttribute("data-screen-x")),
+        z: Number(node.getAttribute("data-screen-z")),
+      })),
+    );
+  expect(screenPoses).toHaveLength(2);
+  expect(
+    Math.hypot(
+      screenPoses[0]!.x - screenPoses[1]!.x,
+      screenPoses[0]!.z - screenPoses[1]!.z,
+    ),
+  ).toBeGreaterThan(4);
+  await page.screenshot({ path: testInfo.outputPath("code-wheel-open.png") });
+  // Wheel stays open after outside left click; UI middle press never opens/closes it.
+  await draft.click({ button: "middle" });
+  await expect(wheel).toBeVisible();
+  await wheel
+    .getByRole("button", { name: "All agents", exact: true })
+    .click({ button: "middle" });
+  await expect(wheel).toHaveCount(0);
+  await expect(wheelHint).toBeHidden();
+  await draft.click({ button: "middle" });
+  await expect(wheel).toHaveCount(0);
+  await openCodeWheel(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect
+    .poll(() =>
+      page
+        .locator(".code-wheel__stream")
+        .evaluate((el) => getComputedStyle(el).animationName),
+    )
+    .toBe("none");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const rect = await page.locator(".code-wheel").boundingBox();
+  expect(rect!.x).toBeGreaterThanOrEqual(7);
+  expect(rect!.x + rect!.width).toBeLessThanOrEqual(383);
+  await page.screenshot({
+    path: testInfo.outputPath("code-wheel-portrait.png"),
+  });
+  await page.reload();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await expect(wheelHint).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("code-wheel-fresh-load-hint-portrait.png"),
+  });
+  expect(errors).toEqual([]);
+});
 
 async function recordPointer(
   page: Page,
@@ -558,6 +981,206 @@ async function recordPointer(
   ).toBeVisible();
 }
 
+test("movement mentions preserve chat routing and secondary follow advances during held input", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(120_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const fixture = await installFixture(page);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  type Envelope = ReturnType<typeof WorldActionEnvelopeSchema.parse>;
+  const active = new Map<string, { envelope: Envelope; state: string }>();
+  const directedActors: string[] = [];
+  const stops: string[] = [];
+  await page.route("**/api/world-actions/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const sessionId = pathname.split("/")[3]!;
+    if (request.method() === "POST" && pathname.endsWith("/proposals")) {
+      const proposal = WorldActionProposalSchema.parse(request.postDataJSON());
+      expect(proposal.actions[0]).toMatchObject({
+        actorId: sessionId,
+        source: "user-directed",
+      });
+      directedActors.push(sessionId);
+      const envelope = WorldActionEnvelopeSchema.parse({
+        schema: "aiw.world-action/0.13",
+        requestId: randomUUID(),
+        batchId: randomUUID(),
+        sessionId,
+        adapterSessionRef: agents.find((a) => a.worldSessionId === sessionId)!
+          .nativeRootSessionRef,
+        repositoryRef: "aiw://object/repository-a",
+        worldGeneration: "world-a",
+        layoutGeneration: "layout-a",
+        graphGeneration: null,
+        capabilitySnapshotHash: "a".repeat(64),
+        sequence: directedActors.length,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30_000).toISOString(),
+        actions: proposal.actions.map((action) => ({
+          ...action,
+          actionId: randomUUID(),
+        })),
+      });
+      active.set(sessionId, { envelope, state: "path-planned" });
+      await fulfillJson(route, {}, 202);
+    } else if (request.method() === "POST") {
+      const movement = active.get(sessionId);
+      if (pathname.endsWith("/interrupt")) {
+        stops.push(sessionId);
+        if (movement) movement.state = "cancelled";
+      } else if (movement) movement.state = request.postDataJSON().event;
+      await fulfillJson(route, {});
+    } else {
+      const movement = active.get(sessionId);
+      await fulfillJson(route, {
+        capability: { enabled: true },
+        actions: movement
+          ? movement.envelope.actions.map((action) => ({
+              actionId: action.actionId,
+              kind: "move-agent",
+              state: movement.state,
+            }))
+          : [],
+        executions:
+          movement && ["moving", "path-planned"].includes(movement.state)
+            ? [{ accepted: true, envelope: movement.envelope }]
+            : [],
+      });
+    }
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Reconnect", exact: true }).click();
+  await page.getByRole("button", { name: "Enter World", exact: true }).click();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  const room = page.locator("main.world-room");
+  const actorRows = page
+    .getByRole("region", { name: "World scene status" })
+    .getByRole("listitem")
+    .filter({ hasText: "connected agent avatar" });
+  await expect(actorRows).toHaveCount(4);
+  const positions = () =>
+    actorRows.evaluateAll((rows) =>
+      rows.map((row) => {
+        const match = row.textContent!.match(
+          /position (-?[\d.]+),(-?[\d.]+)/u,
+        )!;
+        return { x: Number(match[1]), z: Number(match[2]) };
+      }),
+    );
+  const send = async (text: string) => {
+    const input = page.getByRole("textbox", { name: /^Message /u });
+    await input.fill(text);
+    await input.press("Enter");
+    await input.blur();
+  };
+  const select = async () => {
+    await openCodeWheel(page);
+    await page
+      .getByRole("button", { name: "Send next message to Codex", exact: true })
+      .click();
+  };
+  // Ordinary chat retains selection-first backend routing and original text.
+  await select();
+  await send("@Mr Fluff explain following");
+  await expect.poll(() => fixture.groupedBodies.length).toBe(1);
+  expect(fixture.groupedBodies[0]).toMatchObject({
+    text: "@Mr Fluff explain following",
+    targetRosterId: "roster-codex",
+  });
+  await select();
+  await send("@Mr Fluff /agent follow");
+  await expect.poll(() => directedActors).toEqual([agents[0].worldSessionId]);
+  await send("@Mr Fluff /agent stop");
+  await expect.poll(() => stops).toEqual([agents[0].worldSessionId]);
+  await select();
+  await send("@Unknown Agent /agent follow");
+  await expect(page.getByTestId("world-hud")).toContainText(
+    "agent movement refused · recipient unavailable",
+  );
+  await send("@Mr Fluff /agent move invalid");
+  await expect(page.getByTestId("world-hud")).toContainText(
+    "agent movement refused · use /agent move",
+  );
+  expect(fixture.groupedBodies).toHaveLength(1);
+  expect(directedActors).toHaveLength(1);
+  await page
+    .getByRole("button", {
+      name: "Clear Codex and send to all agents",
+      exact: true,
+    })
+    .click();
+  await send("follow me");
+  await expect.poll(() => directedActors.length).toBe(5);
+  await expect
+    .poll(
+      async () =>
+        (await actorRows.allTextContents()).every((text) =>
+          text.includes("Idle"),
+        ),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
+  const before = await positions();
+  const samples: Awaited<ReturnType<typeof positions>>[] = [];
+  await page.keyboard.down("ArrowUp");
+  try {
+    // Sample while input is still held: release-only proof misses RAF clock resets.
+    await expect
+      .poll(
+        async () => {
+          const current = await positions();
+          samples.push(current);
+          return current.every(
+            (point, index) =>
+              Math.hypot(
+                point.x - before[index]!.x,
+                point.z - before[index]!.z,
+              ) > 0.5,
+          );
+        },
+        { timeout: 10_000 },
+      )
+      .toBe(true);
+  } finally {
+    await page.keyboard.up("ArrowUp");
+  }
+  await send("stop following me");
+  await expect
+    .poll(async () =>
+      (await actorRows.allTextContents()).every((text) =>
+        text.includes("Idle"),
+      ),
+    )
+    .toBe(true);
+  const stopped = await positions();
+  const userX = Number(await room.getAttribute("data-user-position-x"));
+  await page.keyboard.down("ArrowRight");
+  try {
+    await expect
+      .poll(
+        async () =>
+          Number(await room.getAttribute("data-user-position-x")) - userX,
+      )
+      .toBeGreaterThan(2);
+    expect(await positions()).toEqual(stopped);
+  } finally {
+    await page.keyboard.up("ArrowRight");
+  }
+  expect(errors).toEqual([]);
+  await testInfo.attach("continuous-secondary-movement", {
+    body: JSON.stringify(
+      { directedActors, stops, before, samples, stopped, errors },
+      null,
+      2,
+    ),
+    contentType: "application/json",
+  });
+});
+
 test("Task 15 composes four exact agents with grouped text, targeting, and push-to-talk", async ({
   page,
 }, testInfo) => {
@@ -582,6 +1205,7 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
   await expect(enterWorld).toBeEnabled();
   await enterWorld.click();
   await expect(page.getByTestId("world-hud")).toBeVisible();
+  await openCodeWheel(page);
   await expect(
     page.getByRole("button", { name: /^Send next message to /u }),
   ).toHaveCount(4);
@@ -788,6 +1412,7 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
     "data-floor-state",
     "repository",
   );
+  await openCodeWheel(page);
   await expect(
     page.getByRole("button", { name: /^Send next message to /u }),
   ).toHaveCount(4);

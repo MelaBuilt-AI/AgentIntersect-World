@@ -20,11 +20,17 @@ type ScreenElement = {
   >;
   readonly dataset: Record<string, string | undefined>;
   inert: boolean;
+  readonly children?: ArrayLike<{ getBoundingClientRect: () => DOMRect }>;
 };
 
 /** DOM stays mounted in the app; the renderer owns only its camera transform. */
 export type WorldScreenBinding = {
   startDrag?: (clientX: number, clientY: number, pointerId: number) => void;
+  projectPlacement?: (
+    pose: WorldScreenPose,
+    width?: number,
+    height?: number,
+  ) => { left: number; right: number; top: number; bottom: number } | null;
   readonly id: WorldScreenId;
   readonly spatial: boolean;
   readonly focused?: boolean;

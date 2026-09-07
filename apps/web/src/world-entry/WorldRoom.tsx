@@ -60,6 +60,8 @@ import { worldImportedAvatarSelection } from "./world-imported-avatar.js";
 import type { WorldInputOwner } from "./world-view-model.js";
 import { useWorldScreens } from "./world-screen-context.js";
 import { RepositoryCodeScreen } from "./RepositoryCodeScreen.js";
+import { WorldCodeWheel, type CodeWheelAction } from "./WorldCodeWheel.js";
+import { wheelPosition } from "./world-code-wheel-model.js";
 import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
 import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
 import {
@@ -170,7 +172,7 @@ const isInteractiveMouseTarget = (target: EventTarget | null): boolean =>
   target instanceof Element &&
   Boolean(
     target.closest(
-      'input, textarea, select, button, a, form, [contenteditable="true"], [role="button"], [role="link"], .world-transcript, .repository-asset-palette, .repository-asset-inspector, .world-screen__object',
+      'input, textarea, select, button, a, form, [contenteditable="true"], [role="button"], [role="link"], .world-transcript, .repository-asset-palette, .repository-asset-inspector, .world-screen__object, [data-world-ui]',
     ),
   );
 
@@ -206,6 +208,7 @@ export function WorldRoom({
   workstreamCreateUnavailableReason,
   onWorkstreamSessionChanged,
   onAskAgent,
+  onCodeWheelAction,
   onRepositoryReady,
   onRepositoryError,
 }: {
@@ -281,12 +284,18 @@ export function WorldRoom({
   readonly workstreamCreateUnavailableReason?: string | null | undefined;
   readonly onWorkstreamSessionChanged?:
     (() => Promise<void> | void) | undefined;
+  readonly onCodeWheelAction?: ((action: CodeWheelAction) => void) | undefined;
   readonly onAskAgent?: ((prompt: string) => void) | undefined;
   readonly onRepositoryReady?: (() => void) | undefined;
   readonly onRepositoryError?: (() => void) | undefined;
 }) {
   const screenController = useWorldScreens();
   const [codeInspection, setCodeInspection] = useState(false);
+  const [codeFullscreen, setCodeFullscreen] = useState(false);
+  const [codeWheelDiscovered, setCodeWheelDiscovered] = useState(false);
+  const [codeWheel, setCodeWheel] = useState<ReturnType<
+    typeof wheelPosition
+  > | null>(null);
   const [codeOpening, setCodeOpening] = useState<{
     id: string;
     yaw: number;
@@ -624,6 +633,7 @@ export function WorldRoom({
     workstreamCreateUnavailableReason,
     workstreamTask,
     onWorkstreamSessionChanged,
+    setSelectedWorkstreamId,
   ]);
   useEffect(() => {
     if (floor === "blank") {
@@ -672,7 +682,7 @@ export function WorldRoom({
       setSelectedCityInstanceId(`manual:${sequence}`);
       setCityFocusPosition(null);
     },
-    [dispatchCity],
+    [dispatchCity, setSelectedCityInstanceId, setCityFocusPosition],
   );
   const selectCityInstance = useCallback(
     (instanceId: string) => {
@@ -690,7 +700,12 @@ export function WorldRoom({
       // Selection does not teleport/rotate the camera; explicit code focus does.
       setCityFocusPosition(null);
     },
-    [city.instances],
+    [
+      city.instances,
+      setSelectedCityInstanceId,
+      setSelectedWorkstreamId,
+      setCityFocusPosition,
+    ],
   );
   const codeInstance = city.instances.find(
     (item) => item.instanceId === codeOpening?.id,
@@ -780,10 +795,12 @@ export function WorldRoom({
     );
     return () => window.clearTimeout(timer);
   }, [agentCue, reducedMotion]);
+  const movementAgentCount = agentAvatars?.length ?? 1;
   const agentMovementContext = useMemo(
     () => ({
       bounds: movementBounds,
       userPosition,
+      followDirection: movementAgentCount > 1 ? { x: -1, z: 0 } : undefined,
       layoutGeneration,
       resolveRepositoryObject: (
         objectId: string,
@@ -850,7 +867,13 @@ export function WorldRoom({
           : null;
       },
     }),
-    [city.instances, layoutGeneration, movementBounds, userPosition],
+    [
+      city.instances,
+      layoutGeneration,
+      movementBounds,
+      userPosition,
+      movementAgentCount,
+    ],
   );
   const agentMovementContextRef = useRef(agentMovementContext);
   useEffect(() => {
@@ -860,6 +883,24 @@ export function WorldRoom({
     (rosterId: string, movement: AgentMovementState) => ({
       bounds: movementBounds,
       userPosition,
+      followDirection: {
+        x: -Math.cos(
+          (2 *
+            Math.PI *
+            (agentMovementBindingsRef.current ?? []).findIndex(
+              (binding) => binding.rosterId === rosterId,
+            )) /
+            (agentMovementBindingsRef.current?.length ?? 1),
+        ),
+        z: Math.sin(
+          (2 *
+            Math.PI *
+            (agentMovementBindingsRef.current ?? []).findIndex(
+              (binding) => binding.rosterId === rosterId,
+            )) /
+            (agentMovementBindingsRef.current?.length ?? 1),
+        ),
+      },
       layoutGeneration,
       resolveRepositoryObject: (
         objectId: string,
@@ -1003,17 +1044,21 @@ export function WorldRoom({
     return () => window.clearTimeout(arrivalTimer);
   }, [agentMovementControl]);
   useEffect(() => {
-    if (agentMovement.movementState !== "moving") return;
+    if (!agentMovement.activeRequest) return;
     let frame = 0;
     let previousFrame: number | null = null;
     const tick = (timestamp: number) => {
       const elapsedSeconds =
         previousFrame === null ? 0 : (timestamp - previousFrame) / 1_000;
       previousFrame = timestamp;
-      const result = advanceAgentMovement(
-        agentMovementRef.current,
-        elapsedSeconds,
+      const result = settleReducedAgentMovement(
+        advanceAgentMovement(
+          agentMovementRef.current,
+          elapsedSeconds,
+          agentMovementContextRef.current,
+        ),
         agentMovementContextRef.current,
+        reducedMotion,
       );
       const activeRequest = agentMovementRef.current.activeRequest;
       if (
@@ -1039,12 +1084,12 @@ export function WorldRoom({
       );
       for (const movementEvent of result.events)
         onAgentMovementEventRef.current?.(movementEvent, result.state.position);
-      if (result.state.movementState === "moving")
+      if (result.state.activeRequest)
         frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [agentMovement.generation, agentMovement.movementState]);
+  }, [agentMovement.generation, agentMovement.activeRequest, reducedMotion]);
   useEffect(() => {
     if (!agentMovementBindings) return;
     const next = { ...secondaryMovementsRef.current };
@@ -1128,8 +1173,12 @@ export function WorldRoom({
       setSecondaryMovements(next);
     }
   }, [agentMovementBindings, reducedMotion, secondaryMovementContext]);
+  const secondaryMovementContextRef = useRef(secondaryMovementContext);
+  useEffect(() => {
+    secondaryMovementContextRef.current = secondaryMovementContext;
+  }, [secondaryMovementContext]);
   const hasMovingSecondaryAgent = Object.values(secondaryMovements).some(
-    ({ movementState }) => movementState === "moving",
+    ({ activeRequest }) => activeRequest !== null,
   );
   useEffect(() => {
     if (!agentMovementBindingsRef.current || !hasMovingSecondaryAgent) return;
@@ -1143,15 +1192,19 @@ export function WorldRoom({
       let moving = false;
       for (const binding of (agentMovementBindingsRef.current ?? []).slice(1)) {
         const current = next[binding.rosterId];
-        if (!current || current.movementState !== "moving") continue;
+        if (!current?.activeRequest) continue;
         const activeRequest = current.activeRequest;
-        const result = advanceAgentMovement(
+        const context = secondaryMovementContextRef.current(
+          binding.rosterId,
           current,
-          elapsedSeconds,
-          secondaryMovementContext(binding.rosterId, current),
+        );
+        const result = settleReducedAgentMovement(
+          advanceAgentMovement(current, elapsedSeconds, context),
+          context,
+          reducedMotion,
         );
         next[binding.rosterId] = result.state;
-        moving ||= result.state.movementState === "moving";
+        moving ||= result.state.activeRequest !== null;
         if (
           activeRequest?.target.kind === "repository-object" &&
           result.events.some((event) => event.state === "arrived") &&
@@ -1180,7 +1233,33 @@ export function WorldRoom({
     };
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [hasMovingSecondaryAgent, secondaryMovementContext]);
+  }, [hasMovingSecondaryAgent, reducedMotion]);
+  useEffect(() => {
+    // A live follower renews its bounded lease; closing the World still lets
+    // authority expire rather than leaving an abandoned action running.
+    const timer = window.setInterval(() => {
+      for (const movement of [
+        agentMovementRef.current,
+        ...Object.values(secondaryMovementsRef.current),
+      ]) {
+        const request = movement.activeRequest;
+        if (request?.target.kind !== "follow-user") continue;
+        onAgentMovementEventRef.current?.(
+          {
+            schema: "aiw.agent-movement-event/1",
+            actorId: request.actorId,
+            requestId: request.requestId,
+            source: request.source,
+            state: "moving",
+            targetKind: "follow-user",
+            reason: "follow-heartbeat",
+          },
+          movement.position,
+        );
+      }
+    }, 10_000);
+    return () => window.clearInterval(timer);
+  }, []);
   useEffect(() => {
     cameraRef.current = camera;
   }, [camera]);
@@ -1707,6 +1786,44 @@ export function WorldRoom({
     userAnimation.generation,
     agentAnimation.generation,
   ]);
+  const updatePlacementScene = screenController?.updatePlacementScene;
+  useEffect(() => {
+    updatePlacementScene?.({
+      floorSize,
+      obstacles: [
+        ...city.instances.map((instance) => {
+          const footprint = REPOSITORY_ASSET_BY_ID.get(
+            instance.assetId,
+          )!.footprint;
+          return {
+            x: instance.position.x,
+            z: instance.position.z,
+            halfWidth: footprint[0] / 2 + 0.5,
+            halfDepth: footprint[1] / 2 + 0.5,
+          };
+        }),
+        ...renderedAgentStates.map((agent) => ({
+          x: agent.position.x,
+          z: agent.position.z,
+          halfWidth: 0.75,
+          halfDepth: 0.75,
+        })),
+        {
+          x: userPosition.x,
+          z: userPosition.z,
+          halfWidth: 0.75,
+          halfDepth: 0.75,
+        },
+      ],
+    });
+  }, [
+    city.instances,
+    floorSize,
+    renderedAgentStates,
+    updatePlacementScene,
+    userPosition,
+  ]);
+
   const completeImportedOneShot = useCallback(
     (role: "user" | "agent", generation: number) => {
       if (role === "user")
@@ -1718,7 +1835,7 @@ export function WorldRoom({
           completeAvatarOneShot(current, generation),
         );
     },
-    [],
+    [setUserAnimation, setAgentAnimation],
   );
   const userLayerState = useMemo(
     () =>
@@ -1813,6 +1930,7 @@ export function WorldRoom({
       data-repository-readiness={repositoryReadiness}
       data-repository-city-count={city.instances.length}
       data-repository-city-mode={cityMode}
+      data-code-wheel-discovered={codeWheelDiscovered}
       data-user-avatar-action={userAction}
       data-agent-avatar-action={agentAction}
       data-agent-work-state={agentWorkState.state}
@@ -1844,6 +1962,39 @@ export function WorldRoom({
         if (Math.hypot(x, z) < 6) x = x < 0 ? -6 : 6;
         addManualCityInstance(assetId, { x, z });
       }}
+      onPointerDownCapture={(event) => {
+        if (
+          event.button !== 1 ||
+          isInteractiveMouseTarget(event.target) ||
+          inputOwner !== "world" ||
+          screenController?.dragging
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        stopMouseLook();
+        if (!codeWheel) setCodeWheelDiscovered(true);
+        setCodeWheel((current) =>
+          current
+            ? null
+            : wheelPosition(
+                event.clientX,
+                event.clientY,
+                window.innerWidth,
+                window.innerHeight,
+              ),
+        );
+      }}
+      onMouseDownCapture={(event) => {
+        if (event.button === 1 && !isInteractiveMouseTarget(event.target))
+          event.preventDefault();
+      }}
+      onAuxClickCapture={(event) => {
+        if (event.button === 1 && !isInteractiveMouseTarget(event.target)) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
       onPointerUp={(event) => {
         if (event.pointerId === activeLookPointer.current) stopMouseLook();
       }}
@@ -1855,6 +2006,8 @@ export function WorldRoom({
         <RepositoryCodeScreen
           key={`${codeInstance.instanceId}:${codeOpening?.sequence}`}
           instance={codeInstance}
+          fullscreen={codeFullscreen}
+          onFullscreenChange={setCodeFullscreen}
           openingYaw={codeOpening?.yaw ?? camera.yaw}
           reducedMotion={reducedMotion}
           onClose={() => setCodeOpening(null)}
@@ -1958,43 +2111,19 @@ export function WorldRoom({
           <span>· {presentedActivity.detail}</span>
         ) : null}
       </div>
-      <nav
-        className="world-room__agent-targets"
-        aria-label="Choose the next message recipient"
-      >
-        {renderedAgents.map((agent, index) => {
-          const position = WORLD_AGENT_SPAWN_POSITIONS[index]!;
-          const selected = selectedRecipientId === agent.rosterId;
-          return (
-            <span
-              key={agent.rosterId}
-              className="world-room__agent-target-shell"
-            >
-              <button
-                type="button"
-                className="world-room__agent-target world-action--enabled"
-                aria-label={`Send next message to ${agent.name}`}
-                aria-pressed={selected}
-                data-spawn={`${position.x},${position.z}`}
-                onClick={() => onSelectRecipient?.(agent.rosterId)}
-              >
-                {agent.name}
-              </button>
-              {selected ? (
-                <button
-                  type="button"
-                  className="world-room__agent-target-clear"
-                  aria-label={`Clear ${agent.name} and send to all agents`}
-                  title="Send next message to all agents"
-                  onClick={onClearRecipient}
-                >
-                  ×
-                </button>
-              ) : null}
-            </span>
-          );
-        })}
-      </nav>
+      {codeWheel ? (
+        <WorldCodeWheel
+          position={codeWheel}
+          agents={renderedAgents}
+          selectedRecipientId={selectedRecipientId ?? null}
+          reducedMotion={reducedMotion}
+          onSelect={(id) => onSelectRecipient?.(id)}
+          onClear={() => onClearRecipient?.()}
+          onAction={(action) => onCodeWheelAction?.(action)}
+          onClose={() => setCodeWheel(null)}
+          onCodeScreen={() => setCodeFullscreen((value) => !value)}
+        />
+      ) : null}
       <section className="world-room__semantic" aria-label="World scene status">
         <h1>{floor === "blank" ? "Blank World room" : "Repository floor"}</h1>
         <p>Third-person camera behind {userName}.</p>
