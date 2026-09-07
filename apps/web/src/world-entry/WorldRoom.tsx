@@ -691,6 +691,7 @@ export function WorldRoom({
       );
       if (!instance) return;
       setSelectedCityInstanceId(instanceId);
+      setCodeFullscreen(false);
       setCodeOpening((current) => ({
         id: instanceId,
         yaw: cameraRef.current.yaw,

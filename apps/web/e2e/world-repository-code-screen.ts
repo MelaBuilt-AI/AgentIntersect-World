@@ -110,6 +110,8 @@ export async function exerciseRepositoryCodeScreen(
     fovDegrees: 46,
   });
   await page.mouse.click(bounds.x + pick.x, bounds.y + pick.y);
+  // A new object inspection starts spatially, even after closing fullscreen.
+  await expect(panel).toHaveAttribute("data-screen-mode", "spatial");
   await expect(panel.locator("section")).toHaveAttribute(
     "data-code-object",
     objectId!,

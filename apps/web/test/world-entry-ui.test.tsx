@@ -1015,7 +1015,7 @@ describe("Phase 18 World entry experience", () => {
       /\.world-transcript\s*\{[^}]*position:\s*static;[^}]*grid-area:\s*transcript;[^}]*align-self:\s*end;/su,
     );
     expect(styles).toMatch(
-      /\.world-hud__controls\s*\{[^}]*grid-area:\s*controls;[^}]*align-self:\s*end;/su,
+      /\.world-hud__chat-dock\s*\{[^}]*grid-area:\s*controls;[^}]*align-self:\s*end;/su,
     );
   });
 

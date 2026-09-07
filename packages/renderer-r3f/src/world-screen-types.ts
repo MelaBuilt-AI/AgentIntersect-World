@@ -20,7 +20,14 @@ type ScreenElement = {
   >;
   readonly dataset: Record<string, string | undefined>;
   inert: boolean;
-  readonly children?: ArrayLike<{ getBoundingClientRect: () => DOMRect }>;
+  readonly children?: ArrayLike<{
+    getBoundingClientRect: () => {
+      left: number;
+      right: number;
+      top: number;
+      bottom: number;
+    };
+  }>;
 };
 
 /** DOM stays mounted in the app; the renderer owns only its camera transform. */

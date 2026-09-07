@@ -1,6 +1,7 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 
 import { seedConfiguredAvatar } from "./helpers.js";
+import { openCodeWheel } from "./world-code-wheel.js";
 
 const worldInstanceId = "80000000-0000-4000-8000-000000000008";
 const agents = [
@@ -464,6 +465,7 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
     .click();
   await expect(page.getByLabel("Message All agents")).toBeVisible();
 
+  await openCodeWheel(page);
   await page
     .getByRole("button", { name: "Send next message to Codex" })
     .click();
