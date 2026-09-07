@@ -1,10 +1,24 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-06
+Updated: 2026-09-07
 
 ## Current milestone
 
-### 2026-09-06 Accepted movement + Code Wheel — authorized delivery
+### 2026-09-07 PR9 complete — integration, stale-agent UI and first audio pass NEXT
+
+Movement and Code Wheel are user-accepted and delivered in [PR #9](https://github.com/MelaBuilt-AI/AgentIntersect-World/pull/9). Product merge `86a693d18bc1392b08aec127ca56e8ad192c9d25` passed all seven jobs of [main CI 34082056347](https://github.com/MelaBuilt-AI/AgentIntersect-World/actions/runs/34082056347), attempt 1. Tested head `5aa8f529a85c5bc19f10daa87e72becff87f6b6d` passed push CI 34080038928 attempt 1 and PR CI 34080040769 attempt 2; one failed repository-loading browser job passed its single unchanged-SHA retry. Earlier failures are preserved, not relabeled as causal fixes. The tested head and product merge have identical Git trees.
+
+Aaron selected the following next-session agenda (`1546396935244751000`). **Planning only; none of this next scope was implemented during closeout.**
+
+1. **Next integration-fix PR:** correct selected-repository → owned-worktree → native Codex cwd/task-context binding, including empty/new repositories; diagnose local preview listener failures and supported World View recipes; make timeout/failure/quarantine/recovery and chat/Workstream status truthful. Preserve the failed session/homepage and avoid an unintended external Sites detour.
+2. **Stale-agent UI bug in that repair PR:** reproduce and fix overlapping stale-agent connection-form rows. Resetting a test profile is not a layout fix; verify the populated stale state and relevant viewport layouts.
+3. **First audio pass in the same next-session agenda:** Aaron has a spec sheet to provide. Read it before choosing scope or implementing. Earlier audio/music-player ideas are context, not a substitute for that spec. Sources, controls, autoplay, persistence, formats and integration remain unspecified. Decide the audio slice/PR boundary after reading the spec; do not silently make audio a gate for the integration repair.
+
+Use normal World end-to-end proof for the repaired repository/preview/status path and first-hand acceptance for UI/audio. Full Slice 6 repository iteration and Phase 20 remain separate, unpromoted gates. No native retries, cancellation, external Sites cleanup, provider/profile changes, public visibility, releases, or retained-runtime deletion is authorized by this planning marker. Mr Fluff implements directly unless Aaron asks for delegation.
+
+Primary diagnosis: `/home/mela_ai/.hermes/runs/aiw-code-wheel-clean-20260906/DIAGNOSIS.md`; preserved homepage: `state/codex-sessions/index.html` under that run. PR9 receipts: `/home/mela_ai/.hermes/runs/aiw-code-wheel-delivery-20260906/MERGED.md`. This docs-only continuation marker is a separate verification era; its SHA/CI outcome belongs in the external handoff, not a recursive repository commit. All dated sections below are historical except explicitly carried-forward defects.
+
+### Historical — 2026-09-06 Accepted movement + Code Wheel — authorized delivery
 
 Aaron `1546354534559916052` explicitly authorized commit/push/PR and merge **only after CI and readiness are green**. Movement and Code Wheel retain first-hand PASS. This scope includes movement routing/follow fixes, shared pointer isolation, the persistent Code Wheel and discovery hint, and spatial-screen placement corrections. It does not claim general repository-coding or World View integration readiness. See `docs/CODE_WHEEL_ACCEPTANCE.md` for the acceptance cutline.
 
