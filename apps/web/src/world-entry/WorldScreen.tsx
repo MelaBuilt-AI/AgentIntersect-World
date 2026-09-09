@@ -20,6 +20,7 @@ export function WorldScreenToggle({ id }: { readonly id: WorldScreenId }) {
     <button
       type="button"
       className="world-screen__toggle world-action--enabled"
+      data-audio="handled"
       disabled={!controller?.enabled || controller.dragging}
       aria-keyshortcuts={`Alt+${SCREEN_KEYS[id]}`}
       title={

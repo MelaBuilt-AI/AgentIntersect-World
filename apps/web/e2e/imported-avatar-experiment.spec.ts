@@ -342,7 +342,9 @@ test("text-only selection loads no GLB and stale removed IDs require re-selectio
 test("seventeen agent stances and mounted user-directed movement work in production", async ({
   page,
 }) => {
-  test.setTimeout(360_000);
+  // CI trace reaches the final dog swap at 360s; all prior controls succeed.
+  // Keep every stance/model/movement assertion, with a bounded software-WebGL budget.
+  test.setTimeout(600_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   const session = {
     schema: "aiw.agent-session/0.12",

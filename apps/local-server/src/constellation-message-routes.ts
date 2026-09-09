@@ -93,6 +93,7 @@ export function registerConstellationMessageRoutes(
               pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
             },
             text: { type: "string", minLength: 1, maxLength: 16_384 },
+            intent: { type: "string", enum: ["discussion", "work"] },
             targetRosterId: {
               type: "string",
               minLength: 1,

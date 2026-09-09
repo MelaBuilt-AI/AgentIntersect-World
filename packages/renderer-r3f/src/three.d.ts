@@ -18,6 +18,7 @@ declare module "three" {
   export class Vector3 {
     constructor(x?: number, y?: number, z?: number);
     clone(): Vector3;
+    lerp(value: Vector3, alpha: number): this;
     applyMatrix4(matrix: Matrix4): this;
     x: number;
     y: number;

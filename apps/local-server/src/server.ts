@@ -108,6 +108,9 @@ import type { Phase17Service } from "./phase17-service.js";
 import { registerPhase17Routes } from "./phase17-routes.js";
 import type { WorkstreamService } from "./workstream-service.js";
 import { registerWorkstreamRoutes } from "./workstream-routes.js";
+import { RepositoryGitService } from "./repository-git.js";
+import { RepositoryIntakeError } from "./repository-intake.js";
+import { registerRepositoryGitRoutes } from "./repository-git-routes.js";
 import type { ConstellationService } from "./constellation-service.js";
 import { registerConstellationRoutes } from "./constellation-routes.js";
 import type { ConstellationMessageService } from "./constellation-message-service.js";
@@ -451,6 +454,66 @@ export function createLocalServer(
       success,
       failure,
     });
+    server.get<{ Querystring: { repositoryId?: string } }>(
+      "/repository-intake/selected",
+      async (request, reply) => {
+        const selected = currentRepositorySelection();
+        if (
+          !selected ||
+          selected.snapshot.repositoryRef !== request.query.repositoryId
+        )
+          return reply
+            .code(409)
+            .send(
+              failure(
+                request,
+                "conflict",
+                "Load this repository before opening Workbench",
+              ),
+            );
+        const project =
+          (await repositoryIntakeService.list()).find(
+            (entry) => entry.rootPath === selected.generation.rootPath,
+          ) ?? null;
+        return success(request, { project });
+      },
+    );
+    registerRepositoryGitRoutes(
+      server,
+      new RepositoryGitService(async (projectId, workstreamId) => {
+        const project = (await repositoryIntakeService.list()).find(
+          (project) => project.id === projectId,
+        );
+        if (!project)
+          throw new RepositoryIntakeError(
+            "not-found",
+            "Saved repository not found",
+          );
+        if (!workstreamId) return project.rootPath;
+        const selected = currentRepositorySelection();
+        if (
+          !selected ||
+          selected.generation.rootPath !== project.rootPath ||
+          !options.workstreamService
+        )
+          throw new RepositoryIntakeError(
+            "conflict",
+            "Load this repository before inspecting its owned Workstreams",
+          );
+        try {
+          return await options.workstreamService.gitDirectory(
+            workstreamId,
+            selected.snapshot.repositoryRef,
+          );
+        } catch (error) {
+          throw new RepositoryIntakeError(
+            "conflict",
+            error instanceof Error ? error.message : "Worktree unavailable",
+          );
+        }
+      }),
+      { success, failure },
+    );
     if (options.agentSessionGateway)
       registerAgentSessionRoutes(
         server,

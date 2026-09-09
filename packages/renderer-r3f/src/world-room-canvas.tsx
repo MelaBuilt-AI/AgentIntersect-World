@@ -1,3 +1,5 @@
+import type { WorldScreenBinding } from "./world-screen-types.js";
+import { useActivityBillboard } from "./world-activity-billboard.js";
 import { WorldEnvironment } from "./world-environment.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import {
@@ -15,16 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  CanvasTexture,
-  Group,
-  InstancedMesh,
-  LinearFilter,
-  Matrix4,
-  Sprite,
-  SpriteMaterial,
-  Vector3,
-} from "three";
+import { Group, InstancedMesh, Matrix4, Vector3 } from "three";
 
 import {
   AvatarKitWorldModel,
@@ -106,6 +99,7 @@ export type WorldRoomActivity = {
   readonly icon: string;
   readonly label: string;
   readonly detail: "" | "terminal" | "reading" | "tool";
+  readonly progressText?: string;
 };
 
 export type WorldRoomAgentState = {
@@ -430,7 +424,7 @@ export function prepareWorldActivityBubble({
     icon: activity.icon,
     label: activity.label,
     visualLabel: activityVisualLabel(activity.state),
-    detailLabel: activity.detail,
+    detailLabel: activity.progressText ?? activity.detail,
     visible: activity.state !== "idle",
     animated:
       !reducedMotion &&
@@ -440,85 +434,24 @@ export function prepareWorldActivityBubble({
   } as const;
 }
 
-function AgentActivityBillboard({
+export function AgentActivityBillboard({
+  screens,
   activity,
   reducedMotion,
   position,
 }: {
+  readonly screens?: readonly WorldScreenBinding[] | undefined;
   readonly activity: WorldRoomActivity;
   readonly reducedMotion: boolean;
   readonly position: readonly [number, number, number];
 }) {
-  const descriptor = prepareWorldActivityBubble({ activity, reducedMotion });
-  const spriteRef = useRef<Sprite>(null);
-  const sprite = useMemo(() => {
-    const surface = document.createElement("canvas");
-    surface.width = 512;
-    surface.height = 160;
-    const context = surface.getContext("2d");
-    if (context) {
-      context.fillStyle = "rgba(3, 9, 20, 0.92)";
-      context.strokeStyle = activity.state === "failed" ? "#fb7185" : "#38bdf8";
-      context.lineWidth = 8;
-      context.beginPath();
-      context.roundRect(6, 6, 500, 148, 32);
-      context.fill();
-      context.stroke();
-      context.fillStyle = "#f8fafc";
-      context.textBaseline = "middle";
-      context.font = "700 52px Consolas, monospace";
-      context.fillText(activity.icon || "○", 28, 80);
-      context.font = "32px Consolas, monospace";
-      context.fillText(
-        `${descriptor.visualLabel}${
-          descriptor.detailLabel ? ` · ${descriptor.detailLabel}` : ""
-        }`,
-        122,
-        80,
-        354,
-      );
-    }
-    const texture = new CanvasTexture(surface);
-    texture.minFilter = LinearFilter;
-    const instance = new Sprite(
-      new SpriteMaterial({
-        map: texture,
-        transparent: true,
-        depthTest: false,
-      }),
-    );
-    instance.name = `agent-activity-${activity.state}`;
-    instance.position.set(position[0], descriptor.anchor[1], position[2]);
-    instance.scale.set(...descriptor.scale);
-    instance.renderOrder = 50;
-    return instance;
-  }, [
+  useActivityBillboard({
+    screens,
     activity,
-    descriptor.anchor,
-    descriptor.detailLabel,
-    descriptor.scale,
-    descriptor.visualLabel,
     position,
-  ]);
-  useEffect(
-    () => () => {
-      sprite.material.map?.dispose();
-      sprite.material.dispose();
-    },
-    [sprite],
-  );
-  useFrame(({ clock }) => {
-    if (!descriptor.animated || !spriteRef.current) return;
-    const pulse = 1 + Math.sin(clock.elapsedTime * 4) * 0.035;
-    spriteRef.current.scale.set(
-      descriptor.scale[0] * pulse,
-      descriptor.scale[1] * pulse,
-      descriptor.scale[2],
-    );
+    descriptor: prepareWorldActivityBubble({ activity, reducedMotion }),
   });
-  return descriptor.visible ? (
-    <primitive ref={spriteRef} object={sprite} />
-  ) : null;
+  return null;
 }
 
 export function prepareWorldRoomScene(input: {
@@ -655,6 +588,7 @@ function CodingWorkHalo({
 }
 
 function WorldRoomScene({
+  screens,
   floor,
   objects,
   cityInstances,
@@ -683,6 +617,7 @@ function WorldRoomScene({
   onCitySettled,
   onCityReady,
 }: {
+  readonly screens?: readonly WorldScreenBinding[] | undefined;
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
   readonly cityInstances: readonly RepositoryCityInstance[];
@@ -704,7 +639,7 @@ function WorldRoomScene({
   readonly avatarReady: Readonly<{ user: boolean; agent: boolean }>;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly renderQuality: WorldRenderQuality;
-  readonly onAvatarReady: (role: "user" | "agent") => void;
+  readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
   readonly onAvatarLodChange: (role: "user" | "agent", lod: AvatarLod) => void;
   readonly onContextLost: () => void;
   readonly onCitySelect: (instanceId: string) => void;
@@ -909,6 +844,7 @@ function WorldRoomScene({
         return (
           <AgentActivityBillboard
             key={`agent-activity-${index + 1}`}
+            screens={screens}
             activity={
               agentActivities?.[index] ??
               (index === 0
@@ -941,7 +877,7 @@ function WorldRoomScene({
             position={position}
             rotation={[0, state?.heading ?? 0, 0]}
             scale={AVATARS[1].scale}
-            onReady={onAvatarReady}
+            onReady={(role) => onAvatarReady(role, index)}
             onLodChange={onAvatarLodChange}
           />
         );
@@ -992,6 +928,7 @@ export function WorldRoomCanvas({
   onCitySelect,
   onCitySettled,
   onCityReady,
+  onSceneReady,
 }: {
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
@@ -1015,6 +952,7 @@ export function WorldRoomCanvas({
   readonly onCitySelect: (instanceId: string) => void;
   readonly onCitySettled: (instanceId: string) => void;
   readonly onCityReady: () => void;
+  readonly onSceneReady?: (() => void) | undefined;
 } & WorldScreensProps) {
   const [renderQuality] = useState(() =>
     selectWorldRenderQuality(
@@ -1025,6 +963,9 @@ export function WorldRoomCanvas({
     ),
   );
   const renderLoop = selectWorldRenderLoop(renderQuality, reducedMotion);
+  const [readyAvatarIds, setReadyAvatarIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const [avatarReady, setAvatarReady] = useState({
     user: false,
     agent: false,
@@ -1033,7 +974,11 @@ export function WorldRoomCanvas({
     user: AvatarLod;
     agent: AvatarLod;
   }>({ user: "LOD0", agent: "LOD0" });
-  const onAvatarReady = useCallback((role: "user" | "agent") => {
+  const onAvatarReady = useCallback((role: "user" | "agent", index = 0) => {
+    const id = `${role}:${index}`;
+    setReadyAvatarIds((current) =>
+      current.has(id) ? current : new Set([...current, id]),
+    );
     setAvatarReady((current) =>
       current[role] ? current : { ...current, [role]: true },
     );
@@ -1114,6 +1059,10 @@ export function WorldRoomCanvas({
         <CooperativeWorldInvalidation />
       ) : null}
       <WorldEnvironment
+        onReady={onSceneReady}
+        avatarsReady={
+          readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
+        }
         floor={floor}
         size={floorSize}
         reducedMotion={reducedMotion}
@@ -1127,6 +1076,7 @@ export function WorldRoomCanvas({
         onScreenDrag={onScreenDrag}
       />
       <WorldRoomScene
+        screens={screens}
         floor={floor}
         objects={objects}
         cityInstances={cityInstances}

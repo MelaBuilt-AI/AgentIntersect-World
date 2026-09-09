@@ -1,0 +1,188 @@
+.repository-workbench {
+  position: fixed;
+  z-index: 100;
+  inset: 6vh max(1rem, calc((100vw - 880px) / 2));
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: clamp(1rem, 2vw, 1.75rem);
+  border: 1px solid #3a80a8;
+  border-radius: 16px;
+  background: rgba(8, 17, 30, 0.97);
+  color: #e8f3ff;
+  box-shadow: 0 20px 80px #000b;
+  font-family: Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+.repository-workbench--new {
+  max-width: 760px;
+  margin-inline: auto;
+}
+.repository-workbench header,
+.repository-workbench__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.repository-workbench h2,
+.repository-workbench h3 {
+  margin: 0.5rem 0;
+}
+.repository-workbench h4 {
+  margin: 0.75rem 0;
+}
+.repository-workbench__eyebrow {
+  color: #72c9ff;
+  letter-spacing: 0.15em;
+  font-size: 11px;
+  margin: 0;
+}
+.repository-workbench code,
+.repository-workbench time {
+  display: block;
+  font-size: 12px;
+  color: #a9c5d9;
+}
+.repository-workbench button,
+.repository-workbench input,
+.repository-workbench select,
+.repository-workbench textarea {
+  font: inherit;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+.repository-workbench button {
+  background: #153e68;
+  border: 1px solid #408ad5;
+  border-radius: 6px;
+  color: #eaf5ff;
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+}
+.repository-workbench button:hover:not(:disabled),
+.repository-workbench button[aria-pressed="true"] {
+  background: #22619d;
+  border-color: #9ad9ff;
+}
+.repository-workbench button:disabled,
+.repository-workbench fieldset:disabled button {
+  background: #283039;
+  color: #89939e;
+  border-color: #48515b;
+  cursor: not-allowed;
+}
+.repository-workbench button:focus-visible,
+.repository-workbench input:focus-visible,
+.repository-workbench select:focus-visible,
+.repository-workbench textarea:focus-visible {
+  outline: 2px solid #8dd9ff;
+  outline-offset: 3px;
+}
+.repository-workbench label {
+  display: grid;
+  gap: 0.35rem;
+  margin-block: 0.8rem;
+}
+.repository-workbench input:not([type="checkbox"]),
+.repository-workbench textarea,
+.repository-workbench select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem;
+  background: #091422;
+  color: #eaf5ff;
+  border: 1px solid #526d88;
+  border-radius: 5px;
+}
+.repository-workbench textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.repository-workbench fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.repository-workbench .repository-workbench__file {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+.repository-workbench__file input {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  flex: 0 0 1rem;
+  margin-top: 0.35rem;
+  accent-color: #459af0;
+}
+.repository-workbench__actions,
+.repository-workbench nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-block: 1rem;
+}
+.repository-workbench__list {
+  max-height: 280px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+  list-style: none;
+  border: 1px solid #30465b;
+  border-radius: 6px;
+}
+.repository-workbench__list li {
+  margin-block: 0.5rem;
+}
+.repository-workbench__list li > button {
+  width: 100%;
+  text-align: left;
+}
+.repository-workbench__list span,
+.repository-workbench__list strong {
+  display: block;
+}
+.repository-workbench__continuation,
+.repository-git-panel {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #30465b;
+}
+.repository-workbench__confirm {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #142b42;
+  border: 1px solid #68bfff;
+  border-radius: 8px;
+}
+.repository-workbench__confirm button {
+  margin: 0.5rem 0.5rem 0 0;
+}
+.repository-workbench [role="alert"] {
+  color: #ffbdbd;
+  border-left: 3px solid #e17d7d;
+  padding-left: 0.75rem;
+}
+.repository-workbench [role="status"] {
+  color: #9bd9ff;
+}
+.repository-workbench a {
+  color: #8ed2ff;
+}
+@media (max-width: 520px) {
+  .repository-workbench {
+    inset: 1rem 0.5rem;
+    padding: 1rem;
+  }
+  .repository-workbench header,
+  .repository-workbench__heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}

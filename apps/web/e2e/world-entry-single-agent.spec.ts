@@ -283,7 +283,11 @@ const envelope = (data: unknown) => ({
   },
 });
 
-function streamBody(requestText: string, userDisplayName: string) {
+function streamBody(
+  requestText: string,
+  userDisplayName: string,
+  toolMetadata: Record<string, string> = {},
+) {
   const terminal = (event: string, value: unknown) =>
     `event: ${event}\ndata: ${JSON.stringify(value)}\n\n`;
   const worldEvent = (
@@ -317,9 +321,11 @@ function streamBody(requestText: string, userDisplayName: string) {
     }),
     worldEvent(3, "tool.started", {
       toolName: repository ? "repository.index" : "terminal.status",
+      ...toolMetadata,
     }),
     worldEvent(4, "tool.completed", {
       toolName: repository ? "repository.index" : "terminal.status",
+      ...toolMetadata,
     }),
     worldEvent(5, "message.assistant-final", {
       text: finalText,
@@ -447,6 +453,16 @@ async function installWorldFixtures(
     }
     if (pathname.includes("/workstreams") && options.fulfillWorkstreams) {
       await options.fulfillWorkstreams(route, pathname);
+      return;
+    }
+    if (pathname.endsWith("/workstreams/current")) {
+      await route.fulfill({
+        status: 404,
+        json: {
+          ok: false,
+          error: { code: "not_found", message: "No current Workstream" },
+        },
+      });
       return;
     }
     if (
@@ -626,7 +642,174 @@ async function enterFixtureWorld(page: Page, path = "/") {
   await expect(enterWorld).toBeEnabled({ timeout: 60_000 });
   await enterWorld.click();
   await expect(page.getByTestId("world-hud")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator(".world-room")).toHaveAttribute(
+    "data-scene-ready",
+    "true",
+    { timeout: 60_000 },
+  );
 }
+
+for (const loading of ["loaded", "stalled"] as const) {
+  test(`@world-entry-transition ${loading} textures gate the first visible World`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await seedConfiguredAvatar(page, "Aaron");
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await installWorldFixtures(page, { restoreStatus: true });
+    await page.route(
+      "**/assets/code-world/15_code_nebula_sky.webp",
+      async (route) => {
+        await held;
+        await route.continue();
+      },
+    );
+    const entering = enterFixtureWorld(page);
+    try {
+      const transition = page.locator(".world-entry-transition");
+      await expect(transition).toBeVisible({ timeout: 60_000 });
+      await expect(transition).toHaveAttribute("data-ready", "false");
+      await expect(page.locator(".world-room")).toHaveAttribute(
+        "data-scene-ready",
+        "false",
+      );
+      await page.screenshot({ path: testInfo.outputPath("entry-waiting.png") });
+      if (loading === "stalled") {
+        await page
+          .getByRole("button", { name: "Continue in text-only view" })
+          .click({ timeout: 15_000 });
+        await expect(page.locator(".world-room")).toHaveAttribute(
+          "data-renderer",
+          "semantic",
+        );
+      } else release();
+      await entering;
+      await expect(transition).not.toBeVisible();
+      await page.screenshot({
+        path: testInfo.outputPath("entry-revealed.png"),
+      });
+    } finally {
+      release();
+      await entering.catch(() => undefined);
+    }
+  });
+}
+
+test("@audio-pass1 plays the real supplied album and local playlist through the normal World player", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  const { instrumentAudio, exerciseAudio } = await import("./world-audio.js");
+  await instrumentAudio(page);
+  await page.addInitScript(() =>
+    localStorage.setItem("aiw.audio.music-muted", "true"),
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installWorldFixtures(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Expand audio player" }).click();
+  const player = page.getByRole("complementary", {
+    name: "World audio player",
+  });
+  await expect(player).toContainText("Black Circuit");
+  await expect(
+    player.getByRole("button", { name: "Mute music", exact: true }),
+  ).toBeVisible();
+  const play = player.getByRole("button", { name: "Play music", exact: true });
+  if (await play.isVisible()) await play.click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const all = (
+          window as unknown as { __worldAudioElements: HTMLAudioElement[] }
+        ).__worldAudioElements;
+        return (
+          all.some(
+            (a) =>
+              a.src.includes("00-black-circuit") &&
+              a.loop &&
+              a.currentTime > 0.2,
+          ) ||
+          JSON.stringify(
+            all.map((a) => ({
+              src: a.src,
+              paused: a.paused,
+              loop: a.loop,
+              time: a.currentTime,
+              duration: a.duration,
+              ready: a.readyState,
+              error: a.error?.message,
+            })),
+          )
+        );
+      }),
+    )
+    .toBe(true);
+  await enterFixtureWorld(page);
+  try {
+    const { openCodeWheel } = await import("./world-code-wheel.js");
+    const projectionCues = () =>
+      page.evaluate(() =>
+        (
+          window as unknown as {
+            __worldAudioEvents: { src: string; event: string }[];
+          }
+        ).__worldAudioEvents
+          .filter(
+            (e) => e.event === "requested" && /projection-(on|off)/.test(e.src),
+          )
+          .map((e) => e.src),
+      );
+    const beforeWheel = (await projectionCues()).length;
+    await openCodeWheel(page);
+    await expect.poll(projectionCues).toHaveLength(beforeWheel + 1);
+    expect((await projectionCues()).at(-1)).toContain("projection-on");
+    // A real middle click inside the wheel dismisses via its own portal handler,
+    // not the room's synthetic pointer path.
+    const closePoint = await page
+      .getByRole("button", { name: "All agents", exact: true })
+      .evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const x = box.x + box.width / 2,
+          y = box.y + box.height / 2;
+        if (!element.contains(document.elementFromPoint(x, y)))
+          throw Error("Code Wheel center is obstructed");
+        return { x, y };
+      });
+    await page.mouse.click(closePoint.x, closePoint.y, { button: "middle" });
+    await expect(
+      page.getByRole("group", { name: "Code Wheel", exact: true }),
+    ).toHaveCount(0);
+    await expect.poll(projectionCues).toHaveLength(beforeWheel + 2);
+    expect((await projectionCues()).at(-1)).toContain("projection-off");
+    await exerciseAudio(page, testInfo);
+  } finally {
+    await testInfo.attach("media-state", {
+      contentType: "application/json",
+      body: JSON.stringify(
+        await page.evaluate(() =>
+          (
+            window as unknown as { __worldAudioElements: HTMLAudioElement[] }
+          ).__worldAudioElements.map((a) => ({
+            src: a.src,
+            paused: a.paused,
+            time: a.currentTime,
+            duration: a.duration,
+            readyState: a.readyState,
+            error: a.error?.message,
+          })),
+        ),
+      ),
+    });
+  }
+});
 
 test("@repository-intake selects a local project from normal World", async ({
   page,
@@ -668,12 +851,350 @@ test("@repository-intake selects a local project from normal World", async ({
   ).toBeVisible();
 });
 
-test("@workbench-normal drives one Workstream through normal World conversation", async ({
+test("@repository-workbench distinct menus discover paths and continue saved work with explicit Git actions", async ({
   page,
 }, testInfo) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const repository = {
+    repositoryId: snapshot.repositoryRef,
+    revision: "77777777-7777-4777-8777-777777777777",
+  } as const;
+  const agent = {
+    agentId: session.sessionId,
+    nativeSessionId: session.adapterSessionRef,
+    rootNativeSessionId: session.adapterSessionRef,
+    revision: "0",
+  } as const;
+  const baseWorkstream = {
+    schema: "aiw.workstream/1",
+    workstreamId: "88888888-8888-4888-8888-888888888888",
+    revision: 1,
+    title: "Build a settings panel",
+    task: "Build a settings panel",
+    repository,
+    agent,
+    authority: {
+      schema: "aiw.worktree-authority-receipt/1",
+      ownerId: "workstream-owner",
+      requestId: "workstream-authority-request",
+      worktreeId: "worktree-settings",
+      repositoryId: repository.repositoryId,
+      relativePath: "worktree-settings",
+      branch: "workstream/settings",
+      head: "a".repeat(40),
+      state: "current",
+      statusSummary: "Owned worktree is current and ready.",
+      validatedAt: "2026-09-03T15:00:00.000Z",
+      attestation: "b".repeat(64),
+    },
+    worktreeState: "current",
+    evidenceOperationRefs: [],
+    projection: {
+      currentActivity: "Owned worktree is current and ready.",
+      changedFiles: [],
+      diff: { summary: "", patch: "", truncated: false },
+      validation: [],
+      evidenceRefs: [],
+    },
+    status: "working",
+    createdAt: "2026-09-03T15:00:00.000Z",
+    updatedAt: "2026-09-03T15:00:00.000Z",
+    events: [
+      {
+        eventId: "88888888-8888-4888-8888-888888888888/event/1",
+        status: "working",
+        summary: "Owned worktree is current and ready.",
+        occurredAt: "2026-09-03T15:00:00.000Z",
+      },
+    ],
+  } as const;
+
+  const project = {
+    id: "menu-test",
+    name: "Menu Test",
+    rootPath: "/home/browser-fixture/projects/menu-test",
+    source: "local",
+    pinned: false,
+    lastOpenedAt: "2026-09-07T00:00:00.000Z",
+  };
+  let current = {
+    ...baseWorkstream,
+    revision: 1 as number,
+    status: "ready-for-review",
+    agent: { ...agent, agentId: "previous-session" },
+  };
+  const history = () => [current];
+  let continued = 0,
+    created = 0,
+    gitWrites = 0,
+    directoryWrites = 0;
+  let createdBody: Record<string, unknown> | null = null;
+  let gitAttempts = 0;
+  let gitReads = 0;
+  let gitState = {
+    head: "a".repeat(40),
+    branch: "workstream/settings",
+    upstream: null,
+    remotes: ["origin"],
+    changes: [{ path: "index.html", status: " M" }],
+    commits: [
+      {
+        sha: "a".repeat(40),
+        subject: "Initial website",
+        date: "2026-09-07T00:00:00.000Z",
+      },
+    ],
+  };
+  const fulfill = (route: Route, data: unknown) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(envelope(data)),
+    });
+  await installWorldFixtures(page, {
+    restoreStatus: true,
+    repositoryProjects: [project],
+    fulfillPreviewManager: async (route, path) => {
+      await fulfill(
+        route,
+        path.includes("recipes")
+          ? []
+          : {
+              schema: "aiw.preview-manager/1",
+              active: null,
+              latestAttempt: null,
+              previousVerified: null,
+              display: null,
+            },
+      );
+    },
+    fulfillWorkstreams: async (route, path) => {
+      if (path.endsWith("/history"))
+        return fulfill(route, { workstreams: history() });
+      if (path.endsWith("/continue")) {
+        const body = route.request().postDataJSON();
+        expect(body.confirm).toBe(true);
+        expect(body.agent.agentId).toBe(session.sessionId);
+        continued++;
+        current = { ...current, agent, revision: current.revision + 1 };
+        return fulfill(route, { workstream: current, replayed: false });
+      }
+      if (
+        route.request().method() === "POST" &&
+        path.endsWith("/workstreams")
+      ) {
+        created++;
+        createdBody = route.request().postDataJSON();
+        return fulfill(route, {
+          workstream: {
+            ...current,
+            task: createdBody?.task,
+            title: createdBody?.title,
+          },
+          replayed: false,
+        });
+      }
+      return fulfill(route, current);
+    },
+  });
+  await page.route("**/api/repository-intake/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("discover-path") || path.endsWith("projects-directory")) {
+      if (route.request().method() === "POST") {
+        expect(route.request().postDataJSON()).toEqual({ confirm: true });
+        directoryWrites++;
+      }
+      return fulfill(route, {
+        homePath: "/home/browser-fixture",
+        projectsPath: "/home/browser-fixture/projects",
+        projectsExists: directoryWrites > 0,
+      });
+    }
+    if (path.endsWith("selected")) return fulfill(route, { project });
+    if (path.endsWith("/git")) {
+      if (route.request().method() === "POST") {
+        const input = route.request().postDataJSON();
+        expect(input.confirm).toBe(true);
+        expect(input.files).toEqual(["index.html"]);
+        expect(input.workstreamId).toBe(current.workstreamId);
+        if (++gitAttempts === 1) {
+          gitState = { ...gitState, head: "d".repeat(40) };
+          return route.fulfill({
+            status: 409,
+            contentType: "application/json",
+            body: JSON.stringify({
+              ok: false,
+              error: {
+                code: "conflict",
+                message: "Review required after a concurrent Git change",
+              },
+            }),
+          });
+        }
+        gitWrites++;
+        gitState = { ...gitState, head: "c".repeat(40), changes: [] };
+        return fulfill(route, {
+          status: gitState,
+          message: "Committed fixture checkpoint. No push performed.",
+        });
+      }
+      gitReads++;
+      return fulfill(route, gitState);
+    }
+    return route.fallback();
+  });
+  await enterFixtureWorld(page);
+  const { openCodeWheel } = await import("./world-code-wheel.js");
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+  const intake = page.getByRole("dialog", { name: "Repository Intake_" });
+  await intake
+    .getByRole("button", { name: "Discover path", exact: true })
+    .click();
+  await expect(intake.getByLabel("Local repository path")).toHaveValue(
+    "/home/browser-fixture/",
+  );
+  expect(directoryWrites).toBe(0);
+  await intake.getByRole("button", { name: /Create projects folder:/ }).click();
+  await expect(intake.getByLabel("Project parent folder")).toHaveValue(
+    "/home/browser-fixture/projects",
+  );
+  await intake.getByLabel("Project name", { exact: true }).fill("my-project");
+  await expect(intake).toContainText(
+    "/home/browser-fixture/projects/my-project",
+  );
+  await page.screenshot({ path: testInfo.outputPath("load-repo-desktop.png") });
+  await intake
+    .getByRole("button", { name: "Open recent", exact: true })
+    .click();
+  await expect(page.getByTestId("world-hud")).toContainText("Repository floor");
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Workbench", exact: true }).click();
+  const workbench = page.getByRole("dialog", { name: "Repository Workbench" });
+  await expect(
+    workbench.getByRole("heading", { name: "Workbench", exact: true }),
+  ).toBeVisible();
+  await expect(
+    workbench.getByRole("button", { name: "Open current work / World View" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("dialog", { name: "New Workstream", exact: true }),
+  ).toHaveCount(0);
+  await workbench
+    .getByRole("button", { name: /Latest · Build a settings panel/ })
+    .click();
+  await expect(
+    workbench.getByRole("button", { name: "Continue saved work", exact: true }),
+  ).toBeDisabled();
+  await workbench
+    .getByRole("checkbox", { name: /Continue this saved worktree/ })
+    .check();
+  await workbench
+    .getByRole("button", { name: "Continue saved work", exact: true })
+    .click();
+  await expect(workbench).toContainText(
+    "Saved work restored. No coding turn was sent.",
+  );
+  expect(continued).toBe(1);
+  expect(created).toBe(0);
+  await expect(
+    workbench.getByRole("button", { name: "Open current work / World View" }),
+  ).toBeEnabled();
+  await workbench.getByRole("checkbox", { name: /index.html/ }).check();
+  await workbench.getByLabel("Commit message").fill("feat: saved website");
+  await workbench.getByRole("button", { name: /Review commit/ }).click();
+  expect(gitWrites).toBe(0);
+  const readsBeforeFailure = gitReads;
+  await workbench
+    .getByRole("button", { name: "Confirm commit", exact: true })
+    .click();
+  await expect.poll(() => gitReads).toBeGreaterThan(readsBeforeFailure);
+  await expect(
+    workbench.getByText("dddddddddddd", { exact: true }),
+  ).toBeVisible();
+  await expect(workbench.getByRole("alert")).toContainText(
+    "Review required after a concurrent Git change",
+  );
+  expect(gitWrites).toBe(0);
+  await workbench.getByRole("button", { name: /Review commit/ }).click();
+  await workbench
+    .getByRole("button", { name: "Confirm commit", exact: true })
+    .click();
+  await expect(workbench).toContainText(
+    "Committed fixture checkpoint. No push performed.",
+  );
+  expect(gitWrites).toBe(1);
+  await workbench
+    .getByRole("heading", { name: "Workbench", exact: true })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("workbench-desktop.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const box = await workbench.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  await page.screenshot({
+    path: testInfo.outputPath("workbench-portrait.png"),
+  });
+  expect(
+    await workbench.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth + 1,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("workbench-portrait.png"),
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await workbench.getByRole("button", { name: "Commits", exact: true }).click();
+  await workbench
+    .getByRole("button", { name: "New Workstream from this commit" })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "New Workstream",
+    exact: true,
+  });
+  await expect(workbench).toHaveCount(0);
+  await expect(dialog.getByLabel("New Workstream base commit")).toHaveValue(
+    "a".repeat(40),
+  );
+  await dialog
+    .getByLabel("New Workstream task")
+    .fill("Add the next website page");
+  await dialog.getByLabel("New Workstream branch").fill("feature/next-page");
+  await expect(
+    dialog.getByRole("button", { name: "Start Workstream", exact: true }),
+  ).toBeDisabled();
+  await page.screenshot({
+    path: testInfo.outputPath("new-workstream-desktop.png"),
+  });
+  await dialog
+    .getByRole("checkbox", { name: /Create this isolated worktree/ })
+    .check();
+  await dialog
+    .getByRole("button", { name: "Start Workstream", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  expect(created).toBe(1);
+  expect(createdBody).toMatchObject({
+    branch: "feature/next-page",
+    startPoint: "a".repeat(40),
+    prIntent: "draft-pr",
+    task: "Add the next website page",
+  });
+  expect(errors).toEqual([]);
+});
+
+test("@workbench-normal drives one Workstream through normal World conversation", async ({
+  page,
+}, testInfo) => {
+  // Includes the full discussion/queue journey and front/back/oblique cloud proofs.
+  test.setTimeout(300_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");
 
   const repository = {
@@ -729,7 +1250,21 @@ test("@workbench-normal drives one Workstream through normal World conversation"
       },
     ],
   } as const;
-  let currentWorkstream: Record<string, unknown> | null = null;
+  let currentWorkstream: Record<string, unknown> | null = {
+    ...baseWorkstream,
+    workstreamId: "old-session-workstream",
+    status: "blocked",
+    agent: {
+      ...agent,
+      agentId: "old-agent",
+      nativeSessionId: "old-root",
+      rootNativeSessionId: "old-root",
+    },
+  };
+  const plainFeedback =
+    "In this existing website, change only the heading to Fresh Food, Happy People.";
+  let finishPlainTurn: (() => void) | undefined;
+  let websiteSource: string | null = null;
   let createRequests = 0;
   let iterationRequests = 0;
   const streamRequests: string[] = [];
@@ -747,6 +1282,59 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     ],
     fulfillStream: async (route, requestText, userDisplayName) => {
       streamRequests.push(requestText);
+      const intent = route.request().postDataJSON().intent;
+      expect(intent).toBe(
+        requestText === "hi codex" ||
+          requestText === "change the title to food is good"
+          ? "discussion"
+          : "work",
+      );
+      if (requestText === plainFeedback) {
+        const events = [
+          ...baseWorkstream.events,
+          {
+            eventId: "plain-chat-start",
+            status: "working",
+            summary: plainFeedback,
+            occurredAt: new Date().toISOString(),
+          },
+        ];
+        currentWorkstream = {
+          ...baseWorkstream,
+          revision: 3,
+          status: "working",
+          events,
+          projection: {
+            ...baseWorkstream.projection,
+            currentActivity: "Editing settings.tsx",
+            activeFile: { path: "settings.tsx", activityId: "file-edit-plain" },
+            changedFiles: [
+              {
+                path: "settings.tsx",
+                change: "untracked",
+                diffSummary: "?? settings.tsx",
+              },
+            ],
+          },
+        };
+        await new Promise<void>((resolve) => {
+          finishPlainTurn = resolve;
+        });
+        currentWorkstream = {
+          ...currentWorkstream,
+          status: "ready-for-review",
+          revision: 4,
+          events: [
+            ...events,
+            {
+              eventId: "plain-chat-done",
+              status: "ready-for-review",
+              summary: "Changed settings.tsx. Validation: focused test passed.",
+              occurredAt: new Date().toISOString(),
+            },
+          ],
+        };
+      }
       await route.fulfill({
         status: 200,
         contentType: "text/event-stream",
@@ -755,6 +1343,33 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     },
     fulfillWorkstreams: async (route, pathname) => {
       const request = route.request();
+      if (pathname.endsWith("/source")) {
+        const file = new URL(request.url()).searchParams.get("path");
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(
+            envelope({
+              repositoryRef: repository.repositoryId,
+              objectRef:
+                file ??
+                `aiw://object/workstream-${baseWorkstream.workstreamId}`,
+              path: file,
+              content: file ? websiteSource : null,
+              files: websiteSource
+                ? [{ ref: "settings.tsx", path: "settings.tsx" }]
+                : [],
+              startLine: 1,
+              truncated: false,
+              message: websiteSource
+                ? "Owned Workstream source"
+                : "No source files yet.",
+            }),
+          ),
+        });
+        return;
+      }
+
       if (
         request.method() === "GET" &&
         pathname.endsWith("/workstreams/current")
@@ -803,8 +1418,11 @@ test("@workbench-normal drives one Workstream through normal World conversation"
         expect(input).toEqual({
           requestId: expect.stringMatching(/^iterate-/u),
           correlationId: expect.any(String),
-          expectedRevision: 1,
-          feedback: "change it to use the blue active state",
+          expectedRevision: iterationRequests,
+          feedback:
+            iterationRequests === 1
+              ? "change it to use the blue active state"
+              : plainFeedback,
           repository,
           agent,
         });
@@ -874,6 +1492,15 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     "ready",
     { timeout: 30_000 },
   );
+  await expect(
+    page.getByRole("complementary", {
+      name: "Current Workstream",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('[data-workstream-slab="old-session-workstream"]'),
+  ).toHaveCount(0);
   await composer.fill("Build a settings panel");
   await expect(
     page.getByRole("button", { name: "Send", exact: true }),
@@ -895,6 +1522,62 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await expect(workstream).toContainText("Workbench · working");
   await expect.poll(() => createRequests).toBe(1);
   expect(streamRequests).toEqual([]);
+  const actor = page.locator(".world-room__avatars li[data-roster-id]").first();
+  await expect(actor).toHaveAttribute("data-avatar-action", "Run");
+  const startX = Number(await actor.getAttribute("data-position-x"));
+  await expect
+    .poll(async () => Number(await actor.getAttribute("data-position-x")))
+    .not.toBe(startX);
+  await expect(actor).toHaveAttribute("data-work-state", "coding", {
+    timeout: 20000,
+  });
+  await expect(actor).toHaveAttribute("data-avatar-action", /Dig|Work/);
+  await expect(actor).toContainText("Owned worktree is current and ready.");
+  const assetDetails = page.locator(".repository-assets > details");
+  if (
+    await assetDetails.evaluate(
+      (element) => (element as HTMLDetailsElement).open,
+    )
+  )
+    await assetDetails.locator("summary").click();
+  await expect(assetDetails).not.toHaveAttribute("open", "");
+  await page.screenshot({
+    path: testInfo.outputPath("workstream-slab-actor.png"),
+  });
+  const slab = page.locator(
+    `[data-workstream-slab="${baseWorkstream.workstreamId}"]`,
+  );
+  await expect(slab).toHaveCount(1);
+  await slab.focus();
+  await slab.press("Enter");
+  await expect(
+    page.getByRole("region", { name: "Source code viewport" }),
+  ).toContainText("No source files yet.");
+  websiteSource = "export const settings = true;";
+  currentWorkstream = {
+    ...currentWorkstream,
+    projection: {
+      ...baseWorkstream.projection,
+      currentActivity: "Writing settings.tsx",
+      diff: {
+        summary: "Added settings",
+        patch: "+export const settings = true;",
+        truncated: false,
+      },
+    },
+  };
+  await page
+    .getByRole("region", { name: "Source code viewport" })
+    .getByRole("button", { name: "settings.tsx", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Source code viewport" }),
+  ).toContainText("export const settings = true;");
+  await expect(actor).toContainText("Writing settings.tsx");
+  await page.screenshot({
+    path: testInfo.outputPath("workstream-slab-coding.png"),
+  });
+  await page.getByRole("button", { name: "Close code", exact: true }).click();
   const inspect = workstream.getByRole("button", {
     name: "Inspect current Workstream",
   });
@@ -924,7 +1607,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     path: testInfo.outputPath("workbench-normal-expanded.png"),
   });
 
-  await composer.fill("change it to use the blue active state");
+  await composer.fill("/work change it to use the blue active state");
   await composer.press("Enter");
   await expect
     .poll(() => streamRequests)
@@ -940,6 +1623,121 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     }),
   ).toBeEnabled();
 
+  await composer.fill(`/work ${plainFeedback}`);
+  await composer.press("Enter");
+  await expect.poll(() => streamRequests.at(-1)).toBe(plainFeedback);
+  await expect(actor).toHaveAttribute("data-object-ref", /workstream-file-/);
+  await expect(actor).toHaveAttribute("data-work-state", "coding", {
+    timeout: 20000,
+  });
+  await expect(actor).toHaveAttribute("data-avatar-action", /Dig|Work/);
+  const bubbleRoom = page.locator(".world-room");
+  await page.screenshot({ path: testInfo.outputPath("bubble-near.png") });
+  const initialZ = Number(
+    await bubbleRoom.getAttribute("data-user-position-z"),
+  );
+  await bubbleRoom.focus();
+  await page.keyboard.down("s");
+  try {
+    await expect
+      .poll(
+        async () =>
+          Number(await bubbleRoom.getAttribute("data-user-position-z")),
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(initialZ + 12);
+  } finally {
+    await page.keyboard.up("s");
+  }
+  // Face the agent through ordinary lateral travel, keeping real HUDs visible.
+  const agentX = Number(await bubbleRoom.getAttribute("data-agent-position-x"));
+  const userX = Number(await bubbleRoom.getAttribute("data-user-position-x"));
+  const lateral = agentX < userX ? "a" : "d";
+  await page.keyboard.down(lateral);
+  try {
+    await expect
+      .poll(
+        async () => {
+          const x = Number(
+            await bubbleRoom.getAttribute("data-user-position-x"),
+          );
+          return lateral === "a" ? x <= agentX : x >= agentX;
+        },
+        { timeout: 20_000 },
+      )
+      .toBe(true);
+  } finally {
+    await page.keyboard.up(lateral);
+  }
+  const readableBubble = page.locator(".world-activity-bubble:visible").first();
+  await expect(readableBubble).toBeVisible();
+  await (
+    await import("./world-activity-cloud.js")
+  ).verifyActivityCloud(page, readableBubble, testInfo);
+  const bubbleBox = (await readableBubble.boundingBox())!;
+  expect(bubbleBox.x).toBeGreaterThanOrEqual(0);
+  expect(bubbleBox.y).toBeGreaterThanOrEqual(0);
+  expect(bubbleBox.x + bubbleBox.width).toBeLessThanOrEqual(1440);
+  expect(bubbleBox.y + bubbleBox.height).toBeLessThanOrEqual(900);
+  await page.screenshot({ path: testInfo.outputPath("bubble-far.png") });
+  await testInfo.attach("bubble-distance", {
+    body: JSON.stringify({
+      initialZ,
+      farZ: Number(await bubbleRoom.getAttribute("data-user-position-z")),
+    }),
+    contentType: "application/json",
+  });
+  await expect(
+    page.getByRole("log", { name: "Conversation and activity" }),
+  ).toContainText("Starting report");
+  expect(createRequests).toBe(1);
+  expect(iterationRequests).toBe(2); // only explicit /work resumes coding
+  await page.screenshot({
+    path: testInfo.outputPath("continued-file-dig.png"),
+  });
+  await composer.fill("hi codex");
+  await composer.press("Enter");
+  await expect(
+    page.getByText("1 queued · waiting for the current turn", { exact: true }),
+  ).toBeVisible();
+  expect(streamRequests).not.toContain("hi codex");
+  const eventsBeforeDiscussion = (currentWorkstream!.events as unknown[])
+    .length;
+  await page.screenshot({ path: testInfo.outputPath("discussion-queued.png") });
+  finishPlainTurn!();
+  await expect.poll(() => streamRequests.at(-1)).toBe("hi codex");
+  await expect(
+    page.getByText("1 queued · waiting for the current turn", { exact: true }),
+  ).toHaveCount(0);
+  await expect(workstream).toHaveAttribute(
+    "data-workstream-status",
+    "ready-for-review",
+  );
+  await expect(actor).toHaveAttribute("data-avatar-action", "Idle");
+  await expect(
+    page.getByRole("log", { name: "Conversation and activity" }),
+  ).toContainText("Completion report");
+
+  // Imperative wording without /work stays discussion in the same open task.
+  await composer.fill("change the title to food is good");
+  await composer.press("Enter");
+  await expect
+    .poll(() => streamRequests.at(-1))
+    .toBe("change the title to food is good");
+  await expect(page.locator(".world-chat")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  expect(iterationRequests).toBe(2);
+  expect((currentWorkstream!.events as unknown[]).length).toBe(
+    eventsBeforeDiscussion + 1,
+  );
+  await expect(
+    page.getByRole("log", { name: "Conversation and activity" }),
+  ).toContainText("Mr Fluff is here and ready.");
+  await page.screenshot({
+    path: testInfo.outputPath("discussion-and-reports.png"),
+  });
   await composer.fill("cancel current workstream");
   await composer.press("Enter");
   await expect(workstream).toHaveAttribute(
@@ -947,6 +1745,9 @@ test("@workbench-normal drives one Workstream through normal World conversation"
     "cancelled",
   );
   await expect(workstream).toContainText("Owned clean worktree removed.");
+  await expect(actor).toHaveAttribute("data-work-state", "idle");
+  await expect(actor).toHaveAttribute("data-avatar-action", "Idle");
+  await expect(slab).toHaveCount(0);
   const unavailableCancel = workstream.getByRole("button", {
     name: "Cancel unavailable — Workstream is cancelled.",
   });
@@ -979,15 +1780,18 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   ).toBe(true);
 });
 
-for (const screenJourney of ["hud", "spatial", "code"])
+for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
   test(
-    screenJourney === "code"
-      ? "@repository-code-screen @pointer-lock inspects an object in World and fullscreen"
-      : screenJourney === "spatial"
-        ? "@spatial-screens toggles and moves three interactive World screens"
-        : "@workbench-world-view keeps preview interaction inside the mounted World",
+    screenJourney === "code-overlap"
+      ? "@code-screen-overlap stays opaque over a rear screen from multiple positions"
+      : screenJourney === "code"
+        ? "@repository-code-screen @pointer-lock inspects an object in World and fullscreen"
+        : screenJourney === "spatial"
+          ? "@spatial-screens toggles and moves three interactive World screens"
+          : "@workbench-world-view keeps preview interaction inside the mounted World",
     async ({ page }, testInfo) => {
-      test.setTimeout(180_000);
+      // Combined preview, focus, spatial placement and motion proof on software WebGL.
+      test.setTimeout(300_000);
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.emulateMedia({ reducedMotion: "reduce" });
       await seedConfiguredAvatar(page, "Aaron");
@@ -1140,14 +1944,36 @@ for (const screenJourney of ["hud", "spatial", "code"])
         | typeof failedPreview
         | typeof finalPreview = preview;
       let startRequests = 0;
+      let firstStartFailed = false;
+      const missingFilePreview = {
+        ...failedPreview,
+        workstreamRevision: 1,
+        logs: "Static preview unavailable: create index.html in the owned Workstream and retry.\n",
+      };
+      const plainFeedback =
+        "In this existing website, change only the homepage heading to Fresh Food, Happy People.";
+      const plainPreview = {
+        ...finalPreview,
+        previewId: "preview-plain-chat",
+        revision: 8,
+        workstreamRevision: 4,
+        url: "http://127.0.0.1:43123/preview-plain-fixture",
+      };
       let iterationRequests = 0;
       let latestAttemptFailed = false;
       const browserErrors: string[] = [];
+      await page.route("**/preview-plain-fixture", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><h1>Fresh Food, Happy People</h1>",
+        }),
+      );
       await page.route("**/preview-fixture", (route) =>
         route.fulfill({
           status: 200,
           contentType: "text/html",
-          body: '<!doctype html><label>Preview state<input aria-label="Preview state" value="kept"></label>',
+          body: '<!doctype html><label style="position:sticky;top:0">Preview state<input aria-label="Preview state" value="kept"></label><div style="height:2500px;background:linear-gradient(#0369a1,#38bdf8)">Scrollable website</div>',
         }),
       );
       await installWorldFixtures(page, {
@@ -1189,7 +2015,11 @@ for (const screenJourney of ["hud", "spatial", "code"])
                 envelope({
                   schema: "aiw.preview-manager/1",
                   active: previewReady ? activePreview : null,
-                  latestAttempt: previewReady ? latestAttempt : null,
+                  latestAttempt: previewReady
+                    ? latestAttempt
+                    : firstStartFailed
+                      ? missingFilePreview
+                      : null,
                   previousVerified:
                     previewReady && latestAttemptFailed ? activePreview : null,
                   display: previewReady
@@ -1206,6 +2036,17 @@ for (const screenJourney of ["hud", "spatial", "code"])
             return;
           }
           if (request.method() === "POST" && pathname.endsWith("/previews")) {
+            if (screenJourney === "hud" && !firstStartFailed) {
+              firstStartFailed = true;
+              await route.fulfill({
+                status: 201,
+                contentType: "application/json",
+                body: JSON.stringify(
+                  envelope({ preview: missingFilePreview, replayed: false }),
+                ),
+              });
+              return;
+            }
             startRequests += 1;
             previewReady = true;
             const responsePreview =
@@ -1215,7 +2056,9 @@ for (const screenJourney of ["hud", "spatial", "code"])
                   ? updatedPreview
                   : startRequests === 3
                     ? failedPreview
-                    : finalPreview;
+                    : startRequests === 4
+                      ? finalPreview
+                      : plainPreview;
             latestAttempt = responsePreview;
             latestAttemptFailed = responsePreview.state === "failed";
             if (responsePreview.state === "ready")
@@ -1225,7 +2068,13 @@ for (const screenJourney of ["hud", "spatial", "code"])
               requestId: expect.any(String),
               correlationId: body.requestId,
               expectedWorkstreamRevision:
-                startRequests === 1 ? 1 : startRequests === 2 ? 2 : 3,
+                startRequests === 1
+                  ? 1
+                  : startRequests === 2
+                    ? 2
+                    : startRequests <= 4
+                      ? 3
+                      : 4,
               repository,
               agent,
               recipeId: recipe.recipeId,
@@ -1291,7 +2140,9 @@ for (const screenJourney of ["hud", "spatial", "code"])
             const feedback =
               iterationRequests === 1
                 ? "change it to use the blue active state"
-                : "make the heading larger";
+                : iterationRequests === 2
+                  ? "make the heading larger"
+                  : plainFeedback;
             const input = request.postDataJSON() as Record<string, unknown>;
             expect(input).toEqual({
               requestId: expect.stringMatching(/^iterate-/u),
@@ -1373,11 +2224,52 @@ for (const screenJourney of ["hud", "spatial", "code"])
           });
         },
         fulfillStream: async (route, requestText, userDisplayName) => {
+          if (requestText === plainFeedback)
+            currentWorkstream = {
+              ...currentWorkstream,
+              revision: 4,
+              status: "working",
+              events: [
+                {
+                  eventId: "plain-preview-start",
+                  status: "working",
+                  summary: plainFeedback,
+                  occurredAt: new Date().toISOString(),
+                },
+              ],
+            };
           await new Promise((resolve) => setTimeout(resolve, 250));
+          if (currentWorkstream && iterationRequests > 0)
+            currentWorkstream = {
+              ...currentWorkstream,
+              status: "ready-for-review",
+              events:
+                requestText === plainFeedback
+                  ? [
+                      ...currentWorkstream.events,
+                      {
+                        eventId: "plain-preview-complete",
+                        status: "ready-for-review",
+                        summary:
+                          "**Changed files:** `index.html`\n\n**Checks:**\n3 passed, 0 failed.\n- Inline Node.js check: **passed**\n- node --test tests/homepage.test.mjs: **passed**\n- Whitespace check: **passed**\n\nFull details: Workstream Inspector.",
+                        occurredAt: new Date().toISOString(),
+                      },
+                    ]
+                  : currentWorkstream.events,
+            };
           await route.fulfill({
             status: 200,
             contentType: "text/event-stream",
-            body: streamBody(requestText, userDisplayName),
+            body: streamBody(
+              requestText,
+              userDisplayName,
+              requestText === plainFeedback
+                ? {
+                    repositoryPath: "index.html",
+                    activityId: "activity:heading-edit",
+                  }
+                : {},
+            ),
           });
         },
       });
@@ -1393,6 +2285,9 @@ for (const screenJourney of ["hud", "spatial", "code"])
           await route.continue();
         });
       }
+      const { instrumentAudio, assertAudioCues } =
+        await import("./world-audio.js");
+      await instrumentAudio(page);
       await enterFixtureWorld(page);
 
       const recipesResponse = page.waitForResponse(
@@ -1464,6 +2359,31 @@ for (const screenJourney of ["hud", "spatial", "code"])
       await expect(launcher).toBeEnabled();
       await expect(launcher).toHaveCSS("background-image", /linear-gradient/iu);
       await launcher.click();
+      if (screenJourney === "hud") {
+        const retry = workstream.getByRole("button", {
+          name: "Retry World View",
+          exact: true,
+        });
+        await expect(retry).toBeEnabled();
+        await page.waitForResponse(
+          (response) =>
+            response.request().method() === "GET" &&
+            response.url().includes("/previews/current"),
+        );
+        await expect(workstream).toContainText(
+          "index.html is missing from this Workstream",
+        );
+        await expect(
+          page.getByRole("region", { name: "World View", exact: true }),
+        ).toHaveCount(0);
+        await page.screenshot({
+          path: testInfo.outputPath("first-preview-failure.png"),
+        });
+        await retry.click();
+        await expect(workstream).not.toContainText(
+          "index.html is missing from this Workstream",
+        );
+      }
       await expect.poll(() => startRequests).toBe(1);
 
       const view = page.getByRole("region", { name: "World View" });
@@ -1476,10 +2396,70 @@ for (const screenJourney of ["hud", "spatial", "code"])
       await expect.poll(() => startRequests).toBe(1);
 
       const room = page.locator("main.world-room");
+      if (screenJourney === "hud") {
+        const { openCodeWheel } = await import("./world-code-wheel.js");
+        await openCodeWheel(page);
+        const wheel = page.getByRole("group", {
+          name: "Code Wheel",
+          exact: true,
+        });
+        await wheel
+          .getByRole("button", { name: "Screens", exact: true })
+          .press("Enter");
+        const previewToggle = wheel.getByRole("button", {
+          name: "World View",
+          exact: true,
+        });
+        await expect(previewToggle).toHaveAttribute("aria-disabled", "false");
+        const label = previewToggle.locator("text");
+        const point = await label.evaluate((element) => {
+          const box = element.getBoundingClientRect();
+          const x = box.left + box.width / 2,
+            y = box.top + box.height / 2;
+          const hit = document.elementFromPoint(x, y);
+          return {
+            x,
+            y,
+            reachable: Boolean(hit && element.parentElement?.contains(hit)),
+            hit: hit?.tagName,
+          };
+        });
+        await page.screenshot({
+          path: testInfo.outputPath("world-view-menu-from-hud.png"),
+        });
+        expect(point.reachable, JSON.stringify(point)).toBe(true);
+        await page.mouse.click(point.x, point.y);
+        await expect(
+          page.locator('[data-world-screen="preview"]'),
+        ).toHaveAttribute("data-screen-mode", "spatial");
+        await previewToggle.press("Enter");
+        await expect(
+          page.locator('[data-world-screen="preview"]'),
+        ).toHaveAttribute("data-screen-mode", "hud");
+        await wheel
+          .getByRole("button", { name: "Screens", exact: true })
+          .press("Enter");
+      }
+      if (screenJourney === "code-overlap") {
+        const { exerciseRepositoryCodeScreen } =
+          await import("./world-repository-code-screen.js");
+        await exerciseRepositoryCodeScreen(page, testInfo, true);
+        expect(browserErrors).toEqual([]);
+        return;
+      }
       if (screenJourney === "code") {
         const { exerciseRepositoryCodeScreen } =
           await import("./world-repository-code-screen.js");
         await exerciseRepositoryCodeScreen(page, testInfo);
+        await assertAudioCues(page, testInfo, [
+          "world-jack-in",
+          "repo-city-spawn",
+          "repo-select-",
+          "screen-extrude-on",
+          "screen-extrude-off",
+          "projection-on",
+          "projection-off",
+        ]);
         expect(browserErrors).toEqual([]);
         return;
       }
@@ -1505,8 +2485,52 @@ for (const screenJourney of ["hud", "spatial", "code"])
         }
         expect(browserErrors).toEqual([]);
         expect(startRequests).toBe(1);
+        await assertAudioCues(page, testInfo, [
+          "world-jack-in",
+          "repo-city-spawn",
+          "object-grab",
+          "object-hold-loop",
+          "object-drop",
+          "projection-on",
+          "projection-off",
+        ]);
         return;
       }
+      const audioPlayer = page.getByRole("complementary", {
+        name: "World audio player",
+      });
+      for (const width of [1440, 390]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const expanded of [false, true]) {
+          if (expanded)
+            await audioPlayer
+              .getByRole("button", { name: "Expand audio player" })
+              .click();
+          await expect
+            .poll(() =>
+              page.evaluate(() => {
+                const audio = document
+                  .querySelector(".world-audio")!
+                  .getBoundingClientRect();
+                const panel = document
+                  .querySelector(".world-screen--hud .world-workstream-status")!
+                  .getBoundingClientRect();
+                return panel.top >= audio.bottom;
+              }),
+            )
+            .toBe(true);
+          await page.screenshot({
+            path: testInfo.outputPath(
+              `audio-workbench-${width}-${expanded}.png`,
+            ),
+          });
+          if (expanded)
+            await audioPlayer
+              .getByRole("button", { name: "Collapse audio player" })
+              .click();
+        }
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
       await room.focus();
       await page.keyboard.down("w");
       await page.waitForTimeout(120);
@@ -1530,6 +2554,17 @@ for (const screenJourney of ["hud", "spatial", "code"])
       expect(previewBounds!.height).toBeGreaterThan(
         expandedBounds!.height * 0.45,
       );
+      const previewIframe = expanded.locator("iframe");
+      const originalPreviewIframe = await previewIframe.elementHandle();
+      await expect(previewIframe).toHaveCSS("pointer-events", "auto");
+      expect(
+        await previewIframe.evaluate((element) => {
+          const b = element.getBoundingClientRect();
+          return document
+            .elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)
+            ?.classList.contains("world-view__input-shield");
+        }),
+      ).toBe(true);
       await expanded
         .getByRole("button", { name: "Interact with preview" })
         .click();
@@ -1555,7 +2590,37 @@ for (const screenJourney of ["hud", "spatial", "code"])
       await expect(previewFrame.getByLabel("Preview state")).toHaveValue(
         "kept",
       );
+      const zoom = await room.getAttribute("data-camera-zoom");
+      for (const fraction of [0.15, 0.5, 0.85]) {
+        await previewFrame.locator("html").evaluate(() => {
+          document.scrollingElement!.scrollTop = 0;
+        });
+        const point = await previewIframe.evaluate((element, fraction) => {
+          const b = element.getBoundingClientRect();
+          const x = b.x + b.width * fraction,
+            y = b.y + b.height / 2;
+          return { x, y, hit: document.elementFromPoint(x, y) === element };
+        }, fraction);
+        expect(point.hit).toBe(true);
+        await page.mouse.move(point.x, point.y);
+        await page.mouse.wheel(0, 240);
+        await expect
+          .poll(() =>
+            previewFrame
+              .locator("html")
+              .evaluate(() => document.scrollingElement!.scrollTop),
+          )
+          .toBeGreaterThan(0);
+      }
+      expect(await room.getAttribute("data-camera-zoom")).toBe(zoom);
+      expect(
+        await previewIframe.evaluate(
+          (node, original) => node === original,
+          originalPreviewIframe,
+        ),
+      ).toBe(true);
       await expanded.getByRole("button", { name: "Return to World" }).click();
+      await expect(expanded.locator(".world-view__input-shield")).toBeVisible();
       await expect(room).toHaveAttribute("data-input-owner", "world");
       await page.keyboard.press("Escape");
       await expect(
@@ -1574,7 +2639,7 @@ for (const screenJourney of ["hud", "spatial", "code"])
       await expanded.getByRole("button", { name: "Close World View" }).click();
       await expect(room).toHaveAttribute("data-input-owner", "world");
 
-      await composer.fill("change it to use the blue active state");
+      await composer.fill("/work change it to use the blue active state");
       await composer.press("Enter");
       await expect(view).toHaveAttribute("data-preview-id", preview.previewId);
       await expect(view).toHaveAttribute("data-iteration-state", "updating");
@@ -1592,7 +2657,7 @@ for (const screenJourney of ["hud", "spatial", "code"])
       );
       await expect(view).toContainText("Preview revision 5");
 
-      await composer.fill("make the heading larger");
+      await composer.fill("/work make the heading larger");
       await composer.press("Enter");
       await expect(view).toHaveAttribute(
         "data-preview-id",
@@ -1613,8 +2678,9 @@ for (const screenJourney of ["hud", "spatial", "code"])
         "Replacement preview failed readiness. Verified preview retained.",
       );
 
-      const retry = workstream.getByRole("button", {
-        name: "Refresh World View",
+      const retry = view.getByRole("button", {
+        name: "Refresh preview",
+        exact: true,
       });
       await expect(retry).toBeEnabled();
       await expect(retry).toHaveCSS("background-image", /linear-gradient/iu);
@@ -1629,6 +2695,92 @@ for (const screenJourney of ["hud", "spatial", "code"])
       await expect(view).toContainText(
         "Updated World View ready · preview revision 7.",
       );
+
+      if (screenJourney === "hud") {
+        await view.locator("iframe").evaluate((frame) => {
+          (
+            window as unknown as { continuationFrame: Element }
+          ).continuationFrame = frame;
+        });
+        await composer.fill(`/work ${plainFeedback}`);
+        await composer.press("Enter");
+        await expect.poll(() => startRequests).toBe(5);
+        await expect(view).toHaveAttribute(
+          "data-preview-id",
+          plainPreview.previewId,
+        );
+        await expect(
+          view
+            .frameLocator("iframe")
+            .getByRole("heading", { name: "Fresh Food, Happy People" }),
+        ).toBeVisible();
+        const completionReport = page
+          .locator(".world-transcript__item")
+          .filter({
+            has: page.getByRole("heading", {
+              name: "Completion report",
+              exact: true,
+            }),
+          })
+          .last();
+        await expect(completionReport).toContainText(plainFeedback);
+        await expect(completionReport.locator("li")).toHaveCount(3);
+        await expect(completionReport).toContainText("3 passed, 0 failed.");
+        await expect(completionReport).not.toContainText("assert.equal");
+        await expect(completionReport).toContainText(
+          "Full details: Workstream Inspector.",
+        );
+        await completionReport.scrollIntoViewIfNeeded();
+        await page
+          .getByRole("log", { name: "Conversation and activity" })
+          .screenshot({
+            path: testInfo.outputPath("formatted-current-iteration-report.png"),
+          });
+        expect(iterationRequests).toBe(3); // every explicit /work turn records an iteration
+        expect(
+          await view
+            .locator("iframe")
+            .evaluate(
+              (frame) =>
+                (window as unknown as { continuationFrame: Element })
+                  .continuationFrame === frame,
+            ),
+        ).toBe(true);
+        const { openCodeWheel } = await import("./world-code-wheel.js");
+        await openCodeWheel(page);
+        await view
+          .getByRole("button", { name: "Expand World View", exact: true })
+          .click();
+        const expandedView = page.getByRole("dialog", {
+          name: "World View",
+          exact: true,
+        });
+        await expect(expandedView).toHaveAttribute(
+          "data-world-view-expanded",
+          "true",
+        );
+        const visibleLayer = await page.evaluate(() => {
+          const wheel = document.querySelector(".code-wheel")!;
+          const box = wheel.getBoundingClientRect();
+          const hit = document.elementFromPoint(
+            box.x + box.width / 2,
+            box.y + box.height / 2,
+          );
+          return !!hit?.closest(".world-view");
+        });
+        expect(visibleLayer).toBe(true);
+        await expect(
+          page.getByRole("group", { name: "Code Wheel", exact: true }),
+        ).toHaveCount(1);
+        await page.screenshot({
+          path: testInfo.outputPath(
+            "updated-preview-wheel-behind-fullscreen.png",
+          ),
+        });
+        await expandedView
+          .getByRole("button", { name: "Close World View", exact: true })
+          .click();
+      }
 
       const bounds = await view.boundingBox();
       expect(bounds).not.toBeNull();
@@ -1655,7 +2807,7 @@ for (const screenJourney of ["hud", "spatial", "code"])
       await expect(
         workstream.getByRole("button", { name: /World View unavailable/iu }),
       ).toBeDisabled();
-      expect(startRequests).toBe(4);
+      expect(startRequests).toBe(screenJourney === "hud" ? 5 : 4);
       expect(browserErrors).toEqual([]);
     },
   );
@@ -2840,8 +3992,25 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const errors: string[] = [];
+  let emptyWorkstreamLookups = 0;
+  page.on("response", (response) => {
+    if (
+      response.status() === 404 &&
+      new URL(response.url()).pathname === "/api/workstreams/current"
+    )
+      emptyWorkstreamLookups++;
+  });
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    if (message.type() !== "error") return;
+    // This exact endpoint deliberately returns not_found when no work exists.
+    // Preserve all other HTTP, console and page errors as failures.
+    if (
+      message.text().includes("404 (Not Found)") &&
+      new URL(message.location().url || "http://fixture.invalid").pathname ===
+        "/api/workstreams/current"
+    )
+      return;
+    errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
   await seedConfiguredAvatar(page, "Aaron");
@@ -2919,6 +4088,7 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
       .slice(0, 10),
   );
   expect(overflow).toEqual([]);
+  expect(emptyWorkstreamLookups).toBe(1);
   expect(errors).toEqual([]);
 });
 

@@ -43,6 +43,55 @@ afterEach(async () => {
 });
 
 describe("repository intake API", () => {
+  it("discovers the real configured home without writes and explicitly creates projects", async () => {
+    const state = await fixture();
+    const intake = new RepositoryIntakeService(
+      join(state.root, "intake.json"),
+      undefined,
+      undefined,
+      state.root,
+    );
+    const server = createLocalServer({
+      config: state.config,
+      repositoryIntakeService: intake,
+    });
+    servers.push(server);
+    const discovered = await server.inject({
+      method: "GET",
+      url: "/repository-intake/discover-path",
+    });
+    expect(discovered.statusCode).toBe(200);
+    expect(discovered.json().data).toEqual({
+      homePath: state.root,
+      projectsPath: join(state.root, "projects"),
+      projectsExists: false,
+    });
+    await expect(readFile(join(state.root, "projects"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+    const created = await server.inject({
+      method: "POST",
+      url: "/repository-intake/projects-directory",
+      payload: { confirm: true },
+    });
+    expect(created.statusCode).toBe(200);
+    expect(created.json().data.projectsExists).toBe(true);
+    const project = await server.inject({
+      method: "POST",
+      url: "/repository-intake/create",
+      payload: {
+        rootPath: join(state.root, "projects", "new-site"),
+        name: "new-site",
+      },
+    });
+    expect(project.statusCode).toBe(201);
+    expect(
+      await readFile(
+        join(state.root, "projects", "new-site", ".git", "HEAD"),
+        "utf8",
+      ),
+    ).toContain("refs/heads/");
+  });
   it("opens a local repository and restores it from recent projects", async () => {
     const state = await fixture();
     let server = createLocalServer({ config: state.config });

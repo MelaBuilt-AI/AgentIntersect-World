@@ -5,7 +5,7 @@ import {
   type RepositoryIntakeService,
 } from "./repository-intake.js";
 
-type RouteEnvelope = {
+export type RouteEnvelope = {
   readonly success: <T>(request: FastifyRequest, data: T) => unknown;
   readonly failure: (
     request: FastifyRequest,
@@ -14,7 +14,7 @@ type RouteEnvelope = {
   ) => unknown;
 };
 
-function fail(
+export function fail(
   error: unknown,
   request: FastifyRequest,
   reply: FastifyReply,
@@ -56,6 +56,36 @@ export function registerRepositoryIntakeRoutes(
   envelope: RouteEnvelope,
 ): void {
   const tags = ["repository-intake"];
+  server.get("/repository-intake/discover-path", async (request, reply) => {
+    try {
+      return envelope.success(request, await service.discoverPath());
+    } catch (error) {
+      return fail(error, request, reply, envelope);
+    }
+  });
+  server.post(
+    "/repository-intake/projects-directory",
+    {
+      schema: {
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["confirm"],
+          properties: { confirm: { const: true } },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        return envelope.success(
+          request,
+          await service.createProjectsDirectory(),
+        );
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
 
   server.get(
     "/repository-intake/projects",

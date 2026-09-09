@@ -154,6 +154,7 @@ export function WorldHud({
   status,
   busy,
   queuedCount,
+  workstreamOpen = false,
   message,
   transcript,
   pushToTalkAvailable,
@@ -166,6 +167,7 @@ export function WorldHud({
   readonly status: string;
   readonly busy: boolean;
   readonly queuedCount: number;
+  readonly workstreamOpen?: boolean;
   readonly message: string;
   readonly transcript: readonly WorldTranscriptItem[];
   readonly pushToTalkAvailable: boolean;
@@ -212,7 +214,9 @@ export function WorldHud({
     <div className="world-hud" data-testid="world-hud">
       <div className="world-hud__captions" aria-live="polite" role="status">
         <span>{status}</span>
-        {queuedCount > 0 ? <span>{queuedCount} queued</span> : null}
+        {queuedCount > 0 ? (
+          <span>{queuedCount} queued · waiting for the current turn</span>
+        ) : null}
       </div>
       <div
         ref={transcriptRef}
@@ -281,7 +285,11 @@ export function WorldHud({
               aria-label={`Message ${recipient}`}
               value={message}
               maxLength={4_000}
-              placeholder={`Message ${recipient}`}
+              placeholder={
+                workstreamOpen
+                  ? `Chat with ${recipient} · /work <task> to code`
+                  : `Message ${recipient}`
+              }
               onChange={(event) => {
                 if (inputHistory.current.index !== null)
                   inputHistory.current = {

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -22,6 +23,54 @@ function requireScript(manifest: RootManifest, name: string): string {
 }
 
 describe("acceptance command graph", () => {
+  it("disables only Chrome APT list entries without changing other sources", async () => {
+    const directory = await mkdtemp(resolve(tmpdir(), "aiw-apt-source-"));
+    const ubuntu =
+      "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu/\nSuites: noble\nComponents: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n";
+    const other =
+      "deb [signed-by=/keys/cloud.gpg] https://packages.cloud.google.com/apt cloud-sdk main\n";
+    const chrome =
+      "deb [arch=amd64 signed-by=/keys/chrome.gpg] https://dl.google.com/linux/chrome-stable/deb/ stable main\n";
+    const legacyChrome =
+      "deb http://dl.google.com/linux/chrome/deb/ stable main\n";
+    try {
+      await writeFile(resolve(directory, "ubuntu.sources"), ubuntu);
+      await writeFile(
+        resolve(directory, "mixed.list"),
+        other + chrome + legacyChrome,
+      );
+      execFileSync("python3", [
+        resolve(
+          repositoryRoot,
+          "tooling/scripts/disable-ci-chrome-apt-source.py",
+        ),
+        directory,
+      ]);
+      expect(await readFile(resolve(directory, "ubuntu.sources"), "utf8")).toBe(
+        ubuntu,
+      );
+      const disabled = await readFile(resolve(directory, "mixed.list"), "utf8");
+      expect(disabled).toBe(
+        other +
+          "# CI: unused Chrome source disabled: " +
+          chrome +
+          "# CI: unused Chrome source disabled: " +
+          legacyChrome,
+      );
+      execFileSync("python3", [
+        resolve(
+          repositoryRoot,
+          "tooling/scripts/disable-ci-chrome-apt-source.py",
+        ),
+        directory,
+      ]);
+      expect(await readFile(resolve(directory, "mixed.list"), "utf8")).toBe(
+        disabled,
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
   it("bootstraps project-pinned Chromium before every root E2E path", async () => {
     const manifest = JSON.parse(
       await readProjectFile("package.json"),
@@ -228,6 +277,7 @@ describe("acceptance command graph", () => {
       "corepack enable",
       "corepack prepare pnpm@11.15.0 --activate",
       "pnpm install --frozen-lockfile",
+      "sudo python3 tooling/scripts/disable-ci-chrome-apt-source.py /etc/apt/sources.list.d",
     ];
 
     expect(workflowSource).not.toMatch(/cache:\s*pnpm/);
@@ -241,6 +291,7 @@ describe("acceptance command graph", () => {
     }
     expectOrderedCommands("core", [
       ...pinnedBootstrap,
+      "pnpm exec playwright install --with-deps chromium",
       "pnpm verify:imported-avatar-current-inputs",
       "pnpm avatar:verify:compatibility",
       "pnpm check:core",
@@ -258,6 +309,7 @@ describe("acceptance command graph", () => {
       "VITE_AIW_LOCAL_DEVELOPER_UI=1 pnpm exec vite build",
       "VITE_AIW_LOCAL_DEVELOPER_UI=1 xvfb-run -a pnpm exec playwright test",
       "--config playwright.config.ts",
+      "--fully-parallel --workers=1",
       "--shard=${{ matrix.shard }}",
     ]);
     expect(workflow.jobs["e2e-flagged"]?.strategy?.matrix?.shard).toEqual([

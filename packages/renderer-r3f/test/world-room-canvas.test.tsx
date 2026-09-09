@@ -85,6 +85,7 @@ type RendererApi = {
       readonly icon: string;
       readonly label: string;
       readonly detail: "" | "terminal" | "reading" | "tool";
+      readonly progressText?: string;
     };
     readonly reducedMotion: boolean;
   }) => {
@@ -598,6 +599,20 @@ describe("Phase 18 shared World room canvas", () => {
   });
 
   it("anchors canonical activity truth above Mr Fluff with reduced-motion parity", () => {
+    for (const renderer of [api, importedApi]) {
+      expect(
+        renderer.prepareWorldActivityBubble?.({
+          activity: {
+            state: "coding",
+            icon: "</>",
+            label: "Codex coding",
+            detail: "",
+            progressText: "Writing index.html",
+          },
+          reducedMotion: false,
+        }).detailLabel,
+      ).toBe("Writing index.html");
+    }
     expect(typeof api.prepareWorldActivityBubble).toBe("function");
     if (!api.prepareWorldActivityBubble) return;
     expect(

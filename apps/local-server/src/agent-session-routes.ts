@@ -391,6 +391,7 @@ export function registerAgentSessionRoutes(
           properties: {
             text: { type: "string", minLength: 1, maxLength: 16_384 },
             binding: { type: "object", additionalProperties: true },
+            intent: { type: "string", enum: ["discussion", "work"] },
             context: {
               type: "object",
               additionalProperties: false,
@@ -434,6 +435,7 @@ export function registerAgentSessionRoutes(
           properties: {
             text: { type: "string", minLength: 1, maxLength: 16_384 },
             binding: { type: "object", additionalProperties: true },
+            intent: { type: "string", enum: ["discussion", "work"] },
             context: {
               type: "object",
               additionalProperties: false,

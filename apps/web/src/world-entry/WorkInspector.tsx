@@ -166,6 +166,7 @@ export function WorldWorkstreamStatus({
   onInspect,
   onCancel,
   worldViewAction,
+  onApproveStaticPreview,
 }: {
   readonly workstream: Workstream;
   readonly open: boolean;
@@ -173,8 +174,10 @@ export function WorldWorkstreamStatus({
   readonly message: string | null;
   readonly onInspect: () => void;
   readonly onCancel: () => void;
+  readonly onApproveStaticPreview?: (() => void) | undefined;
   readonly worldViewAction?: {
     readonly label: string;
+    readonly message?: string;
     readonly enabled: boolean;
     readonly onStart: () => void;
   };
@@ -203,6 +206,26 @@ export function WorldWorkstreamStatus({
         >
           {open ? "Close Work Inspector" : "Inspect current Workstream"}
         </button>
+        {onApproveStaticPreview ? (
+          <div>
+            <p>
+              Static website: approve World’s read-only loopback server for
+              index.html in this Workstream. No package scripts or network
+              permissions are granted to the agent.
+            </p>
+            <button
+              type="button"
+              className="world-action--enabled"
+              disabled={pending}
+              onClick={onApproveStaticPreview}
+            >
+              Approve static website preview
+            </button>
+          </div>
+        ) : null}
+        {worldViewAction?.message ? (
+          <p role="status">{worldViewAction.message}</p>
+        ) : null}
         {worldViewAction ? (
           <button
             type="button"

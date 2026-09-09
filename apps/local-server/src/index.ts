@@ -10,7 +10,7 @@ import {
 } from "@agentintersect-world/agent-session-protocol";
 import { buildNavigationMesh } from "@agentintersect-world/navigation";
 import { randomUUID } from "node:crypto";
-import { readdir, unlink } from "node:fs/promises";
+import { mkdir, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -311,7 +311,12 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
       const session = agentSessionGateway.status(agentId);
       if (
         session.sessionId !== agentId ||
-        session.status !== "ready" ||
+        (session.status !== "ready" &&
+          !(
+            session.status === "error" &&
+            session.worktreeRef &&
+            session.currentTaskRef
+          )) ||
         session.continuity !== "current" ||
         (session.mode !== "explore" && session.mode !== "collaborate")
       )
@@ -334,128 +339,168 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
   const previewManager = {
     service: undefined as PreviewManagerService | undefined,
   };
-  const workstreamService =
-    coordinationGitConfig && agentSessionGateway
-      ? new WorkstreamService({
-          directory: path.join(
-            config.presentationSync.dataDir,
-            "..",
-            "workbench",
-            "workstreams",
-          ),
-          worktreeAuthority: new WorktreeAuthority({
-            approvedRepositoryRoot:
-              coordinationGitConfig.approvedRepositoryRoot,
-            allowedWorktreeParent: coordinationGitConfig.allowedWorktreeParent,
-          }),
-          worktreeParent: coordinationGitConfig.allowedWorktreeParent,
-          currentRepository: () => {
-            const selection = selectedRepository();
-            return selection
-              ? {
-                  repositoryId: selection.snapshot.repositoryRef,
-                  revision: selection.generation.id,
-                }
-              : null;
-          },
-          connectedAgent: (agentId) => {
-            try {
-              const session = agentSessionGateway.status(agentId);
-              if (
-                session.sessionId !== agentId ||
-                session.status !== "ready" ||
-                session.continuity !== "current"
-              )
-                return null;
-              return {
-                agentId: session.sessionId,
-                nativeSessionId: session.adapterSessionRef,
-                rootNativeSessionId:
-                  session.adapterRootSessionRef ?? session.adapterSessionRef,
-                revision: String(session.permissionRevision),
-              };
-            } catch {
+  const workbenchWorktreeParent =
+    coordinationGitConfig?.allowedWorktreeParent ??
+    path.resolve(
+      config.presentationSync.dataDir,
+      "..",
+      "workbench",
+      "worktrees",
+    );
+  if (agentSessionGateway)
+    await mkdir(workbenchWorktreeParent, { recursive: true, mode: 0o700 });
+  const workstreamService = agentSessionGateway
+    ? new WorkstreamService({
+        directory: path.join(
+          config.presentationSync.dataDir,
+          "..",
+          "workbench",
+          "workstreams",
+        ),
+        worktreeAuthority: new WorktreeAuthority({
+          currentRepositoryRoot: () =>
+            selectedRepository()?.generation.rootPath ?? null,
+          approvedRepositoryRoot:
+            coordinationGitConfig?.approvedRepositoryRoot ?? process.cwd(),
+          allowedWorktreeParent: workbenchWorktreeParent,
+        }),
+        worktreeParent: workbenchWorktreeParent,
+        currentRepository: () => {
+          const selection = selectedRepository();
+          return selection
+            ? {
+                repositoryId: selection.snapshot.repositoryRef,
+                revision: selection.generation.id,
+              }
+            : null;
+        },
+        connectedAgent: (agentId) => {
+          try {
+            const session = agentSessionGateway.status(agentId);
+            if (
+              session.sessionId !== agentId ||
+              (session.status !== "ready" &&
+                !(
+                  session.status === "error" &&
+                  session.worktreeRef &&
+                  session.currentTaskRef
+                )) ||
+              session.continuity !== "current"
+            )
               return null;
-            }
-          },
-          evidenceReader: {
-            read: (operationRefs) => {
-              if (operationRefs.length > 0)
-                throw new WorkstreamServiceError(
-                  "unavailable",
-                  "Workstream evidence is unavailable until the Phase 14 adapter is composed",
-                );
-              return [];
-            },
-          },
-          previewStop: async (workstreamId) => {
-            await previewManager.service?.stopForWorkstream(workstreamId);
-          },
-          agentPort: {
-            current: workstreamAgentBinding,
-            busy: (agentId) => agentSessionGateway.isBusy(agentId),
-            bind: ({ agent, worktreeRef, taskRef }) => {
-              const current = workstreamAgentBinding(agent.agentId);
-              if (
-                !current ||
-                current.nativeSessionId !== agent.nativeSessionId ||
-                current.rootNativeSessionId !==
-                  (agent.rootNativeSessionId ?? agent.nativeSessionId) ||
-                current.revision !== agent.revision
-              )
-                throw new Error(
-                  "Selected World agent binding changed before Workstream creation",
-                );
-              agentSessionGateway.bindWorkstream(agent.agentId, {
-                worktreeRef,
-                taskRef,
-              });
-              const bound = workstreamAgentBinding(agent.agentId);
-              if (!bound) throw new Error("Workstream agent binding failed");
-              return bound;
-            },
-            dispatch: async ({ agentId, task, systemContext, signal }) => {
-              const binding = agentSessionGateway.status(agentId);
-              await agentSessionGateway.sendText(
-                agentId,
-                {
-                  text: task,
-                  binding,
-                  context: { systemMessage: systemContext },
-                },
-                { signal },
+            return {
+              agentId: session.sessionId,
+              nativeSessionId: session.adapterSessionRef,
+              rootNativeSessionId:
+                session.adapterRootSessionRef ?? session.adapterSessionRef,
+              revision: String(session.permissionRevision),
+            };
+          } catch {
+            return null;
+          }
+        },
+        evidenceReader: {
+          read: (operationRefs) => {
+            if (operationRefs.length > 0)
+              throw new WorkstreamServiceError(
+                "unavailable",
+                "Workstream evidence is unavailable until the Phase 14 adapter is composed",
               );
-            },
-            evidence: (agentId, afterSequence) =>
-              agentSessionGateway
-                .events(agentId)
-                .filter(
-                  (event) =>
-                    event.sequence > afterSequence &&
-                    event.type !== "message.assistant-delta",
-                )
-                .slice(-64)
-                .map((event) => ({
-                  ref: `agent-event:${event.eventId}`,
-                  summary:
-                    event.type === "tool.started" ||
-                    event.type === "tool.completed" ||
-                    event.type === "tool.failed"
-                      ? `Hermes ${event.type} · ${String(event.payload.toolName ?? "unknown")}.`
-                      : `Hermes ${event.type}.`,
-                })),
-            unbind: ({ agentId, worktreeRef, taskRef }) => {
-              agentSessionGateway.unbindWorkstream(agentId, {
-                worktreeRef,
-                taskRef,
-              });
-            },
+            return [];
           },
-        })
-      : undefined;
+        },
+        previewStop: async (workstreamId) => {
+          await previewManager.service?.stopForWorkstream(workstreamId);
+        },
+        agentPort: {
+          current: workstreamAgentBinding,
+          busy: (agentId) => agentSessionGateway.isBusy(agentId),
+          bind: ({ agent, worktreeRef, taskRef }) => {
+            const current = workstreamAgentBinding(agent.agentId);
+            if (
+              !current ||
+              current.nativeSessionId !== agent.nativeSessionId ||
+              current.rootNativeSessionId !==
+                (agent.rootNativeSessionId ?? agent.nativeSessionId) ||
+              current.revision !== agent.revision
+            )
+              throw new Error(
+                "Selected World agent binding changed before Workstream creation",
+              );
+            agentSessionGateway.bindWorkstream(agent.agentId, {
+              worktreeRef,
+              taskRef,
+            });
+            const bound = workstreamAgentBinding(agent.agentId);
+            if (!bound) throw new Error("Workstream agent binding failed");
+            return bound;
+          },
+          dispatch: async ({ agentId, task, systemContext, signal }) => {
+            const binding = agentSessionGateway.status(agentId);
+            await agentSessionGateway.sendText(
+              agentId,
+              {
+                text: task,
+                binding,
+                context: { systemMessage: systemContext },
+              },
+              { signal },
+            );
+          },
+          evidence: (agentId, afterSequence) =>
+            agentSessionGateway
+              .events(agentId)
+              .filter(
+                (event) =>
+                  event.sequence > afterSequence &&
+                  event.type !== "message.assistant-delta",
+              )
+              .slice(-64)
+              .map((event) => ({
+                ref: `agent-event:${event.eventId}`,
+                ...(typeof event.payload.repositoryPath === "string"
+                  ? {
+                      path: event.payload.repositoryPath,
+                      activityId: String(
+                        event.payload.activityId ?? event.eventId,
+                      ),
+                    }
+                  : {}),
+                summary:
+                  event.type === "session.error"
+                    ? String(event.payload.message ?? "Agent turn failed")
+                    : event.type === "tool.started" ||
+                        event.type === "tool.completed" ||
+                        event.type === "tool.failed"
+                      ? `${agentSessionGateway.status(agentId).adapterId} ${event.type} · ${String(event.payload.toolName ?? "unknown")}.`
+                      : `${agentSessionGateway.status(agentId).adapterId} ${event.type}.`,
+              })),
+          unbind: ({ agentId, worktreeRef, taskRef }) => {
+            agentSessionGateway.unbindWorkstream(agentId, {
+              worktreeRef,
+              taskRef,
+            });
+          },
+        },
+      })
+    : undefined;
   if (workstreamService && agentSessionGateway) {
-    agentSessionGateway.setWorkstreamContextResolver((session) =>
+    agentSessionGateway.setWorkstreamTurnStartObserver((agentId, text) =>
+      workstreamService.recordAgentTurnStart(agentId, text),
+    );
+    agentSessionGateway.setWorkstreamTurnObserver((agentId, error) =>
+      workstreamService.recordAgentTurnOutcome(agentId, error),
+    );
+    agentSessionGateway.setWorkstreamDirectoryResolver((session) =>
+      workstreamService.directoryForAgent({
+        agentId: session.sessionId,
+        worktreeRef: session.worktreeRef,
+        currentTaskRef: session.currentTaskRef,
+      }),
+    );
+    agentSessionGateway.setWorkstreamContextResolver((session, intent) =>
       workstreamService.contextForAgent({
+        ...(intent ? { intent } : {}),
         agentId: session.sessionId,
         worktreeRef: session.worktreeRef,
         currentTaskRef: session.currentTaskRef,

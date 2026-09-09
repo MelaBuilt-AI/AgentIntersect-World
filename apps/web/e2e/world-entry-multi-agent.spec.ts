@@ -238,6 +238,51 @@ async function installFixture(page: Page) {
     const pathname = new URL(request.url()).pathname;
     const method = request.method();
 
+    if (pathname.endsWith("/workstreams/current")) {
+      await route.fulfill({
+        status: 404,
+        json: {
+          ok: false,
+          error: { code: "not_found", message: "No current Workstream" },
+        },
+      });
+      return;
+    }
+    if (pathname.endsWith("/repository-intake/selected") && method === "GET") {
+      await fulfillJson(
+        route,
+        envelope({
+          project: {
+            id: "code-wheel-project",
+            name: "Code Wheel fixture",
+            rootPath: "/fixture",
+            source: "local",
+            pinned: false,
+            lastOpenedAt: "2026-05-23T00:00:00Z",
+          },
+        }),
+      );
+      return;
+    }
+    if (
+      pathname.endsWith("/repository-intake/projects/code-wheel-project/git") &&
+      method === "GET"
+    ) {
+      await fulfillJson(
+        route,
+        envelope({
+          rootPath: "/fixture",
+          branch: "main",
+          head: "a".repeat(40),
+          changes: [],
+          upstream: null,
+          commits: [],
+          remotes: [],
+        }),
+      );
+      return;
+    }
+
     if (pathname.endsWith("/constellation/current")) {
       const current = constellation();
       if (!constellationReadyAfterRestore) {
@@ -681,7 +726,14 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
           data: { workstream: currentWorkstream, replayed: false },
         },
       });
-    } else if (currentWorkstream)
+    } else if (new URL(route.request().url()).pathname.endsWith("/history"))
+      await route.fulfill({
+        json: {
+          ok: true,
+          data: { workstreams: currentWorkstream ? [currentWorkstream] : [] },
+        },
+      });
+    else if (currentWorkstream)
       await route.fulfill({ json: { ok: true, data: currentWorkstream } });
     else
       await route.fulfill({
@@ -843,8 +895,14 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
     exact: true,
   });
   await taskDialog
-    .getByRole("textbox")
+    .getByRole("textbox", { name: "New Workstream task", exact: true })
     .fill("Build the fixture settings panel");
+  await expect(
+    taskDialog.getByRole("button", { name: "Start Workstream", exact: true }),
+  ).toBeDisabled();
+  await taskDialog
+    .getByRole("checkbox", { name: /Create this isolated worktree/ })
+    .check();
   await taskDialog
     .getByRole("button", { name: "Start Workstream", exact: true })
     .click();
@@ -860,9 +918,46 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
     .getByRole("button", { name: "Workbench", exact: true })
     .first()
     .click();
+  const workbench = page.getByRole("dialog", { name: "Repository Workbench" });
+  await expect(workbench).toBeVisible();
+  await workbench
+    .getByRole("button", {
+      name: "Open current work / World View",
+      exact: true,
+    })
+    .click();
+  await expect(workbench).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Work Inspector" }),
   ).toBeVisible();
+  // HUD windows intentionally sit above the wheel (CONTINUATION_CORRECTIONS.md).
+  // Reopen on exposed floor, away from the newly opened right-hand inspector,
+  // before testing pointer activation of the outer screen controls.
+  await wheel
+    .getByRole("button", { name: "All agents", exact: true })
+    .click({ button: "middle" });
+  const wheelOrigin = await page
+    .locator("main.world-room")
+    .evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const x = bounds.x + bounds.width / 2;
+      const y = bounds.y + bounds.height / 2;
+      const hit = document.elementFromPoint(x, y);
+      return {
+        x,
+        y,
+        exposed:
+          !!hit &&
+          element.contains(hit) &&
+          !hit.closest(
+            '[data-world-ui="true"], button, [role="button"], input',
+          ),
+      };
+    });
+  expect(wheelOrigin.exposed).toBe(true);
+  await page.mouse.click(wheelOrigin.x, wheelOrigin.y, { button: "middle" });
+  await expect(wheel).toBeVisible();
+  await wheel.getByRole("button", { name: "Screens", exact: true }).click();
   const screenButtons = page.locator(".code-wheel__outer");
   await screenButtons
     .getByRole("button", { name: "Live / Director", exact: true })
@@ -907,9 +1002,13 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
     )
     .toBe("none");
   await page.setViewportSize({ width: 390, height: 844 });
-  const rect = await page.locator(".code-wheel").boundingBox();
-  expect(rect!.x).toBeGreaterThanOrEqual(7);
-  expect(rect!.x + rect!.width).toBeLessThanOrEqual(383);
+  // setViewportSize precedes React's resize projection; assert the settled bounds.
+  await expect(async () => {
+    const rect = await page.locator(".code-wheel").boundingBox();
+    expect(rect).not.toBeNull();
+    expect(rect!.x).toBeGreaterThanOrEqual(7);
+    expect(rect!.x + rect!.width).toBeLessThanOrEqual(383);
+  }).toPass({ timeout: 5_000 });
   await page.screenshot({
     path: testInfo.outputPath("code-wheel-portrait.png"),
   });
@@ -1149,6 +1248,9 @@ test("movement mentions preserve chat routing and secondary follow advances duri
 test("Task 15 composes four exact agents with grouped text, targeting, and push-to-talk", async ({
   page,
 }, testInfo) => {
+  // CI reached the final reload at the 30s cap after completing voice/text flows.
+  // Bound this four-avatar, multi-input journey without weakening step assertions.
+  test.setTimeout(120_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
   const fixture = await installFixture(page);

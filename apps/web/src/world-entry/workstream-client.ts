@@ -17,6 +17,7 @@ export type WorkstreamAuthorityDescriptor = {
 
 export type WorkstreamApiRecord = {
   readonly schema: "aiw.workstream/1";
+  readonly prIntent?: "local" | "draft-pr";
   readonly workstreamId: string;
   readonly revision: number;
   readonly title: string;
@@ -42,6 +43,10 @@ export type WorkstreamApiRecord = {
   readonly evidenceOperationRefs: readonly string[];
   readonly projection: {
     readonly currentActivity: string;
+    readonly activeFile?: {
+      readonly path: string;
+      readonly activityId: string;
+    } | null;
     readonly changedFiles: readonly {
       readonly path: string;
       readonly change: "added" | "modified" | "deleted" | "renamed";
@@ -62,6 +67,7 @@ export type WorkstreamApiRecord = {
   readonly status:
     | "planning"
     | "working"
+    | "ready-for-review"
     | "completed"
     | "blocked"
     | "cancelled"
@@ -77,6 +83,9 @@ export type WorkstreamApiRecord = {
 };
 
 export type WorkstreamCreateInput = {
+  readonly branch?: string;
+  readonly startPoint?: string;
+  readonly prIntent?: "local" | "draft-pr";
   readonly requestId: string;
   readonly correlationId: string;
   readonly title: string;
@@ -150,6 +159,31 @@ export class WorkstreamClient {
     readonly replayed: boolean;
   }> {
     return this.#mutation("/api/workstreams", input);
+  }
+
+  async history(repositoryId: string): Promise<WorkstreamApiRecord[]> {
+    const response = await this.fetcher(
+      `/api/workstreams/history?repositoryId=${encodeURIComponent(repositoryId)}`,
+    );
+    const envelope = (await response.json()) as ApiResult<{
+      workstreams: unknown[];
+    }>;
+    if (!response.ok) throw new Error(errorMessage(envelope));
+    return envelope.data.workstreams.map(recordFrom);
+  }
+
+  async continueSaved(
+    workstream: WorkstreamApiRecord,
+    authority: WorkstreamAuthorityDescriptor,
+  ) {
+    return this.#mutation(
+      `/api/workstreams/${encodeURIComponent(workstream.workstreamId)}/continue`,
+      {
+        expectedRevision: workstream.revision,
+        ...authority,
+        confirm: true,
+      },
+    );
   }
 
   async iterate(

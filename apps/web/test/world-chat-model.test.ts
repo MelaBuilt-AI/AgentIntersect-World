@@ -101,6 +101,10 @@ describe("World Workbench conversation commands", () => {
   it.each([
     ["Build a settings panel", "Build a settings panel"],
     [
+      "can you please create a basic website homepage called Codex is Awesome",
+      "can you please create a basic website homepage called Codex is Awesome",
+    ],
+    [
       "Can you fix the clipped mobile menu?",
       "Can you fix the clipped mobile menu?",
     ],

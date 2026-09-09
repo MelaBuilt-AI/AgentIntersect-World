@@ -11,6 +11,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
+import { homedir } from "node:os";
 
 export type RepositoryProject = {
   readonly id: string;
@@ -94,10 +95,40 @@ export class RepositoryIntakeService {
     storePath: string,
     now: () => Date = () => new Date(),
     git: RepositoryGitRunner = runGit,
+    readonly homePath: string = homedir(),
   ) {
     this.#storePath = storePath;
     this.#now = now;
     this.#runGit = git;
+  }
+
+  async discoverPath() {
+    const homePath = await this.#existingDirectory(this.homePath);
+    const projectsPath = resolve(homePath, "projects");
+    let projectsExists = false;
+    try {
+      projectsExists = (await stat(projectsPath)).isDirectory();
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT")
+        throw new RepositoryIntakeError(
+          "unavailable",
+          "Projects folder is unavailable",
+        );
+    }
+    return { homePath, projectsPath, projectsExists };
+  }
+
+  async createProjectsDirectory() {
+    const paths = await this.discoverPath();
+    try {
+      await mkdir(paths.projectsPath, { recursive: true });
+    } catch {
+      throw new RepositoryIntakeError(
+        "unavailable",
+        "Could not create the projects folder",
+      );
+    }
+    return this.discoverPath();
   }
 
   async list(): Promise<readonly RepositoryProject[]> {

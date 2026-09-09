@@ -64,6 +64,44 @@ afterEach(async () => {
 });
 
 describe("Preview Manager API", () => {
+  it("approves the owned static-server preset without accepting executable or cwd from the browser", async () => {
+    const server = await fixture();
+    const payload = {
+      requestId: "approve-static",
+      correlationId: "approve-static",
+      repositoryId: repository.repositoryId,
+    };
+    const approved = await server.inject({
+      method: "POST",
+      url: "/preview-recipes/static-site",
+      payload,
+    });
+    expect(approved.statusCode).toBe(201);
+    expect(approved.json().data.recipe).toMatchObject({
+      repositoryId: repository.repositoryId,
+      executable: process.execPath,
+      browserPath: "/",
+    });
+    expect(approved.json().data.recipe.args[0]).toMatch(
+      /static-site-preview\.js$/,
+    );
+    const readback = await server.inject({
+      method: "GET",
+      url: `/preview-recipes?repositoryId=${repository.repositoryId}`,
+    });
+    expect(readback.json().data[0].recipeId).toBe(
+      approved.json().data.recipe.recipeId,
+    );
+    expect(
+      (
+        await server.inject({
+          method: "POST",
+          url: "/preview-recipes/static-site",
+          payload: { ...payload, executable: "unapproved", cwd: "/tmp" },
+        })
+      ).statusCode,
+    ).toBe(400);
+  });
   it("approves, lists, starts, reads, and stops an exact Workstream preview", async () => {
     const server = await fixture();
     const approved = await server.inject({

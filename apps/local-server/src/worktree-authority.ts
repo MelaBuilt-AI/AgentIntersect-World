@@ -15,6 +15,7 @@ type GitResult = {
 
 export type WorktreeAuthorityOptions = {
   readonly approvedRepositoryRoot: string;
+  readonly currentRepositoryRoot?: () => string | null;
   readonly allowedWorktreeParent: string;
 };
 
@@ -139,7 +140,8 @@ async function missing(path: string): Promise<boolean> {
 }
 
 export class WorktreeAuthority {
-  readonly #approvedRepositoryRoot: string;
+  readonly #defaultRepositoryRoot: string;
+  readonly #currentRepositoryRoot: (() => string | null) | undefined;
   readonly #allowedWorktreeParent: string;
   readonly #bindings = new Map<string, WorktreeBinding>();
   readonly #replays = new Map<string, ReplayRecord>();
@@ -149,8 +151,21 @@ export class WorktreeAuthority {
   #closed = false;
 
   constructor(options: WorktreeAuthorityOptions) {
-    this.#approvedRepositoryRoot = resolve(options.approvedRepositoryRoot);
+    this.#defaultRepositoryRoot = resolve(options.approvedRepositoryRoot);
+    this.#currentRepositoryRoot = options.currentRepositoryRoot;
     this.#allowedWorktreeParent = resolve(options.allowedWorktreeParent);
+  }
+
+  get #approvedRepositoryRoot(): string {
+    const root = this.#currentRepositoryRoot
+      ? this.#currentRepositoryRoot()
+      : this.#defaultRepositoryRoot;
+    if (!root || !isAbsolute(root))
+      throw new WorktreeAuthorityError(
+        "git-refused",
+        "Select a repository before starting work",
+      );
+    return resolve(root);
   }
 
   ownedProcessCount(): number {
@@ -372,6 +387,7 @@ export class WorktreeAuthority {
     readonly requestId: string;
     readonly worktreeId: string;
     readonly startPoint?: string;
+    readonly branch?: string;
   }): Promise<WorktreeCreateResult> {
     this.#validateIdentifier("ownerId", input.ownerId);
     this.#validateIdentifier("requestId", input.requestId);
@@ -391,7 +407,7 @@ export class WorktreeAuthority {
         this.#allowedWorktreeParent,
         `aiw-${stem || "worktree"}-${suffix}`,
       ),
-      branch: `workstream/${stem || "worktree"}-${suffix}`,
+      branch: input.branch ?? `workstream/${stem || "worktree"}-${suffix}`,
       startPoint: input.startPoint ?? "HEAD",
     });
   }
@@ -412,7 +428,12 @@ export class WorktreeAuthority {
         "git-refused",
         "Restored worktree belongs to a different repository",
       );
-    return result.receipt;
+    return this.measure({
+      ownerId: receipt.ownerId,
+      worktreeId: receipt.worktreeId,
+      repositoryRoot: this.#approvedRepositoryRoot,
+      worktreePath: join(this.#allowedWorktreeParent, receipt.relativePath),
+    });
   }
 
   async dispose(): Promise<void> {
@@ -513,7 +534,7 @@ export class WorktreeAuthority {
     if (result.exitCode !== 0)
       throw new WorktreeAuthorityError(
         "git-refused",
-        "Start point does not resolve to an approved repository commit",
+        "Selected repository needs an initial commit before an isolated Workstream can start; create that commit and reload the repository",
       );
   }
 
