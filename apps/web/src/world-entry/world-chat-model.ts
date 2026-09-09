@@ -1,3 +1,4 @@
+import type { Workstream } from "./workstream-tracer.js";
 import type {
   ConstellationMessageGroup,
   SessionHistory,
@@ -236,6 +237,7 @@ export type WorkstreamConversationAction =
 
 export function classifyWorkstreamMessage(
   text: string,
+  discussionByDefault = false,
 ): WorkstreamConversationAction | null {
   const trimmed = text.trim();
   if (
@@ -252,11 +254,12 @@ export function classifyWorkstreamMessage(
     )
   )
     return { action: "cancel", text: trimmed };
-  const explicit = /^\/work\s+(?:start|continue)\s+(.+)$/iu.exec(trimmed);
+  const explicit = /^\/work\s+(?:(?:start|continue)\s+)?(.+)$/iu.exec(trimmed);
   if (explicit)
     return { action: "request", text: trimmed, task: explicit[1]!.trim() };
   if (
-    /^(?:(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:build|implement|add|fix|change|update|remove|rename|refactor|improve|create|make)\b|continue\b)/iu.test(
+    !discussionByDefault &&
+    /^(?:(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:please\s+)?(?:build|implement|add|fix|change|update|remove|rename|refactor|improve|create|make)\b|continue\b)/iu.test(
       trimmed,
     )
   )
@@ -264,7 +267,10 @@ export function classifyWorkstreamMessage(
   return null;
 }
 
-export function classifyWorldMessage(text: string):
+export function classifyWorldMessage(
+  text: string,
+  discussionByDefault = false,
+):
   | {
       readonly kind: "local-animation";
       readonly semantic: AvatarOneShotSemantic;
@@ -299,7 +305,7 @@ export function classifyWorldMessage(text: string):
       requestedRoot: explicit?.[1]?.trim() || null,
     };
   }
-  const workstream = classifyWorkstreamMessage(trimmed);
+  const workstream = classifyWorkstreamMessage(trimmed, discussionByDefault);
   if (workstream) return { kind: "local-workstream", ...workstream };
   return { kind: "remote-chat", text: trimmed };
 }
@@ -414,6 +420,52 @@ export type WorldTranscriptItem = {
   readonly recipient?: string;
 };
 
+/** Durable Workstream events, not model narration, own these lifecycle reports. */
+export function workstreamChatReports(
+  work: Workstream,
+  agentName: string,
+): WorldTranscriptItem[] {
+  const reports: WorldTranscriptItem[] = [];
+  let running = false;
+  let task = work.title;
+  for (const event of work.authority?.events ?? []) {
+    const starting = event.status === "working";
+    if (
+      !starting &&
+      (!running ||
+        !["ready-for-review", "completed", "blocked", "cancelled"].includes(
+          event.status,
+        ))
+    )
+      continue;
+    running = starting;
+    if (starting)
+      task = event.summary.replace(
+        /^(?:Task:\s*|Iteration requested\s*·\s*)/u,
+        "",
+      );
+    const label = starting
+      ? "Starting"
+      : event.status === "blocked"
+        ? "Blocked"
+        : event.status === "cancelled"
+          ? "Cancelled"
+          : "Completion";
+    reports.push({
+      id: `workstream-report:${event.eventId}`,
+      kind: "assistant",
+      recipient: agentName,
+      text: [
+        `### ${label} report`,
+        `**Task:** ${task}`,
+        `**Branch:** \`${work.authority!.authority.branch}\``,
+        ...(starting ? [] : [`**Outcome:**\n${event.summary}`]),
+      ].join("\n\n"),
+    });
+  }
+  return reports;
+}
+
 export type WorldChatState = {
   readonly activity: WorldActivity;
   readonly transcript: readonly WorldTranscriptItem[];
@@ -427,6 +479,10 @@ export type WorldChatState = {
 };
 
 export type WorldChatAction =
+  | {
+      readonly type: "WORKSTREAM_REPORTS";
+      readonly reports: readonly WorldTranscriptItem[];
+    }
   | {
       readonly type: "RESTORE_HISTORY";
       readonly messages: SessionHistory["messages"];
@@ -612,6 +668,13 @@ export function reduceWorldChat(
   action: WorldChatAction,
 ): WorldChatState {
   if (action.type === "RESET_PRESENTATION") return createWorldChatState();
+  if (action.type === "WORKSTREAM_REPORTS") {
+    const ids = new Set(state.transcript.map((item) => item.id));
+    const fresh = action.reports.filter((report) => !ids.has(report.id));
+    return fresh.length
+      ? { ...state, transcript: [...state.transcript, ...fresh].slice(-200) }
+      : state;
+  }
   if (action.type === "RESTORE_HISTORY") {
     if (action.groups?.length) {
       const displayNames = action.displayNames ?? {};

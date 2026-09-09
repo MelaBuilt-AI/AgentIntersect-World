@@ -6,7 +6,8 @@ export type BrowserAgentWorkFocus = {
   readonly repositoryPath: string;
   readonly layoutGeneration: string;
   readonly movementRequestId: string | null;
-  readonly source: "structured-tool-event" | "workstream-binding";
+  readonly source:
+    "structured-tool-event" | "workstream-binding" | "workstream-turn";
   readonly state:
     | "targeted"
     | "navigating"
@@ -65,7 +66,8 @@ export function deriveAgentRepositoryWorkState(
       repositoryPath: focus.repositoryPath,
     };
   const coding =
-    focus.source === "structured-tool-event" &&
+    (focus.source === "structured-tool-event" ||
+      focus.source === "workstream-turn") &&
     arrival !== null &&
     focus.movementRequestId !== null &&
     arrival.activityId === focus.activityId &&

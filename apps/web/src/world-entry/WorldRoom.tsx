@@ -1,3 +1,4 @@
+import { audioCue, randomAudioCue } from "../audio/world-audio.js";
 import {
   createRepositoryCityState,
   REPOSITORY_CITY_FLOOR_SIZE,
@@ -61,6 +62,10 @@ import type { WorldInputOwner } from "./world-view-model.js";
 import { useWorldScreens } from "./world-screen-context.js";
 import { RepositoryCodeScreen } from "./RepositoryCodeScreen.js";
 import { WorldCodeWheel, type CodeWheelAction } from "./WorldCodeWheel.js";
+import {
+  createWorkstreamObjects,
+  workstreamEmbodiment,
+} from "./workstream-embodiment.js";
 import { wheelPosition } from "./world-code-wheel-model.js";
 import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
 import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
@@ -93,6 +98,7 @@ import type { AgentRepositoryWorkFocus } from "../sessions/session-client.js";
 import {
   deriveAgentRepositoryWorkState,
   type AgentWorkArrival,
+  type BrowserAgentWorkFocus,
 } from "./agent-work-focus-model.js";
 
 const WorldRoomCanvas = lazy(async () => {
@@ -133,7 +139,7 @@ function settleReducedAgentMovement(
 }
 
 function reconcileAgentWorkArrival(
-  focus: AgentRepositoryWorkFocus | null | undefined,
+  focus: BrowserAgentWorkFocus | null | undefined,
   arrival: Omit<AgentWorkArrival, "activityId"> | null,
 ): AgentWorkArrival | null {
   if (
@@ -195,12 +201,13 @@ export function WorldRoom({
   userCue,
   agentCue,
   agentActorId,
-  agentMovementRequest,
+  agentMovementRequest: incomingMovementRequest,
   agentMovementControl,
-  agentWorkFocus,
-  agentMovementBindings,
+  agentWorkFocus: incomingWorkFocus,
+  agentMovementBindings: incomingMovementBindings,
+  liveWorkstream: sceneWorkstream = null,
   layoutGeneration = "blank-world",
-  onAgentMovementEvent,
+  onAgentMovementEvent: reportMovementEvent,
   showControlHints = true,
   repositoryReadiness = "idle",
   workstreamAuthority,
@@ -212,6 +219,7 @@ export function WorldRoom({
   onRepositoryReady,
   onRepositoryError,
 }: {
+  readonly liveWorkstream?: Workstream | null;
   readonly floor: "blank" | "repository";
   readonly objects: readonly RepositoryRenderObject[];
   readonly reducedMotion: boolean;
@@ -312,13 +320,83 @@ export function WorldRoom({
     roomRef.current = element;
     setScreenEventSource(element);
   }, []);
+  const initialCity = useMemo(
+    () => (floor === "repository" ? projectRepositoryObjects(objects) : []),
+    [floor, objects],
+  );
+  const workstreamObjects = useMemo(
+    () =>
+      floor === "repository"
+        ? createWorkstreamObjects(sceneWorkstream, initialCity)
+        : [],
+    [floor, sceneWorkstream, initialCity],
+  );
+  const workstreamSlab = workstreamObjects[0] ?? null;
+  const embodiment = useMemo(
+    () =>
+      workstreamEmbodiment(
+        sceneWorkstream,
+        workstreamSlab,
+        agentActorId ?? "agent-local",
+        layoutGeneration,
+        [...initialCity, ...workstreamObjects],
+      ),
+    [
+      sceneWorkstream,
+      workstreamSlab,
+      agentActorId,
+      layoutGeneration,
+      initialCity,
+      workstreamObjects,
+    ],
+  );
+  const agentMovementRequest = embodiment?.request ?? incomingMovementRequest;
+  const agentWorkFocus = embodiment?.focus ?? incomingWorkFocus;
+  const agentMovementBindings = useMemo(
+    () =>
+      incomingMovementBindings?.map((binding) => {
+        const work = workstreamEmbodiment(
+          sceneWorkstream,
+          workstreamSlab,
+          binding.actorId,
+          layoutGeneration,
+          [...initialCity, ...workstreamObjects],
+        );
+        return work
+          ? {
+              ...binding,
+              request: work.request ?? binding.request,
+              workFocus: work.focus,
+            }
+          : binding;
+      }),
+    [
+      incomingMovementBindings,
+      initialCity,
+      workstreamObjects,
+      sceneWorkstream,
+      workstreamSlab,
+      layoutGeneration,
+    ],
+  );
+  const onAgentMovementEvent = useCallback(
+    (event: AgentMovementEvent, position: { x: number; z: number }) => {
+      // Scene-owned work movement is local presentation, not a server proposal receipt.
+      if (!event.requestId.startsWith("workstream-scene:"))
+        reportMovementEvent?.(event, position);
+    },
+    [reportMovementEvent],
+  );
   const pressedKeys = useRef(new Set<string>());
   const lastFrame = useRef<number | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  const [entrySlow, setEntrySlow] = useState(false);
+  const revealScene = useCallback(() => setSceneReady(true), []);
   const [contextLost, setContextLost] = useState(
     () => forceNoWebGL || !resolveWebGLCapability().available,
   );
   const [rendererFailure, setRendererFailure] = useState<
-    "context-lost" | "load-or-render-error" | null
+    "context-lost" | "load-or-render-error" | "loading-deferred" | null
   >(null);
   const [userPosition, setUserPosition] = useState({ x: 0, z: 0 });
   const renderedAgents = (
@@ -333,32 +411,44 @@ export function WorldRoom({
         ]
   ).slice(0, 4);
   const activeRoster = new Set(activeAgentRosterIds);
-  const renderedAgentActivities = renderedAgents.map((agent) =>
-    activeRoster.has(agent.rosterId)
+  const renderedAgentActivities = renderedAgents.map((agent, index) =>
+    sceneWorkstream?.status === "working" &&
+    sceneWorkstream.authority?.agent.agentId ===
+      (agentAvatars?.[index]?.worldSessionId ?? agentActorId)
       ? {
-          ...activity,
-          label:
-            activity.state === "thinking"
-              ? `${agent.name} is thinking`
-              : activity.state === "completed"
-                ? `${agent.name} completed the request`
-                : activity.state === "failed"
-                  ? `${agent.name} failed`
-                  : `${agent.name} is ${activity.detail || activity.state}`,
-        }
-      : {
-          state: "idle" as const,
-          icon: "",
-          label: `${agent.name} is idle`,
+          state: "coding" as const,
+          icon: "</>" as const,
+          label: `${agent.name} · ${sceneWorkstream.currentActivity}`,
           detail: "" as const,
-        },
+          progressText: sceneWorkstream.currentActivity,
+        }
+      : activeRoster.has(agent.rosterId)
+        ? {
+            ...activity,
+            label:
+              activity.state === "thinking"
+                ? `${agent.name} is thinking`
+                : activity.state === "completed"
+                  ? `${agent.name} completed the request`
+                  : activity.state === "failed"
+                    ? `${agent.name} failed`
+                    : `${agent.name} is ${activity.detail || activity.state}`,
+          }
+        : {
+            state: "idle" as const,
+            icon: "",
+            label: `${agent.name} is idle`,
+            detail: "" as const,
+          },
   );
-  const presentedActivity = agentAvatars?.length
-    ? activity
-    : {
-        ...activity,
-        label: activity.label.replace(/^Mr Fluff\b/u, agentName),
-      };
+  const presentedActivity = embodiment?.request
+    ? renderedAgentActivities[0]!
+    : agentAvatars?.length
+      ? activity
+      : {
+          ...activity,
+          label: activity.label.replace(/^Mr Fluff\b/u, agentName),
+        };
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
     createAgentMovementState(
@@ -412,10 +502,16 @@ export function WorldRoom({
   const lookOwnsPointerLock = useRef(false);
   const lookRequestSequence = useRef(0);
   const [mouseLookActive, setMouseLookActive] = useState(false);
-  const [city, dispatchCity] = useReducer(
+  const [repositoryCity, dispatchCity] = useReducer(
     reduceRepositoryCity,
     undefined,
     createRepositoryCityState,
+  );
+  const city = useMemo(
+    () => ({
+      instances: [...repositoryCity.instances, ...workstreamObjects],
+    }),
+    [repositoryCity, workstreamObjects],
   );
   const [floorExtent, setFloorExtent] = useState(REPOSITORY_CITY_FLOOR_SIZE);
   const floorSize = worldFloorSize(
@@ -490,6 +586,11 @@ export function WorldRoom({
         avatar.avatarSource.mode === "modular",
     );
   const noWebGL = forceNoWebGL || contextLost || modularUnsupported;
+  useEffect(() => {
+    if (sceneReady || noWebGL) return;
+    const timer = window.setTimeout(() => setEntrySlow(true), 10_000);
+    return () => window.clearTimeout(timer);
+  }, [noWebGL, sceneReady]);
   useLayoutEffect(() => {
     setScreensEnabled?.(!noWebGL);
     return () => setScreensEnabled?.(false);
@@ -501,7 +602,8 @@ export function WorldRoom({
     city.instances.find(
       ({ instanceId }) => instanceId === selectedCityInstanceId,
     ) ?? null;
-  const availableWorkstream = demoWorkstream ?? liveWorkstream;
+  const availableWorkstream =
+    sceneWorkstream ?? demoWorkstream ?? liveWorkstream;
   const selectedWorkstream = selectedCityInstance
     ? findWorkstreamForRepositorySelection(
         availableWorkstream ? [availableWorkstream] : [],
@@ -690,6 +792,8 @@ export function WorldRoom({
         (item) => item.instanceId === instanceId,
       );
       if (!instance) return;
+      randomAudioCue("repo-select");
+      audioCue("screen-extrude-on");
       setSelectedCityInstanceId(instanceId);
       setCodeFullscreen(false);
       setCodeOpening((current) => ({
@@ -783,19 +887,29 @@ export function WorldRoom({
     const timer = window.setTimeout(
       () =>
         setAgentAnimation((current) =>
-          agentMovementRef.current.movementState === "moving"
-            ? current
-            : triggerAvatarOneShot(
+          sceneWorkstream?.authority?.agent.agentId === agentActorId
+            ? setAvatarLocomotion(
                 current,
-                agentCue.semantic,
-                agentCue.source,
-                reducedMotion,
-              ),
+                agentMovementRef.current.animationSemantic,
+              )
+            : agentMovementRef.current.movementState === "moving"
+              ? current
+              : triggerAvatarOneShot(
+                  current,
+                  agentCue.semantic,
+                  agentCue.source,
+                  reducedMotion,
+                ),
         ),
       0,
     );
     return () => window.clearTimeout(timer);
-  }, [agentCue, reducedMotion]);
+  }, [
+    agentCue,
+    reducedMotion,
+    sceneWorkstream?.authority?.agent.agentId,
+    agentActorId,
+  ]);
   const movementAgentCount = agentAvatars?.length ?? 1;
   const agentMovementContext = useMemo(
     () => ({
@@ -975,6 +1089,40 @@ export function WorldRoom({
     }),
     [city.instances, layoutGeneration, movementBounds, userPosition],
   );
+  useEffect(() => {
+    if (sceneWorkstream?.status === "working") return;
+    const current = agentMovementRef.current;
+    if (current.activeRequest?.requestId.startsWith("workstream-scene:")) {
+      const result = interruptAgentMovement(
+        current,
+        current.activeRequest.requestId,
+        "Workstream turn ended",
+      );
+      agentMovementRef.current = result.state;
+      setAgentMovement(result.state);
+      setAgentAnimation((state) => setAvatarLocomotion(state, "Idle"));
+    }
+    const next = { ...secondaryMovementsRef.current };
+    let changed = false;
+    for (const [id, movement] of Object.entries(next)) {
+      if (!movement.activeRequest?.requestId.startsWith("workstream-scene:"))
+        continue;
+      next[id] = interruptAgentMovement(
+        movement,
+        movement.activeRequest.requestId,
+        "Workstream turn ended",
+      ).state;
+      changed = true;
+    }
+    if (changed) {
+      secondaryMovementsRef.current = next;
+      setSecondaryMovements(next);
+    }
+  }, [
+    sceneWorkstream?.status,
+    sceneWorkstream?.authority?.agent.agentId,
+    agentActorId,
+  ]);
   useEffect(() => {
     if (
       !agentMovementRequest ||
@@ -1646,15 +1794,17 @@ export function WorldRoom({
     reducedMotion,
   );
   const agentAction =
-    agentWorkState.state === "coding"
-      ? agentUsesImported
-        ? reducedMotion
-          ? "Idle"
-          : (agentWorkState.codingSemantic ?? "Idle")
-        : agentWorkState.action
-      : agentUsesImported
-        ? agentAnimation.semantic
-        : projectedAgentAction;
+    embodiment && !embodiment.request
+      ? "Idle"
+      : agentWorkState.state === "coding"
+        ? agentUsesImported
+          ? reducedMotion
+            ? "Idle"
+            : (agentWorkState.codingSemantic ?? "Idle")
+          : agentWorkState.action
+        : agentUsesImported
+          ? agentAnimation.semantic
+          : projectedAgentAction;
   const renderedAgentStates = renderedAgents.map((agent, index) => {
     const spawn = WORLD_AGENT_SPAWN_POSITIONS[index]!;
     const binding = agentMovementBindings?.find(
@@ -1869,6 +2019,7 @@ export function WorldRoom({
       ref={bindRoom}
       className="world-room"
       data-scene-id="world-room"
+      data-scene-ready={sceneReady || noWebGL}
       data-world-floor-size={floorSize}
       data-spatial-screens={Boolean(
         screenController?.enabled &&
@@ -1975,6 +2126,7 @@ export function WorldRoom({
         event.stopPropagation();
         stopMouseLook();
         if (!codeWheel) setCodeWheelDiscovered(true);
+        audioCue(codeWheel ? "projection-off" : "projection-on");
         setCodeWheel((current) =>
           current
             ? null
@@ -2007,11 +2159,20 @@ export function WorldRoom({
         <RepositoryCodeScreen
           key={`${codeInstance.instanceId}:${codeOpening?.sequence}`}
           instance={codeInstance}
+          workstream={
+            codeInstance.linkedRepoData?.workstreamId ===
+            sceneWorkstream?.workstreamId
+              ? sceneWorkstream
+              : null
+          }
           fullscreen={codeFullscreen}
           onFullscreenChange={setCodeFullscreen}
           openingYaw={codeOpening?.yaw ?? camera.yaw}
           reducedMotion={reducedMotion}
-          onClose={() => setCodeOpening(null)}
+          onClose={() => {
+            audioCue("screen-extrude-off");
+            setCodeOpening(null);
+          }}
           onInspectionChange={setCodeInspection}
         />
       ) : null}
@@ -2121,7 +2282,10 @@ export function WorldRoom({
           onSelect={(id) => onSelectRecipient?.(id)}
           onClear={() => onClearRecipient?.()}
           onAction={(action) => onCodeWheelAction?.(action)}
-          onClose={() => setCodeWheel(null)}
+          onClose={() => {
+            audioCue("projection-off");
+            setCodeWheel(null);
+          }}
           onCodeScreen={() => setCodeFullscreen((value) => !value)}
         />
       ) : null}
@@ -2149,6 +2313,8 @@ export function WorldRoom({
                 data-object-ref={state.objectRef ?? ""}
                 data-avatar-action={state.action}
                 data-activity-state={agentActivity.state}
+                data-position-x={position.x}
+                data-position-z={position.z}
               >
                 <span>
                   {agent.name}
@@ -2173,6 +2339,15 @@ export function WorldRoom({
               Repository city {repositoryReadiness} · {city.instances.length}{" "}
               semantic objects.
             </p>
+            {workstreamSlab ? (
+              <button
+                type="button"
+                data-workstream-slab={sceneWorkstream?.workstreamId}
+                onClick={() => selectCityInstance(workstreamSlab.instanceId)}
+              >
+                {sceneWorkstream?.title} · live Workstream code slab
+              </button>
+            ) : null}
             <ol
               className="world-room__repository-objects"
               aria-label="Repository floor objects"
@@ -2203,11 +2378,13 @@ export function WorldRoom({
           <p role="status">
             {modularUnsupported
               ? "Modular 3D avatar refused: layered donor-region rendering is pending verification. No complete donor or custom avatar was substituted."
-              : rendererFailure === "load-or-render-error"
-                ? "3D avatar loading or rendering failed. Semantic scene active; movement, chat, and repository state remain available."
-                : rendererFailure === "context-lost"
-                  ? "3D renderer context became unavailable. Semantic scene active; movement, chat, and repository state remain available."
-                  : "Semantic scene active. Movement, avatars, chat, and repository state remain available."}
+              : rendererFailure === "loading-deferred"
+                ? "3D loading deferred. Text-only World active; chat and repository state remain available."
+                : rendererFailure === "load-or-render-error"
+                  ? "3D avatar loading or rendering failed. Semantic scene active; movement, chat, and repository state remain available."
+                  : rendererFailure === "context-lost"
+                    ? "3D renderer context became unavailable. Semantic scene active; movement, chat, and repository state remain available."
+                    : "Semantic scene active. Movement, avatars, chat, and repository state remain available."}
           </p>
         ) : null}
       </section>
@@ -2223,6 +2400,7 @@ export function WorldRoom({
             <Suspense fallback={null}>
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
+                  onSceneReady={revealScene}
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
                   floorSize={floorSize}
@@ -2271,6 +2449,7 @@ export function WorldRoom({
                 />
               ) : (
                 <WorldRoomCanvas
+                  onSceneReady={revealScene}
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
                   floorSize={floorSize}
@@ -2310,6 +2489,40 @@ export function WorldRoom({
               )}
             </Suspense>
           </WorldCanvasErrorBoundary>
+        </div>
+      ) : null}
+      {!noWebGL ? (
+        <div
+          className="world-entry-transition"
+          data-ready={sceneReady}
+          aria-hidden={sceneReady}
+          role="status"
+          aria-live="polite"
+        >
+          <div className="world-entry-transition__card">
+            <span className="world-entry-transition__mark" aria-hidden="true">
+              ✦
+            </span>
+            <h2>Entering World</h2>
+            <p>Loading textures and preparing avatars…</p>
+            {entrySlow && !sceneReady ? (
+              <>
+                <p>
+                  This is taking longer than usual. You can keep waiting or use
+                  chat without 3D.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRendererFailure("loading-deferred");
+                    setContextLost(true);
+                  }}
+                >
+                  Continue in text-only view
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </main>

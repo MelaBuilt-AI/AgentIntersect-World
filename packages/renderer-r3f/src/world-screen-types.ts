@@ -54,6 +54,10 @@ export type WorldScreenBinding = {
 
 export const WORLD_SCREEN_SCALE = 0.006;
 export const WORLD_SCREEN_CENTER_Y = 2.6;
+// Shared by the physical mesh and DOM-cloud occlusion geometry.
+export const WORLD_SCREEN_SHELL_PADDING = 0.05;
+export const WORLD_SCREEN_SHELL_DEPTH = 0.14;
+export const WORLD_SCREEN_SHELL_Z = -0.075;
 
 export function rotateWorldScreen(
   pose: WorldScreenPose,

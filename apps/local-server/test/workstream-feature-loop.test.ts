@@ -1,5 +1,12 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -15,6 +22,7 @@ import {
 
 const executeFile = promisify(execFile);
 const roots: string[] = [];
+const services: WorkstreamService[] = [];
 
 async function git(cwd: string, args: readonly string[]): Promise<string> {
   const { stdout } = await executeFile("git", [...args], {
@@ -123,6 +131,7 @@ async function fixture(
     approvedRepositoryRoot: repositoryRoot,
     allowedWorktreeParent: worktrees,
   });
+  let nextId = 0;
   const service = new WorkstreamService({
     directory: store,
     worktreeAuthority: authority,
@@ -130,9 +139,13 @@ async function fixture(
     currentRepository: () => repository,
     agentPort: port,
     evidenceReader: { read: async (refs) => refs },
-    id: () => "workstream-collision-loop",
+    id: () =>
+      nextId++ === 0
+        ? "workstream-collision-loop"
+        : `workstream-collision-loop-${nextId}`,
     now: () => Date.parse("2026-08-11T15:00:00.000Z"),
   });
+  services.push(service);
   return {
     service,
     store,
@@ -140,6 +153,11 @@ async function fixture(
     port,
     dispatches,
     setCurrentAgent(agent) {
+      if (agent.agentId !== currentAgent.agentId) {
+        worktreeRef = null;
+        currentTaskRef = null;
+        mode = "explore";
+      }
       currentAgent = agent;
     },
   };
@@ -157,12 +175,194 @@ function createRequest() {
 }
 
 afterEach(async () => {
+  await Promise.all(services.splice(0).map((service) => service.dispose()));
   await Promise.all(
     roots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
 describe("Workstream feature loop", () => {
+  it("offers discussion context without changing task, reports, revision or worktree", async () => {
+    const value = await fixture();
+    await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    const before = (await value.service.current())!;
+    const context = await value.service.contextForAgent({
+      agentId: before.agent.agentId,
+      worktreeRef: before.authority.worktreeId,
+      currentTaskRef: before.workstreamId,
+      intent: "discussion",
+    });
+    expect(context).toContain("Answer naturally as yourself");
+    expect(context).toContain(before.task);
+    expect(context).toContain("/work");
+    expect(context).not.toContain("aiw.workstream-report/1");
+    const after = (await value.service.current())!;
+    expect(after.revision).toBe(before.revision);
+    expect(after.events).toEqual(before.events);
+    expect(after.authority).toEqual(before.authority);
+    expect(value.dispatches).toHaveLength(1);
+  });
+  it("starts every bound chat turn independently of wording and does not reuse old validation", async () => {
+    const value = await fixture();
+    await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    const current = (await value.service.current())!;
+    const receipt = join(
+      value.store,
+      "reports",
+      current.workstreamId,
+      `${current.workstreamId}.json`,
+    );
+    await mkdir(join(value.store, "reports", current.workstreamId), {
+      recursive: true,
+    });
+    await writeFile(
+      receipt,
+      JSON.stringify({
+        schema: "aiw.workstream-report/1",
+        workstreamId: current.workstreamId,
+        activity: "Old success",
+        validation: [{ command: "old test", exitCode: 0, summary: "Old pass" }],
+        evidenceRefs: [],
+      }),
+    );
+    await value.service.recordAgentTurnStart(
+      current.agent.agentId,
+      "In this existing website, change only the heading",
+    );
+    const started = (await value.service.current())!;
+    expect(started.status).toBe("working");
+    expect(started.events.at(-1)?.summary).toContain(
+      "In this existing website",
+    );
+    expect(started.projection.validation).toEqual([]);
+    await value.service.recordAgentTurnOutcome(current.agent.agentId);
+    expect((await value.service.current())?.status).toBe("ready-for-review");
+    expect(value.port.dispatch).toHaveBeenCalledTimes(1);
+  });
+  it("reads real untracked and committed website source from the owned worktree without staging it", async () => {
+    const value = await fixture();
+    const { workstream } = await value.service.create(createRequest());
+    const tree = join(value.worktrees, workstream.authority.relativePath);
+    await writeFile(
+      join(tree, "index.html"),
+      "<h1>Fresh Food, Happy People</h1>",
+    );
+    const listing = await value.service.source(workstream.workstreamId);
+    expect(listing.files.map((file) => file.path)).toContain("index.html");
+    const source = await value.service.source(
+      workstream.workstreamId,
+      "index.html",
+    );
+    expect(source.content).toBe("<h1>Fresh Food, Happy People</h1>");
+    expect(await git(tree, ["diff", "--cached", "--name-only"])).toBe("");
+    await expect(
+      value.service.source(workstream.workstreamId, "../outside"),
+    ).rejects.toThrow();
+    expect(
+      (await value.service.source(workstream.workstreamId, "src/collision.ts"))
+        .content,
+    ).toContain("export const collides");
+  });
+  it("preserves an inactive old session's dirty work before a new agent starts", async () => {
+    const value = await fixture();
+    const first = await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    const oldFile = join(
+      value.worktrees,
+      first.workstream.authority.relativePath,
+      "index.html",
+    );
+    await writeFile(oldFile, "retained old homepage");
+    await value.service.recordAgentTurnOutcome(
+      first.workstream.agent.agentId,
+      "timed out",
+    );
+    const agent = {
+      ...selectedAgent,
+      agentId: "new-agent",
+      nativeSessionId: "new-root",
+      rootNativeSessionId: "new-root",
+    };
+    value.setCurrentAgent(agent);
+    const next = await value.service.create({
+      ...createRequest(),
+      agent,
+      requestId: "new-request",
+      correlationId: "new-correlation",
+    });
+    expect(next.workstream.agent.agentId).toBe("new-agent");
+    expect(next.workstream.workstreamId).not.toBe(
+      first.workstream.workstreamId,
+    );
+    expect(await readFile(oldFile, "utf8")).toBe("retained old homepage");
+    const archives = await readdir(join(value.store, "archive"));
+    expect(archives).toHaveLength(1);
+    const archived = JSON.parse(
+      await readFile(join(value.store, "archive", archives[0]!), "utf8"),
+    );
+    expect(archived.payload.workstream.agent.agentId).toBe(
+      first.workstream.agent.agentId,
+    );
+    expect(archived.payload.workstream.status).toBe("blocked");
+    expect(value.port.unbind).not.toHaveBeenCalled();
+  });
+  it("finishes a successful turn as ready for review and persists a later conversational failure", async () => {
+    const value = await fixture();
+    const created = await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    await value.service.recordAgentTurnOutcome(
+      created.workstream.agent.agentId,
+      "Native turn timed out",
+    );
+    const failed = await value.service.current();
+    expect(failed?.status).toBe("blocked");
+    expect(failed?.events.at(-1)?.summary).toContain("timed out");
+  });
+  it("does not replace a previous session while its dispatched turn is still running", async () => {
+    const value = await fixture();
+    let finish!: () => void;
+    vi.mocked(value.port.dispatch).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const first = await value.service.create(createRequest());
+    await vi.waitFor(() => expect(finish).toBeTypeOf("function"));
+    try {
+      const agent = {
+        ...selectedAgent,
+        agentId: "new-agent",
+        nativeSessionId: "new-root",
+        rootNativeSessionId: "new-root",
+      };
+      value.setCurrentAgent(agent);
+      await expect(
+        value.service.create({
+          ...createRequest(),
+          agent,
+          requestId: "new-request",
+          correlationId: "new-correlation",
+        }),
+      ).rejects.toMatchObject({ code: "active-workstream" });
+      expect((await value.service.current())?.workstreamId).toBe(
+        first.workstream.workstreamId,
+      );
+    } finally {
+      finish();
+    }
+  });
+
   it("rejects an empty task or busy Explore turn before allocating a worktree", async () => {
     const value = await fixture({ busy: true });
     await expect(value.service.create(createRequest())).rejects.toMatchObject({
@@ -195,6 +395,9 @@ describe("Workstream feature loop", () => {
     expect(value.dispatches[0]).toMatchObject({ task: createRequest().task });
     const context = value.dispatches[0]!.systemContext;
     expect(context).toContain("workstream-collision-loop");
+    expect(context).toContain('"schema":"aiw.workstream-report/1"');
+    expect(context).toContain('"workstreamId":"workstream-collision-loop"');
+    expect(context).toContain('"activity":');
     expect(context).toContain(
       join(value.worktrees, created.workstream.authority.relativePath),
     );
@@ -263,6 +466,54 @@ describe("Workstream feature loop", () => {
     );
   });
 
+  it("shows rejected receipt feedback without losing the source diff", async () => {
+    const value = await fixture();
+    const created = await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    await writeFile(
+      join(
+        value.worktrees,
+        created.workstream.authority.relativePath,
+        "index.html",
+      ),
+      "<h1>Actual change</h1>",
+    );
+    const reportDirectory = join(
+      value.store,
+      "reports",
+      created.workstream.workstreamId,
+    );
+    await mkdir(reportDirectory, { recursive: true });
+    await writeFile(
+      join(reportDirectory, `${created.workstream.workstreamId}.json`),
+      JSON.stringify({
+        schema: "aiw.workstream-report/1",
+        workstreamId: created.workstream.workstreamId,
+        activity: "Expected RED is described here.",
+        validation: [
+          { command: "node check.mjs", exitCode: 0, summary: "Passed" },
+        ],
+        evidenceRefs: ["Expected RED: this prose is not a reference"],
+      }),
+    );
+    const current = await value.service.current();
+    expect(current?.projection.currentActivity).toContain(
+      "Workstream receipt invalid",
+    );
+    expect(current?.projection.validation).toEqual([]);
+    expect(current?.projection.changedFiles).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: "index.html" })]),
+    );
+    expect(value.dispatches[0]!.systemContext).toContain(
+      "evidenceRefs must match",
+    );
+    expect(value.dispatches[0]!.systemContext).not.toContain(
+      "activity/evidenceRefs",
+    );
+  });
+
   it("cancels across effective-session rollover on the same root and rejects another root", async () => {
     const value = await fixture();
     const created = await value.service.create(createRequest());
@@ -270,11 +521,15 @@ describe("Workstream feature loop", () => {
       ...created.workstream.agent,
       nativeSessionId: "hermes-effective-two",
     });
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    const latest = (await value.service.current())!;
     const cancelled = await value.service.cancel({
       requestId: "request-cancel-rollover",
       correlationId: "correlation-cancel-rollover",
       workstreamId: created.workstream.workstreamId,
-      expectedRevision: created.workstream.revision,
+      expectedRevision: latest.revision,
       repository,
       agent: created.workstream.agent,
     });
@@ -297,12 +552,18 @@ describe("Workstream feature loop", () => {
       nativeSessionId: "hermes-effective-other",
       rootNativeSessionId: "hermes-root-other",
     });
+    await vi.waitFor(async () =>
+      expect((await mismatch.service.current())?.status).toBe(
+        "ready-for-review",
+      ),
+    );
+    const otherLatest = (await mismatch.service.current())!;
     await expect(
       mismatch.service.cancel({
         requestId: "request-cancel-other-root",
         correlationId: "correlation-cancel-other-root",
         workstreamId: other.workstream.workstreamId,
-        expectedRevision: other.workstream.revision,
+        expectedRevision: otherLatest.revision,
         repository,
         agent: other.workstream.agent,
       }),

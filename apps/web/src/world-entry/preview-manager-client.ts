@@ -160,6 +160,27 @@ export class PreviewManagerClient {
     return body.map(recipeFrom);
   }
 
+  async approveStaticSite(
+    repositoryId: string,
+  ): Promise<readonly PreviewRecipe[]> {
+    const requestId = this.id();
+    const response = await this.fetcher("/api/preview-recipes/static-site", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        requestId,
+        correlationId: requestId,
+        repositoryId,
+      }),
+    });
+    const body: unknown = await response.json();
+    if (!response.ok) throw new Error(errorMessage(body));
+    return this.recipes(repositoryId);
+  }
+
   async current(workstreamId: string): Promise<PreviewProjection> {
     return projectionFrom(
       await this.#get(

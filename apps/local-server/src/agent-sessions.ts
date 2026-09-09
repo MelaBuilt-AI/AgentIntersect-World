@@ -58,6 +58,10 @@ export type AdapterTurnContext = {
   readonly rootSessionRef?: string;
   readonly userDisplayName?: string;
   readonly systemMessage?: string;
+  /** Server-resolved owned workspace, never accepted from a browser request. */
+  readonly workingDirectory?: string;
+  /** Server-owned per-Workstream receipt directory, outside source Git. */
+  readonly evidenceDirectory?: string;
   readonly worldActionActorId?: string;
   readonly onEvent?: (event: AdapterTurnEvent) => Promise<void> | void;
   readonly signal?: AbortSignal;
@@ -1448,6 +1452,7 @@ export class AgentSessionGateway {
   readonly #registry: AdapterRegistry;
   readonly #store: AgentSessionStore;
   readonly #busy = new Set<string>();
+  readonly #turnWaiters = new Map<string, Set<() => void>>();
   readonly #workFocus = new Map<string, AgentRepositoryWorkFocus>();
   readonly #workFocusTerminalAt = new Map<string, number>();
   readonly #workFocusCompletionTimers = new Map<string, NodeJS.Timeout>();
@@ -1473,8 +1478,22 @@ export class AgentSessionGateway {
     }
   >();
   #workstreamContextResolver:
-    ((session: AgentSession) => Promise<string | null> | string | null) | null =
-    null;
+    | ((
+        session: AgentSession,
+        intent?: "discussion" | "work",
+      ) => Promise<string | null> | string | null)
+    | null = null;
+
+  #workstreamTurnStartObserver:
+    ((sessionId: string, text: string) => Promise<void>) | null = null;
+  #workstreamTurnObserver:
+    ((sessionId: string, error?: string) => Promise<void>) | null = null;
+  #workstreamDirectoryResolver:
+    | ((session: AgentSession) => Promise<{
+        workingDirectory: string;
+        evidenceDirectory: string;
+      } | null>)
+    | null = null;
 
   constructor(options: {
     readonly registry: AdapterRegistry;
@@ -1489,9 +1508,33 @@ export class AgentSessionGateway {
   }
 
   setWorkstreamContextResolver(
-    resolver: (session: AgentSession) => Promise<string | null> | string | null,
+    resolver: (
+      session: AgentSession,
+      intent?: "discussion" | "work",
+    ) => Promise<string | null> | string | null,
   ): void {
     this.#workstreamContextResolver = resolver;
+  }
+
+  setWorkstreamTurnStartObserver(
+    observer: (sessionId: string, text: string) => Promise<void>,
+  ): void {
+    this.#workstreamTurnStartObserver = observer;
+  }
+
+  setWorkstreamTurnObserver(
+    observer: (sessionId: string, error?: string) => Promise<void>,
+  ): void {
+    this.#workstreamTurnObserver = observer;
+  }
+
+  setWorkstreamDirectoryResolver(
+    resolver: (session: AgentSession) => Promise<{
+      workingDirectory: string;
+      evidenceDirectory: string;
+    } | null>,
+  ): void {
+    this.#workstreamDirectoryResolver = resolver;
   }
 
   setRepositoryWorkFocusCoordinator(
@@ -1906,6 +1949,7 @@ export class AgentSessionGateway {
     request: {
       readonly text: string;
       readonly binding: AgentSession;
+      readonly intent?: "discussion" | "work";
       readonly context?: {
         readonly userDisplayName?: string;
         readonly systemMessage?: string;
@@ -1916,7 +1960,8 @@ export class AgentSessionGateway {
       readonly signal?: AbortSignal;
     } = {},
   ): Promise<AdapterTurnResult> {
-    const persisted = this.#store.requireSession(sessionId);
+    let persisted = this.#store.requireSession(sessionId);
+    const isWorkTurn = request.intent !== "discussion";
     try {
       assertTurnBinding(persisted, request.binding);
     } catch {
@@ -1925,6 +1970,32 @@ export class AgentSessionGateway {
         "Turn binding no longer matches the selected root session",
       );
     }
+    while (!isWorkTurn && this.#busy.has(sessionId)) {
+      options.signal?.throwIfAborted();
+      await new Promise<void>((resolve, reject) => {
+        const waiters =
+          this.#turnWaiters.get(sessionId) ?? new Set<() => void>();
+        const cleanup = () => {
+          waiters.delete(done);
+          if (!waiters.size) this.#turnWaiters.delete(sessionId);
+          options.signal?.removeEventListener("abort", abort);
+        };
+        const done = () => {
+          cleanup();
+          resolve();
+        };
+        const abort = () => {
+          cleanup();
+          reject(new GatewayError("conflict", "Queued conversation cancelled"));
+        };
+        waiters.add(done);
+        this.#turnWaiters.set(sessionId, waiters);
+        options.signal?.addEventListener("abort", abort, { once: true });
+      });
+      persisted = this.#store.requireSession(sessionId);
+      assertTurnBinding(persisted, request.binding);
+    }
+    options.signal?.throwIfAborted();
     if (this.#busy.has(sessionId))
       throw new GatewayError(
         "conflict",
@@ -1946,10 +2017,13 @@ export class AgentSessionGateway {
           "conflict",
           "Adapter capabilities changed; reconnect before sending",
         );
+      const workspace = await this.#workstreamDirectoryResolver?.(persisted);
+      if (workspace && isWorkTurn)
+        await this.#workstreamTurnStartObserver?.(sessionId, request.text);
       const workstreamSystemMessage =
         request.context?.systemMessage ??
         (this.#workstreamContextResolver
-          ? await this.#workstreamContextResolver(persisted)
+          ? await this.#workstreamContextResolver(persisted, request.intent)
           : null);
       const correlationId = randomUUID();
       const appendNormalizedEvent = async (
@@ -1992,6 +2066,7 @@ export class AgentSessionGateway {
           ...(workstreamSystemMessage
             ? { systemMessage: workstreamSystemMessage }
             : {}),
+          ...(workspace ?? {}),
           ...(manifest.capabilities.worldActions
             ? { worldActionActorId: persisted.sessionId }
             : {}),
@@ -2078,7 +2153,28 @@ export class AgentSessionGateway {
             else
               await appendNormalizedEvent(
                 event.type,
-                { toolName: event.toolName ?? "unknown" },
+                {
+                  toolName: event.toolName ?? "unknown",
+                  ...(workspace && event.repositoryLocator?.paths.length
+                    ? (() => {
+                        const raw = event.repositoryLocator.paths[0]!;
+                        const repositoryPath = (
+                          path.isAbsolute(raw)
+                            ? path.relative(workspace.workingDirectory, raw)
+                            : raw
+                        ).replace(/\\/g, "/");
+                        return repositoryPath &&
+                          repositoryPath.length <= 512 &&
+                          !path.isAbsolute(repositoryPath) &&
+                          !repositoryPath.split("/").includes("..")
+                          ? {
+                              repositoryPath,
+                              activityId: event.activityId ?? correlationId,
+                            }
+                          : {};
+                      })()
+                    : {}),
+                },
                 event.redaction,
               );
           },
@@ -2111,9 +2207,57 @@ export class AgentSessionGateway {
         activeRunId: result.runId ?? null,
         updatedAt: new Date().toISOString(),
       });
+      if (isWorkTurn) await this.#workstreamTurnObserver?.(sessionId);
       return result;
+    } catch (error) {
+      const latest = this.#store.requireSession(sessionId);
+      this.#store.saveSession({
+        ...latest,
+        status: "error",
+        activeRunId: null,
+        updatedAt: new Date().toISOString(),
+      });
+      const safe = sanitizeDisplayText(
+        error instanceof GatewayError
+          ? error.message
+          : "Agent turn failed; reconnect before sending again",
+        512,
+      );
+      const terminal = AgentSessionEventSchema.parse({
+        schema: "aiw.agent-event/0.12",
+        eventId: randomUUID(),
+        sessionId,
+        sequence: latest.lastEventSequence + 1,
+        occurredAt: new Date().toISOString(),
+        correlationId: randomUUID(),
+        type: "session.error",
+        payload: {
+          message: safe.text,
+          code: error instanceof GatewayError ? error.code : "upstream",
+        },
+        redaction: safe.redaction,
+      });
+      this.#store.appendEvent(terminal);
+      const timer = this.#workFocusCompletionTimers.get(sessionId);
+      if (timer) clearTimeout(timer);
+      this.#workFocusCompletionTimers.delete(sessionId);
+      const focus = this.#workFocus.get(sessionId);
+      if (focus) {
+        this.#workFocus.set(
+          sessionId,
+          this.#workFocusCoordinator
+            ? await this.#workFocusCoordinator.stop(focus, "failed")
+            : { ...focus, state: "failed" },
+        );
+        this.#workFocusTerminalAt.set(sessionId, Date.now());
+      }
+      if (isWorkTurn)
+        await this.#workstreamTurnObserver?.(sessionId, safe.text);
+      await options.onEvent?.(terminal);
+      throw error;
     } finally {
       this.#busy.delete(sessionId);
+      for (const done of [...(this.#turnWaiters.get(sessionId) ?? [])]) done();
     }
   }
 

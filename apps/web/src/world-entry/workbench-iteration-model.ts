@@ -5,6 +5,21 @@ export type IterationStatus = {
   readonly message: string;
 };
 
+export function previewIterationKey(
+  workstream: Workstream,
+  preview: { readonly startedAt: string; readonly workstreamRevision: number },
+): string | null {
+  const authority = workstream.authority;
+  const turn = authority?.events.findLast(
+    (event) => event.status === "working",
+  );
+  return turn &&
+    authority!.revision > preview.workstreamRevision &&
+    Date.parse(turn.occurredAt) > Date.parse(preview.startedAt)
+    ? `${workstream.workstreamId}:${turn.eventId}`
+    : null;
+}
+
 export function resolveIterationRefresh(workstream: Workstream): {
   readonly ready: boolean;
   readonly message: string;

@@ -1,7 +1,17 @@
 import { execFile } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { copyFile, mkdir, open, readFile, rename } from "node:fs/promises";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { constants } from "node:fs";
+import {
+  copyFile,
+  mkdir,
+  open,
+  readFile,
+  readdir,
+  realpath,
+  rename,
+  writeFile,
+} from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { promisify } from "node:util";
 
 import { z } from "zod";
@@ -30,6 +40,13 @@ const WorkstreamAgentReferenceSchema = z.strictObject({
 });
 const WorkstreamProjectionSchema = z.strictObject({
   currentActivity: z.string().min(1).max(512),
+  activeFile: z
+    .object({
+      path: z.string().min(1).max(512),
+      activityId: z.string().min(1).max(512),
+    })
+    .nullable()
+    .optional(),
   changedFiles: z
     .array(
       z.strictObject({
@@ -55,6 +72,35 @@ const WorkstreamProjectionSchema = z.strictObject({
     .max(32),
   evidenceRefs: z.array(z.string().min(1).max(512)).max(128),
 });
+/** Compact World status; full native replies and command evidence stay intact. */
+function workstreamOutcomeSummary(
+  projection: z.infer<typeof WorkstreamProjectionSchema>,
+): string {
+  const files = projection.changedFiles;
+  const checks = projection.validation;
+  const shortLabel = (value: string) =>
+    value.length > 48 ? `${value.slice(0, 47)}…` : value;
+  const changed =
+    files
+      .slice(0, 2)
+      .map(({ path }) => `\`${shortLabel(path)}\``)
+      .join(", ") || "none";
+  const passed = checks.filter(({ exitCode }) => exitCode === 0).length;
+  const lines = checks.slice(0, 3).map(({ command, exitCode }) => {
+    const label = /(?:^|\s)node\s+(?:-e|--eval)(?:\s|=)/u.test(command)
+      ? "Inline Node.js check"
+      : command.trim() === "git diff --check"
+        ? "Whitespace check"
+        : shortLabel(command);
+    return `- ${label}: **${exitCode === 0 ? "passed" : "failed"}**`;
+  });
+  return [
+    `**Changed files:** ${changed}${files.length > 2 ? ` (+${files.length - 2} more)` : ""}`,
+    `**Checks:**\n${checks.length ? `${passed} passed, ${checks.length - passed} failed.\n${lines.join("\n")}${checks.length > 3 ? `\n- ${checks.length - 3} more checks in Inspector.` : ""}` : "No validation evidence reported."}`,
+    "Full details: Workstream Inspector.",
+  ].join("\n\n");
+}
+
 const WorktreeReceiptSchema = z.strictObject({
   schema: z.literal("aiw.worktree-authority-receipt/1"),
   ownerId: identifier,
@@ -78,6 +124,7 @@ const WorktreeReceiptSchema = z.strictObject({
 const WorkstreamStatusSchema = z.enum([
   "planning",
   "working",
+  "ready-for-review",
   "completed",
   "blocked",
   "cancelled",
@@ -95,6 +142,7 @@ const WorkstreamSchema = z.strictObject({
   revision: z.number().int().nonnegative(),
   title: z.string().trim().min(1).max(160),
   task: z.string().trim().min(1).max(2_000).default("Repository Workstream"),
+  prIntent: z.enum(["local", "draft"]).optional(),
   repository: WorkstreamRepositoryReferenceSchema,
   agent: WorkstreamAgentReferenceSchema,
   authority: WorktreeReceiptSchema,
@@ -140,6 +188,12 @@ const WorkstreamCreateRequestSchema = z.strictObject({
   correlationId: identifier,
   title: z.string().trim().min(1).max(160),
   task: z.string().trim().min(1).max(2_000).optional(),
+  branch: z.string().trim().min(1).max(128).optional(),
+  startPoint: z
+    .string()
+    .regex(/^(HEAD|[a-f0-9]{40,64})$/)
+    .optional(),
+  prIntent: z.enum(["local", "draft"]).optional(),
   repository: WorkstreamRepositoryReferenceSchema,
   agent: WorkstreamAgentReferenceSchema,
 });
@@ -196,7 +250,12 @@ export type WorkstreamAgentPort = {
   readonly evidence: (
     agentId: string,
     afterSequence: number,
-  ) => readonly { readonly ref: string; readonly summary: string }[];
+  ) => readonly {
+    readonly ref: string;
+    readonly summary: string;
+    readonly path?: string;
+    readonly activityId?: string;
+  }[];
   readonly unbind: (input: {
     readonly agentId: string;
     readonly worktreeRef: string;
@@ -506,6 +565,396 @@ export class WorkstreamService {
     return this.#project(this.#record.workstream);
   }
 
+  /** Source is read from the attested owned tree, never from agent narration. */
+  async source(workstreamId: string, path?: string) {
+    const work = await this.read(workstreamId);
+    const receipt = await this.#worktreeAuthority.restore(work.authority);
+    if (
+      receipt.state === "wrong-branch" ||
+      ["missing", "removed"].includes(work.worktreeState)
+    )
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Saved worktree is unavailable or on a different branch",
+      );
+    const root = await realpath(this.#worktreePath(work));
+    const names = [
+      ...new Set(
+        (
+          await git(root, [
+            "ls-files",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "-z",
+          ])
+        )
+          .split("\0")
+          .filter(Boolean),
+      ),
+    ].sort();
+    const files = names
+      .slice(0, 256)
+      .map((name) => ({ ref: name, path: name }));
+    const base = {
+      objectRef: path ?? `aiw://object/workstream-${workstreamId}`,
+      repositoryRef: work.repository.repositoryId,
+      path: path ?? work.title,
+      kind: path ? "file" : "workstream",
+      files,
+    };
+    if (!path)
+      return {
+        ...base,
+        content: null,
+        message: names.length
+          ? `Select a Workstream file · ${names.length} files${names.length > 256 ? " (first 256 shown)" : ""}`
+          : "No source files have been written yet.",
+      };
+    if (
+      !names.includes(path) ||
+      path.split(/[\\/]/).includes("..") ||
+      isAbsolute(path)
+    )
+      throw new WorkstreamServiceError(
+        "not-found",
+        "File is not part of this Workstream",
+      );
+    let handle;
+    try {
+      const target = await realpath(resolve(root, path));
+      if (!contained(root, target))
+        throw new Error("Source is outside the owned worktree");
+      handle = await open(
+        target,
+        constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+      );
+      const stat = await handle.stat();
+      const limit = 512 * 1024;
+      if (!stat.isFile() || stat.size > limit)
+        return {
+          ...base,
+          content: null,
+          message: "Text inspection is limited to regular files up to 512 KiB.",
+        };
+      const bytes = Buffer.alloc(limit + 1);
+      const { bytesRead } = await handle.read(bytes, 0, bytes.length, 0);
+      if (bytesRead > limit || bytes.subarray(0, bytesRead).includes(0))
+        return {
+          ...base,
+          content: null,
+          message:
+            "This file is binary or exceeds the 512 KiB inspection limit.",
+        };
+      return {
+        ...base,
+        content: bytes.toString("utf8", 0, bytesRead),
+        message: "Current Workstream file contents · read only",
+      };
+    } catch {
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Source file is no longer readable inside this Workstream",
+      );
+    } finally {
+      await handle?.close();
+    }
+  }
+
+  async history(repositoryId: string): Promise<Workstream[]> {
+    await this.#ensureLoaded();
+    const records = await this.#historyRecords();
+    return [...records.values()]
+      .map((record) => clone(record.workstream))
+      .filter(
+        (workstream) => workstream.repository.repositoryId === repositoryId,
+      )
+      .sort(
+        (a, b) =>
+          b.updatedAt.localeCompare(a.updatedAt) ||
+          a.workstreamId.localeCompare(b.workstreamId),
+      );
+  }
+
+  async #historyRecords(): Promise<Map<string, WorkstreamRecord>> {
+    const records = new Map<string, WorkstreamRecord>();
+    const archive = join(this.#directory, "archive");
+    let names: string[];
+    try {
+      names = await readdir(archive);
+    } catch (error) {
+      if (isMissing(error)) names = [];
+      else throw error;
+    }
+    for (const name of names.filter((name) =>
+      /^[a-f0-9]{64}\.\d+\.json$/.test(name),
+    )) {
+      const envelope = parseEnvelope(
+        await readFile(join(archive, name), "utf8"),
+      );
+      const record = envelope.payload;
+      if (!record) continue;
+      const previous = records.get(record.workstream.workstreamId);
+      if (
+        !previous ||
+        previous.workstream.revision < record.workstream.revision
+      )
+        records.set(record.workstream.workstreamId, record);
+    }
+    if (this.#record)
+      records.set(this.#record.workstream.workstreamId, this.#record);
+    return records;
+  }
+
+  async #archiveCurrent(): Promise<void> {
+    if (!this.#record) return;
+    const archive = join(this.#directory, "archive");
+    await mkdir(archive, { recursive: true, mode: 0o700 });
+    const path = join(
+      archive,
+      `${sha256(this.#record.workstream.workstreamId)}.${this.#generation}.json`,
+    );
+    await writeFile(
+      path,
+      JSON.stringify(envelopeFor(this.#record, this.#generation)),
+      { mode: 0o600 },
+    );
+    await syncFile(path);
+    await syncDirectory(archive);
+  }
+
+  async continueSaved(
+    input: unknown,
+  ): Promise<{ workstream: Workstream; replayed: boolean }> {
+    const parsed = z
+      .strictObject({
+        workstreamId: identifier,
+        expectedRevision: z.number().int().nonnegative(),
+        repository: WorkstreamRepositoryReferenceSchema,
+        agent: WorkstreamAgentReferenceSchema,
+        confirm: z.literal(true),
+      })
+      .safeParse(input);
+    if (!parsed.success)
+      throw new WorkstreamServiceError(
+        "validation",
+        "Confirm the exact saved Workstream and selected agent before continuing",
+      );
+    const request = parsed.data;
+    return this.#serialize(async () => {
+      await this.#ensureLoaded();
+      const record = (await this.#historyRecords()).get(request.workstreamId);
+      if (!record)
+        throw new WorkstreamServiceError(
+          "not-found",
+          "Saved Workstream not found",
+        );
+      const workstream = record.workstream;
+      if (workstream.revision !== request.expectedRevision)
+        throw new WorkstreamServiceError(
+          "revision-conflict",
+          "Saved work changed. Refresh Workbench before continuing.",
+        );
+      if (
+        workstream.repository.repositoryId !== request.repository.repositoryId
+      )
+        throw new WorkstreamServiceError(
+          "repository-mismatch",
+          "Load this Workstream's repository first",
+        );
+      await this.#assertCurrentReferences(request.repository, request.agent);
+      for (const candidate of [workstream, this.#record?.workstream]) {
+        if (
+          candidate &&
+          (this.#runs.has(candidate.workstreamId) ||
+            this.#agentPort?.busy(candidate.agent.agentId))
+        )
+          throw new WorkstreamServiceError(
+            "active-workstream",
+            "Wait for active work to finish before continuing saved work",
+          );
+      }
+      if (this.#agentPort?.busy(request.agent.agentId))
+        throw new WorkstreamServiceError(
+          "active-workstream",
+          "Selected agent is busy",
+        );
+      if (
+        workstream.status === "cancelled" ||
+        ["removed", "missing"].includes(workstream.worktreeState)
+      )
+        throw new WorkstreamServiceError(
+          "unavailable",
+          "This saved worktree is unavailable. Start a new Workstream from a commit instead.",
+        );
+      let receipt: WorktreeReceipt;
+      try {
+        receipt = await this.#worktreeAuthority.restore(workstream.authority);
+      } catch {
+        throw new WorkstreamServiceError(
+          "unavailable",
+          "Saved worktree could not be verified. Its files have not been changed.",
+        );
+      }
+      if (receipt.state === "wrong-branch")
+        throw new WorkstreamServiceError(
+          "unavailable",
+          "Saved worktree branch changed. No files were changed.",
+        );
+      await this.#archiveCurrent();
+      const binding = this.#agentPort
+        ? await this.#bindWorktree({
+            agent: request.agent,
+            worktreeRef: receipt.worktreeId,
+            taskRef: workstream.workstreamId,
+          })
+        : null;
+      const agent = binding
+        ? {
+            agentId: binding.agentId,
+            nativeSessionId: binding.nativeSessionId,
+            ...(binding.rootNativeSessionId
+              ? { rootNativeSessionId: binding.rootNativeSessionId }
+              : {}),
+            revision: binding.revision,
+          }
+        : request.agent;
+      const sameSession =
+        agent.agentId === workstream.agent.agentId &&
+        agent.nativeSessionId === workstream.agent.nativeSessionId;
+      const now = new Date(this.#now()).toISOString();
+      this.#record = WorkstreamRecordSchema.parse({
+        ...record,
+        workstream: {
+          ...workstream,
+          revision: workstream.revision + 1,
+          repository: request.repository,
+          agent,
+          authority: receipt,
+          worktreeState: receipt.state,
+          status: "ready-for-review",
+          updatedAt: now,
+          agentEventSequenceStart:
+            binding?.eventSequence ?? workstream.agentEventSequenceStart,
+          events: [
+            ...workstream.events,
+            {
+              eventId: `${workstream.workstreamId}/event/${workstream.revision + 1}`,
+              status: "ready-for-review",
+              summary: sameSession
+                ? "Saved work restored in the same session. No coding turn sent."
+                : `Saved work continued with a new session; previous session ${workstream.agent.agentId} retained. No coding turn sent.`,
+              occurredAt: now,
+            },
+          ].slice(-128),
+        },
+      });
+      await this.#persist();
+      return {
+        workstream: await this.#project(this.#record!.workstream),
+        replayed: false,
+      };
+    });
+  }
+
+  async gitDirectory(
+    workstreamId: string,
+    repositoryId: string,
+  ): Promise<string> {
+    await this.#ensureLoaded();
+    const workstream = (await this.#historyRecords()).get(
+      workstreamId,
+    )?.workstream;
+    if (!workstream || workstream.repository.repositoryId !== repositoryId)
+      throw new WorkstreamServiceError(
+        "not-found",
+        "Workstream does not belong to the loaded repository",
+      );
+    if (
+      this.#runs.has(workstreamId) ||
+      this.#agentPort?.busy(workstream.agent.agentId)
+    )
+      throw new WorkstreamServiceError(
+        "active-workstream",
+        "Wait for the coding turn before using Git",
+      );
+    if (
+      workstream.status === "cancelled" ||
+      ["removed", "missing"].includes(workstream.worktreeState)
+    )
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Worktree is unavailable",
+      );
+    const receipt = await this.#worktreeAuthority.restore(workstream.authority);
+    if (receipt.state === "wrong-branch")
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Worktree branch changed",
+      );
+    return this.#worktreePath(workstream);
+  }
+
+  async #bindWorktree(
+    input: Parameters<WorkstreamAgentPort["bind"]>[0],
+  ): Promise<WorkstreamAgentBinding> {
+    const port = this.#agentPort!;
+    const previous = port.current(input.agent.agentId);
+    if (
+      previous?.worktreeRef === input.worktreeRef &&
+      previous.currentTaskRef === input.taskRef &&
+      previous.mode === "collaborate"
+    )
+      return previous;
+    if (
+      previous?.worktreeRef &&
+      previous.currentTaskRef &&
+      previous.currentTaskRef !== input.taskRef
+    ) {
+      const old = (await this.#historyRecords()).get(
+        previous.currentTaskRef,
+      )?.workstream;
+      if (
+        !old ||
+        old.agent.agentId !== previous.agentId ||
+        old.authority.worktreeId !== previous.worktreeRef ||
+        this.#runs.has(old.workstreamId) ||
+        port.busy(previous.agentId)
+      )
+        throw new WorkstreamServiceError(
+          "active-workstream",
+          "Selected agent has another active or unknown Workstream binding",
+        );
+      await port.unbind({
+        agentId: previous.agentId,
+        worktreeRef: previous.worktreeRef,
+        taskRef: previous.currentTaskRef,
+      });
+      const current = port.current(previous.agentId)!;
+      const agent = {
+        agentId: current.agentId,
+        nativeSessionId: current.nativeSessionId,
+        ...(current.rootNativeSessionId
+          ? { rootNativeSessionId: current.rootNativeSessionId }
+          : {}),
+        revision: current.revision,
+      };
+      try {
+        return await port.bind({ ...input, agent });
+      } catch (error) {
+        const restored = port.current(previous.agentId);
+        if (restored)
+          await port.bind({
+            agent: { ...agent, revision: restored.revision },
+            worktreeRef: previous.worktreeRef,
+            taskRef: previous.currentTaskRef,
+          });
+        throw error;
+      }
+    }
+    return port.bind(input);
+  }
+
   async previewBinding(input: unknown): Promise<{
     readonly workstreamId: string;
     readonly workstreamRevision: number;
@@ -583,6 +1032,7 @@ export class WorkstreamService {
   }
 
   async contextForAgent(input: {
+    readonly intent?: "discussion" | "work";
     readonly agentId: string;
     readonly worktreeRef: string | null;
     readonly currentTaskRef: string | null;
@@ -597,7 +1047,43 @@ export class WorkstreamService {
       workstream.status === "cancelled"
     )
       return null;
+    if (input.intent === "discussion")
+      return [
+        "This turn is a conversation, not a coding task. Answer naturally as yourself, the connected agent, using the existing conversation and work context.",
+        `The open Workstream is ${JSON.stringify(workstream.task)}; its status is ${workstream.status}.`,
+        `The owned worktree is ${JSON.stringify(this.#worktreePath(workstream))}. You may inspect it to answer questions, but do not edit files, run mutating commands, write work reports, or resume implementation in this discussion turn.`,
+        "Discuss options and help finalize the next task. The operator uses /work followed by the agreed task to resume coding. Existing reports remain visible; do not replace your conversational reply with a receipt.",
+      ].join("\n");
     return this.#systemContext(workstream);
+  }
+
+  async directoryForAgent(input: {
+    readonly agentId: string;
+    readonly worktreeRef: string | null;
+    readonly currentTaskRef: string | null;
+  }): Promise<{ workingDirectory: string; evidenceDirectory: string } | null> {
+    if (!input.worktreeRef && !input.currentTaskRef) return null;
+    const context = await this.contextForAgent(input);
+    const workstream = this.#record?.workstream;
+    if (!context || !workstream)
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Owned Workstream binding is stale; reconnect before working",
+      );
+    const receipt = await this.#worktreeAuthority.restore(workstream.authority);
+    if (receipt.state === "wrong-branch")
+      throw new WorkstreamServiceError(
+        "unavailable",
+        "Owned worktree branch changed",
+      );
+    const evidenceDirectory = dirname(
+      this.#reportPath(workstream.workstreamId),
+    );
+    await mkdir(evidenceDirectory, { recursive: true, mode: 0o700 });
+    return {
+      workingDirectory: this.#worktreePath(workstream),
+      evidenceDirectory,
+    };
   }
 
   async create(input: unknown): Promise<{
@@ -618,22 +1104,50 @@ export class WorkstreamService {
           workstream: await this.#project(replay.workstream),
           replayed: true,
         };
+      await this.#assertCurrentReferences(request.repository, request.agent);
+      const previous = this.#record?.workstream;
+      const differentOwner =
+        previous &&
+        (previous.repository.repositoryId !== request.repository.repositoryId ||
+          previous.agent.agentId !== request.agent.agentId ||
+          (previous.agent.rootNativeSessionId ??
+            previous.agent.nativeSessionId) !==
+            (request.agent.rootNativeSessionId ??
+              request.agent.nativeSessionId));
       if (
-        this.#record &&
-        ["planning", "working", "blocked", "cleanup-required"].includes(
-          this.#record.workstream.status,
-        )
+        previous &&
+        (this.#runs.has(previous.workstreamId) ||
+          this.#agentPort?.busy(previous.agent.agentId) ||
+          (!differentOwner &&
+            !["completed", "cancelled", "ready-for-review", "blocked"].includes(
+              previous.status,
+            )))
       )
         throw new WorkstreamServiceError(
           "active-workstream",
-          "Only one active Workstream is supported",
+          "The existing Workstream is still active. Finish or cancel its work before starting another.",
         );
-      await this.#assertCurrentReferences(request.repository, request.agent);
       if (this.#agentPort?.busy(request.agent.agentId))
         throw new WorkstreamServiceError(
           "agent-mismatch",
           "Wait for the selected World agent turn to finish",
         );
+      if (previous) {
+        // Retain the old record and its worktree; never rebind or retry its agent.
+        const archive = join(this.#directory, "archive");
+        await mkdir(archive, { recursive: true, mode: 0o700 });
+        const path = join(
+          archive,
+          `${sha256(previous.workstreamId)}.${this.#generation}.json`,
+        );
+        await writeFile(
+          path,
+          JSON.stringify(envelopeFor(this.#record, this.#generation)),
+          { mode: 0o600 },
+        );
+        await syncFile(path);
+        await syncDirectory(archive);
+      }
       const workstreamId = identifier.parse(this.#id());
       const task = request.task ?? request.title;
       const createdAt = new Date(this.#now()).toISOString();
@@ -642,12 +1156,14 @@ export class WorkstreamService {
         ownerId,
         requestId: this.#authorityRequestId(request.requestId),
         worktreeId: `worktree-${sha256(workstreamId).slice(0, 24)}`,
+        ...(request.branch ? { branch: request.branch } : {}),
+        ...(request.startPoint ? { startPoint: request.startPoint } : {}),
       });
       let boundAgent = request.agent;
       let agentEventSequenceStart = 0;
       if (this.#agentPort) {
         try {
-          const binding = await this.#agentPort.bind({
+          const binding = await this.#bindWorktree({
             agent: request.agent,
             worktreeRef: authorityResult.receipt.worktreeId,
             taskRef: workstreamId,
@@ -692,6 +1208,7 @@ export class WorkstreamService {
         revision: 1,
         title: request.title,
         task,
+        prIntent: request.prIntent ?? "local",
         repository: request.repository,
         agent: boundAgent,
         authority: authorityResult.receipt,
@@ -718,7 +1235,7 @@ export class WorkstreamService {
           {
             eventId: `${workstreamId}/event/2`,
             status: "working",
-            summary: "Owned worktree is current and ready.",
+            summary: `Task: ${request.task}`.slice(0, 512),
             occurredAt: createdAt,
           },
         ],
@@ -822,6 +1339,7 @@ export class WorkstreamService {
         );
       const now = new Date(this.#now()).toISOString();
       const summary = `Iteration requested · ${request.feedback}`.slice(0, 512);
+      await this.#archiveReport(current);
       const workstream = WorkstreamSchema.parse({
         ...current,
         revision: current.revision + 1,
@@ -1169,7 +1687,14 @@ export class WorkstreamService {
         ]),
         git(worktree, ["diff", "--no-ext-diff", "--stat", "--", "."]),
         git(worktree, ["diff", "--no-ext-diff", "--unified=2", "--", "."]),
-        boundedRead(this.#reportPath(workstream.workstreamId), 64 * 1024),
+        boundedRead(this.#reportPath(workstream.workstreamId), 64 * 1024).then(
+          async (report) =>
+            report ??
+            boundedRead(
+              join(this.#reportsDirectory, `${workstream.workstreamId}.json`),
+              64 * 1024,
+            ),
+        ),
       ]);
       const report = reportText
         ? WorkstreamReportSchema.safeParse(JSON.parse(reportText))
@@ -1183,8 +1708,18 @@ export class WorkstreamService {
         patchBytes <= 65_536
           ? patch
           : Buffer.from(patch, "utf8").subarray(0, 65_536).toString("utf8");
+      const activeFile =
+        workstream.status === "working"
+          ? agentEvidence.findLast((event) => event.path && event.activityId)
+          : null;
       return WorkstreamProjectionSchema.parse({
-        currentActivity: acceptedReport?.activity ?? fallbackActivity,
+        activeFile: activeFile
+          ? { path: activeFile.path, activityId: activeFile.activityId }
+          : null,
+        currentActivity:
+          reportText && !acceptedReport
+            ? "Workstream receipt invalid; validation unavailable. Regenerate the receipt with the provided schema and identifier-only evidenceRefs."
+            : (acceptedReport?.activity ?? fallbackActivity),
         changedFiles: changedFiles(status),
         diff: {
           summary: summary.trim().slice(0, 8_192),
@@ -1235,13 +1770,16 @@ export class WorkstreamService {
       `The absolute owned worktree is ${JSON.stringify(worktree)}; mutate only that owned worktree.`,
       "Use strict TDD: run one focused failing regression, make the smallest direct implementation, then run the focused and impacted green checks.",
       `The only permitted write outside that worktree is the Workstream evidence receipt at ${JSON.stringify(report)}. Write it atomically using schema aiw.workstream-report/1 with this Workstream identity, current activity, validation entries {command, exitCode, summary}, and bounded evidenceRefs.`,
+      `Use this exact JSON shape, replacing activity and adding only checks you actually ran: ${JSON.stringify({ schema: "aiw.workstream-report/1", workstreamId: workstream.workstreamId, activity: "Describe the actual outcome", validation: [], evidenceRefs: [] })}. Serialize with JSON.stringify or json.dumps, not hand-escaped JSON. Validation describes final current-state checks; put expected earlier RED failures in activity only. activity must be at most 512 characters. Each entry in evidenceRefs must match ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ and be at most 128 characters (for example index.html or validation-1); leave evidenceRefs empty rather than inserting prose. No schema discovery or example search is needed. If the sandbox refuses the receipt write, report that honestly in your final response; do not search other directories or request broader access.`,
       "Report real commands and results. Stop before staging, committing, pushing, opening a PR, merging, tagging, releasing, publishing, or deploying.",
+      "World View is served by the operator-approved World Preview Manager outside your sandbox. Do not start a preview server yourself, use Sites, create external projects, or deploy. For a static homepage write index.html inside the assigned worktree, then report what changed and the real validation results. If no preview exists, direct the operator to Open current work / World View and its explicit recipe approval. If World View is already showing, its approved preview refreshes after successful validation; its Refresh preview button retries it. Do not ask the operator to approve an already displayed preview.",
     ].join("\n");
   }
 
   #reportPath(workstreamId: string): string {
     return join(
       this.#reportsDirectory,
+      identifier.parse(workstreamId),
       `${identifier.parse(workstreamId)}.json`,
     );
   }
@@ -1257,9 +1795,11 @@ export class WorkstreamService {
     });
     this.#runs.set(workstream.workstreamId, { controller, turn });
     void turn.then(
-      () => {
-        this.#runs.delete(workstream.workstreamId);
-      },
+      () =>
+        this.#recordDispatchOutcome(
+          workstream.workstreamId,
+          "ready-for-review",
+        ),
       (error: unknown) =>
         this.#recordDispatchOutcome(
           workstream.workstreamId,
@@ -1269,9 +1809,73 @@ export class WorkstreamService {
     );
   }
 
+  async #archiveReport(work: Workstream): Promise<void> {
+    for (const path of [
+      this.#reportPath(work.workstreamId),
+      join(this.#reportsDirectory, `${work.workstreamId}.json`),
+    ]) {
+      try {
+        await rename(path, `${path}.revision-${work.revision}.previous`);
+      } catch (error) {
+        if (!isMissing(error)) throw error;
+      }
+    }
+  }
+
+  /** Gateway-owned lifecycle: a bound turn cannot bypass work state via chat wording. */
+  async recordAgentTurnStart(agentId: string, text: string): Promise<void> {
+    await this.#serialize(async () => {
+      await this.#ensureLoaded();
+      const current = this.#record?.workstream;
+      if (
+        !current ||
+        current.agent.agentId !== agentId ||
+        ["working", "cancelled", "cleanup-required", "completed"].includes(
+          current.status,
+        )
+      )
+        return;
+      await this.#archiveReport(current);
+      const now = new Date(this.#now()).toISOString();
+      this.#record = WorkstreamRecordSchema.parse({
+        ...this.#record,
+        workstream: {
+          ...current,
+          revision: current.revision + 1,
+          status: "working",
+          updatedAt: now,
+          agentEventSequenceStart:
+            this.#agentPort?.current(agentId)?.eventSequence ??
+            current.agentEventSequenceStart,
+          events: [
+            ...current.events,
+            {
+              eventId: `${current.workstreamId}/event/${current.events.length + 1}`,
+              status: "working",
+              summary: `Starting Workstream turn · ${text}`.slice(0, 512),
+              occurredAt: now,
+            },
+          ],
+        },
+      });
+      await this.#persist();
+    });
+  }
+
+  async recordAgentTurnOutcome(agentId: string, error?: string): Promise<void> {
+    await this.#ensureLoaded();
+    const current = this.#record?.workstream;
+    if (current?.agent.agentId !== agentId) return;
+    await this.#recordDispatchOutcome(
+      current.workstreamId,
+      error ? "blocked" : "ready-for-review",
+      error,
+    );
+  }
+
   async #recordDispatchOutcome(
     workstreamId: string,
-    status: "blocked",
+    status: "blocked" | "ready-for-review",
     detail?: string,
   ): Promise<void> {
     await this.#serialize(async () => {
@@ -1280,12 +1884,17 @@ export class WorkstreamService {
       if (
         !current ||
         current.workstreamId !== workstreamId ||
+        current.status === status ||
         current.status === "cancelled" ||
         current.status === "cleanup-required"
       )
         return;
       const now = new Date(this.#now()).toISOString();
-      const summary = `The Workstream-bound agent turn failed: ${detail ?? "unknown failure"}.`;
+      const projection = await this.#readProjection(current);
+      const summary =
+        status === "blocked"
+          ? `Turn failed: ${detail ?? "unknown failure"}. Previous verified preview retained.`
+          : workstreamOutcomeSummary(projection);
       this.#record = WorkstreamRecordSchema.parse({
         ...this.#record,
         workstream: {
@@ -1388,7 +1997,17 @@ export class WorkstreamService {
   async #recoverWorktree(): Promise<void> {
     if (!this.#record) return;
     const current = this.#record.workstream;
-    await this.#assertCurrentReferences(current.repository, current.agent);
+    // Discovery must survive a different loaded repo/session. Continuation is explicit.
+    try {
+      await this.#assertCurrentReferences(current.repository, current.agent);
+    } catch (error) {
+      if (
+        error instanceof WorkstreamServiceError &&
+        ["repository-mismatch", "agent-mismatch"].includes(error.code)
+      )
+        return;
+      throw error;
+    }
     try {
       const receipt = await this.#worktreeAuthority.restore(
         current.authority as WorktreeReceipt,

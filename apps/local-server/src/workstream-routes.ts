@@ -112,6 +112,76 @@ export function registerWorkstreamRoutes(
   envelope: RouteEnvelope,
 ): void {
   const tags = ["workstreams"];
+  server.get<{
+    Params: { workstreamId: string };
+    Querystring: { path?: string };
+  }>(
+    "/workstreams/:workstreamId/source",
+    {
+      schema: {
+        params,
+        querystring: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            path: { type: "string", minLength: 1, maxLength: 512 },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      reply.header("Cache-Control", "no-store");
+      try {
+        return envelope.success(
+          request,
+          await service.source(request.params.workstreamId, request.query.path),
+        );
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
+  server.get<{ Querystring: { repositoryId: string } }>(
+    "/workstreams/history",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          required: ["repositoryId"],
+          properties: { repositoryId: identifier },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        return envelope.success(request, {
+          workstreams: await service.history(request.query.repositoryId),
+        });
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
+  server.post<{
+    Params: { workstreamId: string };
+    Body: Record<string, unknown>;
+  }>(
+    "/workstreams/:workstreamId/continue",
+    { bodyLimit: 8192 },
+    async (request, reply) => {
+      try {
+        return envelope.success(
+          request,
+          await service.continueSaved({
+            ...request.body,
+            workstreamId: request.params.workstreamId,
+          }),
+        );
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
   server.post(
     "/workstreams",
     {
@@ -122,6 +192,9 @@ export function registerWorkstreamRoutes(
           "correlationId",
           "title",
           "task",
+          "branch",
+          "startPoint",
+          "prIntent",
           "repository",
           "agent",
         ]);
@@ -146,6 +219,9 @@ export function registerWorkstreamRoutes(
             correlationId: identifier,
             title: { type: "string", minLength: 1, maxLength: 160 },
             task: { type: "string", minLength: 1, maxLength: 2000 },
+            branch: { type: "string", minLength: 1, maxLength: 128 },
+            startPoint: { type: "string", pattern: "^(HEAD|[a-f0-9]{40,64})$" },
+            prIntent: { type: "string", enum: ["local", "draft"] },
             repository: repositoryReference,
             agent: agentReference,
           },

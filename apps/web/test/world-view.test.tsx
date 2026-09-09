@@ -106,6 +106,19 @@ const projection = (
 });
 
 describe("World View", () => {
+  it("offers Refresh preview on the visible screen without another approval", () => {
+    const html = renderToStaticMarkup(
+      createElement(WorldView, {
+        workstream,
+        projection: projection("current"),
+        onInputOwnerChange: () => undefined,
+        onRefresh: () => undefined,
+        refreshPending: false,
+      }),
+    );
+    expect(html).toContain("Refresh preview");
+    expect(html).toContain("Preview recipe already approved");
+  });
   it("offers accessible spatial toggles for all three existing surfaces", () => {
     const surfaces = [
       {
@@ -173,6 +186,7 @@ describe("World View", () => {
     expect(html).toContain('src="http://127.0.0.1:43123/result"');
     expect(html).toContain('title="World View preview: Render World View"');
     expect(html).toContain('tabindex="-1"');
+    expect(html).toContain('class="world-view__input-shield"');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain("Expand World View");
     expect(html).toContain("Current verified preview");
@@ -293,6 +307,49 @@ describe("World View", () => {
       label:
         "World View unavailable — current owned Workstream authority required.",
     });
+  });
+
+  it("keeps a failed first preview visible without requiring an iframe", () => {
+    const failed: PreviewProjection = {
+      schema: "aiw.preview-manager/1",
+      active: null,
+      previousVerified: null,
+      display: null,
+      latestAttempt: {
+        ...preview,
+        state: "failed",
+        url: null,
+        logs: "Static preview unavailable: create index.html in the owned Workstream and retry.\n",
+        error: "Preview did not become healthy before timeout.",
+      },
+    };
+    const action = resolveWorldViewLauncher({
+      workstream,
+      recipeCount: 1,
+      projection: failed,
+      loading: false,
+      pending: false,
+      unavailableReason: null,
+    });
+    expect(action).toMatchObject({
+      enabled: true,
+      label: "Retry World View",
+      message:
+        "World View could not start: index.html is missing from this Workstream. Complete the coding task, then retry.",
+    });
+    const html = renderToStaticMarkup(
+      createElement(WorldWorkstreamStatus, {
+        workstream,
+        open: false,
+        pending: false,
+        message: null,
+        onInspect: () => undefined,
+        onCancel: () => undefined,
+        worldViewAction: { ...action, onStart: () => undefined },
+      }),
+    );
+    expect(html).toContain("index.html is missing from this Workstream");
+    expect(html).toContain("Retry World View");
   });
 
   it("labels retained output as previous verified instead of current", () => {

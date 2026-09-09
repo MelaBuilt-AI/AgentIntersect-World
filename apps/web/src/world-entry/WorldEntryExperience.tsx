@@ -1,3 +1,9 @@
+import {
+  audioCue,
+  worldAudioState,
+  connectingAudioState,
+  agentAudioState,
+} from "../audio/world-audio.js";
 import type {
   AvatarDraft,
   AvatarProfile,
@@ -48,6 +54,7 @@ import {
   consumeOneSendRecipient,
   createWorldChatState,
   reduceWorldChat,
+  workstreamChatReports,
   type AvatarOneShotSemantic,
   type WorkstreamConversationAction,
 } from "./world-chat-model.js";
@@ -76,6 +83,7 @@ import {
   WorkstreamClient,
   type WorkstreamAuthorityDescriptor,
   type WorkstreamReference,
+  type WorkstreamApiRecord,
 } from "./workstream-client.js";
 import {
   executeWorkstreamConversation,
@@ -99,6 +107,7 @@ import {
 } from "./world-view-model.js";
 import {
   resolveIterationRefresh,
+  previewIterationKey,
   type IterationStatus,
 } from "./workbench-iteration-model.js";
 import {
@@ -122,12 +131,24 @@ const LazyWorldRoom = lazy(async () => {
 });
 
 type PendingWorldMessage = {
+  readonly intent: "discussion" | "work";
   readonly id: string;
   readonly text: string;
   readonly requestId: string;
   readonly idempotencyKey: string;
   readonly targetRosterId?: string;
 };
+
+const RepositoryWorkbench = lazy(() =>
+  import("./RepositoryWorkbench.js").then((module) => ({
+    default: module.RepositoryWorkbench,
+  })),
+);
+const NewWorkstreamDialog = lazy(() =>
+  import("./NewWorkstreamDialog.js").then((module) => ({
+    default: module.NewWorkstreamDialog,
+  })),
+);
 
 function renderObjects(
   snapshot: WorldSnapshot,
@@ -275,6 +296,7 @@ export function WorldEntryConstellationProjection({
         }`}
         disabled={!projection.entryReady}
         aria-disabled={!projection.entryReady}
+        data-audio="handled"
         onClick={onEnterWorld}
       >
         Enter World
@@ -368,12 +390,46 @@ export function WorldEntryExperience({
     "Choose a repository for this World.",
   );
   const workstreamClient = useMemo(() => new WorkstreamClient(), []);
-  const [normalWorkstream, setNormalWorkstream] = useState<Workstream | null>(
+  const [storedWorkstream, setStoredWorkstream] = useState<Workstream | null>(
     null,
   );
+  // Publish status and its report together, whichever UI path refreshed it.
+  // Previously only the one-second poll published reports after the avatar idled.
+  const setNormalWorkstream = useCallback(
+    (work: Workstream | null) => {
+      setStoredWorkstream(work);
+      if (work)
+        updateChat({
+          type: "WORKSTREAM_REPORTS",
+          reports: workstreamChatReports(
+            work,
+            constellation?.agents.find(
+              (agent) => agent.worldSessionId === work.authority?.agent.agentId,
+            )?.displayName ||
+              agentName ||
+              "Agent",
+          ),
+        });
+    },
+    [agentName, constellation],
+  );
+  const owner = storedWorkstream?.authority;
+  const normalWorkstream =
+    owner &&
+    owner.repository.repositoryId === activeRepositoryAuthority?.repositoryId &&
+    (state.sessionMode === "multi"
+      ? constellation?.agents.some(
+          (agent) =>
+            agent.worldSessionId === owner.agent.agentId &&
+            agent.connection === "connected",
+        )
+      : session?.sessionId === owner.agent.agentId)
+      ? storedWorkstream
+      : null;
   const [normalWorkstreamOpen, setNormalWorkstreamOpen] = useState(false);
   const [wheelTaskOpen, setWheelTaskOpen] = useState(false);
-  const [wheelTask, setWheelTask] = useState("");
+  const [workbenchOpen, setWorkbenchOpen] = useState(false);
+  const [newWorkstreamBase, setNewWorkstreamBase] = useState("HEAD");
   const [normalWorkstreamPending, setNormalWorkstreamPending] = useState(false);
   const [normalWorkstreamMessage, setNormalWorkstreamMessage] = useState<
     string | null
@@ -395,6 +451,7 @@ export function WorldEntryExperience({
   const [worldInputOwner, setWorldInputOwner] =
     useState<WorldInputOwner>("world");
   const previewStartPending = useRef(false);
+  const attemptedIterationRefresh = useRef<string | null>(null);
   const pendingIterationRefresh = useRef<{
     readonly workstreamId: string;
     readonly recipe: PreviewRecipe;
@@ -1071,6 +1128,10 @@ export function WorldEntryExperience({
         expectedRevision: constellation.revision,
         idempotencyKey: `task10-remove-${crypto.randomUUID()}`,
       });
+      const removed = constellation.agents.find(
+        (agent) => agent.rosterId === rosterId,
+      );
+      if (removed) agentAudioState(removed.worldSessionId, "idle");
       setConstellation(next.projection);
       setAcceptedAgentAvatars((current) =>
         Object.fromEntries(
@@ -1094,6 +1155,7 @@ export function WorldEntryExperience({
       (state.sessionMode === "multi" && !constellation?.entryReady)
     )
       return;
+    audioCue("world-jack-in");
     dispatch({ type: "ENTER_WORLD" });
     window.setTimeout(
       () => dispatch({ type: "WORLD_READY" }),
@@ -1136,6 +1198,7 @@ export function WorldEntryExperience({
       });
       return;
     }
+    audioCue("repo-city-spawn");
     const nextObjects = renderObjects(result.snapshot);
     const repositoryCounts = {
       packages: nextObjects.filter((object) => object.kind === "package")
@@ -1262,10 +1325,42 @@ export function WorldEntryExperience({
         presentationGeneration.current === generation &&
         pendingMessages.current.length > 0
       ) {
+        const next = pendingMessages.current[0];
+        if (next?.intent === "discussion" && activeRepositoryAuthority) {
+          const work = await workstreamClient.current();
+          const targetSessionId = next.targetRosterId
+            ? constellation?.agents.find(
+                (agent) => agent.rosterId === next.targetRosterId,
+              )?.worldSessionId
+            : session.sessionId;
+          if (
+            work &&
+            ["planning", "working", "validating"].includes(work.status) &&
+            (work.agent.agentId === targetSessionId ||
+              (state.sessionMode === "multi" && !next.targetRosterId))
+          ) {
+            setQueuedCount(pendingMessages.current.length);
+            await new Promise((resolve) => window.setTimeout(resolve, 500));
+            continue;
+          }
+        }
+        if (!mounted.current || presentationGeneration.current !== generation)
+          break;
         const current = pendingMessages.current.shift();
         if (!current) break;
         setQueuedCount(pendingMessages.current.length);
         updateChat({ type: "SEND_STARTED", id: current.id });
+        const audioAgents =
+          state.sessionMode === "multi"
+            ? (constellation?.agents
+                .filter(
+                  (agent) =>
+                    !current.targetRosterId ||
+                    agent.rosterId === current.targetRosterId,
+                )
+                .map((agent) => agent.worldSessionId) ?? [])
+            : [session.sessionId];
+
         setActiveMessageRosterIds(
           state.sessionMode === "multi"
             ? current.targetRosterId
@@ -1281,6 +1376,23 @@ export function WorldEntryExperience({
           let singleAnswer: { readonly finalText: string } | null = null;
           if (state.sessionMode === "multi") {
             const projectGroup = (group: ConstellationMessageGroup) => {
+              if (
+                !mounted.current ||
+                presentationGeneration.current !== generation
+              )
+                return;
+              group.recipients.forEach((recipient) =>
+                agentAudioState(
+                  recipient.worldSessionId,
+                  recipient.state === "completed"
+                    ? "complete"
+                    : recipient.state === "streaming"
+                      ? "coding"
+                      : recipient.state === "queued"
+                        ? "idle"
+                        : "failed",
+                ),
+              );
               if (
                 mounted.current &&
                 presentationGeneration.current === generation
@@ -1311,6 +1423,7 @@ export function WorldEntryExperience({
                 ? { targetRosterId: current.targetRosterId }
                 : {}),
               userDisplayName: profile.agentName,
+              intent: current.intent,
               signal: controller.signal,
             });
           } else
@@ -1320,14 +1433,35 @@ export function WorldEntryExperience({
               {
                 signal: controller.signal,
                 userDisplayName: profile.agentName,
+                intent: current.intent,
                 onEvent: (event: WorldAgentEvent) => {
-                  if (mounted.current)
+                  if (
+                    mounted.current &&
+                    presentationGeneration.current === generation
+                  ) {
+                    if (event.type === "tool.started")
+                      agentAudioState(session.sessionId, "coding");
                     updateChat({ type: "AGENT_EVENT", event });
+                  }
                 },
               },
             );
           if (!mounted.current || presentationGeneration.current !== generation)
             return;
+          if (groupedAnswer)
+            groupedAnswer.recipients.forEach((recipient) =>
+              agentAudioState(
+                recipient.worldSessionId,
+                recipient.state === "completed"
+                  ? "complete"
+                  : recipient.state === "streaming"
+                    ? "coding"
+                    : recipient.state === "queued"
+                      ? "idle"
+                      : "failed",
+              ),
+            );
+          else audioAgents.forEach((id) => agentAudioState(id, "complete"));
           if (groupedAnswer)
             updateChat({
               type: "GROUP_COMPLETED",
@@ -1346,6 +1480,8 @@ export function WorldEntryExperience({
             });
         } catch {
           if (mounted.current && presentationGeneration.current === generation)
+            audioAgents.forEach((id) => agentAudioState(id, "failed"));
+          if (mounted.current && presentationGeneration.current === generation)
             updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
         } finally {
           if (groupPoll !== null) window.clearInterval(groupPoll);
@@ -1363,7 +1499,11 @@ export function WorldEntryExperience({
     }
   };
 
-  const enqueueAgentMessage = (text: string, targetRosterId?: string) => {
+  const enqueueAgentMessage = (
+    text: string,
+    targetRosterId?: string,
+    intent: "discussion" | "work" = "discussion",
+  ) => {
     const requestId = crypto.randomUUID();
     const pending = {
       id: `${Date.now()}-${nextMessageId.current++}`,
@@ -1372,45 +1512,43 @@ export function WorldEntryExperience({
       idempotencyKey: `task11-${requestId}`,
       ...(targetRosterId ? { targetRosterId } : {}),
     };
-    pendingMessages.current.push(pending);
+    pendingMessages.current.push({ ...pending, intent });
     setQueuedCount(pendingMessages.current.length);
     updateChat({ type: "QUEUE_MESSAGE", ...pending });
     void processChatQueue();
   };
 
-  const workstreamAuthorityForConversation =
-    async (): Promise<WorkstreamAuthorityDescriptor | null> => {
-      if (!activeRepositoryAuthority || !session) return null;
-      const continuingAgentId =
-        normalWorkstream?.authority &&
-        !["completed", "cancelled"].includes(normalWorkstream.status)
-          ? normalWorkstream.authority.agent.agentId
-          : null;
-      const targetAgentId =
-        continuingAgentId ??
-        (state.sessionMode === "multi"
-          ? (constellation?.agents.find(
-              (agent) => agent.rosterId === selectedRecipientId,
-            )?.worldSessionId ?? null)
-          : session.sessionId);
-      if (!targetAgentId) return null;
-      const targetSession =
-        targetAgentId === session.sessionId
-          ? session
-          : await client.refreshSession(targetAgentId);
-      return {
-        repository: activeRepositoryAuthority,
-        agent: {
-          agentId: targetSession.sessionId,
-          nativeSessionId: targetSession.adapterSessionRef,
-          rootNativeSessionId:
-            typeof targetSession.adapterRootSessionRef === "string"
-              ? targetSession.adapterRootSessionRef
-              : targetSession.adapterSessionRef,
-          revision: String(targetSession.permissionRevision),
-        },
-      };
+  const workstreamAuthorityForConversation = async (
+    selectedOnly = false,
+  ): Promise<WorkstreamAuthorityDescriptor | null> => {
+    if (!activeRepositoryAuthority || !session) return null;
+    const continuingAgentId =
+      normalWorkstream?.authority &&
+      !["completed", "cancelled"].includes(normalWorkstream.status)
+        ? normalWorkstream.authority.agent.agentId
+        : null;
+    const targetAgentId =
+      (!selectedOnly ? continuingAgentId : null) ??
+      (state.sessionMode === "multi"
+        ? (constellation?.agents.find(
+            (agent) => agent.rosterId === selectedRecipientId,
+          )?.worldSessionId ?? null)
+        : session.sessionId);
+    if (!targetAgentId) return null;
+    const targetSession = await client.refreshSession(targetAgentId);
+    return {
+      repository: activeRepositoryAuthority,
+      agent: {
+        agentId: targetSession.sessionId,
+        nativeSessionId: targetSession.adapterSessionRef,
+        rootNativeSessionId:
+          typeof targetSession.adapterRootSessionRef === "string"
+            ? targetSession.adapterRootSessionRef
+            : targetSession.adapterSessionRef,
+        revision: String(targetSession.permissionRevision),
+      },
     };
+  };
 
   const runWorkstreamConversation = async (
     action: WorkstreamConversationAction,
@@ -1440,6 +1578,7 @@ export function WorldEntryExperience({
           enqueueAgentMessage(
             text,
             state.sessionMode === "multi" ? agentId : undefined,
+            "work",
           );
         },
       );
@@ -1493,6 +1632,11 @@ export function WorldEntryExperience({
     }
   };
 
+  useEffect(() => {
+    connectingAudioState(state.step === "agent_resolving");
+    return () => connectingAudioState(false);
+  }, [state.step]);
+
   const [movementRefresh, setMovementRefresh] = useState(0);
   const sendText = async (input: string) => {
     if (!session || !input.trim()) return;
@@ -1511,7 +1655,10 @@ export function WorldEntryExperience({
       directed.kind === "local-agent-stop" ||
       directed.kind === "local-refusal"
         ? directed
-        : classifyWorldMessage(input);
+        : classifyWorldMessage(
+            input,
+            normalWorkstream?.authority?.agent.agentId === session.sessionId,
+          );
     if (classified.kind === "local-animation") {
       setUserAnimationCue({
         sequence: nextUserAnimationCue.current++,
@@ -1670,6 +1817,26 @@ export function WorldEntryExperience({
     state.step === "world_blank" ||
     state.step === "repository_loading" ||
     state.step === "world_repository";
+  useEffect(() => {
+    worldAudioState(inWorld);
+    return () => worldAudioState(false);
+  }, [inWorld]);
+  useEffect(() => {
+    if (!normalWorkstream?.authority) return;
+    const status = normalWorkstream.status;
+    agentAudioState(
+      normalWorkstream.authority.agent.agentId,
+      status === "working"
+        ? "coding"
+        : status === "ready-for-review" || status === "completed"
+          ? "complete"
+          : status === "blocked" ||
+              status === "cancelled" ||
+              status === "cleanup-required"
+            ? "failed"
+            : "idle",
+    );
+  }, [normalWorkstream]);
   const primaryConstellationAgent =
     state.sessionMode === "multi" && constellation
       ? [...constellation.agents]
@@ -1747,10 +1914,12 @@ export function WorldEntryExperience({
       pending = true;
       try {
         const current = await workstreamClient.current();
-        if (active)
-          setNormalWorkstream(
-            current ? projectAuthoritativeWorkstream(current) : null,
-          );
+        if (active) {
+          const projected = current
+            ? projectAuthoritativeWorkstream(current)
+            : null;
+          setNormalWorkstream(projected);
+        }
       } catch {
         if (active)
           setNormalWorkstreamMessage(
@@ -1766,7 +1935,7 @@ export function WorldEntryExperience({
       active = false;
       window.clearInterval(timer);
     };
-  }, [inWorld, normalWorkstreamId, workstreamClient]);
+  }, [inWorld, normalWorkstreamId, workstreamClient, setNormalWorkstream]);
   useEffect(() => {
     if (!inWorld || !previewRepositoryId) return;
     let active = true;
@@ -1831,10 +2000,25 @@ export function WorldEntryExperience({
       window.clearInterval(timer);
     };
   }, [inWorld, normalWorkstreamId, previewEligible, previewManagerClient]);
+  const refreshIterationKey =
+    normalWorkstream && previewProjection?.display
+      ? previewIterationKey(normalWorkstream, previewProjection.display.preview)
+      : null;
   useEffect(() => {
-    const pending = pendingIterationRefresh.current;
+    const recipe = previewRecipes?.find(
+      (item) => item.recipeId === previewProjection?.display?.preview.recipeId,
+    );
+    const automatic =
+      refreshIterationKey &&
+      refreshIterationKey !== attemptedIterationRefresh.current &&
+      recipe &&
+      normalWorkstream
+        ? { workstreamId: normalWorkstream.workstreamId, recipe }
+        : null;
+    const pending = pendingIterationRefresh.current ?? automatic;
     if (
       !pending ||
+      normalWorkstream?.status === "working" ||
       normalWorkstreamPending ||
       chatBusy ||
       queuedCount > 0 ||
@@ -1842,13 +2026,13 @@ export function WorldEntryExperience({
     )
       return;
     pendingIterationRefresh.current = null;
+    attemptedIterationRefresh.current = refreshIterationKey;
     previewStartPending.current = true;
     setPreviewActionPending(true);
-    let active = true;
     void (async () => {
       try {
         const current = await workstreamClient.current();
-        if (!active) return;
+        if (!mounted.current) return;
         if (
           !current ||
           current.workstreamId !== pending.workstreamId ||
@@ -1879,7 +2063,7 @@ export function WorldEntryExperience({
         const projection = await previewManagerClient.current(
           current.workstreamId,
         );
-        if (!active) return;
+        if (!mounted.current) return;
         setPreviewProjectionState({
           workstreamId: current.workstreamId,
           projection,
@@ -1902,7 +2086,7 @@ export function WorldEntryExperience({
         setNormalWorkstreamMessage(message);
         setStatus(message);
       } catch (error) {
-        if (!active) return;
+        if (!mounted.current) return;
         const message = `Iteration refresh unavailable · ${
           error instanceof Error ? error.message : "Request failed"
         }. Verified preview retained.`;
@@ -1911,18 +2095,20 @@ export function WorldEntryExperience({
         setStatus(message);
       } finally {
         previewStartPending.current = false;
-        if (active) setPreviewActionPending(false);
+        if (mounted.current) setPreviewActionPending(false);
       }
     })();
-    return () => {
-      active = false;
-    };
   }, [
+    refreshIterationKey,
+    normalWorkstream,
+    previewRecipes,
+    previewProjection,
     chatBusy,
     normalWorkstreamPending,
     previewManagerClient,
     queuedCount,
     workstreamClient,
+    setNormalWorkstream,
   ]);
   const startWorldView = useCallback(async () => {
     const recipe = previewRecipes?.length === 1 ? previewRecipes[0] : null;
@@ -1944,7 +2130,15 @@ export function WorldEntryExperience({
       error: null,
     }));
     try {
-      await previewManagerClient.start(normalPreviewAuthority, recipe);
+      const currentWorkstream = await workstreamClient.current();
+      if (
+        !currentWorkstream ||
+        currentWorkstream.workstreamId !== normalPreviewAuthority.workstreamId
+      )
+        throw new Error(
+          "Workstream changed. Inspect the current Workstream before previewing.",
+        );
+      await previewManagerClient.start(currentWorkstream, recipe);
       const projection = await previewManagerClient.current(
         normalPreviewAuthority.workstreamId,
       );
@@ -1979,6 +2173,7 @@ export function WorldEntryExperience({
       if (mounted.current) setPreviewActionPending(false);
     }
   }, [
+    workstreamClient,
     normalPreviewAuthority,
     previewEligible,
     previewManagerClient,
@@ -2369,6 +2564,7 @@ export function WorldEntryExperience({
               onAgentMovementEvent={reportAgentMovementEvent}
               showControlHints={preferences.showControlHints}
               repositoryReadiness={repositoryReadiness}
+              liveWorkstream={normalWorkstream}
               workstreamAuthority={workstreamAuthority}
               workstreamTask={workstreamTask.task}
               workstreamCreateUnavailableReason={
@@ -2388,10 +2584,13 @@ export function WorldEntryExperience({
                   void loadRequestedRepository("/repo load", null);
                   return;
                 }
-                if (action === "workbench" && normalWorkstream) {
-                  setNormalWorkstreamOpen(true);
+                if (action === "workbench") {
+                  setWheelTaskOpen(false);
+                  setWorkbenchOpen(true);
                   return;
                 }
+                setWorkbenchOpen(false);
+                setNewWorkstreamBase("HEAD");
                 setWheelTaskOpen(true);
               }}
               onAskAgent={(prompt) =>
@@ -2411,6 +2610,7 @@ export function WorldEntryExperience({
               status={directionRefusal ?? status}
               busy={chatBusy || state.step === "repository_loading"}
               queuedCount={queuedCount}
+              workstreamOpen={Boolean(normalWorkstream)}
               message={message}
               transcript={chat.transcript}
               pushToTalkAvailable={Boolean(session)}
@@ -2432,7 +2632,41 @@ export function WorldEntryExperience({
             <WorldWorkstreamStatus
               workstream={normalWorkstream}
               open={normalWorkstreamOpen}
-              pending={normalWorkstreamPending}
+              pending={normalWorkstreamPending || previewActionPending}
+              onApproveStaticPreview={
+                previewEligible &&
+                previewRecipes?.length === 0 &&
+                previewRepositoryId
+                  ? () => {
+                      const repositoryId = previewRepositoryId;
+                      setPreviewActionPending(true);
+                      void previewManagerClient
+                        .approveStaticSite(repositoryId)
+                        .then((recipes) => {
+                          if (mounted.current)
+                            setPreviewRecipeState({
+                              repositoryId,
+                              recipes,
+                              error: null,
+                            });
+                        })
+                        .catch((error) => {
+                          if (mounted.current)
+                            setPreviewRecipeState({
+                              repositoryId,
+                              recipes: [],
+                              error:
+                                error instanceof Error
+                                  ? error.message
+                                  : "Preview approval unavailable",
+                            });
+                        })
+                        .finally(() => {
+                          if (mounted.current) setPreviewActionPending(false);
+                        });
+                    }
+                  : undefined
+              }
               message={normalWorkstreamMessage}
               onInspect={() => {
                 setNormalWorkstreamOpen((open) => !open);
@@ -2464,110 +2698,120 @@ export function WorldEntryExperience({
           previewEligible &&
           previewProjection?.display ? (
             <WorldView
-              key={previewProjection.display.preview.previewId}
+              key={normalWorkstream.workstreamId}
               workstream={normalWorkstream}
               projection={previewProjection}
               iterationStatus={iterationStatus}
               onInputOwnerChange={setWorldInputOwner}
+              onRefresh={() => void startWorldView()}
+              refreshPending={previewActionPending}
             />
           ) : null}
-          {wheelTaskOpen ? (
-            <section
-              className="code-wheel-task"
-              data-world-ui="true"
-              role="dialog"
-              aria-label="New Workstream"
+          {workbenchOpen || wheelTaskOpen ? (
+            <Suspense
+              fallback={
+                <p className="code-wheel-task" role="status">
+                  Loading repository tools…
+                </p>
+              }
             >
-              <h2>
-                {normalWorkstream
-                  ? "New Workstream"
-                  : "Workbench · no current Workstream"}
-              </h2>
-              <p>
-                Choose one agent and load a repository, then describe the task.
-                Starting creates an owned workspace and sends the task to that
-                agent.
-              </p>
-              <p>
-                Agent:{" "}
-                {state.sessionMode === "multi"
-                  ? (worldAgentAvatars.find(
-                      (agent) => agent.rosterId === selectedRecipientId,
-                    )?.name ?? "Select one agent in the wheel")
-                  : activeProposal.displayName}
-              </p>
-              <p>
-                Repository:{" "}
-                {activeRepositoryAuthority
-                  ? "Current loaded repository"
-                  : "Load a repository first"}
-              </p>
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  if (
-                    !wheelTask.trim() ||
-                    !activeRepositoryAuthority ||
-                    (state.sessionMode === "multi" && !selectedRecipientId) ||
-                    normalWorkstreamPending ||
-                    (normalWorkstream &&
-                      !["completed", "cancelled"].includes(
-                        normalWorkstream.status,
-                      ))
-                  )
-                    return;
-                  void runWorkstreamConversation({
-                    action: "request",
-                    text: `/work start ${wheelTask.trim()}`,
-                    task: wheelTask.trim(),
-                  });
-                  setWheelTaskOpen(false);
-                }}
-              >
-                <label>
-                  Task
-                  <textarea
-                    aria-label="New Workstream task"
-                    value={wheelTask}
-                    onChange={(event) => setWheelTask(event.target.value)}
-                  />
-                </label>
-                {normalWorkstream &&
-                !["completed", "cancelled"].includes(
-                  normalWorkstream.status,
-                ) ? (
-                  <p>
-                    Finish or cancel the current Workstream before starting
-                    another.
-                  </p>
-                ) : null}
-                <button
-                  className="world-action--enabled"
-                  type="submit"
-                  disabled={
-                    !wheelTask.trim() ||
-                    !activeRepositoryAuthority ||
-                    (state.sessionMode === "multi" && !selectedRecipientId) ||
-                    normalWorkstreamPending ||
-                    Boolean(
-                      normalWorkstream &&
-                      !["completed", "cancelled"].includes(
-                        normalWorkstream.status,
-                      ),
-                    )
+              {workbenchOpen ? (
+                <RepositoryWorkbench
+                  hasCurrentWork={!!normalWorkstream}
+                  key={
+                    activeRepositoryAuthority?.repositoryId ?? "no-repository"
                   }
-                >
-                  Start Workstream
-                </button>
-                <button
-                  className="world-action--enabled"
-                  type="button"
-                  onClick={() => setWheelTaskOpen(false)}
-                >
-                  Close
-                </button>
-              </form>
-            </section>
+                  repositoryId={activeRepositoryAuthority?.repositoryId ?? null}
+                  agentName={
+                    state.sessionMode === "multi"
+                      ? (worldAgentAvatars.find(
+                          (agent) => agent.rosterId === selectedRecipientId,
+                        )?.name ?? null)
+                      : activeProposal.displayName
+                  }
+                  onClose={() => setWorkbenchOpen(false)}
+                  onContinue={async (record: WorkstreamApiRecord) => {
+                    const authority =
+                      await workstreamAuthorityForConversation(true);
+                    if (!authority)
+                      throw new Error(
+                        "Load a repository and select one connected agent first",
+                      );
+                    const result = await workstreamClient.continueSaved(
+                      record,
+                      authority,
+                    );
+                    setNormalWorkstream(
+                      projectAuthoritativeWorkstream(result.workstream),
+                    );
+                    setNormalWorkstreamMessage(
+                      "Saved Workstream restored. No coding turn sent.",
+                    );
+                    const refreshed = await client.refreshSession(
+                      authority.agent.agentId,
+                    );
+                    if (refreshed.sessionId === session?.sessionId)
+                      setSession(refreshed);
+                  }}
+                  onInspect={() => {
+                    setWorkbenchOpen(false);
+                    setNormalWorkstreamOpen(true);
+                  }}
+                  onNew={(sha) => {
+                    setWorkbenchOpen(false);
+                    setNewWorkstreamBase(sha);
+                    setWheelTaskOpen(true);
+                  }}
+                />
+              ) : null}
+              {wheelTaskOpen ? (
+                <NewWorkstreamDialog
+                  key={`${activeRepositoryAuthority?.repositoryId ?? "none"}:${newWorkstreamBase}`}
+                  repositoryId={activeRepositoryAuthority?.repositoryId ?? null}
+                  agentName={
+                    state.sessionMode === "multi"
+                      ? (worldAgentAvatars.find(
+                          (agent) => agent.rosterId === selectedRecipientId,
+                        )?.name ?? null)
+                      : activeProposal.displayName
+                  }
+                  startPoint={newWorkstreamBase}
+                  onClose={() => setWheelTaskOpen(false)}
+                  onWorkbench={() => {
+                    setWheelTaskOpen(false);
+                    setWorkbenchOpen(true);
+                  }}
+                  onStart={async (options) => {
+                    const authority =
+                      await workstreamAuthorityForConversation(true);
+                    if (!authority)
+                      throw new Error(
+                        "Load a repository and select one connected agent first",
+                      );
+                    const result = await workstreamClient.create({
+                      ...options,
+                      ...authority,
+                      title: options.task.slice(0, 160),
+                      requestId: crypto.randomUUID(),
+                      correlationId: crypto.randomUUID(),
+                    });
+                    setNormalWorkstream(
+                      projectAuthoritativeWorkstream(result.workstream),
+                    );
+                    setNormalWorkstreamOpen(true);
+                    setNormalWorkstreamMessage(
+                      "New Workstream started. Branch and delivery intent saved locally; nothing published.",
+                    );
+                    setWheelTaskOpen(false);
+                    const refreshed = await client.refreshSession(
+                      authority.agent.agentId,
+                    );
+                    if (refreshed.sessionId === session?.sessionId)
+                      setSession(refreshed);
+                  }}
+                />
+              ) : null}
+            </Suspense>
           ) : null}
           {repositoryIntakeOpen ? (
             <RepositoryIntakeDialog
@@ -2685,74 +2929,81 @@ export function WorldEntryExperience({
         onMulti={selectMultiAgent}
         onHarness={(harness) => dispatch({ type: "SELECT_HARNESS", harness })}
       />
-      {state.sessionMode === "multi" && constellation ? (
-        <WorldEntryConstellationProjection
-          projection={{
-            ...constellation,
-            entryReady:
-              constellation.entryReady &&
-              state.step === "enter_ready" &&
-              canEnterWorld(state),
-          }}
-          busyRosterId={constellationBusyRosterId}
-          onReconnect={(rosterId) => void reconnectConstellationAgent(rosterId)}
-          onRemove={(rosterId) => void removeConstellationAgent(rosterId)}
-          onEnterWorld={enterWorld}
-        />
-      ) : null}
-      {state.step === "agent_prompt" ? (
-        <form
-          className="world-agent-prompt"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void connect();
-          }}
-        >
-          <WorldTypeLine text="agent name?" reducedMotion={reducedMotion} />
-          <span className="world-agent-prompt__newline" aria-hidden="true">
-            ↵
-          </span>
-          <label className="sr-only" htmlFor="world-agent-name">
-            Agent name
-          </label>
-          <input
-            id="world-agent-name"
-            aria-label="Agent name"
-            value={agentName}
-            maxLength={80}
-            autoFocus
-            onChange={(event) => setAgentName(event.target.value)}
-          />
-          <button
-            type="submit"
-            className={
-              agentName.trim()
-                ? "world-primary-action world-action--enabled"
-                : "world-primary-action world-action--unavailable"
+      <div className="world-entry-connections">
+        {state.sessionMode === "multi" && constellation ? (
+          <WorldEntryConstellationProjection
+            projection={{
+              ...constellation,
+              entryReady:
+                constellation.entryReady &&
+                state.step === "enter_ready" &&
+                canEnterWorld(state),
+            }}
+            busyRosterId={constellationBusyRosterId}
+            onReconnect={(rosterId) =>
+              void reconnectConstellationAgent(rosterId)
             }
-            disabled={!agentName.trim()}
+            onRemove={(rosterId) => void removeConstellationAgent(rosterId)}
+            onEnterWorld={enterWorld}
+          />
+        ) : null}
+        {state.step === "agent_prompt" ? (
+          <form
+            className="world-agent-prompt"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void connect();
+            }}
           >
-            Connect agent
-          </button>
-          {error ? (
-            <p className="world-entry-error" role="status" aria-live="polite">
-              {error}
-            </p>
-          ) : null}
-        </form>
-      ) : null}
-      {state.step === "agent_not_found" ? (
-        <div className="world-agent-prompt world-agent-prompt--retry">
-          <WorldTypeLine text="agent not found" reducedMotion={reducedMotion} />
-          <button
-            type="button"
-            className="world-primary-action world-action--enabled"
-            onClick={() => dispatch({ type: "RETRY_CONNECTION" })}
-          >
-            Retry
-          </button>
-        </div>
-      ) : null}
+            <WorldTypeLine text="agent name?" reducedMotion={reducedMotion} />
+            <span className="world-agent-prompt__newline" aria-hidden="true">
+              ↵
+            </span>
+            <label className="sr-only" htmlFor="world-agent-name">
+              Agent name
+            </label>
+            <input
+              id="world-agent-name"
+              aria-label="Agent name"
+              value={agentName}
+              maxLength={80}
+              autoFocus
+              onChange={(event) => setAgentName(event.target.value)}
+            />
+            <button
+              type="submit"
+              className={
+                agentName.trim()
+                  ? "world-primary-action world-action--enabled"
+                  : "world-primary-action world-action--unavailable"
+              }
+              disabled={!agentName.trim()}
+            >
+              Connect agent
+            </button>
+            {error ? (
+              <p className="world-entry-error" role="status" aria-live="polite">
+                {error}
+              </p>
+            ) : null}
+          </form>
+        ) : null}
+        {state.step === "agent_not_found" ? (
+          <div className="world-agent-prompt world-agent-prompt--retry">
+            <WorldTypeLine
+              text="agent not found"
+              reducedMotion={reducedMotion}
+            />
+            <button
+              type="button"
+              className="world-primary-action world-action--enabled"
+              onClick={() => dispatch({ type: "RETRY_CONNECTION" })}
+            >
+              Retry
+            </button>
+          </div>
+        ) : null}
+      </div>
       {state.step === "agent_resolving" || state.step === "agent_connected" ? (
         <div className="world-entry-overlay" role="status" aria-live="polite">
           {state.step === "agent_resolving"
@@ -2769,6 +3020,7 @@ export function WorldEntryExperience({
         <button
           type="button"
           className="world-enter-action world-action--enabled"
+          data-audio="handled"
           onClick={enterWorld}
         >
           Enter World

@@ -185,10 +185,12 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   await expect(screen("director")).toHaveAttribute("data-screen-mode", "hud");
   await palette.locator(".world-screen__toggle").click();
   await room.focus();
-  // This crowded camera view cannot fit Workbench without covering hints or
-  // another panel. Verify refusal, then clear optional HUD clutter via real UI.
+  // Make crowding explicit instead of assuming the desktop layout has no
+  // valid slot: the live slab/agent can legitimately change that layout.
+  await page.setViewportSize({ width: 480, height: 360 });
   await page.keyboard.press("Alt+Digit2");
   await expect(screen("workbench")).toHaveAttribute("data-screen-mode", "hud");
+  await page.setViewportSize({ width: 1440, height: 900 });
   const roomBounds = (await room.boundingBox())!;
   const wheelPoint = {
     x: roomBounds.x + roomBounds.width * 0.25,
@@ -310,6 +312,38 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   );
   await preview.getByRole("button", { name: "Interact with preview" }).click();
   await frame.getByLabel("Preview state").fill("spatial state kept");
+  writeFileSync(testInfo.outputPath("spatial-dom.html"), await page.content());
+  {
+    const wheelPoint = await iframe.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      for (const fy of [0.4, 0.6, 0.2, 0.8])
+        for (const fx of [0.5, 0.3, 0.7]) {
+          const x = box.left + box.width * fx,
+            y = box.top + box.height * fy;
+          if (document.elementFromPoint(x, y) === el) return { x, y };
+        }
+      throw Error("iframe not hit-testable");
+    });
+    const zoom = await room.getAttribute("data-camera-zoom");
+    await page.mouse.move(wheelPoint.x, wheelPoint.y);
+    await page.mouse.wheel(0, 360);
+    await expect
+      .poll(() =>
+        frame
+          .locator("html")
+          .evaluate(() => document.scrollingElement!.scrollTop),
+      )
+      .toBeGreaterThan(0);
+    expect(await room.getAttribute("data-camera-zoom")).toBe(zoom);
+    await page.mouse.wheel(0, -360);
+    await expect
+      .poll(() =>
+        frame
+          .locator("html")
+          .evaluate(() => document.scrollingElement!.scrollTop),
+      )
+      .toBe(0);
+  }
   const position = await room.getAttribute("data-user-position-z");
   await frame.getByLabel("Preview state").press("w");
   await expect(room).toHaveAttribute("data-user-position-z", position!);

@@ -493,6 +493,20 @@ describe("authoritative Workstream client", () => {
       kind: "create",
       task: "Add keyboard navigation.",
     });
+    expect(
+      resolve(
+        apiWorkstream,
+        {
+          ...authority,
+          agent: {
+            ...authority.agent,
+            agentId: "new-world-agent",
+            rootNativeSessionId: "new-root",
+          },
+        },
+        "Create a new homepage.",
+      ),
+    ).toEqual({ kind: "create", task: "Create a new homepage." });
     expect(resolve(apiWorkstream, authority, "Change it to blue.")).toEqual({
       kind: "continue",
       task: "Change it to blue.",

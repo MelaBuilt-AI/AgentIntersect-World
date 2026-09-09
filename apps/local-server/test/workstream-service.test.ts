@@ -14,6 +14,7 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { WorktreeAuthority } from "../src/worktree-authority.js";
+import { createLocalServer } from "../src/server.js";
 import {
   WorkstreamService,
   WorkstreamServiceError,
@@ -80,6 +81,7 @@ type Fixture = {
 async function fixture(
   options: {
     readonly previewStop?: (workstreamId: string) => Promise<void> | void;
+    readonly id?: () => string;
   } = {},
 ): Promise<Fixture> {
   const root = await mkdtemp(join(tmpdir(), "aiw-workstream-service-"));
@@ -114,7 +116,7 @@ async function fixture(
       state.currentAgent?.agentId === agentId ? state.currentAgent : null,
     evidenceReader: { read: vi.fn(async () => []) },
     ...(options.previewStop ? { previewStop: options.previewStop } : {}),
-    id: () => "workstream-one",
+    id: options.id ?? (() => "workstream-one"),
     now: () => Date.parse("2026-08-07T00:00:00.000Z"),
   });
   services.push(service);
@@ -164,6 +166,174 @@ afterEach(async () => {
 });
 
 describe("WorkstreamService", () => {
+  it("records a readable completion without clipped native narration", async () => {
+    const value = await fixture();
+    await value.service.create(createRequest());
+    await value.service.recordAgentTurnOutcome(agentReference.agentId);
+    const current = await value.service.current();
+    const report = current!.events.at(-1)!.summary;
+    expect(report).toContain("**Changed files:**");
+    expect(report).toContain("\n\n**Checks:**\n");
+    expect(report).toContain("No validation evidence reported.");
+    expect(report).toMatch(/Full details: Workstream Inspector\.$/u);
+    expect(report.length).toBeLessThanOrEqual(512);
+  });
+  it("summarizes long commands while retaining exact validation evidence", async () => {
+    const value = await fixture();
+    const created = (await value.service.create(createRequest())).workstream;
+    const command = `node -e '${"assert.equal(heading, expected);".repeat(30)}'`;
+    const checks = [
+      { command, exitCode: 0, summary: "Fixture check passed" },
+      {
+        command: "node --test tests/homepage.test.mjs",
+        exitCode: 0,
+        summary: "Fixture test passed",
+      },
+      {
+        command: "git diff --check",
+        exitCode: 1,
+        summary: "Fixture whitespace failure",
+      },
+    ];
+    await mkdir(join(value.store, "reports"), { recursive: true });
+    await writeFile(
+      join(value.store, "reports", `${created.workstreamId}.json`),
+      JSON.stringify({
+        schema: "aiw.workstream-report/1",
+        workstreamId: created.workstreamId,
+        activity:
+          "Updated the requested heading; full native reply stays separate.",
+        validation: checks,
+        evidenceRefs: [],
+      }),
+    );
+    await value.service.recordAgentTurnOutcome(agentReference.agentId);
+    const current = (await value.service.current())!;
+    const report = current.events.at(-1)!.summary;
+    expect(report).toContain("Inline Node.js check: **passed**");
+    expect(report).toContain("Whitespace check: **failed**");
+    expect(report).toContain("2 passed, 1 failed.");
+    expect(report).not.toContain("assert.equal");
+    expect(report).not.toContain("Updated the requested heading");
+    expect(report).toMatch(/Full details: Workstream Inspector\.$/u);
+    expect(report.length).toBeLessThanOrEqual(512);
+    expect(current.projection.validation).toEqual(checks);
+  });
+
+  it("starts a PR-intent branch at an exact commit and retains prior work across restart", async () => {
+    let nextId = 0;
+    const value = await fixture({ id: () => `workstream-${++nextId}` });
+    const first = (await value.service.create(createRequest())).workstream;
+    await value.service.recordAgentTurnOutcome(agentReference.agentId);
+    await writeFile(join(value.repository, "later.txt"), "later");
+    await git(value.repository, ["add", "later.txt"]);
+    await git(value.repository, ["commit", "-m", "later"]);
+    const second = (
+      await value.service.create(
+        createRequest({
+          requestId: "second",
+          correlationId: "second",
+          branch: "feature/new-page",
+          startPoint: first.authority.head,
+          prIntent: "draft",
+        }),
+      )
+    ).workstream;
+    expect(second.authority.branch).toBe("feature/new-page");
+    expect(second.authority.head).toBe(first.authority.head);
+    expect(second.prIntent).toBe("draft");
+    expect(
+      await exists(join(value.worktrees, first.authority.relativePath)),
+    ).toBe(true);
+    await value.service.recordAgentTurnOutcome(agentReference.agentId);
+    await value.service.dispose();
+    const restarted = new WorkstreamService({
+      directory: value.store,
+      worktreeAuthority: value.authority,
+      worktreeParent: value.worktrees,
+      currentRepository: () => repositoryReference,
+      connectedAgent: () => agentReference,
+      evidenceReader: { read: () => [] },
+    });
+    services.push(restarted);
+    expect(
+      (await restarted.history(repositoryReference.repositoryId))
+        .map((work) => work.workstreamId)
+        .sort(),
+    ).toEqual([first.workstreamId, second.workstreamId].sort());
+    expect(await restarted.history("unrelated-repository")).toEqual([]);
+    const restored = await restarted.continueSaved({
+      workstreamId: first.workstreamId,
+      expectedRevision: first.revision + 1,
+      repository: repositoryReference,
+      agent: agentReference,
+      confirm: true,
+    });
+    expect(restored.workstream.authority.relativePath).toBe(
+      first.authority.relativePath,
+    );
+  });
+  it("discovers saved work after a new session and explicitly continues the same dirty worktree", async () => {
+    const value = await fixture();
+    const created = (await value.service.create(createRequest())).workstream;
+    const worktree = join(value.worktrees, created.authority.relativePath);
+    await writeFile(join(worktree, "index.html"), "saved website");
+    value.currentAgent = {
+      ...agentReference,
+      agentId: "new-agent",
+      nativeSessionId: "new-native",
+    };
+    value.currentRepository = {
+      ...repositoryReference,
+      revision: "reloaded-revision",
+    };
+    const server = createLocalServer({ workstreamService: value.service });
+    try {
+      const history = await server.inject({
+        method: "GET",
+        url: `/workstreams/history?repositoryId=${repositoryReference.repositoryId}`,
+      });
+      expect(history.statusCode).toBe(200);
+      expect(history.json().data.workstreams[0].workstreamId).toBe(
+        created.workstreamId,
+      );
+      const continued = await server.inject({
+        method: "POST",
+        url: `/workstreams/${created.workstreamId}/continue`,
+        payload: {
+          expectedRevision: created.revision,
+          repository: value.currentRepository,
+          agent: value.currentAgent,
+          confirm: true,
+        },
+      });
+      expect(continued.statusCode).toBe(200);
+      expect(continued.json().data.workstream).toMatchObject({
+        workstreamId: created.workstreamId,
+        agent: value.currentAgent,
+        repository: value.currentRepository,
+        status: "ready-for-review",
+        worktreeState: "dirty",
+        authority: { relativePath: created.authority.relativePath },
+      });
+      expect(await readFile(join(worktree, "index.html"), "utf8")).toBe(
+        "saved website",
+      );
+      const stale = await server.inject({
+        method: "POST",
+        url: `/workstreams/${created.workstreamId}/continue`,
+        payload: {
+          expectedRevision: created.revision,
+          repository: value.currentRepository,
+          agent: value.currentAgent,
+          confirm: true,
+        },
+      });
+      expect(stale.statusCode).toBe(409);
+    } finally {
+      await server.close();
+    }
+  });
   it("requires the approved current repository and exact connected session before mutation", async () => {
     const value = await fixture();
     value.currentRepository = null;

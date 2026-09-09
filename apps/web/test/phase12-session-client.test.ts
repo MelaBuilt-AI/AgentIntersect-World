@@ -56,7 +56,7 @@ describe("Phase 12 browser client", () => {
     const body = [
       `event: world.event\ndata: ${JSON.stringify(event(1, "message.user-accepted", { text: "hello" }))}\n\n`,
       `event: world.event\ndata: ${JSON.stringify(event(2, "message.assistant-delta", { text: "live " }))}\n\n`,
-      `event: world.event\ndata: ${JSON.stringify(event(3, "tool.started", { toolName: "terminal" }, { applied: true, count: 2 }))}\n\n`,
+      `event: world.event\ndata: ${JSON.stringify(event(3, "tool.started", { toolName: "terminal", repositoryPath: "index.html", activityId: "activity:heading-edit" }, { applied: true, count: 2 }))}\n\n`,
       `event: world.event\ndata: ${JSON.stringify(event(4, "message.assistant-delta", { text: "reply" }))}\n\n`,
       `event: world.event\ndata: ${JSON.stringify(event(5, "message.assistant-final", { text: "live reply" }))}\n\n`,
       `event: world.final\ndata: ${JSON.stringify({ schema: "aiw.agent-stream-terminal/0.12", sessionId, status: "completed", finalText: "live reply" })}\n\n`,

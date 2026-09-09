@@ -1,6 +1,7 @@
 .code-wheel {
   position: fixed;
-  z-index: 80;
+  /* World-level control: above the scene, below every HUD panel. */
+  z-index: 12;
   width: 584px;
   height: 584px;
   pointer-events: none;

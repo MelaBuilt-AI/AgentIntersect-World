@@ -12,10 +12,17 @@ export async function openCodeWheel(page: Page) {
       bounds.left + bounds.width * 0.65,
       bounds.left + bounds.width * 0.5,
       bounds.left + bounds.width * 0.8,
+      bounds.left + bounds.width * 0.2,
+      bounds.left + bounds.width * 0.35,
+      bounds.left + bounds.width * 0.9,
+      bounds.left + bounds.width * 0.1,
     ]) {
       for (const y of [
         bounds.top + bounds.height * 0.45,
         bounds.top + bounds.height * 0.3,
+        bounds.top + bounds.height * 0.15,
+        bounds.top + bounds.height * 0.6,
+        bounds.top + bounds.height * 0.75,
       ]) {
         const target = document.elementFromPoint(x, y);
         if (

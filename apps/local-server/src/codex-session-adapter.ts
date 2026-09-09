@@ -252,9 +252,10 @@ export class CodexSessionAdapter implements AgentAdapter {
     this.#options = options;
   }
 
-  #args(sessionId?: string): string[] {
+  #args(sessionId?: string, evidenceDirectory?: string): string[] {
     const args = [
       "exec",
+      ...(evidenceDirectory ? ["--add-dir", evidenceDirectory] : []),
       "--model",
       CODEX_MODEL,
       "-c",
@@ -279,6 +280,7 @@ export class CodexSessionAdapter implements AgentAdapter {
       readonly failureMessage: string;
       readonly signal?: AbortSignal;
       readonly runtimeHome?: string;
+      readonly workingDirectory?: string;
       readonly onEvent?: (event: unknown) => void;
       readonly validate?: () => void;
     },
@@ -287,7 +289,7 @@ export class CodexSessionAdapter implements AgentAdapter {
       let child: ChildProcessWithoutNullStreams;
       try {
         child = spawn(this.#options.executablePath, args, {
-          cwd: this.#options.nativeSessionRoot,
+          cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
           env: processEnvironment(options.runtimeHome),
           detached: true,
           stdio: ["pipe", "pipe", "pipe"],
@@ -517,114 +519,126 @@ export class CodexSessionAdapter implements AgentAdapter {
       eventDispatch = eventDispatch.then(async () => context?.onEvent?.(event));
     };
 
-    await this.#runProcess(this.#args(expectedSessionId), input, {
-      timeoutMs: this.#options.turnTimeoutMs ?? 120_000,
-      timeoutMessage: "Codex CLI turn timed out",
-      failureMessage: "Codex CLI turn failed",
-      ...(context?.signal ? { signal: context.signal } : {}),
-      ...(runtimeHome ? { runtimeHome } : {}),
-      validate: () => {
-        if (
-          !seenSessionId ||
-          !turnStarted ||
-          !turnCompleted ||
-          finalText === undefined
-        )
-          throw codexFailure();
-      },
-      onEvent: (raw) => {
-        const event = raw as Record<string, unknown>;
-        if (event.type === "thread.started") {
-          const id = nativeSessionId(event.thread_id);
-          if (seenSessionId && seenSessionId !== id)
-            throw codexFailure(
-              "Codex CLI returned an ambiguous session identity",
-            );
-          if (expectedSessionId && expectedSessionId !== id)
-            throw codexFailure("Codex CLI resumed an unexpected session");
-          seenSessionId = id;
-          return;
-        }
-        if (event.type === "turn.started") {
-          turnStarted = true;
-          return;
-        }
-        if (event.type === "turn.failed" || event.type === "error")
-          throw codexFailure();
-        if (event.type === "turn.completed") {
-          turnCompleted = true;
-          return;
-        }
-        if (
-          event.type !== "item.started" &&
-          event.type !== "item.updated" &&
-          event.type !== "item.completed"
-        )
-          return;
-        if (!isRecord(event.item)) return;
-        const item = event.item;
-        if (
-          event.type === "item.updated" &&
-          item.type === "agent_message" &&
-          typeof event.delta === "string"
-        ) {
-          const bytes = Buffer.byteLength(event.delta, "utf8");
-          outputBytes += bytes;
-          if (bytes > MAX_EVENT_BYTES || outputBytes > MAX_OUTPUT_BYTES)
-            throw codexFailure("Codex CLI output exceeded the bound");
-          deltas.push(event.delta);
-          emit({
-            type: "assistant.delta",
-            text: event.delta,
-            redaction: { applied: false, count: 0 },
-          });
-          return;
-        }
-        if (
-          event.type === "item.completed" &&
-          item.type === "agent_message" &&
-          typeof item.text === "string"
-        ) {
-          if (Buffer.byteLength(item.text, "utf8") > MAX_OUTPUT_BYTES)
-            throw codexFailure("Codex CLI output exceeded the bound");
-          finalText = item.text;
-          return;
-        }
-        if (!isToolItem(item) || event.type === "item.updated") return;
-        const failed =
-          item.status === "failed" ||
-          (typeof item.exit_code === "number" && item.exit_code !== 0) ||
-          item.error !== undefined;
-        const activityId =
-          typeof item.id === "string" &&
-          /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(item.id)
-            ? item.id
-            : undefined;
-        const locator =
-          event.type === "item.started"
-            ? codexRepositoryLocator(item, this.#options.nativeSessionRoot)
-            : activityId
-              ? toolLocators.get(activityId)
+    await this.#runProcess(
+      this.#args(expectedSessionId, context?.evidenceDirectory),
+      input,
+      {
+        // Real coding turns can spend several minutes exploring before writing.
+        // Keep a finite deadline and the existing abort/process-group cleanup.
+        timeoutMs: this.#options.turnTimeoutMs ?? 600_000,
+        timeoutMessage: "Codex CLI turn timed out",
+        failureMessage: "Codex CLI turn failed",
+        ...(context?.signal ? { signal: context.signal } : {}),
+        ...(runtimeHome ? { runtimeHome } : {}),
+        ...(context?.workingDirectory
+          ? { workingDirectory: context.workingDirectory }
+          : {}),
+        validate: () => {
+          if (
+            !seenSessionId ||
+            !turnStarted ||
+            !turnCompleted ||
+            finalText === undefined
+          )
+            throw codexFailure();
+        },
+        onEvent: (raw) => {
+          const event = raw as Record<string, unknown>;
+          if (event.type === "thread.started") {
+            const id = nativeSessionId(event.thread_id);
+            if (seenSessionId && seenSessionId !== id)
+              throw codexFailure(
+                "Codex CLI returned an ambiguous session identity",
+              );
+            if (expectedSessionId && expectedSessionId !== id)
+              throw codexFailure("Codex CLI resumed an unexpected session");
+            seenSessionId = id;
+            return;
+          }
+          if (event.type === "turn.started") {
+            turnStarted = true;
+            return;
+          }
+          if (event.type === "turn.failed" || event.type === "error")
+            throw codexFailure();
+          if (event.type === "turn.completed") {
+            turnCompleted = true;
+            return;
+          }
+          if (
+            event.type !== "item.started" &&
+            event.type !== "item.updated" &&
+            event.type !== "item.completed"
+          )
+            return;
+          if (!isRecord(event.item)) return;
+          const item = event.item;
+          if (
+            event.type === "item.updated" &&
+            item.type === "agent_message" &&
+            typeof event.delta === "string"
+          ) {
+            const bytes = Buffer.byteLength(event.delta, "utf8");
+            outputBytes += bytes;
+            if (bytes > MAX_EVENT_BYTES || outputBytes > MAX_OUTPUT_BYTES)
+              throw codexFailure("Codex CLI output exceeded the bound");
+            deltas.push(event.delta);
+            emit({
+              type: "assistant.delta",
+              text: event.delta,
+              redaction: { applied: false, count: 0 },
+            });
+            return;
+          }
+          if (
+            event.type === "item.completed" &&
+            item.type === "agent_message" &&
+            typeof item.text === "string"
+          ) {
+            if (Buffer.byteLength(item.text, "utf8") > MAX_OUTPUT_BYTES)
+              throw codexFailure("Codex CLI output exceeded the bound");
+            finalText = item.text;
+            return;
+          }
+          if (!isToolItem(item) || event.type === "item.updated") return;
+          const failed =
+            item.status === "failed" ||
+            (typeof item.exit_code === "number" && item.exit_code !== 0) ||
+            (item.error !== undefined && item.error !== null);
+          const activityId =
+            typeof item.id === "string" &&
+            /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(item.id)
+              ? item.id
               : undefined;
-        if (event.type === "item.started" && activityId && locator)
-          toolLocators.set(activityId, locator);
-        emit({
-          type:
+          const locator =
             event.type === "item.started"
-              ? "tool.started"
-              : failed
-                ? "tool.failed"
-                : "tool.completed",
-          toolName: safeToolName(item),
-          ...(activityId && locator
-            ? { activityId, repositoryLocator: locator }
-            : {}),
-          redaction: { applied: true, count: 1 },
-        });
-        if (event.type === "item.completed" && activityId)
-          toolLocators.delete(activityId);
+              ? codexRepositoryLocator(
+                  item,
+                  context?.workingDirectory ?? this.#options.nativeSessionRoot,
+                )
+              : activityId
+                ? toolLocators.get(activityId)
+                : undefined;
+          if (event.type === "item.started" && activityId && locator)
+            toolLocators.set(activityId, locator);
+          emit({
+            type:
+              event.type === "item.started"
+                ? "tool.started"
+                : failed
+                  ? "tool.failed"
+                  : "tool.completed",
+            toolName: safeToolName(item),
+            ...(activityId && locator
+              ? { activityId, repositoryLocator: locator }
+              : {}),
+            redaction: { applied: true, count: 1 },
+          });
+          if (event.type === "item.completed" && activityId)
+            toolLocators.delete(activityId);
+        },
       },
-    });
+    );
     await eventDispatch.catch(() => {
       throw codexFailure();
     });
@@ -738,7 +752,12 @@ export class CodexSessionAdapter implements AgentAdapter {
     this.#busy.add(binding.nativeSessionId);
     try {
       return await this.#runTurn(
-        text,
+        context?.systemMessage
+          ? `${context.systemMessage}
+
+User request:
+${text}`
+          : text,
         binding.nativeSessionId,
         context,
         binding.runtimeHome,

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { audioCue } from "../audio/world-audio.js";
 
 import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
 import { useSpatialScreen } from "./world-screen-context.js";
@@ -13,10 +14,14 @@ export function WorldView({
   projection,
   iterationStatus,
   onInputOwnerChange,
+  onRefresh,
+  refreshPending = false,
 }: {
   readonly workstream: Workstream;
   readonly projection: PreviewProjection;
   readonly iterationStatus?: IterationStatus | null;
+  readonly onRefresh?: () => void;
+  readonly refreshPending?: boolean;
   readonly onInputOwnerChange: (owner: WorldInputOwner) => void;
 }) {
   const spatial = useSpatialScreen("preview");
@@ -36,6 +41,7 @@ export function WorldView({
   );
 
   const collapse = useCallback(() => {
+    audioCue("projection-off");
     setExpanded(false);
     assignInputOwner("world");
     window.requestAnimationFrame(() => opener.current?.focus());
@@ -102,6 +108,26 @@ export function WorldView({
           >
             {truthLabel}
           </span>
+          {onRefresh ? (
+            <div className="world-view__refresh">
+              <button
+                type="button"
+                className={
+                  refreshPending || workstream.status === "working"
+                    ? "world-action--disabled"
+                    : "world-action--enabled"
+                }
+                disabled={refreshPending || workstream.status === "working"}
+                onClick={onRefresh}
+              >
+                {refreshPending ? "Refreshing preview…" : "Refresh preview"}
+              </button>
+              <small>
+                Preview recipe already approved · updates refresh after
+                validation.
+              </small>
+            </div>
+          ) : null}
         </header>
 
         {iterationStatus ? (
@@ -150,13 +176,18 @@ export function WorldView({
             referrerPolicy="no-referrer"
             tabIndex={inputOwner === "preview" ? 0 : -1}
           />
+          {inputOwner === "world" ? (
+            <div className="world-view__input-shield" aria-hidden="true" />
+          ) : null}
           {!expanded && !spatial ? (
             <button
               ref={opener}
               type="button"
               className="world-view__expand world-action--enabled"
               aria-expanded="false"
+              data-audio="handled"
               onClick={() => {
+                audioCue("projection-on");
                 setExpanded(true);
                 assignInputOwner("world");
               }}
@@ -185,6 +216,7 @@ export function WorldView({
                 ref={returnControl}
                 type="button"
                 className="world-action--enabled"
+                data-audio-cue="projection-off"
                 onClick={() => assignInputOwner("world")}
               >
                 Return to World
@@ -196,6 +228,7 @@ export function WorldView({
             <button
               type="button"
               className="world-view__close world-action--enabled"
+              data-audio="handled"
               onClick={collapse}
               hidden={spatial}
             >

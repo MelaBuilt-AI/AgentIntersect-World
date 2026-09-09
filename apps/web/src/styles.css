@@ -1,3 +1,5 @@
+@import "./world-entry/world-activity-cloud.css";
+
 :root {
   color-scheme: dark;
   font-family:
@@ -904,6 +906,43 @@
   position: relative;
 }
 
+.world-entry-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: radial-gradient(ellipse at center, #132c47, #030914 75%);
+  color: #f1f5f9;
+  text-align: center;
+  opacity: 1;
+  transition:
+    opacity 360ms ease,
+    visibility 0s 360ms;
+}
+.world-entry-transition[data-ready="true"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.world-entry-transition__card {
+  max-width: 28rem;
+}
+.world-entry-transition__mark {
+  font-size: 3rem;
+  color: #38bdf8;
+}
+.world-entry-transition p {
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-entry-transition {
+    transition: none;
+  }
+}
+
 .world-room {
   position: absolute;
   inset: 0;
@@ -1011,6 +1050,66 @@
   padding: 0;
   pointer-events: none;
   white-space: nowrap;
+}
+
+.world-entry-connections:empty {
+  display: none;
+}
+
+.world-experience--entry:has(.world-constellation-projection) {
+  overflow-y: auto;
+  align-content: start;
+  gap: 1rem;
+}
+
+.world-entry-connections:has(.world-constellation-projection) {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 42rem);
+  padding-bottom: 1rem;
+}
+
+.world-entry-connections .world-constellation-projection {
+  width: 100%;
+  margin: 0;
+}
+
+.world-entry-connections:has(.world-constellation-projection)
+  .world-agent-prompt {
+  position: static;
+  width: 100%;
+  margin: 0;
+}
+
+.world-constellation-projection .world-enter-action {
+  position: static;
+  display: block;
+  transform: none;
+  margin: 1rem auto 0;
+  min-height: 44px;
+}
+
+.world-constellation-projection li > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.world-constellation-projection__actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 540px) {
+  .world-constellation-projection li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .world-constellation-projection__actions {
+    flex-wrap: wrap;
+  }
+  .world-entry-connections:has(.world-constellation-projection)
+    .world-agent-prompt {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .world-constellation-projection {
@@ -1285,8 +1384,12 @@
   background: #071322;
 }
 
-/* Flatten coplanar preview contents to avoid native iframe compositing flicker. */
-.world-screen--spatial[data-world-screen="preview"] .world-screen__object {
+/* Flatten coplanar screen content; perspective stays on its parent. */
+.world-screen--spatial:is(
+    [data-world-screen="preview"],
+    [data-world-screen="code"]
+  )
+  .world-screen__object {
   transform-style: flat;
 }
 
@@ -1406,6 +1509,16 @@
   gap: 0.5rem;
 }
 
+.world-view__refresh {
+  width: 100%;
+}
+.world-view__refresh button {
+  min-height: 36px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
 .world-view__header > div {
   display: grid;
   gap: 0.15rem;
@@ -1486,15 +1599,18 @@
   height: 100%;
   min-height: 12rem;
   border: 0;
-  pointer-events: none;
+  /* Toggling iframe pointer-events can leave Chromium wheel regions stale. */
+  pointer-events: auto;
   background: #fff;
 }
 
-.world-view__iframe--interactive {
+.world-view__input-shield {
+  z-index: 1;
   pointer-events: auto;
 }
 
 .world-view__expand {
+  z-index: 2;
   align-self: end;
   justify-self: center;
   margin: 0 0 0.6rem;
@@ -1635,6 +1751,12 @@
     "voice voice";
   gap: 0.45rem 0.75rem;
   width: auto;
+  /* Transparent layout space must not swallow World or Code Wheel input. */
+  pointer-events: none;
+}
+
+.world-hud > :not(.world-hud__captions) {
+  pointer-events: auto;
 }
 
 .world-hud__captions {

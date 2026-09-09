@@ -1,4 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
 
 import {
   PreviewManagerService,
@@ -112,6 +114,57 @@ export function registerPreviewManagerRoutes(
   envelope: RouteEnvelope,
 ): void {
   const tags = ["preview-manager"];
+  server.post(
+    "/preview-recipes/static-site",
+    {
+      preValidation: async (request) =>
+        rejectUnknownKeys(request.body, [
+          "requestId",
+          "correlationId",
+          "repositoryId",
+        ]),
+      schema: {
+        tags,
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["requestId", "correlationId", "repositoryId"],
+          properties: {
+            requestId: identifier,
+            correlationId: identifier,
+            repositoryId: identifier,
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const body = request.body as {
+        requestId: string;
+        correlationId: string;
+        repositoryId: string;
+      };
+      try {
+        const result = await service.approveRecipe({
+          ...body,
+          recipeId: `static-site-${createHash("sha256").update(body.repositoryId).digest("hex").slice(0, 16)}`,
+          expectedRevision: null,
+          label: "Static website · owned loopback server",
+          executable: process.execPath,
+          args: [
+            fileURLToPath(
+              new URL("../dist/static-site-preview.js", import.meta.url),
+            ),
+            "{port}",
+          ],
+          readinessPath: "/",
+          browserPath: "/",
+        });
+        return reply.code(201).send(envelope.success(request, result));
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
 
   server.post(
     "/preview-recipes",

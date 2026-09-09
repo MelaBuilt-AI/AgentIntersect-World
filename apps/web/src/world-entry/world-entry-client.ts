@@ -109,6 +109,7 @@ export type WorldEntrySessionPort = {
       readonly onEvent?: (event: WorldAgentEvent) => Promise<void> | void;
       readonly signal?: AbortSignal;
       readonly userDisplayName?: string;
+      readonly intent?: "discussion" | "work";
     },
   ): Promise<{
     readonly finalText: string;
@@ -560,6 +561,7 @@ export function createWorldEntryClient(
         readonly onEvent?: (event: WorldAgentEvent) => Promise<void> | void;
         readonly signal?: AbortSignal;
         readonly userDisplayName?: string;
+        readonly intent?: "discussion" | "work";
       } = {},
     ): Promise<{
       readonly finalText: string;

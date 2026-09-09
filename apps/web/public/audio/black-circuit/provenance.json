@@ -1,0 +1,192 @@
+{
+  "pack": "AgentIntersect World - Black Circuit",
+  "version": "3.1.0",
+  "encoding": "original supplied web Ogg Vorbis",
+  "assets": [
+    {
+      "file": "music/00-black-circuit.ogg",
+      "sha256": "422ce291cc3fe2b7d9516c04bb2d309d01ae13cf3b0aa1e721df75148c81a9d9",
+      "master": "masters/music/00-black-circuit.wav"
+    },
+    {
+      "file": "music/01-idle-voltage.ogg",
+      "sha256": "9406f7d5e150d8cc2b5e27a68c461de0a1bfcaa226ba2ff218920081b8e59418",
+      "master": "masters/music/01-idle-voltage.wav"
+    },
+    {
+      "file": "music/02-neon-branches.ogg",
+      "sha256": "7d9111977e78f055d1a77e5dbc64de80f2c97561d3f24b55afe4b87d2f2c721f",
+      "master": "masters/music/02-neon-branches.wav"
+    },
+    {
+      "file": "music/03-cache-district.ogg",
+      "sha256": "88fd1d3dcad15d4cf7d9e81059815d91cc9dee8583200c23649790adc14decda",
+      "master": "masters/music/03-cache-district.wav"
+    },
+    {
+      "file": "music/04-copper-rain.ogg",
+      "sha256": "0be028f1ebadb6fa4169bd8dd169d96145c56eeab31486f4f3fbe9c4d1b96d97",
+      "master": "masters/music/04-copper-rain.wav"
+    },
+    {
+      "file": "music/05-ghost-commit.ogg",
+      "sha256": "3c0651be56182ac3b5e4f13fb0e9cfb983493f6955ca62bbab01969d0e5c00d0",
+      "master": "masters/music/05-ghost-commit.wav"
+    },
+    {
+      "file": "music/06-night-compiler.ogg",
+      "sha256": "56dc95e1de8ed05a9d4401efc55430854e00d2ccc26731d4c7d7905cab79c5b5",
+      "master": "masters/music/06-night-compiler.wav"
+    },
+    {
+      "file": "music/07-thread-garden.ogg",
+      "sha256": "c9377b61a04bcf2e39581a87660d9b02e9300aabfe9517f76e6c3dfa1f423450",
+      "master": "masters/music/07-thread-garden.wav"
+    },
+    {
+      "file": "music/08-subsurface-bus.ogg",
+      "sha256": "f380496f823eb99d4539cb80bc78e141aa12095a428c7d87b5e66d0d7eb44dd6",
+      "master": "masters/music/08-subsurface-bus.wav"
+    },
+    {
+      "file": "music/09-quiet-overclock.ogg",
+      "sha256": "ca827b9c430f9b2cdc89a6d8ff0150eb1a554668b0e150eb40b1bdde974d45bf",
+      "master": "masters/music/09-quiet-overclock.wav"
+    },
+    {
+      "file": "music/10-memory-skyline.ogg",
+      "sha256": "cf52b2991739ac1d1becfe48b39650fa0d23bdef29ca688309ad7a2415387d32",
+      "master": "masters/music/10-memory-skyline.wav"
+    },
+    {
+      "file": "music/11-merge-current.ogg",
+      "sha256": "d2a1ce329609f2697966da4165fb93329f5ce3401f8a33b7918aaff5f6659b24",
+      "master": "masters/music/11-merge-current.wav"
+    },
+    {
+      "file": "music/12-afterimage-protocol.ogg",
+      "sha256": "75b9e3e57f396f6dbcd53a0a4f7938296e8a22cd7ea2035ac3d0985abd2724c9",
+      "master": "masters/music/12-afterimage-protocol.wav"
+    },
+    {
+      "file": "sfx/ui-click-01.ogg",
+      "sha256": "0da4ff5b41dfffb05afe644d09eda1d5414f726df5e6ee4e533738da7e69d1b1",
+      "master": "masters/sfx/ui-click-01.wav"
+    },
+    {
+      "file": "sfx/ui-click-02.ogg",
+      "sha256": "5ef284cc225540953bd985099e0b148c3ae87e2d28729b1e9484cf50cea9d44c",
+      "master": "masters/sfx/ui-click-02.wav"
+    },
+    {
+      "file": "sfx/ui-click-03.ogg",
+      "sha256": "b87e6c8599b2e0c400809ff0989f282ac712ff95d7ff432afa380ed9b17007da",
+      "master": "masters/sfx/ui-click-03.wav"
+    },
+    {
+      "file": "sfx/ui-hover.ogg",
+      "sha256": "f5b168270745e13ba01099eed71d2f11af005b961de881cae19e179e17913ae3",
+      "master": "masters/sfx/ui-hover.wav"
+    },
+    {
+      "file": "sfx/ui-activate.ogg",
+      "sha256": "652ff6550c71e7ab37691ac0c5b16bc1c5ec491e72ed3a5b2c50237ce9cfa079",
+      "master": "masters/sfx/ui-activate.wav"
+    },
+    {
+      "file": "sfx/ui-back.ogg",
+      "sha256": "04acc2680b1e252bc98690a8a3d27e31518855c4ea9e245e96f2032a8b7f067b",
+      "master": "masters/sfx/ui-back.wav"
+    },
+    {
+      "file": "sfx/ui-unavailable.ogg",
+      "sha256": "db5f4725a0f67c0586e1b55d0a6db1d5b4b26e225185a87d622ecb1c90570ff4",
+      "master": "masters/sfx/ui-unavailable.wav"
+    },
+    {
+      "file": "sfx/repo-city-spawn.ogg",
+      "sha256": "e60df8492f998003a3a59174ce6a56ff0888afb906cfcb76717d0c5339148c7d",
+      "master": "masters/sfx/repo-city-spawn.wav"
+    },
+    {
+      "file": "sfx/repo-select-01.ogg",
+      "sha256": "83721720955ca44034fff0a6e4b896ff394dc5e5193980ac7b34af63ad23ca04",
+      "master": "masters/sfx/repo-select-01.wav"
+    },
+    {
+      "file": "sfx/repo-select-02.ogg",
+      "sha256": "056421810df867173fd79f6c267dea6df003072834b15865b2efdb853dc8c273",
+      "master": "masters/sfx/repo-select-02.wav"
+    },
+    {
+      "file": "sfx/repo-select-03.ogg",
+      "sha256": "f902342e7d2a23500b5e9d3f609828ed6829bff549c86f1f0167ef1b56319ace",
+      "master": "masters/sfx/repo-select-03.wav"
+    },
+    {
+      "file": "sfx/projection-on.ogg",
+      "sha256": "ab60a7210016f3177bafd6aa904a1c9b0b514219ddc6c254c7bfbeaf0bb993dd",
+      "master": "masters/sfx/projection-on.wav"
+    },
+    {
+      "file": "sfx/projection-off.ogg",
+      "sha256": "288cf7f963db57bd3148f93fe3222387ee292aa362aa85d873585762be0567e7",
+      "master": "masters/sfx/projection-off.wav"
+    },
+    {
+      "file": "sfx/screen-extrude-off.ogg",
+      "sha256": "f6d368b4ee95a0c8d0aecc30323703c7c0fb2363b201735005125c4b223a5dfa",
+      "master": "masters/sfx/screen-extrude-off.wav"
+    },
+    {
+      "file": "sfx/object-grab.ogg",
+      "sha256": "8672175439a0b96ee9595700fb84c40221c1d167583b6972aa2524356171cfd7",
+      "master": "masters/sfx/object-grab.wav"
+    },
+    {
+      "file": "sfx/object-hold-loop.ogg",
+      "sha256": "1c8f1e6e9d77789b1f59444da39368bb0a76269dc8add85b53545b6d1d85b39e",
+      "master": "masters/sfx/object-hold-loop.wav"
+    },
+    {
+      "file": "sfx/object-drop.ogg",
+      "sha256": "425b55ad60f318d0a1707e34a5edf81499d43de6bee98892183e77c5c62652c7",
+      "master": "masters/sfx/object-drop.wav"
+    },
+    {
+      "file": "sfx/agent-activate.ogg",
+      "sha256": "7a688accc7592cb7e0fd0217aeda03607dacbfa130fa5b11bab94b398cf1516d",
+      "master": "masters/sfx/agent-activate.wav"
+    },
+    {
+      "file": "sfx/agent-coding-loop.ogg",
+      "sha256": "5013e6fa9c97979c5fd0494262af8d66f118c81ebea1c2c07968daaaa0f0cbba",
+      "master": "masters/sfx/agent-coding-loop.wav"
+    },
+    {
+      "file": "sfx/agent-cancel.ogg",
+      "sha256": "2eb97178ce9276bb2ac06177723097a40b9d55c2c033af0e6fd44191c0fc6301",
+      "master": "masters/sfx/agent-cancel.wav"
+    },
+    {
+      "file": "sfx/code-canopy.ogg",
+      "sha256": "51580ffd1ab3d9a9b59563296a90a98b962b1e999aa70bf362084638545a2f8c",
+      "master": "masters/sfx/code-canopy.wav"
+    },
+    {
+      "file": "sfx/world-jack-in.ogg",
+      "sha256": "fd3ac86036b7aac9efc6ded86fb4e1048c5b90984e15977a278f46161c5213fa",
+      "master": "masters/sfx/world-jack-in.wav"
+    },
+    {
+      "file": "sfx/screen-extrude-on.ogg",
+      "sha256": "243b4b3dffc0d2b2bb085115c703d52ffe1f05d91776371058586d0d9e059483",
+      "master": "masters/sfx/screen-extrude-on.wav"
+    },
+    {
+      "file": "sfx/agent-complete.ogg",
+      "sha256": "f049866d3013b281a12cfa876b605b0619b8d949d610140a3cf3f17fc6ba935a",
+      "master": "masters/sfx/agent-complete.wav"
+    }
+  ]
+}

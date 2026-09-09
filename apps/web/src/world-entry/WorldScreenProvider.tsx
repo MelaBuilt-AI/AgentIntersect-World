@@ -1,3 +1,4 @@
+import { audioCue, heldAudioState } from "../audio/world-audio.js";
 import {
   useCallback,
   useEffect,
@@ -146,6 +147,7 @@ export function WorldScreenProvider({
         }
         setPoses((current) => ({ ...current, [id]: pose }));
       }
+      audioCue(modes[id] ? "projection-off" : "projection-on");
       setModes((current) => ({ ...current, [id]: !current[id] }));
       if (document.pointerLockElement) document.exitPointerLock();
     },
@@ -179,6 +181,10 @@ export function WorldScreenProvider({
     window.addEventListener("keydown", keydown);
     return () => window.removeEventListener("keydown", keydown);
   }, [screens, toggle]);
+  useEffect(() => {
+    heldAudioState(dragging);
+  }, [dragging]);
+  useEffect(() => () => heldAudioState(false), []);
   const value = useMemo(
     () => ({
       enabled,

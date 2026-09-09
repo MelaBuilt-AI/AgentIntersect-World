@@ -89,6 +89,43 @@ function focusAdapter(events: readonly AdapterTurnEvent[]): AgentAdapter {
   };
 }
 
+it("persists a failed native turn instead of advertising a ready session", async () => {
+  const base = focusAdapter([]);
+  const adapter: AgentAdapter = {
+    ...base,
+    sendText: async () => {
+      throw new GatewayError(
+        "offline",
+        "Native turn timed out; reconnect required",
+      );
+    },
+  };
+  const store = new AgentSessionStore(newRoot());
+  const gateway = new AgentSessionGateway({
+    registry: new AdapterRegistry([adapter]),
+    store,
+  });
+  const session = await gateway.attach({
+    adapterId: adapter.id,
+    adapterSessionRef: "failure-root",
+    mode: "explore",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+  });
+  await expect(
+    gateway.sendText(session.sessionId, { text: "work", binding: session }),
+  ).rejects.toThrow("timed out");
+  expect(gateway.status(session.sessionId)).toMatchObject({
+    status: "error",
+    activeRunId: null,
+  });
+  expect(gateway.events(session.sessionId).at(-1)).toMatchObject({
+    type: "session.error",
+  });
+  expect(gateway.isBusy(session.sessionId)).toBe(false);
+});
+
 it("cancels a superseded movement before an unresolvable replacement", async () => {
   const adapter = focusAdapter([
     {
@@ -292,6 +329,8 @@ it("owns concurrent workstream recovery as one cached movement", async () => {
 
 it("keeps the same Workstream context on later turns after explicit collaborate binding", async () => {
   const contexts: Array<string | undefined> = [];
+  const lifecycle: string[] = [];
+  let release: (() => void) | undefined;
   const adapter: AgentAdapter = {
     id: "fixture",
     attest: async () => ({
@@ -333,8 +372,17 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
       title: "Fixture",
     }),
     sendText: async (_session, _text, context) => {
+      lifecycle.push("dispatch");
       contexts.push(context?.systemMessage);
-      return { finalText: "done", deltas: [] };
+      if (_text === "held work")
+        await new Promise<void>((resolve) => {
+          release = resolve;
+        });
+      return {
+        finalText:
+          _text === "hi codex" ? "Hi Aaron, let us discuss the work." : "done",
+        deltas: [],
+      };
     },
   };
   const gateway = new AgentSessionGateway({
@@ -353,12 +401,26 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
     worktreeRef: "worktree-collision",
     taskRef: "workstream-collision",
   });
-  gateway.setWorkstreamContextResolver((session) =>
-    session.currentTaskRef === "workstream-collision"
-      ? "Workstream collision context in /tmp/owned-worktree"
-      : null,
+  gateway.setWorkstreamContextResolver((session, intent) =>
+    intent === "discussion"
+      ? "Discuss as yourself; no implementation or receipt."
+      : session.currentTaskRef === "workstream-collision"
+        ? "Workstream collision context in /tmp/owned-worktree"
+        : null,
   );
 
+  gateway.setWorkstreamDirectoryResolver(async () => ({
+    workingDirectory: "/tmp/owned-worktree",
+  }));
+  gateway.setWorkstreamTurnStartObserver(async (id, text) => {
+    expect(id).toBe(bound.sessionId);
+    lifecycle.push(`start:${text}`);
+  });
+  gateway.setWorkstreamTurnObserver(async (id, error) => {
+    expect(id).toBe(bound.sessionId);
+    expect(error).toBeUndefined();
+    lifecycle.push("done");
+  });
   await gateway.sendText(bound.sessionId, {
     text: "Initial implementation task",
     binding: bound,
@@ -369,10 +431,56 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
     binding: afterInitial,
   });
 
+  expect(lifecycle).toEqual([
+    "start:Initial implementation task",
+    "dispatch",
+    "done",
+    "start:Please make the bounded adjustment",
+    "dispatch",
+    "done",
+  ]);
   expect(contexts).toEqual([
     "Workstream collision context in /tmp/owned-worktree",
     "Workstream collision context in /tmp/owned-worktree",
   ]);
+  const before = gateway.status(bound.sessionId);
+  const held = gateway.sendText(before.sessionId, {
+    text: "held work",
+    binding: before,
+    intent: "work",
+  });
+  await vi.waitFor(() => expect(release).toBeTypeOf("function"));
+  const queued = gateway.sendText(before.sessionId, {
+    text: "hi codex",
+    binding: before,
+    intent: "discussion",
+  });
+  const abort = new AbortController();
+  const cancelled = gateway.sendText(
+    before.sessionId,
+    { text: "cancelled discussion", binding: before, intent: "discussion" },
+    { signal: abort.signal },
+  );
+  const cancelledResult = expect(cancelled).rejects.toThrow(
+    "Queued conversation cancelled",
+  );
+  abort.abort();
+  await cancelledResult;
+  expect(contexts).toHaveLength(3);
+  release!();
+  await held;
+  expect((await queued).finalText).toContain("Hi Aaron");
+  expect(contexts.at(-1)).toContain("Discuss as yourself");
+  expect(lifecycle.slice(6)).toEqual([
+    "start:held work",
+    "dispatch",
+    "done",
+    "dispatch",
+  ]);
+  const afterDiscussion = gateway.status(before.sessionId);
+  expect(afterDiscussion.currentTaskRef).toBe(before.currentTaskRef);
+  expect(afterDiscussion.worktreeRef).toBe(before.worktreeRef);
+  expect(afterDiscussion.adapterSessionRef).toBe(before.adapterSessionRef);
 });
 
 type FakeHermesOptions = {

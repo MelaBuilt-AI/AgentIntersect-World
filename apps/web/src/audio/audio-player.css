@@ -1,0 +1,114 @@
+.world-audio {
+  position: fixed;
+  right: 12px;
+  top: 12px;
+  z-index: 30;
+  width: min(300px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  border: 1px solid #248bd066;
+  border-radius: 12px;
+  background: #060d19ed;
+  color: #d9ecff;
+  box-shadow: 0 8px 26px #0006;
+  font:
+    12px/1.4 Consolas,
+    "Liberation Mono",
+    monospace;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+.world-audio__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+}
+.world-audio button {
+  font: inherit;
+  border: 1px solid #288dcc88;
+  border-radius: 6px;
+  background: #112d49;
+  color: #b9e0ff;
+  padding: 6px 9px;
+  min-height: 32px;
+  cursor: pointer;
+}
+.world-audio button:focus-visible,
+.world-audio input:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+.world-audio button:disabled,
+.world-audio button[aria-pressed="true"] {
+  background: #232b36;
+  border-color: #566170;
+  color: #9fa8b5;
+}
+.world-audio button:disabled {
+  cursor: not-allowed;
+}
+.world-audio__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.world-audio__details {
+  display: grid;
+  gap: 10px;
+  padding: 4px 12px 12px;
+}
+.world-audio__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.world-audio__browse {
+  display: grid;
+  gap: 6px;
+  color: #d9ecff;
+}
+.world-audio input {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+}
+.world-audio small {
+  color: #a6bbd3;
+  font-size: 11px;
+}
+.world-audio__notice {
+  font-size: 11px;
+  color: #ffd995;
+  margin: 0;
+  padding: 0 12px 10px;
+}
+/* Keep World hints and focused/fullscreen screen controls exposed. */
+body:has(.world-room) .world-audio {
+  top: 7rem;
+  max-height: calc(100dvh - 8rem);
+}
+body:has(.world-room) .world-screen--hud .world-workstream-status {
+  top: calc(7rem + var(--world-audio-height, 46px) + 8px);
+  max-height: max(
+    0px,
+    calc(100dvh - 7rem - var(--world-audio-height, 46px) - 8.5rem)
+  );
+}
+.work-inspector > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 540px) {
+  .world-audio {
+    width: 240px;
+    top: 8px;
+    right: 8px;
+  }
+  .world-audio button {
+    min-height: 36px;
+  }
+}

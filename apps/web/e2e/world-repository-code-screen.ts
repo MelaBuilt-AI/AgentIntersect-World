@@ -8,6 +8,7 @@ import {
 export async function exerciseRepositoryCodeScreen(
   page: Page,
   testInfo: TestInfo,
+  exerciseOcclusion = false,
 ) {
   page.setDefaultTimeout(10_000);
   const content = Array.from(
@@ -91,6 +92,33 @@ export async function exerciseRepositoryCodeScreen(
   await page.keyboard.press("Alt+Digit4");
   await panel.getByRole("button", { name: "Close code", exact: true }).click();
   await expect(panel).toHaveCount(0);
+  const behind = page.locator('[data-world-screen="director"]');
+  if (exerciseOcclusion) {
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+    await page
+      .getByRole("button", { name: /Place Live \/ Director in World/ })
+      .click();
+    await expect(behind).toHaveAttribute("data-screen-mode", "spatial");
+    const mover = behind.getByRole("button", {
+      name: "Move Live / Director screen",
+    });
+    await mover.focus();
+    for (const [attribute, target, positive, negative] of [
+      ["data-screen-x", objectPosition.x, "ArrowRight", "ArrowLeft"],
+      ["data-screen-z", objectPosition.z - 2, "ArrowDown", "ArrowUp"],
+    ] as const) {
+      for (let step = 0; step < 180; step++) {
+        const delta = target - Number(await behind.getAttribute(attribute));
+        if (Math.abs(delta) < 0.13) break;
+        await page.keyboard.press(delta > 0 ? positive : negative);
+      }
+    }
+  }
   const bounds = (await canvas.boundingBox())!;
   const pick = projectWorldPointToViewport({
     point: [objectPosition.x, 0.6, objectPosition.z],
@@ -123,9 +151,65 @@ export async function exerciseRepositoryCodeScreen(
   await page.screenshot({
     path: testInfo.outputPath("repository-code-open.png"),
   });
+  if (exerciseOcclusion) {
+    const assertCodeOverlap = async (name: string) => {
+      await expect(panel.locator(".world-screen__object")).toHaveCSS(
+        "transform-style",
+        "flat",
+      );
+      expect(
+        await panel.evaluate((node) => Number(getComputedStyle(node).zIndex)),
+      ).toBeGreaterThan(
+        await behind.evaluate((node) => Number(getComputedStyle(node).zIndex)),
+      );
+      const overlap = await page.evaluate(() => {
+        const code = document.querySelector(
+          '[data-world-screen="code"] .repository-code-screen',
+        )!;
+        const rear = document.querySelector(
+          '[data-world-screen="director"] .world-screen__object',
+        )!;
+        const a = code.getBoundingClientRect(),
+          b = rear.getBoundingClientRect();
+        const left = Math.max(a.left, b.left),
+          right = Math.min(a.right, b.right);
+        const top = Math.max(a.top, b.top),
+          bottom = Math.min(a.bottom, b.bottom);
+        return {
+          width: right - left,
+          height: bottom - top,
+          topScreen: document
+            .elementFromPoint((left + right) / 2, (top + bottom) / 2)
+            ?.closest("[data-world-screen]")
+            ?.getAttribute("data-world-screen"),
+        };
+      });
+      expect(overlap.width).toBeGreaterThan(30);
+      expect(overlap.height).toBeGreaterThan(30);
+      expect(overlap.topScreen).toBe("code");
+      await page.screenshot({ path: testInfo.outputPath(name) });
+    };
+    await assertCodeOverlap("code-opaque-over-rear-screen.png");
+    const originalX = Number(await room.getAttribute("data-user-position-x"));
+    await room.focus();
+    await page.keyboard.down("d");
+    try {
+      await expect
+        .poll(async () =>
+          Number(await room.getAttribute("data-user-position-x")),
+        )
+        .toBeGreaterThan(originalX + 0.8);
+    } finally {
+      await page.keyboard.up("d");
+    }
+    await assertCodeOverlap("code-opaque-oblique.png");
+    return;
+  }
   const viewport = panel.getByRole("region", { name: "Source code viewport" });
   const handle = await viewport.elementHandle();
   const unfocusedWidth = (await viewport.boundingBox())!.width;
+  const { openCodeWheel } = await import("./world-code-wheel.js");
+  await openCodeWheel(page);
   await viewport.click();
   await expect(panel.locator("section")).toHaveAttribute(
     "data-code-focused",
@@ -134,6 +218,42 @@ export async function exerciseRepositoryCodeScreen(
   await expect
     .poll(async () => (await viewport.boundingBox())!.width)
     .toBeGreaterThan(unfocusedWidth * 1.2);
+  expect(
+    await panel.evaluate((element) => Number(getComputedStyle(element).zIndex)),
+  ).toBeGreaterThan(12);
+  await expect(
+    page.getByRole("group", { name: "Code Wheel", exact: true }),
+  ).toHaveCount(1);
+  const overlap = await viewport.evaluate((element) => {
+    const a = element.getBoundingClientRect();
+    const b = document.querySelector(".code-wheel")!.getBoundingClientRect();
+    const x = (Math.max(a.left, b.left) + Math.min(a.right, b.right)) / 2;
+    const y = (Math.max(a.top, b.top) + Math.min(a.bottom, b.bottom)) / 2;
+    return {
+      intersects:
+        Math.max(a.left, b.left) < Math.min(a.right, b.right) &&
+        Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom),
+      codeOnTop: element.contains(document.elementFromPoint(x, y)),
+    };
+  });
+  expect(overlap).toEqual({ intersects: true, codeOnTop: true });
+  await page.screenshot({
+    path: testInfo.outputPath("focused-code-unoccluded.png"),
+  });
+  for (let sample = 0; sample < 4; sample += 1) {
+    const after = await page.evaluate(() => performance.now() + 1050);
+    await page.waitForFunction(
+      (deadline) => performance.now() >= deadline,
+      after,
+    );
+    await page.screenshot({
+      path: testInfo.outputPath(`focused-sky-held-${sample}.png`),
+    });
+  }
+  const wheel = page.getByRole("group", { name: "Code Wheel", exact: true });
+  const roomBox = (await room.boundingBox())!;
+  await page.mouse.click(roomBox.x + 10, roomBox.y + 10, { button: "middle" });
+  await expect(wheel).toHaveCount(0);
   await viewport.hover();
   const zoom = await room.getAttribute("data-camera-zoom");
   const position = await room.getAttribute("data-user-position-z");
@@ -187,7 +307,6 @@ export async function exerciseRepositoryCodeScreen(
   // Changing the actual view while open must not turn this into a billboard.
   await page.mouse.move(720, 610);
   await page.mouse.down({ button: "right" });
-  // Pointer capture is asynchronous; moving before acquisition loses the look.
   await expect(room).toHaveAttribute("data-mouse-look", "active");
   await expect
     .poll(() => canvas.evaluate((node) => document.pointerLockElement === node))

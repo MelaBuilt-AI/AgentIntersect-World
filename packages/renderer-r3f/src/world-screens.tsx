@@ -20,6 +20,9 @@ import {
 import {
   WORLD_SCREEN_CENTER_Y,
   WORLD_SCREEN_SCALE,
+  WORLD_SCREEN_SHELL_PADDING,
+  WORLD_SCREEN_SHELL_DEPTH,
+  WORLD_SCREEN_SHELL_Z,
   rotateWorldScreen,
   worldScreenReveal,
   type WorldScreenBinding,
@@ -284,6 +287,22 @@ export function WorldScreens({
     const perspective =
       (camera.projectionMatrix.elements[5]! * size.height) / 2;
     const cameraTransform = `translateZ(${perspective}px) ${screenCameraCss(camera.matrixWorldInverse)} translate(${size.width / 2}px,${size.height / 2}px)`;
+    // Stable, distinct ranks: reciprocal-distance rounding made far panels
+    // share z-index, allowing DOM order to show them through nearer code.
+    const depthOrder = screens
+      .filter((screen) => screen.spatial)
+      .map((screen) => ({
+        screen,
+        depth: new Vector3(
+          screen.pose.x,
+          screen.pose.y ?? WORLD_SCREEN_CENTER_Y,
+          screen.pose.z,
+        ).applyMatrix4(camera.matrixWorldInverse).z,
+      }))
+      .sort((a, b) => a.depth - b.depth);
+    const ranks = new Map(
+      depthOrder.map(({ screen }, index) => [screen.id, index + 1]),
+    );
     for (const screen of screens) {
       if (!screen.spatial) {
         screen.viewport.style.cssText = "";
@@ -329,7 +348,7 @@ export function WorldScreens({
       screen.element.inert = !visible;
       // Overlapping screens obey camera distance rather than DOM mount order.
       screen.viewport.style.zIndex = String(
-        1 + Math.round(8 / Math.max(1, -depth)),
+        screen.focused ? 15 : ranks.get(screen.id),
       );
       screen.viewport.dataset.screenProjected = String(visible);
       tools.position
@@ -344,7 +363,7 @@ export function WorldScreens({
         bounds.top + ((1 - tools.position.y) * size.height) / 2,
       );
     }
-  });
+  }, -1); // Focus camera before sky/scene callbacks sample it; retain automatic rendering.
 
   return (
     <group name="world-spatial-screens">
@@ -409,11 +428,17 @@ function ProjectedScreen({
         </mesh>
         <mesh
           name={`world-screen-code-shell-${screen.id}`}
-          position={[0, 0, -0.075]}
+          position={[0, 0, WORLD_SCREEN_SHELL_Z]}
           castShadow
           receiveShadow
         >
-          <boxGeometry args={[width + 0.1, height + 0.1, 0.14]} />
+          <boxGeometry
+            args={[
+              width + 2 * WORLD_SCREEN_SHELL_PADDING,
+              height + 2 * WORLD_SCREEN_SHELL_PADDING,
+              WORLD_SCREEN_SHELL_DEPTH,
+            ]}
+          />
           <meshStandardMaterial
             onUpdate={(material) => {
               material.needsUpdate = true;

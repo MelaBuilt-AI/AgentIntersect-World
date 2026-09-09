@@ -27,6 +27,7 @@ export type ConstellationMessageRequest = {
   readonly requestId: string;
   readonly idempotencyKey: string;
   readonly text: string;
+  readonly intent?: "discussion" | "work";
   readonly targetRosterId?: string;
   readonly userDisplayName?: string;
 };
@@ -521,6 +522,7 @@ export class ConstellationMessageService {
             recipient,
             created.group.text,
             request.userDisplayName,
+            request.intent,
           ),
         );
     if (isConstellationMessageGroupComplete(created.group))
@@ -551,6 +553,7 @@ export class ConstellationMessageService {
     recipient: DispatchRecipient,
     text: string,
     userDisplayName: string | undefined,
+    intent: "discussion" | "work" | undefined,
   ): Promise<void> {
     await this.#updateRecipient(groupId, recipient.rosterId, {
       state: "streaming",
@@ -562,6 +565,7 @@ export class ConstellationMessageService {
       const result = await this.#gateway.sendText(recipient.worldSessionId, {
         text,
         binding,
+        ...(intent ? { intent } : {}),
         ...(userDisplayName
           ? { context: { userDisplayName: userDisplayName.trim() } }
           : {}),

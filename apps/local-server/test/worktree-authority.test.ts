@@ -102,6 +102,72 @@ afterEach(async () => {
 });
 
 describe("WorktreeAuthority", () => {
+  it("remeasures saved authority after a commit or branch change rather than replaying stale readiness", async () => {
+    const f = await fixture();
+    const request = createRequest(f.repository, f.worktrees);
+    const created = await f.authority.create(request);
+    await f.authority.restore(created.receipt);
+    await writeFile(join(request.worktreePath, "new.txt"), "saved work");
+    await git(request.worktreePath, ["add", "new.txt"]);
+    await git(request.worktreePath, ["commit", "-m", "new checkpoint"]);
+    const restored = await f.authority.restore(created.receipt);
+    expect(restored.head).toBe(
+      (await git(request.worktreePath, ["rev-parse", "HEAD"])).trim(),
+    );
+    await git(request.worktreePath, ["switch", "-c", "another-branch"]);
+    expect((await f.authority.restore(created.receipt)).state).toBe(
+      "wrong-branch",
+    );
+  });
+  it("allocates from the current selected root rather than the launcher default", async () => {
+    const { repository, root, worktrees } = await fixture();
+    const selected = join(root, "selected");
+    await mkdir(selected);
+    await git(selected, ["init", "--initial-branch=main"]);
+    await writeFile(join(selected, "selected.txt"), "selected repository\n");
+    await git(selected, ["add", "."]);
+    await git(selected, ["commit", "-m", "selected initial"]);
+    const options = {
+      approvedRepositoryRoot: repository,
+      allowedWorktreeParent: worktrees,
+      currentRepositoryRoot: () => selected,
+    };
+    const authority = new WorktreeAuthority(options);
+    authorities.push(authority);
+    const result = await authority.createGenerated({
+      ownerId: "selected-owner",
+      requestId: "selected-request",
+      worktreeId: "selected-worktree",
+    });
+    expect(
+      await exists(
+        join(worktrees, result.receipt.relativePath, "selected.txt"),
+      ),
+    ).toBe(true);
+    expect(
+      await exists(join(worktrees, result.receipt.relativePath, "README.md")),
+    ).toBe(false);
+  });
+
+  it("refuses an unborn selected repository before allocation with an actionable message", async () => {
+    const { root, worktrees } = await fixture();
+    const selected = join(root, "empty");
+    await mkdir(selected);
+    await git(selected, ["init", "--initial-branch=main"]);
+    const authority = new WorktreeAuthority({
+      approvedRepositoryRoot: selected,
+      allowedWorktreeParent: worktrees,
+    });
+    authorities.push(authority);
+    await expect(
+      authority.createGenerated({
+        ownerId: "empty-owner",
+        requestId: "empty-request",
+        worktreeId: "empty-worktree",
+      }),
+    ).rejects.toThrow(/initial commit/i);
+    expect(await git(selected, ["status", "--porcelain"])).toBe("");
+  });
   it("creates one isolated worktree on a bounded branch", async () => {
     const { authority, repository, worktrees } = await fixture();
     const request = createRequest(repository, worktrees);

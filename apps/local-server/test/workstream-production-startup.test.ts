@@ -125,6 +125,16 @@ async function productionFixture() {
   await mkdir(repositoryRoot);
   await mkdir(worktreeParent);
   await git(root, ["init", "--initial-branch=main", repositoryRoot]);
+  await git(repositoryRoot, [
+    "config",
+    "user.name",
+    "Production Workstream Test",
+  ]);
+  await git(repositoryRoot, [
+    "config",
+    "user.email",
+    "production-workstream@example.invalid",
+  ]);
   await writeFile(
     path.join(repositoryRoot, "package.json"),
     JSON.stringify({ name: "workstream-production-fixture", version: "1.0.0" }),
@@ -249,7 +259,7 @@ afterEach(async () => {
 });
 
 describe("production Workstream startup composition", () => {
-  it("does not register Workstream routes without the paired Git and agent-session authorities", async () => {
+  it("provides normal Workbench storage with agent sessions even without legacy Phase 16 Git configuration", async () => {
     const fixture = await productionFixture();
     const configurations = [
       {
@@ -280,7 +290,18 @@ describe("production Workstream startup composition", () => {
       expect(response.status).toBe(404);
       expect(
         (await json<{ error: { message: string } }>(response)).error.message,
-      ).toBe("Route not found");
+      ).toBe(
+        configuration.AIW_AGENT_SESSIONS_ENABLED === "true"
+          ? "No current Workstream"
+          : "Route not found",
+      );
+      if (configuration.AIW_AGENT_SESSIONS_ENABLED === "true") {
+        const history = await fetch(
+          `${baseUrl}/workstreams/history?repositoryId=not-loaded`,
+        );
+        expect(history.status).toBe(200);
+        expect((await history.json()).data.workstreams).toEqual([]);
+      }
       await stopProductionServer(process);
     }
   });
@@ -482,14 +503,25 @@ describe("production Workstream startup composition", () => {
       const response = await fetch(`${baseUrl}/workstreams/current`);
       if (!response.ok) return false;
       const body = await json<{
-        data: { evidenceOperationRefs: string[] };
+        data: {
+          status: string;
+          currentActivity?: string;
+          evidenceOperationRefs: string[];
+        };
       }>(response);
-      return body.data.evidenceOperationRefs.some((reference) =>
-        /^agent-event:/u.test(reference),
+      // This startup fixture intentionally has no attested Hermes arbiter.
+      // Allocation/preview/cleanup must remain usable after that explicit failure.
+      return (
+        body.data.status === "blocked" &&
+        body.data.evidenceOperationRefs.some((reference) =>
+          /^agent-event:/u.test(reference),
+        )
       );
     }, "correlated Workstream agent evidence");
     const read = await fetch(`${baseUrl}/workstreams/${created.workstreamId}`);
     expect(read.status).toBe(200);
+    let latestRevision = (await json<{ data: { revision: number } }>(read)).data
+      .revision;
 
     const approvedRecipe = await fetch(`${baseUrl}/preview-recipes`, {
       method: "POST",
@@ -518,7 +550,7 @@ describe("production Workstream startup composition", () => {
         body: JSON.stringify({
           requestId: "start-production-preview",
           correlationId: "correlation-start-production-preview",
-          expectedWorkstreamRevision: currentWorkstream.revision,
+          expectedWorkstreamRevision: latestRevision,
           repository,
           agent: currentWorkstream.agent,
           recipeId: "production-web",
@@ -538,6 +570,94 @@ describe("production Workstream startup composition", () => {
       "exact Workstream preview",
     );
 
+    // Real production HTTP/Git/preview path; only the external Hermes transport is a fixture.
+    const opened = await fetch(`${baseUrl}/repository-intake/open`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        rootPath: fixture.repositoryRoot,
+        name: "Saved website",
+      }),
+    });
+    const project = (await opened.json()).data.project;
+    expect(opened.status).toBe(201);
+    const selection = await fetch(
+      `${baseUrl}/repository-intake/selected?repositoryId=${encodeURIComponent(repository.repositoryId)}`,
+    );
+    expect((await selection.json()).data.project.id).toBe(project.id);
+    await writeFile(
+      path.join(worktreePath, "saved.txt"),
+      "saved website checkpoint\n",
+    );
+    const gitUrl = `${baseUrl}/repository-intake/projects/${project.id}/git`;
+    const gitStatus = (
+      await (
+        await fetch(`${gitUrl}?workstreamId=${created.workstreamId}`)
+      ).json()
+    ).data;
+    const committed = await fetch(gitUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "commit",
+        confirm: true,
+        expectedHead: gitStatus.head,
+        expectedBranch: gitStatus.branch,
+        workstreamId: created.workstreamId,
+        files: ["saved.txt"],
+        message: "test: saved website checkpoint",
+      }),
+    });
+    const commitBody = await committed.json();
+    expect(committed.status, JSON.stringify(commitBody)).toBe(200);
+    expect(await git(worktreePath, ["show", "HEAD:saved.txt"])).toBe(
+      "saved website checkpoint\n",
+    );
+    const history = await fetch(
+      `${baseUrl}/workstreams/history?repositoryId=${encodeURIComponent(repository.repositoryId)}`,
+    );
+    expect((await history.json()).data.workstreams[0].workstreamId).toBe(
+      created.workstreamId,
+    );
+    const resumed = await fetch(
+      `${baseUrl}/workstreams/${created.workstreamId}/continue`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          confirm: true,
+          expectedRevision: latestRevision,
+          repository,
+          agent: currentWorkstream.agent,
+        }),
+      },
+    );
+    const resumeBody = await resumed.json();
+    expect(
+      resumed.status,
+      JSON.stringify(resumeBody) + process.stderr() + process.stdout(),
+    ).toBe(200);
+    expect(resumeBody.data.workstream.authority.head).toBe(
+      commitBody.data.status.head,
+    );
+    expect(resumeBody.data.workstream.authority.worktreeId).toBe(
+      created.authority.worktreeId,
+    );
+    latestRevision = resumeBody.data.workstream.revision;
+    currentWorkstream.agent = resumeBody.data.workstream.agent;
+    expect(
+      (
+        await (
+          await fetch(
+            `${baseUrl}/workstreams/${created.workstreamId}/previews/current`,
+          )
+        ).json()
+      ).data.display.preview.url,
+    ).toBe(preview.url);
+    expect(await (await fetch(preview.url)).text()).toContain(
+      "exact Workstream preview",
+    );
+
     const cancelled = await fetch(
       `${baseUrl}/workstreams/${created.workstreamId}/cancel`,
       {
@@ -546,7 +666,7 @@ describe("production Workstream startup composition", () => {
         body: JSON.stringify({
           requestId: "cancel-production-workstream",
           correlationId: "correlation-cancel-production",
-          expectedRevision: currentWorkstream.revision,
+          expectedRevision: latestRevision,
           repository,
           agent: currentWorkstream.agent,
         }),

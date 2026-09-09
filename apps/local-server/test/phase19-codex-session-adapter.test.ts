@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   CODEX_CLI_VERSION,
@@ -647,6 +647,23 @@ describe("CodexSessionAdapter", () => {
       expect(await codex.listSessions()).toHaveLength(0);
     },
   );
+
+  it("gives coding turns a bounded ten-minute budget by default", async () => {
+    const fixture = await fixtureExecutable();
+    const codex = adapter(fixture);
+    const created = await codex.createWorldSession("world-coding-budget");
+    const timer = vi.spyOn(globalThis, "setTimeout");
+    try {
+      await codex.sendText(created.id, "Build the homepage", {
+        mode: "collaborate",
+        rootSessionRef: created.rootId,
+      });
+      expect(timer).toHaveBeenCalledWith(expect.any(Function), 600_000);
+    } finally {
+      timer.mockRestore();
+      await codex.endWorldSession("world-coding-budget", created.id);
+    }
+  });
 
   it.each(["timeout", "abort"] as const)(
     "terminates the process group and quarantines on %s",

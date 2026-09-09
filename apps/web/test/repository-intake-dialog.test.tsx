@@ -38,3 +38,21 @@ describe("RepositoryIntakeDialog", () => {
     expect(html).not.toMatch(/dashboard|diagnostics|connector/iu);
   });
 });
+
+it("offers real path discovery and a named project under an editable parent, not a fictional home", () => {
+  const html = renderToStaticMarkup(
+    <RepositoryIntakeDialog
+      projects={[]}
+      busy={false}
+      message="Choose a repository"
+      onOpen={() => {}}
+      onCreate={() => {}}
+      onClone={() => {}}
+      onPin={() => {}}
+      onClose={() => {}}
+    />,
+  );
+  expect(html).toContain("Discover path");
+  expect(html).toContain("Project parent folder");
+  expect(html).not.toContain("/home/me/");
+});

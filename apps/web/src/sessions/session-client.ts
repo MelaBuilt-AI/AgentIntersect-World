@@ -404,9 +404,21 @@ function worldEvent(value: unknown, sessionId: string): WorldAgentEvent {
       throw new Error("World stream text event is invalid.");
   } else if (toolTypes.has(type)) {
     if (
-      Object.keys(value.payload).some((key) => key !== "toolName") ||
+      Object.keys(value.payload).some(
+        (key) => !["toolName", "repositoryPath", "activityId"].includes(key),
+      ) ||
       typeof value.payload.toolName !== "string" ||
-      !/^[A-Za-z0-9._-]{1,64}$/.test(value.payload.toolName)
+      !/^[A-Za-z0-9._-]{1,64}$/.test(value.payload.toolName) ||
+      (value.payload.repositoryPath !== undefined &&
+        (typeof value.payload.repositoryPath !== "string" ||
+          value.payload.repositoryPath.length === 0 ||
+          value.payload.repositoryPath.length > 512 ||
+          /^(?:[/\\]|[a-z]:)/iu.test(value.payload.repositoryPath) ||
+          value.payload.repositoryPath.split(/[/\\]/u).includes(".."))) ||
+      (value.payload.activityId !== undefined &&
+        (typeof value.payload.activityId !== "string" ||
+          value.payload.activityId.length === 0 ||
+          value.payload.activityId.length > 512))
     )
       throw new Error("World stream tool event is invalid.");
   } else throw new Error("World stream event type is unsupported.");
@@ -585,6 +597,7 @@ export class AgentSessionClient {
       readonly idempotencyKey: string;
       readonly targetRosterId?: string;
       readonly userDisplayName?: string;
+      readonly intent?: "discussion" | "work";
       readonly signal?: AbortSignal;
     },
   ): Promise<ConstellationMessageGroup> {
@@ -595,6 +608,7 @@ export class AgentSessionClient {
         "content-type": "application/json",
       },
       body: JSON.stringify({
+        ...(options.intent ? { intent: options.intent } : {}),
         requestId: options.requestId,
         idempotencyKey: options.idempotencyKey,
         text,
@@ -676,6 +690,7 @@ export class AgentSessionClient {
       readonly onEvent?: (event: WorldAgentEvent) => Promise<void> | void;
       readonly signal?: AbortSignal;
       readonly userDisplayName?: string;
+      readonly intent?: "discussion" | "work";
     } = {},
   ): Promise<{
     readonly finalText: string;
@@ -695,6 +710,7 @@ export class AgentSessionClient {
           body: JSON.stringify({
             text,
             binding: session,
+            ...(options.intent ? { intent: options.intent } : {}),
             ...(options.userDisplayName
               ? { context: { userDisplayName: options.userDisplayName } }
               : {}),

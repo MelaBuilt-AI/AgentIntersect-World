@@ -35,17 +35,20 @@ export function resolveWorkstreamConversationRequest(
     };
   if (!workstream || ["completed", "cancelled"].includes(workstream.status))
     return { kind: "create", task };
+  if (
+    workstream.repository.repositoryId !== authority.repository.repositoryId ||
+    workstream.agent.agentId !== authority.agent.agentId ||
+    (workstream.agent.rootNativeSessionId ??
+      workstream.agent.nativeSessionId) !==
+      (authority.agent.rootNativeSessionId ?? authority.agent.nativeSessionId)
+  )
+    return { kind: "create", task };
   if (workstream.status === "cleanup-required")
     return {
       kind: "unavailable",
       message: "Current Workstream needs cleanup before more work can start.",
     };
-  if (
-    workstream.repository.repositoryId !== authority.repository.repositoryId ||
-    workstream.repository.revision !== authority.repository.revision ||
-    workstream.agent.agentId !== authority.agent.agentId ||
-    workstream.agent.rootNativeSessionId !== authority.agent.rootNativeSessionId
-  )
+  if (workstream.repository.revision !== authority.repository.revision)
     return {
       kind: "unavailable",
       message:

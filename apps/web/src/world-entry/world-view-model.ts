@@ -6,6 +6,7 @@ export type WorldInputOwner = "world" | "preview";
 export type WorldViewLauncher = {
   readonly enabled: boolean;
   readonly label: string;
+  readonly message?: string;
 };
 
 export function resolveWorldViewLauncher({
@@ -63,6 +64,20 @@ export function resolveWorldViewLauncher({
     return {
       enabled: false,
       label: "World View unavailable — multiple approved preview recipes.",
+    };
+  const failedAttempt = projection?.latestAttempt;
+  if (
+    failedAttempt?.state === "failed" &&
+    failedAttempt.workstreamId === workstream.workstreamId
+  )
+    return {
+      enabled: true,
+      label: projection?.display ? "Refresh World View" : "Retry World View",
+      message: failedAttempt.logs.includes(
+        "Static preview unavailable: create index.html in the owned Workstream and retry.",
+      )
+        ? "World View could not start: index.html is missing from this Workstream. Complete the coding task, then retry."
+        : `World View could not start: ${failedAttempt.error ?? "Preview process failed."}`,
     };
   return {
     enabled: true,

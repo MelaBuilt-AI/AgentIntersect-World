@@ -1,5 +1,29 @@
 import type { RepositoryProject } from "./RepositoryIntakeDialog.js";
 
+export type RepositoryPaths = {
+  homePath: string;
+  projectsPath: string;
+  projectsExists: boolean;
+};
+export async function discoverRepositoryPath(
+  createProjects = false,
+): Promise<RepositoryPaths> {
+  const response = await fetch(
+    createProjects
+      ? "/api/repository-intake/projects-directory"
+      : "/api/repository-intake/discover-path",
+    createProjects
+      ? {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ confirm: true }),
+        }
+      : undefined,
+  );
+  const payload = await result(response);
+  return payload.data as unknown as RepositoryPaths;
+}
+
 type RepositoryIntakeEnvelope = {
   readonly ok: boolean;
   readonly data?: {

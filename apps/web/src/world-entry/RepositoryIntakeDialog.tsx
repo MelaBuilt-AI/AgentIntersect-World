@@ -1,4 +1,8 @@
 import { useState } from "react";
+import {
+  discoverRepositoryPath,
+  type RepositoryPaths,
+} from "./repository-intake-client.js";
 
 export type RepositoryProject = {
   readonly id: string;
@@ -41,6 +45,41 @@ export function RepositoryIntakeDialog({
   const [clonePath, setClonePath] = useState("");
   const [cloneName, setCloneName] = useState("");
 
+  const [paths, setPaths] = useState<RepositoryPaths | null>(null);
+  const [pathBusy, setPathBusy] = useState(false);
+  const [pathMessage, setPathMessage] = useState("");
+  const discover = async (createProjects = false) => {
+    setPathBusy(true);
+    try {
+      const found = await discoverRepositoryPath(createProjects);
+      setPaths(found);
+      setLocalPath(
+        found.homePath + (found.homePath.includes("\\") ? "\\" : "/"),
+      );
+      setNewPath(found.projectsExists ? found.projectsPath : found.homePath);
+      setPathMessage(
+        found.projectsExists
+          ? "Projects folder found. Choose a project name or edit the local path."
+          : "No projects folder yet. Create it below, or choose another parent folder.",
+      );
+    } catch (error) {
+      setPathMessage(
+        error instanceof Error ? error.message : "Path discovery unavailable",
+      );
+    } finally {
+      setPathBusy(false);
+    }
+  };
+  const validName = Boolean(
+    newName.trim() &&
+    !/[\\/]/u.test(newName) &&
+    ![".", ".."].includes(newName.trim()),
+  );
+  const destination =
+    newPath.replace(/[\\/]+$/u, "") +
+    (newPath.includes("\\") ? "\\" : "/") +
+    newName.trim();
+
   return (
     <section
       className="repository-intake"
@@ -68,6 +107,31 @@ export function RepositoryIntakeDialog({
         {message}
       </p>
 
+      <section aria-label="Local path discovery">
+        <button
+          type="button"
+          className="world-action--enabled"
+          disabled={busy || pathBusy}
+          onClick={() => void discover()}
+        >
+          Discover path
+        </button>
+        <p>
+          Discover the home folder of the user running World on this machine. No
+          folders are created by discovery.
+        </p>
+        {pathMessage ? <p role="status">{pathMessage}</p> : null}
+        {paths && !paths.projectsExists ? (
+          <button
+            type="button"
+            className="world-action--enabled"
+            disabled={busy || pathBusy}
+            onClick={() => void discover(true)}
+          >
+            Create projects folder: {paths.projectsPath}
+          </button>
+        ) : null}
+      </section>
       <div className="repository-intake__grid">
         <section aria-labelledby="repository-recents-title">
           <h3 id="repository-recents-title">Recent / pinned</h3>
@@ -118,7 +182,7 @@ export function RepositoryIntakeDialog({
             <input
               value={localPath}
               onChange={(event) => setLocalPath(event.currentTarget.value)}
-              placeholder="/home/me/projects/notes-app"
+              placeholder="Discover path, then choose your repository folder"
               autoComplete="off"
             />
           </label>
@@ -142,7 +206,7 @@ export function RepositoryIntakeDialog({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            onCreate(newPath, newName);
+            if (validName) onCreate(destination, newName.trim());
           }}
         >
           <h3>Create new</h3>
@@ -155,25 +219,33 @@ export function RepositoryIntakeDialog({
             />
           </label>
           <label>
-            <span>New local path</span>
+            <span>Project parent folder</span>
             <input
               value={newPath}
               onChange={(event) => setNewPath(event.currentTarget.value)}
-              placeholder="/home/me/projects/new-project"
+              placeholder="Discover path or enter a parent folder"
               autoComplete="off"
             />
           </label>
           <button
             type="submit"
             className={
-              newName.trim() && newPath.trim()
-                ? "world-action--enabled"
-                : undefined
+              validName && newPath.trim() ? "world-action--enabled" : undefined
             }
-            disabled={busy || !newName.trim() || !newPath.trim()}
+            disabled={busy || pathBusy || !validName || !newPath.trim()}
           >
             Create new
           </button>
+          {newPath && newName ? (
+            <p>
+              Will create: <code>{destination}</code>
+            </p>
+          ) : null}
+          {newName && !validName ? (
+            <p role="alert">
+              Use one folder name, without slashes or dot traversal.
+            </p>
+          ) : null}
         </form>
 
         <form
@@ -199,7 +271,7 @@ export function RepositoryIntakeDialog({
             <input
               value={clonePath}
               onChange={(event) => setClonePath(event.currentTarget.value)}
-              placeholder="/home/me/projects/repository"
+              placeholder="Full destination folder for this clone"
               autoComplete="off"
             />
           </label>

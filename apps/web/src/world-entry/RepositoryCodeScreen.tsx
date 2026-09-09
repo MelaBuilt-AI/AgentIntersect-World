@@ -1,7 +1,9 @@
 import "./repository-code-screen.css";
+import { audioCue } from "../audio/world-audio.js";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { WEB_API_BASE_PATH } from "@agentintersect-world/config";
 import { type RepositoryCityInstance } from "@agentintersect-world/renderer-r3f";
+import type { Workstream } from "./workstream-tracer.js";
 import { WorldScreen } from "./WorldScreen.js";
 import { useWorldScreens } from "./world-screen-context.js";
 
@@ -17,6 +19,7 @@ type CodeResult = {
 
 export function RepositoryCodeScreen({
   instance,
+  workstream = null,
   openingYaw,
   reducedMotion,
   onClose,
@@ -24,6 +27,7 @@ export function RepositoryCodeScreen({
   fullscreen: controlledFullscreen,
   onFullscreenChange,
 }: {
+  readonly workstream?: Workstream | null;
   readonly instance: RepositoryCityInstance;
   readonly openingYaw: number;
   readonly reducedMotion: boolean;
@@ -48,7 +52,11 @@ export function RepositoryCodeScreen({
     typeof instance.linkedRepoData?.repositoryRef === "string"
       ? instance.linkedRepoData.repositoryRef
       : null;
-  const [fileRef, setFileRef] = useState(originalRef);
+  const [fileRef, setFileRef] = useState(
+    workstream && instance.linkedRepoData?.kind === "file"
+      ? String(instance.linkedRepoData.path)
+      : originalRef,
+  );
   const [result, setResult] = useState<{
     ref: string;
     data?: CodeResult;
@@ -58,6 +66,12 @@ export function RepositoryCodeScreen({
   const scrollTop = useRef(0);
   const spatial = enabled && !fullscreen;
   const inspecting = fullscreen || focused;
+  const priorInspecting = useRef(inspecting);
+  useEffect(() => {
+    if (priorInspecting.current !== inspecting)
+      audioCue(inspecting ? "projection-on" : "projection-off");
+    priorInspecting.current = inspecting;
+  }, [inspecting]);
   // This component is keyed to an opening, not camera updates. A projection
   // stays above its object, facing the view from which it was selected.
   const [pose] = useState(() => ({
@@ -67,47 +81,75 @@ export function RepositoryCodeScreen({
     yaw: -openingYaw,
   }));
   const [revealStartedAt] = useState(() => performance.now());
+  const workstreamId = workstream?.workstreamId;
+  const workstreamRevision = workstream?.authority?.revision;
+  const workstreamWorking = workstream?.status === "working";
   const data = result?.ref === fileRef ? result.data : undefined;
   const error = result?.ref === fileRef ? result.error : undefined;
 
   useEffect(() => {
     if (!fileRef || !repositoryRef) return;
     const abort = new AbortController();
-    const query = new URLSearchParams({ repositoryRef, objectRef: fileRef });
-    void fetch(`${WEB_API_BASE_PATH}/repository-code?${query}`, {
-      signal: abort.signal,
-      cache: "no-store",
-    })
-      .then(async (response) => {
-        const body = await response.json();
-        if (!response.ok)
-          throw new Error(
-            typeof body.error === "string"
-              ? body.error
-              : "Source is unavailable.",
-          );
-        const value = body.data as CodeResult;
-        if (
-          value.objectRef !== fileRef ||
-          value.repositoryRef !== repositoryRef ||
-          (value.content !== null && typeof value.content !== "string") ||
-          !Array.isArray(value.files)
-        )
-          throw new Error("Invalid source response.");
-        if (!abort.signal.aborted) setResult({ ref: fileRef, data: value });
+    const query = workstreamId
+      ? new URLSearchParams(fileRef === originalRef ? {} : { path: fileRef })
+      : new URLSearchParams({ repositoryRef, objectRef: fileRef });
+    const url = workstreamId
+      ? `${WEB_API_BASE_PATH}/workstreams/${encodeURIComponent(workstreamId)}/source?${query}`
+      : `${WEB_API_BASE_PATH}/repository-code?${query}`;
+    let pending = false;
+    const load = () => {
+      if (pending) return;
+      pending = true;
+      void fetch(url, {
+        signal: abort.signal,
+        cache: "no-store",
       })
-      .catch((failure: unknown) => {
-        if (!abort.signal.aborted)
-          setResult({
-            ref: fileRef,
-            error:
-              failure instanceof Error
-                ? failure.message
+        .then(async (response) => {
+          const body = await response.json();
+          if (!response.ok)
+            throw new Error(
+              typeof body.error === "string"
+                ? body.error
                 : "Source is unavailable.",
-          });
-      });
-    return () => abort.abort();
-  }, [fileRef, repositoryRef]);
+            );
+          const value = body.data as CodeResult;
+          if (
+            value.objectRef !== fileRef ||
+            value.repositoryRef !== repositoryRef ||
+            (value.content !== null && typeof value.content !== "string") ||
+            !Array.isArray(value.files)
+          )
+            throw new Error("Invalid source response.");
+          if (!abort.signal.aborted) setResult({ ref: fileRef, data: value });
+        })
+        .catch((failure: unknown) => {
+          if (!abort.signal.aborted)
+            setResult({
+              ref: fileRef,
+              error:
+                failure instanceof Error
+                  ? failure.message
+                  : "Source is unavailable.",
+            });
+        })
+        .finally(() => {
+          pending = false;
+        });
+    };
+    load();
+    const timer = workstreamWorking ? window.setInterval(load, 1500) : null;
+    return () => {
+      abort.abort();
+      if (timer !== null) window.clearInterval(timer);
+    };
+  }, [
+    fileRef,
+    originalRef,
+    repositoryRef,
+    workstreamId,
+    workstreamRevision,
+    workstreamWorking,
+  ]);
 
   useEffect(() => {
     const viewport = scroll.current;
@@ -204,6 +246,7 @@ export function RepositoryCodeScreen({
               <button
                 type="button"
                 className="world-action--enabled"
+                data-audio="handled"
                 onClick={() => setFocused(true)}
               >
                 Focus code view
@@ -213,6 +256,7 @@ export function RepositoryCodeScreen({
               type="button"
               className="world-action--enabled"
               aria-keyshortcuts="Alt+4"
+              data-audio="handled"
               disabled={!enabled}
               onClick={() => setFullscreen((value) => !value)}
             >
@@ -226,6 +270,7 @@ export function RepositoryCodeScreen({
                   setFocused(false);
                   setFullscreen(false);
                 }}
+                data-audio="handled"
               >
                 Return to World
               </button>
@@ -234,6 +279,7 @@ export function RepositoryCodeScreen({
               type="button"
               className="world-action--enabled"
               onClick={onClose}
+              data-audio="handled"
             >
               Close code
             </button>
