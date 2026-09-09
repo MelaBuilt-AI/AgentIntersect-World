@@ -1248,6 +1248,9 @@ test("movement mentions preserve chat routing and secondary follow advances duri
 test("Task 15 composes four exact agents with grouped text, targeting, and push-to-talk", async ({
   page,
 }, testInfo) => {
+  // CI reached the final reload at the 30s cap after completing voice/text flows.
+  // Bound this four-avatar, multi-input journey without weakening step assertions.
+  test.setTimeout(120_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
   const fixture = await installFixture(page);
