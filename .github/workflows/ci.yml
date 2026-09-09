@@ -66,6 +66,7 @@ jobs:
           VITE_AIW_LOCAL_DEVELOPER_UI=1
           xvfb-run -a pnpm exec playwright test
           --config playwright.config.ts
+          --fully-parallel --workers=1
           --grep-invert @phase18-5-performance
           --shard=${{ matrix.shard }}
       - name: Upload flagged browser failure evidence

@@ -259,6 +259,7 @@ describe("acceptance command graph", () => {
       "VITE_AIW_LOCAL_DEVELOPER_UI=1 pnpm exec vite build",
       "VITE_AIW_LOCAL_DEVELOPER_UI=1 xvfb-run -a pnpm exec playwright test",
       "--config playwright.config.ts",
+      "--fully-parallel --workers=1",
       "--shard=${{ matrix.shard }}",
     ]);
     expect(workflow.jobs["e2e-flagged"]?.strategy?.matrix?.shard).toEqual([
