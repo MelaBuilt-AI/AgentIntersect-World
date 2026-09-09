@@ -18,6 +18,8 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@11.15.0 --activate
       - run: pnpm install --frozen-lockfile
+      # Chromium comes from Playwright, not the runner's Google Chrome APT repo.
+      - run: sudo python3 tooling/scripts/disable-ci-chrome-apt-source.py /etc/apt/sources.list.d
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm verify:imported-avatar-current-inputs
       - run: pnpm avatar:verify:compatibility
@@ -36,6 +38,8 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@11.15.0 --activate
       - run: pnpm install --frozen-lockfile
+      # Chromium comes from Playwright, not the runner's Google Chrome APT repo.
+      - run: sudo python3 tooling/scripts/disable-ci-chrome-apt-source.py /etc/apt/sources.list.d
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm measure:phase10
       - run: pnpm measure:phase11
@@ -57,6 +61,8 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@11.15.0 --activate
       - run: pnpm install --frozen-lockfile
+      # Chromium comes from Playwright, not the runner's Google Chrome APT repo.
+      - run: sudo python3 tooling/scripts/disable-ci-chrome-apt-source.py /etc/apt/sources.list.d
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
       - run: >-
@@ -90,6 +96,8 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@11.15.0 --activate
       - run: pnpm install --frozen-lockfile
+      # Chromium comes from Playwright, not the runner's Google Chrome APT repo.
+      - run: sudo python3 tooling/scripts/disable-ci-chrome-apt-source.py /etc/apt/sources.list.d
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
       - run: pnpm exec vite build apps/web --config apps/web/vite.config.ts
