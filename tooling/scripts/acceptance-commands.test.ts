@@ -241,6 +241,7 @@ describe("acceptance command graph", () => {
     }
     expectOrderedCommands("core", [
       ...pinnedBootstrap,
+      "pnpm exec playwright install --with-deps chromium",
       "pnpm verify:imported-avatar-current-inputs",
       "pnpm avatar:verify:compatibility",
       "pnpm check:core",

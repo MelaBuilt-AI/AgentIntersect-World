@@ -455,6 +455,16 @@ async function installWorldFixtures(
       await options.fulfillWorkstreams(route, pathname);
       return;
     }
+    if (pathname.endsWith("/workstreams/current")) {
+      await route.fulfill({
+        status: 404,
+        json: {
+          ok: false,
+          error: { code: "not_found", message: "No current Workstream" },
+        },
+      });
+      return;
+    }
     if (
       pathname.endsWith("/phase14/journeys/current") &&
       request.method() === "GET"
@@ -1038,7 +1048,7 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await enterFixtureWorld(page);
   const { openCodeWheel } = await import("./world-code-wheel.js");
   await openCodeWheel(page);
-  await page.getByRole("button", { name: "Expand World View" }).click();
+  await page.getByRole("button", { name: "Load Repo", exact: true }).click();
   const intake = page.getByRole("dialog", { name: "Repository Intake_" });
   await intake
     .getByRole("button", { name: "Discover path", exact: true })
@@ -1181,7 +1191,8 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
 test("@workbench-normal drives one Workstream through normal World conversation", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(180_000);
+  // Includes the full discussion/queue journey and front/back/oblique cloud proofs.
+  test.setTimeout(300_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");
@@ -1779,7 +1790,8 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
           ? "@spatial-screens toggles and moves three interactive World screens"
           : "@workbench-world-view keeps preview interaction inside the mounted World",
     async ({ page }, testInfo) => {
-      test.setTimeout(180_000);
+      // Combined preview, focus, spatial placement and motion proof on software WebGL.
+      test.setTimeout(300_000);
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.emulateMedia({ reducedMotion: "reduce" });
       await seedConfiguredAvatar(page, "Aaron");
@@ -2128,7 +2140,9 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
             const feedback =
               iterationRequests === 1
                 ? "change it to use the blue active state"
-                : "make the heading larger";
+                : iterationRequests === 2
+                  ? "make the heading larger"
+                  : plainFeedback;
             const input = request.postDataJSON() as Record<string, unknown>;
             expect(input).toEqual({
               requestId: expect.stringMatching(/^iterate-/u),
@@ -2643,7 +2657,7 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
       );
       await expect(view).toContainText("Preview revision 5");
 
-      await composer.fill("make the heading larger");
+      await composer.fill("/work make the heading larger");
       await composer.press("Enter");
       await expect(view).toHaveAttribute(
         "data-preview-id",
@@ -2688,7 +2702,7 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
             window as unknown as { continuationFrame: Element }
           ).continuationFrame = frame;
         });
-        await composer.fill(plainFeedback);
+        await composer.fill(`/work ${plainFeedback}`);
         await composer.press("Enter");
         await expect.poll(() => startRequests).toBe(5);
         await expect(view).toHaveAttribute(
@@ -2722,7 +2736,7 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
           .screenshot({
             path: testInfo.outputPath("formatted-current-iteration-report.png"),
           });
-        expect(iterationRequests).toBe(2); // this third turn bypasses the classifier
+        expect(iterationRequests).toBe(3); // every explicit /work turn records an iteration
         expect(
           await view
             .locator("iframe")
@@ -3978,8 +3992,25 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const errors: string[] = [];
+  let emptyWorkstreamLookups = 0;
+  page.on("response", (response) => {
+    if (
+      response.status() === 404 &&
+      new URL(response.url()).pathname === "/api/workstreams/current"
+    )
+      emptyWorkstreamLookups++;
+  });
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    if (message.type() !== "error") return;
+    // This exact endpoint deliberately returns not_found when no work exists.
+    // Preserve all other HTTP, console and page errors as failures.
+    if (
+      message.text().includes("404 (Not Found)") &&
+      new URL(message.location().url || "http://fixture.invalid").pathname ===
+        "/api/workstreams/current"
+    )
+      return;
+    errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
   await seedConfiguredAvatar(page, "Aaron");
@@ -4057,6 +4088,7 @@ test("production boundary completes the returning-user Hermes magic slice", asyn
       .slice(0, 10),
   );
   expect(overflow).toEqual([]);
+  expect(emptyWorkstreamLookups).toBe(1);
   expect(errors).toEqual([]);
 });
 

@@ -18,6 +18,7 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@11.15.0 --activate
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm verify:imported-avatar-current-inputs
       - run: pnpm avatar:verify:compatibility
       - run: pnpm check:core
