@@ -619,10 +619,12 @@ async function enterFixtureWorld(page: Page, path = "/") {
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
-    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
+    page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible();
-  await page.getByLabel("Required agent name").fill("Mr Fluff");
-  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
+  await page.getByLabel("Agent name", { exact: true }).fill("Mr Fluff");
+  await page
+    .getByRole("button", { name: "Open Cat Agent 1 3D preview", exact: true })
+    .click();
   await expect(
     page
       .getByTestId("avatar-preview")
@@ -631,7 +633,7 @@ async function enterFixtureWorld(page: Page, path = "/") {
       ),
   ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 60_000 });
   const acceptAvatar = page.getByRole("button", {
-    name: "Accept and save avatar",
+    name: "Accept Agent Avatar",
   });
   await expect(acceptAvatar).toBeEnabled();
   await acceptAvatar.focus();
@@ -648,6 +650,150 @@ async function enterFixtureWorld(page: Page, path = "/") {
     { timeout: 60_000 },
   );
 }
+
+test("@avatar-onboarding minimal user and agent selection, Idle previews and rain bezels", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await installWorldFixtures(page, { restoreStatus: true });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await page.getByRole("button", { name: "Create Avatar" }).click();
+  const builder = page.locator(".avatar-builder--onboarding");
+  const preview = builder.locator(".imported-avatar-canvas");
+  const expectContainedThumbnails = async () => {
+    await expect
+      .poll(() =>
+        builder.locator(".imported-avatar-option").evaluateAll((cards) =>
+          cards.every((card) => {
+            const image = card.querySelector("img")!;
+            const a = card.getBoundingClientRect(),
+              b = image.getBoundingClientRect();
+            return (
+              b.width > 10 &&
+              b.height > 10 &&
+              b.left >= a.left &&
+              b.right <= a.right &&
+              b.top >= a.top &&
+              b.bottom <= a.bottom
+            );
+          }),
+        ),
+      )
+      .toBe(true);
+  };
+  const verifySelection = async (
+    role: "user" | "agent",
+    card: string,
+    id: string,
+    count: number,
+  ) => {
+    await expect(builder.locator("input")).toHaveCount(1);
+    await expect(builder.locator("button")).toHaveCount(count + 1);
+    await expect(
+      builder.locator("select, input[type=checkbox], h1, h2, figcaption"),
+    ).toHaveCount(0);
+    await builder
+      .getByRole("button", { name: `Open ${card} 3D preview`, exact: true })
+      .click();
+    await expect(preview).toHaveAttribute("data-avatar-imported-id", id);
+    await expect(preview).toHaveAttribute("data-avatar-render-ready", "true", {
+      timeout: 60_000,
+    });
+    const { importedAvatarAsset } =
+      await import("@agentintersect-world/avatar-system/imported-avatar");
+    await expect(preview).toHaveAttribute(
+      "data-avatar-clip-index",
+      String(importedAvatarAsset(id)!.semanticClips.Idle.clipIndex),
+    );
+    const label =
+      role === "user" ? "Accept user Avatar" : "Accept Agent Avatar";
+    await expect(builder.locator(".avatar-onboarding__choices")).toHaveText(
+      label,
+    );
+    const geometry = await builder.evaluate((element) => {
+      const choices = element.querySelector(".avatar-onboarding__choices")!;
+      const preview = element.querySelector(".avatar-builder__preview")!;
+      const a = choices.getBoundingClientRect(),
+        b = preview.getBoundingClientRect();
+      const style = getComputedStyle(choices, "::before");
+      return {
+        leftRight: a.right <= b.left,
+        right: b.right,
+        rain: style.backgroundImage,
+        animation: style.animationName,
+      };
+    });
+    expect(geometry.leftRight).toBe(true);
+    expect(geometry.right).toBeLessThanOrEqual(1440);
+    expect(geometry.rain).toContain("02_terminal_rain.webp");
+    expect(geometry.animation).toBe("avatar-onboarding-rain");
+    await expectContainedThumbnails();
+    await expect(page.locator(".world-audio")).toBeHidden();
+    const first = await preview.screenshot();
+    await expect
+      .poll(async () => (await preview.screenshot()).equals(first), {
+        timeout: 10_000,
+      })
+      .toBe(false);
+    await page.screenshot({
+      path: testInfo.outputPath(`${role}-onboarding-desktop.png`),
+    });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect
+      .poll(() =>
+        builder
+          .locator(".avatar-onboarding__choices")
+          .evaluate(
+            (element) => getComputedStyle(element, "::before").animationName,
+          ),
+      )
+      .toBe("none");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expectContainedThumbnails();
+    await expect
+      .poll(() =>
+        builder.evaluate(
+          (element) =>
+            element.getBoundingClientRect().right <= innerWidth &&
+            element.scrollWidth <= element.clientWidth + 1,
+        ),
+      )
+      .toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath(`${role}-onboarding-portrait.png`),
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+  };
+  await expect(
+    builder.getByRole("button", { name: "Accept user Avatar" }),
+  ).toBeDisabled();
+  await page.getByLabel("User name", { exact: true }).fill("Aaron");
+  await verifySelection("user", "User Female 3", "user-female-03", 6);
+  await expect
+    .poll(() =>
+      page.evaluate(() => localStorage.getItem("aiw.avatar.profile.0.18.5")),
+    )
+    .toBe(null);
+  await builder.getByRole("button", { name: "Accept user Avatar" }).click();
+  await page.getByRole("button", { name: /Single Agent/ }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
+  await page.getByLabel("Agent name", { exact: true }).fill("Mr Fluff");
+  await page.getByRole("button", { name: "Connect agent" }).click();
+  await verifySelection("agent", "Dog Agent 5", "dog-agent-05", 17);
+  await expect(page.getByRole("button", { name: "Enter World" })).toHaveCount(
+    0,
+  );
+  await builder.getByRole("button", { name: "Accept Agent Avatar" }).click();
+  await expect(page.getByRole("button", { name: "Enter World" })).toBeEnabled({
+    timeout: 30_000,
+  });
+  expect(errors).toEqual([]);
+});
 
 for (const loading of ["loaded", "stalled"] as const) {
   test(`@world-entry-transition ${loading} textures gate the first visible World`, async ({
@@ -3486,14 +3632,12 @@ async function completeJourney(
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
-    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
+    page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible();
   const blockedEnterWorld = page.getByRole("button", { name: "Enter World" });
-  await expect(blockedEnterWorld).toBeDisabled();
+  await expect(blockedEnterWorld).toHaveCount(0);
   await expect(
-    page.getByText(
-      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
-    ),
+    page.getByRole("button", { name: "Accept Agent Avatar" }),
   ).toBeVisible();
   // This tests persisted consent across reload, not cancellation of a GLB
   // texture decode. Finish the actual preview before navigating away.
@@ -3505,18 +3649,13 @@ async function completeJourney(
     ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
+    page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Enter World" })).toHaveCount(
+    0,
+  );
   await expect(
-    page.getByRole("button", { name: "Enter World" }),
-  ).toBeDisabled();
-  await expect(
-    page.getByText(
-      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
-    ),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Use Complete Avatar" }),
+    page.getByRole("button", { name: "Accept Agent Avatar" }),
   ).toBeEnabled();
   if (
     evidence === "desktop" ||
@@ -3534,8 +3673,10 @@ async function completeJourney(
       fullPage: true,
     });
   }
-  await page.getByLabel("Required agent name").fill("Mr Fluff");
-  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
+  await page.getByLabel("Agent name", { exact: true }).fill("Mr Fluff");
+  await page
+    .getByRole("button", { name: "Open Cat Agent 1 3D preview", exact: true })
+    .click();
   if (evidence !== "no-webgl")
     await expect(
       page
@@ -3545,7 +3686,7 @@ async function completeJourney(
         ),
     ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 60_000 });
   const saveAvatar = page.getByRole("button", {
-    name: "Accept and save avatar",
+    name: "Accept Agent Avatar",
   });
   await expect(saveAvatar).toBeEnabled();
   await saveAvatar.click();
@@ -3889,7 +4030,7 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
       page.getByRole("button", { name: "Connect agent" }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("heading", { name: /Create .* avatar/ }),
+      page.getByRole("region", { name: /^(User|Agent) avatar selection$/ }),
     ).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Enter World" })).toHaveCount(
       0,
@@ -3978,7 +4119,7 @@ test("clean storage reaches the true identify_ opening and user avatar creator",
   });
   await page.getByRole("button", { name: "Create Avatar" }).click();
   await expect(page.getByTestId("avatar-preview")).toBeVisible();
-  await expect(page.getByLabel("Required agent name")).toBeVisible();
+  await expect(page.getByLabel("Agent name", { exact: true })).toBeVisible();
   await page.screenshot({
     path: `${evidenceDirectory}/first-launch-avatar-creator.png`,
     fullPage: true,

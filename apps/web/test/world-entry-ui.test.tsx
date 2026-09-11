@@ -398,23 +398,19 @@ describe("Phase 18 World entry experience", () => {
         AvatarBuilderComponent: AvatarBuilder,
       }),
     );
-    expect(html).toContain("Create Mr Fluff’s avatar");
-    expect(html).toContain('class="avatar-builder"');
+    expect(html).not.toContain("Create Mr Fluff’s avatar");
+    expect(html).toContain("avatar-builder--onboarding");
     expect(html).toContain('data-testid="avatar-preview"');
     expect(html).toContain("Cat Agent 1");
     expect(html).toContain('aria-label="Open Cat Agent 1 3D preview"');
     expect(html).toContain('aria-label="Open Robot Agent 5 3D preview"');
     expect(html).not.toContain('aria-label="Open User Male 1 3D preview"');
     expect(html).not.toContain("Custom Kit");
-    expect(html).toContain("Accept and save avatar");
+    expect(html).toContain("Accept Agent Avatar");
     expect(html).not.toContain("ᓚᘏᗢ");
     expect(html).not.toContain("world-agent-avatar__preview");
-    expect(html).toContain(
-      '<button type="button" class="world-enter-action world-enter-action--avatar-gate world-action--unavailable" disabled="" aria-describedby="agent-avatar-entry-gate">Enter World</button>',
-    );
-    expect(html).toContain(
-      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
-    );
+    expect(html).not.toContain("Enter World");
+    expect(html).not.toContain("Use Complete Avatar");
   });
 
   it("labels an accepted legacy proposal as an explicit migration gate", () => {
@@ -429,21 +425,15 @@ describe("Phase 18 World entry experience", () => {
         AvatarBuilderComponent: AvatarBuilder,
       }),
     );
-    expect(html).toContain("Change Mr Fluff’s avatar");
-    expect(html).toContain("accepted legacy avatar");
-    expect(html).toContain("remains unchanged until explicit save");
-    expect(html).toContain("not selected, saved, or accepted");
+    expect(html).not.toContain("Change Mr Fluff’s avatar");
+    expect(html).toContain('aria-label="Agent name"');
     expect(html).toContain('data-avatar-source="imported"');
     expect(html).toContain('data-avatar-imported-id="cat-agent-01"');
     expect(html).toContain('aria-label="Open Cat Agent 1 3D preview"');
     expect(html).toContain('aria-label="Open Robot Agent 5 3D preview"');
-    expect(html).toContain(
-      '<button class="primary-action" type="button" disabled="">Accept and save avatar</button>',
-    );
-    expect(html).toContain('aria-describedby="agent-avatar-entry-gate"');
-    expect(html).toContain(
-      "Use Complete Avatar, then Accept and save avatar to unlock Enter World.",
-    );
+    expect(html).toContain(">Accept Agent Avatar</button>");
+    expect(html).not.toContain("Enter World");
+    expect(html).not.toContain("Use Complete Avatar");
   });
 
   it("restores exact connected sessions with pending avatar consent into the explicit avatar gate", () => {

@@ -19,8 +19,10 @@ import {
 } from "@agentintersect-world/avatar-system/imported-avatar";
 import { useId, useMemo, useState } from "react";
 import { AvatarPreview } from "./AvatarPreview.js";
+import { useReducedMotion } from "../motion/use-reduced-motion.js";
 
 export function AvatarBuilder({
+  onboarding = false,
   role = "user",
   initialProfile,
   currentProfile = null,
@@ -35,6 +37,7 @@ export function AvatarBuilder({
   successMessage = "Avatar saved locally. Current and previous recovery updated.",
   preserveInitialLegacy = false,
 }: {
+  readonly onboarding?: boolean;
   readonly role?: AvatarBuilderRole;
   readonly initialProfile: AvatarDraft;
   readonly currentProfile?: AvatarProfile | null;
@@ -58,6 +61,7 @@ export function AvatarBuilder({
   readonly preserveInitialLegacy?: boolean;
 }) {
   const roleAssets = useMemo(() => importedAvatarAssetsForRole(role), [role]);
+  const reducedMotion = useReducedMotion();
   const previewTitleId = useId();
   const roleLabel = role === "user" ? "User" : "Agent";
   const preserveLegacy =
@@ -180,6 +184,70 @@ export function AvatarBuilder({
     onSave(valid);
     setResult(successMessage);
   };
+  if (onboarding) {
+    const selected = previewAsset
+      ? parseImportedAvatarDraftForRole(previewDraft, role)
+      : null;
+    return (
+      <section
+        className="avatar-builder avatar-builder--onboarding"
+        aria-label={`${roleLabel} avatar selection`}
+      >
+        <div className="avatar-onboarding__choices">
+          <input
+            aria-label={`${roleLabel} name`}
+            aria-invalid={!name.ok}
+            value={draft.agentName}
+            maxLength={96}
+            onChange={(event) => update("agentName", event.target.value)}
+          />
+          <div
+            className="imported-avatar-options"
+            aria-label={`${roleLabel} avatars`}
+            data-avatar-card-count={roleAssets.length}
+          >
+            {roleAssets.map((asset) => (
+              <button
+                key={asset.id}
+                type="button"
+                className="imported-avatar-option"
+                aria-pressed={previewAssetId === asset.id}
+                aria-label={`Open ${asset.label} 3D preview`}
+                onClick={() => chooseImportedAsset(asset.id)}
+              >
+                <img src={asset.thumbnailUrl} alt="" loading="lazy" />
+              </button>
+            ))}
+          </div>
+          <button
+            className="primary-action"
+            type="button"
+            disabled={!selected || saveDisabled}
+            onClick={() => {
+              if (selected && !saveDisabled) onSave(selected);
+            }}
+          >
+            {role === "user" ? "Accept user Avatar" : "Accept Agent Avatar"}
+          </button>
+        </div>
+        <aside
+          className="avatar-builder__preview"
+          aria-label="3D avatar preview"
+          data-testid="avatar-preview-panel"
+        >
+          <AvatarPreview
+            profile={previewDraft}
+            textOnly={textOnly}
+            previewClipIndex={previewAsset?.semanticClips.Idle.clipIndex ?? 0}
+            animate={!reducedMotion}
+            load3d={previewAsset !== undefined}
+            showFallbackImage={false}
+            minimal
+          />
+        </aside>
+      </section>
+    );
+  }
   return (
     <section className="avatar-builder" aria-labelledby="avatar-builder-title">
       <div className="avatar-builder__copy">

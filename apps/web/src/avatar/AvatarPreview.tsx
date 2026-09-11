@@ -49,6 +49,7 @@ class AvatarPreviewErrorBoundary extends Component<
 
 export function AvatarPreview({
   profile,
+  minimal = false,
   compact = false,
   textOnly = false,
   action = "Idle",
@@ -60,6 +61,7 @@ export function AvatarPreview({
   hiddenPartIds = EMPTY_HIDDEN_IMPORTED_PART_IDS,
 }: {
   readonly profile: AvatarDraft;
+  readonly minimal?: boolean;
   readonly compact?: boolean;
   readonly textOnly?: boolean;
   readonly action?: AvatarAction;
@@ -95,6 +97,7 @@ export function AvatarPreview({
       data-testid="avatar-preview"
       data-avatar-source={imported ? "imported" : "custom"}
       data-avatar-imported-id={imported?.id}
+      data-avatar-preview-clip={imported ? previewClipIndex : undefined}
       data-avatar-preview-state={
         !load3d
           ? "closed"
@@ -107,11 +110,13 @@ export function AvatarPreview({
                 : "loading-or-ready"
       }
     >
-      <div className="avatar-nameplate" data-anchor="ATTACH_NAMEPLATE">
-        {profile.agentName || "Name required"}
-      </div>
+      {!minimal && (
+        <div className="avatar-nameplate" data-anchor="ATTACH_NAMEPLATE">
+          {profile.agentName || "Name required"}
+        </div>
+      )}
       {!load3d || textOnly || forcedFallback || !optional3dReady ? (
-        <div className="avatar-static-fallback">
+        <div className={minimal ? "sr-only" : "avatar-static-fallback"}>
           {showFallbackImage ? (
             <img
               src={imported?.thumbnailUrl ?? AVATAR_CONTACT_SHEET}
@@ -122,7 +127,7 @@ export function AvatarPreview({
               }
             />
           ) : null}
-          <strong>
+          <span>
             {forcedFallback
               ? "WebGL unavailable"
               : !load3d
@@ -130,13 +135,16 @@ export function AvatarPreview({
                 : textOnly
                   ? "Text-only mode"
                   : "Compact static preview"}
-          </strong>
+          </span>
         </div>
       ) : (
         <Suspense
           key={`${imported?.id ?? "custom"}:${importedClip ?? action}`}
           fallback={
-            <div className="avatar-static-fallback" role="status">
+            <div
+              className={minimal ? "sr-only" : "avatar-static-fallback"}
+              role="status"
+            >
               {imported
                 ? `Loading ${imported.label} GLB…`
                 : "Loading optional 3D preview…"}
@@ -157,20 +165,22 @@ export function AvatarPreview({
           </AvatarPreviewErrorBoundary>
         </Suspense>
       )}
-      <figcaption>
-        <span className="sr-only">
-          Agent name: {profile.agentName || "not configured"}.{" "}
-        </span>
-        {importedAvatarProfileSummary(profile)}.{" "}
-        {imported && profile.avatarSource?.kind === "imported"
-          ? load3d
-            ? `Imported clip ${previewClipIndex + 1}: ${
-                importedClip ?? "missing"
-              }`
-            : "No complete model is selected for 3D preview"
-          : `Animation: ${action}`}
-        {animate ? "" : " (static pose)"}.
-      </figcaption>
+      {!minimal && (
+        <figcaption>
+          <span className="sr-only">
+            Agent name: {profile.agentName || "not configured"}.{" "}
+          </span>
+          {importedAvatarProfileSummary(profile)}.{" "}
+          {imported && profile.avatarSource?.kind === "imported"
+            ? load3d
+              ? `Imported clip ${previewClipIndex + 1}: ${
+                  importedClip ?? "missing"
+                }`
+              : "No complete model is selected for 3D preview"
+            : `Animation: ${action}`}
+          {animate ? "" : " (static pose)"}.
+        </figcaption>
+      )}
     </figure>
   );
 }
