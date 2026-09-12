@@ -1411,7 +1411,10 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   page,
 }, testInfo) => {
   // Includes the full discussion/queue journey and front/back/oblique cloud proofs.
-  test.setTimeout(300_000);
+  // The unchanged journey passed locally in 253s and on hosted CI in ~286s;
+  // two hosted attempts reached different late actions at the old 300s watchdog.
+  // Allow whole-journey runtime headroom; retain every per-assertion deadline.
+  test.setTimeout(420_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");
