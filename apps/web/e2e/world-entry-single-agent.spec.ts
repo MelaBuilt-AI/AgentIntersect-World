@@ -375,6 +375,14 @@ async function installWorldFixtures(
   options: WorldFixtureOptions = {},
 ) {
   await page.route("**/api/**", async (route) => {
+    // Keep the real server-owned setup gate; these fixtures replace native work only.
+    if (
+      route.request().method() === "GET" &&
+      new URL(route.request().url()).pathname === "/api/agent-setup"
+    ) {
+      await route.continue();
+      return;
+    }
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     let data: unknown;

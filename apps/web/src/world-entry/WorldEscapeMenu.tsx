@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { isEditableWorldTarget } from "./world-navigation-model.js";
-import type { WorldDisplayPreferences } from "./world-escape-menu-model.js";
+import {
+  worldEscapeMenuOwner,
+  type WorldDisplayPreferences,
+} from "./world-escape-menu-model.js";
 
 type WorldEscapeView = "menu" | "settings" | "avatar-target" | "reset";
 
@@ -66,9 +69,12 @@ export function WorldEscapeMenu({
         close();
         return;
       }
-      if (entryOnly && document.querySelector("[data-world-menu-owner]"))
-        return;
       const setupOpen = document.querySelector("[data-agent-setup]") !== null;
+      const owner = worldEscapeMenuOwner(
+        setupOpen,
+        document.querySelector("[data-world-menu-owner]") !== null,
+      );
+      if ((owner === "entry") !== entryOnly) return;
       if (!entryOnly && !setupOpen && isEditableWorldTarget(event.target))
         return;
       if (
@@ -148,6 +154,14 @@ export function WorldEscapeMenu({
             <h2 id="world-escape-title">World menu</h2>
             <div className="world-escape-actions">
               <button
+                ref={initialFocusRef}
+                type="button"
+                className="world-action--enabled"
+                onClick={() => setView("settings")}
+              >
+                Settings
+              </button>
+              <button
                 type="button"
                 className="world-action--enabled"
                 onClick={() =>
@@ -157,14 +171,6 @@ export function WorldEscapeMenu({
                 }
               >
                 Agent Setup Menu
-              </button>
-              <button
-                ref={initialFocusRef}
-                type="button"
-                className="world-action--enabled"
-                onClick={() => setView("settings")}
-              >
-                Settings
               </button>
               <button
                 type="button"

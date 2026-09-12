@@ -511,6 +511,14 @@ test("seventeen agent stances and mounted user-directed movement work in product
     });
   });
   await page.route("**/api/**", async (route) => {
+    // Keep the real server-owned setup gate; these fixtures replace native work only.
+    if (
+      route.request().method() === "GET" &&
+      new URL(route.request().url()).pathname === "/api/agent-setup"
+    ) {
+      await route.continue();
+      return;
+    }
     const pathname = new URL(route.request().url()).pathname;
     if (pathname.includes("/world-actions/")) {
       await route.fallback();

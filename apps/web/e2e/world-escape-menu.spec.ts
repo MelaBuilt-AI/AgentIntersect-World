@@ -121,6 +121,14 @@ async function installSessionFixture(
     options.initialProposal ?? importedProposal;
   const mutationPaths: string[] = [];
   await page.route("**/api/**", async (route) => {
+    // Keep the real server-owned setup gate; these fixtures replace native work only.
+    if (
+      route.request().method() === "GET" &&
+      new URL(route.request().url()).pathname === "/api/agent-setup"
+    ) {
+      await route.continue();
+      return;
+    }
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     if (request.method() !== "GET" && !pathname.endsWith("/attach"))
@@ -527,7 +535,7 @@ test("accepted user model plays exact Space and local gesture clips without tran
   expect(errors).toEqual([]);
 });
 
-test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
+test("World Escape traps focus, respects editable owners, and delegates to reopened setup", async ({
   page,
 }) => {
   // Software-rendered CI can spend more than 90 seconds reaching the final
@@ -626,12 +634,27 @@ test("Escape is active only in World, traps focus, and stays inert for editable 
     }),
   ).toBe(true);
   await expect(menu).toBeVisible();
+  await page
+    .getByRole("button", { name: "Agent Setup Menu", exact: true })
+    .click();
+  const setup = page.getByRole("dialog", {
+    name: "Agent Setup Menu",
+    exact: true,
+  });
+  await expect(setup).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Settings", exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(menu).toHaveCount(0);
+  await page.getByRole("button", { name: "Close Agent Setup Menu" }).click();
+  await expect(setup).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test("Escape listener is absent outside the normal World", async ({ page }) => {
+test("Escape opens the entry menu during agent selection", async ({ page }) => {
   const errors = capturePageErrors(page);
   await installWorldState(page, false);
   await installSessionFixture(page);
@@ -640,8 +663,54 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
     page.getByRole("button", { name: "Single Agent" }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "World menu" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Change Agent", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Agent Setup Menu", exact: true }),
+  ).toBeEnabled();
   expect(errors).toEqual([]);
+});
+
+test("first-run setup gates selection without discovering automatically and retains Escape", async ({
+  page,
+}) => {
+  await installWorldState(page, false);
+  await installSessionFixture(page);
+  await page.route("**/api/agent-setup", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        data: {
+          schema: "aiw.agent-setup/1",
+          completed: false,
+          registrations: [],
+        },
+      },
+    }),
+  );
+  let discoveryRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/agent-setup/discover")
+      discoveryRequests += 1;
+  });
+  await page.goto("/");
+  await expect(
+    page.getByRole("dialog", { name: "Agent Setup Menu", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Single Agent", exact: true }),
+  ).toHaveCount(0);
+  expect(discoveryRequests).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "World menu" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Discover Agents", exact: true }),
+  ).toBeVisible();
+  expect(discoveryRequests).toBe(0);
 });
 
 test("slash focuses active World chat and submitted history restores its draft", async ({

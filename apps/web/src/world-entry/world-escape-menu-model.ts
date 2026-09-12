@@ -11,6 +11,13 @@ export const DEFAULT_WORLD_DISPLAY_PREFERENCES: WorldDisplayPreferences =
     largeMenuText: false,
   });
 
+export function worldEscapeMenuOwner(
+  setupOpen: boolean,
+  worldMenuPresent: boolean,
+): "entry" | "world" {
+  return setupOpen || !worldMenuPresent ? "entry" : "world";
+}
+
 type PreferenceStorage = Pick<Storage, "getItem" | "setItem">;
 
 export function loadWorldDisplayPreferences(
