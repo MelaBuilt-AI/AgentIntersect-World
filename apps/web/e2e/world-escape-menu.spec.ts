@@ -219,8 +219,13 @@ async function installSessionFixture(
 }
 
 async function openRestoredWorld(page: Page) {
-  await expect(page.locator(".world-room")).toBeVisible();
-  await page.locator(".world-room").focus();
+  const room = page.locator(".world-room");
+  await expect(room).toBeVisible();
+  // The room DOM mounts before the real textures/renderer finish loading.
+  await expect(room).toHaveAttribute("data-scene-ready", "true", {
+    timeout: 60_000,
+  });
+  await room.focus();
 }
 
 async function installAutonomousMovementFixture(page: Page) {
@@ -339,9 +344,31 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
   await installWorldState(page);
   await installSessionFixture(page);
   const authority = await installAutonomousMovementFixture(page);
-  await page.goto("/");
-  await openRestoredWorld(page);
+  let releaseTexture!: () => void;
+  const textureGate = new Promise<void>((resolve) => {
+    releaseTexture = resolve;
+  });
+  await page.route(
+    "**/assets/code-world/15_code_nebula_sky.webp",
+    async (route) => {
+      await textureGate;
+      await route.continue();
+    },
+  );
+  let releaseTimer: ReturnType<typeof setTimeout> | undefined;
   const room = page.locator(".world-room");
+  try {
+    await page.goto("/");
+    await expect(room).toBeVisible();
+    await expect(room).toHaveAttribute("data-scene-ready", "false");
+    // Controlled load delay: a visible room must not end restoration early.
+    releaseTimer = setTimeout(releaseTexture, 1_500);
+    await openRestoredWorld(page);
+    expect(await room.getAttribute("data-scene-ready")).toBe("true");
+  } finally {
+    clearTimeout(releaseTimer);
+    releaseTexture();
+  }
 
   authority.activate({
     actionId: "66666666-6666-4666-8666-666666666666",
