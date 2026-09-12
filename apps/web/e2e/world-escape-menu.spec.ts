@@ -986,6 +986,64 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
   expect(errors).toEqual([]);
 });
 
+test("replacing a preview during Canvas setup leaves no detached event connection", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const errors = capturePageErrors(page);
+  await installWorldState(page, false);
+  await installSessionFixture(page, {
+    initialProposal: legacyProposal,
+    liveProposalAvailable: false,
+  });
+  await page.addInitScript(() => {
+    // Replace through the real UI between renderer creation and the queued
+    // R3F provider commit. No fake exception or GL response is introduced.
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      ...args: Parameters<typeof getContext>
+    ) {
+      const context = Reflect.apply(getContext, this, args);
+      if (
+        context &&
+        args[0] === "webgl2" &&
+        this.closest(".imported-avatar-canvas") &&
+        !document.documentElement.dataset.previewSetupReplaced
+      ) {
+        HTMLCanvasElement.prototype.getContext = getContext;
+        document.documentElement.dataset.previewSetupReplaced = "scheduled";
+        queueMicrotask(() => {
+          const replacement = document.querySelector<HTMLButtonElement>(
+            'button[aria-label="Open Robot Agent 5 3D preview"]',
+          );
+          if (replacement && !replacement.disabled) {
+            document.documentElement.dataset.previewSetupReplaced = "true";
+            replacement.click();
+          }
+        });
+      }
+      return context;
+    } as typeof getContext;
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Single Agent" }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
+  await page.getByLabel("Agent name").fill("Mr Fluff");
+  await page.getByRole("button", { name: "Connect agent" }).click();
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-preview-setup-replaced",
+    "true",
+    { timeout: 30_000 },
+  );
+  await expect(
+    page.locator(
+      '.imported-avatar-canvas[data-avatar-imported-id="robot-agent-05"]',
+    ),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
+  expect(errors).toEqual([]);
+});
+
 test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff through cat and robot reloads", async ({
   page,
 }) => {

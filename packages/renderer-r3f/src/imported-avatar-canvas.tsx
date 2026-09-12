@@ -1,4 +1,11 @@
-import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
+import {
+  Canvas,
+  events as createPointerEvents,
+  useFrame,
+  useLoader,
+  useThree,
+  type RootStore,
+} from "@react-three/fiber";
 import {
   useCallback,
   useEffect,
@@ -598,6 +605,18 @@ export function ImportedAvatarWorldModel({
   );
 }
 
+export function createAvatarPreviewPointerEvents(store: RootStore) {
+  const events = createPointerEvents(store);
+  return {
+    ...events,
+    connect(target: HTMLElement | null) {
+      // A replaced/accepted preview can unmount before Canvas's async setup
+      // connects its cleared DOM ref (or the provider's detached fallback).
+      if (target?.isConnected) events.connect?.(target);
+    },
+  };
+}
+
 export function ImportedAvatarCanvas({
   selection,
   animate,
@@ -640,6 +659,7 @@ export function ImportedAvatarCanvas({
           : "Rendering 3D preview…"}
       </span>
       <Canvas
+        events={createAvatarPreviewPointerEvents}
         style={{
           visibility: readySelection === selectionKey ? "visible" : "hidden",
         }}
