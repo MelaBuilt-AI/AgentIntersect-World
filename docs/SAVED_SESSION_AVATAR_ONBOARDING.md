@@ -1,5 +1,21 @@
 # Saved-session restoration and avatar onboarding
 
+## Operator feedback correction — September 11
+
+Aaron accepted the overall onboarding appearance but reported initial thumbnail
+movement and a T-pose before Idle in both role previews. This correction reserves
+loading geometry, keeps selection borders constant, and initializes the first
+pose at full weight before revealing it. New requested entrance: render the
+loaded environment first, wait one second with avatars hidden, then assemble
+all user/agent bodies in code-rain pieces using the existing screen/wheel art.
+Reduced Motion keeps the readiness and delay but skips the moving assembly.
+
+Scope: local normal onboarding and both World renderer paths. Preserve existing
+Idle semantics, camera/movement, native sessions and retained review Worlds.
+No provider changes, old-state cleanup, merge or publication. A fresh isolated
+review lane follows focused regressions and impacted type/build/browser proof;
+its visual verdict remains Aaron's, not an automated inference.
+
 ## Scope approved 2026-09-11
 
 One private PR, based on main `7cbb4477cbf4509d16cd63bc51ae2a4a0bd41a1d`.
@@ -18,7 +34,7 @@ Local single-user application; existing native session/worktree authority remain
 
 The six inherited residual files, all operator lanes and their served builds, original AgentIntersect, providers/profiles and native history remain untouched. Builds must not overwrite the retained `apps/web/dist` frontend. Internal developer avatar tooling is not part of the requested onboarding cleanup.
 
-Commit/push and opening this PR are authorized. Merge, release/publication, later phases, operator-lane cleanup/restarts and broad redesign are not authorized. Manual visual acceptance belongs to Aaron; automated checks are technical evidence only.
+Aaron authorized commit/push, exact-head CI/readiness verification, conditional merge once green, then merged-main CI/readiness verification and end-session preparation. Release/publication, later phases, branch deletion, operator-lane cleanup/restarts and broad redesign remain outside this authorization.
 
 ## Evidence
 
@@ -42,11 +58,17 @@ Commit/push and opening this PR are authorized. Merge, release/publication, late
 
 Local proof artifacts: `/tmp/aiw-onboarding-proof3/` (JSON result plus desktop/portrait captures); focused test log: `/tmp/aiw-onboarding-final-focused.log`; production build log: `/tmp/aiw-onboarding-build2.log`. Earlier attempts remain separate.
 
-### Aaron's manual acceptance — pending
+### Aaron's manual acceptance and delivery cutline
+
+Aaron accepted the polished avatar selection, clean Idle previews and code-rain entrance in native Edge at `http://127.0.0.1:45312/` (Discord message `1548159125047746581`: “Wow perfect now Fluff nice work! feels so much more polished”). The subsequent message `1548159664183709707` authorizes conditional merge after green CI/readiness. This does not claim live saved-session/full-restart acceptance.
+
+Verification checklist retained for scope:
 
 1. Fresh user onboarding: select avatars, type a name, check Idle and rain trim, then **Accept user Avatar**.
 2. Connect an agent: check the same minimal layout, selection and Idle, then **Accept Agent Avatar**. Confirm World entry still unlocks normally.
 3. Inspect desktop and narrow-window layout. Check Reduced Motion if used.
 4. In disposable/manual work, continue a saved Workstream after leaving/rejoining: inspect actual code, branch, task and World View; confirm no unsolicited coding turn. A full application/machine restart's preview-process relaunch is not established by the retained-live-preview test above.
 
-PR remains unmerged. This technical evidence does not substitute for Aaron's visual or native-session acceptance.
+Delivery requires the final PR head and merged-main CI to pass; immutable commit/run receipts are recorded externally at closeout, not recursively embedded here. Full-application restart preview relaunch and real native saved-session acceptance remain follow-up work, not claimed complete by this PR.
+
+Polish verification: 132 focused tests passed before the snapshot correction; all three affected materialization regressions passed afterward. Four final production-browser journeys passed, plus a native Edge live-mesh journey with no captured errors and inspected environment/partial-assembly/completed images. Both live meshes and constrained snapshot sprites visibly assemble. Impacted typechecks/lint/build passed. Earlier PR CI exposed stale onboarding selectors in three browser journeys; those expectations are aligned with the accepted minimal UI while retaining persistence/no-unsolicited-mutation checks.

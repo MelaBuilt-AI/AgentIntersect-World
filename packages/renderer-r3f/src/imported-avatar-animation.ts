@@ -51,7 +51,9 @@ export function crossfadeImportedAvatarAction<
     previous.fadeOut(IMPORTED_AVATAR_CROSSFADE_SECONDS);
   next.reset();
   next.setEffectiveWeight(1);
-  next.fadeIn(IMPORTED_AVATAR_CROSSFADE_SECONDS);
+  // No previous pose exists on first load: never blend from the bind pose.
+  if (previous && previous !== next)
+    next.fadeIn(IMPORTED_AVATAR_CROSSFADE_SECONDS);
   next.play();
   return next;
 }

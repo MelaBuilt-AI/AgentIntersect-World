@@ -3922,6 +3922,8 @@ p {
   padding: 0.25rem;
 }
 .avatar-onboarding__choices .imported-avatar-option {
+  /* Selection changes color, never card or image geometry. */
+  border-width: 2px;
   min-width: 0;
   display: block;
   padding: 0.25rem;
@@ -3933,6 +3935,8 @@ p {
   object-fit: contain;
 }
 .avatar-builder--onboarding .avatar-preview {
+  /* Reserve the canvas box while Suspense loads each selected model. */
+  height: max(22rem, min(30rem, 54vh));
   margin: 0;
   width: 100%;
 }
@@ -4246,6 +4250,9 @@ p {
   overflow-wrap: anywhere;
 }
 @media (max-width: 760px) {
+  .avatar-builder--onboarding .avatar-preview {
+    height: 23rem;
+  }
   .imported-avatar-options {
     grid-template-columns: 1fr;
   }

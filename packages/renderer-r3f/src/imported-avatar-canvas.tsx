@@ -1,5 +1,12 @@
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AmbientLight,
   AnimationMixer,
@@ -342,7 +349,7 @@ function ImportedAvatarModel({
   useEffect(() => {
     onRepresentationReadyRef.current = onRepresentationReady;
   }, [onRepresentationReady]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const previous = activeAction.current;
     if (!clip) {
       previous?.fadeOut(IMPORTED_AVATAR_CROSSFADE_SECONDS);
@@ -500,8 +507,15 @@ function ImportedAvatarRenderReady({
   readonly onReady: (selectionKey: string) => void;
 }) {
   const announcedSelection = useRef<string | null>(null);
+  const warmedSelection = useRef<string | null>(null);
+  const invalidate = useThree((state) => state.invalidate);
   useFrame(() => {
     if (announcedSelection.current === selectionKey) return;
+    if (warmedSelection.current !== selectionKey) {
+      warmedSelection.current = selectionKey;
+      invalidate();
+      return;
+    }
     announcedSelection.current = selectionKey;
     onReady(selectionKey);
   });
@@ -626,6 +640,9 @@ export function ImportedAvatarCanvas({
           : "Rendering 3D preview…"}
       </span>
       <Canvas
+        style={{
+          visibility: readySelection === selectionKey ? "visible" : "hidden",
+        }}
         frameloop={animate ? "always" : "demand"}
         camera={{ position: [0, 0.2, 6.8], fov: 36 }}
         dpr={[1, 1.5]}

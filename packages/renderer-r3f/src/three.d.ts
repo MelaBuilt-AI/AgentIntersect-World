@@ -67,7 +67,11 @@ declare module "three" {
   export const SRGBColorSpace: string;
   export class Material {
     onBeforeCompile(
-      shader: { uniforms: Record<string, unknown>; fragmentShader: string },
+      shader: {
+        uniforms: Record<string, unknown>;
+        vertexShader: string;
+        fragmentShader: string;
+      },
       renderer: WebGLRenderer,
     ): void;
     customProgramCacheKey(): string;
@@ -226,6 +230,8 @@ declare module "three" {
     getHexString(): string;
   }
   export class Box3 {
+    min: Vector3;
+    max: Vector3;
     setFromObject(object: Object3D): this;
     getCenter(target: Vector3): Vector3;
     getSize(target: Vector3): Vector3;

@@ -13,12 +13,10 @@ export function WorldEnvironment({
   size,
   reducedMotion,
   userPosition,
-  avatarsReady = true,
   onReady,
 }: {
   readonly floor: "blank" | "repository";
   readonly size: number;
-  readonly avatarsReady?: boolean;
   readonly onReady?: (() => void) | undefined;
   readonly reducedMotion: boolean;
   readonly userPosition: { readonly x: number; readonly z: number };
@@ -92,14 +90,8 @@ export function WorldEnvironment({
     [grid],
   );
   useFrame((_, delta) => {
-    // Reveal only after decoded maps and initialized poses have actually drawn.
-    if (
-      avatarsReady &&
-      floorTexture &&
-      rainTexture &&
-      auroraTexture &&
-      nebulaTexture
-    ) {
+    // Reveal the decoded environment first; avatars assemble separately.
+    if (floorTexture && rainTexture && auroraTexture && nebulaTexture) {
       if (readyFrames.current < 3) {
         readyFrames.current += 1;
         if (readyFrames.current === 3) onReady?.();

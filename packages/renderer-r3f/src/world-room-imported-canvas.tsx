@@ -1,6 +1,7 @@
 import type { WorldScreenBinding } from "./world-screen-types.js";
 import { useActivityBillboard } from "./world-activity-billboard.js";
 import { WorldEnvironment } from "./world-environment.js";
+import { AvatarMaterialization } from "./avatar-materialization.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
@@ -686,6 +687,7 @@ function WorldRoomScene({
   agentLayerState,
   reducedMotion,
   avatarReady,
+  materializationReady,
   avatarLod,
   renderQuality,
   onAvatarReady,
@@ -726,6 +728,7 @@ function WorldRoomScene({
   readonly agentLayerState: AvatarLayerState;
   readonly reducedMotion: boolean;
   readonly avatarReady: Readonly<{ user: boolean; agent: boolean }>;
+  readonly materializationReady: boolean;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly renderQuality: WorldRenderQuality;
   readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
@@ -970,14 +973,41 @@ function WorldRoomScene({
           ) : null}
         </>
       ) : null}
-      {userImportedAvatar ? (
-        <ImportedAvatarGroundingMarker
-          role="user"
-          position={[userPosition.x, 0, userPosition.z]}
-        />
-      ) : null}
-      {avatarMotion.lightweight ? (
-        <LightweightAvatarMotion phase={0}>
+      <AvatarMaterialization
+        ready={materializationReady}
+        reducedMotion={reducedMotion}
+      >
+        {userImportedAvatar ? (
+          <ImportedAvatarGroundingMarker
+            role="user"
+            position={[userPosition.x, 0, userPosition.z]}
+          />
+        ) : null}
+        {avatarMotion.lightweight ? (
+          <LightweightAvatarMotion phase={0}>
+            <WorldAvatarModel
+              role="user"
+              selection={userAvatar}
+              imported={userImportedAvatar}
+              action={userAction}
+              layerState={userLayerState}
+              animate={userAnimationEnabled}
+              position={[userPosition.x, 0, userPosition.z]}
+              rotation={[0, controlledAvatarYaw, 0]}
+              scale={
+                userImportedAvatar
+                  ? IMPORTED_WORLD_AVATAR_SCALE
+                  : AVATARS[0].scale
+              }
+              onReady={onAvatarReady}
+              onLodChange={onAvatarLodChange}
+              onAnimationSample={onImportedAnimationSample}
+              onOneShotComplete={onImportedOneShotComplete}
+              animationGeneration={userAnimationGeneration}
+              importedRepresentation={importedAvatarRepresentation}
+            />
+          </LightweightAvatarMotion>
+        ) : (
           <WorldAvatarModel
             role="user"
             selection={userAvatar}
@@ -999,113 +1029,96 @@ function WorldRoomScene({
             animationGeneration={userAnimationGeneration}
             importedRepresentation={importedAvatarRepresentation}
           />
-        </LightweightAvatarMotion>
-      ) : (
-        <WorldAvatarModel
-          role="user"
-          selection={userAvatar}
-          imported={userImportedAvatar}
-          action={userAction}
-          layerState={userLayerState}
-          animate={userAnimationEnabled}
-          position={[userPosition.x, 0, userPosition.z]}
-          rotation={[0, controlledAvatarYaw, 0]}
-          scale={
-            userImportedAvatar ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[0].scale
-          }
-          onReady={onAvatarReady}
-          onLodChange={onAvatarLodChange}
-          onAnimationSample={onImportedAnimationSample}
-          onOneShotComplete={onImportedOneShotComplete}
-          animationGeneration={userAnimationGeneration}
-          importedRepresentation={importedAvatarRepresentation}
-        />
-      )}
-      {renderedAgentAvatars.map((_, index) => {
-        const state = agentStates?.[index];
-        const position = state
-          ? ([state.position.x, 0, state.position.z] as const)
-          : renderedAgentAvatars.length > 1
-            ? worldAgentSpawnPosition(index)
-            : agentWorldPosition;
-        return (
-          <AgentActivityBillboard
-            key={`agent-activity-${index + 1}`}
-            screens={screens}
-            activity={
-              agentActivities?.[index] ??
-              (index === 0
-                ? activity
-                : {
-                    state: "idle",
-                    icon: "",
-                    label: "Agent is idle",
-                    detail: "",
-                  })
-            }
-            reducedMotion={reducedMotion}
-            position={position}
-          />
-        );
-      })}
-      {renderedAgentAvatars.map((selection, index) => {
-        const state = agentStates?.[index];
-        const imported = renderedAgentImports[index];
-        const position = state
-          ? ([state.position.x, 0, state.position.z] as const)
-          : renderedAgentAvatars.length > 1
-            ? worldAgentSpawnPosition(index)
-            : agentWorldPosition;
-        const model = (
-          <WorldAvatarModel
-            key={`agent-${index + 1}`}
-            role="agent"
-            selection={selection}
-            imported={imported ?? undefined}
-            action={
-              state?.workState === "coding"
-                ? "Idle"
-                : (state?.action ?? (index === 0 ? agentAction : "Idle"))
-            }
-            layerState={agentLayerState}
-            animate={selectWorldImportedAvatarMotion(
-              reducedMotion,
-              imported?.resolvedClip?.clipIndex,
-              avatarMotion.skeletal,
-            )}
-            position={position}
-            rotation={[
-              0,
-              state?.heading ?? (index === 0 ? agentHeading : 0),
-              0,
-            ]}
-            scale={imported ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale}
-            onReady={(role) => onAvatarReady(role, index)}
-            onLodChange={onAvatarLodChange}
-            onAnimationSample={onImportedAnimationSample}
-            onOneShotComplete={onImportedOneShotComplete}
-            animationGeneration={index === 0 ? agentAnimationGeneration : 0}
-            importedRepresentation={importedAvatarRepresentation}
-          />
-        );
-        return (
-          <group key={`agent-group-${index + 1}`}>
-            {state?.workState === "coding" ? (
-              <CodingWorkHalo position={position} />
-            ) : null}
-            {imported ? (
-              <ImportedAvatarGroundingMarker role="agent" position={position} />
-            ) : null}
-            {avatarMotion.lightweight ? (
-              <LightweightAvatarMotion phase={Math.PI + index}>
-                {model}
-              </LightweightAvatarMotion>
-            ) : (
-              model
-            )}
-          </group>
-        );
-      })}
+        )}
+        {renderedAgentAvatars.map((_, index) => {
+          const state = agentStates?.[index];
+          const position = state
+            ? ([state.position.x, 0, state.position.z] as const)
+            : renderedAgentAvatars.length > 1
+              ? worldAgentSpawnPosition(index)
+              : agentWorldPosition;
+          return (
+            <AgentActivityBillboard
+              key={`agent-activity-${index + 1}`}
+              screens={screens}
+              activity={
+                agentActivities?.[index] ??
+                (index === 0
+                  ? activity
+                  : {
+                      state: "idle",
+                      icon: "",
+                      label: "Agent is idle",
+                      detail: "",
+                    })
+              }
+              reducedMotion={reducedMotion}
+              position={position}
+            />
+          );
+        })}
+        {renderedAgentAvatars.map((selection, index) => {
+          const state = agentStates?.[index];
+          const imported = renderedAgentImports[index];
+          const position = state
+            ? ([state.position.x, 0, state.position.z] as const)
+            : renderedAgentAvatars.length > 1
+              ? worldAgentSpawnPosition(index)
+              : agentWorldPosition;
+          const model = (
+            <WorldAvatarModel
+              key={`agent-${index + 1}`}
+              role="agent"
+              selection={selection}
+              imported={imported ?? undefined}
+              action={
+                state?.workState === "coding"
+                  ? "Idle"
+                  : (state?.action ?? (index === 0 ? agentAction : "Idle"))
+              }
+              layerState={agentLayerState}
+              animate={selectWorldImportedAvatarMotion(
+                reducedMotion,
+                imported?.resolvedClip?.clipIndex,
+                avatarMotion.skeletal,
+              )}
+              position={position}
+              rotation={[
+                0,
+                state?.heading ?? (index === 0 ? agentHeading : 0),
+                0,
+              ]}
+              scale={imported ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale}
+              onReady={(role) => onAvatarReady(role, index)}
+              onLodChange={onAvatarLodChange}
+              onAnimationSample={onImportedAnimationSample}
+              onOneShotComplete={onImportedOneShotComplete}
+              animationGeneration={index === 0 ? agentAnimationGeneration : 0}
+              importedRepresentation={importedAvatarRepresentation}
+            />
+          );
+          return (
+            <group key={`agent-group-${index + 1}`}>
+              {state?.workState === "coding" ? (
+                <CodingWorkHalo position={position} />
+              ) : null}
+              {imported ? (
+                <ImportedAvatarGroundingMarker
+                  role="agent"
+                  position={position}
+                />
+              ) : null}
+              {avatarMotion.lightweight ? (
+                <LightweightAvatarMotion phase={Math.PI + index}>
+                  {model}
+                </LightweightAvatarMotion>
+              ) : (
+                model
+              )}
+            </group>
+          );
+        })}
+      </AvatarMaterialization>
     </>
   );
 }
@@ -1219,6 +1232,11 @@ export function WorldRoomCanvas({
       current[role] ? current : { ...current, [role]: true },
     );
   }, []);
+  const [environmentReady, setEnvironmentReady] = useState(false);
+  const markEnvironmentReady = useCallback(() => {
+    setEnvironmentReady(true);
+    onSceneReady?.();
+  }, [onSceneReady]);
   const onAvatarLodChange = useCallback(
     (role: "user" | "agent", lod: AvatarLod) => {
       setAvatarLod((current) =>
@@ -1376,10 +1394,7 @@ export function WorldRoomCanvas({
         <CooperativeWorldInvalidation />
       ) : null}
       <WorldEnvironment
-        onReady={onSceneReady}
-        avatarsReady={
-          readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
-        }
+        onReady={markEnvironmentReady}
         floor={floor}
         size={floorSize}
         reducedMotion={reducedMotion}
@@ -1393,6 +1408,10 @@ export function WorldRoomCanvas({
         onScreenDrag={onScreenDrag}
       />
       <WorldRoomScene
+        materializationReady={
+          environmentReady &&
+          readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
+        }
         screens={screens}
         floor={floor}
         objects={objects}

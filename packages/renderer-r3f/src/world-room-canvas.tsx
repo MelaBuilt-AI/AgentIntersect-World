@@ -1,6 +1,7 @@
 import type { WorldScreenBinding } from "./world-screen-types.js";
 import { useActivityBillboard } from "./world-activity-billboard.js";
 import { WorldEnvironment } from "./world-environment.js";
+import { AvatarMaterialization } from "./avatar-materialization.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import {
   Canvas,
@@ -608,6 +609,7 @@ function WorldRoomScene({
   agentLayerState,
   reducedMotion,
   avatarReady,
+  materializationReady,
   avatarLod,
   renderQuality,
   onAvatarReady,
@@ -637,6 +639,7 @@ function WorldRoomScene({
   readonly agentLayerState: AvatarLayerState;
   readonly reducedMotion: boolean;
   readonly avatarReady: Readonly<{ user: boolean; agent: boolean }>;
+  readonly materializationReady: boolean;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly renderQuality: WorldRenderQuality;
   readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
@@ -805,8 +808,27 @@ function WorldRoomScene({
           ) : null}
         </>
       ) : null}
-      {avatarMotion.lightweight ? (
-        <LightweightAvatarMotion phase={0}>
+      <AvatarMaterialization
+        ready={materializationReady}
+        reducedMotion={reducedMotion}
+      >
+        {avatarMotion.lightweight ? (
+          <LightweightAvatarMotion phase={0}>
+            <AvatarKitWorldModel
+              asset="/assets/avatar/aiw-avatar-kit.glb"
+              role="user"
+              selection={userAvatar}
+              action={userAction}
+              layerState={userLayerState}
+              animate={avatarMotion.skeletal}
+              position={[userPosition.x, 0, userPosition.z]}
+              rotation={[0, controlledAvatarYaw, 0]}
+              scale={AVATARS[0].scale}
+              onReady={onAvatarReady}
+              onLodChange={onAvatarLodChange}
+            />
+          </LightweightAvatarMotion>
+        ) : (
           <AvatarKitWorldModel
             asset="/assets/avatar/aiw-avatar-kit.glb"
             role="user"
@@ -820,82 +842,68 @@ function WorldRoomScene({
             onReady={onAvatarReady}
             onLodChange={onAvatarLodChange}
           />
-        </LightweightAvatarMotion>
-      ) : (
-        <AvatarKitWorldModel
-          asset="/assets/avatar/aiw-avatar-kit.glb"
-          role="user"
-          selection={userAvatar}
-          action={userAction}
-          layerState={userLayerState}
-          animate={avatarMotion.skeletal}
-          position={[userPosition.x, 0, userPosition.z]}
-          rotation={[0, controlledAvatarYaw, 0]}
-          scale={AVATARS[0].scale}
-          onReady={onAvatarReady}
-          onLodChange={onAvatarLodChange}
-        />
-      )}
-      {renderedAgentAvatars.map((_, index) => {
-        const state = agentStates?.[index];
-        const position = state
-          ? ([state.position.x, 0, state.position.z] as const)
-          : worldAgentSpawnPosition(index);
-        return (
-          <AgentActivityBillboard
-            key={`agent-activity-${index + 1}`}
-            screens={screens}
-            activity={
-              agentActivities?.[index] ??
-              (index === 0
-                ? activity
-                : {
-                    state: "idle",
-                    icon: "",
-                    label: "Agent is idle",
-                    detail: "",
-                  })
-            }
-            reducedMotion={reducedMotion}
-            position={position}
-          />
-        );
-      })}
-      {renderedAgentAvatars.map((selection, index) => {
-        const state = agentStates?.[index];
-        const position = state
-          ? ([state.position.x, 0, state.position.z] as const)
-          : worldAgentSpawnPosition(index);
-        const model = (
-          <AvatarKitWorldModel
-            asset="/assets/avatar/aiw-avatar-kit.glb"
-            role="agent"
-            selection={selection}
-            action={state?.action ?? (index === 0 ? agentAction : "Idle")}
-            layerState={agentLayerState}
-            animate={avatarMotion.skeletal}
-            position={position}
-            rotation={[0, state?.heading ?? 0, 0]}
-            scale={AVATARS[1].scale}
-            onReady={(role) => onAvatarReady(role, index)}
-            onLodChange={onAvatarLodChange}
-          />
-        );
-        return (
-          <group key={`agent-group-${index + 1}`}>
-            {state?.workState === "coding" ? (
-              <CodingWorkHalo position={position} />
-            ) : null}
-            {avatarMotion.lightweight ? (
-              <LightweightAvatarMotion phase={Math.PI + index}>
-                {model}
-              </LightweightAvatarMotion>
-            ) : (
-              model
-            )}
-          </group>
-        );
-      })}
+        )}
+        {renderedAgentAvatars.map((_, index) => {
+          const state = agentStates?.[index];
+          const position = state
+            ? ([state.position.x, 0, state.position.z] as const)
+            : worldAgentSpawnPosition(index);
+          return (
+            <AgentActivityBillboard
+              key={`agent-activity-${index + 1}`}
+              screens={screens}
+              activity={
+                agentActivities?.[index] ??
+                (index === 0
+                  ? activity
+                  : {
+                      state: "idle",
+                      icon: "",
+                      label: "Agent is idle",
+                      detail: "",
+                    })
+              }
+              reducedMotion={reducedMotion}
+              position={position}
+            />
+          );
+        })}
+        {renderedAgentAvatars.map((selection, index) => {
+          const state = agentStates?.[index];
+          const position = state
+            ? ([state.position.x, 0, state.position.z] as const)
+            : worldAgentSpawnPosition(index);
+          const model = (
+            <AvatarKitWorldModel
+              asset="/assets/avatar/aiw-avatar-kit.glb"
+              role="agent"
+              selection={selection}
+              action={state?.action ?? (index === 0 ? agentAction : "Idle")}
+              layerState={agentLayerState}
+              animate={avatarMotion.skeletal}
+              position={position}
+              rotation={[0, state?.heading ?? 0, 0]}
+              scale={AVATARS[1].scale}
+              onReady={(role) => onAvatarReady(role, index)}
+              onLodChange={onAvatarLodChange}
+            />
+          );
+          return (
+            <group key={`agent-group-${index + 1}`}>
+              {state?.workState === "coding" ? (
+                <CodingWorkHalo position={position} />
+              ) : null}
+              {avatarMotion.lightweight ? (
+                <LightweightAvatarMotion phase={Math.PI + index}>
+                  {model}
+                </LightweightAvatarMotion>
+              ) : (
+                model
+              )}
+            </group>
+          );
+        })}
+      </AvatarMaterialization>
     </>
   );
 }
@@ -983,6 +991,11 @@ export function WorldRoomCanvas({
       current[role] ? current : { ...current, [role]: true },
     );
   }, []);
+  const [environmentReady, setEnvironmentReady] = useState(false);
+  const markEnvironmentReady = useCallback(() => {
+    setEnvironmentReady(true);
+    onSceneReady?.();
+  }, [onSceneReady]);
   const onAvatarLodChange = useCallback(
     (role: "user" | "agent", lod: AvatarLod) => {
       setAvatarLod((current) =>
@@ -1059,10 +1072,7 @@ export function WorldRoomCanvas({
         <CooperativeWorldInvalidation />
       ) : null}
       <WorldEnvironment
-        onReady={onSceneReady}
-        avatarsReady={
-          readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
-        }
+        onReady={markEnvironmentReady}
         floor={floor}
         size={floorSize}
         reducedMotion={reducedMotion}
@@ -1076,6 +1086,10 @@ export function WorldRoomCanvas({
         onScreenDrag={onScreenDrag}
       />
       <WorldRoomScene
+        materializationReady={
+          environmentReady &&
+          readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
+        }
         screens={screens}
         floor={floor}
         objects={objects}

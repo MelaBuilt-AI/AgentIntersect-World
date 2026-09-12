@@ -651,6 +651,52 @@ async function enterFixtureWorld(page: Page, path = "/") {
   );
 }
 
+test("@avatar-stability cold previews and selection preserve thumbnail positions", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/*.glb", async (route) => {
+    await held;
+    await route.continue();
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Create Avatar" }).click();
+  const cards = page.locator(
+    ".avatar-onboarding__choices .imported-avatar-option",
+  );
+  await expect(cards).toHaveCount(6);
+  const boxes = () =>
+    cards.evaluateAll((elements) =>
+      elements.map((e) => {
+        const r = e.querySelector("img")!.getBoundingClientRect();
+        return [r.x, r.y, r.width, r.height];
+      }),
+    );
+  const before = await boxes();
+  release();
+  await expect(page.locator(".imported-avatar-canvas")).toHaveAttribute(
+    "data-avatar-render-ready",
+    "true",
+    { timeout: 60_000 },
+  );
+  expect(await boxes()).toEqual(before);
+  for (const index of [1, 4, 2, 0]) {
+    await cards.nth(index).click();
+    expect(await boxes()).toEqual(before);
+    await expect(page.locator(".imported-avatar-canvas")).toHaveAttribute(
+      "data-avatar-render-ready",
+      "true",
+      { timeout: 60_000 },
+    );
+    expect(await boxes()).toEqual(before);
+  }
+});
+
 test("@avatar-onboarding minimal user and agent selection, Idle previews and rain bezels", async ({
   page,
 }, testInfo) => {
@@ -659,6 +705,9 @@ test("@avatar-onboarding minimal user and agent selection, Idle previews and rai
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await installWorldFixtures(page, { restoreStatus: true });
   const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await page.getByRole("button", { name: "Create Avatar" }).click();
@@ -792,6 +841,30 @@ test("@avatar-onboarding minimal user and agent selection, Idle previews and rai
   await expect(page.getByRole("button", { name: "Enter World" })).toBeEnabled({
     timeout: 30_000,
   });
+  await page.getByRole("button", { name: "Enter World" }).click();
+  const canvas = page.locator(".world-room canvas");
+  await expect(page.locator(".world-room")).toHaveAttribute(
+    "data-scene-ready",
+    "true",
+    { timeout: 60_000 },
+  );
+  await expect(canvas).toHaveAttribute("data-avatar-arrival", "waiting");
+  await page.screenshot({
+    path: testInfo.outputPath("arrival-environment.png"),
+  });
+  await expect(canvas).toHaveAttribute("data-avatar-arrival", "materializing");
+  await expect
+    .poll(async () =>
+      Number(await canvas.getAttribute("data-avatar-arrival-progress")),
+    )
+    .toBeGreaterThan(0.35);
+  await page.screenshot({
+    path: testInfo.outputPath("arrival-materializing.png"),
+  });
+  await expect(canvas).toHaveAttribute("data-avatar-arrival", "complete", {
+    timeout: 15_000,
+  });
+  await page.screenshot({ path: testInfo.outputPath("arrival-complete.png") });
   expect(errors).toEqual([]);
 });
 
@@ -4119,7 +4192,7 @@ test("clean storage reaches the true identify_ opening and user avatar creator",
   });
   await page.getByRole("button", { name: "Create Avatar" }).click();
   await expect(page.getByTestId("avatar-preview")).toBeVisible();
-  await expect(page.getByLabel("Agent name", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("User name", { exact: true })).toBeVisible();
   await page.screenshot({
     path: `${evidenceDirectory}/first-launch-avatar-creator.png`,
     fullPage: true,

@@ -102,13 +102,17 @@ const expectBuilderComposition = async (
   expect(overlap).toBe(false);
 };
 
-const expectContainedActualGlbPreview = async (page: Page) => {
+const expectContainedActualGlbPreview = async (page: Page, minimal = false) => {
   const preview = page.getByTestId("avatar-preview");
   await expect(preview).toHaveCSS("border-radius", "12px");
-  await expect(preview.locator(".avatar-nameplate")).toHaveCSS(
-    "position",
-    "relative",
-  );
+  if (minimal) {
+    await expect(preview.locator(".avatar-nameplate")).toHaveCount(0);
+  } else {
+    await expect(preview.locator(".avatar-nameplate")).toHaveCSS(
+      "position",
+      "relative",
+    );
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -633,7 +637,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
       timeout: 20_000,
     },
   );
-  await expectContainedActualGlbPreview(page);
+  await expectContainedActualGlbPreview(page, true);
   expect(acceptedProposal).toBeNull();
   await page.reload();
   await expect(page.getByLabel("Agent avatars", { exact: true })).toBeVisible();
