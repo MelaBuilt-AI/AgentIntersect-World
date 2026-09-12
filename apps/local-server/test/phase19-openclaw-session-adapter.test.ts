@@ -325,9 +325,19 @@ describe("OpenClawSessionAdapter", () => {
     });
   });
 
+  it.each(["2026.6.0", "2099.1.1-next.1"])(
+    "accepts compatible OpenClaw version %s without a release allowlist",
+    async (serverVersion) => {
+      const gateway = await fixtureGateway({ serverVersion });
+      await expect(adapter(gateway.url).attest()).resolves.toMatchObject({
+        adapterVersion: `0.19.0-openclaw-${serverVersion}`,
+      });
+    },
+  );
+
   it.each([
     [{ protocol: 3 }, "protocol"],
-    [{ serverVersion: "2026.6.0" }, "version"],
+    [{ serverVersion: "bad version metadata" }, "identity"],
     [{ role: "node" }, "identity"],
     [{ methods: ["sessions.create"] }, "capability"],
   ] as const)("fails closed on gateway %s mismatch", async (options, label) => {

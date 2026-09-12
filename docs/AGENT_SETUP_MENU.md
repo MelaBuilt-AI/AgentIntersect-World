@@ -22,8 +22,9 @@ Confirmed choices:
 7. Missing executable, authentication, incompatible version, missing model/API/plugin, or an inaccessible execution environment must have actionable copy and a Recheck action. Provide an explicit locator fallback when automatic discovery cannot resolve an installation.
 8. Remove the mandatory Hermes-key dependency for users connecting only other harnesses. Do not retain machine-specific Codex/Claude model/provider overrides as the general setup path. Preserve legacy explicitly configured integration paths during migration.
 9. Windows/WSL discovery must be paired with real execution and workspace access. Found-but-not-connectable must not become attached/ready. Use exact environment-bound launch arguments and supported native credential handling, not arbitrary browser-supplied shell commands.
-10. Preserve profile behavior without copying unrelated conversation history into new World sessions. Ending/removing a World connection must not erase native identity, memories, skills, credentials, or unrelated sessions.
-11. Multiple saved registrations are distinct from the existing maximum four simultaneous roster members. Duplicate harnesses require distinct native session roots.
+10. Harness versions are diagnostic metadata, never exact-version allowlists or installation pins. Aaron explicitly requires normal user-managed harness updates outside World to remain supported. Negotiate/probe required commands, API methods, schemas and native resume behavior instead; check actual protocol compatibility where necessary. Do not downgrade, block updates, or claim arbitrary future breaking versions are compatible. A demonstrated missing/incompatible contract produces actionable setup diagnostics and Recheck. Remove current Codex/Claude/OpenClaw exact-product-version gates and regress compatible version changes.
+11. Preserve profile behavior without copying unrelated conversation history into new World sessions. Ending/removing a World connection must not erase native identity, memories, skills, credentials, or unrelated sessions.
+12. Multiple saved registrations are distinct from the existing maximum four simultaneous roster members. Duplicate harnesses require distinct native session roots.
 
 ## Verification
 

@@ -1,6 +1,7 @@
 import {
   chmod,
   lstat,
+  mkdir,
   mkdtemp,
   readFile,
   rm,
@@ -368,12 +369,15 @@ async function waitForProcessExit(pid: number): Promise<void> {
 }
 
 describe("CodexSessionAdapter", () => {
-  it("attests the installed 0.153.4 CLI and reports its real version", async () => {
-    const fixture = await fixtureExecutable({ version: "0.153.4" });
-    await expect(adapter(fixture).attest()).resolves.toMatchObject({
-      adapterVersion: "0.19.0-codex-0.153.4",
-    });
-  });
+  it.each(["0.146.0", "0.153.4", "99.0.0-next.1"])(
+    "accepts compatible Codex version %s without a release allowlist",
+    async (version) => {
+      const fixture = await fixtureExecutable({ version });
+      await expect(adapter(fixture).attest()).resolves.toMatchObject({
+        adapterVersion: `0.19.0-codex-${version}`,
+      });
+    },
+  );
   it("attests the exact bounded Codex CLI contract with an allowlisted environment", async () => {
     const fixture = await fixtureExecutable();
     process.env.CODEX_ADAPTER_SECRET_CANARY = "must-not-pass";
@@ -407,7 +411,7 @@ describe("CodexSessionAdapter", () => {
   });
 
   it.each([
-    [{ version: "0.146.0" }, /version/i],
+    [{ version: "bad version metadata" }, /identity/i],
     [{ invalidHelp: true }, /contract/i],
   ] as const)(
     "fails closed on a CLI contract mismatch: %o",
@@ -429,6 +433,70 @@ describe("CodexSessionAdapter", () => {
     expect(error.message).toMatch(/Codex CLI attestation timed out/i);
     expect(error.message).not.toContain(fixture.executablePath);
     await waitForProcessExit(pid);
+  });
+
+  it("uses a selected native profile without replacing its model/config or deleting its credentials", async () => {
+    const fixture = await fixtureExecutable();
+    const nativeProfilePath = path.join(
+      fixture.nativeSessionRoot,
+      "native-profile",
+    );
+    await mkdir(nativeProfilePath);
+    await writeFile(
+      path.join(nativeProfilePath, "config.toml"),
+      'model = "profile-selected-model"\n',
+    );
+    await writeFile(
+      path.join(nativeProfilePath, "auth.json"),
+      "native-auth-sentinel",
+    );
+    const codex = adapter(fixture, { nativeProfilePath, profileName: "work" });
+    const session = await codex.createWorldSession(
+      "profile-world",
+      "Work Codex",
+    );
+    const calls = await fixture.invocations();
+    expect(calls[0]?.codexHome).toBe(nativeProfilePath);
+    expect(calls[0]?.args).toContain("--profile");
+    expect(calls[0]?.args).toContain("work");
+    expect(calls[0]?.args).not.toContain("--ignore-user-config");
+    expect(calls[0]?.args).not.toContain("--model");
+    await codex.endWorldSession("profile-world", session.id);
+    expect(
+      await readFile(path.join(nativeProfilePath, "auth.json"), "utf8"),
+    ).toBe("native-auth-sentinel");
+    expect(
+      await readFile(path.join(nativeProfilePath, "config.toml"), "utf8"),
+    ).toBe('model = "profile-selected-model"\n');
+  });
+
+  it("restores the exact native binding after adapter recreation without creating a replacement conversation", async () => {
+    const fixture = await fixtureExecutable();
+    const first = adapter(fixture);
+    const created = await first.createWorldSession(
+      "restart-world",
+      "Restart Codex",
+    );
+    const second = adapter(fixture);
+    const attached = await second.attach(created.id, {
+      worldInstanceId: "restart-world",
+    });
+    expect(attached.id).toBe(created.id);
+    expect(await second.listSessions()).toEqual([created]);
+    expect(
+      (await fixture.invocations()).filter((call) => call.args[0] === "exec"),
+    ).toHaveLength(1);
+    await second.sendText(attached.id, "resume the existing conversation", {
+      rootSessionRef: created.id,
+      mode: "explore",
+    });
+    const last = (await fixture.invocations()).at(-1);
+    expect(last?.args).toContain("resume");
+    expect(last?.args).toContain(created.id);
+    await second.endWorldSession("restart-world", created.id);
+    await expect(
+      adapter(fixture).attach(created.id, { worldInstanceId: "restart-world" }),
+    ).rejects.toThrow(/owned/i);
   });
 
   it("creates a World-owned thread, resumes the exact ID, and maps only sanitized structured events", async () => {

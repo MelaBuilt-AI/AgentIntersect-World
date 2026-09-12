@@ -36,7 +36,6 @@ type OpenClawOptions = {
   readonly credential: string | (() => string);
   readonly connectTimeoutMs?: number;
   readonly turnTimeoutMs?: number;
-  readonly expectedServerVersion?: string;
 };
 
 type GatewayFrame = Record<string, unknown> & { readonly type: string };
@@ -116,7 +115,7 @@ class GatewayConnection {
   readonly #socket: WebSocket;
   readonly #credential: string;
   readonly #connectTimeoutMs: number;
-  readonly #expectedServerVersion: string;
+  serverVersion = "unknown";
   readonly #pending = new Map<
     string,
     {
@@ -135,8 +134,6 @@ class GatewayConnection {
         ? options.credential()
         : options.credential;
     this.#connectTimeoutMs = options.connectTimeoutMs ?? 5_000;
-    this.#expectedServerVersion =
-      options.expectedServerVersion ?? OPENCLAW_SERVER_VERSION;
     this.#socket = new WebSocket(gatewayWebSocketUrl(options.gatewayUrl), {
       maxPayload: MAX_FRAME_BYTES,
       handshakeTimeout: this.#connectTimeoutMs,
@@ -183,9 +180,11 @@ class GatewayConnection {
       throw gatewayFailure("OpenClaw gateway protocol mismatch");
     if (
       !isRecord(value.server) ||
-      value.server.version !== this.#expectedServerVersion
+      typeof value.server.version !== "string" ||
+      !/^[A-Za-z0-9][A-Za-z0-9.+_-]{0,63}$/.test(value.server.version)
     )
-      throw gatewayFailure("OpenClaw gateway version mismatch");
+      throw gatewayFailure("OpenClaw gateway identity response is invalid");
+    this.serverVersion = value.server.version;
     if (!isRecord(value.auth) || value.auth.role !== "operator")
       throw gatewayFailure("OpenClaw gateway identity mismatch");
     if (
@@ -429,7 +428,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     return AgentCapabilityManifestSchema.parse({
       schema: "aiw.agent-capabilities/0.12",
       adapterId: "openclaw",
-      adapterVersion: `0.19.0-openclaw-${OPENCLAW_SERVER_VERSION}`,
+      adapterVersion: `0.19.0-openclaw-${connection.serverVersion}`,
       transport: "loopback-http-sse",
       origin: "local",
       auth: "server-bearer",

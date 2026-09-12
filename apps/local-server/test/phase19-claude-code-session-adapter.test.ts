@@ -1,5 +1,6 @@
 import {
   chmod,
+  mkdir,
   mkdtemp,
   readFile,
   rm,
@@ -418,8 +419,87 @@ describe("ClaudeCodeSessionAdapter", () => {
     ).toBe(true);
   });
 
+  it("preserves native Claude settings and provider without requiring the developer's Ollama model", async () => {
+    const fixture = await fixtureExecutable();
+    const nativeProfilePath = path.join(fixture.nativeSessionRoot, ".claude");
+    await mkdir(nativeProfilePath);
+    await writeFile(
+      path.join(nativeProfilePath, "settings.json"),
+      '{"model":"native-selected-model"}\n',
+    );
+    const fetch = vi.fn(() =>
+      Promise.reject(new Error("must not contact Ollama")),
+    );
+    const claude = adapter(fixture, {
+      nativeProfilePath,
+      nativeHomePath: fixture.nativeSessionRoot,
+      agentName: "reviewer",
+      fetch,
+    });
+    await claude.attest();
+    const created = await claude.createWorldSession(
+      "native-profile-world",
+      "My Claude",
+    );
+    const call = (await fixture.invocations()).at(-1);
+    expect(call?.claudeConfigDir).toBe(nativeProfilePath);
+    expect(call?.home).toBe(fixture.nativeSessionRoot);
+    expect(call?.args).toContain("--agent");
+    expect(call?.args).toContain("reviewer");
+    expect(call?.args).not.toContain("--model");
+    expect(call?.args).not.toContain("--setting-sources");
+    expect(call?.args).not.toContain("--disable-slash-commands");
+    expect(call?.args).not.toContain("--strict-mcp-config");
+    expect(call?.baseUrl).not.toBe("http://localhost:11434");
+    expect(fetch).not.toHaveBeenCalled();
+    await claude.endWorldSession("native-profile-world", created.id);
+    expect(
+      await readFile(path.join(nativeProfilePath, "settings.json"), "utf8"),
+    ).toBe('{"model":"native-selected-model"}\n');
+  });
+
+  it("restores the exact native Claude session after adapter recreation", async () => {
+    const fixture = await fixtureExecutable();
+    const created = await adapter(fixture).createWorldSession(
+      "restart-world",
+      "Restart Claude",
+    );
+    const restarted = adapter(fixture);
+    expect(
+      (await restarted.attach(created.id, { worldInstanceId: "restart-world" }))
+        .id,
+    ).toBe(created.id);
+    expect(await restarted.listSessions()).toEqual([created]);
+    expect(
+      (await fixture.invocations()).filter((call) =>
+        call.args.includes("--session-id"),
+      ),
+    ).toHaveLength(1);
+    await restarted.sendText(created.id, "continue this conversation", {
+      rootSessionRef: created.id,
+      mode: "explore",
+    });
+    expect((await fixture.invocations()).at(-1)?.args).toEqual(
+      expect.arrayContaining(["--resume", created.id]),
+    );
+    await restarted.endWorldSession("restart-world", created.id);
+    await expect(
+      adapter(fixture).attach(created.id, { worldInstanceId: "restart-world" }),
+    ).rejects.toThrow(/owned/i);
+  });
+
+  it.each(["2.1.227", "99.0.0-next.1"])(
+    "accepts compatible Claude version %s without a release allowlist",
+    async (version) => {
+      const fixture = await fixtureExecutable({ version });
+      await expect(adapter(fixture).attest()).resolves.toMatchObject({
+        adapterVersion: `0.19.0-claude-code-${version}`,
+      });
+    },
+  );
+
   it.each([
-    [{ version: "2.1.227" }, /version/i],
+    [{ version: "bad version metadata" }, /identity/i],
     [{ invalidHelp: true }, /contract/i],
   ] as const)("fails closed on a CLI mismatch: %o", async (control, reason) => {
     const fixture = await fixtureExecutable(control);
