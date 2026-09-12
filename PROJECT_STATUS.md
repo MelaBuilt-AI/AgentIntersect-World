@@ -1,10 +1,18 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-11
+Updated: 2026-09-12
 
 ## Current milestone
 
-### September 11 — saved-session proof and accepted avatar onboarding/entrance
+### September 12 — PR #12 unfinished setup implementation before manual acceptance
+
+Aaron (`1548381463198826506`) selected the next-session order: complete the unfinished Agent Setup work first, then perform manual acceptance. Do not start that implementation during this planning/handoff turn, and do not ask for acceptance of the partial candidate now.
+
+Continue draft PR #12 on `feat/agent-setup-menu`: finish Windows↔WSL execution/workspace routing, separately approved guided prerequisite/plugin/service changes, and the explicit existing-Hermes-conversation choice. Then run integrated verification and exact-SHA CI, and only afterward prepare Aaron's manual setup/selection/Escape/normal-UI Continue acceptance. No merge or publication is authorized.
+
+Plan: `.hermes/plans/2026-09-12_131536-agent-setup-completion-before-manual.md`. Canonical scope: `docs/AGENT_SETUP_MENU.md`. The existing implementation and real native Codex Workstream/task/worktree/preview restart/Continue proof are retained; the API proof is not human acceptance. Exact implementation/closeout SHA and CI state remain in the external handoff to avoid self-referential documentation commits. The disposable PR12 candidate is retired for the session pause; preserve its state and the older protected operator lanes.
+
+### Historical September 11 — saved-session proof and accepted avatar onboarding/entrance
 
 PR #11 adds persisted Workstream restart/rebind proof for files, branch, task, worktree and retained-live-preview continuity without a replacement coding dispatch. Full application/machine restart preview relaunch and real native saved-session acceptance remain follow-up work; they are not claimed complete.
 

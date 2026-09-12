@@ -1,6 +1,12 @@
 # Agent Setup Menu — scope and acceptance
 
-Status: implementation and native API restart/Continue verified; manual browser acceptance and exact-SHA CI pending.
+Status: partial implementation and native API restart/Continue verified; finish remaining implementation next session before manual browser acceptance. Exact-SHA CI remains a separate delivery gate.
+
+## Next-session sequence — manual acceptance deferred
+
+Aaron (`1548381463198826506`, September 12) requested the unfinished items be completed in a new session before manual acceptance: Windows↔WSL execution/workspace routing; previewed, separately approved prerequisite/plugin/service changes; and explicit existing-Hermes-conversation choice in setup. Complete these and integrated verification/CI before preparing the manual test. No further implementation or manual acceptance starts during this closeout.
+
+Actionable plan: `../.hermes/plans/2026-09-12_131536-agent-setup-completion-before-manual.md`. Continue private draft PR #12; do not merge, publish, restart protected harnesses, or treat the prior feature authorization as approval of individual external changes.
 
 ## Authorization
 
