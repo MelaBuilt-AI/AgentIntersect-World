@@ -59,6 +59,8 @@ it("shows one discovery action, all four harnesses and truthful found-versus-att
   expect(html).toContain("Native identity");
   expect(html).toContain("Attach to Agent Intersect World");
   expect(html).toContain("Agent name");
+  expect(html).toContain("Preview prerequisites");
+  expect(html).toContain("Recheck selected identity");
   expect(html).toContain("Found — not attached");
   expect(html).toContain("Start this distribution yourself");
   expect(html).toMatch(/disabled=""[^>]*>Continue to Agent Select/);

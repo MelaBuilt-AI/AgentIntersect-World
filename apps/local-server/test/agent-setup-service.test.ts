@@ -37,6 +37,39 @@ const installation: AgentInstallation = {
   ],
   status: "found",
 };
+it("saves an explicit Hermes conversation only from the selected profile list", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "aiw-selected-session-"));
+  roots.push(root);
+  const service = new AgentSetupService({
+    dataDirectory: root,
+    checkConnection: async () => ({ status: "ready", message: "ready" }),
+    listConversations: async () => [
+      { id: "native-one", title: "Same name", source: "discord" },
+    ],
+  });
+  service.lastDiscovery = {
+    installations: [{ ...installation, adapterId: "hermes" }],
+    environments: [],
+  };
+  const input = {
+    installationId: installation.id,
+    identityId: "work",
+    displayName: "Fluff",
+    conversationRef: "native-one",
+  };
+  const attached = await service.attach(input);
+  expect(attached.registration?.conversationRef).toBe("native-one");
+  expect(
+    (await new AgentSetupService({ dataDirectory: root }).state())
+      .registrations[0]?.conversationRef,
+  ).toBe("native-one");
+  await expect(
+    service.attach({ ...input, conversationRef: "foreign-session" }),
+  ).rejects.toThrow(/conversation/i);
+  service.lastDiscovery = { installations: [installation], environments: [] };
+  await expect(service.attach(input)).rejects.toThrow(/Hermes/i);
+});
+
 it("persists only an explicitly checked registration and keeps setup completion separate from attachment", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "aiw-agent-setup-"));
   roots.push(root);

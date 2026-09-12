@@ -4,13 +4,13 @@ Updated: 2026-09-12
 
 ## Current milestone
 
-### September 12 — PR #12 unfinished setup implementation before manual acceptance
+### September 12 — PR #12 setup completion delivery; manual acceptance next
 
-Aaron (`1548381463198826506`) selected the next-session order: complete the unfinished Agent Setup work first, then perform manual acceptance. Do not start that implementation during this planning/handoff turn, and do not ask for acceptance of the partial candidate now.
+Aaron (`1548386442294726697`) authorized completing the unfinished setup items, committing/pushing and obtaining green GitHub CI, then preparing a running manual-acceptance candidate and end-session handoff. Merge remains held for his manual verdict.
 
-Continue draft PR #12 on `feat/agent-setup-menu`: finish Windows↔WSL execution/workspace routing, separately approved guided prerequisite/plugin/service changes, and the explicit existing-Hermes-conversation choice. Then run integrated verification and exact-SHA CI, and only afterward prepare Aaron's manual setup/selection/Escape/normal-UI Continue acceptance. No merge or publication is authorized.
+Draft PR #12 on `feat/agent-setup-menu` now includes environment-bound process/workspace routing, exact owned-tree cancellation, native-environment config reads, expiring single-use prerequisite confirmation plans and explicit existing-Hermes-conversation selection. Real WSL→Windows Codex file creation, fresh-process continuation and native tree cancellation passed; disposable native Hermes plugin enablement preserved configuration/backup bytes. The automated setup browser journey passed. Full candidate/exact-SHA CI and manual receipts are external. No merge or publication is authorized.
 
-Plan: `.hermes/plans/2026-09-12_131536-agent-setup-completion-before-manual.md`. Canonical scope: `docs/AGENT_SETUP_MENU.md`. The existing implementation and real native Codex Workstream/task/worktree/preview restart/Continue proof are retained; the API proof is not human acceptance. Exact implementation/closeout SHA and CI state remain in the external handoff to avoid self-referential documentation commits. The disposable PR12 candidate is retired for the session pause; preserve its state and the older protected operator lanes.
+Plan: `.hermes/plans/2026-09-12_131536-agent-setup-completion-before-manual.md`. Canonical scope: `docs/AGENT_SETUP_MENU.md`. The existing implementation and real native Codex Workstream/task/worktree/preview restart/Continue proof are retained; the API proof is not human acceptance. Exact implementation/closeout SHA and CI state remain in the external handoff to avoid self-referential documentation commits. Prepare the new candidate only after exact-head CI is green; preserve old candidate state and all protected operator lanes. Supported automatic prerequisite action: enable an already installed World plugin in a backend-local Hermes profile. Plugin installation, login/API provisioning, gateway restart and stopped-distro startup remain explicit native manual steps. Windows Codex requires a drive-backed workspace/native `.exe`; no UNC sandbox bypass or unsupported live-direction claim. See the canonical scope for the exact cutline.
 
 ### Historical September 11 — saved-session proof and accepted avatar onboarding/entrance
 

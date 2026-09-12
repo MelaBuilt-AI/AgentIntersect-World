@@ -46,6 +46,29 @@ it("registers the selected native Codex connection in an otherwise unconfigured 
     expect(await runtime.check(registration)).toMatchObject({
       status: "ready",
     });
+    const { AgentEnvironmentExecution } =
+      await import("../src/agent-environment.js");
+    const { CodexSessionAdapter } =
+      await import("../src/codex-session-adapter.js");
+    const execution = new AgentEnvironmentExecution(
+      registration,
+      { platform: "linux" },
+      "python3",
+    );
+    let launches = 0;
+    const originalSpawn = execution.spawn.bind(execution);
+    execution.spawn = async (...args) => {
+      launches++;
+      return originalSpawn(...args);
+    };
+    const bridged = new CodexSessionAdapter({
+      executablePath,
+      nativeSessionRoot: root,
+      nativeProfilePath: registration.identity.profilePath,
+      environmentExecution: execution,
+    });
+    await bridged.attest();
+    expect(launches).toBeGreaterThan(0);
     const other = {
       ...registration,
       id: "880b9eeb-5c0e-4f90-ab5e-893249d407c5",

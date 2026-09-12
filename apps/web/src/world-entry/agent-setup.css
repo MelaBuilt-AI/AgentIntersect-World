@@ -184,6 +184,23 @@
   font-size: 0.75rem;
   color: #93b7ce;
 }
+.agent-setup-actions {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.agent-setup-prerequisites {
+  border: 1px solid #47738c;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
+.agent-setup-prerequisites input[type="checkbox"] {
+  width: auto;
+  justify-self: start;
+  accent-color: #197baa;
+}
 .agent-setup-saved {
   margin-top: 1.4rem;
 }

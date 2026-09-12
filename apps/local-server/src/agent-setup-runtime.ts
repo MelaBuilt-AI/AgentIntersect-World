@@ -20,6 +20,8 @@ import {
   resolveOpenClawCredential,
 } from "./openclaw-session-adapter.js";
 
+import { createEnvironmentExecution } from "./agent-environment.js";
+
 const exec = promisify(execFile);
 export function createAgentSetupRuntime(options: {
   readonly registry: AdapterRegistry;
@@ -29,26 +31,18 @@ export function createAgentSetupRuntime(options: {
   const adapters = new Map<string, AgentAdapter>();
   async function adapterFor(
     registration: AgentRegistration,
+    cache = true,
   ): Promise<AgentAdapter> {
-    const cached = adapters.get(registration.id);
+    const cached = cache ? adapters.get(registration.id) : undefined;
     if (cached) return cached;
     const { environment, identity, adapterId, executablePath, homePath } =
       registration;
-    const local =
-      environment.kind === "windows"
-        ? process.platform === "win32"
-        : environment.kind === "wsl"
-          ? environment.id === "local" ||
-            (process.env.WSL_DISTRO_NAME ??
-              (await exec("wslpath", ["-w", "/"], { timeout: 3000 })).stdout
-                .trim()
-                .split("\\")[3]) === environment.distro
-          : process.platform ===
-            (environment.kind === "macos" ? "darwin" : "linux");
-    if (!local)
-      throw new Error(
-        `This installation is in ${environment.label}. Run the World local server in that environment so its native workspace and credentials are accessible, then Discover Agents again. Cross-environment execution is not yet available.`,
-      );
+    const execution = await createEnvironmentExecution(registration);
+    const nativePath = environment.kind === "windows" ? path.win32 : path.posix;
+    const readNative = (filename: string) =>
+      execution
+        ? execution.readNativeFile(filename)
+        : readFile(filename, "utf8");
     const nativeSessionRoot = path.join(
       options.dataDirectory,
       "native-connections",
@@ -59,6 +53,7 @@ export function createAgentSetupRuntime(options: {
     if (adapterId === "codex")
       adapter = new CodexSessionAdapter({
         executablePath,
+        ...(execution ? { environmentExecution: execution } : {}),
         nativeSessionRoot,
         nativeProfilePath: identity.profilePath,
         profileName: identity.id,
@@ -66,6 +61,7 @@ export function createAgentSetupRuntime(options: {
     else if (adapterId === "claude-code")
       adapter = new ClaudeCodeSessionAdapter({
         executablePath,
+        ...(execution ? { environmentExecution: execution } : {}),
         nativeSessionRoot,
         nativeProfilePath: identity.profilePath,
         nativeHomePath: homePath,
@@ -73,11 +69,21 @@ export function createAgentSetupRuntime(options: {
       });
     else if (adapterId === "hermes") {
       const legacy = options.legacy;
-      if (legacy?.hermesApiKey && legacy.hermesProfile === identity.id)
+      if (
+        !execution &&
+        legacy?.hermesApiKey &&
+        legacy.hermesProfile === identity.id
+      )
         adapter = new HermesSessionAdapter({
           baseUrl: legacy.hermesApiUrl,
           apiKey: legacy.hermesApiKey,
           profile: identity.id,
+          ...(registration.conversationRef
+            ? {
+                pinnedSessionRef: registration.conversationRef,
+                agentDisplayName: registration.displayName,
+              }
+            : {}),
           worldOwnedDirectory: nativeSessionRoot,
           ...(legacy.pluginCapabilityPath
             ? { pluginCapabilityPath: legacy.pluginCapabilityPath }
@@ -86,9 +92,8 @@ export function createAgentSetupRuntime(options: {
       else {
         type ApiSettings = { port?: number; enabled?: boolean; key?: string };
         const config = parseYaml(
-          await readFile(
-            path.join(identity.profilePath, "config.yaml"),
-            "utf8",
+          await readNative(
+            nativePath.join(identity.profilePath, "config.yaml"),
           ),
         ) as {
           gateway?: {
@@ -98,7 +103,7 @@ export function createAgentSetupRuntime(options: {
           platforms?: { api_server?: ApiSettings };
         };
         const env = parseEnv(
-          await readFile(path.join(identity.profilePath, ".env"), "utf8"),
+          await readNative(nativePath.join(identity.profilePath, ".env")),
         );
         const settings =
           config.gateway?.api_server ??
@@ -113,22 +118,45 @@ export function createAgentSetupRuntime(options: {
           baseUrl: `http://127.0.0.1:${env.API_SERVER_PORT ?? settings?.port ?? 8642}`,
           apiKey: key,
           profile: identity.id,
+          ...(registration.conversationRef
+            ? {
+                pinnedSessionRef: registration.conversationRef,
+                agentDisplayName: registration.displayName,
+              }
+            : {}),
           worldOwnedDirectory: nativeSessionRoot,
-          pluginCapabilityPath: path.join(
-            identity.profilePath,
-            "agentintersect-world",
-            "capabilities.json",
-          ),
+          ...(execution
+            ? {
+                pluginCapabilityReader: async () =>
+                  JSON.parse(
+                    await execution.pythonCommand(
+                      "import os,sys,json,stat; p=sys.argv[1]; s=os.lstat(p); assert s.st_size<=4096; print(json.dumps(dict(content=open(p).read(),mode=s.st_mode,size=s.st_size,isFile=stat.S_ISREG(s.st_mode),isSymbolicLink=stat.S_ISLNK(s.st_mode))))",
+                      [
+                        nativePath.join(
+                          identity.profilePath,
+                          "agentintersect-world",
+                          "capabilities.json",
+                        ),
+                      ],
+                    ),
+                  ),
+              }
+            : {
+                pluginCapabilityPath: path.join(
+                  identity.profilePath,
+                  "agentintersect-world",
+                  "capabilities.json",
+                ),
+              }),
         });
       }
     } else {
       const config = JSON.parse(
-        await readFile(
-          path.join(identity.profilePath, "openclaw.json"),
-          "utf8",
+        await readNative(
+          nativePath.join(identity.profilePath, "openclaw.json"),
         ),
       ) as { gateway?: { port?: number; auth?: { token?: string } } };
-      const legacy = options.legacy?.openclaw;
+      const legacy = execution ? undefined : options.legacy?.openclaw;
       const credential = legacy
         ? () => resolveOpenClawCredential(legacy.credentialRef)
         : () => {
@@ -147,10 +175,16 @@ export function createAgentSetupRuntime(options: {
         nativeSessionRoot,
       });
     }
-    adapters.set(registration.id, adapter);
+    if (cache) adapters.set(registration.id, adapter);
     return adapter;
   }
   return {
+    async listConversations(registration: AgentRegistration) {
+      const { conversationRef: _selection, ...identity } = registration;
+      void _selection;
+      const adapter = await adapterFor(identity, false);
+      return adapter.listSessions();
+    },
     async restore(registrations: readonly AgentRegistration[]) {
       for (const registration of registrations) {
         try {
@@ -176,15 +210,26 @@ export function createAgentSetupRuntime(options: {
           );
         if (registration.adapterId === "codex") {
           try {
-            await exec(registration.executablePath, ["login", "status"], {
-              cwd: registration.homePath,
-              env: {
-                ...process.env,
-                CODEX_HOME: registration.identity.profilePath,
-              },
-              timeout: 10000,
-              maxBuffer: 32768,
-            });
+            const execution = await createEnvironmentExecution(registration);
+            if (execution) {
+              const output = await execution.pythonCommand(
+                "import subprocess,os,sys; e=os.environ.copy(); e['CODEX_HOME']=sys.argv[2]; p=subprocess.run([sys.argv[1],'login','status'],env=e,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=8); sys.exit(p.returncode)",
+                [
+                  registration.executablePath,
+                  registration.identity.profilePath,
+                ],
+              );
+              void output;
+            } else
+              await exec(registration.executablePath, ["login", "status"], {
+                cwd: registration.homePath,
+                env: {
+                  ...process.env,
+                  CODEX_HOME: registration.identity.profilePath,
+                },
+                timeout: 10000,
+                maxBuffer: 32768,
+              });
           } catch {
             throw new Error(
               "Codex authentication is unavailable. Sign in with the selected native Codex profile, then Recheck.",

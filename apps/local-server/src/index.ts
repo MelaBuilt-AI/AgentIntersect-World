@@ -197,6 +197,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
       "agent-setup",
     ),
     checkConnection: setupRuntime.check,
+    listConversations: setupRuntime.listConversations,
     legacyConfigured: Boolean(
       hermesAdapter || openclawAdapter || codexAdapter || claudeCodeAdapter,
     ),

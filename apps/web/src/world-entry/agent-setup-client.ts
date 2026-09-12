@@ -4,6 +4,9 @@ import {
   type AgentSetupState,
   type DiscoveryResult,
   type SetupCheck,
+  type SetupSelection,
+  type SetupConversation,
+  type PrerequisitePlan,
 } from "@agentintersect-world/world-schema/agent-setup";
 
 async function request<T>(
@@ -51,10 +54,45 @@ export function discoverSetupAgents(
   );
 }
 export function attachSetupAgent(
-  input: { installationId: string; identityId: string; displayName: string },
+  input: SetupSelection,
   fetcher: typeof fetch = fetch,
 ): Promise<{ registration: AgentRegistration | null; check: SetupCheck }> {
   return request("/api/agent-setup/attach", input, fetcher);
+}
+export function listSetupConversations(
+  input: SetupSelection,
+  fetcher: typeof fetch = fetch,
+): Promise<readonly SetupConversation[]> {
+  return request("/api/agent-setup/conversations", input, fetcher);
+}
+export function previewSetupPrerequisites(
+  input: SetupSelection,
+  fetcher: typeof fetch = fetch,
+): Promise<PrerequisitePlan> {
+  return request("/api/agent-setup/prerequisites/preview", input, fetcher);
+}
+export function cancelSetupPrerequisites(
+  planId: string,
+  fetcher: typeof fetch = fetch,
+): Promise<{ cancelled: true }> {
+  return request("/api/agent-setup/prerequisites/cancel", { planId }, fetcher);
+}
+export function applySetupPrerequisite(
+  planId: string,
+  actionId: string,
+  fetcher: typeof fetch = fetch,
+): Promise<{ applied: true; check: SetupCheck }> {
+  return request(
+    "/api/agent-setup/prerequisites/apply",
+    { planId, actionId, confirmed: true },
+    fetcher,
+  );
+}
+export function checkSetupCandidate(
+  input: SetupSelection,
+  fetcher: typeof fetch = fetch,
+): Promise<SetupCheck> {
+  return request("/api/agent-setup/check", input, fetcher);
 }
 export function recheckSetupAgent(
   connectionId: string,

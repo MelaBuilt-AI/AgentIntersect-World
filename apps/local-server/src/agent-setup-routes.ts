@@ -77,6 +77,75 @@ export function registerAgentSetupRoutes(
       return failed(error, request, reply);
     }
   });
+  server.post("/agent-setup/conversations", async (request, reply) => {
+    try {
+      return envelope.success(
+        request,
+        await service.conversations(AttachAgentInputSchema.parse(request.body)),
+      );
+    } catch (error) {
+      return failed(error, request, reply);
+    }
+  });
+  server.post("/agent-setup/prerequisites/preview", async (request, reply) => {
+    try {
+      return envelope.success(
+        request,
+        await service.prerequisites.preview(
+          await service.candidate(AttachAgentInputSchema.parse(request.body)),
+        ),
+      );
+    } catch (error) {
+      return failed(error, request, reply);
+    }
+  });
+  server.post("/agent-setup/prerequisites/cancel", async (request, reply) => {
+    try {
+      const input = z
+        .object({ planId: z.string().uuid() })
+        .strict()
+        .parse(request.body);
+      service.prerequisites.cancel(input.planId);
+      return envelope.success(request, { cancelled: true });
+    } catch (error) {
+      return failed(error, request, reply);
+    }
+  });
+  server.post("/agent-setup/prerequisites/apply", async (request, reply) => {
+    try {
+      const input = z
+        .object({
+          planId: z.string().uuid(),
+          actionId: z.string().uuid(),
+          confirmed: z.literal(true),
+        })
+        .strict()
+        .parse(request.body);
+      const registration = await service.prerequisites.apply(
+        input.planId,
+        input.actionId,
+        input.confirmed,
+      );
+      return envelope.success(request, {
+        applied: true,
+        check: await service.checkConnection(registration),
+      });
+    } catch (error) {
+      return failed(error, request, reply);
+    }
+  });
+  server.post("/agent-setup/check", async (request, reply) => {
+    try {
+      return envelope.success(
+        request,
+        await service.checkConnection(
+          await service.candidate(AttachAgentInputSchema.parse(request.body)),
+        ),
+      );
+    } catch (error) {
+      return failed(error, request, reply);
+    }
+  });
   server.post("/agent-setup/complete", async (request, reply) => {
     try {
       z.object({}).strict().parse(request.body);

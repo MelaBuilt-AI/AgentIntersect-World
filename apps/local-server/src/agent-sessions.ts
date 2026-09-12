@@ -587,12 +587,20 @@ export class AgentSessionStore {
 
 import { NativeSessionStore } from "./native-session-store.js";
 
+type PluginCapabilityFile = {
+  content: string;
+  mode: number;
+  size: number;
+  isFile: boolean;
+  isSymbolicLink: boolean;
+};
 type HermesAdapterOptions = {
   readonly worldOwnedDirectory?: string;
   readonly baseUrl: string;
   readonly apiKey: string;
   readonly profile: string;
   readonly pluginCapabilityPath?: string;
+  readonly pluginCapabilityReader?: () => Promise<PluginCapabilityFile>;
   readonly pinnedSessionRef?: string;
   readonly agentDisplayName?: string;
   readonly fetch?: typeof globalThis.fetch;
@@ -742,6 +750,8 @@ export class HermesSessionAdapter implements AgentAdapter {
   readonly #baseUrl: string;
   readonly #apiKey: string;
   readonly #pluginCapabilityPath: string | undefined;
+  readonly #pluginCapabilityReader:
+    (() => Promise<PluginCapabilityFile>) | undefined;
   readonly #ownedSessions: NativeSessionStore | undefined;
   readonly #pinnedSessionRef: string | undefined;
   readonly #agentDisplayName: string | undefined;
@@ -802,17 +812,27 @@ export class HermesSessionAdapter implements AgentAdapter {
         "Hermes plugin capability path must be absolute",
       );
     this.#pluginCapabilityPath = options.pluginCapabilityPath;
+    this.#pluginCapabilityReader = options.pluginCapabilityReader;
     this.#fetch = options.fetch ?? globalThis.fetch;
   }
 
-  #pluginCapabilities(): {
+  async #pluginCapabilities(): Promise<{
     readonly sameSessionSafe: boolean;
     readonly worldActions: boolean;
-  } {
+  }> {
     const unavailable = { sameSessionSafe: false, worldActions: false };
-    if (!this.#pluginCapabilityPath) return unavailable;
+    if (!this.#pluginCapabilityPath && !this.#pluginCapabilityReader)
+      return unavailable;
     try {
-      const stat = fs.lstatSync(this.#pluginCapabilityPath);
+      const remote = await this.#pluginCapabilityReader?.();
+      const stat = remote
+        ? {
+            mode: remote.mode,
+            size: remote.size,
+            isFile: () => remote.isFile,
+            isSymbolicLink: () => remote.isSymbolicLink,
+          }
+        : fs.lstatSync(this.#pluginCapabilityPath!);
       if (
         !stat.isFile() ||
         stat.isSymbolicLink() ||
@@ -821,7 +841,7 @@ export class HermesSessionAdapter implements AgentAdapter {
       )
         return unavailable;
       const value: unknown = JSON.parse(
-        fs.readFileSync(this.#pluginCapabilityPath, "utf8"),
+        remote?.content ?? fs.readFileSync(this.#pluginCapabilityPath!, "utf8"),
       );
       if (!isRecord(value)) return unavailable;
       const keys = Object.keys(value).sort();
@@ -884,8 +904,8 @@ export class HermesSessionAdapter implements AgentAdapter {
     }
   }
 
-  #sameSessionArbiterAttested(): boolean {
-    return this.#pluginCapabilities().sameSessionSafe;
+  async #sameSessionArbiterAttested(): Promise<boolean> {
+    return (await this.#pluginCapabilities()).sameSessionSafe;
   }
 
   async #request(pathname: string, init?: RequestInit): Promise<Response> {
@@ -968,7 +988,7 @@ export class HermesSessionAdapter implements AgentAdapter {
     const attach =
       features.session_resources === true &&
       features.session_chat_streaming === true;
-    const plugin = this.#pluginCapabilities();
+    const plugin = await this.#pluginCapabilities();
     const sameSessionSafe = plugin.sameSessionSafe;
     const text = attach && sameSessionSafe;
     return AgentCapabilityManifestSchema.parse({
@@ -1137,6 +1157,34 @@ export class HermesSessionAdapter implements AgentAdapter {
         "This Hermes connection attaches existing sessions only",
       );
     await this.#ownedSessions.load();
+    if (this.#pinnedSessionRef) {
+      const selected = (await this.listSessions())[0];
+      if (!selected)
+        throw new GatewayError(
+          "not_found",
+          "Selected Hermes conversation is unavailable",
+        );
+      const previous = this.#ownedSessions.bindings.get(this.#pinnedSessionRef);
+      if (
+        previous &&
+        !previous.ended &&
+        previous.worldInstanceId !== worldInstanceId
+      )
+        throw new GatewayError(
+          "conflict",
+          "Selected Hermes conversation belongs to another World",
+        );
+      this.#ownedSessions.bindings.set(this.#pinnedSessionRef, {
+        worldInstanceId,
+        nativeSessionId: this.#pinnedSessionRef,
+        title: selected.title,
+        runtimeHome: this.#baseUrl,
+        ended: false,
+        quarantined: false,
+      });
+      await this.#ownedSessions.save();
+      return { ...selected, rootId: this.#pinnedSessionRef };
+    }
     const id = randomUUID();
     const response = await this.#request("/api/sessions", {
       method: "POST",
@@ -1260,7 +1308,7 @@ export class HermesSessionAdapter implements AgentAdapter {
     text: string,
     context?: AdapterTurnContext,
   ): Promise<AdapterTurnResult> {
-    if (!this.#sameSessionArbiterAttested())
+    if (!(await this.#sameSessionArbiterAttested()))
       throw new GatewayError(
         "unsupported",
         "Hermes same-session arbiter is not attested; dispatch fails closed",

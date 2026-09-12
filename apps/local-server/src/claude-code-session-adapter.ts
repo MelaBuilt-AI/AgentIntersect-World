@@ -90,7 +90,10 @@ const STREAM_DELTA_TYPES = new Set([
   "input_json_delta",
 ]);
 
+import type { AgentEnvironmentExecution } from "./agent-environment.js";
+
 type ClaudeCodeOptions = {
+  readonly environmentExecution?: AgentEnvironmentExecution;
   readonly executablePath: string;
   readonly nativeSessionRoot: string;
   readonly nativeProfilePath?: string;
@@ -254,7 +257,8 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
 
   constructor(options: ClaudeCodeOptions) {
     if (
-      !path.isAbsolute(options.executablePath) ||
+      (!options.environmentExecution &&
+        !path.isAbsolute(options.executablePath)) ||
       !path.isAbsolute(options.nativeSessionRoot) ||
       options.executablePath.length > 4_096 ||
       options.nativeSessionRoot.length > 4_096 ||
@@ -343,15 +347,21 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       readonly validate?: () => void;
     },
   ): Promise<ProcessResult> {
+    const bridged = await this.#options.environmentExecution?.spawn(
+      args,
+      this.#options.nativeSessionRoot,
+    );
     return new Promise<ProcessResult>((resolve, reject) => {
       let child: ChildProcessWithoutNullStreams;
       try {
-        child = spawn(this.#options.executablePath, args, {
-          cwd: this.#options.nativeSessionRoot,
-          env: processEnvironment(options.runtimeHome, this.#options),
-          detached: true,
-          stdio: ["pipe", "pipe", "pipe"],
-        });
+        child =
+          bridged ??
+          spawn(this.#options.executablePath, args, {
+            cwd: this.#options.nativeSessionRoot,
+            env: processEnvironment(options.runtimeHome, this.#options),
+            detached: true,
+            stdio: ["pipe", "pipe", "pipe"],
+          });
       } catch {
         reject(claudeFailure(options.failureMessage, "offline"));
         return;
@@ -370,10 +380,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       const fail = (error: GatewayError) => {
         if (failure || closed) return;
         failure = error;
-        termination = terminateProcessGroup(
-          child,
-          this.#options.terminateGraceMs ?? 250,
-        );
+        termination = this.#options.environmentExecution
+          ? this.#options.environmentExecution.terminate(child)
+          : terminateProcessGroup(child, this.#options.terminateGraceMs ?? 250);
       };
       const parseLine = (line: string) => {
         if (!line) return;
@@ -467,7 +476,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       child.stdin.on("error", () =>
         fail(claudeFailure(options.failureMessage)),
       );
-      child.stdin.end(input);
+      if (this.#options.environmentExecution)
+        this.#options.environmentExecution.writeInput(child, input);
+      else child.stdin.end(input);
     });
   }
 

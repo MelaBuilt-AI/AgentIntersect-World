@@ -60,7 +60,10 @@ const ENVIRONMENT_ALLOWLIST = [
   "no_proxy",
 ] as const;
 
+import type { AgentEnvironmentExecution } from "./agent-environment.js";
+
 type CodexOptions = {
+  readonly environmentExecution?: AgentEnvironmentExecution;
   readonly executablePath: string;
   readonly nativeSessionRoot: string;
   readonly authPath?: string;
@@ -235,7 +238,8 @@ export class CodexSessionAdapter implements AgentAdapter {
 
   constructor(options: CodexOptions) {
     if (
-      !path.isAbsolute(options.executablePath) ||
+      (!options.environmentExecution &&
+        !path.isAbsolute(options.executablePath)) ||
       !path.isAbsolute(options.nativeSessionRoot) ||
       options.executablePath.length > 4_096 ||
       options.nativeSessionRoot.length > 4_096 ||
@@ -284,15 +288,21 @@ export class CodexSessionAdapter implements AgentAdapter {
       readonly validate?: () => void;
     },
   ): Promise<ProcessResult> {
+    const bridged = await this.#options.environmentExecution?.spawn(
+      args,
+      options.workingDirectory ?? this.#options.nativeSessionRoot,
+    );
     return new Promise<ProcessResult>((resolve, reject) => {
       let child: ChildProcessWithoutNullStreams;
       try {
-        child = spawn(this.#options.executablePath, args, {
-          cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
-          env: processEnvironment(options.runtimeHome),
-          detached: true,
-          stdio: ["pipe", "pipe", "pipe"],
-        });
+        child =
+          bridged ??
+          spawn(this.#options.executablePath, args, {
+            cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
+            env: processEnvironment(options.runtimeHome),
+            detached: true,
+            stdio: ["pipe", "pipe", "pipe"],
+          });
       } catch {
         reject(codexFailure(options.failureMessage, "offline"));
         return;
@@ -311,10 +321,9 @@ export class CodexSessionAdapter implements AgentAdapter {
       const fail = (error: GatewayError) => {
         if (failure || closed) return;
         failure = error;
-        termination = terminateProcessGroup(
-          child,
-          this.#options.terminateGraceMs ?? 250,
-        );
+        termination = this.#options.environmentExecution
+          ? this.#options.environmentExecution.terminate(child)
+          : terminateProcessGroup(child, this.#options.terminateGraceMs ?? 250);
       };
       const parseLine = (line: string) => {
         if (!line) return;
@@ -405,7 +414,9 @@ export class CodexSessionAdapter implements AgentAdapter {
 
       if (options.signal?.aborted) onAbort();
       child.stdin.on("error", () => fail(codexFailure(options.failureMessage)));
-      child.stdin.end(input);
+      if (this.#options.environmentExecution)
+        this.#options.environmentExecution.writeInput(child, input);
+      else child.stdin.end(input);
     });
   }
 
@@ -796,7 +807,12 @@ ${text}`
 
   async #createRuntimeHome(): Promise<string> {
     if (this.#options.nativeProfilePath) {
-      if (!(await stat(this.#options.nativeProfilePath)).isDirectory())
+      if (this.#options.environmentExecution) {
+        await this.#options.environmentExecution.pythonCommand(
+          "import os,sys; assert os.path.isdir(sys.argv[1])",
+          [this.#options.nativeProfilePath],
+        );
+      } else if (!(await stat(this.#options.nativeProfilePath)).isDirectory())
         throw codexFailure("Selected Codex profile is unavailable", "offline");
       return this.#options.nativeProfilePath;
     }

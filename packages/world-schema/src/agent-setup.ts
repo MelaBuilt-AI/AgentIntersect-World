@@ -11,7 +11,7 @@ export type AgentEnvironment = {
   readonly id: string;
   readonly kind: "linux" | "windows" | "wsl" | "macos";
   readonly label: string;
-  readonly distro?: string;
+  readonly distro?: string | undefined;
 };
 export type NativeIdentity = {
   readonly id: string;
@@ -59,6 +59,10 @@ export const RegistrationSchema = z.object({
     profilePath: z.string(),
   }),
   connectedAt: z.string().datetime(),
+  conversationRef: z
+    .string()
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/)
+    .optional(),
 });
 export type AgentRegistration = z.infer<typeof RegistrationSchema>;
 export const SetupStateSchema = z.object({
@@ -77,5 +81,30 @@ export const AttachAgentInputSchema = z
     installationId: z.string().min(1).max(128),
     identityId: z.string().min(1).max(80),
     displayName: z.string().trim().min(1).max(80),
+    conversationRef: z
+      .string()
+      .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/)
+      .optional(),
   })
   .strict();
+export type SetupSelection = z.infer<typeof AttachAgentInputSchema>;
+export type PrerequisitePlan = {
+  id: string;
+  expiresAt: string;
+  target: string;
+  actions: {
+    id: string;
+    kind: "enable-hermes-world-plugin";
+    title: string;
+    reason: string;
+    effect: string;
+    paths: string[];
+  }[];
+  guidance: string[];
+};
+
+export type SetupConversation = {
+  readonly id: string;
+  readonly title: string;
+  readonly source: string;
+};

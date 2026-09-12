@@ -6,11 +6,13 @@ import type {
   SetupHarness,
 } from "@agentintersect-world/world-schema/agent-setup";
 import "./agent-setup.css";
+import { InstallationSetupActions } from "./InstallationSetupActions.js";
 
 type AttachInput = {
   installationId: string;
   identityId: string;
   displayName: string;
+  conversationRef?: string | undefined;
 };
 const harnesses: readonly { id: SetupHarness; label: string }[] = [
   { id: "hermes", label: "Hermes" },
@@ -31,20 +33,23 @@ function InstallationForm({
     installation.identities[0]?.id ?? "",
   );
   const [displayName, setDisplayName] = useState("");
+  const [working, setWorking] = useState(false);
+  const [conversationRef, setConversationRef] = useState("");
   return (
     <form
       className="agent-setup-installation"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!busy && identityId && displayName.trim())
+        if (!busy && !working && identityId && displayName.trim())
           onAttach({
             installationId: installation.id,
             identityId,
             displayName: displayName.trim(),
+            ...(conversationRef ? { conversationRef } : {}),
           });
       }}
     >
-      <fieldset disabled={busy}>
+      <fieldset disabled={busy || working}>
         <legend>{installation.environment.label}</legend>
         <span className="agent-setup-found">Found — not attached</span>
         <code className="agent-setup-path">{installation.executablePath}</code>
@@ -52,7 +57,10 @@ function InstallationForm({
           Native identity
           <select
             value={identityId}
-            onChange={(event) => setIdentityId(event.target.value)}
+            onChange={(event) => {
+              setIdentityId(event.target.value);
+              setConversationRef("");
+            }}
           >
             {installation.identities.map((identity) => (
               <option key={identity.id} value={identity.id}>
@@ -72,9 +80,23 @@ function InstallationForm({
             required
           />
         </label>
+        <InstallationSetupActions
+          key={`${installation.id}:${identityId}`}
+          input={{
+            installationId: installation.id,
+            identityId,
+            displayName: displayName.trim() || "Native connection",
+          }}
+          hermes={installation.adapterId === "hermes"}
+          busy={busy || working}
+          onBusy={setWorking}
+          onConversation={setConversationRef}
+        />
         <p className="agent-setup-note">
-          Keeps this native identity’s configuration. New Worlds use separate
-          conversations; saved work resumes its existing conversation.
+          Keeps this native identity’s configuration.{" "}
+          {conversationRef
+            ? "New Worlds reuse the explicitly selected native conversation; no separate copy is created."
+            : "New Worlds use separate conversations; saved work resumes its existing conversation."}
         </p>
         <button
           type="submit"

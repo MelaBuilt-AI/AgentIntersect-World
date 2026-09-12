@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { loadLocalServerConfig } from "@agentintersect-world/config/node";
@@ -10,6 +10,99 @@ const cleanups: Array<() => Promise<unknown>> = [];
 afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
 });
+it("keeps prerequisite preview/cancel and conversation listing separate from attachment", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "aiw-setup-plans-api-"));
+  cleanups.push(() => rm(root, { recursive: true, force: true }));
+  await mkdir(path.join(root, "plugins", "agentintersect-world"), {
+    recursive: true,
+  });
+  await writeFile(path.join(root, "config.yaml"), "plugins:\n  enabled: []\n");
+  await writeFile(
+    path.join(root, "plugins", "agentintersect-world", "__init__.py"),
+    "# fixture\n",
+  );
+  const service = new AgentSetupService({
+    dataDirectory: path.join(root, "world"),
+    listConversations: async () => [
+      { id: "native-one", title: "Native one", source: "cli" },
+    ],
+  });
+  service.lastDiscovery = {
+    environments: [],
+    installations: [
+      {
+        id: "fixture",
+        adapterId: "hermes",
+        environment: { id: "local", kind: "linux", label: "Local" },
+        executablePath: "/fixture/hermes",
+        homePath: root,
+        identities: [
+          {
+            id: "selected",
+            kind: "profile",
+            label: "Selected",
+            profilePath: root,
+          },
+        ],
+        status: "found",
+      },
+    ],
+  };
+  const server = createLocalServer({
+    config: loadLocalServerConfig({
+      NODE_ENV: "test",
+      AIW_PRESENTATION_DATA_DIR: path.join(root, "presentation"),
+    }),
+    agentSetupService: service,
+  });
+  cleanups.push(() => server.close());
+  const payload = {
+    installationId: "fixture",
+    identityId: "selected",
+    displayName: "World label",
+  };
+  const listed = await server.inject({
+    method: "POST",
+    url: "/agent-setup/conversations",
+    payload,
+  });
+  expect(listed.statusCode).toBe(200);
+  expect(listed.json().data).toEqual([
+    { id: "native-one", title: "Native one", source: "cli" },
+  ]);
+  const preview = await server.inject({
+    method: "POST",
+    url: "/agent-setup/prerequisites/preview",
+    payload,
+  });
+  expect(preview.statusCode).toBe(200);
+  const plan = preview.json().data;
+  const action = plan.actions[0];
+  expect(action.kind).toBe("enable-hermes-world-plugin");
+  const denied = await server.inject({
+    method: "POST",
+    url: "/agent-setup/prerequisites/apply",
+    payload: { planId: plan.id, actionId: action.id, confirmed: false },
+  });
+  expect(denied.statusCode).toBe(400);
+  expect(
+    (
+      await server.inject({
+        method: "POST",
+        url: "/agent-setup/prerequisites/cancel",
+        payload: { planId: plan.id },
+      })
+    ).statusCode,
+  ).toBe(200);
+  const cancelled = await server.inject({
+    method: "POST",
+    url: "/agent-setup/prerequisites/apply",
+    payload: { planId: plan.id, actionId: action.id, confirmed: true },
+  });
+  expect(cancelled.statusCode).toBe(400);
+  expect((await service.state()).registrations).toEqual([]);
+});
+
 it("exposes first-run setup without any enabled harness or API key", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "aiw-setup-api-"));
   cleanups.push(() => rm(root, { recursive: true, force: true }));

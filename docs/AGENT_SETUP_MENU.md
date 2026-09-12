@@ -1,10 +1,10 @@
 # Agent Setup Menu — scope and acceptance
 
-Status: partial implementation and native API restart/Continue verified; finish remaining implementation next session before manual browser acceptance. Exact-SHA CI remains a separate delivery gate.
+Status: completion implementation is present; exact-head GitHub CI and human browser acceptance remain separate gates. Merge stays held for Aaron.
 
-## Next-session sequence — manual acceptance deferred
+## Completion delivery — manual acceptance follows green CI
 
-Aaron (`1548381463198826506`, September 12) requested the unfinished items be completed in a new session before manual acceptance: Windows↔WSL execution/workspace routing; previewed, separately approved prerequisite/plugin/service changes; and explicit existing-Hermes-conversation choice in setup. Complete these and integrated verification/CI before preparing the manual test. No further implementation or manual acceptance starts during this closeout.
+Aaron (`1548386442294726697`, September 12) authorized completion, commit/push and exact-head GitHub CI, then preparation of a running manual-acceptance candidate and end-session handoff. No merge before his manual verdict. Implemented scope and honest environment/action limitations are below; native service changes still require separate permission.
 
 Actionable plan: `../.hermes/plans/2026-09-12_131536-agent-setup-completion-before-manual.md`. Continue private draft PR #12; do not merge, publish, restart protected harnesses, or treat the prior feature authorization as approval of individual external changes.
 
@@ -52,13 +52,19 @@ Confirmed choices:
 
 ## Implementation checkpoint
 
-Implemented: persisted local registrations; metadata-only Windows/WSL discovery; same-environment native configuration routing; a bounded extra-installation-directory search; readiness/Recheck; first-run logo/setup gate; saved-connection selection; and Escape access before and inside World. Explicit legacy adapter configurations retain the previous entry flow until a saved registration is added.
+Implemented: persisted registrations; metadata-only Windows/WSL discovery; native configuration routing; environment-bound Codex/Claude process launch with exact argv/stdin, shared-workspace proof and owned-tree cancellation; native-environment Hermes/OpenClaw config reads and profile routing; extra-installation-directory search; readiness/Recheck; first-run setup, saved selection and Escape access.
+
+Hermes setup now explicitly lists the selected profile's recent conversations and saves an optional native conversation ID independently of the display label and registration ID. The default remains a separate new conversation. Selecting an existing conversation does not create, rename, copy or delete native history. Ownership survives runtime recreation; stale/foreign selection is rejected. Native same-session arbitration remains required for dispatch.
+
+Prerequisites use server-owned, expiring, single-use Preview → Confirm → Apply → Recheck plans with exact target/path/effect, configuration/plugin drift checks, cancellation and native config backup. The supported automatic action enables an **already installed** World plugin in the selected **backend-local Hermes profile**, through Hermes' native CLI without built-in tool override. Native login, plugin installation, API provisioning, gateway start/restart and stopped-WSL startup have explicit manual guidance and Recheck; they are not claimed as automatic installers or service controls. No live operator service was changed to test the feature. The real enable action passed against a disposable Hermes home, preserving unrelated configuration and backup bytes.
+
+Windows/WSL execution requires native Python 3 for the target-side process supervisor and a shared drive for repository/workspace access. Native Windows Codex `.exe` from a WSL backend passed real model file creation, fresh-process exact-session continuation, file preservation, and owned Windows child/descendant termination. Windows Codex UNC/WSL-home workspaces are refused with drive-backed guidance after a real native sandbox failure; no sandbox bypass is used. Windows→WSL and other compatible adapter directions have contract/fixture coverage, not separate live-native acceptance. Shell `.cmd`/`.bat` wrappers across the boundary remain unsupported; select the native `.exe`. API-backed transports still require a reachable authenticated loopback gateway and attested native plugin where applicable.
 
 Native binding persistence is covered for all four harnesses. The full Vitest suite passed 1,254 tests after the shared-schema import correction. The subsequent preview-relaunch correction passed its affected nine tests and backend build.
 
 A real Codex production-backend restart first proved native-session/file/Git continuity. The expanded production Workstream/preview API test then reproduced a missing preview relaunch. After the focused correction, Continue on the same preserved native work retained the exact native session, Workstream, task, owned worktree, branch, Git HEAD, tracked/untracked file hashes and message history; a new preview process served the original generated page. No replacement coding or message was sent. Both test-owned backend generations and preview processes were stopped. This is native API proof, not a human browser verdict. The retained private evidence root is `/home/mela_ai/.hermes/runs/aiw-pr12-workstream-_b6vbhjw`; the normal entry documentation is in the root README.
 
-**Still gated:** human browser/visual acceptance of setup, selection and the normal-UI Continue path; and exact-SHA delivery checks. Other Windows/WSL environments are discoverable but not executable by this backend: attach reports that limitation and requires running World in the harness environment. Prerequisite changes remain operator-managed with visible guidance; this implementation does not install plugins, change native configuration, restart services or log in on the operator's behalf. These limits must remain visible in the PR, not be silently promoted to completed acceptance.
+**Still gated:** human browser/visual acceptance of setup, selection, prerequisites and normal-UI Continue; and final exact-SHA delivery checks recorded externally. Native API proof, fixture coverage and browser automation do not replace Aaron's verdict. Missing native prerequisites remain found-but-not-ready, not fabricated support.
 
 ## Protected baseline
 

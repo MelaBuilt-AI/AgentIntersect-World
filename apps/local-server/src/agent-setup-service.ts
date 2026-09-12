@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { AgentPrerequisites } from "./agent-prerequisites.js";
 import { discoverAgents, type DiscoveryResult } from "./agent-discovery.js";
 
 import {
@@ -11,11 +12,13 @@ import {
   type AgentRegistration,
   type AgentSetupState,
   type SetupCheck,
+  type SetupConversation,
 } from "@agentintersect-world/world-schema/agent-setup";
 export { RegistrationSchema, AttachAgentInputSchema };
 export type { AgentRegistration, AgentSetupState, SetupCheck };
 
 export class AgentSetupService {
+  readonly prerequisites = new AgentPrerequisites();
   readonly filename: string;
   readonly legacyConfigured: boolean;
   readonly discover: (additionalDirectory?: string) => Promise<DiscoveryResult>;
@@ -24,8 +27,14 @@ export class AgentSetupService {
     registration: AgentRegistration,
   ) => Promise<SetupCheck>;
   #writes = Promise.resolve();
+  readonly listConversations: (
+    registration: AgentRegistration,
+  ) => Promise<readonly SetupConversation[]>;
   constructor(options: {
     readonly dataDirectory: string;
+    readonly listConversations?: (
+      registration: AgentRegistration,
+    ) => Promise<readonly SetupConversation[]>;
     readonly legacyConfigured?: boolean;
     readonly discover?: (
       additionalDirectory?: string,
@@ -35,6 +44,7 @@ export class AgentSetupService {
     ) => Promise<SetupCheck>;
   }) {
     this.legacyConfigured = options.legacyConfigured === true;
+    this.listConversations = options.listConversations ?? (async () => []);
     this.filename = path.join(options.dataDirectory, "agent-setup.json");
     this.discover =
       options.discover ??
@@ -56,9 +66,9 @@ export class AgentSetupService {
           "Native connection setup is not available in this server. Start the matching World local server and Recheck.",
       }));
   }
-  async attach(
+  async candidate(
     input: z.infer<typeof AttachAgentInputSchema>,
-  ): Promise<{ registration: AgentRegistration | null; check: SetupCheck }> {
+  ): Promise<AgentRegistration> {
     const request = AttachAgentInputSchema.parse(input);
     const installation = this.lastDiscovery?.installations.find(
       (entry) => entry.id === request.installationId,
@@ -74,9 +84,14 @@ export class AgentSetupService {
     const existing = state.registrations.find(
       (entry) =>
         entry.installationId === installation.id &&
-        entry.identity.id === identity.id,
+        entry.identity.id === identity.id &&
+        entry.conversationRef === request.conversationRef,
     );
-    const candidate = RegistrationSchema.parse({
+    if (request.conversationRef && installation.adapterId !== "hermes")
+      throw new Error(
+        "Existing conversation selection is supported for Hermes only.",
+      );
+    return RegistrationSchema.parse({
       id: existing?.id ?? randomUUID(),
       adapterId: installation.adapterId,
       displayName: request.displayName,
@@ -86,7 +101,32 @@ export class AgentSetupService {
       homePath: installation.homePath,
       identity,
       connectedAt: new Date().toISOString(),
+      ...(request.conversationRef
+        ? { conversationRef: request.conversationRef }
+        : {}),
     });
+  }
+  async conversations(
+    input: z.infer<typeof AttachAgentInputSchema>,
+  ): Promise<readonly SetupConversation[]> {
+    const candidate = await this.candidate(input);
+    if (candidate.adapterId !== "hermes")
+      throw new Error("Select a Hermes identity to list its conversations.");
+    return this.listConversations(candidate);
+  }
+  async attach(
+    input: z.infer<typeof AttachAgentInputSchema>,
+  ): Promise<{ registration: AgentRegistration | null; check: SetupCheck }> {
+    const candidate = await this.candidate(input);
+    if (
+      candidate.conversationRef &&
+      !(await this.listConversations(candidate)).some(
+        (s) => s.id === candidate.conversationRef,
+      )
+    )
+      throw new Error(
+        "Selected conversation is no longer available in this Hermes profile. List conversations again.",
+      );
     const check = await this.checkConnection(candidate);
     if (check.status !== "ready") return { registration: null, check };
     await this.#save((current) => {
