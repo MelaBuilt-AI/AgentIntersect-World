@@ -1,5 +1,6 @@
 .world-audio {
   position: fixed;
+  /* Hidden, not unmounted, during the minimal avatar onboarding screens. */
   right: 12px;
   top: 12px;
   z-index: 30;
@@ -17,6 +18,9 @@
     monospace;
   pointer-events: auto;
   backdrop-filter: blur(10px);
+}
+body:has(.avatar-builder--onboarding) .world-audio {
+  display: none;
 }
 .world-audio__bar {
   display: flex;

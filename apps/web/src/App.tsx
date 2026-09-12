@@ -94,6 +94,7 @@ function ProfileApp({ surface }: { readonly surface: AppSurface }) {
   if (!identified || store.current === null)
     return (
       <IdentifyExperience
+        onboarding={surface !== "internal-dashboard"}
         initialProfile={store.draft}
         previousProfile={store.previous}
         storageStatus={store.status}

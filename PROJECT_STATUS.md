@@ -1,10 +1,18 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-09
+Updated: 2026-09-11
 
 ## Current milestone
 
-### September 9 delivery — authorized, conditional on green CI
+### September 11 — saved-session proof and accepted avatar onboarding/entrance
+
+PR #11 adds persisted Workstream restart/rebind proof for files, branch, task, worktree and retained-live-preview continuity without a replacement coding dispatch. Full application/machine restart preview relaunch and real native saved-session acceptance remain follow-up work; they are not claimed complete.
+
+Aaron accepted the minimal user/agent avatar setup, stable thumbnails, clean Idle previews and environment-first code-rain materialization in native Edge (`1548159125047746581`). Readiness uses the accepted production/native artifact plus focused tests/types/lint/build and the final exact-head CI workflow. Details and bounded evidence: `docs/SAVED_SESSION_AVATAR_ONBOARDING.md`.
+
+Aaron (`1548159664183709707`) authorized push → exact-head CI/readiness green → merge → merged-main CI/readiness green → end-session handoff. Immutable final SHA/run receipts remain in the PR and external handoff rather than recursive source commits. Earlier CI stale onboarding selectors are corrected without changing accepted production behavior. No release/publication, branch deletion, operator-runtime restart/cleanup, or later-phase implementation is authorized. The six inherited residual paths remain excluded; retained Worlds and served builds remain untouched.
+
+### Historical September 9 delivery — completed via PR #10
 
 Aaron (`1547254171474993302`) authorized committing and pushing the cumulative repository/Workstream integration, audio, presentation and conversation corrections as a PR, merging only after CI and readiness are green, verifying merged-main CI, then preparing an end-session handoff. This supersedes the dated delivery-held wording below; it does not authorize releases, tags, publication, visibility changes, runtime cleanup or Phase 20.
 

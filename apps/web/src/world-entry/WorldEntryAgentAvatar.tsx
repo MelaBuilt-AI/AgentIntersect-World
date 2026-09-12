@@ -34,23 +34,8 @@ export function WorldEntryAgentAvatar({
       className="world-agent-avatar world-agent-avatar--builder"
       aria-busy={busy}
     >
-      {!changing ? (
-        <div className="world-agent-avatar__entry-gate">
-          <button
-            type="button"
-            className="world-enter-action world-enter-action--avatar-gate world-action--unavailable"
-            disabled
-            aria-describedby="agent-avatar-entry-gate"
-          >
-            Enter World
-          </button>
-          <p id="agent-avatar-entry-gate" role="status">
-            Use Complete Avatar, then Accept and save avatar to unlock Enter
-            World.
-          </p>
-        </div>
-      ) : null}
       <AvatarBuilderLoader
+        onboarding={!changing}
         {...(AvatarBuilderComponent
           ? { component: AvatarBuilderComponent }
           : {})}

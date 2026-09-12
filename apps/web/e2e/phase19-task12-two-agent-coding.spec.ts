@@ -777,13 +777,20 @@ async function connectTwoAgents(
     await agentName.fill(agent.displayName);
     await agentName.press("Enter");
     await expect(
-      page.getByRole("heading", {
-        name: `Create ${agent.displayName}’s avatar`,
-      }),
+      page.getByRole("region", { name: "Agent avatar selection" }),
     ).toBeVisible();
-    await page.getByLabel("Required agent name").fill(agent.displayName);
-    await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-    const accept = page.getByRole("button", { name: "Accept and save avatar" });
+    await page
+      .getByLabel("Agent name", { exact: true })
+      .fill(agent.displayName);
+    await page
+      .getByRole("button", { name: "Open Cat Agent 1 3D preview", exact: true })
+      .click();
+    await expect(
+      page.locator(
+        '.avatar-builder--onboarding .imported-avatar-canvas[data-avatar-imported-id="cat-agent-01"]',
+      ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 60_000 });
+    const accept = page.getByRole("button", { name: "Accept Agent Avatar" });
     await expect(accept).toBeEnabled();
     await accept.click();
     const expectedConnection =

@@ -918,9 +918,12 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
-    page.getByRole("heading", { name: "Change Mr Fluff’s avatar" }),
+    page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible();
-  await expect(page.getByText("Preserved legacy profile")).toBeVisible();
+  await expect(page.getByLabel("Agent name", { exact: true })).toHaveValue(
+    "Mr Fluff",
+  );
+  await expect(page.getByText("Preserved legacy profile")).toHaveCount(0);
   await expect(page.getByTestId("avatar-preview")).toHaveAttribute(
     "data-avatar-source",
     "imported",
@@ -933,7 +936,7 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   expect(fixture.mutationPaths).toEqual([]);
   await expect(
     page.getByRole("button", { name: "Open Cat Agent 1 3D preview" }),
-  ).toHaveAttribute("aria-pressed", "false");
+  ).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByRole("button", { name: "Open Robot Agent 5 3D preview" }),
   ).toHaveAttribute("aria-pressed", "false");
@@ -941,9 +944,8 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   await page
     .getByRole("button", { name: "Open Cat Agent 1 3D preview" })
     .click();
-  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   const saveCatAvatar = page.getByRole("button", {
-    name: "Accept and save avatar",
+    name: "Accept Agent Avatar",
   });
   await expect(saveCatAvatar).toBeEnabled();
   await saveCatAvatar.click();

@@ -102,13 +102,17 @@ const expectBuilderComposition = async (
   expect(overlap).toBe(false);
 };
 
-const expectContainedActualGlbPreview = async (page: Page) => {
+const expectContainedActualGlbPreview = async (page: Page, minimal = false) => {
   const preview = page.getByTestId("avatar-preview");
   await expect(preview).toHaveCSS("border-radius", "12px");
-  await expect(preview.locator(".avatar-nameplate")).toHaveCSS(
-    "position",
-    "relative",
-  );
+  if (minimal) {
+    await expect(preview.locator(".avatar-nameplate")).toHaveCount(0);
+  } else {
+    await expect(preview.locator(".avatar-nameplate")).toHaveCSS(
+      "position",
+      "relative",
+    );
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -116,13 +120,13 @@ const expectContainedActualGlbPreview = async (page: Page) => {
   ).toBe(true);
 };
 
-test("first-launch Builder selects a complete avatar before naming without blanking", async ({
+test("internal Builder selects a complete avatar before naming without blanking", async ({
   page,
 }) => {
   const pageErrors: Error[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
 
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   await page.getByRole("button", { name: "Create Avatar" }).click();
   const nameInput = page.getByLabel("Required agent name");
   const save = page.getByRole("button", {
@@ -150,7 +154,7 @@ test("first-launch Builder selects a complete avatar before naming without blank
   await expect(save).toBeEnabled();
 });
 
-test("six stance cards open a separate GLB preview and persist a complete avatar", async ({
+test("internal six stance cards open a separate GLB preview and persist a complete avatar", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1600, height: 1000 });
@@ -159,7 +163,7 @@ test("six stance cards open a separate GLB preview and persist a complete avatar
     if (request.url().includes("/assets/imported-avatars/"))
       importedRequests.push(new URL(request.url()).pathname);
   });
-  await page.goto("/");
+  await page.goto("/internal/dashboard");
   const storageBeforePreview = await page.evaluate(() =>
     localStorage.getItem("aiw.avatar.profile.0.18.5"),
   );
@@ -282,7 +286,7 @@ test("six stance cards open a separate GLB preview and persist a complete avatar
   });
 });
 
-test("text-only selection loads no GLB and stale removed IDs require re-selection", async ({
+test("internal text-only selection loads no GLB and stale removed IDs require re-selection", async ({
   page,
 }) => {
   const staleEnvelope = JSON.stringify({
@@ -321,7 +325,7 @@ test("text-only selection loads no GLB and stale removed IDs require re-selectio
     if (request.url().endsWith(".glb")) glbRequests.push(request.url());
   });
 
-  await page.goto("/?avatar3d=text");
+  await page.goto("/internal/dashboard?avatar3d=text");
   await page.getByRole("button", { name: "Create Avatar" }).click();
   await expect(
     page.getByText(/saved imported model was removed/iu),
@@ -612,14 +616,12 @@ test("seventeen agent stances and mounted user-directed movement work in product
   await page.getByLabel("Agent name").fill("Mr Fluff");
   await page.getByRole("button", { name: "Connect agent" }).click();
   await expect(
-    page.getByRole("heading", { name: "Create Mr Fluff’s avatar" }),
+    page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible({ timeout: 20_000 });
   await expect(
     page.getByRole("button", { name: /Open .* 3D preview/u }),
   ).toHaveCount(17);
-  await expect(
-    page.getByLabel("Agent avatar stance cards (17 available)"),
-  ).toBeVisible();
+  await expect(page.getByLabel("Agent avatars", { exact: true })).toBeVisible();
   const agentCanvas = page
     .getByTestId("avatar-preview")
     .locator(".imported-avatar-canvas");
@@ -635,12 +637,10 @@ test("seventeen agent stances and mounted user-directed movement work in product
       timeout: 20_000,
     },
   );
-  await expectContainedActualGlbPreview(page);
+  await expectContainedActualGlbPreview(page, true);
   expect(acceptedProposal).toBeNull();
   await page.reload();
-  await expect(
-    page.getByLabel("Agent avatar stance cards (17 available)"),
-  ).toBeVisible();
+  await expect(page.getByLabel("Agent avatars", { exact: true })).toBeVisible();
   await expect(
     page.getByTestId("avatar-preview").locator(".imported-avatar-canvas"),
   ).toHaveAttribute("data-avatar-imported-id", "cat-agent-01", {
@@ -656,14 +656,17 @@ test("seventeen agent stances and mounted user-directed movement work in product
   await expect(
     page.getByTestId("avatar-preview").locator(".imported-avatar-canvas"),
   ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 20_000 });
-  await expect(page.getByText("3D preview ready")).toBeVisible();
-  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await expectBuilderComposition(page, "Open Robot Agent 5 3D preview");
+  await expect(
+    page.getByRole("button", { name: "Accept Agent Avatar" }),
+  ).toBeEnabled();
+  await expect(page.locator(".avatar-onboarding__choices")).toHaveText(
+    "Accept Agent Avatar",
+  );
   await page.screenshot({
     path: `${EVIDENCE_DIR}/builder-agent-desktop-selected-robot-agent-05-with-glb-preview-and-original-controls.png`,
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Accept and save avatar" }).click();
+  await page.getByRole("button", { name: "Accept Agent Avatar" }).click();
   expect(acceptedProposal?.avatarSource).toEqual({
     kind: "imported",
     version: 2,

@@ -57,6 +57,7 @@ const selectedAgent: WorkstreamAgentReference = {
 type Fixture = {
   readonly service: WorkstreamService;
   readonly store: string;
+  readonly authority: WorktreeAuthority;
   readonly worktrees: string;
   readonly port: WorkstreamAgentPort;
   readonly dispatches: Array<{
@@ -148,6 +149,7 @@ async function fixture(
   services.push(service);
   return {
     service,
+    authority,
     store,
     worktrees,
     port,
@@ -182,6 +184,89 @@ afterEach(async () => {
 });
 
 describe("Workstream feature loop", () => {
+  it("restores saved files, branch and task after service restart without dispatching replacement work", async () => {
+    const value = await fixture();
+    await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    const saved = (await value.service.current())!;
+    const worktree = join(value.worktrees, saved.authority.relativePath);
+    await writeFile(
+      join(worktree, "src", "collision.ts"),
+      "export const collides = false;\n",
+    );
+    await writeFile(
+      join(worktree, "untracked.txt"),
+      "keep this unsaved file\n",
+    );
+    const before = await git(worktree, ["status", "--porcelain=v1"]);
+    const head = await git(worktree, ["rev-parse", "HEAD"]);
+    const branch = await git(worktree, ["branch", "--show-current"]);
+    await value.service.dispose();
+    const nextAgent = {
+      ...selectedAgent,
+      agentId: "new-agent",
+      nativeSessionId: "new-native",
+      rootNativeSessionId: "new-native",
+    };
+    value.setCurrentAgent(nextAgent);
+    const restarted = new WorkstreamService({
+      directory: value.store,
+      worktreeAuthority: value.authority,
+      worktreeParent: value.worktrees,
+      currentRepository: () => repository,
+      agentPort: value.port,
+      evidenceReader: { read: async (refs) => refs },
+    });
+    services.push(restarted);
+    const history = await restarted.history(repository.repositoryId);
+    expect(history).toHaveLength(1);
+    expect(history[0]!.workstreamId).toBe(saved.workstreamId);
+    const resumed = (
+      await restarted.continueSaved({
+        workstreamId: saved.workstreamId,
+        expectedRevision: saved.revision,
+        repository,
+        agent: nextAgent,
+        confirm: true,
+      })
+    ).workstream;
+    expect(resumed).toMatchObject({
+      workstreamId: saved.workstreamId,
+      task: saved.task,
+      title: saved.title,
+      worktreeState: "dirty",
+      authority: {
+        worktreeId: saved.authority.worktreeId,
+        relativePath: saved.authority.relativePath,
+      },
+      agent: {
+        agentId: nextAgent.agentId,
+        nativeSessionId: nextAgent.nativeSessionId,
+      },
+    });
+    expect(value.port.current(nextAgent.agentId)).toMatchObject({
+      worktreeRef: saved.authority.worktreeId,
+      currentTaskRef: saved.workstreamId,
+      mode: "collaborate",
+    });
+    expect(await readFile(join(worktree, "src", "collision.ts"), "utf8")).toBe(
+      "export const collides = false;\n",
+    );
+    expect(await readFile(join(worktree, "untracked.txt"), "utf8")).toBe(
+      "keep this unsaved file\n",
+    );
+    expect(await git(worktree, ["status", "--porcelain=v1"])).toBe(before);
+    expect(await git(worktree, ["rev-parse", "HEAD"])).toBe(head);
+    expect(await git(worktree, ["branch", "--show-current"])).toBe(branch);
+    expect(value.port.dispatch).toHaveBeenCalledTimes(1);
+    expect(resumed.events.slice(0, -1)).toEqual(saved.events);
+    expect(resumed.events.at(-1)?.summary).toContain("No coding turn sent.");
+    expect(await readdir(value.worktrees)).toEqual([
+      saved.authority.relativePath,
+    ]);
+  });
   it("offers discussion context without changing task, reports, revision or worktree", async () => {
     const value = await fixture();
     await value.service.create(createRequest());

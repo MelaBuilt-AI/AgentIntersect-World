@@ -255,14 +255,9 @@ describe("replacement imported avatar creator", () => {
       />,
     );
     expect(html).toContain('data-avatar-imported-id="cat-agent-01"');
-    expect(html).toContain("Cat Agent 1 is previewed from its actual GLB");
-    expect(html).toContain(
-      "The accepted legacy avatar remains unchanged until explicit save.",
-    );
-    expect(html).not.toContain("previewed unchanged");
-    expect(html).toContain(
-      '<button class="primary-action" type="button" disabled="">Accept and save avatar</button>',
-    );
+    expect(html).toContain('aria-label="Agent name"');
+    expect(html).not.toContain("accepted legacy avatar");
+    expect(html).toContain(">Accept Agent Avatar</button>");
   });
 
   it("restores visual draft, accepted, and invalid refresh states without conflating consent", () => {

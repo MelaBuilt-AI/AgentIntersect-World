@@ -10,11 +10,13 @@ import { AvatarBuilderLoader } from "./AvatarBuilderLoader.js";
 const IDENTIFY_TRANSITION_MS = 360;
 export function IdentifyExperience({
   initialProfile,
+  onboarding = true,
   previousProfile,
   storageStatus,
   onComplete,
 }: {
   readonly initialProfile: AvatarDraft;
+  readonly onboarding?: boolean;
   readonly previousProfile: AvatarProfile | null;
   readonly storageStatus:
     | AvatarLoadResult["status"]
@@ -38,6 +40,7 @@ export function IdentifyExperience({
     return (
       <main className="identify-shell identify-shell--builder">
         <AvatarBuilderLoader
+          onboarding={onboarding}
           role="user"
           initialProfile={initialProfile}
           currentProfile={null}

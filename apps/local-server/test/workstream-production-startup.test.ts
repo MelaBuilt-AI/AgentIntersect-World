@@ -5,6 +5,7 @@ import {
   mkdir,
   mkdtemp,
   readdir,
+  readFile,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -619,6 +620,23 @@ describe("production Workstream startup composition", () => {
     expect((await history.json()).data.workstreams[0].workstreamId).toBe(
       created.workstreamId,
     );
+    const savedBefore = (
+      await (await fetch(`${baseUrl}/workstreams/current`)).json()
+    ).data;
+    const sessionBefore = (
+      await (
+        await fetch(`${baseUrl}/agent-sessions/${session.sessionId}/status`)
+      ).json()
+    ).data;
+    await writeFile(
+      path.join(worktreePath, "untracked.txt"),
+      "unsaved work stays here\n",
+    );
+    await writeFile(
+      path.join(worktreePath, "index.ts"),
+      "export const ready = 'edited';\n",
+    );
+    const dirtyBefore = await git(worktreePath, ["status", "--porcelain=v1"]);
     const resumed = await fetch(
       `${baseUrl}/workstreams/${created.workstreamId}/continue`,
       {
@@ -645,6 +663,34 @@ describe("production Workstream startup composition", () => {
     );
     latestRevision = resumeBody.data.workstream.revision;
     currentWorkstream.agent = resumeBody.data.workstream.agent;
+    expect(resumeBody.data.workstream.task).toBe(savedBefore.task);
+    expect(resumeBody.data.workstream.authority.branch).toBe(
+      commitBody.data.status.branch,
+    );
+    expect(resumeBody.data.workstream.authority.relativePath).toBe(
+      created.authority.relativePath,
+    );
+    expect(
+      await readFile(path.join(worktreePath, "untracked.txt"), "utf8"),
+    ).toBe("unsaved work stays here\n");
+    expect(await readFile(path.join(worktreePath, "index.ts"), "utf8")).toBe(
+      "export const ready = 'edited';\n",
+    );
+    expect(await git(worktreePath, ["status", "--porcelain=v1"])).toBe(
+      dirtyBefore,
+    );
+    const sessionAfter = (
+      await (
+        await fetch(`${baseUrl}/agent-sessions/${session.sessionId}/status`)
+      ).json()
+    ).data;
+    expect(sessionAfter).toEqual(sessionBefore);
+    expect(resumeBody.data.workstream.events.slice(0, -1)).toEqual(
+      savedBefore.events,
+    );
+    expect(resumeBody.data.workstream.events.at(-1).summary).toContain(
+      "No coding turn sent.",
+    );
     expect(
       (
         await (
@@ -658,6 +704,14 @@ describe("production Workstream startup composition", () => {
       "exact Workstream preview",
     );
 
+    // Commit only fixture-owned changes so the existing clean-cancel proof
+    // remains distinct from restoration's dirty-file preservation assertions.
+    await git(worktreePath, ["add", "index.ts", "untracked.txt"]);
+    await git(worktreePath, [
+      "commit",
+      "-m",
+      "fixture: retain restored changes",
+    ]);
     const cancelled = await fetch(
       `${baseUrl}/workstreams/${created.workstreamId}/cancel`,
       {

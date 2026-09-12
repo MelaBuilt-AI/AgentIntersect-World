@@ -28,9 +28,9 @@ vi.mock("../src/code-world-texture.js", async () => ({
 }));
 import { WorldEnvironment } from "../src/world-environment.js";
 
-it("reveals only after all textures, every avatar and rendered warmup frames", () => {
+it("reveals the environment after all textures and rendered warmup frames", () => {
   const ready = vi.fn();
-  const draw = (loaded: boolean, avatarsReady: boolean) => {
+  const draw = (loaded: boolean) => {
     state.frames = [];
     state.index = 0;
     state.textures = [
@@ -44,18 +44,14 @@ it("reveals only after all textures, every avatar and rendered warmup frames", (
       size: 68,
       reducedMotion: true,
       userPosition: { x: 0, z: 0 },
-      avatarsReady,
       onReady: ready,
     });
     return () => state.frames.forEach((callback) => callback({}, 1 / 60));
   };
-  let frame = draw(false, true);
+  let frame = draw(false);
   for (let i = 0; i < 5; i++) frame();
   expect(ready).not.toHaveBeenCalled();
-  frame = draw(true, false);
-  for (let i = 0; i < 5; i++) frame();
-  expect(ready).not.toHaveBeenCalled();
-  frame = draw(true, true);
+  frame = draw(true);
   frame();
   frame();
   expect(ready).not.toHaveBeenCalled();
