@@ -86,7 +86,7 @@ export type WorldEntrySessionPort = {
     readonly worldInstanceId?: string;
   }): Promise<WorldAgentSession>;
   createWorldSession(input: {
-    readonly adapterId: Exclude<Phase19AdapterId, "hermes">;
+    readonly adapterId: Phase19AdapterId;
     readonly worldInstanceId: string;
     readonly displayName: string;
     readonly profile: string;
@@ -419,15 +419,17 @@ export function createWorldEntryClient(
     },
 
     async connectWorldOwnedAgent(
-      adapterId: Exclude<Phase19AdapterId, "hermes">,
+      adapterId: Phase19AdapterId,
       worldInstanceId: string,
       name: string,
+      connectionId?: string,
     ): Promise<HermesConnectionResult> {
       const displayName = name.normalize("NFC").trim();
       if (!safeDisplayLabel(displayName) || !worldInstanceId)
         return { status: "unavailable", message: "agent unavailable_" };
       try {
         const session = await sessionClient.createWorldSession({
+          ...(connectionId ? { connectionId } : {}),
           adapterId,
           worldInstanceId,
           displayName,

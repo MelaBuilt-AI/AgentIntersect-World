@@ -117,6 +117,51 @@ afterEach(async () => {
 });
 
 describe("PreviewManagerService", () => {
+  it("relaunches a saved approved preview after shutdown, but not an explicitly stopped preview", async () => {
+    const fixtureState = await fixture();
+    await fixtureState.service.approveRecipe(recipe());
+    const original = (await fixtureState.service.start(start())).preview;
+    await fixtureState.service.dispose();
+    services.splice(services.indexOf(fixtureState.service), 1);
+    await expect(fetch(original.url!)).rejects.toThrow();
+    const restored = new PreviewManagerService({
+      directory: fixtureState.store,
+      resolveWorkstream: fixtureState.resolveWorkstream,
+    });
+    services.push(restored);
+    const continuation = {
+      workstreamId: "workstream-one",
+      expectedWorkstreamRevision: 4,
+      repository,
+      agent,
+    };
+    expect(await restored.resumeSaved(continuation)).toBe("ready");
+    const resumed = (await restored.current()).active!;
+    expect(resumed.previewId).not.toBe(original.previewId);
+    expect(resumed.pid).not.toBe(original.pid);
+    expect(await (await fetch(resumed.url!)).text()).toContain(
+      "exact worktree preview",
+    );
+    expect(await restored.resumeSaved(continuation)).toBe("not-needed");
+    expect((await restored.current()).active?.previewId).toBe(
+      resumed.previewId,
+    );
+    await restored.stop({
+      requestId: "manual-stop",
+      correlationId: "manual-stop",
+      workstreamId: "workstream-one",
+      expectedPreviewRevision: resumed.revision,
+    });
+    await restored.dispose();
+    services.splice(services.indexOf(restored), 1);
+    const afterStop = new PreviewManagerService({
+      directory: fixtureState.store,
+      resolveWorkstream: fixtureState.resolveWorkstream,
+    });
+    services.push(afterStop);
+    expect(await afterStop.resumeSaved(continuation)).toBe("not-needed");
+    expect((await afterStop.current()).active).toBeNull();
+  });
   it("launches only an approved recipe in the exact Workstream worktree and stops its owned process", async () => {
     const value = await fixture();
     const approved = await value.service.approveRecipe(recipe());

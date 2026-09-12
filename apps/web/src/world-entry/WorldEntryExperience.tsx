@@ -17,6 +17,7 @@ import {
   lazy,
   Suspense,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useReducer,
@@ -24,6 +25,7 @@ import {
   useState,
 } from "react";
 
+import { AgentSetupContext } from "./agent-setup-context.js";
 import { useReducedMotion } from "../motion/use-reduced-motion.js";
 import { AvatarBuilderLoader } from "../avatar/AvatarBuilderLoader.js";
 import {
@@ -331,6 +333,13 @@ export function WorldEntryExperience({
       name: profile.agentName,
     },
     createReturningWorldEntryState,
+  );
+  const savedSetup = useContext(AgentSetupContext);
+  const [selectedConnectionId, setSelectedConnectionId] = useState("");
+  const selectedConnection = savedSetup?.registrations.find(
+    (entry) =>
+      entry.id === selectedConnectionId &&
+      entry.adapterId === state.selectedHarness,
   );
   const [agentName, setAgentName] = useState("");
   const [session, setSession] = useState<WorldAgentSession | null>(null);
@@ -829,7 +838,8 @@ export function WorldEntryExperience({
   }, [reducedMotion, restorePending]);
 
   const connect = async () => {
-    const entered = agentName.trim();
+    const entered = selectedConnection?.displayName ?? agentName.trim();
+    if (savedSetup && !selectedConnection) return;
     if (!entered || state.step !== "agent_prompt") return;
     const attempt = connectAttempt.current + 1;
     connectAttempt.current = attempt;
@@ -839,7 +849,7 @@ export function WorldEntryExperience({
     let nextConstellation = constellation;
     const selectedHarness = state.selectedHarness;
     const result =
-      selectedHarness === "hermes"
+      selectedHarness === "hermes" && !selectedConnection
         ? await client.connectHermes(entered)
         : selectedHarness
           ? await (async () => {
@@ -852,6 +862,7 @@ export function WorldEntryExperience({
                   selectedHarness,
                   current.worldInstanceId,
                   entered,
+                  selectedConnection?.id,
                 );
               } catch {
                 return {
@@ -897,7 +908,8 @@ export function WorldEntryExperience({
               rosterId: result.session.sessionId,
               adapterId: result.session.adapterId,
               sessionOwnership:
-                result.session.adapterId === "hermes"
+                result.session.adapterId === "hermes" &&
+                !result.session.connectionId
                   ? "operator-persistent"
                   : "world-owned",
               worldSessionId: result.session.sessionId,
@@ -2955,29 +2967,63 @@ export function WorldEntryExperience({
               void connect();
             }}
           >
-            <WorldTypeLine text="agent name?" reducedMotion={reducedMotion} />
-            <span className="world-agent-prompt__newline" aria-hidden="true">
-              ↵
-            </span>
-            <label className="sr-only" htmlFor="world-agent-name">
-              Agent name
-            </label>
-            <input
-              id="world-agent-name"
-              aria-label="Agent name"
-              value={agentName}
-              maxLength={80}
-              autoFocus
-              onChange={(event) => setAgentName(event.target.value)}
-            />
+            {savedSetup ? (
+              <label>
+                Saved agent
+                <select
+                  aria-label="Saved agent"
+                  value={selectedConnection?.id ?? ""}
+                  onChange={(event) =>
+                    setSelectedConnectionId(event.target.value)
+                  }
+                >
+                  <option value="">Choose a saved connection</option>
+                  {savedSetup.registrations
+                    .filter(
+                      (entry) => entry.adapterId === state.selectedHarness,
+                    )
+                    .map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.displayName} · {entry.environment.label} ·{" "}
+                        {entry.identity.label}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ) : null}
+            {!savedSetup ? (
+              <>
+                <WorldTypeLine
+                  text="agent name?"
+                  reducedMotion={reducedMotion}
+                />
+                <span
+                  className="world-agent-prompt__newline"
+                  aria-hidden="true"
+                >
+                  ↵
+                </span>
+                <label className="sr-only" htmlFor="world-agent-name">
+                  Agent name
+                </label>
+                <input
+                  id="world-agent-name"
+                  aria-label="Agent name"
+                  value={agentName}
+                  maxLength={80}
+                  autoFocus
+                  onChange={(event) => setAgentName(event.target.value)}
+                />
+              </>
+            ) : null}
             <button
               type="submit"
               className={
-                agentName.trim()
+                (savedSetup ? selectedConnection : agentName.trim())
                   ? "world-primary-action world-action--enabled"
                   : "world-primary-action world-action--unavailable"
               }
-              disabled={!agentName.trim()}
+              disabled={savedSetup ? !selectedConnection : !agentName.trim()}
             >
               Connect agent
             </button>

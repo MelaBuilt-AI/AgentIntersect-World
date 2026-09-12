@@ -319,6 +319,7 @@ export function loadLocalServerConfig(
     environment.AIW_GUIDED_BUILD_REPOSITORY_ROOT?.trim();
   if (
     agentSessionsEnabled &&
+    hermesApiKey !== undefined &&
     (!hermesApiKey ||
       hermesApiKey.length > 256 ||
       !VISIBLE_ASCII.test(hermesApiKey))
@@ -533,7 +534,7 @@ export function loadLocalServerConfig(
       ? {
           agentSessions: {
             hermesApiUrl,
-            hermesApiKey: hermesApiKey as string,
+            hermesApiKey: hermesApiKey ?? "",
             hermesProfile,
             dataDir: agentSessionDataDir,
             ...(pluginCapabilityPath ? { pluginCapabilityPath } : {}),
@@ -576,7 +577,7 @@ export function toSafeConfig(config: LocalServerConfig): SafeConfig {
       config.agentIntersectRead !== undefined,
     agentSessionsEnabled: config.agentSessions !== undefined,
     agentAdapters: {
-      hermes: config.agentSessions
+      hermes: config.agentSessions?.hermesApiKey
         ? { configured: true, reason: "configured" }
         : { configured: false, reason: "not-configured" },
       openclaw: config.agentSessions?.openclaw

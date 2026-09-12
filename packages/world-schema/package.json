@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./agent-setup": {
+      "types": "./dist/agent-setup.d.ts",
+      "import": "./dist/agent-setup.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"

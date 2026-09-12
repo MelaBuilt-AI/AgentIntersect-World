@@ -207,7 +207,7 @@ describe("Phase 7 local-server configuration", () => {
       await import("../src/node.js");
     expect(() =>
       loadLocalServerConfig({ AIW_AGENT_SESSIONS_ENABLED: "true" }),
-    ).toThrow("AIW_HERMES_API_KEY");
+    ).not.toThrow();
     expect(() =>
       loadLocalServerConfig({
         AIW_AGENT_SESSIONS_ENABLED: "true",

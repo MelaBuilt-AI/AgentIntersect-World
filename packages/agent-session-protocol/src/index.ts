@@ -37,6 +37,7 @@ const SessionModeSchema = z.enum([
 export const AgentSessionSchema = z
   .object({
     schema: z.literal("aiw.agent-session/0.12"),
+    connectionId: z.string().uuid().optional(),
     sessionId: z.string().uuid(),
     adapterId: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/),
     adapterSessionRef: LocalOpaqueRef,

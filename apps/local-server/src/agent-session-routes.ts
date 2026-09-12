@@ -140,6 +140,7 @@ export function registerAgentSessionRoutes(
           additionalProperties: false,
           required: ["adapterId"],
           properties: {
+            connectionId: { type: "string", format: "uuid" },
             adapterId: { type: "string", pattern: "^[a-z][a-z0-9-]{0,63}$" },
           },
         },
@@ -175,6 +176,7 @@ export function registerAgentSessionRoutes(
             "mode",
           ],
           properties: {
+            connectionId: { type: "string", format: "uuid" },
             adapterId: { type: "string", pattern: "^[a-z][a-z0-9-]{0,63}$" },
             adapterSessionRef: { type: "string", minLength: 1, maxLength: 256 },
             profile: { type: "string", minLength: 1, maxLength: 64 },
@@ -214,6 +216,7 @@ export function registerAgentSessionRoutes(
     "/agent-sessions/world",
     {
       preValidation: strictBody([
+        "connectionId",
         "adapterId",
         "worldInstanceId",
         "displayName",
@@ -239,6 +242,7 @@ export function registerAgentSessionRoutes(
             "mode",
           ],
           properties: {
+            connectionId: { type: "string", format: "uuid" },
             adapterId: { type: "string", pattern: "^[a-z][a-z0-9-]{0,63}$" },
             worldInstanceId: {
               type: "string",

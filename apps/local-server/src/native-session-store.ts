@@ -5,7 +5,8 @@ import { z } from "zod";
 
 const BindingSchema = z.object({
   worldInstanceId: z.string().min(1).max(256),
-  nativeSessionId: z.string().uuid(),
+  rootSessionRef: z.string().max(256).optional(),
+  nativeSessionId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/),
   title: z.string().max(80),
   runtimeHome: z.string().min(1).max(4096),
   ended: z.boolean(),
@@ -23,7 +24,10 @@ export class NativeSessionStore {
   readonly filename: string;
   #loaded: Promise<void> | undefined;
   #write = Promise.resolve();
-  constructor(directory: string, harness: "codex" | "claude-code") {
+  constructor(
+    directory: string,
+    harness: "codex" | "claude-code" | "hermes" | "openclaw",
+  ) {
     this.filename = path.join(directory, `${harness}-bindings.json`);
   }
   load(): Promise<void> {
@@ -39,7 +43,10 @@ export class NativeSessionStore {
     }
     const stored = StoreSchema.parse(JSON.parse(text));
     for (const binding of stored.bindings)
-      this.bindings.set(binding.nativeSessionId, binding);
+      this.bindings.set(
+        binding.rootSessionRef ?? binding.nativeSessionId,
+        binding,
+      );
   }
   save(): Promise<void> {
     this.#write = this.#write.then(async () => {

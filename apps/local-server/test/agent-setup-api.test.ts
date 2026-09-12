@@ -31,9 +31,11 @@ it("runs discovery only after an explicit action and retains server-owned instal
   const root = await mkdtemp(path.join(tmpdir(), "aiw-setup-scan-"));
   cleanups.push(() => rm(root, { recursive: true, force: true }));
   let scans = 0;
+  let additionalDirectory: string | undefined;
   const service = new AgentSetupService({
     dataDirectory: root,
-    discover: async () => {
+    discover: async (directory) => {
+      additionalDirectory = directory;
       scans += 1;
       return {
         installations: await discoverLocalAgents({
@@ -67,4 +69,36 @@ it("runs discovery only after an explicit action and retains server-owned instal
   ]);
   expect(service.lastDiscovery).toEqual(response.json().data);
   expect((await service.state()).completed).toBe(false);
+  const located = await server.inject({
+    method: "POST",
+    url: "/agent-setup/discover",
+    payload: { additionalDirectory: root },
+  });
+  expect(located.statusCode).toBe(200);
+  expect(additionalDirectory).toBe(root);
+  const invalid = await server.inject({
+    method: "POST",
+    url: "/agent-setup/discover",
+    payload: { additionalDirectory: "relative-directory" },
+  });
+  expect(invalid.statusCode).toBe(400);
+  expect(scans).toBe(2);
+  const attach = await server.inject({
+    method: "POST",
+    url: "/agent-setup/attach",
+    payload: {
+      installationId: "not-found",
+      identityId: "default",
+      displayName: "Missing Agent",
+    },
+  });
+  expect(attach.statusCode).toBe(400);
+  expect(attach.json().error.message).toMatch(/Discover/i);
+  const complete = await server.inject({
+    method: "POST",
+    url: "/agent-setup/complete",
+    payload: {},
+  });
+  expect(complete.statusCode).toBe(400);
+  expect(complete.json().error.message).toMatch(/Attach/i);
 });

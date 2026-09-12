@@ -657,7 +657,7 @@ export class AgentSessionClient {
   }
 
   createWorldSession(input: {
-    readonly adapterId: Exclude<Phase19AdapterId, "hermes">;
+    readonly adapterId: Phase19AdapterId;
     readonly worldInstanceId: string;
     readonly displayName: string;
     readonly profile: string;

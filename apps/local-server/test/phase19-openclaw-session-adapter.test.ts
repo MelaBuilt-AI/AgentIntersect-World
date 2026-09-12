@@ -1,4 +1,7 @@
 import { createServer } from "node:http";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket, { WebSocketServer } from "ws";
@@ -284,6 +287,47 @@ async function waitForCallCount(
 }
 
 describe("OpenClawSessionAdapter", () => {
+  it("restores exact native ownership across adapter recreation without replacement", async () => {
+    const fixture = await fixtureGateway();
+    const directory = await mkdtemp(path.join(tmpdir(), "aiw-claw-resume-"));
+    try {
+      const options = {
+        gatewayUrl: fixture.url,
+        credential: "FIXTURE_TOKEN_CANARY",
+        nativeSessionRoot: directory,
+      };
+      const initial = await new OpenClawSessionAdapter(
+        options,
+      ).createWorldSession("world-owned", "Agent");
+      const restored = new OpenClawSessionAdapter(options);
+      expect(
+        await restored.attach(initial.rootId!, {
+          worldInstanceId: "world-owned",
+        }),
+      ).toEqual(initial);
+      await expect(
+        restored.attach(initial.rootId!, { worldInstanceId: "other-world" }),
+      ).rejects.toThrow();
+      expect(
+        fixture.calls.filter((request) => request.method === "sessions.create"),
+      ).toHaveLength(1);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+  it("creates conversations under the selected native OpenClaw agent", async () => {
+    const gateway = await fixtureGateway();
+    const selected = new OpenClawSessionAdapter({
+      gatewayUrl: gateway.url,
+      credential: "fixture-token",
+      agentId: "work",
+    });
+    await selected.createWorldSession("selected-agent-world");
+    expect(
+      gateway.calls.find((call) => call.method === "sessions.create")?.params
+        .key,
+    ).toMatch(/^agent:work:aiw:/);
+  });
   it("bounds an unanswered sessions.create request with a sanitized adapter deadline", async () => {
     const gateway = await fixtureGateway({ ignoreMethod: "sessions.create" });
     const startedAt = Date.now();

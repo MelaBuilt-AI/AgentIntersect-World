@@ -22,7 +22,9 @@ export function WorldEscapeMenu({
   onResetSession,
   onChangeAvatar,
   onChangeAgent,
+  entryOnly = false,
 }: {
+  readonly entryOnly?: boolean;
   readonly userName: string;
   readonly agentName: string;
   readonly preferences: WorldDisplayPreferences;
@@ -64,9 +66,15 @@ export function WorldEscapeMenu({
         close();
         return;
       }
-      if (isEditableWorldTarget(event.target)) return;
+      if (entryOnly && document.querySelector("[data-world-menu-owner]"))
+        return;
+      const setupOpen = document.querySelector("[data-agent-setup]") !== null;
+      if (!entryOnly && !setupOpen && isEditableWorldTarget(event.target))
+        return;
       if (
-        document.querySelector('[role="dialog"][aria-modal="true"]') ||
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"]:not([data-agent-setup])',
+        ) ||
         document.querySelector(
           '[data-mouse-look="active"], [data-screen-dragging="true"], [data-code-focused="true"], .world-view[data-input-owner="preview"]',
         )
@@ -83,14 +91,15 @@ export function WorldEscapeMenu({
     };
     window.addEventListener("keydown", escape, true);
     return () => window.removeEventListener("keydown", escape, true);
-  }, [close, open]);
+  }, [close, open, entryOnly]);
 
   useEffect(() => {
     if (!open) return;
     initialFocusRef.current?.focus({ preventScroll: true });
   }, [open, view]);
 
-  if (!open) return null;
+  if (!open)
+    return entryOnly ? null : <span hidden data-world-menu-owner="true" />;
 
   const act = (action: () => void) => {
     setOpen(false);
@@ -120,7 +129,10 @@ export function WorldEscapeMenu({
   };
 
   return (
-    <div className="world-escape-backdrop">
+    <div
+      className="world-escape-backdrop"
+      data-world-menu-owner={entryOnly ? undefined : "true"}
+    >
       <section
         ref={dialogRef}
         className="world-escape-dialog"
@@ -136,6 +148,17 @@ export function WorldEscapeMenu({
             <h2 id="world-escape-title">World menu</h2>
             <div className="world-escape-actions">
               <button
+                type="button"
+                className="world-action--enabled"
+                onClick={() =>
+                  act(() =>
+                    window.dispatchEvent(new Event("aiw:open-agent-setup")),
+                  )
+                }
+              >
+                Agent Setup Menu
+              </button>
+              <button
                 ref={initialFocusRef}
                 type="button"
                 className="world-action--enabled"
@@ -146,6 +169,7 @@ export function WorldEscapeMenu({
               <button
                 type="button"
                 className="world-action--enabled"
+                disabled={entryOnly}
                 onClick={() => act(onLogout)}
               >
                 Logout
@@ -153,6 +177,7 @@ export function WorldEscapeMenu({
               <button
                 type="button"
                 className="world-action--enabled"
+                disabled={entryOnly}
                 onClick={() => setView("reset")}
               >
                 Reset Session
@@ -160,6 +185,7 @@ export function WorldEscapeMenu({
               <button
                 type="button"
                 className="world-action--enabled"
+                disabled={entryOnly}
                 onClick={() => setView("avatar-target")}
               >
                 Change Avatar
@@ -167,6 +193,7 @@ export function WorldEscapeMenu({
               <button
                 type="button"
                 className="world-action--enabled"
+                disabled={entryOnly}
                 onClick={() => act(onChangeAgent)}
               >
                 Change Agent

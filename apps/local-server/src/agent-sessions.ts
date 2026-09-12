@@ -125,11 +125,16 @@ export class GatewayError extends Error {
 
 export class AdapterRegistry {
   readonly #adapters = new Map<string, AgentAdapter>();
+  readonly #connections = new Map<string, AgentAdapter>();
   readonly #adapterIds: readonly string[];
 
   constructor(
     adapters: readonly AgentAdapter[],
     adapterIds: readonly string[] = adapters.map((adapter) => adapter.id),
+    connections: readonly {
+      readonly connectionId: string;
+      readonly adapter: AgentAdapter;
+    }[] = [],
   ) {
     if (new Set(adapterIds).size !== adapterIds.length)
       throw new GatewayError("conflict", "Duplicate adapter registry slot");
@@ -144,9 +149,34 @@ export class AdapterRegistry {
         );
       this.#adapters.set(adapter.id, adapter);
     }
+    for (const connection of connections)
+      this.registerConnection(connection.connectionId, connection.adapter);
   }
 
-  require(id: string): AgentAdapter {
+  registerConnection(connectionId: string, adapter: AgentAdapter): void {
+    if (!this.#adapterIds.includes(adapter.id))
+      throw new GatewayError("validation", "Connection harness is unsupported");
+    const existing = this.#connections.get(connectionId);
+    if (existing && existing !== adapter)
+      throw new GatewayError(
+        "conflict",
+        "Saved connection is already registered",
+      );
+    this.#connections.set(connectionId, adapter);
+    if (!this.#adapters.has(adapter.id))
+      this.#adapters.set(adapter.id, adapter);
+  }
+
+  require(id: string, connectionId?: string): AgentAdapter {
+    if (connectionId) {
+      const selected = this.#connections.get(connectionId);
+      if (!selected || selected.id !== id)
+        throw new GatewayError(
+          "not_found",
+          "Saved agent connection is unavailable; open Agent Setup Menu and Recheck",
+        );
+      return selected;
+    }
     const adapter = this.#adapters.get(id);
     if (!adapter)
       throw new GatewayError("not_found", `Adapter ${id} not found`);
@@ -381,6 +411,7 @@ export class AgentSessionStore {
   }
 
   findSessionBinding(input: {
+    readonly connectionId?: string;
     readonly adapterId: string;
     readonly adapterSessionRef: string;
     readonly profile: string;
@@ -394,6 +425,7 @@ export class AgentSessionStore {
         .find(
           (session) =>
             session.adapterId === input.adapterId &&
+            session.connectionId === input.connectionId &&
             (session.adapterRootSessionRef ?? session.adapterSessionRef) ===
               input.adapterSessionRef &&
             session.profile === input.profile &&
@@ -553,7 +585,10 @@ export class AgentSessionStore {
   }
 }
 
+import { NativeSessionStore } from "./native-session-store.js";
+
 type HermesAdapterOptions = {
+  readonly worldOwnedDirectory?: string;
   readonly baseUrl: string;
   readonly apiKey: string;
   readonly profile: string;
@@ -707,6 +742,7 @@ export class HermesSessionAdapter implements AgentAdapter {
   readonly #baseUrl: string;
   readonly #apiKey: string;
   readonly #pluginCapabilityPath: string | undefined;
+  readonly #ownedSessions: NativeSessionStore | undefined;
   readonly #pinnedSessionRef: string | undefined;
   readonly #agentDisplayName: string | undefined;
   readonly #fetch: typeof globalThis.fetch;
@@ -725,7 +761,14 @@ export class HermesSessionAdapter implements AgentAdapter {
         "validation",
         "Hermes profile identity is invalid",
       );
-    this.#baseUrl = url.origin;
+    this.#baseUrl =
+      url.origin +
+      (!options.worldOwnedDirectory || options.profile === "default"
+        ? ""
+        : `/p/${encodeURIComponent(options.profile)}`);
+    this.#ownedSessions = options.worldOwnedDirectory
+      ? new NativeSessionStore(options.worldOwnedDirectory, "hermes")
+      : undefined;
     this.#apiKey = options.apiKey;
     const pinnedSessionRef = options.pinnedSessionRef?.trim();
     const agentDisplayName = options.agentDisplayName?.normalize("NFC").trim();
@@ -938,7 +981,7 @@ export class HermesSessionAdapter implements AgentAdapter {
       supportedModes: ["explore", "collaborate"],
       ordering: "per-session-strict",
       resume: attach ? "session-api" : "unavailable",
-      shutdownOwner: "hermes",
+      shutdownOwner: this.#ownedSessions ? "world" : "hermes",
       maxInputBytes: 16_384,
       maxEventBytes: 32_768,
       capabilities: {
@@ -1084,7 +1127,84 @@ export class HermesSessionAdapter implements AgentAdapter {
     return sessions;
   }
 
-  async attach(sessionRef: string): Promise<AdapterSessionSummary> {
+  async createWorldSession(
+    worldInstanceId: string,
+    displayName = "Hermes",
+  ): Promise<AdapterSessionSummary> {
+    if (!this.#ownedSessions)
+      throw new GatewayError(
+        "unsupported",
+        "This Hermes connection attaches existing sessions only",
+      );
+    await this.#ownedSessions.load();
+    const id = randomUUID();
+    const response = await this.#request("/api/sessions", {
+      method: "POST",
+      body: JSON.stringify({ id, title: displayName, source: "api_server" }),
+    });
+    if (response.status !== 201)
+      throw new GatewayError(
+        "upstream",
+        "Hermes could not create a new World conversation",
+      );
+    const value = await this.#json(
+      response,
+      "Hermes session creation response is invalid",
+    );
+    if (!isRecord(value) || value.id !== id)
+      throw new GatewayError(
+        "upstream",
+        "Hermes returned a different new session identity",
+      );
+    this.#ownedSessions.bindings.set(id, {
+      worldInstanceId,
+      nativeSessionId: id,
+      title: displayName,
+      runtimeHome: this.#baseUrl,
+      ended: false,
+      quarantined: false,
+    });
+    await this.#ownedSessions.save();
+    return { id, rootId: id, title: displayName, source: "hermes" };
+  }
+
+  async endWorldSession(
+    worldInstanceId: string,
+    rootSessionRef: string,
+  ): Promise<void> {
+    if (!this.#ownedSessions)
+      throw new GatewayError(
+        "unsupported",
+        "Hermes connection is operator-owned",
+      );
+    await this.#ownedSessions.load();
+    const binding = this.#ownedSessions.bindings.get(rootSessionRef);
+    if (!binding || binding.worldInstanceId !== worldInstanceId)
+      throw new GatewayError(
+        "conflict",
+        "Hermes World ownership does not match",
+      );
+    binding.ended = true;
+    await this.#ownedSessions.save();
+  }
+
+  async attach(
+    sessionRef: string,
+    context?: WorldOwnedSessionContext,
+  ): Promise<AdapterSessionSummary> {
+    if (this.#ownedSessions) {
+      await this.#ownedSessions.load();
+      const binding = this.#ownedSessions.bindings.get(sessionRef);
+      if (
+        !binding ||
+        binding.ended ||
+        binding.worldInstanceId !== context?.worldInstanceId
+      )
+        throw new GatewayError(
+          "conflict",
+          "Hermes World ownership does not match",
+        );
+    }
     if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/.test(sessionRef))
       throw new GatewayError(
         "validation",
@@ -1430,6 +1550,7 @@ export class HermesSessionAdapter implements AgentAdapter {
 }
 
 type GatewayAttachRequest = {
+  readonly connectionId?: string;
   readonly adapterId: string;
   readonly adapterSessionRef: string;
   readonly profile: string;
@@ -1697,7 +1818,10 @@ export class AgentSessionGateway {
   async createWorldSession(
     request: GatewayCreateWorldSessionRequest,
   ): Promise<AgentSession> {
-    const adapter = this.#registry.require(request.adapterId);
+    const adapter = this.#registry.require(
+      request.adapterId,
+      request.connectionId,
+    );
     let manifest: AgentCapabilityManifest;
     try {
       manifest = AgentCapabilityManifestSchema.parse(await adapter.attest());
@@ -1733,6 +1857,7 @@ export class AgentSessionGateway {
         );
       return await this.attach({
         adapterId: request.adapterId,
+        ...(request.connectionId ? { connectionId: request.connectionId } : {}),
         adapterSessionRef: rootSessionRef,
         profile: request.profile,
         workspaceId: request.workspaceId,
@@ -1769,7 +1894,10 @@ export class AgentSessionGateway {
       recordedOwner?.worldInstanceId === worldInstanceId
     )
       return session;
-    const adapter = this.#registry.require(session.adapterId);
+    const adapter = this.#registry.require(
+      session.adapterId,
+      session.connectionId,
+    );
     let manifest: AgentCapabilityManifest;
     try {
       manifest = AgentCapabilityManifestSchema.parse(await adapter.attest());
@@ -1827,7 +1955,10 @@ export class AgentSessionGateway {
         "Collaborate requires explicit confirmation of the more-permissive native policy",
       );
     const existing = this.#store.findSessionBinding(request);
-    const adapter = this.#registry.require(request.adapterId);
+    const adapter = this.#registry.require(
+      request.adapterId,
+      request.connectionId,
+    );
     let manifest: AgentCapabilityManifest;
     let effectiveSessionRef: string;
     try {
@@ -1908,6 +2039,9 @@ export class AgentSessionGateway {
             schema: "aiw.agent-session/0.12",
             sessionId: randomUUID(),
             adapterId: request.adapterId,
+            ...(request.connectionId
+              ? { connectionId: request.connectionId }
+              : {}),
             adapterSessionRef: effectiveSessionRef,
             adapterRootSessionRef: request.adapterSessionRef,
             adapterPreviousSessionRef: null,
@@ -2003,7 +2137,10 @@ export class AgentSessionGateway {
       );
     this.#busy.add(sessionId);
     try {
-      const adapter = this.#registry.require(persisted.adapterId);
+      const adapter = this.#registry.require(
+        persisted.adapterId,
+        persisted.connectionId,
+      );
       const manifest = AgentCapabilityManifestSchema.parse(
         await adapter.attest(),
       );
@@ -2268,7 +2405,10 @@ export class AgentSessionGateway {
         "conflict",
         "Interrupt run identity does not match",
       );
-    const adapter = this.#registry.require(session.adapterId);
+    const adapter = this.#registry.require(
+      session.adapterId,
+      session.connectionId,
+    );
     const manifest = await adapter.attest();
     if (!manifest.capabilities.interrupt || !adapter.interrupt)
       throw new GatewayError(
@@ -2290,7 +2430,10 @@ export class AgentSessionGateway {
         "conflict",
         "Approval run identity does not match",
       );
-    const adapter = this.#registry.require(session.adapterId);
+    const adapter = this.#registry.require(
+      session.adapterId,
+      session.connectionId,
+    );
     const manifest = await adapter.attest();
     if (!manifest.capabilities.approvals || !adapter.resolveApproval)
       throw new GatewayError(

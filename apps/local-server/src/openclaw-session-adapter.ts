@@ -31,7 +31,11 @@ const REQUIRED_METHODS = [
   "sessions.delete",
 ] as const;
 
+import { NativeSessionStore } from "./native-session-store.js";
+
 type OpenClawOptions = {
+  readonly nativeSessionRoot?: string;
+  readonly agentId?: string;
   readonly gatewayUrl: string;
   readonly credential: string | (() => string);
   readonly connectTimeoutMs?: number;
@@ -394,6 +398,46 @@ export function resolveOpenClawCredential(
 
 export class OpenClawSessionAdapter implements AgentAdapter {
   readonly id = "openclaw";
+  #store: NativeSessionStore | undefined;
+  #loaded: Promise<void> | undefined;
+  async #load(): Promise<void> {
+    this.#loaded ??= (async () => {
+      if (!this.#options.nativeSessionRoot) return;
+      this.#store = new NativeSessionStore(
+        this.#options.nativeSessionRoot,
+        "openclaw",
+      );
+      await this.#store.load();
+      for (const [rootSessionRef, value] of this.#store.bindings) {
+        const binding: OwnedBinding = {
+          worldInstanceId: value.worldInstanceId,
+          rootSessionRef,
+          effectiveSessionRef: value.nativeSessionId,
+          title: value.title,
+          ended: value.ended,
+          quarantined: value.quarantined,
+        };
+        this.#bindingsByRoot.set(rootSessionRef, binding);
+        this.#bindingsByEffective.set(binding.effectiveSessionRef, binding);
+      }
+    })();
+    await this.#loaded;
+  }
+  async #save(): Promise<void> {
+    if (!this.#store) return;
+    this.#store.bindings.clear();
+    for (const binding of this.#bindingsByRoot.values())
+      this.#store.bindings.set(binding.rootSessionRef, {
+        worldInstanceId: binding.worldInstanceId,
+        rootSessionRef: binding.rootSessionRef,
+        nativeSessionId: binding.effectiveSessionRef,
+        title: binding.title,
+        runtimeHome: this.#options.gatewayUrl,
+        ended: binding.ended,
+        quarantined: binding.quarantined,
+      });
+    await this.#store.save();
+  }
   readonly #options: OpenClawOptions;
   readonly #bindingsByRoot = new Map<string, OwnedBinding>();
   readonly #bindingsByEffective = new Map<string, OwnedBinding>();
@@ -460,6 +504,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
   }
 
   async listSessions(): Promise<readonly AdapterSessionSummary[]> {
+    await this.#load();
     return [...this.#bindingsByRoot.values()]
       .filter((binding) => !binding.ended)
       .map((binding) => ({
@@ -474,13 +519,14 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     worldInstanceId: string,
     displayName = "OpenClaw",
   ): Promise<AdapterSessionSummary> {
+    await this.#load();
     boundedRef(worldInstanceId, "World instance identity");
     const title =
       displayName.normalize("NFC").trim().slice(0, 80) || "OpenClaw";
     const connection = await this.#connection();
     try {
       const result = await connection.request("sessions.create", {
-        key: `agent:main:aiw:${randomUUID()}`,
+        key: `agent:${this.#options.agentId ?? "main"}:aiw:${randomUUID()}`,
         label: title,
       });
       if (
@@ -513,6 +559,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       };
       this.#bindingsByRoot.set(rootSessionRef, binding);
       this.#bindingsByEffective.set(effectiveSessionRef, binding);
+      await this.#save();
       return {
         id: effectiveSessionRef,
         rootId: rootSessionRef,
@@ -556,6 +603,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
         "conflict",
         "OpenClaw World ownership identity is required",
       );
+    await this.#load();
     const binding = this.#ownedBinding(sessionRef, context.worldInstanceId);
     if (binding.quarantined)
       throw new GatewayError(
@@ -592,6 +640,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     text: string,
     context?: AdapterTurnContext,
   ): Promise<AdapterTurnResult> {
+    await this.#load();
     if (Buffer.byteLength(text, "utf8") > MAX_INPUT_BYTES)
       throw new GatewayError("validation", "OpenClaw input exceeds the bound");
     const binding = this.#ownedBinding(
@@ -599,15 +648,15 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       undefined,
       context?.rootSessionRef,
     );
-    if (binding.quarantined)
-      throw new GatewayError(
-        "conflict",
-        "OpenClaw owned session is quarantined and stale",
-      );
     if (this.#busy.has(binding.effectiveSessionRef))
       throw new GatewayError(
         "conflict",
         "This exact OpenClaw session already has an active turn",
+      );
+    if (binding.quarantined)
+      throw new GatewayError(
+        "conflict",
+        "OpenClaw owned session is quarantined and stale",
       );
     this.#busy.add(binding.effectiveSessionRef);
     const connection = await this.#connection().catch((error) => {
@@ -616,6 +665,8 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     });
     const runId = randomUUID();
     this.#activeRuns.set(runId, binding);
+    binding.quarantined = true;
+    await this.#save();
     const deltas: string[] = [];
     let outputBytes = 0;
     let eventCount = 0;
@@ -838,6 +889,9 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       connection.close();
       this.#busy.delete(binding.effectiveSessionRef);
       this.#activeRuns.delete(runId);
+      binding.quarantined =
+        mayHaveAdmitted && !terminalConfirmed && !abortConfirmed;
+      await this.#save();
     }
   }
 
@@ -866,6 +920,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     worldInstanceId: string,
     rootSessionRef: string,
   ): Promise<void> {
+    await this.#load();
     const binding = this.#ownedBinding(rootSessionRef, worldInstanceId);
     if (this.#busy.has(binding.effectiveSessionRef))
       throw new GatewayError(
@@ -886,6 +941,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       binding.ended = true;
       this.#bindingsByRoot.delete(binding.rootSessionRef);
       this.#bindingsByEffective.delete(binding.effectiveSessionRef);
+      await this.#save();
     } finally {
       connection.close();
     }

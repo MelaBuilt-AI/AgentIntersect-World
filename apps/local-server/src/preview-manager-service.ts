@@ -646,6 +646,45 @@ export class PreviewManagerService {
     });
   }
 
+  async resumeSaved(
+    request: Pick<
+      StartPreviewRequest,
+      "workstreamId" | "expectedWorkstreamRevision" | "repository" | "agent"
+    >,
+  ): Promise<"not-needed" | "ready" | "failed"> {
+    await this.#ensureLoaded();
+    const previous = this.#state.previousVerified;
+    if (
+      this.#state.active?.workstreamId === request.workstreamId ||
+      !previous ||
+      previous.workstreamId !== request.workstreamId ||
+      this.#state.commands.some(
+        (command) =>
+          command.kind === "stop" &&
+          "previewId" in command.result &&
+          command.result.previewId === previous.previewId,
+      )
+    )
+      return "not-needed";
+    const recipe = this.#state.recipes.find(
+      (value) => value.recipeId === previous.recipeId,
+    );
+    if (!recipe || recipe.revision !== previous.recipeRevision) return "failed";
+    try {
+      const result = await this.start({
+        ...request,
+        requestId: this.#id(),
+        correlationId: this.#id(),
+        recipeId: recipe.recipeId,
+        expectedRecipeRevision: recipe.revision,
+      });
+      return result.preview.state === "ready" ? "ready" : "failed";
+    } catch (error) {
+      if (!(error instanceof PreviewManagerServiceError)) throw error;
+      return "failed";
+    }
+  }
+
   async current(): Promise<{
     readonly schema: "aiw.preview-manager/1";
     readonly active: PreviewRecord | null;

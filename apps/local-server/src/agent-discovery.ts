@@ -10,34 +10,21 @@ import { access, readdir, readFile, realpath, stat } from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
 
-export const SETUP_HARNESSES = [
-  "hermes",
-  "openclaw",
-  "codex",
-  "claude-code",
-] as const;
-export type SetupHarness = (typeof SETUP_HARNESSES)[number];
-export type AgentEnvironment = {
-  readonly id: string;
-  readonly kind: "linux" | "windows" | "wsl" | "macos";
-  readonly label: string;
-  readonly distro?: string;
-};
-export type NativeIdentity = {
-  readonly id: string;
-  readonly label: string;
-  readonly kind: "profile" | "agent";
-  readonly profilePath: string;
-};
-export type AgentInstallation = {
-  readonly id: string;
-  readonly adapterId: SetupHarness;
-  readonly environment: AgentEnvironment;
-  readonly executablePath: string;
-  readonly homePath: string;
-  readonly identities: readonly NativeIdentity[];
-  /** Finding an executable is not authentication or execution proof. */
-  readonly status: "found";
+import {
+  SETUP_HARNESSES,
+  type SetupHarness,
+  type AgentEnvironment,
+  type NativeIdentity,
+  type AgentInstallation,
+  type DiscoveryResult,
+} from "@agentintersect-world/world-schema/agent-setup";
+export { SETUP_HARNESSES };
+export type {
+  SetupHarness,
+  AgentEnvironment,
+  NativeIdentity,
+  AgentInstallation,
+  DiscoveryResult,
 };
 
 const commands: Record<SetupHarness, string> = {
@@ -238,15 +225,6 @@ export async function discoverLocalAgents(options: {
   return result;
 }
 
-export type DiscoveryResult = {
-  readonly installations: readonly AgentInstallation[];
-  readonly environments: readonly {
-    readonly id: string;
-    readonly label: string;
-    readonly status: "scanned" | "stopped" | "unavailable";
-    readonly message?: string;
-  }[];
-};
 export type DiscoveryRunner = (
   command: string,
   args: readonly string[],

@@ -116,6 +116,7 @@ import { registerConstellationRoutes } from "./constellation-routes.js";
 import type { ConstellationMessageService } from "./constellation-message-service.js";
 import { registerConstellationMessageRoutes } from "./constellation-message-routes.js";
 import { RepositoryIntakeService } from "./repository-intake.js";
+import { registerAgentSetupRoutes } from "./agent-setup-routes.js";
 import { AgentSetupService } from "./agent-setup-service.js";
 import { registerRepositoryIntakeRoutes } from "./repository-intake-routes.js";
 import type { PreviewManagerService } from "./preview-manager-service.js";
@@ -460,13 +461,7 @@ export function createLocalServer(
   server.after(() => {
     const runtime = { name: "node" as const, version: process.version };
 
-    server.get("/agent-setup", async (request) =>
-      success(request, await agentSetupService.state()),
-    );
-    server.post("/agent-setup/discover", async (request) => {
-      agentSetupService.lastDiscovery = await agentSetupService.discover();
-      return success(request, agentSetupService.lastDiscovery);
-    });
+    registerAgentSetupRoutes(server, agentSetupService, { success, failure });
     registerCodeGraphRoutes(server, codeGraphService, { success, failure });
     registerRepositoryIntakeRoutes(server, repositoryIntakeService, {
       success,
@@ -568,10 +563,15 @@ export function createLocalServer(
         failure,
       });
     if (options.workstreamService)
-      registerWorkstreamRoutes(server, options.workstreamService, {
-        success,
-        failure,
-      });
+      registerWorkstreamRoutes(
+        server,
+        options.workstreamService,
+        {
+          success,
+          failure,
+        },
+        options.previewManagerService,
+      );
     if (options.previewManagerService)
       registerPreviewManagerRoutes(server, options.previewManagerService, {
         success,

@@ -1,6 +1,6 @@
 # Agent Setup Menu — scope and acceptance
 
-Status: scope confirmed; implementation and acceptance pending.
+Status: implementation and native API restart/Continue verified; manual browser acceptance and exact-SHA CI pending.
 
 ## Authorization
 
@@ -43,6 +43,16 @@ Confirmed choices:
 - UI: new Agent Setup component/client under `apps/web/src/world-entry/`; `WorldEntryExperience.tsx`, `WorldEscapeMenu.tsx`, entry state/reducer, styles, and affected tests.
 - Continuation: existing Workstream/native-session/preview lifecycle, changed only for gaps demonstrated by the real restart test.
 - Fresh clone: root README with supported runtime/bootstrap and setup flow.
+
+## Implementation checkpoint
+
+Implemented: persisted local registrations; metadata-only Windows/WSL discovery; same-environment native configuration routing; a bounded extra-installation-directory search; readiness/Recheck; first-run logo/setup gate; saved-connection selection; and Escape access before and inside World. Explicit legacy adapter configurations retain the previous entry flow until a saved registration is added.
+
+Native binding persistence is covered for all four harnesses. The full Vitest suite passed 1,254 tests after the shared-schema import correction. The subsequent preview-relaunch correction passed its affected nine tests and backend build.
+
+A real Codex production-backend restart first proved native-session/file/Git continuity. The expanded production Workstream/preview API test then reproduced a missing preview relaunch. After the focused correction, Continue on the same preserved native work retained the exact native session, Workstream, task, owned worktree, branch, Git HEAD, tracked/untracked file hashes and message history; a new preview process served the original generated page. No replacement coding or message was sent. Both test-owned backend generations and preview processes were stopped. This is native API proof, not a human browser verdict. The retained private evidence root is `/home/mela_ai/.hermes/runs/aiw-pr12-workstream-_b6vbhjw`; the normal entry documentation is in the root README.
+
+**Still gated:** human browser/visual acceptance of setup, selection and the normal-UI Continue path; and exact-SHA delivery checks. Other Windows/WSL environments are discoverable but not executable by this backend: attach reports that limitation and requires running World in the harness environment. Prerequisite changes remain operator-managed with visible guidance; this implementation does not install plugins, change native configuration, restart services or log in on the operator's behalf. These limits must remain visible in the PR, not be silently promoted to completed acceptance.
 
 ## Protected baseline
 

@@ -1,47 +1,154 @@
-import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { discoverAgents, type DiscoveryResult } from "./agent-discovery.js";
 
-export const RegistrationSchema = z.object({
-  id: z.string().uuid(),
-  adapterId: z.enum(["hermes", "openclaw", "codex", "claude-code"]),
-  displayName: z.string().trim().min(1).max(80),
-  installationId: z.string().min(1).max(128),
-  environment: z.object({
-    id: z.string(),
-    kind: z.enum(["linux", "macos", "windows", "wsl"]),
-    label: z.string(),
-    distro: z.string().optional(),
-  }),
-  executablePath: z.string().min(1).max(4096),
-  homePath: z.string().min(1).max(4096),
-  identity: z.object({
-    id: z.string(),
-    label: z.string(),
-    kind: z.enum(["profile", "agent"]),
-    profilePath: z.string(),
-  }),
-  connectedAt: z.string().datetime(),
-});
-export type AgentRegistration = z.infer<typeof RegistrationSchema>;
-const SetupStateSchema = z.object({
-  schema: z.literal("aiw.agent-setup/1"),
-  completed: z.boolean(),
-  registrations: z.array(RegistrationSchema).max(64),
-});
-export type AgentSetupState = z.infer<typeof SetupStateSchema>;
+import {
+  RegistrationSchema,
+  SetupStateSchema,
+  AttachAgentInputSchema,
+  type AgentRegistration,
+  type AgentSetupState,
+  type SetupCheck,
+} from "@agentintersect-world/world-schema/agent-setup";
+export { RegistrationSchema, AttachAgentInputSchema };
+export type { AgentRegistration, AgentSetupState, SetupCheck };
 
 export class AgentSetupService {
   readonly filename: string;
-  readonly discover: () => Promise<DiscoveryResult>;
+  readonly legacyConfigured: boolean;
+  readonly discover: (additionalDirectory?: string) => Promise<DiscoveryResult>;
   lastDiscovery: DiscoveryResult | null = null;
+  readonly checkConnection: (
+    registration: AgentRegistration,
+  ) => Promise<SetupCheck>;
+  #writes = Promise.resolve();
   constructor(options: {
     readonly dataDirectory: string;
-    readonly discover?: () => Promise<DiscoveryResult>;
+    readonly legacyConfigured?: boolean;
+    readonly discover?: (
+      additionalDirectory?: string,
+    ) => Promise<DiscoveryResult>;
+    readonly checkConnection?: (
+      registration: AgentRegistration,
+    ) => Promise<SetupCheck>;
   }) {
+    this.legacyConfigured = options.legacyConfigured === true;
     this.filename = path.join(options.dataDirectory, "agent-setup.json");
-    this.discover = options.discover ?? discoverAgents;
+    this.discover =
+      options.discover ??
+      ((additionalDirectory) =>
+        discoverAgents(
+          additionalDirectory
+            ? {
+                searchPath: [additionalDirectory, process.env.PATH ?? ""].join(
+                  path.delimiter,
+                ),
+              }
+            : {},
+        ));
+    this.checkConnection =
+      options.checkConnection ??
+      (async () => ({
+        status: "needs-attention",
+        message:
+          "Native connection setup is not available in this server. Start the matching World local server and Recheck.",
+      }));
+  }
+  async attach(
+    input: z.infer<typeof AttachAgentInputSchema>,
+  ): Promise<{ registration: AgentRegistration | null; check: SetupCheck }> {
+    const request = AttachAgentInputSchema.parse(input);
+    const installation = this.lastDiscovery?.installations.find(
+      (entry) => entry.id === request.installationId,
+    );
+    const identity = installation?.identities.find(
+      (entry) => entry.id === request.identityId,
+    );
+    if (!installation || !identity)
+      throw new Error(
+        "Discover Agents again and select an installation and native identity from the results.",
+      );
+    const state = await this.state();
+    const existing = state.registrations.find(
+      (entry) =>
+        entry.installationId === installation.id &&
+        entry.identity.id === identity.id,
+    );
+    const candidate = RegistrationSchema.parse({
+      id: existing?.id ?? randomUUID(),
+      adapterId: installation.adapterId,
+      displayName: request.displayName,
+      installationId: installation.id,
+      environment: installation.environment,
+      executablePath: installation.executablePath,
+      homePath: installation.homePath,
+      identity,
+      connectedAt: new Date().toISOString(),
+    });
+    const check = await this.checkConnection(candidate);
+    if (check.status !== "ready") return { registration: null, check };
+    await this.#save((current) => {
+      if (
+        current.registrations.some(
+          (entry) =>
+            entry.id !== candidate.id &&
+            entry.displayName.normalize("NFC").toLowerCase() ===
+              candidate.displayName.normalize("NFC").toLowerCase(),
+        )
+      )
+        throw new Error(
+          "Choose a distinct name for this saved agent connection.",
+        );
+      return {
+        ...current,
+        registrations: [
+          ...current.registrations.filter((entry) => entry.id !== candidate.id),
+          candidate,
+        ],
+      };
+    });
+    return { registration: candidate, check };
+  }
+  async complete(): Promise<AgentSetupState> {
+    await this.#save((state) => {
+      if (!state.registrations.length)
+        throw new Error("Attach at least one agent before completing setup.");
+      return { ...state, completed: true };
+    });
+    return this.state();
+  }
+  async recheck(connectionId: string): Promise<SetupCheck> {
+    const registration = (await this.state()).registrations.find(
+      (entry) => entry.id === connectionId,
+    );
+    if (!registration)
+      throw new Error(
+        "Saved agent connection was not found. Discover Agents again.",
+      );
+    return this.checkConnection(registration);
+  }
+  #save(update: (state: AgentSetupState) => AgentSetupState): Promise<void> {
+    const write = this.#writes.then(async () => {
+      const next = SetupStateSchema.parse(update(await this.state()));
+      await mkdir(path.dirname(this.filename), {
+        recursive: true,
+        mode: 0o700,
+      });
+      const temporary = `${this.filename}.${randomUUID()}.tmp`;
+      try {
+        await writeFile(temporary, JSON.stringify(next) + "\n", {
+          flag: "wx",
+          mode: 0o600,
+        });
+        await rename(temporary, this.filename);
+      } finally {
+        await rm(temporary, { force: true });
+      }
+    });
+    this.#writes = write.catch(() => undefined);
+    return write;
   }
   async state(): Promise<AgentSetupState> {
     try {
@@ -52,7 +159,7 @@ export class AgentSetupService {
       if ((error as NodeJS.ErrnoException).code === "ENOENT")
         return {
           schema: "aiw.agent-setup/1",
-          completed: false,
+          completed: this.legacyConfigured,
           registrations: [],
         };
       throw new Error(
