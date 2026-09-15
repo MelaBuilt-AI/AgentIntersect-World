@@ -805,6 +805,9 @@ for (const reconnect of [false, true]) {
   test(`@hermes-connection-restore preserves four agents and history (reconnect: ${reconnect})`, async ({
     page,
   }, testInfo) => {
+    // Two refreshes plus a rendered four-avatar capture exceed the default
+    // single-page watchdog on software-rendered CI.
+    test.setTimeout(60000);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await seedConfiguredAvatar(page, "Aaron");
     const fixture = await installFixture(page, 4, true);
@@ -1074,7 +1077,8 @@ for (const initialCount of [0, 2, 3]) {
   test(`@setup-add expands ${initialCount === 0 ? "single" : `${initialCount}-agent`} World without remounting, cancellation and refresh`, async ({
     page,
   }, testInfo) => {
-    test.setTimeout(120000);
+    // The four-avatar path also exercises 24 preview edits and both layouts.
+    test.setTimeout(initialCount === 3 ? 180000 : 120000);
     await page.emulateMedia({
       reducedMotion: initialCount === 2 ? "no-preference" : "reduce",
     });
@@ -1259,26 +1263,29 @@ for (const initialCount of [0, 2, 3]) {
       await expect(canvas).toHaveAttribute("data-live-canvas", "original");
       await page.setViewportSize({ width: 390, height: 844 });
       await preview.scrollIntoViewIfNeeded();
-      await expect(async () => {
-        const geometry = await dialog.evaluate((el) => {
-          const box = el
-            .querySelector(".avatar-builder__preview")!
-            .getBoundingClientRect();
-          return {
-            x: box.x,
-            width: box.width,
-            right: box.right,
-            scrollWidth: el.scrollWidth,
-            clientWidth: el.clientWidth,
-          };
-        });
-        expect(geometry.width, JSON.stringify(geometry)).toBeGreaterThan(260);
-        expect(geometry.x).toBeGreaterThanOrEqual(0);
-        expect(geometry.right).toBeLessThanOrEqual(390);
-        expect(geometry.scrollWidth).toBeLessThanOrEqual(
-          geometry.clientWidth + 1,
-        );
-      }).toPass({ timeout: 5000 });
+      // Read one atomic post-resize layout snapshot. Polling this immutable
+      // CSS geometry adds a second watchdog around slow browser transport.
+      const geometry = await page.evaluate(() => {
+        const el = document.querySelector(
+          '[role="dialog"][aria-label="Add Agent"]',
+        )!;
+        const box = el
+          .querySelector(".avatar-builder__preview")!
+          .getBoundingClientRect();
+        return {
+          x: box.x,
+          width: box.width,
+          right: box.right,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth,
+        };
+      });
+      expect(geometry.width, JSON.stringify(geometry)).toBeGreaterThan(260);
+      expect(geometry.x).toBeGreaterThanOrEqual(0);
+      expect(geometry.right).toBeLessThanOrEqual(390);
+      expect(geometry.scrollWidth).toBeLessThanOrEqual(
+        geometry.clientWidth + 1,
+      );
       await page.screenshot({
         path: testInfo.outputPath("add-avatar-portrait.png"),
       });
@@ -1289,12 +1296,19 @@ for (const initialCount of [0, 2, 3]) {
         window as unknown as { __arrivalPlayback: unknown[] }
       ).__arrivalPlayback.length = 0;
     });
+    const avatarSaved = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname ===
+          "/api/constellation/agents/roster-claude/avatar" &&
+        response.request().method() === "POST",
+    );
     await dialog
       .getByRole("button", { name: "Accept Agent Avatar", exact: true })
       .click();
     try {
-      // Save traverses consent + roster + avatar persistence while both
-      // software-rendered canvases remain mounted.
+      // Consent, roster addition and avatar persistence precede UI completion.
+      // Start the UI assertion at its owning final-response boundary.
+      expect((await avatarSaved).ok()).toBe(true);
       await expect(dialog).toBeHidden({ timeout: 15000 });
       await expect(
         page

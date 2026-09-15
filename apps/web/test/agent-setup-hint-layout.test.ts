@@ -54,3 +54,40 @@ it("keeps the Escape hint top-left and separate from the music controls", async 
     await browser.close();
   }
 }, 20000);
+
+it("isolates inert setup content without trapping active World overlays beneath portals", async () => {
+  const css = await readFile(
+    new URL("../src/world-entry/agent-setup.css", import.meta.url),
+    "utf8",
+  );
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(`<style>${css}
+      .focused { position:fixed; inset:0; z-index:100; }
+      .portal { position:fixed; inset:0; z-index:12; }
+    </style><div class="agent-setup-content"><div class="focused">Focused World view</div></div><div class="portal">Code Wheel portal</div>`);
+    expect(
+      await page.evaluate(() => document.elementFromPoint(100, 100)?.className),
+    ).toBe("focused");
+    await page
+      .locator(".agent-setup-content")
+      .evaluate((element) => element.setAttribute("inert", ""));
+    expect(
+      await page
+        .locator(".agent-setup-content")
+        .evaluate((element) => getComputedStyle(element).isolation),
+    ).toBe("isolate");
+    expect(
+      await page.evaluate(() => document.elementFromPoint(100, 100)?.className),
+    ).toBe("portal");
+    await page
+      .locator(".agent-setup-content")
+      .evaluate((element) => element.removeAttribute("inert"));
+    expect(
+      await page.evaluate(() => document.elementFromPoint(100, 100)?.className),
+    ).toBe("focused");
+  } finally {
+    await browser.close();
+  }
+}, 20000);

@@ -60,6 +60,31 @@ const proposalFor = (agent: (typeof agents)[number]) => ({
   },
 });
 
+const sessionFor = (agent: (typeof agents)[number]) => ({
+  schema: "aiw.agent-session/0.12",
+  sessionId: agent.worldSessionId,
+  adapterId: agent.adapterId,
+  adapterSessionRef: agent.nativeRootSessionRef,
+  adapterRootSessionRef: agent.nativeRootSessionRef,
+  adapterPreviousSessionRef: null,
+  profile: "default",
+  workspaceId: "world-entry",
+  repositoryRef: "current",
+  worktreeRef: null,
+  mode: "explore",
+  permissionRevision: 0,
+  capabilitySnapshotHash: "d".repeat(64),
+  avatarProfileRef: null,
+  continuity: "current",
+  status: "ready",
+  currentFocusObjectIds: [],
+  currentTaskRef: null,
+  activeRunId: null,
+  lastEventSequence: 0,
+  createdAt: "2026-08-24T21:00:00.000Z",
+  updatedAt: "2026-08-24T21:00:00.000Z",
+});
+
 async function fulfillJson(route: Route, data: unknown, status = 200) {
   await route.fulfill({
     status,
@@ -198,6 +223,34 @@ async function installFixture(page: Page) {
       return;
     }
 
+    if (pathname.endsWith("/agent-sessions/native") && method === "GET") {
+      await fulfillJson(
+        route,
+        envelope([
+          {
+            id: agents[0].nativeRootSessionRef,
+            source: "cli",
+            model: "fixture",
+            startedAt: "2026-08-24T21:00:00.000Z",
+            messageCount: 0,
+          },
+        ]),
+      );
+      return;
+    }
+    if (pathname.endsWith("/agent-sessions/attach") && method === "POST") {
+      expect(request.postDataJSON()).toMatchObject({
+        adapterId: "hermes",
+        adapterSessionRef: agents[0].nativeRootSessionRef,
+      });
+      await fulfillJson(route, envelope(sessionFor(agents[0])));
+      return;
+    }
+    if (pathname.endsWith("/constellation/messages") && method === "GET") {
+      await fulfillJson(route, envelope([]));
+      return;
+    }
+
     const sessionMatch = pathname.match(
       /\/agent-sessions\/([^/]+)\/(status|history|avatar-proposal|work-focus)$/u,
     );
@@ -208,30 +261,7 @@ async function installFixture(page: Page) {
         (candidate) => candidate.worldSessionId === sessionId,
       )!;
       const proposal = proposalFor(agent);
-      const session = {
-        schema: "aiw.agent-session/0.12",
-        sessionId,
-        adapterId: agent.adapterId,
-        adapterSessionRef: agent.nativeRootSessionRef,
-        adapterRootSessionRef: agent.nativeRootSessionRef,
-        adapterPreviousSessionRef: null,
-        profile: "default",
-        workspaceId: "world-entry",
-        repositoryRef: "current",
-        worktreeRef: null,
-        mode: "explore",
-        permissionRevision: 0,
-        capabilitySnapshotHash: "d".repeat(64),
-        avatarProfileRef: null,
-        continuity: "current",
-        status: "ready",
-        currentFocusObjectIds: [],
-        currentTaskRef: null,
-        activeRunId: null,
-        lastEventSequence: 0,
-        createdAt: "2026-08-24T21:00:00.000Z",
-        updatedAt: "2026-08-24T21:00:00.000Z",
-      };
+      const session = sessionFor(agent);
       const data =
         operation === "status"
           ? session
@@ -393,7 +423,16 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
   const fixture = await installFixture(page);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Reconnect" }).click();
+  const roster = page.getByRole("region", {
+    name: "Connected agent constellation",
+  });
+  const hermes = roster.locator("li").filter({ hasText: "Mr Fluff" });
+  await expect(hermes).toHaveAttribute("data-connection", "connected");
+  await roster
+    .locator("li")
+    .filter({ hasText: "Codex" })
+    .getByRole("button", { name: "Reconnect", exact: true })
+    .click();
   const enterWorld = page.getByRole("button", { name: "Enter World" });
   await expect(enterWorld).toBeEnabled();
   await enterWorld.click();
@@ -486,6 +525,13 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
   await page
     .getByRole("region", { name: "Final voice caption" })
     .getByRole("button", { name: "Send" })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Final voice caption" }),
+  ).toBeHidden();
+  await expect(page.getByLabel("Message Codex")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Clear Codex and send to all agents" })
     .click();
   await expect(page.getByLabel("Message All agents")).toBeVisible();
 

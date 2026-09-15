@@ -19,7 +19,7 @@
   cursor: not-allowed;
 }
 /* Keep inert World dialogs below setup in both painting and hit testing. */
-.agent-setup-content {
+.agent-setup-content[inert] {
   isolation: isolate;
 }
 .agent-setup-layer {
