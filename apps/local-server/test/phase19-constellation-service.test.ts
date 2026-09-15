@@ -69,6 +69,55 @@ async function add(
 }
 
 describe("Phase 19 durable constellation service", () => {
+  it("projects a failed member unavailable without losing healthy bindings or accepted avatars", async () => {
+    let failed = false;
+    const service = await ConstellationService.open({
+      directory: directory(),
+      worldInstanceId: "world-one",
+      lifecycle: lifecyclePort({
+        isBindingAvailable: (binding) =>
+          !(failed && binding.adapterId === "claude-code"),
+      }),
+    });
+    for (const [index, adapterId] of [
+      [1, "codex"],
+      [2, "claude-code"],
+      [3, "openclaw"],
+    ] as const) {
+      await add(service, index, adapterId, (index - 1) * 2);
+      await service.setAvatar({
+        ...mutation((index - 1) * 2 + 1, `avatar-${index}`),
+        rosterId: `roster-${index}`,
+        avatar: {
+          status: "accepted",
+          profileId: `avatar-${index}`,
+          sessionId: `world-session-${index}`,
+        },
+      });
+    }
+    const before = service.current().projection!;
+    expect(before.entryReady).toBe(true);
+    failed = true;
+    const after = service.current().projection!;
+    expect(after.entryReady).toBe(false);
+    expect(after.agents[1]).toMatchObject({
+      connection: "unavailable",
+      continuity: "unavailable",
+      avatar: before.agents[1]!.avatar,
+    });
+    expect(after.agents.filter((a) => a.adapterId !== "claude-code")).toEqual(
+      before.agents.filter((a) => a.adapterId !== "claude-code"),
+    );
+    const removed = await service.removeAgent({
+      ...mutation(after.revision, "remove-failed"),
+      rosterId: "roster-2",
+    });
+    expect(removed.projection.entryReady).toBe(true);
+    expect(removed.projection.agents.map((a) => a.rosterId)).toEqual([
+      "roster-1",
+      "roster-3",
+    ]);
+  });
   it("rejects operator-persistent ownership for non-Hermes adapters", async () => {
     const service = await ConstellationService.open({
       directory: directory(),

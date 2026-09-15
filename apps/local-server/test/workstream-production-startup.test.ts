@@ -291,11 +291,7 @@ describe("production Workstream startup composition", () => {
       expect(response.status).toBe(404);
       expect(
         (await json<{ error: { message: string } }>(response)).error.message,
-      ).toBe(
-        configuration.AIW_AGENT_SESSIONS_ENABLED === "true"
-          ? "No current Workstream"
-          : "Route not found",
-      );
+      ).toBe("No current Workstream");
       if (configuration.AIW_AGENT_SESSIONS_ENABLED === "true") {
         const history = await fetch(
           `${baseUrl}/workstreams/history?repositoryId=not-loaded`,

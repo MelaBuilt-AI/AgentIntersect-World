@@ -15,6 +15,10 @@ import {
   type AgentAdapter,
   type WorldOwnedSessionContext,
 } from "./agent-sessions.js";
+import {
+  NativeSessionStore,
+  type NativeOwnedBinding as OwnedBinding,
+} from "./native-session-store.js";
 import { extractAdapterRepositoryLocator } from "./repository-work-focus.js";
 
 export const CLAUDE_CODE_VERSION = "2.1.228";
@@ -86,22 +90,19 @@ const STREAM_DELTA_TYPES = new Set([
   "input_json_delta",
 ]);
 
+import type { AgentEnvironmentExecution } from "./agent-environment.js";
+
 type ClaudeCodeOptions = {
+  readonly environmentExecution?: AgentEnvironmentExecution;
   readonly executablePath: string;
   readonly nativeSessionRoot: string;
+  readonly nativeProfilePath?: string;
+  readonly nativeHomePath?: string;
+  readonly agentName?: string;
   readonly attestTimeoutMs?: number;
   readonly turnTimeoutMs?: number;
   readonly terminateGraceMs?: number;
   readonly fetch?: typeof globalThis.fetch;
-};
-
-type OwnedBinding = {
-  readonly worldInstanceId: string;
-  readonly nativeSessionId: string;
-  readonly runtimeHome: string;
-  readonly title: string;
-  ended: boolean;
-  quarantined: boolean;
 };
 
 type ProcessResult = {
@@ -149,7 +150,42 @@ function nativeSessionId(value: unknown): string {
   return value;
 }
 
-function processEnvironment(runtimeHome: string): NodeJS.ProcessEnv {
+function processEnvironment(
+  runtimeHome: string,
+  options: ClaudeCodeOptions,
+): NodeJS.ProcessEnv {
+  if (options.nativeProfilePath) {
+    const environment: NodeJS.ProcessEnv = {};
+    for (const key of [
+      ...ENVIRONMENT_ALLOWLIST,
+      "HOME",
+      "USERPROFILE",
+      "APPDATA",
+      "LOCALAPPDATA",
+      "SystemRoot",
+      "TEMP",
+      "TMP",
+      "XDG_CONFIG_HOME",
+      "XDG_STATE_HOME",
+      "XDG_DATA_HOME",
+      "XDG_CACHE_HOME",
+      "ANTHROPIC_API_KEY",
+      "ANTHROPIC_AUTH_TOKEN",
+      "ANTHROPIC_BASE_URL",
+      "CLAUDE_CODE_OAUTH_TOKEN",
+      "CLAUDE_CODE_USE_BEDROCK",
+      "CLAUDE_CODE_USE_VERTEX",
+      "AWS_PROFILE",
+      "AWS_REGION",
+      "GOOGLE_CLOUD_PROJECT",
+      "GOOGLE_APPLICATION_CREDENTIALS",
+    ]) {
+      if (process.env[key] !== undefined) environment[key] = process.env[key];
+    }
+    environment.HOME = options.nativeHomePath ?? process.env.HOME;
+    environment.CLAUDE_CONFIG_DIR = options.nativeProfilePath;
+    return environment;
+  }
   const environment: NodeJS.ProcessEnv = {
     ANTHROPIC_AUTH_TOKEN: "ollama",
     ANTHROPIC_BASE_URL: OLLAMA_BASE_URL,
@@ -216,12 +252,13 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
   readonly id = "claude-code";
   readonly #options: ClaudeCodeOptions;
   readonly #fetch: typeof globalThis.fetch;
-  readonly #bindings = new Map<string, OwnedBinding>();
+  readonly #sessions: NativeSessionStore;
   readonly #busy = new Set<string>();
 
   constructor(options: ClaudeCodeOptions) {
     if (
-      !path.isAbsolute(options.executablePath) ||
+      (!options.environmentExecution &&
+        !path.isAbsolute(options.executablePath)) ||
       !path.isAbsolute(options.nativeSessionRoot) ||
       options.executablePath.length > 4_096 ||
       options.nativeSessionRoot.length > 4_096 ||
@@ -233,40 +270,57 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         "validation",
       );
     this.#options = options;
+    this.#sessions = new NativeSessionStore(
+      options.nativeSessionRoot,
+      "claude-code",
+    );
     this.#fetch = options.fetch ?? globalThis.fetch;
   }
 
-  #args(sessionId: string, resume: boolean): string[] {
+  #args(sessionId: string, resume: boolean, recovery = false): string[] {
     return [
       "-p",
-      "--model",
-      CLAUDE_MODEL,
+      ...(this.#options.nativeProfilePath ? [] : ["--model", CLAUDE_MODEL]),
+      ...(this.#options.agentName && this.#options.agentName !== "default"
+        ? ["--agent", this.#options.agentName]
+        : []),
       "--output-format",
       "stream-json",
       "--input-format",
       "text",
       "--verbose",
       "--include-partial-messages",
-      "--tools",
-      "Read,Glob,Grep",
-      "--allowedTools",
-      "Read,Glob,Grep",
+      ...(recovery
+        ? ["--tools", ""]
+        : this.#options.nativeProfilePath
+          ? []
+          : ["--tools", "Read,Glob,Grep", "--allowedTools", "Read,Glob,Grep"]),
       "--permission-mode",
       "dontAsk",
       "--append-system-prompt",
       WORLD_COMPLETION_PROMPT,
-      "--disable-slash-commands",
-      "--setting-sources",
-      "",
-      "--mcp-config",
-      '{"mcpServers":{}}',
-      "--strict-mcp-config",
+      ...(this.#options.nativeProfilePath
+        ? []
+        : [
+            "--disable-slash-commands",
+            "--setting-sources",
+            "",
+            "--mcp-config",
+            '{"mcpServers":{}}',
+            "--strict-mcp-config",
+          ]),
       resume ? "--resume" : "--session-id",
       sessionId,
     ];
   }
 
   async #createRuntimeHome(id: string): Promise<string> {
+    if (this.#options.nativeProfilePath)
+      return (
+        this.#options.nativeHomePath ??
+        process.env.HOME ??
+        this.#options.nativeSessionRoot
+      );
     const runtimeHome = path.join(
       this.#options.nativeSessionRoot,
       `claude-runtime-${id}`,
@@ -295,15 +349,21 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       readonly validate?: () => void;
     },
   ): Promise<ProcessResult> {
+    const bridged = await this.#options.environmentExecution?.spawn(
+      args,
+      this.#options.nativeSessionRoot,
+    );
     return new Promise<ProcessResult>((resolve, reject) => {
       let child: ChildProcessWithoutNullStreams;
       try {
-        child = spawn(this.#options.executablePath, args, {
-          cwd: this.#options.nativeSessionRoot,
-          env: processEnvironment(options.runtimeHome),
-          detached: true,
-          stdio: ["pipe", "pipe", "pipe"],
-        });
+        child =
+          bridged ??
+          spawn(this.#options.executablePath, args, {
+            cwd: this.#options.nativeSessionRoot,
+            env: processEnvironment(options.runtimeHome, this.#options),
+            detached: true,
+            stdio: ["pipe", "pipe", "pipe"],
+          });
       } catch {
         reject(claudeFailure(options.failureMessage, "offline"));
         return;
@@ -322,10 +382,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       const fail = (error: GatewayError) => {
         if (failure || closed) return;
         failure = error;
-        termination = terminateProcessGroup(
-          child,
-          this.#options.terminateGraceMs ?? 250,
-        );
+        termination = this.#options.environmentExecution
+          ? this.#options.environmentExecution.terminate(child)
+          : terminateProcessGroup(child, this.#options.terminateGraceMs ?? 250);
       };
       const parseLine = (line: string) => {
         if (!line) return;
@@ -419,7 +478,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       child.stdin.on("error", () =>
         fail(claudeFailure(options.failureMessage)),
       );
-      child.stdin.end(input);
+      if (this.#options.environmentExecution)
+        this.#options.environmentExecution.writeInput(child, input);
+      else child.stdin.end(input);
     });
   }
 
@@ -489,8 +550,13 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       "Claude Code CLI attestation timed out",
       runtimeHome,
     );
-    if (version !== `${CLAUDE_CODE_VERSION} (Claude Code)`)
-      throw claudeFailure("Claude Code CLI version mismatch", "offline");
+    const versionMatch =
+      /^([A-Za-z0-9][A-Za-z0-9.+_-]{0,63}) \(Claude Code\)$/.exec(version);
+    if (!versionMatch)
+      throw claudeFailure(
+        "Claude Code CLI identity response is invalid",
+        "offline",
+      );
     const help = await this.#plain(
       ["--help"],
       "Claude Code CLI attestation timed out",
@@ -514,12 +580,12 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     ];
     if (!requiredHelp.every((item) => help.includes(item)))
       throw claudeFailure("Claude Code CLI contract mismatch", "offline");
-    await this.#attestLocalModel();
+    if (!this.#options.nativeProfilePath) await this.#attestLocalModel();
 
     return AgentCapabilityManifestSchema.parse({
       schema: "aiw.agent-capabilities/0.12",
       adapterId: "claude-code",
-      adapterVersion: `0.19.0-claude-code-${CLAUDE_CODE_VERSION}`,
+      adapterVersion: `0.19.0-claude-code-${versionMatch[1]}`,
       transport: "loopback-http-sse",
       origin: "local",
       auth: "server-bearer",
@@ -552,7 +618,8 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
   }
 
   async listSessions(): Promise<readonly AdapterSessionSummary[]> {
-    return [...this.#bindings.values()]
+    await this.#sessions.load();
+    return [...this.#sessions.bindings.values()]
       .filter((binding) => !binding.ended)
       .map((binding) => ({
         id: binding.nativeSessionId,
@@ -568,6 +635,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     resume: boolean,
     runtimeHome: string,
     context?: AdapterTurnContext,
+    recovery = false,
   ): Promise<AdapterTurnResult> {
     let seenSessionId: string | undefined;
     let initialized = false;
@@ -593,162 +661,196 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       seenSessionId = id;
     };
 
-    await this.#runProcess(this.#args(expectedSessionId, resume), input, {
-      runtimeHome,
-      timeoutMs: this.#options.turnTimeoutMs ?? 120_000,
-      timeoutMessage: "Claude Code CLI turn timed out",
-      failureMessage: "Claude Code CLI turn failed",
-      ...(context?.signal ? { signal: context.signal } : {}),
-      validate: () => {
-        if (
-          !seenSessionId ||
-          !initialized ||
-          !completed ||
-          finalText === undefined
-        )
-          throw claudeFailure();
-      },
-      onEvent: (raw) => {
-        const envelope = raw as Record<string, unknown>;
-        if (
-          envelope.type !== "system" &&
-          envelope.type !== "stream_event" &&
-          envelope.type !== "assistant" &&
-          envelope.type !== "user" &&
-          envelope.type !== "result"
-        )
-          throw claudeFailure();
-        acceptSession(envelope.session_id);
+    await this.#runProcess(
+      this.#args(expectedSessionId, resume, recovery),
+      input,
+      {
+        runtimeHome,
+        timeoutMs: this.#options.turnTimeoutMs ?? 120_000,
+        timeoutMessage: "Claude Code CLI turn timed out",
+        failureMessage: "Claude Code CLI turn failed",
+        ...(context?.signal ? { signal: context.signal } : {}),
+        validate: () => {
+          if (
+            !seenSessionId ||
+            !initialized ||
+            !completed ||
+            finalText === undefined
+          )
+            throw claudeFailure();
+        },
+        onEvent: (raw) => {
+          const envelope = raw as Record<string, unknown>;
+          if (
+            envelope.type !== "system" &&
+            envelope.type !== "stream_event" &&
+            envelope.type !== "assistant" &&
+            envelope.type !== "user" &&
+            envelope.type !== "result" &&
+            envelope.type !== "rate_limit_event"
+          )
+            throw claudeFailure();
+          if (
+            envelope.type !== "rate_limit_event" ||
+            envelope.session_id !== undefined
+          )
+            acceptSession(envelope.session_id);
 
-        if (envelope.type === "system") {
-          if (envelope.subtype === "init") {
-            if (initialized) throw claudeFailure();
-            initialized = true;
+          if (envelope.type === "system") {
+            if (envelope.subtype === "init") {
+              if (initialized) throw claudeFailure();
+              initialized = true;
+              return;
+            }
+            if (envelope.subtype === "permission_denied") {
+              if (
+                !initialized ||
+                completed ||
+                !toolNames.has(toolUseId(envelope.tool_use_id))
+              )
+                throw claudeFailure();
+              // Native policy already refused the tool. Its following tool_result
+              // supplies the failed activity; this telemetry is not a turn failure.
+              return;
+            }
+            if (
+              !initialized ||
+              completed ||
+              (envelope.subtype !== "status" &&
+                envelope.subtype !== "thinking_tokens")
+            )
+              throw claudeFailure();
             return;
           }
-          if (
-            !initialized ||
-            completed ||
-            (envelope.subtype !== "status" &&
-              envelope.subtype !== "thinking_tokens")
-          )
-            throw claudeFailure();
-          return;
-        }
-        if (!initialized || completed) throw claudeFailure();
+          if (!initialized || completed) throw claudeFailure();
 
-        if (envelope.type === "stream_event") {
-          if (!isRecord(envelope.event)) throw claudeFailure();
-          const event = envelope.event;
+          if (envelope.type === "rate_limit_event") {
+            if (
+              !isRecord(envelope.rate_limit_info) ||
+              typeof envelope.rate_limit_info.status !== "string"
+            )
+              throw claudeFailure();
+            return;
+          }
+
+          if (envelope.type === "stream_event") {
+            if (!isRecord(envelope.event)) throw claudeFailure();
+            const event = envelope.event;
+            if (
+              typeof event.type !== "string" ||
+              !STREAM_EVENT_TYPES.has(event.type)
+            )
+              throw claudeFailure();
+            if (event.type !== "content_block_delta") return;
+            if (
+              !isRecord(event.delta) ||
+              !STREAM_DELTA_TYPES.has(String(event.delta.type))
+            )
+              throw claudeFailure();
+            if (event.delta.type !== "text_delta") return;
+            if (typeof event.delta.text !== "string") throw claudeFailure();
+            const bytes = Buffer.byteLength(event.delta.text, "utf8");
+            outputBytes += bytes;
+            if (bytes > MAX_EVENT_BYTES || outputBytes > MAX_OUTPUT_BYTES)
+              throw claudeFailure("Claude Code output exceeded the bound");
+            deltas.push(event.delta.text);
+            emit({
+              type: "assistant.delta",
+              text: event.delta.text,
+              redaction: { applied: false, count: 0 },
+            });
+            return;
+          }
+
+          if (envelope.type === "assistant") {
+            if (
+              !isRecord(envelope.message) ||
+              envelope.message.type !== "message" ||
+              envelope.message.role !== "assistant" ||
+              !Array.isArray(envelope.message.content)
+            )
+              throw claudeFailure();
+            for (const value of envelope.message.content) {
+              if (!isRecord(value) || typeof value.type !== "string")
+                throw claudeFailure();
+              if (
+                value.type === "text" ||
+                value.type === "thinking" ||
+                value.type === "redacted_thinking"
+              )
+                continue;
+              if (value.type !== "tool_use") throw claudeFailure();
+              const id = toolUseId(value.id);
+              if (toolNames.has(id)) throw claudeFailure();
+              const name = safeToolName(value.name);
+              const locator = repositoryRelativeLocator(
+                extractAdapterRepositoryLocator(
+                  "claude-code",
+                  name,
+                  value.input,
+                ),
+                this.#options.nativeSessionRoot,
+              );
+              toolNames.set(id, { name, ...(locator ? { locator } : {}) });
+              emit({
+                type: "tool.started",
+                toolName: name,
+                ...(locator
+                  ? { activityId: id, repositoryLocator: locator }
+                  : {}),
+                redaction: { applied: true, count: 1 },
+              });
+            }
+            return;
+          }
+
+          if (envelope.type === "user") {
+            if (
+              !isRecord(envelope.message) ||
+              (envelope.message.type !== undefined &&
+                envelope.message.type !== "message") ||
+              envelope.message.role !== "user" ||
+              !Array.isArray(envelope.message.content)
+            )
+              throw claudeFailure();
+            for (const value of envelope.message.content) {
+              if (!isRecord(value) || value.type !== "tool_result")
+                throw claudeFailure();
+              if (
+                Object.hasOwn(value, "is_error") &&
+                typeof value.is_error !== "boolean"
+              )
+                throw claudeFailure();
+              const activityId = toolUseId(value.tool_use_id);
+              const tool = toolNames.get(activityId);
+              if (!tool) throw claudeFailure();
+              emit({
+                type:
+                  value.is_error === true ? "tool.failed" : "tool.completed",
+                toolName: tool.name,
+                ...(tool.locator
+                  ? { activityId, repositoryLocator: tool.locator }
+                  : {}),
+                redaction: { applied: true, count: 1 },
+              });
+              toolNames.delete(activityId);
+            }
+            return;
+          }
+
           if (
-            typeof event.type !== "string" ||
-            !STREAM_EVENT_TYPES.has(event.type)
+            envelope.subtype !== "success" ||
+            envelope.is_error !== false ||
+            typeof envelope.result !== "string"
           )
             throw claudeFailure();
-          if (event.type !== "content_block_delta") return;
-          if (
-            !isRecord(event.delta) ||
-            !STREAM_DELTA_TYPES.has(String(event.delta.type))
-          )
-            throw claudeFailure();
-          if (event.delta.type !== "text_delta") return;
-          if (typeof event.delta.text !== "string") throw claudeFailure();
-          const bytes = Buffer.byteLength(event.delta.text, "utf8");
-          outputBytes += bytes;
-          if (bytes > MAX_EVENT_BYTES || outputBytes > MAX_OUTPUT_BYTES)
+          if (Buffer.byteLength(envelope.result, "utf8") > MAX_OUTPUT_BYTES)
             throw claudeFailure("Claude Code output exceeded the bound");
-          deltas.push(event.delta.text);
-          emit({
-            type: "assistant.delta",
-            text: event.delta.text,
-            redaction: { applied: false, count: 0 },
-          });
-          return;
-        }
-
-        if (envelope.type === "assistant") {
-          if (
-            !isRecord(envelope.message) ||
-            envelope.message.type !== "message" ||
-            envelope.message.role !== "assistant" ||
-            !Array.isArray(envelope.message.content)
-          )
-            throw claudeFailure();
-          for (const value of envelope.message.content) {
-            if (!isRecord(value) || typeof value.type !== "string")
-              throw claudeFailure();
-            if (
-              value.type === "text" ||
-              value.type === "thinking" ||
-              value.type === "redacted_thinking"
-            )
-              continue;
-            if (value.type !== "tool_use") throw claudeFailure();
-            const id = toolUseId(value.id);
-            if (toolNames.has(id)) throw claudeFailure();
-            const name = safeToolName(value.name);
-            const locator = repositoryRelativeLocator(
-              extractAdapterRepositoryLocator("claude-code", name, value.input),
-              this.#options.nativeSessionRoot,
-            );
-            toolNames.set(id, { name, ...(locator ? { locator } : {}) });
-            emit({
-              type: "tool.started",
-              toolName: name,
-              ...(locator
-                ? { activityId: id, repositoryLocator: locator }
-                : {}),
-              redaction: { applied: true, count: 1 },
-            });
-          }
-          return;
-        }
-
-        if (envelope.type === "user") {
-          if (
-            !isRecord(envelope.message) ||
-            (envelope.message.type !== undefined &&
-              envelope.message.type !== "message") ||
-            envelope.message.role !== "user" ||
-            !Array.isArray(envelope.message.content)
-          )
-            throw claudeFailure();
-          for (const value of envelope.message.content) {
-            if (!isRecord(value) || value.type !== "tool_result")
-              throw claudeFailure();
-            if (
-              Object.hasOwn(value, "is_error") &&
-              typeof value.is_error !== "boolean"
-            )
-              throw claudeFailure();
-            const activityId = toolUseId(value.tool_use_id);
-            const tool = toolNames.get(activityId);
-            if (!tool) throw claudeFailure();
-            emit({
-              type: value.is_error === true ? "tool.failed" : "tool.completed",
-              toolName: tool.name,
-              ...(tool.locator
-                ? { activityId, repositoryLocator: tool.locator }
-                : {}),
-              redaction: { applied: true, count: 1 },
-            });
-            toolNames.delete(activityId);
-          }
-          return;
-        }
-
-        if (
-          envelope.subtype !== "success" ||
-          envelope.is_error !== false ||
-          typeof envelope.result !== "string"
-        )
-          throw claudeFailure();
-        if (Buffer.byteLength(envelope.result, "utf8") > MAX_OUTPUT_BYTES)
-          throw claudeFailure("Claude Code output exceeded the bound");
-        finalText = envelope.result;
-        completed = true;
+          finalText = envelope.result;
+          completed = true;
+        },
       },
-    });
+    );
     await eventDispatch.catch(() => {
       throw claudeFailure();
     });
@@ -762,16 +864,24 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
   async createWorldSession(
     worldInstanceId: string,
     displayName = "Claude Code",
+    signal?: AbortSignal,
   ): Promise<AdapterSessionSummary> {
+    await this.#sessions.load();
     boundedWorldRef(worldInstanceId);
     const title =
       displayName.normalize("NFC").trim().slice(0, 80) || "Claude Code";
     const id = randomUUID();
     const runtimeHome = await this.#createRuntimeHome(id);
-    const created = await this.#runTurn(CREATE_PROMPT, id, false, runtimeHome);
-    if (created.sessionRef !== id || this.#bindings.has(id))
+    const created = await this.#runTurn(
+      CREATE_PROMPT,
+      id,
+      false,
+      runtimeHome,
+      signal ? { signal, mode: "explore" } : undefined,
+    );
+    if (created.sessionRef !== id || this.#sessions.bindings.has(id))
       throw claudeFailure("Claude Code returned an ambiguous session identity");
-    this.#bindings.set(id, {
+    this.#sessions.bindings.set(id, {
       worldInstanceId,
       nativeSessionId: id,
       runtimeHome,
@@ -779,6 +889,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       ended: false,
       quarantined: false,
     });
+    await this.#sessions.save();
     return { id, rootId: id, source: "claude-code", title };
   }
 
@@ -787,7 +898,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     worldInstanceId?: string,
     allowEnded = false,
   ): OwnedBinding {
-    const binding = this.#bindings.get(sessionRef);
+    const binding = this.#sessions.bindings.get(sessionRef);
     if (
       !binding ||
       (worldInstanceId !== undefined &&
@@ -805,17 +916,42 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     sessionRef: string,
     context?: WorldOwnedSessionContext,
   ): Promise<AdapterSessionSummary> {
+    await this.#sessions.load();
     if (!context?.worldInstanceId)
       throw claudeFailure(
         "Claude Code World ownership identity is required",
         "conflict",
       );
     const binding = this.#binding(sessionRef, context.worldInstanceId);
-    if (binding.quarantined)
+    if (this.#busy.has(binding.nativeSessionId))
       throw claudeFailure(
-        "Claude Code owned session is quarantined and stale",
+        "This exact Claude Code session already has an active turn",
         "conflict",
       );
+    if (binding.quarantined) {
+      if (!context.recover)
+        throw claudeFailure(
+          "Claude Code owned session is quarantined and stale",
+          "conflict",
+        );
+      this.#busy.add(binding.nativeSessionId);
+      try {
+        // Explicit reconnect validates the retained native identity. Never replay
+        // the interrupted request or allow tools during this recovery checkpoint.
+        await this.#runTurn(
+          "The previous World turn was interrupted. Do not continue or repeat it. No tools are available. Reply only ready to confirm this same session can continue.",
+          binding.nativeSessionId,
+          true,
+          binding.runtimeHome,
+          undefined,
+          true,
+        );
+        binding.quarantined = false;
+        await this.#sessions.save();
+      } finally {
+        this.#busy.delete(binding.nativeSessionId);
+      }
+    }
     return {
       id: binding.nativeSessionId,
       rootId: binding.nativeSessionId,
@@ -829,6 +965,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     text: string,
     context?: AdapterTurnContext,
   ): Promise<AdapterTurnResult> {
+    await this.#sessions.load();
     if (Buffer.byteLength(text, "utf8") > MAX_INPUT_BYTES)
       throw claudeFailure("Claude Code input exceeds the bound", "validation");
     const binding = this.#binding(sessionRef);
@@ -840,25 +977,30 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         "Claude Code root session binding does not match",
         "conflict",
       );
-    if (binding.quarantined)
-      throw claudeFailure(
-        "Claude Code owned session is quarantined and stale",
-        "conflict",
-      );
     if (this.#busy.has(binding.nativeSessionId))
       throw claudeFailure(
         "This exact Claude Code session already has an active turn",
         "conflict",
       );
+    if (binding.quarantined)
+      throw claudeFailure(
+        "Claude Code owned session is quarantined and stale",
+        "conflict",
+      );
     this.#busy.add(binding.nativeSessionId);
     try {
-      return await this.#runTurn(
+      binding.quarantined = true;
+      await this.#sessions.save();
+      const result = await this.#runTurn(
         text,
         binding.nativeSessionId,
         true,
         binding.runtimeHome,
         context,
       );
+      binding.quarantined = false;
+      await this.#sessions.save();
+      return result;
     } catch (error) {
       binding.quarantined = true;
       throw error instanceof GatewayError ? error : claudeFailure();
@@ -871,6 +1013,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     worldInstanceId: string,
     rootSessionRef: string,
   ): Promise<void> {
+    await this.#sessions.load();
     const binding = this.#binding(rootSessionRef, worldInstanceId, true);
     if (binding.ended) return;
     if (this.#busy.has(binding.nativeSessionId))
@@ -879,5 +1022,6 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         "conflict",
       );
     binding.ended = true;
+    await this.#sessions.save();
   }
 }

@@ -685,14 +685,22 @@ export function resolveWebGLCapability(
         globalThis as {
           readonly document?: {
             createElement(name: "canvas"): {
-              getContext(kind: "webgl2" | "webgl"): unknown;
+              getContext(kind: "webgl2" | "webgl"): {
+                getExtension(
+                  name: "WEBGL_lose_context",
+                ): { loseContext(): void } | null;
+              } | null;
             };
           };
         }
       ).document;
       if (!browserDocument) return null;
       const canvas = browserDocument.createElement("canvas");
-      return canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+      const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+      // This detached probe owns its context; never leave it competing with
+      // the live World and preview canvases for the browser's context limit.
+      context?.getExtension("WEBGL_lose_context")?.loseContext();
+      return context;
     });
   try {
     return createContext() === null

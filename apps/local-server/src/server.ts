@@ -116,6 +116,8 @@ import { registerConstellationRoutes } from "./constellation-routes.js";
 import type { ConstellationMessageService } from "./constellation-message-service.js";
 import { registerConstellationMessageRoutes } from "./constellation-message-routes.js";
 import { RepositoryIntakeService } from "./repository-intake.js";
+import { registerAgentSetupRoutes } from "./agent-setup-routes.js";
+import { AgentSetupService } from "./agent-setup-service.js";
 import { registerRepositoryIntakeRoutes } from "./repository-intake-routes.js";
 import type { PreviewManagerService } from "./preview-manager-service.js";
 import { registerPreviewManagerRoutes } from "./preview-manager-routes.js";
@@ -150,6 +152,7 @@ export type LocalServer = FastifyInstance & {
 };
 
 export type LocalServerOptions = {
+  readonly agentSetupService?: AgentSetupService;
   readonly config?: LocalServerConfig;
   readonly generateCorrelationId?: () => string;
   readonly repositoryIndexer?: typeof indexRepository;
@@ -196,6 +199,15 @@ export function createLocalServer(
   const server = Fastify({ logger: false, trustProxy: false });
   const config = options.config ?? loadLocalServerConfig();
   const safeConfig = SafeConfigSchema.parse(toSafeConfig(config));
+  const agentSetupService =
+    options.agentSetupService ??
+    new AgentSetupService({
+      dataDirectory: resolve(
+        config.presentationSync.dataDir,
+        "..",
+        "agent-setup",
+      ),
+    });
   const generateCorrelationId =
     options.generateCorrelationId ?? createCorrelationId;
   const correlations = new WeakMap<FastifyRequest, CorrelationId>();
@@ -449,6 +461,7 @@ export function createLocalServer(
   server.after(() => {
     const runtime = { name: "node" as const, version: process.version };
 
+    registerAgentSetupRoutes(server, agentSetupService, { success, failure });
     registerCodeGraphRoutes(server, codeGraphService, { success, failure });
     registerRepositoryIntakeRoutes(server, repositoryIntakeService, {
       success,
@@ -550,10 +563,15 @@ export function createLocalServer(
         failure,
       });
     if (options.workstreamService)
-      registerWorkstreamRoutes(server, options.workstreamService, {
-        success,
-        failure,
-      });
+      registerWorkstreamRoutes(
+        server,
+        options.workstreamService,
+        {
+          success,
+          failure,
+        },
+        options.previewManagerService,
+      );
     if (options.previewManagerService)
       registerPreviewManagerRoutes(server, options.previewManagerService, {
         success,

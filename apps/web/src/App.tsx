@@ -15,6 +15,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { IdentifyExperience } from "./avatar/IdentifyExperience.js";
 import { useReducedMotion } from "./motion/use-reduced-motion.js";
 import { resolveAppSurface } from "./world-entry/app-surface.js";
+import { AgentSetupBoundary } from "./world-entry/AgentSetupBoundary.js";
 
 const InternalDashboard = lazy(async () => {
   const module = await import("./shell/DashboardShell.js");
@@ -168,5 +169,11 @@ export function App() {
         </section>
       </main>
     );
-  return <ProfileApp surface={surface} />;
+  return surface === "world-entry" ? (
+    <AgentSetupBoundary>
+      <ProfileApp surface={surface} />
+    </AgentSetupBoundary>
+  ) : (
+    <ProfileApp surface={surface} />
+  );
 }

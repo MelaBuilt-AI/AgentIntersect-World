@@ -520,6 +520,41 @@ describe("repository renderer preparation", () => {
     expect(boundedSemanticObjects(objects, 120)).toHaveLength(120);
   });
 
+  it("releases every browser-owned capability probe rather than leaking live contexts", () => {
+    const original = Object.getOwnPropertyDescriptor(globalThis, "document");
+    let created = 0;
+    let released = 0;
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: {
+        createElement: () => ({
+          getContext: () => {
+            created++;
+            return {
+              getExtension: (name: string) =>
+                name === "WEBGL_lose_context"
+                  ? {
+                      loseContext: () => {
+                        released++;
+                      },
+                    }
+                  : null,
+            };
+          },
+        }),
+      },
+    });
+    try {
+      for (let i = 0; i < 24; i++)
+        expect(resolveWebGLCapability()).toEqual({ available: true });
+      expect(created).toBe(24);
+      expect(released).toBe(created);
+    } finally {
+      if (original) Object.defineProperty(globalThis, "document", original);
+      else Reflect.deleteProperty(globalThis, "document");
+    }
+  });
+
   it("reports disabled and creation-failure fallbacks truthfully", () => {
     expect(resolveWebGLCapability({ forceDisabled: true })).toEqual({
       available: false,

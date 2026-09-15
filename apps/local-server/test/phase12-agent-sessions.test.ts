@@ -89,6 +89,49 @@ function focusAdapter(events: readonly AdapterTurnEvent[]): AgentAdapter {
   };
 }
 
+it("binds saved connections to the selected profile through attachment and gateway recreation", async () => {
+  const first = focusAdapter([]);
+  const second: AgentAdapter = {
+    ...focusAdapter([]),
+    sendText: async () => ({ finalText: "selected profile", deltas: [] }),
+  };
+  const connectionId = "11111111-1111-4111-8111-111111111111";
+  const root = newRoot();
+  const registry = new AdapterRegistry(
+    [first],
+    ["fixture"],
+    [{ connectionId, adapter: second }],
+  );
+  const gateway = new AgentSessionGateway({
+    registry,
+    store: new AgentSessionStore(root),
+  });
+  const session = await gateway.attach({
+    adapterId: "fixture",
+    connectionId,
+    adapterSessionRef: "selected-profile-root",
+    mode: "explore",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+  });
+  expect(session).toMatchObject({ connectionId });
+  const recreated = new AgentSessionGateway({
+    registry,
+    store: new AgentSessionStore(root),
+  });
+  await recreated.sendText(session.sessionId, {
+    text: "hello",
+    binding: session,
+  });
+  expect(recreated.history(session.sessionId).at(-1)?.text).toBe(
+    "selected profile",
+  );
+  expect(() =>
+    registry.require("fixture", "22222222-2222-4222-8222-222222222222"),
+  ).toThrow(/connection/i);
+});
+
 it("persists a failed native turn instead of advertising a ready session", async () => {
   const base = focusAdapter([]);
   const adapter: AgentAdapter = {

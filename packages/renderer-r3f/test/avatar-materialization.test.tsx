@@ -12,9 +12,12 @@ const state = vi.hoisted(() => ({
   frame: (() => {}) as (state: unknown, delta: number) => void,
   dataset: {} as Record<string, string>,
   cleanups: [] as (() => void)[],
+  initTexture: vi.fn(),
+  compileAsync: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
+  useContext: () => null,
   useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
   useEffect: (effect: () => unknown) => {
@@ -25,7 +28,11 @@ vi.mock("react", async () => ({
 }));
 vi.mock("@react-three/fiber", () => ({
   useThree: () => ({
-    gl: { domElement: { dataset: state.dataset } },
+    gl: {
+      domElement: { dataset: state.dataset },
+      initTexture: state.initTexture,
+      compileAsync: state.compileAsync,
+    },
     invalidate: vi.fn(),
   }),
   useFrame: (callback: typeof state.frame) => {
@@ -39,13 +46,78 @@ import { AvatarMaterialization } from "../src/avatar-materialization.js";
 afterEach(() => {
   state.cleanups.splice(0).forEach((cleanup) => cleanup());
   vi.useRealTimers();
+  state.compileAsync.mockReset().mockResolvedValue(undefined);
+  state.initTexture.mockClear();
+});
+
+it("prepares actor and rain GPU resources before starting the visible arrival delay", async () => {
+  let finish!: () => void;
+  const compiled = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  state.compileAsync.mockReturnValue(compiled);
+  const onPrepared = vi.fn();
+  const element = AvatarMaterialization({
+    ready: true,
+    reducedMotion: false,
+    children: null,
+    onPrepared,
+  });
+  const actors = new Group();
+  const material = new MeshStandardMaterial({ map: new Texture() });
+  actors.add(new Mesh(new BoxGeometry(1, 2, 1), material));
+  element.props.ref.current = actors;
+  state.frame({}, 0.1);
+  expect(state.initTexture).toHaveBeenCalledWith(material.map);
+  expect(state.compileAsync).toHaveBeenCalled();
+  for (let i = 0; i < 20; i++) state.frame({}, 0.1);
+  expect(actors.visible).toBe(false);
+  expect(onPrepared).not.toHaveBeenCalled();
+  finish();
+  await vi.waitFor(() => expect(onPrepared).toHaveBeenCalledOnce());
+  for (let i = 0; i < 9; i++) state.frame({}, 0.1);
+  expect(actors.visible).toBe(false);
+  state.frame({}, 0.1);
+  state.frame({}, 0.1);
+  expect(state.dataset.avatarArrival).toBe("materializing");
+});
+
+it("does not reveal an unmounted World when GPU preparation completes late", async () => {
+  let finish!: () => void;
+  state.compileAsync.mockReturnValue(
+    new Promise<void>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const onPrepared = vi.fn();
+  const element = AvatarMaterialization({
+    ready: true,
+    reducedMotion: false,
+    children: null,
+    onPrepared,
+  });
+  const actors = new Group();
+  const original = new MeshStandardMaterial();
+  const mesh = new Mesh(new BoxGeometry(1, 2, 1), original);
+  actors.add(mesh);
+  element.props.ref.current = actors;
+  state.frame({}, 0);
+  expect(mesh.material).not.toBe(original);
+  state.cleanups.splice(0).forEach((cleanup) => cleanup());
+  expect(mesh.material).toBe(original);
+  finish();
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(onPrepared).not.toHaveBeenCalled();
 });
 
 for (const reducedMotion of [false, true]) {
-  it(`waits one second, assembles without remount, and releases materials/timers (reduce=${reducedMotion})`, () => {
+  it(`waits one second, assembles without remount, and releases materials/timers (reduce=${reducedMotion})`, async () => {
     vi.useFakeTimers();
     state.dataset = {};
+    const onMaterializationStart = vi.fn();
     const element = AvatarMaterialization({
+      onMaterializationStart,
       ready: true,
       reducedMotion,
       children: null,
@@ -58,9 +130,13 @@ for (const reducedMotion of [false, true]) {
     const sprite = new Sprite(spriteMaterial);
     actors.add(mesh, sprite);
     element.props.ref.current = actors;
+    state.frame({}, 0);
+    await Promise.resolve();
+    await Promise.resolve();
     for (let i = 0; i < 9; i++) state.frame({}, 0.1);
     expect(actors.visible).toBe(false);
     expect(state.dataset.avatarArrival).toBe("waiting");
+    expect(onMaterializationStart).not.toHaveBeenCalled();
     state.frame({}, 0.1);
     state.frame({}, 0.1);
     expect(actors.visible).toBe(true);
@@ -72,6 +148,7 @@ for (const reducedMotion of [false, true]) {
     }
     for (let i = 0; i < 30; i++) state.frame({}, 0.1);
     expect(state.dataset.avatarArrival).toBe("complete");
+    expect(onMaterializationStart).toHaveBeenCalledOnce();
     expect(mesh.material).toBe(original);
     expect(sprite.material).toBe(spriteMaterial);
     expect(mesh.castShadow).toBe(true);
@@ -79,6 +156,22 @@ for (const reducedMotion of [false, true]) {
     expect(actors.children[0]).toBe(mesh);
   });
 }
+it("leaves initial actors to the shared entrance when individual arrival is disabled", () => {
+  state.initTexture.mockClear();
+  const element = AvatarMaterialization({
+    ready: true,
+    enabled: false,
+    reducedMotion: false,
+    children: null,
+  });
+  const actors = new Group();
+  actors.visible = element.props.visible;
+  element.props.ref.current = actors;
+  for (let i = 0; i < 60; i++) state.frame({}, 0.1);
+  expect(actors.visible).toBe(true);
+  expect(state.initTexture).not.toHaveBeenCalled();
+});
+
 it("keeps bodies hidden while the environment or any avatar is not ready", () => {
   const element = AvatarMaterialization({
     ready: false,

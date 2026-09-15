@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import type { PreviewManagerService } from "./preview-manager-service.js";
 
 import {
   WorkstreamService,
@@ -110,6 +111,7 @@ export function registerWorkstreamRoutes(
   server: FastifyInstance,
   service: WorkstreamService,
   envelope: RouteEnvelope,
+  previews?: PreviewManagerService,
 ): void {
   const tags = ["workstreams"];
   server.get<{
@@ -170,13 +172,18 @@ export function registerWorkstreamRoutes(
     { bodyLimit: 8192 },
     async (request, reply) => {
       try {
-        return envelope.success(
-          request,
-          await service.continueSaved({
-            ...request.body,
-            workstreamId: request.params.workstreamId,
-          }),
-        );
+        const result = await service.continueSaved({
+          ...request.body,
+          workstreamId: request.params.workstreamId,
+        });
+        const workstream = result.workstream;
+        const previewResume = await previews?.resumeSaved({
+          workstreamId: workstream.workstreamId,
+          expectedWorkstreamRevision: workstream.revision,
+          repository: workstream.repository,
+          agent: workstream.agent,
+        });
+        return envelope.success(request, { ...result, previewResume });
       } catch (error) {
         return fail(error, request, reply, envelope);
       }

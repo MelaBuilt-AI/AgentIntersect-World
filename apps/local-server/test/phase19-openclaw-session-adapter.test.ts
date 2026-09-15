@@ -1,4 +1,7 @@
 import { createServer } from "node:http";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket, { WebSocketServer } from "ws";
@@ -34,6 +37,7 @@ afterEach(async () => {
 async function fixtureGateway(options: FixtureOptions = {}) {
   const calls: Array<{ method: string; params: Record<string, unknown> }> = [];
   const sessions = new Map<string, string>();
+  const labels = new Set<string>();
   const pendingTerminals: Array<() => void> = [];
   let created = 0;
   const http = createServer();
@@ -97,6 +101,22 @@ async function fixtureGateway(options: FixtureOptions = {}) {
       }
       if (request.method === options.ignoreMethod) return;
       if (request.method === "sessions.create") {
+        const label = String(request.params.label);
+        if (labels.has(label)) {
+          socket.send(
+            JSON.stringify({
+              type: "res",
+              id: request.id,
+              ok: false,
+              error: {
+                code: "INVALID_REQUEST",
+                message: "label already in use",
+              },
+            }),
+          );
+          return;
+        }
+        labels.add(label);
         created += 1;
         const key = `agent:main:dashboard:world-owned-${created}`;
         const sessionId = `native-session-${created}`;
@@ -284,6 +304,60 @@ async function waitForCallCount(
 }
 
 describe("OpenClawSessionAdapter", () => {
+  it("restores exact native ownership across adapter recreation without replacement", async () => {
+    const fixture = await fixtureGateway();
+    const directory = await mkdtemp(path.join(tmpdir(), "aiw-claw-resume-"));
+    try {
+      const options = {
+        gatewayUrl: fixture.url,
+        credential: "FIXTURE_TOKEN_CANARY",
+        nativeSessionRoot: directory,
+      };
+      const initial = await new OpenClawSessionAdapter(
+        options,
+      ).createWorldSession("world-owned", "Agent");
+      const restored = new OpenClawSessionAdapter(options);
+      expect(
+        await restored.attach(initial.rootId!, {
+          worldInstanceId: "world-owned",
+        }),
+      ).toEqual(initial);
+      await expect(
+        restored.attach(initial.rootId!, { worldInstanceId: "other-world" }),
+      ).rejects.toThrow();
+      expect(
+        fixture.calls.filter((request) => request.method === "sessions.create"),
+      ).toHaveLength(1);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+  it("creates conversations under the selected native OpenClaw agent", async () => {
+    const gateway = await fixtureGateway();
+    const selected = new OpenClawSessionAdapter({
+      gatewayUrl: gateway.url,
+      credential: "fixture-token",
+      agentId: "work",
+    });
+    await selected.createWorldSession("selected-agent-world");
+    expect(
+      gateway.calls.find((call) => call.method === "sessions.create")?.params
+        .key,
+    ).toMatch(/^agent:work:aiw:/);
+  });
+  it("creates distinct native conversations for the same agent display name across Worlds", async () => {
+    const gateway = await fixtureGateway();
+    const first = adapter(gateway.url);
+    const second = adapter(gateway.url);
+    const a = await first.createWorldSession("world-a", "Beans");
+    const b = await second.createWorldSession("world-b", "Beans");
+    expect(a.rootId).not.toBe(b.rootId);
+    expect(a.title).toBe("Beans");
+    expect(b.title).toBe("Beans");
+    const calls = gateway.calls.filter((c) => c.method === "sessions.create");
+    expect(calls[0]!.params.label).not.toBe(calls[1]!.params.label);
+    expect(String(calls[1]!.params.label).length).toBeLessThanOrEqual(80);
+  });
   it("bounds an unanswered sessions.create request with a sanitized adapter deadline", async () => {
     const gateway = await fixtureGateway({ ignoreMethod: "sessions.create" });
     const startedAt = Date.now();
@@ -325,9 +399,19 @@ describe("OpenClawSessionAdapter", () => {
     });
   });
 
+  it.each(["2026.6.0", "2099.1.1-next.1"])(
+    "accepts compatible OpenClaw version %s without a release allowlist",
+    async (serverVersion) => {
+      const gateway = await fixtureGateway({ serverVersion });
+      await expect(adapter(gateway.url).attest()).resolves.toMatchObject({
+        adapterVersion: `0.19.0-openclaw-${serverVersion}`,
+      });
+    },
+  );
+
   it.each([
     [{ protocol: 3 }, "protocol"],
-    [{ serverVersion: "2026.6.0" }, "version"],
+    [{ serverVersion: "bad version metadata" }, "identity"],
     [{ role: "node" }, "identity"],
     [{ methods: ["sessions.create"] }, "capability"],
   ] as const)("fails closed on gateway %s mismatch", async (options, label) => {
@@ -342,7 +426,9 @@ describe("OpenClawSessionAdapter", () => {
     const createCall = gateway.calls.find(
       ({ method }) => method === "sessions.create",
     );
-    expect(createCall?.params).toMatchObject({ label: "Claw One" });
+    expect(createCall?.params.label).toBe(
+      `Claw One [World ${String(createCall?.params.key).split(":").at(-1)}]`,
+    );
     expect(createCall?.params.key).toMatch(
       /^agent:main:aiw:[0-9a-f]{8}-[0-9a-f-]{27,}$/iu,
     );

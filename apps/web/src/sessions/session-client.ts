@@ -25,6 +25,7 @@ export type WorldAgentSession = {
   readonly schema: "aiw.agent-session/0.12";
   readonly sessionId: string;
   readonly adapterId: Phase19AdapterId;
+  readonly connectionId?: string;
   readonly adapterSessionRef: string;
   readonly profile: string;
   readonly workspaceId: string;
@@ -520,9 +521,11 @@ export class AgentSessionClient {
 
   async workFocus(
     sessionId: string,
+    signal?: AbortSignal,
   ): Promise<{ readonly focus: AgentRepositoryWorkFocus | null }> {
     const response = await this.get<{ readonly focus: unknown }>(
       `/api/agent-sessions/${sessionId}/work-focus`,
+      signal,
     );
     return { focus: repositoryWorkFocus(response.focus) };
   }
@@ -656,17 +659,39 @@ export class AgentSessionClient {
     return this.post("/api/agent-sessions/attach", input);
   }
 
-  createWorldSession(input: {
-    readonly adapterId: Exclude<Phase19AdapterId, "hermes">;
-    readonly worldInstanceId: string;
-    readonly displayName: string;
-    readonly profile: string;
-    readonly workspaceId: string;
-    readonly repositoryRef: string;
-    readonly mode: "explore" | "collaborate";
-    readonly modeConfirmed?: boolean;
-  }): Promise<WorldAgentSession> {
-    return this.post("/api/agent-sessions/world", input);
+  endWorldSession(
+    sessionId: string,
+    worldInstanceId: string,
+  ): Promise<WorldAgentSession> {
+    return this.post(
+      `/api/agent-sessions/${encodeURIComponent(sessionId)}/world-end`,
+      { worldInstanceId },
+    );
+  }
+
+  createWorldSession(
+    input: {
+      readonly connectionId?: string;
+      readonly adapterId: Phase19AdapterId;
+      readonly worldInstanceId: string;
+      readonly displayName: string;
+      readonly profile: string;
+      readonly workspaceId: string;
+      readonly repositoryRef: string;
+      readonly mode: "explore" | "collaborate";
+      readonly modeConfirmed?: boolean;
+    },
+    signal?: AbortSignal,
+  ): Promise<WorldAgentSession> {
+    return this.#fetcher("/api/agent-sessions/world", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(input),
+      ...(signal ? { signal } : {}),
+    }).then(data<WorldAgentSession>);
   }
 
   send(
@@ -788,9 +813,12 @@ export class AgentSessionClient {
     return { finalText, deltas };
   }
 
-  async get<T>(url: string): Promise<T> {
+  async get<T>(url: string, signal?: AbortSignal): Promise<T> {
     return data<T>(
-      await this.#fetcher(url, { headers: { accept: "application/json" } }),
+      await this.#fetcher(url, {
+        headers: { accept: "application/json" },
+        ...(signal ? { signal } : {}),
+      }),
     );
   }
 

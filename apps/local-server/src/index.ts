@@ -61,6 +61,8 @@ import { WorktreeAuthority } from "./worktree-authority.js";
 import { ConstellationService } from "./constellation-service.js";
 import { ConstellationMessageService } from "./constellation-message-service.js";
 import { PreviewManagerService } from "./preview-manager-service.js";
+import { AgentSetupService } from "./agent-setup-service.js";
+import { createAgentSetupRuntime } from "./agent-setup-runtime.js";
 
 const config = (() => {
   try {
@@ -135,7 +137,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
           ...(evidenceService ? { evidenceService } : {}),
         })
       : undefined;
-  const hermesAdapter = config.agentSessions
+  const hermesAdapter = config.agentSessions?.hermesApiKey
     ? new HermesSessionAdapter({
         baseUrl: config.agentSessions.hermesApiUrl,
         apiKey: config.agentSessions.hermesApiKey,
@@ -180,89 +182,124 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     ),
     PHASE19_ADAPTER_IDS,
   );
-  const agentSessionGateway = config.agentSessions
-    ? new AgentSessionGateway({
-        registry: agentAdapterRegistry,
-        store: new AgentSessionStore(config.agentSessions.dataDir),
-      })
-    : undefined;
-  const constellationService =
-    agentSessionGateway && config.agentSessions
-      ? await ConstellationService.open({
-          directory: path.join(config.agentSessions.dataDir, "constellation"),
-          worldInstanceId: randomUUID(),
-          lifecycle: {
-            validateBinding: async (binding) => {
+  const sessionDataDirectory =
+    config.agentSessions?.dataDir ??
+    path.join(config.presentationSync.dataDir, "agent-sessions");
+  const setupRuntime = createAgentSetupRuntime({
+    registry: agentAdapterRegistry,
+    dataDirectory: sessionDataDirectory,
+    ...(config.agentSessions ? { legacy: config.agentSessions } : {}),
+  });
+  const agentSetupService = new AgentSetupService({
+    dataDirectory: path.resolve(
+      config.presentationSync.dataDir,
+      "..",
+      "agent-setup",
+    ),
+    checkConnection: setupRuntime.check,
+    listConversations: setupRuntime.listConversations,
+    legacyConfigured: Boolean(
+      hermesAdapter || openclawAdapter || codexAdapter || claudeCodeAdapter,
+    ),
+  });
+  await setupRuntime.restore((await agentSetupService.state()).registrations);
+  const agentSessionGateway = new AgentSessionGateway({
+    registry: agentAdapterRegistry,
+    store: new AgentSessionStore(sessionDataDirectory),
+  });
+  const constellationService = agentSessionGateway
+    ? await ConstellationService.open({
+        directory: path.join(sessionDataDirectory, "constellation"),
+        worldInstanceId: randomUUID(),
+        lifecycle: {
+          isBindingAvailable: (binding) => {
+            try {
               const session = agentSessionGateway.status(
                 binding.worldSessionId,
               );
-              const rootSessionRef =
-                session.adapterRootSessionRef ?? session.adapterSessionRef;
-              if (
-                session.adapterId !== binding.adapterId ||
-                rootSessionRef !== binding.nativeRootSessionRef
-              )
-                return {
-                  ...binding,
-                  adapterId: session.adapterId as typeof binding.adapterId,
-                  nativeRootSessionRef: rootSessionRef,
-                  continuity: "unavailable" as const,
-                };
-              const attached = await agentSessionGateway.attach({
-                adapterId: binding.adapterId,
-                adapterSessionRef: binding.nativeRootSessionRef,
-                profile: session.profile,
-                workspaceId: session.workspaceId,
-                repositoryRef: session.repositoryRef,
-                mode: session.mode,
-                ...(binding.sessionOwnership === "world-owned"
-                  ? { worldInstanceId: binding.worldInstanceId }
-                  : {}),
-              });
-              const continuity =
-                attached.status === "ready" &&
-                (attached.continuity === "current" ||
-                  attached.continuity === "previous-recovered")
-                  ? attached.continuity
-                  : "unavailable";
+              return (
+                session.adapterId === binding.adapterId &&
+                (session.adapterRootSessionRef ?? session.adapterSessionRef) ===
+                  binding.nativeRootSessionRef &&
+                [
+                  "ready",
+                  "thinking",
+                  "using-tool",
+                  "waiting-approval",
+                ].includes(session.status) &&
+                (session.continuity === "current" ||
+                  session.continuity === "previous-recovered")
+              );
+            } catch {
+              return false;
+            }
+          },
+          validateBinding: async (binding) => {
+            const session = agentSessionGateway.status(binding.worldSessionId);
+            const rootSessionRef =
+              session.adapterRootSessionRef ?? session.adapterSessionRef;
+            if (
+              session.adapterId !== binding.adapterId ||
+              rootSessionRef !== binding.nativeRootSessionRef
+            )
               return {
                 ...binding,
-                adapterId: attached.adapterId as typeof binding.adapterId,
-                worldSessionId: attached.sessionId,
-                nativeRootSessionRef:
-                  attached.adapterRootSessionRef ?? attached.adapterSessionRef,
-                continuity,
+                adapterId: session.adapterId as typeof binding.adapterId,
+                nativeRootSessionRef: rootSessionRef,
+                continuity: "unavailable" as const,
               };
-            },
-            endWorldSession: async (worldSessionId, worldInstanceId) => {
-              if (
-                agentSessionGateway.status(worldSessionId).status === "closed"
-              )
-                return;
-              await agentSessionGateway.endWorldSession(
-                worldSessionId,
-                worldInstanceId,
-              );
-            },
+            const attached = await agentSessionGateway.attach({
+              recover: true,
+              adapterId: binding.adapterId,
+              ...(session.connectionId
+                ? { connectionId: session.connectionId }
+                : {}),
+              adapterSessionRef: binding.nativeRootSessionRef,
+              profile: session.profile,
+              workspaceId: session.workspaceId,
+              repositoryRef: session.repositoryRef,
+              mode: session.mode,
+              ...(binding.sessionOwnership === "world-owned"
+                ? { worldInstanceId: binding.worldInstanceId }
+                : {}),
+            });
+            const continuity =
+              attached.status === "ready" &&
+              (attached.continuity === "current" ||
+                attached.continuity === "previous-recovered")
+                ? attached.continuity
+                : "unavailable";
+            return {
+              ...binding,
+              adapterId: attached.adapterId as typeof binding.adapterId,
+              worldSessionId: attached.sessionId,
+              nativeRootSessionRef:
+                attached.adapterRootSessionRef ?? attached.adapterSessionRef,
+              continuity,
+            };
           },
-        })
-      : undefined;
+          endWorldSession: async (worldSessionId, worldInstanceId) => {
+            if (agentSessionGateway.status(worldSessionId).status === "closed")
+              return;
+            await agentSessionGateway.endWorldSession(
+              worldSessionId,
+              worldInstanceId,
+            );
+          },
+        },
+      })
+    : undefined;
   const constellationMessageService =
-    constellationService && agentSessionGateway && config.agentSessions
+    constellationService && agentSessionGateway
       ? await ConstellationMessageService.open({
-          directory: path.join(
-            config.agentSessions.dataDir,
-            "constellation-messages",
-          ),
+          directory: path.join(sessionDataDirectory, "constellation-messages"),
           constellation: constellationService,
           gateway: agentSessionGateway,
         })
       : undefined;
-  const worldActionService = config.agentSessions
-    ? new WorldActionService(
-        path.join(config.agentSessions.dataDir, "world-actions"),
-      )
-    : undefined;
+  const worldActionService = new WorldActionService(
+    path.join(sessionDataDirectory, "world-actions"),
+  );
   const phase14Service = new Phase14Service({
     fixtureRoot: fileURLToPath(
       new URL("../../../examples/phase14-magic-slice", import.meta.url),
@@ -540,6 +577,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
   });
   const server: ReturnType<typeof createLocalServer> = createLocalServer({
     config,
+    agentSetupService,
     integrationService,
     ...(commandIntentService ? { commandIntentService } : {}),
     ...(evidenceService ? { evidenceService } : {}),

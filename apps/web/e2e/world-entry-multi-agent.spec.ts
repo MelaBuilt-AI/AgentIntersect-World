@@ -10,6 +10,52 @@ import {
 } from "@agentintersect-world/world-action-protocol";
 
 const worldInstanceId = "80000000-0000-4000-8000-000000000008";
+
+test("slow movement polling stays single-flight and never duplicates the primary roster agent", async ({
+  page,
+}) => {
+  await installFixture(page, 2);
+  await seedConfiguredAvatar(page, "Probe");
+  await page.route("**/api/agent-setup", (route) =>
+    fulfillJson(
+      route,
+      envelope({
+        schema: "aiw.agent-setup/1",
+        completed: true,
+        registrations: [],
+      }),
+    ),
+  );
+  await page.route("**/api/constellation/messages", (route) =>
+    route.request().method() === "GET"
+      ? fulfillJson(route, envelope([]))
+      : route.fallback(),
+  );
+  const requests: string[] = [];
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/world-actions/*", async (route) => {
+    requests.push(new URL(route.request().url()).pathname);
+    await pending;
+    await fulfillJson(route, {
+      capability: { enabled: true },
+      actions: [],
+      executions: [],
+    });
+  });
+  try {
+    await page.goto("/");
+    await page.getByTestId("world-hud").waitFor();
+    await expect.poll(() => new Set(requests).size).toBe(2);
+    // Keep the response pending across several old 500ms interval ticks.
+    await page.waitForTimeout(1600);
+    expect(requests).toHaveLength(2);
+  } finally {
+    release();
+  }
+});
 const agents = [
   {
     rosterId: "roster-hermes",
@@ -99,7 +145,13 @@ async function fulfillJson(route: Route, data: unknown, status = 200) {
   });
 }
 
-async function installFixture(page: Page) {
+async function installFixture(
+  page: Page,
+  initialCount = 4,
+  registeredHermes = false,
+) {
+  const rosterAgents = [...agents.slice(0, initialCount)];
+  const additions: unknown[] = [];
   const transcriptionBodies: unknown[] = [];
   const groupedBodies: Array<Record<string, unknown>> = [];
   let nextGroupedResponse: Promise<void> | undefined;
@@ -108,12 +160,19 @@ async function installFixture(page: Page) {
     readonly role: "user" | "assistant";
     readonly text: string;
   }> = [];
-  let reconnected = false;
+  let reconnected = initialCount < 3;
+  let claudeFailed = false;
+  let hermesFailed = false;
+  const hermesConnectionId = "77000000-0000-4000-8000-000000000007";
+  const hermesAttachBodies: Array<Record<string, unknown>> = [];
   let constellationReadyAfterRestore = true;
   const sessionFor = (agent: (typeof agents)[number]) => ({
     schema: "aiw.agent-session/0.12",
     sessionId: agent.worldSessionId,
     adapterId: agent.adapterId,
+    ...(registeredHermes && agent.adapterId === "hermes"
+      ? { connectionId: hermesConnectionId }
+      : {}),
     adapterSessionRef: agent.nativeRootSessionRef,
     adapterRootSessionRef: agent.nativeRootSessionRef,
     adapterPreviousSessionRef: null,
@@ -126,7 +185,11 @@ async function installFixture(page: Page) {
     capabilitySnapshotHash: "d".repeat(64),
     avatarProfileRef: null,
     continuity: "current",
-    status: "ready",
+    status:
+      (agent.adapterId === "claude-code" && claudeFailed) ||
+      (agent.adapterId === "hermes" && hermesFailed)
+        ? "error"
+        : "ready",
     currentFocusObjectIds: [],
     currentTaskRef: null,
     activeRunId: null,
@@ -141,9 +204,12 @@ async function installFixture(page: Page) {
       worldInstanceId,
       lifecycle: "active",
       revision: reconnected ? 3 : 2,
-      agents: agents.map((agent) => ({
+      agents: rosterAgents.map((agent) => ({
         ...agent,
         worldInstanceId,
+        ...(registeredHermes && agent.adapterId === "hermes"
+          ? { sessionOwnership: "world-owned" }
+          : {}),
         continuity:
           agent.adapterId === "codex" && !reconnected ? "stale" : "current",
         connection:
@@ -234,6 +300,14 @@ async function installFixture(page: Page) {
   });
 
   await page.route("**/api/**", async (route) => {
+    // Keep the real server-owned setup gate; these fixtures replace native work only.
+    if (
+      route.request().method() === "GET" &&
+      new URL(route.request().url()).pathname === "/api/agent-setup"
+    ) {
+      await route.continue();
+      return;
+    }
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     const method = request.method();
@@ -283,6 +357,37 @@ async function installFixture(page: Page) {
       return;
     }
 
+    if (initialCount < 4 && pathname === "/api/agent-sessions/world") {
+      await fulfillJson(route, envelope(sessionFor(agents[3])));
+      return;
+    }
+    if (
+      initialCount < 4 &&
+      pathname === "/api/constellation/agents" &&
+      method === "POST"
+    ) {
+      const input = request.postDataJSON();
+      additions.push(input);
+      const added = agents.find(
+        (a) => a.worldSessionId === input.agent.worldSessionId,
+      )!;
+      if (!rosterAgents.includes(added)) rosterAgents.push(added);
+      reconnected = true;
+      await fulfillJson(route, envelope(constellation()));
+      return;
+    }
+    if (initialCount < 4 && pathname.endsWith("/avatar") && method === "POST") {
+      await fulfillJson(route, envelope(constellation()));
+      return;
+    }
+    if (
+      initialCount < 4 &&
+      pathname.endsWith("/avatar-consent") &&
+      method === "POST"
+    ) {
+      await fulfillJson(route, envelope({ state: "accepted" }));
+      return;
+    }
     if (pathname.endsWith("/constellation/current")) {
       const current = constellation();
       if (!constellationReadyAfterRestore) {
@@ -392,6 +497,26 @@ async function installFixture(page: Page) {
 
     if (pathname.endsWith("/agent-sessions/attach") && method === "POST") {
       const hermes = agents.find((agent) => agent.adapterId === "hermes")!;
+      const input = request.postDataJSON();
+      hermesAttachBodies.push(input);
+      if (
+        registeredHermes &&
+        (input.connectionId !== hermesConnectionId ||
+          input.worldInstanceId !== worldInstanceId)
+      ) {
+        await fulfillJson(
+          route,
+          {
+            ok: false,
+            error: {
+              code: "conflict",
+              message: "Hermes World ownership does not match",
+            },
+          },
+          409,
+        );
+        return;
+      }
       await fulfillJson(route, envelope(sessionFor(hermes)));
       return;
     }
@@ -634,6 +759,32 @@ async function installFixture(page: Page) {
     ),
   );
   return {
+    additions,
+    hermesAttachBodies,
+    failHermes: () => {
+      hermesFailed = true;
+    },
+    recoverHermes: () => {
+      hermesFailed = false;
+      return constellation();
+    },
+    connectAll: () => {
+      reconnected = true;
+    },
+    failClaude: () => {
+      claudeFailed = true;
+    },
+    recoverClaude: () => {
+      claudeFailed = false;
+      return constellation();
+    },
+    removeClaude: () => {
+      const index = rosterAgents.findIndex(
+        (agent) => agent.adapterId === "claude-code",
+      );
+      if (index >= 0) rosterAgents.splice(index, 1);
+      return constellation();
+    },
     transcriptionBodies,
     groupedBodies,
     resolvedTargetRosterIds,
@@ -648,6 +799,844 @@ async function installFixture(page: Page) {
       constellationReadyAfterRestore = false;
     },
   };
+}
+
+for (const reconnect of [false, true]) {
+  test(`@hermes-connection-restore preserves four agents and history (reconnect: ${reconnect})`, async ({
+    page,
+  }, testInfo) => {
+    // Two refreshes plus a rendered four-avatar capture exceed the default
+    // single-page watchdog on software-rendered CI.
+    test.setTimeout(60000);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await seedConfiguredAvatar(page, "Aaron");
+    const fixture = await installFixture(page, 4, true);
+    fixture.connectAll();
+    if (reconnect) fixture.failHermes();
+    await page.route("**/api/agent-setup", (route) =>
+      fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.agent-setup/1",
+          completed: true,
+          registrations: [],
+        }),
+      ),
+    );
+    await page.route("**/api/constellation/messages", (route) =>
+      route.request().method() === "GET"
+        ? fulfillJson(route, envelope([]))
+        : route.fallback(),
+    );
+    await page.route(
+      "**/api/constellation/agents/roster-hermes/reconnect",
+      (route) => fulfillJson(route, envelope(fixture.recoverHermes())),
+    );
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/");
+    if (reconnect) {
+      const roster = page.getByRole("region", {
+        name: "Connected agent constellation",
+      });
+      const hermes = roster.locator("li").filter({ hasText: "Mr Fluff" });
+      await expect(hermes).toHaveAttribute("data-connection", "unavailable");
+      await expect(
+        roster.getByRole("button", { name: "Enter World" }),
+      ).toBeDisabled();
+      await hermes
+        .getByRole("button", { name: "Reconnect", exact: true })
+        .click();
+      await expect(
+        roster.getByRole("button", { name: "Enter World" }),
+      ).toBeEnabled();
+      await roster.getByRole("button", { name: "Enter World" }).click();
+    }
+    const assertRoster = async () => {
+      await expect(page.getByTestId("world-hud")).toBeVisible();
+      await expect
+        .poll(() =>
+          page
+            .locator("[data-roster-id][data-activity-state]")
+            .evaluateAll((rows) =>
+              rows.map((row) => row.getAttribute("data-roster-id")).sort(),
+            ),
+        )
+        .toEqual(agents.map((agent) => agent.rosterId).sort());
+    };
+    await assertRoster();
+    const input = page.getByLabel("Message All agents", { exact: true });
+    await input.fill("Hermes connection restore proof");
+    await input.press("Enter");
+    await expect.poll(() => fixture.groupedBodies.length).toBe(1);
+    for (let refresh = 0; refresh < 2; refresh += 1) {
+      await page.reload();
+      await assertRoster();
+      await expect(
+        page
+          .getByText("Mr Fluff received Hermes connection restore proof", {
+            exact: false,
+          })
+          .first(),
+      ).toBeVisible();
+    }
+    expect(fixture.additions).toEqual([]);
+    expect(fixture.hermesAttachBodies.length).toBeGreaterThan(0);
+    for (const body of fixture.hermesAttachBodies)
+      expect(body).toMatchObject({
+        connectionId: "77000000-0000-4000-8000-000000000007",
+        worldInstanceId,
+        adapterSessionRef: "native-hermes",
+      });
+    expect(errors).toEqual([]);
+    const room = page.locator('[data-scene-id="world-room"]').first();
+    await expect(room).toHaveAttribute("data-scene-ready", "true", {
+      timeout: 30000,
+    });
+    await expect(room.locator("canvas")).toHaveAttribute(
+      "data-avatar-arrival",
+      "complete",
+      { timeout: 30000 },
+    );
+    await page.screenshot({
+      path: testInfo.outputPath("hermes-restored-world.png"),
+    });
+  });
+}
+
+for (const recovery of ["Reconnect", "Remove"] as const) {
+  test(`@failed-turn-restore exposes ${recovery} after a failed Current agent and preserves healthy history`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90000);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await seedConfiguredAvatar(page, "Aaron");
+    const fixture = await installFixture(page);
+    fixture.connectAll();
+    await page.route("**/api/agent-setup**", (route) =>
+      route.fulfill({
+        json: envelope({
+          schema: "aiw.agent-setup/1",
+          completed: true,
+          registrations: [],
+        }),
+      }),
+    );
+    await page.route("**/api/constellation/messages", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ json: envelope([]) })
+        : route.fallback(),
+    );
+    await page.route(
+      "**/api/constellation/agents/roster-claude/reconnect",
+      (route) => route.fulfill({ json: envelope(fixture.recoverClaude()) }),
+    );
+    await page.route("**/api/constellation/agents/roster-claude", (route) =>
+      route.fulfill({ json: envelope(fixture.removeClaude()) }),
+    );
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/");
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    const input = page.getByLabel("Message All agents", { exact: true });
+    await input.fill("before failed turn");
+    await input.press("Enter");
+    await expect.poll(() => fixture.groupedBodies.length).toBe(1);
+    await expect(
+      page
+        .getByText("Mr Fluff received before failed turn", { exact: false })
+        .first(),
+    ).toBeVisible();
+    fixture.failClaude();
+    await page.reload();
+    const roster = page.getByRole("region", {
+      name: "Connected agent constellation",
+    });
+    const failed = roster.locator("li").filter({ hasText: "Claude" });
+    await expect(failed).toHaveAttribute("data-connection", "unavailable");
+    // The entry roster lives in the existing scrollable setup surface.
+    // Exercise normal scrolling before requiring a reachable recovery control.
+    await failed
+      .getByRole("button", { name: recovery, exact: true })
+      .scrollIntoViewIfNeeded();
+    await expect(
+      failed.getByRole("button", { name: recovery, exact: true }),
+    ).toBeInViewport();
+    await expect(
+      roster.getByRole("button", { name: "Enter World" }),
+    ).toBeDisabled();
+    await page.screenshot({
+      path: testInfo.outputPath("failed-agent-recovery.png"),
+    });
+    await failed.getByRole("button", { name: recovery, exact: true }).click();
+    await expect(
+      roster.getByRole("button", { name: "Enter World" }),
+    ).toBeEnabled();
+    await roster.getByRole("button", { name: "Enter World" }).click();
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    await expect(
+      page
+        .getByText("Mr Fluff received before failed turn", { exact: false })
+        .first(),
+    ).toBeVisible();
+    await input.fill("after recovery");
+    await input.press("Enter");
+    await expect.poll(() => fixture.groupedBodies.length).toBe(2);
+    await page.reload();
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    await expect(
+      page
+        .getByText("Mr Fluff received after recovery", { exact: false })
+        .first(),
+    ).toBeVisible();
+    expect(errors).toEqual([]);
+    await page.screenshot({ path: testInfo.outputPath("reentered-world.png") });
+  });
+}
+
+test("@setup-escape returns from automatic setup to a clickable Add Agent dialog", async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installFixture(page, 2);
+  await page.route("**/api/agent-setup**", (route) =>
+    route.fulfill({
+      json: envelope({
+        schema: "aiw.agent-setup/1",
+        completed: true,
+        registrations: [],
+      }),
+    }),
+  );
+  await page.route("**/api/constellation/messages", (route) =>
+    route.request().method() === "GET"
+      ? route.fulfill({ json: envelope([]) })
+      : route.fallback(),
+  );
+  await page.goto("/");
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  const hint = page.locator(".agent-setup-escape-hint");
+  const hintBox = await hint.boundingBox();
+  expect(hintBox!.x).toBeGreaterThanOrEqual(12);
+  expect(hintBox!.x).toBeLessThanOrEqual(24);
+  expect(hintBox!.y).toBeLessThanOrEqual(24);
+  await page.screenshot({
+    path: testInfo.outputPath("escape-hint-top-left.png"),
+  });
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Add Agent", exact: true }).click();
+  const setup = page.getByRole("dialog", {
+    name: "Agent Setup Menu",
+    exact: true,
+  });
+  await expect(setup).toBeVisible();
+  const discover = setup.getByRole("button", {
+    name: "Discover Agents",
+    exact: true,
+  });
+  await expect
+    .poll(() =>
+      discover.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return el.contains(
+          document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2),
+        );
+      }),
+    )
+    .toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(setup).toHaveCount(0);
+  const add = page.getByRole("dialog", { name: "Add Agent", exact: true });
+  const cancel = add.getByRole("button", { name: "Cancel", exact: true });
+  await expect(cancel).toBeVisible();
+  await expect
+    .poll(() =>
+      cancel.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return el.contains(
+          document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2),
+        );
+      }),
+    )
+    .toBe(true);
+  await page.screenshot({ path: testInfo.outputPath("add-after-escape.png") });
+  await cancel.click();
+  await expect(add).toHaveCount(0);
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Add Agent", exact: true }).click();
+  await expect(setup).toBeVisible();
+  await setup.getByRole("button", { name: "Close Agent Setup Menu" }).click();
+  await expect(cancel).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(add).toHaveCount(0);
+});
+
+for (const initialCount of [0, 2, 3]) {
+  test(`@setup-add expands ${initialCount === 0 ? "single" : `${initialCount}-agent`} World without remounting, cancellation and refresh`, async ({
+    page,
+  }, testInfo) => {
+    // The four-avatar path also exercises 24 preview edits and both layouts.
+    test.setTimeout(initialCount === 3 ? 180000 : 120000);
+    await page.emulateMedia({
+      reducedMotion: initialCount === 2 ? "no-preference" : "reduce",
+    });
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await seedConfiguredAvatar(page, "Aaron");
+    const fixture = await installFixture(page, initialCount);
+    await page.route("**/api/constellation/messages", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ json: envelope([]) })
+        : route.fallback(),
+    );
+    if (initialCount === 0)
+      await page.addInitScript(
+        (sessionId) =>
+          localStorage.setItem("aiw.agent-session.pointer.0.12", sessionId),
+        agents[0].worldSessionId,
+      );
+    let creates = 0;
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/agent-sessions/world")
+        creates += 1;
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    const registration = {
+      id: "11111111-1111-4111-8111-111111111111",
+      adapterId: "claude-code",
+      displayName: "Claude",
+      installationId: "claude",
+      environment: {
+        id: "wsl:Ubuntu",
+        kind: "wsl",
+        label: "WSL (Ubuntu)",
+        distro: "Ubuntu",
+      },
+      executablePath: "/fixture/claude",
+      homePath: "/fixture",
+      identity: {
+        id: "default",
+        label: "Default",
+        kind: "profile",
+        profilePath: "/fixture/.claude",
+      },
+      connectedAt: new Date().toISOString(),
+    };
+    await page.route("**/api/agent-setup**", (route) =>
+      route.fulfill({
+        json: envelope(
+          route.request().url().endsWith("/recheck")
+            ? { status: "ready", message: "Fixture ready" }
+            : {
+                schema: "aiw.agent-setup/1",
+                completed: true,
+                registrations: [registration],
+              },
+        ),
+      }),
+    );
+    await page.addInitScript(() => {
+      const originalPlay = HTMLMediaElement.prototype.play;
+      const arrivals: { time: number; currentTime: number }[] = [];
+      Object.assign(window, { __arrivalPlayback: arrivals });
+      HTMLMediaElement.prototype.play = function () {
+        if (this.src.endsWith("/avatar-materialize.wav")) {
+          const sample = { time: performance.now(), currentTime: 0 };
+          arrivals.push(sample);
+          this.addEventListener("timeupdate", () => {
+            sample.currentTime = Math.max(sample.currentTime, this.currentTime);
+          });
+        }
+        return originalPlay.call(this);
+      };
+    });
+    await page.goto("/");
+    if (initialCount >= 3) {
+      await page
+        .getByRole("button", { name: "Reconnect", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Enter World", exact: true })
+        .click();
+    }
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    const room = page.locator('[data-scene-id="world-room"]').first();
+    await room.evaluate((el) =>
+      el.setAttribute("data-add-continuity", "same-mounted-world"),
+    );
+    const canvas = room.locator("canvas");
+    await expect(canvas).toHaveAttribute(
+      "data-phase18_5-render-ready",
+      "true",
+      { timeout: 30000 },
+    );
+    await expect(canvas).toHaveAttribute("data-avatar-arrival", "complete", {
+      timeout: 30000,
+    });
+    await canvas.evaluate((el) =>
+      el.setAttribute("data-live-canvas", "original"),
+    );
+    page.on("console", (message) => {
+      if (
+        message.type() === "error" ||
+        message.text().includes("Too many active WebGL contexts")
+      )
+        errors.push(message.text());
+    });
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Add Agent", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Add Agent", exact: true });
+    await expect(
+      dialog.getByText(`${Math.max(1, initialCount)} of 4 agents`),
+    ).toBeVisible();
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let recheckStarted!: () => void;
+    const started = new Promise<void>((resolve) => {
+      recheckStarted = resolve;
+    });
+    await page.route(
+      "**/api/agent-setup/connections/*/recheck",
+      async (route) => {
+        recheckStarted();
+        await held;
+        await route.fulfill({
+          json: envelope({ status: "ready", message: "Ready" }),
+        });
+      },
+      { times: 1 },
+    );
+    await dialog.getByRole("button", { name: /Add Claude Code/ }).click();
+    await started;
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    release();
+    await expect(dialog).toBeHidden();
+    expect(creates).toBe(0);
+    expect(fixture.additions).toHaveLength(0);
+    await expect(room).toHaveAttribute(
+      "data-add-continuity",
+      "same-mounted-world",
+    );
+    let releaseAvatar!: () => void;
+    const pendingAvatar = new Promise<void>((resolve) => {
+      releaseAvatar = resolve;
+    });
+    if (initialCount === 2)
+      await page.route("**/cat-agent-01.glb", async (route) => {
+        await pendingAvatar;
+        await route.continue();
+      });
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Add Agent", exact: true }).click();
+    await dialog.getByRole("button", { name: /Add Claude Code/ }).click();
+    await expect(
+      dialog.getByRole("button", { name: "Accept Agent Avatar", exact: true }),
+    ).toBeEnabled({ timeout: 30000 });
+    if (initialCount !== 2)
+      await expect(dialog.locator(".imported-avatar-canvas")).toHaveAttribute(
+        "data-avatar-render-ready",
+        "true",
+        { timeout: 30000 },
+      );
+    await page.screenshot({
+      path: testInfo.outputPath(
+        initialCount === 2
+          ? "add-avatar-pending.png"
+          : "add-avatar-desktop.png",
+      ),
+    });
+    const preview = dialog.locator(".avatar-builder__preview");
+    expect((await preview.boundingBox())!.width).toBeGreaterThan(400);
+    if (initialCount === 3) {
+      // Name edits must not allocate a capability context on every render.
+      const name = dialog.getByRole("textbox", {
+        name: "Agent name",
+        exact: true,
+      });
+      for (let edit = 0; edit < 24; edit++) await name.fill(`Claude ${edit}`);
+      await name.fill("Claude");
+      await expect(canvas).toBeVisible();
+      await expect(canvas).toHaveAttribute("data-live-canvas", "original");
+      await page.setViewportSize({ width: 390, height: 844 });
+      await preview.scrollIntoViewIfNeeded();
+      // Read one atomic post-resize layout snapshot. Polling this immutable
+      // CSS geometry adds a second watchdog around slow browser transport.
+      const geometry = await page.evaluate(() => {
+        const el = document.querySelector(
+          '[role="dialog"][aria-label="Add Agent"]',
+        )!;
+        const box = el
+          .querySelector(".avatar-builder__preview")!
+          .getBoundingClientRect();
+        return {
+          x: box.x,
+          width: box.width,
+          right: box.right,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth,
+        };
+      });
+      expect(geometry.width, JSON.stringify(geometry)).toBeGreaterThan(260);
+      expect(geometry.x).toBeGreaterThanOrEqual(0);
+      expect(geometry.right).toBeLessThanOrEqual(390);
+      expect(geometry.scrollWidth).toBeLessThanOrEqual(
+        geometry.clientWidth + 1,
+      );
+      await page.screenshot({
+        path: testInfo.outputPath("add-avatar-portrait.png"),
+      });
+      await page.setViewportSize({ width: 1600, height: 1000 });
+    }
+    await page.evaluate(() => {
+      (
+        window as unknown as { __arrivalPlayback: unknown[] }
+      ).__arrivalPlayback.length = 0;
+    });
+    const avatarSaved = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname ===
+          "/api/constellation/agents/roster-claude/avatar" &&
+        response.request().method() === "POST",
+    );
+    await dialog
+      .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+      .click();
+    try {
+      // Consent, roster addition and avatar persistence precede UI completion.
+      // Start the UI assertion at its owning final-response boundary.
+      expect((await avatarSaved).ok()).toBe(true);
+      await expect(dialog).toBeHidden({ timeout: 15000 });
+      await expect(
+        page
+          .getByRole("region", { name: "World scene status" })
+          .getByRole("listitem")
+          .filter({ hasText: "connected agent avatar" }),
+      ).toHaveCount(Math.max(1, initialCount) + 1);
+      await expect(canvas).toBeVisible();
+      await expect(canvas).toHaveAttribute("data-live-canvas", "original");
+      await expect(canvas).toHaveAttribute(
+        "data-phase18_5-render-ready",
+        "true",
+      );
+      if (initialCount === 2)
+        await page.screenshot({
+          path: testInfo.outputPath("world-during-avatar-load.png"),
+        });
+    } finally {
+      releaseAvatar();
+    }
+    await expect(page.getByTestId("world-room-canvas")).toHaveAttribute(
+      "data-ready-avatar-count",
+      String(Math.max(1, initialCount) + 2),
+      { timeout: 30000 },
+    );
+    await expect(canvas).toBeVisible();
+    await expect(canvas).toHaveAttribute("data-live-canvas", "original");
+    await expect(canvas).toHaveAttribute(
+      "data-avatar-arrival-id",
+      "roster-claude",
+    );
+    if (initialCount === 2) {
+      await expect(canvas).toHaveAttribute(
+        "data-avatar-arrival",
+        "materializing",
+        { timeout: 15000 },
+      );
+      await expect
+        .poll(
+          async () => {
+            const progress = Number(
+              await canvas.getAttribute("data-avatar-arrival-progress"),
+            );
+            return progress >= 0.35 && progress < 0.75;
+          },
+          { intervals: [16] },
+        )
+        .toBe(true);
+      await page.screenshot({
+        path: testInfo.outputPath("added-agent-materializing.png"),
+      });
+    }
+    await expect(canvas).toHaveAttribute("data-avatar-arrival", "complete", {
+      timeout: 15000,
+    });
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const sound = (
+            window as unknown as {
+              __arrivalPlayback: { currentTime: number }[];
+            }
+          ).__arrivalPlayback;
+          return sound.length === 1 && sound[0]!.currentTime > 0.2;
+        }),
+      )
+      .toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath("world-added-no-refresh.png"),
+    });
+
+    await expect(dialog).toBeHidden();
+    await expect(room).toHaveAttribute(
+      "data-add-continuity",
+      "same-mounted-world",
+    );
+    expect(fixture.additions).toHaveLength(initialCount === 0 ? 2 : 1);
+    expect(creates).toBe(1);
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Add Agent", exact: true }).click();
+    await expect(
+      dialog.getByText(`${Math.max(1, initialCount) + 1} of 4 agents`),
+    ).toBeVisible();
+    if (initialCount === 3)
+      await expect(
+        dialog.getByRole("button", { name: "Set Up Another Agent" }),
+      ).toBeDisabled();
+    await page.screenshot({
+      path: testInfo.outputPath("add-agent-capacity.png"),
+    });
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(room).toHaveAttribute(
+      "data-add-continuity",
+      "same-mounted-world",
+    );
+    await page.reload();
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Add Agent", exact: true }).click();
+    await expect(
+      dialog.getByText(`${Math.max(1, initialCount) + 1} of 4 agents`),
+    ).toBeVisible();
+    expect(creates).toBe(1);
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const mode of ["mention", "sticky"] as const) {
+  test(`@message-target ${mode} limits Thinking and retains explicit selection`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(60000);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await seedConfiguredAvatar(page, "Aaron");
+    const fixture = await installFixture(page, 4);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    let release: (() => void) | undefined;
+    await page.route("**/api/constellation/messages", async (route) => {
+      if (route.request().method() === "POST")
+        await new Promise<void>((resolve) => {
+          release = resolve;
+        });
+      await route.fallback();
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Reconnect", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Enter World", exact: true })
+      .click();
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    const canvas = page.locator('canvas[data-scene-id="world-room"]');
+    await expect(canvas).toHaveAttribute("data-avatar-arrival", "complete", {
+      timeout: 30000,
+    });
+    if (mode === "sticky") {
+      await openCodeWheel(page);
+      await page
+        .getByRole("button", {
+          name: "Send next message to Codex",
+          exact: true,
+        })
+        .click();
+    }
+    const cases =
+      mode === "mention"
+        ? [
+            { text: "@Claw first question", ids: ["roster-openclaw"] },
+            { text: "@codex second question", ids: ["roster-codex"] },
+          ]
+        : [
+            { text: "first question", ids: ["roster-codex"] },
+            { text: "second question", ids: ["roster-codex"] },
+            {
+              text: "all together",
+              ids: agents.map((agent) => agent.rosterId),
+            },
+          ];
+    try {
+      for (const [index, item] of cases.entries()) {
+        if (mode === "sticky" && index === 2) {
+          await openCodeWheel(page);
+          await page
+            .getByRole("button", {
+              name: "Clear Codex and send to all agents",
+              exact: true,
+            })
+            .click();
+        }
+        const selected = mode === "sticky" && index < 2;
+        const input = page.getByRole("textbox", {
+          name: selected ? "Message Codex" : "Message All agents",
+          exact: true,
+        });
+        await input.fill(item.text);
+        await input.press("Enter");
+        await expect.poll(() => Boolean(release)).toBe(true);
+        await expect
+          .poll(async () =>
+            page
+              .locator('li[data-roster-id][data-activity-state="thinking"]')
+              .evaluateAll((rows) =>
+                rows.map((row) => row.getAttribute("data-roster-id")),
+              ),
+          )
+          .toEqual(item.ids);
+        await page.screenshot({
+          path: testInfo.outputPath(`${mode}-${index}-thinking.png`),
+        });
+        release!();
+        release = undefined;
+        await expect.poll(() => fixture.groupedBodies.length).toBe(index + 1);
+        await expect(
+          page.locator('li[data-roster-id][data-activity-state="thinking"]'),
+        ).toHaveCount(0);
+        await expect(input).toBeVisible();
+        if (selected)
+          expect(fixture.groupedBodies[index]).toHaveProperty(
+            "targetRosterId",
+            "roster-codex",
+          );
+        else
+          expect(fixture.groupedBodies[index]).not.toHaveProperty(
+            "targetRosterId",
+          );
+      }
+    } finally {
+      release?.();
+    }
+    expect(errors).toEqual([]);
+  });
+}
+
+test("@setup-cancel initial connection returns to selection and ignores a late response", async ({
+  page,
+}) => {
+  await seedConfiguredAvatar(page, "Aaron");
+  await installFixture(page, 0);
+  let release!: () => void;
+  let requestStarted!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    requestStarted = resolve;
+  });
+  await page.route("**/api/agent-sessions/world", async (route) => {
+    requestStarted();
+    await held;
+    await route.fallback();
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await page.getByRole("button", { name: /Single Agent/ }).click();
+  await page
+    .getByRole("button", { name: "Connect codex", exact: true })
+    .click();
+  await page.getByLabel("Agent name", { exact: true }).fill("Mr Fluff");
+  await page
+    .getByRole("button", { name: "Connect agent", exact: true })
+    .click();
+  await started;
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  release();
+  await expect(
+    page.getByRole("button", { name: /Single Agent/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Connect codex", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Agent avatar selection" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Connect codex", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Connect agent", exact: true }),
+  ).toBeEnabled();
+  expect(errors).toEqual([]);
+});
+
+for (const [action, dialogName] of [
+  ["Load Repo", "Repository Intake_"],
+  ["Workbench", "Repository Workbench"],
+  ["New Workstream", "New Workstream"],
+] as const) {
+  test(`@wheel-dismiss ${action} closes the wheel without losing its target`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(60000);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await seedConfiguredAvatar(page, "Aaron");
+    await installFixture(page, 4);
+    await page.route("**/api/workstreams/history**", async (route) => {
+      await fulfillJson(route, { ok: true, data: { workstreams: [] } });
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Reconnect", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Enter World", exact: true })
+      .click();
+    await expect(page.getByTestId("world-hud")).toBeVisible();
+    await openCodeWheel(page);
+    await page
+      .getByRole("button", { name: "Send next message to Codex", exact: true })
+      .click();
+    await page
+      .locator(".code-wheel")
+      .getByRole("button", { name: action, exact: true })
+      .click();
+    const dialog = page.getByRole("dialog", { name: dialogName, exact: true });
+    await expect(dialog).toBeVisible();
+    if (action === "Workbench") {
+      await expect(
+        dialog.getByText(/No saved Workstreams for this repository/),
+      ).toBeVisible();
+    }
+    await expect(dialog.getByRole("alert")).toHaveCount(0);
+    await expect(page.locator(".code-wheel")).toHaveCount(0);
+    // Middle clicks inside these windows remain UI-owned, not wheel triggers.
+    await dialog.getByRole("heading").first().click({ button: "middle" });
+    await expect(dialog).toBeVisible();
+    await expect(page.locator(".code-wheel")).toHaveCount(0);
+    await page.screenshot({
+      path: testInfo.outputPath("window-with-wheel-closed.png"),
+    });
+    await dialog
+      .getByRole("button", { name: /^Close/ })
+      .first()
+      .click();
+    await expect(dialog).toHaveCount(0);
+    await expect(
+      page.getByLabel("Message Codex", { exact: true }),
+    ).toBeVisible();
+    await openCodeWheel(page);
+    await expect(
+      page.getByRole("button", {
+        name: "Send next message to Codex",
+        exact: true,
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(errors).toEqual([]);
+  });
 }
 
 test("@code-wheel real controls isolate scene input, retain targeting and spatial state", async ({
@@ -834,7 +1823,11 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   await wheel.getByRole("button", { name: "Agent Stop", exact: true }).click();
   await expect
     .poll(() => movement.filter((x) => x.path.endsWith("/interrupt")).length)
-    .toBe(4);
+    .toBe(1);
+  expect(movement.find((x) => x.path.endsWith("/interrupt"))!.path).toContain(
+    agents[1].worldSessionId,
+  );
+  await expect(page.getByLabel("Message Claw")).toBeVisible();
   expect(fixture.groupedBodies).toHaveLength(0);
   await wheel
     .getByRole("button", { name: "New Workstream", exact: true })
@@ -849,13 +1842,16 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
     .getByRole("dialog", { name: "New Workstream", exact: true })
     .getByRole("button", { name: "Close", exact: true })
     .click();
-  await expect(wheel).toBeVisible();
+  await expect(wheel).toHaveCount(0);
+  await openCodeWheel(page);
   await wheel.getByRole("button", { name: "Load Repo", exact: true }).click();
+  await expect(wheel).toHaveCount(0);
   await page.getByLabel("Local repository path").fill("/fixture");
   await page.getByRole("button", { name: "Open local", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Place Live / Director in World" }),
   ).toBeVisible();
+  await openCodeWheel(page);
   await wheel.getByRole("button", { name: "Screens", exact: true }).click();
   const beforePlacement = await wheel.boundingBox();
   await page
@@ -914,12 +1910,15 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   await expect(
     page.getByRole("complementary", { name: "Current Workstream" }),
   ).toBeVisible();
+  await expect(wheel).toHaveCount(0);
+  await openCodeWheel(page);
   await wheel
     .getByRole("button", { name: "Workbench", exact: true })
     .first()
     .click();
   const workbench = page.getByRole("dialog", { name: "Repository Workbench" });
   await expect(workbench).toBeVisible();
+  await expect(wheel).toHaveCount(0);
   await workbench
     .getByRole("button", {
       name: "Open current work / World View",
@@ -933,9 +1932,7 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   // HUD windows intentionally sit above the wheel (CONTINUATION_CORRECTIONS.md).
   // Reopen on exposed floor, away from the newly opened right-hand inspector,
   // before testing pointer activation of the outer screen controls.
-  await wheel
-    .getByRole("button", { name: "All agents", exact: true })
-    .click({ button: "middle" });
+  await expect(wheel).toHaveCount(0);
   const wheelOrigin = await page
     .locator("main.world-room")
     .evaluate((element) => {
@@ -1429,6 +2426,13 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
       ),
     )
     .toEqual(["idle", "idle", "idle", "idle"]);
+  await expect(page.getByLabel("Message Codex")).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "Clear Codex and send to all agents",
+      exact: true,
+    })
+    .click();
   await expect(page.getByLabel("Message All agents")).toBeVisible();
 
   expect(fixture.transcriptionBodies).toHaveLength(4);

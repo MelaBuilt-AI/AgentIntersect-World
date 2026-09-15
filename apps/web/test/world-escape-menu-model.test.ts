@@ -5,6 +5,7 @@ import {
   loadWorldDisplayPreferences,
   saveWorldDisplayPreferences,
   WORLD_DISPLAY_PREFERENCES_KEY,
+  worldEscapeMenuOwner,
 } from "../src/world-entry/world-escape-menu-model.js";
 
 class MemoryStorage {
@@ -20,6 +21,12 @@ class MemoryStorage {
 }
 
 describe("normal-World display preferences", () => {
+  it("gives Escape to setup even while an inert World is still mounted", () => {
+    expect(worldEscapeMenuOwner(true, true)).toBe("entry");
+    expect(worldEscapeMenuOwner(true, false)).toBe("entry");
+    expect(worldEscapeMenuOwner(false, false)).toBe("entry");
+    expect(worldEscapeMenuOwner(false, true)).toBe("world");
+  });
   it("falls back without rewriting missing or malformed browser-local state", () => {
     const storage = new MemoryStorage();
     expect(loadWorldDisplayPreferences(storage)).toEqual(

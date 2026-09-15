@@ -121,6 +121,14 @@ async function installSessionFixture(
     options.initialProposal ?? importedProposal;
   const mutationPaths: string[] = [];
   await page.route("**/api/**", async (route) => {
+    // Keep the real server-owned setup gate; these fixtures replace native work only.
+    if (
+      route.request().method() === "GET" &&
+      new URL(route.request().url()).pathname === "/api/agent-setup"
+    ) {
+      await route.continue();
+      return;
+    }
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     if (request.method() !== "GET" && !pathname.endsWith("/attach"))
@@ -211,8 +219,13 @@ async function installSessionFixture(
 }
 
 async function openRestoredWorld(page: Page) {
-  await expect(page.locator(".world-room")).toBeVisible();
-  await page.locator(".world-room").focus();
+  const room = page.locator(".world-room");
+  await expect(room).toBeVisible();
+  // The room DOM mounts before the real textures/renderer finish loading.
+  await expect(room).toHaveAttribute("data-scene-ready", "true", {
+    timeout: 60_000,
+  });
+  await room.focus();
 }
 
 async function installAutonomousMovementFixture(page: Page) {
@@ -331,9 +344,31 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
   await installWorldState(page);
   await installSessionFixture(page);
   const authority = await installAutonomousMovementFixture(page);
-  await page.goto("/");
-  await openRestoredWorld(page);
+  let releaseTexture!: () => void;
+  const textureGate = new Promise<void>((resolve) => {
+    releaseTexture = resolve;
+  });
+  await page.route(
+    "**/assets/code-world/15_code_nebula_sky.webp",
+    async (route) => {
+      await textureGate;
+      await route.continue();
+    },
+  );
+  let releaseTimer: ReturnType<typeof setTimeout> | undefined;
   const room = page.locator(".world-room");
+  try {
+    await page.goto("/");
+    await expect(room).toBeVisible();
+    await expect(room).toHaveAttribute("data-scene-ready", "false");
+    // Controlled load delay: a visible room must not end restoration early.
+    releaseTimer = setTimeout(releaseTexture, 1_500);
+    await openRestoredWorld(page);
+    expect(await room.getAttribute("data-scene-ready")).toBe("true");
+  } finally {
+    clearTimeout(releaseTimer);
+    releaseTexture();
+  }
 
   authority.activate({
     actionId: "66666666-6666-4666-8666-666666666666",
@@ -527,7 +562,7 @@ test("accepted user model plays exact Space and local gesture clips without tran
   expect(errors).toEqual([]);
 });
 
-test("Escape is active only in World, traps focus, and stays inert for editable owners", async ({
+test("World Escape traps focus, respects editable owners, and delegates to reopened setup", async ({
   page,
 }) => {
   // Software-rendered CI can spend more than 90 seconds reaching the final
@@ -626,12 +661,27 @@ test("Escape is active only in World, traps focus, and stays inert for editable 
     }),
   ).toBe(true);
   await expect(menu).toBeVisible();
+  await page
+    .getByRole("button", { name: "Agent Setup Menu", exact: true })
+    .click();
+  const setup = page.getByRole("dialog", {
+    name: "Agent Setup Menu",
+    exact: true,
+  });
+  await expect(setup).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Settings", exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(menu).toHaveCount(0);
+  await page.getByRole("button", { name: "Close Agent Setup Menu" }).click();
+  await expect(setup).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test("Escape listener is absent outside the normal World", async ({ page }) => {
+test("Escape opens the entry menu during agent selection", async ({ page }) => {
   const errors = capturePageErrors(page);
   await installWorldState(page, false);
   await installSessionFixture(page);
@@ -640,8 +690,54 @@ test("Escape listener is absent outside the normal World", async ({ page }) => {
     page.getByRole("button", { name: "Single Agent" }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "World menu" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Change Agent", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Agent Setup Menu", exact: true }),
+  ).toBeEnabled();
   expect(errors).toEqual([]);
+});
+
+test("first-run setup gates selection without discovering automatically and retains Escape", async ({
+  page,
+}) => {
+  await installWorldState(page, false);
+  await installSessionFixture(page);
+  await page.route("**/api/agent-setup", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        data: {
+          schema: "aiw.agent-setup/1",
+          completed: false,
+          registrations: [],
+        },
+      },
+    }),
+  );
+  let discoveryRequests = 0;
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/agent-setup/discover")
+      discoveryRequests += 1;
+  });
+  await page.goto("/");
+  await expect(
+    page.getByRole("dialog", { name: "Agent Setup Menu", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Single Agent", exact: true }),
+  ).toHaveCount(0);
+  expect(discoveryRequests).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "World menu" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "World menu" })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Discover Agents", exact: true }),
+  ).toBeVisible();
+  expect(discoveryRequests).toBe(0);
 });
 
 test("slash focuses active World chat and submitted history restores its draft", async ({
@@ -887,6 +983,64 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
     page.getByRole("button", { name: "Single Agent" }),
   ).toBeVisible();
   expect(fixture.mutationPaths).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test("replacing a preview during Canvas setup leaves no detached event connection", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const errors = capturePageErrors(page);
+  await installWorldState(page, false);
+  await installSessionFixture(page, {
+    initialProposal: legacyProposal,
+    liveProposalAvailable: false,
+  });
+  await page.addInitScript(() => {
+    // Replace through the real UI between renderer creation and the queued
+    // R3F provider commit. No fake exception or GL response is introduced.
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      ...args: Parameters<typeof getContext>
+    ) {
+      const context = Reflect.apply(getContext, this, args);
+      if (
+        context &&
+        args[0] === "webgl2" &&
+        this.closest(".imported-avatar-canvas") &&
+        !document.documentElement.dataset.previewSetupReplaced
+      ) {
+        HTMLCanvasElement.prototype.getContext = getContext;
+        document.documentElement.dataset.previewSetupReplaced = "scheduled";
+        queueMicrotask(() => {
+          const replacement = document.querySelector<HTMLButtonElement>(
+            'button[aria-label="Open Robot Agent 5 3D preview"]',
+          );
+          if (replacement && !replacement.disabled) {
+            document.documentElement.dataset.previewSetupReplaced = "true";
+            replacement.click();
+          }
+        });
+      }
+      return context;
+    } as typeof getContext;
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Single Agent" }).click();
+  await page.getByRole("button", { name: "Connect hermes" }).click();
+  await page.getByLabel("Agent name").fill("Mr Fluff");
+  await page.getByRole("button", { name: "Connect agent" }).click();
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-preview-setup-replaced",
+    "true",
+    { timeout: 30_000 },
+  );
+  await expect(
+    page.locator(
+      '.imported-avatar-canvas[data-avatar-imported-id="robot-agent-05"]',
+    ),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
   expect(errors).toEqual([]);
 });
 

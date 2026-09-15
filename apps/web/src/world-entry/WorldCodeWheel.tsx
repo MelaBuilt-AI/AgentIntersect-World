@@ -84,7 +84,20 @@ export function WorldCodeWheel({
     ["follow", "Follow me"],
     ["stop", "Agent Stop"],
   ] as const) {
-    items.push({ id, label, run: () => onAction(id) });
+    items.push({
+      id,
+      label,
+      run: () => {
+        if (
+          id === "load-repo" ||
+          id === "workbench" ||
+          id === "new-workstream"
+        ) {
+          onClose();
+        }
+        onAction(id);
+      },
+    });
   }
   items.push({
     id: "screens",
@@ -255,13 +268,13 @@ export function WorldCodeWheel({
           >
             <g className="code-wheel__stream">
               <image
-                href="/assets/code-world/02_terminal_rain.webp"
+                href="/assets/code-world/02_terminal_rain_wheel.webp"
                 y="-1024"
                 width="1024"
                 height="1024"
               />
               <image
-                href="/assets/code-world/02_terminal_rain.webp"
+                href="/assets/code-world/02_terminal_rain_wheel.webp"
                 width="1024"
                 height="1024"
               />

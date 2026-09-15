@@ -9,7 +9,7 @@ import {
 } from "@agentintersect-world/avatar-system/imported-avatar";
 import type { ImportedAvatarPart } from "@agentintersect-world/renderer-r3f/imported-avatar";
 import { resolveWebGLCapability } from "@agentintersect-world/renderer-r3f";
-import { Component, lazy, Suspense, type ReactNode } from "react";
+import { Component, lazy, Suspense, useState, type ReactNode } from "react";
 import { compactAvatarPreviewUses3d } from "./avatar-preview-policy.js";
 
 const EMPTY_IMPORTED_AVATAR_PARTS: readonly ImportedAvatarPart[] = [];
@@ -82,12 +82,13 @@ export function AvatarPreview({
       : undefined;
   const importedClip = imported?.clips[previewClipIndex];
   const optional3dReady = compactAvatarPreviewUses3d(compact);
+  const [webglAvailable] = useState(() => resolveWebGLCapability().available);
   const forcedFallback =
     typeof window !== "undefined" &&
     (["off", "text"].includes(
       new URLSearchParams(window.location.search).get("avatar3d") ?? "",
     ) ||
-      !resolveWebGLCapability().available);
+      !webglAvailable);
   return (
     <figure
       className={`avatar-preview avatar-preview--3d${compact ? " avatar-preview--compact" : ""}`}

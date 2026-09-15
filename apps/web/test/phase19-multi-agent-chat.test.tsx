@@ -8,7 +8,7 @@ import {
 } from "../src/sessions/session-client.js";
 import { WorldHud } from "../src/world-entry/WorldHud.js";
 import {
-  consumeOneSendRecipient,
+  resolveChatRecipientRosterIds,
   createWorldChatState,
   reduceWorldChat,
   type WorldChatAction,
@@ -127,15 +127,36 @@ describe("Phase 19 multi-agent chat", () => {
     expect(body).not.toHaveProperty("signal");
   });
 
-  it("consumes avatar selection for one send and then resets to broadcast", () => {
-    expect(consumeOneSendRecipient("roster-codex")).toEqual({
-      targetRosterId: "roster-codex",
-      nextSelectedRecipientId: null,
-    });
-    expect(consumeOneSendRecipient(null)).toEqual({
-      targetRosterId: undefined,
-      nextSelectedRecipientId: null,
-    });
+  const roster = [
+    { rosterId: "beans", displayName: "Beans" },
+    { rosterId: "codex", displayName: "Codex" },
+    { rosterId: "short", displayName: "Mr" },
+    { rosterId: "fluff", displayName: "Mr Fluff" },
+  ];
+  it.each([
+    ["hello", undefined, ["beans", "codex", "short", "fluff"]],
+    [" @beans hello ", undefined, ["beans"]],
+    ["@ＣＯＤＥＸ hello", undefined, ["codex"]],
+    ["@Mr Fluff hello", undefined, ["fluff"]],
+    ["@Beans hello", "codex", ["codex"]],
+    ["@Unknown hello", undefined, []],
+    ["@Mr Fluff", undefined, []],
+    ["hello", "missing", []],
+  ] as const)(
+    "limits pending recipients for %s / %s",
+    (text, selected, expected) => {
+      expect(resolveChatRecipientRosterIds(text, roster, selected)).toEqual(
+        expected,
+      );
+    },
+  );
+  it("does not light up ambiguous mentions", () => {
+    expect(
+      resolveChatRecipientRosterIds("@Beans hello", [
+        ...roster,
+        { rosterId: "other", displayName: "beans" },
+      ]),
+    ).toEqual([]);
   });
 
   it("projects stable grouped rows while retaining success beside failure", () => {

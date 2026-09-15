@@ -522,14 +522,38 @@ const IDLE: WorldActivity = {
   detail: "",
 };
 
-export function consumeOneSendRecipient(selectedRecipientId: string | null): {
-  readonly targetRosterId: string | undefined;
-  readonly nextSelectedRecipientId: null;
-} {
-  return {
-    targetRosterId: selectedRecipientId ?? undefined,
-    nextSelectedRecipientId: null,
-  };
+/** Pending presentation mirrors server routing; the server still owns dispatch. */
+export function resolveChatRecipientRosterIds(
+  input: string,
+  agents: readonly {
+    readonly rosterId: string;
+    readonly displayName: string;
+  }[],
+  selectedRecipientId?: string,
+): readonly string[] {
+  if (selectedRecipientId !== undefined)
+    return agents
+      .filter((agent) => agent.rosterId === selectedRecipientId)
+      .map((agent) => agent.rosterId);
+  const text = input.trim();
+  if (!text.startsWith("@")) return agents.map((agent) => agent.rosterId);
+  const normalize = (name: string) =>
+    name.normalize("NFKC").trim().toLocaleLowerCase("en-US");
+  let recipients: readonly string[] = [];
+  // Longest exact name wins, including spaces. Unknown/ambiguous mentions
+  // must never advertise a broadcast while the server rejects the request.
+  for (let end = 2; end <= Math.min(text.length, 82); end++) {
+    if (end !== text.length && !/\s/u.test(text[end]!)) continue;
+    const matches = agents.filter(
+      (agent) => normalize(agent.displayName) === normalize(text.slice(1, end)),
+    );
+    if (matches.length)
+      recipients =
+        matches.length === 1 && text.slice(end).trim()
+          ? [matches[0]!.rosterId]
+          : [];
+  }
+  return recipients;
 }
 
 const toolDetail = (toolName: string): Exclude<WorldActivity["detail"], ""> => {

@@ -14,6 +14,10 @@ import {
   type AgentAdapter,
   type WorldOwnedSessionContext,
 } from "./agent-sessions.js";
+import {
+  NativeSessionStore,
+  type NativeOwnedBinding as OwnedBinding,
+} from "./native-session-store.js";
 import { extractAdapterRepositoryLocator } from "./repository-work-focus.js";
 
 export const CODEX_CLI_VERSION = "0.149.1";
@@ -56,22 +60,18 @@ const ENVIRONMENT_ALLOWLIST = [
   "no_proxy",
 ] as const;
 
+import type { AgentEnvironmentExecution } from "./agent-environment.js";
+
 type CodexOptions = {
+  readonly environmentExecution?: AgentEnvironmentExecution;
   readonly executablePath: string;
   readonly nativeSessionRoot: string;
   readonly authPath?: string;
+  readonly nativeProfilePath?: string;
+  readonly profileName?: string;
   readonly attestTimeoutMs?: number;
   readonly turnTimeoutMs?: number;
   readonly terminateGraceMs?: number;
-};
-
-type OwnedBinding = {
-  readonly worldInstanceId: string;
-  readonly nativeSessionId: string;
-  readonly title: string;
-  readonly runtimeHome: string;
-  ended: boolean;
-  quarantined: boolean;
 };
 
 type ProcessResult = {
@@ -233,12 +233,13 @@ function codexRepositoryLocator(
 export class CodexSessionAdapter implements AgentAdapter {
   readonly id = "codex";
   readonly #options: CodexOptions;
-  readonly #bindings = new Map<string, OwnedBinding>();
+  readonly #sessions: NativeSessionStore;
   readonly #busy = new Set<string>();
 
   constructor(options: CodexOptions) {
     if (
-      !path.isAbsolute(options.executablePath) ||
+      (!options.environmentExecution &&
+        !path.isAbsolute(options.executablePath)) ||
       !path.isAbsolute(options.nativeSessionRoot) ||
       options.executablePath.length > 4_096 ||
       options.nativeSessionRoot.length > 4_096 ||
@@ -250,21 +251,23 @@ export class CodexSessionAdapter implements AgentAdapter {
         "validation",
       );
     this.#options = options;
+    this.#sessions = new NativeSessionStore(options.nativeSessionRoot, "codex");
   }
 
   #args(sessionId?: string, evidenceDirectory?: string): string[] {
     const args = [
       "exec",
       ...(evidenceDirectory ? ["--add-dir", evidenceDirectory] : []),
-      "--model",
-      CODEX_MODEL,
-      "-c",
-      CODEX_REASONING,
+      ...(this.#options.nativeProfilePath
+        ? this.#options.profileName && this.#options.profileName !== "default"
+          ? ["--profile", this.#options.profileName]
+          : []
+        : ["--model", CODEX_MODEL, "-c", CODEX_REASONING]),
       "--sandbox",
       "workspace-write",
       "--json",
       "--skip-git-repo-check",
-      "--ignore-user-config",
+      ...(this.#options.nativeProfilePath ? [] : ["--ignore-user-config"]),
     ];
     if (sessionId) args.push("resume", sessionId);
     args.push("-");
@@ -285,15 +288,21 @@ export class CodexSessionAdapter implements AgentAdapter {
       readonly validate?: () => void;
     },
   ): Promise<ProcessResult> {
+    const bridged = await this.#options.environmentExecution?.spawn(
+      args,
+      options.workingDirectory ?? this.#options.nativeSessionRoot,
+    );
     return new Promise<ProcessResult>((resolve, reject) => {
       let child: ChildProcessWithoutNullStreams;
       try {
-        child = spawn(this.#options.executablePath, args, {
-          cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
-          env: processEnvironment(options.runtimeHome),
-          detached: true,
-          stdio: ["pipe", "pipe", "pipe"],
-        });
+        child =
+          bridged ??
+          spawn(this.#options.executablePath, args, {
+            cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
+            env: processEnvironment(options.runtimeHome),
+            detached: true,
+            stdio: ["pipe", "pipe", "pipe"],
+          });
       } catch {
         reject(codexFailure(options.failureMessage, "offline"));
         return;
@@ -312,10 +321,9 @@ export class CodexSessionAdapter implements AgentAdapter {
       const fail = (error: GatewayError) => {
         if (failure || closed) return;
         failure = error;
-        termination = terminateProcessGroup(
-          child,
-          this.#options.terminateGraceMs ?? 250,
-        );
+        termination = this.#options.environmentExecution
+          ? this.#options.environmentExecution.terminate(child)
+          : terminateProcessGroup(child, this.#options.terminateGraceMs ?? 250);
       };
       const parseLine = (line: string) => {
         if (!line) return;
@@ -406,7 +414,9 @@ export class CodexSessionAdapter implements AgentAdapter {
 
       if (options.signal?.aborted) onAbort();
       child.stdin.on("error", () => fail(codexFailure(options.failureMessage)));
-      child.stdin.end(input);
+      if (this.#options.environmentExecution)
+        this.#options.environmentExecution.writeInput(child, input);
+      else child.stdin.end(input);
     });
   }
 
@@ -427,12 +437,8 @@ export class CodexSessionAdapter implements AgentAdapter {
       ["--version"],
       "Codex CLI attestation timed out",
     );
-    if (
-      ![CODEX_CLI_VERSION, "0.153.4"].some(
-        (supported) => version === `codex-cli ${supported}`,
-      )
-    )
-      throw codexFailure("Codex CLI version mismatch", "offline");
+    if (!/^codex-cli [A-Za-z0-9][A-Za-z0-9.+_-]{0,63}$/.test(version))
+      throw codexFailure("Codex CLI identity response is invalid", "offline");
     const execHelp = await this.#plain(
       ["exec", "--help"],
       "Codex CLI attestation timed out",
@@ -488,7 +494,8 @@ export class CodexSessionAdapter implements AgentAdapter {
   }
 
   async listSessions(): Promise<readonly AdapterSessionSummary[]> {
-    return [...this.#bindings.values()]
+    await this.#sessions.load();
+    return [...this.#sessions.bindings.values()]
       .filter((binding) => !binding.ended)
       .map((binding) => ({
         id: binding.nativeSessionId,
@@ -652,7 +659,9 @@ export class CodexSessionAdapter implements AgentAdapter {
   async createWorldSession(
     worldInstanceId: string,
     displayName = "Codex",
+    signal?: AbortSignal,
   ): Promise<AdapterSessionSummary> {
+    await this.#sessions.load();
     boundedWorldRef(worldInstanceId);
     const title = displayName.normalize("NFC").trim().slice(0, 80) || "Codex";
     const runtimeHome = await this.#createRuntimeHome();
@@ -660,13 +669,13 @@ export class CodexSessionAdapter implements AgentAdapter {
       const created = await this.#runTurn(
         CREATE_PROMPT,
         undefined,
-        undefined,
+        signal ? { signal, mode: "explore" } : undefined,
         runtimeHome,
       );
       const id = nativeSessionId(created.sessionRef);
-      if (this.#bindings.has(id))
+      if (this.#sessions.bindings.has(id))
         throw codexFailure("Codex CLI returned an ambiguous session identity");
-      this.#bindings.set(id, {
+      this.#sessions.bindings.set(id, {
         worldInstanceId,
         nativeSessionId: id,
         title,
@@ -674,9 +683,11 @@ export class CodexSessionAdapter implements AgentAdapter {
         ended: false,
         quarantined: false,
       });
+      await this.#sessions.save();
       return { id, rootId: id, source: "codex", title };
     } catch (error) {
-      await rm(path.join(runtimeHome, "auth.json"), { force: true });
+      if (!this.#options.nativeProfilePath)
+        await rm(path.join(runtimeHome, "auth.json"), { force: true });
       throw error;
     }
   }
@@ -686,7 +697,7 @@ export class CodexSessionAdapter implements AgentAdapter {
     worldInstanceId?: string,
     allowEnded = false,
   ): OwnedBinding {
-    const binding = this.#bindings.get(sessionRef);
+    const binding = this.#sessions.bindings.get(sessionRef);
     if (
       !binding ||
       (worldInstanceId !== undefined &&
@@ -704,6 +715,7 @@ export class CodexSessionAdapter implements AgentAdapter {
     sessionRef: string,
     context?: WorldOwnedSessionContext,
   ): Promise<AdapterSessionSummary> {
+    await this.#sessions.load();
     if (!context?.worldInstanceId)
       throw codexFailure(
         "Codex World ownership identity is required",
@@ -728,6 +740,7 @@ export class CodexSessionAdapter implements AgentAdapter {
     text: string,
     context?: AdapterTurnContext,
   ): Promise<AdapterTurnResult> {
+    await this.#sessions.load();
     if (Buffer.byteLength(text, "utf8") > MAX_INPUT_BYTES)
       throw codexFailure("Codex input exceeds the bound", "validation");
     const binding = this.#binding(sessionRef);
@@ -739,19 +752,21 @@ export class CodexSessionAdapter implements AgentAdapter {
         "Codex root session binding does not match",
         "conflict",
       );
-    if (binding.quarantined)
-      throw codexFailure(
-        "Codex owned session is quarantined and stale",
-        "conflict",
-      );
     if (this.#busy.has(binding.nativeSessionId))
       throw codexFailure(
         "This exact Codex session already has an active turn",
         "conflict",
       );
+    if (binding.quarantined)
+      throw codexFailure(
+        "Codex owned session is quarantined and stale",
+        "conflict",
+      );
     this.#busy.add(binding.nativeSessionId);
     try {
-      return await this.#runTurn(
+      binding.quarantined = true;
+      await this.#sessions.save();
+      const result = await this.#runTurn(
         context?.systemMessage
           ? `${context.systemMessage}
 
@@ -762,6 +777,9 @@ ${text}`
         context,
         binding.runtimeHome,
       );
+      binding.quarantined = false;
+      await this.#sessions.save();
+      return result;
     } catch (error) {
       binding.quarantined = true;
       throw error instanceof GatewayError ? error : codexFailure();
@@ -774,6 +792,7 @@ ${text}`
     worldInstanceId: string,
     rootSessionRef: string,
   ): Promise<void> {
+    await this.#sessions.load();
     const binding = this.#binding(rootSessionRef, worldInstanceId, true);
     if (binding.ended) return;
     if (this.#busy.has(binding.nativeSessionId))
@@ -782,10 +801,22 @@ ${text}`
         "conflict",
       );
     binding.ended = true;
-    await rm(path.join(binding.runtimeHome, "auth.json"), { force: true });
+    await this.#sessions.save();
+    if (!this.#options.nativeProfilePath)
+      await rm(path.join(binding.runtimeHome, "auth.json"), { force: true });
   }
 
   async #createRuntimeHome(): Promise<string> {
+    if (this.#options.nativeProfilePath) {
+      if (this.#options.environmentExecution) {
+        await this.#options.environmentExecution.pythonCommand(
+          "import os,sys; assert os.path.isdir(sys.argv[1])",
+          [this.#options.nativeProfilePath],
+        );
+      } else if (!(await stat(this.#options.nativeProfilePath)).isDirectory())
+        throw codexFailure("Selected Codex profile is unavailable", "offline");
+      return this.#options.nativeProfilePath;
+    }
     await mkdir(this.#options.nativeSessionRoot, {
       recursive: true,
       mode: 0o700,

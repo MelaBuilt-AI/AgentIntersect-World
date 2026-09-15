@@ -830,11 +830,11 @@ describe("Phase 18 World entry experience", () => {
         component((appModule as unknown as { readonly App: unknown }).App),
       ),
     );
-    expect(html).toContain('data-testid="identify-opening"');
+    expect(html).toContain('data-testid="agent-setup-opening"');
     expect(html).toContain(
       'src="/assets/dashboard/agentintersect_animated.svg"',
     );
-    expect(html).toContain("Create Avatar");
+    expect(html).not.toContain("Create Avatar");
     expect(html).not.toMatch(/DashboardShell|Diagnostics|Evidence|Recovery/);
   });
 

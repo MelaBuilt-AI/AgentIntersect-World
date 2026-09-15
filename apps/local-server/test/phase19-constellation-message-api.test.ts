@@ -73,6 +73,28 @@ async function fixture() {
 }
 
 describe("Phase 19 constellation message API", () => {
+  it.each(["discussion", "work"] as const)(
+    "accepts the browser's explicit %s intent and dispatches it",
+    async (intent) => {
+      const { server, sendText } = await fixture();
+      const response = await server.inject({
+        method: "POST",
+        url: "/constellation/messages",
+        payload: {
+          requestId: "20000000-0000-4000-8000-000000000003",
+          idempotencyKey: "intent-proof",
+          text: "hi agents",
+          userDisplayName: "Aaron",
+          intent,
+        },
+      });
+      expect(response.statusCode, response.body).toBe(201);
+      expect(sendText).toHaveBeenCalledWith(
+        "session-hermes",
+        expect.objectContaining({ intent }),
+      );
+    },
+  );
   it("creates one server-owned grouped request and reads its durable result", async () => {
     const { server, sendText } = await fixture();
     const requestId = "20000000-0000-4000-8000-000000000001";

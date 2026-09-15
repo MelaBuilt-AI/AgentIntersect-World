@@ -109,13 +109,14 @@ vec2 aiwStreamingUv(vec2 uv) {
 
 /** Non-suspending textures: loading artwork never hides the working World. */
 export function useCodeTexture(
-  name: string,
+  name: string | null,
   motion?: "floor" | "screen",
   reducedMotion = false,
 ) {
   const { gl, invalidate } = useThree();
   const [texture, setTexture] = useState<Texture | null>(null);
   useEffect(() => {
+    if (!name) return;
     let active = true;
     const loaded = new TextureLoader().load(
       `/assets/code-world/${name}.webp`,
