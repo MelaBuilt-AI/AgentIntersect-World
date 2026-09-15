@@ -172,6 +172,19 @@ export function WorldEscapeMenu({
               >
                 Agent Setup Menu
               </button>
+              {!entryOnly ? (
+                <button
+                  type="button"
+                  className="world-action--enabled"
+                  onClick={() =>
+                    act(() =>
+                      window.dispatchEvent(new Event("aiw:open-add-agent")),
+                    )
+                  }
+                >
+                  Add Agent
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="world-action--enabled"

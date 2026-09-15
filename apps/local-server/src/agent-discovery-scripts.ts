@@ -54,7 +54,13 @@ foreach ($harness in @('hermes','openclaw','codex','claude-code')) {
     $results += @{ adapterId=$harness; executablePath=$executable; identities=$identities }
   }
 }
-@{ home=$homePath; installations=@($results) } | ConvertTo-Json -Depth 6 -Compress
+$defaultDistro = $null
+try {
+  $lxss = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
+  $defaultId = (Get-ItemProperty -LiteralPath $lxss -ErrorAction Stop).DefaultDistribution
+  $defaultDistro = (Get-ItemProperty -LiteralPath ($lxss + '\' + $defaultId) -ErrorAction Stop).DistributionName
+} catch { }
+@{ home=$homePath; installations=@($results); defaultWslDistro=$defaultDistro } | ConvertTo-Json -Depth 6 -Compress
 `;
 
 export const WSL_DISCOVERY_SCRIPT = String.raw`
@@ -101,6 +107,6 @@ for harness, command in [('hermes','hermes'),('openclaw','openclaw'),('codex','c
             resolved = os.path.realpath(candidate)
             if resolved not in seen and len(seen) < 32:
                 seen.add(resolved)
-                results.append(dict(adapterId=harness, executablePath=candidate, identities=identities))
+                results.append(dict(adapterId=harness, executablePath=candidate, canonicalExecutablePath=resolved, identities=identities))
 print(json.dumps(dict(home=home, installations=results)))
 `;

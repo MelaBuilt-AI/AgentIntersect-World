@@ -1,7 +1,7 @@
 .agent-setup-escape-hint {
   position: fixed;
   top: 1rem;
-  right: 1.25rem;
+  left: max(1.25rem, env(safe-area-inset-left));
   z-index: 75;
   color: #d0e2ef;
   font:
@@ -17,6 +17,10 @@
   color: #a3acb4;
   border-color: #4d5861;
   cursor: not-allowed;
+}
+/* Keep inert World dialogs below setup in both painting and hit testing. */
+.agent-setup-content {
+  isolation: isolate;
 }
 .agent-setup-layer {
   position: fixed;
@@ -179,6 +183,26 @@
   color: #b0c5d4;
   font-size: 0.75rem;
 }
+.agent-setup-menu .agent-setup-success {
+  background: #17673d;
+  border-color: #57d68b;
+  color: #ffffff;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: 100%;
+}
+
+.agent-setup-connected {
+  display: grid;
+  gap: 0.6rem;
+}
+.agent-setup-installation fieldset[hidden] {
+  display: none;
+}
+.agent-setup-environment {
+  min-width: 0;
+}
+
 .agent-setup-path {
   overflow-wrap: anywhere;
   font-size: 0.75rem;

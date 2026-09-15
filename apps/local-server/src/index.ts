@@ -212,6 +212,28 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
         directory: path.join(sessionDataDirectory, "constellation"),
         worldInstanceId: randomUUID(),
         lifecycle: {
+          isBindingAvailable: (binding) => {
+            try {
+              const session = agentSessionGateway.status(
+                binding.worldSessionId,
+              );
+              return (
+                session.adapterId === binding.adapterId &&
+                (session.adapterRootSessionRef ?? session.adapterSessionRef) ===
+                  binding.nativeRootSessionRef &&
+                [
+                  "ready",
+                  "thinking",
+                  "using-tool",
+                  "waiting-approval",
+                ].includes(session.status) &&
+                (session.continuity === "current" ||
+                  session.continuity === "previous-recovered")
+              );
+            } catch {
+              return false;
+            }
+          },
           validateBinding: async (binding) => {
             const session = agentSessionGateway.status(binding.worldSessionId);
             const rootSessionRef =
@@ -227,6 +249,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                 continuity: "unavailable" as const,
               };
             const attached = await agentSessionGateway.attach({
+              recover: true,
               adapterId: binding.adapterId,
               ...(session.connectionId
                 ? { connectionId: session.connectionId }

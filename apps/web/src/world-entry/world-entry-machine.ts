@@ -87,6 +87,11 @@ export type WorldEntryEvent =
   | { readonly type: "SUBMIT_AGENT_NAME"; readonly name: string }
   | { readonly type: "CONNECTION_NOT_FOUND" }
   | { readonly type: "RETRY_CONNECTION" }
+  | { readonly type: "CANCEL_AGENT_SELECTION" }
+  | {
+      readonly type: "WORLD_ROSTER_ADDED";
+      readonly roster: readonly WorldEntryRosterEntry[];
+    }
   | {
       readonly type: "CONNECTION_UNAVAILABLE";
       readonly stale: boolean;
@@ -329,6 +334,39 @@ export function reduceWorldEntry(
             },
           })
         : state;
+    case "WORLD_ROSTER_ADDED":
+      if (
+        !["world_blank", "world_repository", "repository_loading"].includes(
+          state.step,
+        ) ||
+        event.roster.length > 4 ||
+        event.roster.some(
+          (a) =>
+            a.connection.status !== "connected" ||
+            a.agentAvatar.status !== "accepted",
+        )
+      )
+        return state;
+      return { ...state, sessionMode: "multi", roster: event.roster };
+    case "CANCEL_AGENT_SELECTION": {
+      if (
+        !["agent_prompt", "agent_resolving", "agent_not_found"].includes(
+          state.step,
+        )
+      )
+        return state;
+      const next = projectSetupAuthority({
+        ...state,
+        pendingAgent: null,
+        step:
+          state.sessionMode === "multi"
+            ? "constellation_multi"
+            : "constellation_single",
+      });
+      return state.sessionMode === "multi" && canEnterWorld(next)
+        ? { ...next, step: "enter_ready" }
+        : next;
+    }
     case "RETRY_CONNECTION":
       return state.step === "agent_not_found" ||
         state.connection.status === "unavailable" ||

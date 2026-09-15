@@ -68,13 +68,18 @@ describe("replacement imported avatar creator", () => {
       hiddenPartIds: readonly string[];
     }>;
     const renderScene = (agentName: string) => {
-      const preview = AvatarPreview({
-        profile: {
-          ...DEFAULT_IMPORTED_AVATAR_DRAFT,
-          agentName,
-          avatarSource,
-        },
-      }) as ChildContainer;
+      let preview!: ChildContainer;
+      function PreviewProbe() {
+        preview = AvatarPreview({
+          profile: {
+            ...DEFAULT_IMPORTED_AVATAR_DRAFT,
+            agentName,
+            avatarSource,
+          },
+        }) as ChildContainer;
+        return null;
+      }
+      renderToStaticMarkup(<PreviewProbe />);
       const previewChildren = Children.toArray(preview.props.children);
       const suspense = previewChildren[1] as ChildContainer;
       const errorBoundary = suspense.props.children as ChildContainer;

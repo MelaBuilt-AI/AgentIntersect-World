@@ -76,6 +76,7 @@ export type WorldEntrySessionPort = {
   ): Promise<readonly NativeSession[]>;
   status(sessionId: string): Promise<WorldAgentSession>;
   attach(input: {
+    readonly connectionId?: string;
     readonly adapterId: Phase19AdapterId;
     readonly adapterSessionRef: string;
     readonly profile: string;
@@ -85,16 +86,20 @@ export type WorldEntrySessionPort = {
     readonly modeConfirmed?: boolean;
     readonly worldInstanceId?: string;
   }): Promise<WorldAgentSession>;
-  createWorldSession(input: {
-    readonly adapterId: Phase19AdapterId;
-    readonly worldInstanceId: string;
-    readonly displayName: string;
-    readonly profile: string;
-    readonly workspaceId: string;
-    readonly repositoryRef: string;
-    readonly mode: "explore" | "collaborate";
-    readonly modeConfirmed?: boolean;
-  }): Promise<WorldAgentSession>;
+  createWorldSession(
+    input: {
+      readonly connectionId?: string;
+      readonly adapterId: Phase19AdapterId;
+      readonly worldInstanceId: string;
+      readonly displayName: string;
+      readonly profile: string;
+      readonly workspaceId: string;
+      readonly repositoryRef: string;
+      readonly mode: "explore" | "collaborate";
+      readonly modeConfirmed?: boolean;
+    },
+    signal?: AbortSignal,
+  ): Promise<WorldAgentSession>;
   avatarProposal(sessionId: string): Promise<AvatarProposal | null>;
   history(sessionId: string): Promise<SessionHistory>;
   avatarConsent(
@@ -318,7 +323,10 @@ export function createWorldEntryClient(
       return sessionClient.endConstellation(input);
     },
 
-    async restoreHermes(sessionId: string): Promise<HermesConnectionResult> {
+    async restoreHermes(
+      sessionId: string,
+      worldInstanceId?: string,
+    ): Promise<HermesConnectionResult> {
       if (
         !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
           sessionId,
@@ -333,17 +341,25 @@ export function createWorldEntryClient(
           typeof persisted.adapterRootSessionRef === "string"
             ? persisted.adapterRootSessionRef
             : persisted.adapterSessionRef;
-        const nativeSessions = await sessionClient.nativeSessions("hermes");
-        if (
-          !nativeSessions.some(
-            (nativeSession) => nativeSession.id === rootSessionRef,
+        // Registered connections validate the exact root through their own adapter;
+        // the default adapter's discovery list is not their session authority.
+        if (!persisted.connectionId) {
+          const nativeSessions = await sessionClient.nativeSessions("hermes");
+          if (
+            !nativeSessions.some(
+              (nativeSession) => nativeSession.id === rootSessionRef,
+            )
           )
-        )
-          return { status: "stale", message: "agent unavailable_" };
+            return { status: "stale", message: "agent unavailable_" };
+        }
         if (persisted.mode !== "explore" && persisted.mode !== "collaborate")
           return { status: "stale", message: "agent unavailable_" };
         const session = await sessionClient.attach({
           adapterId: "hermes",
+          ...(persisted.connectionId
+            ? { connectionId: persisted.connectionId }
+            : {}),
+          ...(worldInstanceId ? { worldInstanceId } : {}),
           adapterSessionRef: rootSessionRef,
           profile: persisted.profile,
           workspaceId: persisted.workspaceId,
@@ -423,21 +439,25 @@ export function createWorldEntryClient(
       worldInstanceId: string,
       name: string,
       connectionId?: string,
+      signal?: AbortSignal,
     ): Promise<HermesConnectionResult> {
       const displayName = name.normalize("NFC").trim();
       if (!safeDisplayLabel(displayName) || !worldInstanceId)
         return { status: "unavailable", message: "agent unavailable_" };
       try {
-        const session = await sessionClient.createWorldSession({
-          ...(connectionId ? { connectionId } : {}),
-          adapterId,
-          worldInstanceId,
-          displayName,
-          profile: "default",
-          workspaceId: "world-entry",
-          repositoryRef: "current",
-          mode: "explore",
-        });
+        const session = await sessionClient.createWorldSession(
+          {
+            ...(connectionId ? { connectionId } : {}),
+            adapterId,
+            worldInstanceId,
+            displayName,
+            profile: "default",
+            workspaceId: "world-entry",
+            repositoryRef: "current",
+            mode: "explore",
+          },
+          signal,
+        );
         if (!validAttachedSession(session, adapterId))
           return { status: "stale", message: "agent unavailable_" };
         const history = await sessionClient

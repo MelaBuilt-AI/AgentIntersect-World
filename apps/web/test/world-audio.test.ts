@@ -1,6 +1,23 @@
 import { expect, it, vi } from "vitest";
 import { WorldAudio } from "../src/audio/world-audio.js";
 
+it("plays the materialization WAV on the effects bus and respects mute and disposal", async () => {
+  const { audio, media } = fixture();
+  await audio.play();
+  audio.cue("avatar-materialize");
+  const arrivals = () =>
+    media.filter((m) => m.src.endsWith("/avatar-materialize.wav"));
+  expect(arrivals()).toHaveLength(1);
+  expect(arrivals()[0]!.paused).toBe(false);
+  expect(arrivals()[0]!.loop).toBe(false);
+  audio.setMuted("effects", true);
+  expect(arrivals()[0]!.muted).toBe(true);
+  audio.cue("avatar-materialize");
+  expect(arrivals()).toHaveLength(1);
+  audio.dispose();
+  expect(media.every((m) => m.paused)).toBe(true);
+});
+
 it("imports a local M3U in its stated order without fetching external URLs", async () => {
   const { audio } = fixture();
   const a = new File(["a"], "a.ogg", { type: "audio/ogg" }),

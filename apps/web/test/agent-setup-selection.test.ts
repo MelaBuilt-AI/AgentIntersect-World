@@ -17,5 +17,6 @@ it("carries a selected saved connection into the native World session request", 
     expect.objectContaining({
       connectionId: "6b160d9e-299f-42d5-90a6-5468451e485c",
     }),
+    undefined,
   );
 });

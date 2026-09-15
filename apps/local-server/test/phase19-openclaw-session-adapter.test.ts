@@ -37,6 +37,7 @@ afterEach(async () => {
 async function fixtureGateway(options: FixtureOptions = {}) {
   const calls: Array<{ method: string; params: Record<string, unknown> }> = [];
   const sessions = new Map<string, string>();
+  const labels = new Set<string>();
   const pendingTerminals: Array<() => void> = [];
   let created = 0;
   const http = createServer();
@@ -100,6 +101,22 @@ async function fixtureGateway(options: FixtureOptions = {}) {
       }
       if (request.method === options.ignoreMethod) return;
       if (request.method === "sessions.create") {
+        const label = String(request.params.label);
+        if (labels.has(label)) {
+          socket.send(
+            JSON.stringify({
+              type: "res",
+              id: request.id,
+              ok: false,
+              error: {
+                code: "INVALID_REQUEST",
+                message: "label already in use",
+              },
+            }),
+          );
+          return;
+        }
+        labels.add(label);
         created += 1;
         const key = `agent:main:dashboard:world-owned-${created}`;
         const sessionId = `native-session-${created}`;
@@ -328,6 +345,19 @@ describe("OpenClawSessionAdapter", () => {
         .key,
     ).toMatch(/^agent:work:aiw:/);
   });
+  it("creates distinct native conversations for the same agent display name across Worlds", async () => {
+    const gateway = await fixtureGateway();
+    const first = adapter(gateway.url);
+    const second = adapter(gateway.url);
+    const a = await first.createWorldSession("world-a", "Beans");
+    const b = await second.createWorldSession("world-b", "Beans");
+    expect(a.rootId).not.toBe(b.rootId);
+    expect(a.title).toBe("Beans");
+    expect(b.title).toBe("Beans");
+    const calls = gateway.calls.filter((c) => c.method === "sessions.create");
+    expect(calls[0]!.params.label).not.toBe(calls[1]!.params.label);
+    expect(String(calls[1]!.params.label).length).toBeLessThanOrEqual(80);
+  });
   it("bounds an unanswered sessions.create request with a sanitized adapter deadline", async () => {
     const gateway = await fixtureGateway({ ignoreMethod: "sessions.create" });
     const startedAt = Date.now();
@@ -396,7 +426,9 @@ describe("OpenClawSessionAdapter", () => {
     const createCall = gateway.calls.find(
       ({ method }) => method === "sessions.create",
     );
-    expect(createCall?.params).toMatchObject({ label: "Claw One" });
+    expect(createCall?.params.label).toBe(
+      `Claw One [World ${String(createCall?.params.key).split(":").at(-1)}]`,
+    );
     expect(createCall?.params.key).toMatch(
       /^agent:main:aiw:[0-9a-f]{8}-[0-9a-f-]{27,}$/iu,
     );

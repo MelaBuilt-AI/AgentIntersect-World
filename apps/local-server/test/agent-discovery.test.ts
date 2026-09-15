@@ -13,6 +13,81 @@ import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 
 const roots: string[] = [];
+
+it("names native Linux from OS metadata without probing Windows or WSL", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "aiw-linux-label-"));
+  roots.push(root);
+  const run = vi.fn();
+  const { discoverAgents } = await import("../src/agent-discovery.js");
+  const result = await discoverAgents({
+    platform: "linux",
+    home: root,
+    searchPath: "",
+    host: { platform: "linux" },
+    osRelease: 'NAME="Arch Linux"\nID=arch\n',
+    run,
+  });
+  expect(result.environments).toEqual([
+    { id: "local", label: "Linux (Arch Linux)", status: "scanned" },
+  ]);
+  expect(run).not.toHaveBeenCalled();
+});
+
+it("coalesces the current WSL distro and its enumeration without losing other installations", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "aiw-wsl-alias-"));
+  roots.push(root);
+  const bin = path.join(root, "bin");
+  await mkdir(bin);
+  const executable = path.join(bin, "codex");
+  await writeFile(executable, "#!/bin/sh\nexit 42\n");
+  await chmod(executable, 0o700);
+  const run = vi.fn(async (_command: string, args: readonly string[]) => {
+    if (args.includes("--list")) return "Ubuntu\n";
+    if (args.includes("-EncodedCommand"))
+      return JSON.stringify({
+        home: "C:\\Users\\Test",
+        installations: [],
+        defaultWslDistro: "Ubuntu",
+      });
+    return JSON.stringify({
+      home: root,
+      installations: [
+        {
+          adapterId: "codex",
+          executablePath: executable,
+          canonicalExecutablePath: executable,
+          identities: [
+            {
+              id: "default",
+              label: "Default",
+              kind: "profile",
+              profilePath: path.join(root, ".codex"),
+            },
+          ],
+        },
+      ],
+    });
+  });
+  const { discoverAgents } = await import("../src/agent-discovery.js");
+  const result = await discoverAgents({
+    platform: "linux",
+    home: root,
+    searchPath: bin,
+    host: { platform: "linux", distro: "Ubuntu" },
+    run,
+  });
+  expect(result.installations).toHaveLength(1);
+  expect(result.installations[0]?.environment).toEqual({
+    id: "wsl:Ubuntu",
+    kind: "wsl",
+    label: "WSL (Ubuntu)",
+    distro: "Ubuntu",
+  });
+  expect(result.environments.filter((e) => e.id === "wsl:Ubuntu")).toHaveLength(
+    1,
+  );
+  expect(result.defaultWslDistro).toBe("Ubuntu");
+});
 afterEach(async () => {
   await Promise.all(
     roots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
@@ -150,7 +225,7 @@ it("scans Windows and running WSL separately, labels stopped distributions, and 
   ]);
   expect(new Set(result.installations.map((entry) => entry.id)).size).toBe(2);
   expect(result.environments).toContainEqual(
-    expect.objectContaining({ label: "Debian", status: "stopped" }),
+    expect.objectContaining({ label: "WSL (Debian)", status: "stopped" }),
   );
   expect(
     run.mock.calls

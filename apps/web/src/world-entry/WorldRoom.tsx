@@ -111,6 +111,8 @@ const ImportedWorldRoomCanvas = lazy(async () => {
   return { default: module.WorldRoomCanvas };
 });
 
+const playMaterializationSound = () => audioCue("avatar-materialize");
+
 const WORLD_AGENT_SPAWN_POSITIONS = [
   { x: -4.2, z: 0.8 },
   { x: 4.2, z: 0.8 },
@@ -2401,6 +2403,7 @@ export function WorldRoom({
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
                   onSceneReady={revealScene}
+                  onMaterializationStart={playMaterializationSound}
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
                   floorSize={floorSize}
@@ -2450,6 +2453,7 @@ export function WorldRoom({
               ) : (
                 <WorldRoomCanvas
                   onSceneReady={revealScene}
+                  onMaterializationStart={playMaterializationSound}
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
                   floorSize={floorSize}

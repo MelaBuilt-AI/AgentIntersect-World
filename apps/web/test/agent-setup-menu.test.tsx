@@ -1,5 +1,86 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
+import { AgentSetupMenu } from "../src/world-entry/AgentSetupMenu.js";
+
+it("groups installations by environment and collapses only verified attachments into green success", () => {
+  const installation = {
+    id: "codex-one",
+    adapterId: "codex" as const,
+    environment: {
+      id: "wsl:Ubuntu",
+      kind: "wsl" as const,
+      label: "WSL (Ubuntu)",
+      distro: "Ubuntu",
+    },
+    executablePath: "/bin/codex",
+    homePath: "/home/user",
+    identities: [
+      {
+        id: "default",
+        label: "Default",
+        kind: "profile" as const,
+        profilePath: "/home/user/.codex",
+      },
+    ],
+    status: "found" as const,
+  };
+  const registration = {
+    id: "11111111-1111-4111-8111-111111111111",
+    adapterId: installation.adapterId,
+    environment: installation.environment,
+    installationId: installation.id,
+    executablePath: installation.executablePath,
+    homePath: installation.homePath,
+    identity: installation.identities[0]!,
+    displayName: "Codex 1",
+    connectedAt: "2026-09-13T12:00:00Z",
+  };
+  const props = {
+    state: {
+      schema: "aiw.agent-setup/1" as const,
+      completed: true,
+      registrations: [registration],
+    },
+    discovery: {
+      environments: [
+        { id: "wsl:Ubuntu", label: "WSL (Ubuntu)", status: "scanned" as const },
+      ],
+      installations: [
+        installation,
+        { ...installation, id: "codex-two", executablePath: "/other/codex" },
+      ],
+    },
+    busy: false,
+    message: "",
+    onDiscover() {},
+    onAttach() {},
+    onRecheck() {},
+    onComplete() {},
+  };
+  const ready = renderToStaticMarkup(
+    <AgentSetupMenu
+      {...props}
+      checks={{ [registration.id]: { status: "ready", message: "Verified" } }}
+    />,
+  );
+  expect(ready.match(/data-setup-environment="wsl"/g)).toHaveLength(1);
+  expect(ready).toContain('class="agent-setup-success"');
+  expect(ready).toContain("Successfully Connected");
+  expect(ready).toContain("Codex 1");
+  const offline = renderToStaticMarkup(
+    <AgentSetupMenu
+      {...props}
+      checks={{
+        [registration.id]: {
+          status: "needs-attention",
+          message: "Disconnected",
+        },
+      }}
+    />,
+  );
+  expect(offline).not.toContain("Successfully Connected");
+  expect(offline).toContain('value="Codex 1"');
+});
 
 it("shows one discovery action, all four harnesses and truthful found-versus-attached state", async () => {
   const module = await import("../src/world-entry/AgentSetupMenu.js").catch(

@@ -38,6 +38,7 @@ type ClientApi = {
   ) => {
     readonly restoreHermes: (
       sessionId: string,
+      worldInstanceId?: string,
     ) => Promise<Readonly<Record<string, unknown>>>;
     readonly connectHermes: (
       name: string,
@@ -234,15 +235,18 @@ describe("Phase 18 World entry client composition", () => {
       "Codex One",
     );
 
-    expect(sessionClient.createWorldSession).toHaveBeenCalledWith({
-      adapterId: "codex",
-      worldInstanceId: "world-task10",
-      displayName: "Codex One",
-      profile: "default",
-      workspaceId: "world-entry",
-      repositoryRef: "current",
-      mode: "explore",
-    });
+    expect(sessionClient.createWorldSession).toHaveBeenCalledWith(
+      {
+        adapterId: "codex",
+        worldInstanceId: "world-task10",
+        displayName: "Codex One",
+        profile: "default",
+        workspaceId: "world-entry",
+        repositoryRef: "current",
+        mode: "explore",
+      },
+      undefined,
+    );
     expect(result).toMatchObject({
       status: "connected",
       continuity: "current",
@@ -780,234 +784,271 @@ describe("Phase 18 World entry client composition", () => {
     });
   });
 
-  it("restores the same accepted World session after a persisted Hermes text turn refreshes volatile proposal source fields", async () => {
-    if (!api.createWorldEntryClient) return;
-    const root = fs.mkdtempSync(
-      path.join(os.tmpdir(), "aiw-post-message-refresh-"),
-    );
-    const proposalPath = path.join(root, "avatar-proposal.json");
-    const rootSessionRef = "synthetic-native-root";
-    let effectiveSessionRef = "synthetic-native-effective-before";
-    const writeProposalSource = (createdAt: string) => {
-      fs.writeFileSync(
-        proposalPath,
-        `${JSON.stringify(
-          {
-            schema: "aiw.hermes-avatar-source/0.12",
-            native_session_hash: createHash("sha256")
-              .update(effectiveSessionRef)
-              .digest("hex"),
-            displayName: "Synthetic Agent",
-            species: "cat",
-            head: "cat",
-            hands: "paws",
-            feet: "paws",
-            fur: "short",
-            tail: "cat",
-            markings: "solid",
-            bodyColor: "charcoal",
-            shirt: "Hermes",
-            movementStyle: "shared-biped-core",
-            sourceDisclosure: "Synthetic bounded proposal",
-            rationale: "Synthetic regression input",
-            createdAt,
-          },
-          null,
-          2,
-        )}\n`,
-        { mode: 0o600 },
+  it.each([false, true])(
+    "restores the same accepted World session after a persisted Hermes text turn (registered connection: %s)",
+    async (registeredConnection) => {
+      if (!api.createWorldEntryClient)
+        throw new Error("World entry client is missing");
+      const connectionId = "77000000-0000-4000-8000-000000000007";
+      const worldInstanceId = "80000000-0000-4000-8000-000000000008";
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "aiw-post-message-refresh-"),
       );
-      fs.chmodSync(proposalPath, 0o600);
-    };
-    writeProposalSource("2026-01-01T00:00:00.000Z");
-    const adapter: AgentAdapter = {
-      id: "hermes",
-      attest: async () => ({
-        schema: "aiw.agent-capabilities/0.12",
-        adapterId: "hermes",
-        adapterVersion: "synthetic",
-        transport: "loopback-http-sse",
-        origin: "local",
-        auth: "server-bearer",
-        supportedModes: ["explore"],
-        ordering: "per-session-strict",
-        resume: "session-api",
-        shutdownOwner: "external",
-        maxInputBytes: 16_384,
-        maxEventBytes: 32_768,
-        capabilities: {
-          attach: true,
-          sendText: true,
-          streamDeltas: true,
-          toolStatus: false,
-          approvals: false,
-          interrupt: false,
-          avatarProposal: true,
-          skillsDisclosure: false,
-        },
-        unavailable: {
-          toolStatus: "Unavailable in synthetic regression.",
-          approvals: "Unavailable in synthetic regression.",
-          interrupt: "Unavailable in synthetic regression.",
-          skillsDisclosure: "Unavailable in synthetic regression.",
-        },
-      }),
-      listSessions: async () => [
-        {
-          id: rootSessionRef,
-          source: "fixture",
-          title: "Synthetic native session",
-          displayName: "Synthetic Agent",
-        },
-      ],
-      attach: async (sessionRef) => ({
-        id: effectiveSessionRef,
-        rootId: sessionRef,
-        source: "fixture",
-        title: "Synthetic native session",
-        displayName: "Synthetic Agent",
-      }),
-      sendText: async () => {
-        effectiveSessionRef = "synthetic-native-effective-after";
-        writeProposalSource("2026-01-01T00:00:01.000Z");
-        return {
-          finalText: "Synthetic persisted reply",
-          deltas: ["Synthetic persisted reply"],
-          sessionRef: effectiveSessionRef,
-        };
-      },
-    };
-    const registry = new AdapterRegistry([adapter]);
-    const gateway = new AgentSessionGateway({
-      registry,
-      store: new AgentSessionStore(path.join(root, "session-state")),
-    });
-    const server = createLocalServer({
-      agentSessionGateway: gateway,
-      agentAdapterRegistry: registry,
-      avatarProposal: (sessionId) =>
-        readPluginAvatarProposal(
+      const proposalPath = path.join(root, "avatar-proposal.json");
+      const rootSessionRef = "synthetic-native-root";
+      let effectiveSessionRef = "synthetic-native-effective-before";
+      const writeProposalSource = (createdAt: string) => {
+        fs.writeFileSync(
           proposalPath,
-          sessionId,
-          gateway.status(sessionId).adapterSessionRef,
-        ),
-    });
-    const request = async (
-      method: "GET" | "POST",
-      url: string,
-      payload?: unknown,
-    ) => {
-      const response = await server.inject({ method, url, payload });
-      expect(response.statusCode).toBeLessThan(400);
-      return response.json().data;
-    };
-    const sessionClient = {
-      capabilities: () => request("GET", "/agent-sessions/capabilities"),
-      nativeSessions: (adapterId: string) =>
-        request(
-          "GET",
-          `/agent-sessions/native?adapterId=${encodeURIComponent(adapterId)}`,
-        ),
-      status: (sessionId: string) =>
-        request("GET", `/agent-sessions/${sessionId}/status`),
-      attach: (input: unknown) =>
-        request("POST", "/agent-sessions/attach", input),
-      avatarProposal: (sessionId: string) =>
-        request("GET", `/agent-sessions/${sessionId}/avatar-proposal`),
-      history: (sessionId: string) =>
-        request("GET", `/agent-sessions/${sessionId}/history`),
-      avatarConsent: (
-        sessionId: string,
-        decision: "accepted",
-        proposal: unknown,
-      ) =>
-        request("POST", `/agent-sessions/${sessionId}/avatar-consent`, {
-          decision,
-          proposal,
+          `${JSON.stringify(
+            {
+              schema: "aiw.hermes-avatar-source/0.12",
+              native_session_hash: createHash("sha256")
+                .update(effectiveSessionRef)
+                .digest("hex"),
+              displayName: "Synthetic Agent",
+              species: "cat",
+              head: "cat",
+              hands: "paws",
+              feet: "paws",
+              fur: "short",
+              tail: "cat",
+              markings: "solid",
+              bodyColor: "charcoal",
+              shirt: "Hermes",
+              movementStyle: "shared-biped-core",
+              sourceDisclosure: "Synthetic bounded proposal",
+              rationale: "Synthetic regression input",
+              createdAt,
+            },
+            null,
+            2,
+          )}\n`,
+          { mode: 0o600 },
+        );
+        fs.chmodSync(proposalPath, 0o600);
+      };
+      writeProposalSource("2026-01-01T00:00:00.000Z");
+      const adapter: AgentAdapter = {
+        id: "hermes",
+        attest: async () => ({
+          schema: "aiw.agent-capabilities/0.12",
+          adapterId: "hermes",
+          adapterVersion: "synthetic",
+          transport: "loopback-http-sse",
+          origin: "local",
+          auth: "server-bearer",
+          supportedModes: ["explore"],
+          ordering: "per-session-strict",
+          resume: "session-api",
+          shutdownOwner: "external",
+          maxInputBytes: 16_384,
+          maxEventBytes: 32_768,
+          capabilities: {
+            attach: true,
+            sendText: true,
+            streamDeltas: true,
+            toolStatus: false,
+            approvals: false,
+            interrupt: false,
+            avatarProposal: true,
+            skillsDisclosure: false,
+          },
+          unavailable: {
+            toolStatus: "Unavailable in synthetic regression.",
+            approvals: "Unavailable in synthetic regression.",
+            interrupt: "Unavailable in synthetic regression.",
+            skillsDisclosure: "Unavailable in synthetic regression.",
+          },
         }),
-      stream: (session: unknown, text: string) =>
-        request(
-          "POST",
-          `/agent-sessions/${(session as { sessionId: string }).sessionId}/messages`,
-          { text, binding: session },
-        ),
-    };
-
-    try {
-      const client = api.createWorldEntryClient({ sessionClient });
-      const connected = await client.connectHermes("Synthetic Agent");
-      expect(connected).toMatchObject({
-        status: "connected",
-        avatarAccepted: false,
-        avatarSetup: "required",
-      });
-      if (!("session" in connected) || !("proposal" in connected)) return;
-      const acceptedProposal = {
-        ...connected.proposal,
-        avatarSource: {
-          kind: "imported" as const,
-          version: 2 as const,
-          mode: "original" as const,
-          modelId: "robot-agent-01",
+        listSessions: async () => [
+          {
+            id: rootSessionRef,
+            source: "fixture",
+            title: "Synthetic native session",
+            displayName: "Synthetic Agent",
+          },
+        ],
+        attach: async (sessionRef, context) => {
+          if (
+            registeredConnection &&
+            context?.worldInstanceId !== worldInstanceId
+          )
+            throw new Error("Hermes World ownership does not match");
+          return {
+            id: effectiveSessionRef,
+            rootId: sessionRef,
+            source: "fixture",
+            title: "Synthetic native session",
+            displayName: "Synthetic Agent",
+          };
+        },
+        sendText: async () => {
+          effectiveSessionRef = "synthetic-native-effective-after";
+          writeProposalSource("2026-01-01T00:00:01.000Z");
+          return {
+            finalText: "Synthetic persisted reply",
+            deltas: ["Synthetic persisted reply"],
+            sessionRef: effectiveSessionRef,
+          };
         },
       };
-      await expect(
-        client.acceptAgentAvatar(connected.session, acceptedProposal),
-      ).resolves.toBe(true);
-
-      const beforeMessage = await client.restoreHermes(
-        connected.session.sessionId as string,
-      );
-      expect(beforeMessage).toMatchObject({
-        status: "connected",
-        session: { sessionId: connected.session.sessionId },
-        proposal: { proposalId: acceptedProposal.proposalId },
-        avatarAccepted: true,
-        avatarSetup: "complete",
-        history: {
-          sessionId: connected.session.sessionId,
-          continuity: "current",
-          transcriptAuthority: "hermes",
-          avatarConsent: {
-            state: "accepted",
-            current: { proposalId: acceptedProposal.proposalId },
-          },
-        },
+      const registry = new AdapterRegistry([adapter]);
+      if (registeredConnection)
+        registry.registerConnection(connectionId, adapter);
+      const gateway = new AgentSessionGateway({
+        registry,
+        store: new AgentSessionStore(path.join(root, "session-state")),
       });
-      expect(resolveWorldEntryRestore(beforeMessage)).toBe("world");
-
-      await client.sendExactSession(
-        (beforeMessage as { session: Readonly<Record<string, unknown>> })
-          .session,
-        "Synthetic bounded turn",
-        { userDisplayName: "Synthetic Operator" },
-      );
-      const afterMessage = await client.restoreHermes(
-        connected.session.sessionId as string,
-      );
-      expect(resolveWorldEntryRestore(afterMessage)).toBe("world");
-      expect(afterMessage).toMatchObject({
-        session: { sessionId: connected.session.sessionId },
-        proposal: { proposalId: acceptedProposal.proposalId },
-        avatarAccepted: true,
-        avatarSetup: "complete",
-        history: {
-          transcriptAuthority: "hermes",
-          avatarConsent: {
-            state: "accepted",
-            current: { proposalId: acceptedProposal.proposalId },
-          },
-          messages: [
-            { role: "user", text: "Synthetic bounded turn" },
-            { role: "assistant", text: "Synthetic persisted reply" },
-          ],
-        },
+      const server = createLocalServer({
+        agentSessionGateway: gateway,
+        agentAdapterRegistry: registry,
+        avatarProposal: (sessionId) =>
+          readPluginAvatarProposal(
+            proposalPath,
+            sessionId,
+            gateway.status(sessionId).adapterSessionRef,
+          ),
       });
-    } finally {
-      await server.close();
-      fs.rmSync(root, { recursive: true });
-    }
-  });
+      const request = async (
+        method: "GET" | "POST",
+        url: string,
+        payload?: unknown,
+      ) => {
+        const response = await server.inject({ method, url, payload });
+        expect(response.statusCode).toBeLessThan(400);
+        return response.json().data;
+      };
+      const sessionClient = {
+        capabilities: () => request("GET", "/agent-sessions/capabilities"),
+        nativeSessions: (adapterId: string) =>
+          request(
+            "GET",
+            `/agent-sessions/native?adapterId=${encodeURIComponent(adapterId)}`,
+          ),
+        status: (sessionId: string) =>
+          request("GET", `/agent-sessions/${sessionId}/status`),
+        attach: (input: unknown) =>
+          request("POST", "/agent-sessions/attach", input),
+        avatarProposal: (sessionId: string) =>
+          request("GET", `/agent-sessions/${sessionId}/avatar-proposal`),
+        history: (sessionId: string) =>
+          request("GET", `/agent-sessions/${sessionId}/history`),
+        avatarConsent: (
+          sessionId: string,
+          decision: "accepted",
+          proposal: unknown,
+        ) =>
+          request("POST", `/agent-sessions/${sessionId}/avatar-consent`, {
+            decision,
+            proposal,
+          }),
+        stream: (session: unknown, text: string) =>
+          request(
+            "POST",
+            `/agent-sessions/${(session as { sessionId: string }).sessionId}/messages`,
+            { text, binding: session },
+          ),
+      };
+
+      try {
+        const client = api.createWorldEntryClient({ sessionClient });
+        const connected = registeredConnection
+          ? await (async () => {
+              const session = await gateway.attach({
+                adapterId: "hermes",
+                connectionId,
+                worldInstanceId,
+                adapterSessionRef: rootSessionRef,
+                profile: "default",
+                workspaceId: "world-entry",
+                repositoryRef: "current",
+                mode: "explore",
+              });
+              return {
+                status: "connected",
+                session,
+                proposal: await sessionClient.avatarProposal(session.sessionId),
+                avatarAccepted: false,
+                avatarSetup: "required",
+              };
+            })()
+          : await client.connectHermes("Synthetic Agent");
+        expect(connected).toMatchObject({
+          status: "connected",
+          avatarAccepted: false,
+          avatarSetup: "required",
+        });
+        if (!("session" in connected) || !("proposal" in connected)) return;
+        const acceptedProposal = {
+          ...connected.proposal,
+          avatarSource: {
+            kind: "imported" as const,
+            version: 2 as const,
+            mode: "original" as const,
+            modelId: "robot-agent-01",
+          },
+        };
+        await expect(
+          client.acceptAgentAvatar(connected.session, acceptedProposal),
+        ).resolves.toBe(true);
+
+        const beforeMessage = await client.restoreHermes(
+          connected.session.sessionId as string,
+          registeredConnection ? worldInstanceId : undefined,
+        );
+        expect(beforeMessage).toMatchObject({
+          status: "connected",
+          session: { sessionId: connected.session.sessionId },
+          proposal: { proposalId: acceptedProposal.proposalId },
+          avatarAccepted: true,
+          avatarSetup: "complete",
+          history: {
+            sessionId: connected.session.sessionId,
+            continuity: "current",
+            transcriptAuthority: "hermes",
+            avatarConsent: {
+              state: "accepted",
+              current: { proposalId: acceptedProposal.proposalId },
+            },
+          },
+        });
+        expect(resolveWorldEntryRestore(beforeMessage)).toBe("world");
+
+        await client.sendExactSession(
+          (beforeMessage as { session: Readonly<Record<string, unknown>> })
+            .session,
+          "Synthetic bounded turn",
+          { userDisplayName: "Synthetic Operator" },
+        );
+        const afterMessage = await client.restoreHermes(
+          connected.session.sessionId as string,
+          registeredConnection ? worldInstanceId : undefined,
+        );
+        expect(resolveWorldEntryRestore(afterMessage)).toBe("world");
+        expect(afterMessage).toMatchObject({
+          session: { sessionId: connected.session.sessionId },
+          proposal: { proposalId: acceptedProposal.proposalId },
+          avatarAccepted: true,
+          avatarSetup: "complete",
+          history: {
+            transcriptAuthority: "hermes",
+            avatarConsent: {
+              state: "accepted",
+              current: { proposalId: acceptedProposal.proposalId },
+            },
+            messages: [
+              { role: "user", text: "Synthetic bounded turn" },
+              { role: "assistant", text: "Synthetic persisted reply" },
+            ],
+          },
+        });
+      } finally {
+        await server.close();
+        fs.rmSync(root, { recursive: true });
+      }
+    },
+  );
 
   it("keeps unavailable names truthful and never fabricates or attaches another identity", async () => {
     if (!api.createWorldEntryClient) return;

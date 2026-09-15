@@ -659,6 +659,7 @@ export class CodexSessionAdapter implements AgentAdapter {
   async createWorldSession(
     worldInstanceId: string,
     displayName = "Codex",
+    signal?: AbortSignal,
   ): Promise<AdapterSessionSummary> {
     await this.#sessions.load();
     boundedWorldRef(worldInstanceId);
@@ -668,7 +669,7 @@ export class CodexSessionAdapter implements AgentAdapter {
       const created = await this.#runTurn(
         CREATE_PROMPT,
         undefined,
-        undefined,
+        signal ? { signal, mode: "explore" } : undefined,
         runtimeHome,
       );
       const id = nativeSessionId(created.sessionRef);

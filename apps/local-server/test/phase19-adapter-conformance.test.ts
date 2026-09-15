@@ -208,6 +208,36 @@ function gateway(adapters: readonly AgentAdapter[]) {
 const worldProfiles = ["openclaw", "codex", "claude-code"] as const;
 
 describe("Phase 19 four-adapter conformance", () => {
+  it("ends only the newly created native identity when connection cancellation arrives late", async () => {
+    const adapter = new ConformanceAdapter("codex", "world");
+    const state = gateway([adapter]);
+    const request = {
+      adapterId: "codex" as const,
+      worldInstanceId: "world-one",
+      displayName: "Codex",
+      profile: "default",
+      workspaceId: "world-workspace",
+      repositoryRef: "world-repository",
+      mode: "explore" as const,
+    };
+    const existing = await state.gateway.createWorldSession(request);
+    const controller = new AbortController();
+    const create = adapter.createWorldSession.bind(adapter);
+    const port: AgentAdapter = adapter;
+    port.createWorldSession = async (worldInstanceId, _name, signal) => {
+      expect(signal).toBe(controller.signal);
+      const created = await create(worldInstanceId);
+      controller.abort();
+      return created;
+    };
+    await expect(
+      state.gateway.createWorldSession(request, controller.signal),
+    ).rejects.toMatchObject({ code: "upstream" });
+    expect(adapter.endedSessionRefs).toEqual(["codex-native-2"]);
+    expect(adapter.bindings.get("codex-native-1")?.ended).toBe(false);
+    expect(state.gateway.status(existing.sessionId).status).toBe("ready");
+  });
+
   it("keeps four sanitized stable slots while an absent, offline, or mismatched adapter cannot suppress healthy peers", async () => {
     const hermes = new ConformanceAdapter("hermes", "hermes");
     const offline = new ConformanceAdapter("openclaw", "world");

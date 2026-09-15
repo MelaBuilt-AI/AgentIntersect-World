@@ -261,17 +261,31 @@ export function registerAgentSessionRoutes(
       },
     },
     async (request, reply) => {
+      const controller = new AbortController();
+      const disconnect = () => {
+        if (!reply.raw.writableEnded) controller.abort();
+      };
+      request.raw.once("aborted", disconnect);
+      reply.raw.once("close", disconnect);
       try {
-        return reply
-          .code(201)
-          .send(
-            envelope.success(
-              request,
-              await gateway.createWorldSession(request.body as never),
-            ),
+        const session = await gateway.createWorldSession(
+          request.body as never,
+          controller.signal,
+        );
+        if (controller.signal.aborted) {
+          await gateway.endWorldSession(
+            session.sessionId,
+            (request.body as { worldInstanceId: string }).worldInstanceId,
           );
+          return;
+        }
+        return reply.code(201).send(envelope.success(request, session));
       } catch (error) {
-        return routeFailure(error, request, reply, envelope);
+        if (!controller.signal.aborted)
+          return routeFailure(error, request, reply, envelope);
+      } finally {
+        request.raw.off("aborted", disconnect);
+        reply.raw.off("close", disconnect);
       }
     },
   );

@@ -27,6 +27,8 @@ export type {
   DiscoveryResult,
 };
 
+import { currentEnvironment } from "./agent-environment.js";
+
 const commands: Record<SetupHarness, string> = {
   hermes: "hermes",
   openclaw: "openclaw",
@@ -212,6 +214,7 @@ export async function discoverLocalAgents(options: {
             adapterId,
             environment: options.environment,
             executablePath,
+            canonicalExecutablePath: resolvedTarget,
             homePath: options.home,
             identities: await nativeIdentities(adapterId, options.home),
             status: "found",
@@ -252,6 +255,7 @@ function foreignInstallations(
     installations: {
       adapterId: SetupHarness;
       executablePath: string;
+      canonicalExecutablePath?: string;
       identities: NativeIdentity[];
     }[];
   };
@@ -287,6 +291,9 @@ function foreignInstallations(
       adapterId: item.adapterId,
       environment,
       executablePath: item.executablePath,
+      ...(typeof item.canonicalExecutablePath === "string"
+        ? { canonicalExecutablePath: item.canonicalExecutablePath }
+        : {}),
       homePath: value.home,
       identities: item.identities,
       status: "found",
@@ -297,6 +304,8 @@ function foreignInstallations(
 export async function discoverAgents(
   options: {
     readonly platform?: NodeJS.Platform;
+    readonly host?: { platform: NodeJS.Platform; distro?: string };
+    readonly osRelease?: string;
     readonly home?: string;
     readonly searchPath?: string;
     readonly run?: DiscoveryRunner;
@@ -308,20 +317,31 @@ export async function discoverAgents(
   const installations: AgentInstallation[] = [];
   const environments: Array<DiscoveryResult["environments"][number]> = [];
   const isWindows = platform === "win32";
-  const isWsl =
-    platform === "linux" &&
-    /microsoft/i.test(
-      await readFile("/proc/sys/kernel/osrelease", "utf8").catch(() => ""),
-    );
+  const host =
+    options.host ??
+    (options.platform && options.platform !== process.platform
+      ? { platform }
+      : await currentEnvironment());
+  const isWsl = platform === "linux" && !!host.distro;
+  let defaultWslDistro: string | undefined;
   const scanForeign = async (
     environment: AgentEnvironment,
     command: string,
     args: readonly string[],
   ) => {
     try {
-      installations.push(
-        ...foreignInstallations(await run(command, args), environment),
-      );
+      const output = await run(command, args);
+      installations.push(...foreignInstallations(output, environment));
+      if (environment.kind === "windows") {
+        const candidate = JSON.parse(
+          output.replace(/^\uFEFF/, "").trim(),
+        ).defaultWslDistro;
+        if (
+          typeof candidate === "string" &&
+          /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,79}$/.test(candidate)
+        )
+          defaultWslDistro = candidate;
+      }
       environments.push({
         id: environment.id,
         label: environment.label,
@@ -340,11 +360,24 @@ export async function discoverAgents(
     }
   };
   if (!isWindows) {
-    const distro = isWsl ? process.env.WSL_DISTRO_NAME : undefined;
+    const distro = isWsl ? host.distro : undefined;
+    const osRelease =
+      platform === "linux" && !isWsl
+        ? (options.osRelease ?? (await boundedText("/etc/os-release")))
+        : "";
+    const distroName =
+      /^NAME=(?:"([^"\r\n]+)"|'([^'\r\n]+)'|([^\r\n]+))$/m.exec(osRelease);
+    const linuxName = distroName?.slice(1).find(Boolean);
     const environment: AgentEnvironment = {
       id: distro ? `wsl:${distro}` : "local",
       kind: isWsl ? "wsl" : platform === "darwin" ? "macos" : "linux",
-      label: distro ?? (isWsl ? "Current WSL environment" : "Local computer"),
+      label: distro
+        ? `WSL (${distro})`
+        : platform === "darwin"
+          ? "macOS (Native)"
+          : linuxName
+            ? `Linux (${linuxName})`
+            : "Linux (Native)",
       ...(distro ? { distro } : {}),
     };
     installations.push(
@@ -366,7 +399,7 @@ export async function discoverAgents(
       : "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe";
     const wsl = isWindows ? "wsl.exe" : "/mnt/c/Windows/System32/wsl.exe";
     await scanForeign(
-      { id: "windows", kind: "windows", label: "Windows" },
+      { id: "windows", kind: "windows", label: "Windows (Native)" },
       powershell,
       [
         "-NoLogo",
@@ -394,13 +427,13 @@ export async function discoverAgents(
         const environment: AgentEnvironment = {
           id: `wsl:${distro}`,
           kind: "wsl",
-          label: distro,
+          label: `WSL (${distro})`,
           distro,
         };
         if (!running.has(distro)) {
           environments.push({
             id: environment.id,
-            label: distro,
+            label: environment.label,
             status: "stopped",
             message:
               "Start this distribution yourself, then Recheck. Discovery does not start stopped distributions.",
@@ -437,9 +470,20 @@ export async function discoverAgents(
   // Deduplicate only a proven environment identity, never equal path strings across distributions.
   const seen = new Set<string>();
   const unique = installations.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
+    const key = JSON.stringify([
+      item.environment.id,
+      item.adapterId,
+      item.homePath,
+      item.canonicalExecutablePath ?? item.executablePath,
+    ]);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
-  return { installations: unique, environments };
+  return {
+    installations: unique,
+    environments: [...new Map(environments.map((e) => [e.id, e])).values()],
+    ...(defaultWslDistro ? { defaultWslDistro } : {}),
+    ...(host.distro ? { currentWslDistro: host.distro } : {}),
+  };
 }

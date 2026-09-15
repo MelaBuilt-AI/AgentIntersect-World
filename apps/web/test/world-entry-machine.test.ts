@@ -34,6 +34,84 @@ type MachineApi = {
 
 const api = machineModule as unknown as Partial<MachineApi>;
 
+it("admits agents without restarting or replacing the active World", () => {
+  const initial = machineModule.createReturningWorldEntryState({
+    profileId: "user",
+    name: "Aaron",
+  });
+  const state = {
+    ...initial,
+    step: "world_repository" as const,
+    world: {
+      ...initial.world,
+      floor: "repository" as const,
+      generationId: "repo",
+    },
+  };
+  const roster = ["a", "b"].map((rosterId) => ({
+    rosterId,
+    adapterId: "codex" as const,
+    agentName: rosterId,
+    connection: {
+      status: "connected" as const,
+      sessionId: rosterId,
+      continuity: "current" as const,
+    },
+    agentAvatar: {
+      status: "accepted" as const,
+      sessionId: rosterId,
+      profileId: rosterId,
+    },
+  }));
+  const next = machineModule.reduceWorldEntry(state, {
+    type: "WORLD_ROSTER_ADDED",
+    roster,
+  });
+  expect(next).toMatchObject({
+    step: "world_repository",
+    sessionMode: "multi",
+    world: state.world,
+    roster,
+  });
+  expect(next.world).toBe(state.world);
+  expect(next.connection).toBe(state.connection);
+  expect(
+    machineModule.reduceWorldEntry(state, {
+      type: "WORLD_ROSTER_ADDED",
+      roster: [...roster, ...roster, ...roster],
+    }),
+  ).toBe(state);
+});
+
+it("cancels a pending harness without dropping completed agents and ignores late attachment", () => {
+  const { createReturningWorldEntryState: initial, reduceWorldEntry: reduce } =
+    machineModule;
+  let state = initial({ profileId: "user", name: "Aaron" });
+  for (const event of [
+    { type: "PRESENT_IDENTITY" },
+    { type: "SELECT_MULTI_AGENT" },
+    { type: "SELECT_HARNESS", harness: "claude-code" },
+    { type: "SUBMIT_AGENT_NAME", name: "Claude" },
+  ] as const)
+    state = reduce(state, event);
+  const cancelled = reduce(state, { type: "CANCEL_AGENT_SELECTION" });
+  expect(cancelled.step).toBe("constellation_multi");
+  expect(cancelled.pendingAgent).toBeNull();
+  expect(cancelled.roster).toBe(state.roster);
+  expect(
+    reduce(cancelled, {
+      type: "AGENT_ATTACHED",
+      rosterId: "late",
+      sessionId: "late",
+      continuity: "current",
+    }),
+  ).toBe(cancelled);
+  expect(
+    reduce(cancelled, { type: "SELECT_HARNESS", harness: "hermes" })
+      .selectedHarness,
+  ).toBe("hermes");
+});
+
 describe("Phase 18 World entry state machine", () => {
   it("provides the pure returning-user machine API", () => {
     expect(typeof api.createReturningWorldEntryState).toBe("function");

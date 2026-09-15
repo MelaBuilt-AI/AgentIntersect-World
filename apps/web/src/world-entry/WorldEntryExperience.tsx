@@ -43,7 +43,10 @@ import {
 } from "./world-entry-client.js";
 import { avatarDraftFromProposal } from "./world-entry-avatar.js";
 import { WorldEntryAgentAvatar } from "./WorldEntryAgentAvatar.js";
+const WorldAddAgent = lazy(() => import("./WorldAddAgent.js"));
+
 import { WorldEscapeMenu } from "./WorldEscapeMenu.js";
+import { startWorldPolling } from "./world-entry-polling.js";
 import { WorldEntryLogo, WorldTypeLine } from "./WorldEntryLogo.js";
 import { WorldHud } from "./WorldHud.js";
 import {
@@ -53,7 +56,7 @@ import {
 } from "./world-entry-machine.js";
 import {
   classifyWorldMessage,
-  consumeOneSendRecipient,
+  resolveChatRecipientRosterIds,
   createWorldChatState,
   reduceWorldChat,
   workstreamChatReports,
@@ -78,6 +81,7 @@ import {
 } from "./world-escape-menu-model.js";
 import {
   resolveWorldEntryRestore,
+  retainedWorldEntryConstellationProjection,
   restoreAvailableWorldEntryConstellationAgents,
   restoreWorldEntryConstellation,
 } from "./world-entry-restore.js";
@@ -499,7 +503,14 @@ export function WorldEntryExperience({
       ? DEFAULT_WORLD_DISPLAY_PREFERENCES
       : loadWorldDisplayPreferences(window.localStorage),
   );
+  const [addingAgent, setAddingAgent] = useState(false);
+  useEffect(() => {
+    const open = () => setAddingAgent(true);
+    window.addEventListener("aiw:open-add-agent", open);
+    return () => window.removeEventListener("aiw:open-add-agent", open);
+  }, []);
   const connectAttempt = useRef(0);
+  const connectController = useRef<AbortController | null>(null);
   const mounted = useRef(true);
   const processingChat = useRef(false);
   const pendingMessages = useRef<PendingWorldMessage[]>([]);
@@ -680,6 +691,11 @@ export function WorldEntryExperience({
             restoreProjection,
           ));
         if (!active) return;
+        restoreProjection = retainedWorldEntryConstellationProjection(
+          restoreProjection,
+          restoredAgents,
+        );
+        setConstellation(restoreProjection);
         setAcceptedAgentAvatars(
           Object.fromEntries(
             restoredAgents.map((agent) => [
@@ -843,6 +859,8 @@ export function WorldEntryExperience({
     if (!entered || state.step !== "agent_prompt") return;
     const attempt = connectAttempt.current + 1;
     connectAttempt.current = attempt;
+    const controller = new AbortController();
+    connectController.current = controller;
     setError("");
     setStatus("connecting agent");
     dispatch({ type: "SUBMIT_AGENT_NAME", name: entered });
@@ -863,6 +881,7 @@ export function WorldEntryExperience({
                   current.worldInstanceId,
                   entered,
                   selectedConnection?.id,
+                  controller.signal,
                 );
               } catch {
                 return {
@@ -884,6 +903,12 @@ export function WorldEntryExperience({
     if (result.status === "unavailable" || result.status === "stale") {
       setStatus(connectionLabel(result));
       setError(result.message);
+      if (selectedConnection)
+        window.dispatchEvent(
+          new CustomEvent("aiw:agent-connection-unavailable", {
+            detail: { connectionId: selectedConnection.id },
+          }),
+        );
       dispatch({
         type: "CONNECTION_UNAVAILABLE",
         stale: result.status === "stale",
@@ -1084,7 +1109,12 @@ export function WorldEntryExperience({
       ) {
         const restored =
           agent.adapterId === "hermes"
-            ? await client.restoreHermes(agent.worldSessionId)
+            ? await client.restoreHermes(
+                agent.worldSessionId,
+                agent.sessionOwnership === "world-owned"
+                  ? agent.worldInstanceId
+                  : undefined,
+              )
             : await client.restoreConstellationAgent(
                 agent.worldSessionId,
                 agent.adapterId,
@@ -1362,24 +1392,28 @@ export function WorldEntryExperience({
         if (!current) break;
         setQueuedCount(pendingMessages.current.length);
         updateChat({ type: "SEND_STARTED", id: current.id });
+        const recipientRosterIds =
+          state.sessionMode === "multi"
+            ? resolveChatRecipientRosterIds(
+                current.text,
+                (constellation?.agents ?? []).filter(
+                  (agent) =>
+                    agent.connection === "connected" &&
+                    ["current", "previous-recovered"].includes(
+                      agent.continuity,
+                    ) &&
+                    agent.avatar.status === "accepted",
+                ),
+                current.targetRosterId,
+              )
+            : [session.sessionId];
         const audioAgents =
           state.sessionMode === "multi"
             ? (constellation?.agents
-                .filter(
-                  (agent) =>
-                    !current.targetRosterId ||
-                    agent.rosterId === current.targetRosterId,
-                )
+                .filter((agent) => recipientRosterIds.includes(agent.rosterId))
                 .map((agent) => agent.worldSessionId) ?? [])
             : [session.sessionId];
-
-        setActiveMessageRosterIds(
-          state.sessionMode === "multi"
-            ? current.targetRosterId
-              ? [current.targetRosterId]
-              : (constellation?.agents.map((agent) => agent.rosterId) ?? [])
-            : [session.sessionId],
-        );
+        setActiveMessageRosterIds(recipientRosterIds);
         const controller = new AbortController();
         activeChatAbort.current = controller;
         let groupPoll: number | null = null;
@@ -1691,7 +1725,6 @@ export function WorldEntryExperience({
         setDirectionRefusal("agent movement refused · recipient unavailable");
         return;
       }
-      if (state.sessionMode === "multi") setSelectedRecipientId(null);
       const stopping = classified.kind === "local-agent-stop";
       setStatus(
         stopping
@@ -1759,14 +1792,12 @@ export function WorldEntryExperience({
       return;
     }
     const text = classified.text;
-    const oneSendRecipient = consumeOneSendRecipient(
-      state.sessionMode === "multi" ? selectedRecipientId : null,
+    enqueueAgentMessage(
+      text,
+      state.sessionMode === "multi"
+        ? (selectedRecipientId ?? undefined)
+        : undefined,
     );
-    if (state.sessionMode === "multi") {
-      setSelectedRecipientId(oneSendRecipient.nextSelectedRecipientId);
-      setStatus("Next message recipient · All agents");
-    }
-    enqueueAgentMessage(text, oneSendRecipient.targetRosterId);
   };
 
   const send = async () => {
@@ -2203,11 +2234,14 @@ export function WorldEntryExperience({
       })
     : null;
   useEffect(() => {
-    if (!movementSessionId) return;
+    if (!movementSessionId || state.sessionMode === "multi") return;
     let active = true;
-    const load = async () => {
+    const load = async (signal: AbortSignal) => {
       try {
-        const response = await fetch(`/api/world-actions/${movementSessionId}`);
+        const response = await fetch(
+          `/api/world-actions/${movementSessionId}`,
+          { signal },
+        );
         if (!response.ok || !active) {
           if (active)
             setStatus(
@@ -2219,6 +2253,7 @@ export function WorldEntryExperience({
           await response.json(),
           movementSessionId,
         );
+        if (!active) return;
         for (const [outcomeIndex, outcome] of snapshot.outcomes.entries()) {
           if (
             processedMovementOutcomes.current.get(outcome.requestId) ===
@@ -2271,32 +2306,30 @@ export function WorldEntryExperience({
         if (active) setStatus("agent movement refused · authority unavailable");
       }
     };
-    void load();
-    const timer = window.setInterval(() => void load(), 500);
+    const stop = startWorldPolling(load);
     return () => {
       active = false;
-      window.clearInterval(timer);
+      stop();
     };
-  }, [movementSessionId, movementRefresh]);
+  }, [movementSessionId, movementRefresh, state.sessionMode]);
 
   useEffect(() => {
-    if (!movementSessionId) return;
+    if (!movementSessionId || state.sessionMode === "multi") return;
     let active = true;
-    const load = async () => {
+    const load = async (signal: AbortSignal) => {
       try {
-        const result = await groupedClient.workFocus(movementSessionId);
+        const result = await groupedClient.workFocus(movementSessionId, signal);
         if (active) setAgentWorkFocus(result.focus);
       } catch {
         if (active) setAgentWorkFocus(null);
       }
     };
-    void load();
-    const timer = window.setInterval(() => void load(), 500);
+    const stop = startWorldPolling(load);
     return () => {
       active = false;
-      window.clearInterval(timer);
+      stop();
     };
-  }, [groupedClient, movementSessionId]);
+  }, [groupedClient, movementSessionId, state.sessionMode]);
 
   useEffect(() => {
     if (!inWorld || state.sessionMode !== "multi" || !constellation) {
@@ -2307,74 +2340,73 @@ export function WorldEntryExperience({
       (agent) => agent.connection === "connected",
     );
     let active = true;
-    const load = async () => {
-      await Promise.all(
-        agents.map(async (agent) => {
-          try {
-            const [movementResponse, focusResult] = await Promise.all([
-              fetch(`/api/world-actions/${agent.worldSessionId}`),
-              groupedClient.workFocus(agent.worldSessionId),
-            ]);
-            if (!movementResponse.ok || !active) return;
-            const snapshot = parseAgentMovementAuthoritySnapshot(
-              await movementResponse.json(),
-              agent.worldSessionId,
+    const stops = agents.map((agent) =>
+      startWorldPolling(async (signal) => {
+        try {
+          const movementResponse = await fetch(
+            `/api/world-actions/${agent.worldSessionId}`,
+            { signal },
+          );
+          if (!movementResponse.ok || !active) return;
+          const snapshot = parseAgentMovementAuthoritySnapshot(
+            await movementResponse.json(),
+            agent.worldSessionId,
+          );
+          const focusResult = await groupedClient.workFocus(
+            agent.worldSessionId,
+            signal,
+          );
+          if (!active) return;
+          const request = snapshot.requests.at(-1) ?? null;
+          const terminal = snapshot.outcomes.find(
+            (outcome) =>
+              outcome.state === "cancelled" ||
+              outcome.state === "interrupted" ||
+              outcome.state === "refused",
+          );
+          setRosterMovementRequests((current) => ({
+            ...current,
+            [agent.rosterId]: request,
+          }));
+          setRosterWorkFocus((current) => ({
+            ...current,
+            [agent.rosterId]: focusResult.focus,
+          }));
+          if (
+            terminal &&
+            (terminal.state === "cancelled" ||
+              terminal.state === "interrupted" ||
+              terminal.state === "refused") &&
+            processedRosterMovementOutcomes.current.get(agent.rosterId) !==
+              `${terminal.requestId}:${terminal.state}`
+          ) {
+            processedRosterMovementOutcomes.current.set(
+              agent.rosterId,
+              `${terminal.requestId}:${terminal.state}`,
             );
-            const request = snapshot.requests.at(-1) ?? null;
-            const terminal = snapshot.outcomes.find(
-              (outcome) =>
-                outcome.state === "cancelled" ||
-                outcome.state === "interrupted" ||
-                outcome.state === "refused",
-            );
-            setRosterMovementRequests((current) => ({
+            setRosterMovementControls((current) => ({
               ...current,
-              [agent.rosterId]: request,
+              [agent.rosterId]: {
+                sequence: nextMovementControl.current++,
+                requestId: terminal.requestId,
+                state:
+                  terminal.state === "cancelled" ? "cancelled" : "interrupted",
+                reason: terminal.reason ?? terminal.state,
+              },
             }));
+          }
+        } catch {
+          if (active)
             setRosterWorkFocus((current) => ({
               ...current,
-              [agent.rosterId]: focusResult.focus,
+              [agent.rosterId]: null,
             }));
-            if (
-              terminal &&
-              (terminal.state === "cancelled" ||
-                terminal.state === "interrupted" ||
-                terminal.state === "refused") &&
-              processedRosterMovementOutcomes.current.get(agent.rosterId) !==
-                `${terminal.requestId}:${terminal.state}`
-            ) {
-              processedRosterMovementOutcomes.current.set(
-                agent.rosterId,
-                `${terminal.requestId}:${terminal.state}`,
-              );
-              setRosterMovementControls((current) => ({
-                ...current,
-                [agent.rosterId]: {
-                  sequence: nextMovementControl.current++,
-                  requestId: terminal.requestId,
-                  state:
-                    terminal.state === "cancelled"
-                      ? "cancelled"
-                      : "interrupted",
-                  reason: terminal.reason ?? terminal.state,
-                },
-              }));
-            }
-          } catch {
-            if (active)
-              setRosterWorkFocus((current) => ({
-                ...current,
-                [agent.rosterId]: null,
-              }));
-          }
-        }),
-      );
-    };
-    void load();
-    const timer = window.setInterval(() => void load(), 500);
+        }
+      }),
+    );
     return () => {
       active = false;
-      window.clearInterval(timer);
+      stops.forEach((stop) => stop());
     };
   }, [
     constellation,
@@ -2468,6 +2500,9 @@ export function WorldEntryExperience({
               avatar: activeAgentAvatar,
             },
           ];
+    const primaryRosterId = worldAgentAvatars.find(
+      (agent) => agent.worldSessionId === movementSessionId,
+    )?.rosterId;
     if (avatarTarget === "user")
       return (
         <main className="world-experience world-experience--avatar">
@@ -2520,6 +2555,49 @@ export function WorldEntryExperience({
           className="world-experience world-experience--room"
           data-repository-readiness={repositoryReadiness}
         >
+          {addingAgent && session && activeProposal ? (
+            <Suspense fallback={<p role="status">Loading Add Agent…</p>}>
+              <WorldAddAgent
+                currentSession={session}
+                currentProposal={activeProposal}
+                onClose={() => setAddingAgent(false)}
+                onAdded={(next, _sessions, addedProposal, draft) => {
+                  setConstellation(next.projection);
+                  setAcceptedAgentAvatars((current) => {
+                    const avatars = { ...current };
+                    for (const agent of next.projection.agents) {
+                      if (agent.worldSessionId === addedProposal.sessionId)
+                        avatars[agent.rosterId] = draft;
+                      else if (agent.worldSessionId === session.sessionId)
+                        avatars[agent.rosterId] =
+                          current[agent.rosterId] ??
+                          agentAvatar ??
+                          avatarDraftFromProposal(activeProposal);
+                    }
+                    return avatars;
+                  });
+                  dispatch({
+                    type: "WORLD_ROSTER_ADDED",
+                    roster: next.projection.agents.map((a) => ({
+                      rosterId: a.rosterId,
+                      adapterId: a.adapterId,
+                      agentName: a.displayName,
+                      connection: {
+                        status: a.connection,
+                        sessionId: a.worldSessionId,
+                        continuity:
+                          a.continuity === "previous-recovered"
+                            ? "previous-recovered"
+                            : "current",
+                      },
+                      agentAvatar: a.avatar,
+                    })),
+                  });
+                  setAddingAgent(false);
+                }}
+              />
+            </Suspense>
+          ) : null}
           <Suspense
             fallback={
               <p className="world-entry-overlay" role="status">
@@ -2558,9 +2636,23 @@ export function WorldEntryExperience({
               userCue={userAnimationCue}
               agentCue={chat.animationCue}
               agentActorId={movementSessionId}
-              agentMovementRequest={agentMovementRequest}
-              agentMovementControl={agentMovementControl}
-              agentWorkFocus={movementSessionId ? agentWorkFocus : null}
+              agentMovementRequest={
+                state.sessionMode === "multi" && primaryRosterId
+                  ? (rosterMovementRequests[primaryRosterId] ?? null)
+                  : agentMovementRequest
+              }
+              agentMovementControl={
+                state.sessionMode === "multi" && primaryRosterId
+                  ? (rosterMovementControls[primaryRosterId] ?? null)
+                  : agentMovementControl
+              }
+              agentWorkFocus={
+                state.sessionMode === "multi" && primaryRosterId
+                  ? (rosterWorkFocus[primaryRosterId] ?? null)
+                  : movementSessionId
+                    ? agentWorkFocus
+                    : null
+              }
               {...(state.sessionMode === "multi"
                 ? {
                     agentMovementBindings: worldAgentAvatars.map((agent) => ({
@@ -2942,6 +3034,24 @@ export function WorldEntryExperience({
         onHarness={(harness) => dispatch({ type: "SELECT_HARNESS", harness })}
       />
       <div className="world-entry-connections">
+        {["agent_prompt", "agent_resolving", "agent_not_found"].includes(
+          state.step,
+        ) ? (
+          <button
+            type="button"
+            className="world-action--enabled world-agent-cancel"
+            onClick={() => {
+              connectAttempt.current += 1;
+              connectController.current?.abort();
+              setError("");
+              setStatus("Agent selection cancelled");
+              setSelectedConnectionId("");
+              dispatch({ type: "CANCEL_AGENT_SELECTION" });
+            }}
+          >
+            Cancel
+          </button>
+        ) : null}
         {state.sessionMode === "multi" && constellation ? (
           <WorldEntryConstellationProjection
             projection={{

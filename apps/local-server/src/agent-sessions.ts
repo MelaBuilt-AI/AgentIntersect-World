@@ -69,6 +69,7 @@ export type AdapterTurnContext = {
 
 export type WorldOwnedSessionContext = {
   readonly worldInstanceId: string;
+  readonly recover?: boolean;
 };
 
 export interface AgentAdapter {
@@ -82,6 +83,7 @@ export interface AgentAdapter {
   createWorldSession?(
     worldInstanceId: string,
     displayName?: string,
+    signal?: AbortSignal,
   ): Promise<AdapterSessionSummary>;
   endWorldSession?(
     worldInstanceId: string,
@@ -1188,17 +1190,23 @@ export class HermesSessionAdapter implements AgentAdapter {
     const id = randomUUID();
     const response = await this.#request("/api/sessions", {
       method: "POST",
-      body: JSON.stringify({ id, title: displayName, source: "api_server" }),
+      body: JSON.stringify({
+        id,
+        title: `${displayName.normalize("NFC").trim().slice(0, 35)} [World ${id}]`,
+        source: "api_server",
+      }),
     });
     if (response.status !== 201)
       throw new GatewayError(
         "upstream",
         "Hermes could not create a new World conversation",
       );
-    const value = await this.#json(
+    const body = await this.#json(
       response,
       "Hermes session creation response is invalid",
     );
+    const value =
+      isRecord(body) && isRecord(body.session) ? body.session : body;
     if (!isRecord(value) || value.id !== id)
       throw new GatewayError(
         "upstream",
@@ -1598,6 +1606,7 @@ export class HermesSessionAdapter implements AgentAdapter {
 }
 
 type GatewayAttachRequest = {
+  readonly recover?: boolean;
   readonly connectionId?: string;
   readonly adapterId: string;
   readonly adapterSessionRef: string;
@@ -1865,6 +1874,7 @@ export class AgentSessionGateway {
 
   async createWorldSession(
     request: GatewayCreateWorldSessionRequest,
+    signal?: AbortSignal,
   ): Promise<AgentSession> {
     const adapter = this.#registry.require(
       request.adapterId,
@@ -1893,8 +1903,10 @@ export class AgentSessionGateway {
       const created = await adapter.createWorldSession(
         request.worldInstanceId,
         request.displayName,
+        signal,
       );
       rootSessionRef = created.rootId ?? created.id;
+      signal?.throwIfAborted();
       if (
         !isAdapterSessionRef(rootSessionRef) ||
         !isAdapterSessionRef(created.id)
@@ -2029,7 +2041,10 @@ export class AgentSessionGateway {
       const attached = await adapter.attach(
         request.adapterSessionRef,
         request.worldInstanceId
-          ? { worldInstanceId: request.worldInstanceId }
+          ? {
+              worldInstanceId: request.worldInstanceId,
+              ...(request.recover ? { recover: true } : {}),
+            }
           : undefined,
       );
       if (!isAdapterSessionRef(attached.id))

@@ -525,9 +525,11 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       displayName.normalize("NFC").trim().slice(0, 80) || "OpenClaw";
     const connection = await this.#connection();
     try {
+      const nativeId = randomUUID();
       const result = await connection.request("sessions.create", {
-        key: `agent:${this.#options.agentId ?? "main"}:aiw:${randomUUID()}`,
-        label: title,
+        key: `agent:${this.#options.agentId ?? "main"}:aiw:${nativeId}`,
+        // Native labels are globally unique; World display names are not.
+        label: `${title.slice(0, 35)} [World ${nativeId}]`,
       });
       if (
         !isRecord(result) ||

@@ -36,6 +36,7 @@ export type ConstellationBindingValidation = ConstellationBinding & {
 };
 
 export interface ConstellationLifecyclePort {
+  isBindingAvailable?(binding: ConstellationBinding): boolean;
   validateBinding(
     binding: ConstellationBinding,
   ): Promise<ConstellationBindingValidation>;
@@ -438,7 +439,7 @@ export class ConstellationService {
         terminalOutcomes: [],
         unavailableReason: "Constellation state is unavailable",
       };
-    return stateFrom(this.#payload);
+    return this.#currentState();
   }
 
   addAgent(request: AddConstellationAgentRequest): Promise<ConstellationState> {
@@ -862,7 +863,26 @@ export class ConstellationService {
 
   #currentState(): ConstellationState {
     if (!this.#payload) throw new Error("Constellation payload is missing");
-    return stateFrom(this.#payload);
+    const state = stateFrom(this.#payload);
+    const agents = state.projection.agents.map((agent) =>
+      agent.connection === "connected" &&
+      this.#lifecycle.isBindingAvailable?.(agent) === false
+        ? {
+            ...agent,
+            connection: "unavailable" as const,
+            continuity: "unavailable" as const,
+          }
+        : agent,
+    );
+    return {
+      ...state,
+      projection: {
+        ...state.projection,
+        agents,
+        entryReady:
+          state.projection.entryReady && deriveConstellationEntryReady(agents),
+      },
+    };
   }
 
   async #persist(): Promise<void> {

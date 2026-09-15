@@ -124,6 +124,39 @@ const projection = {
 } satisfies ConstellationState["projection"];
 
 describe("Phase 19 Task 13 recovery and migration", () => {
+  it("retains healthy members and exposes recovery when a Current member fails hydration", async () => {
+    const client = {
+      restoreHermes: vi.fn(async () =>
+        acceptedResult("session-hermes", "hermes", "Mr Fluff"),
+      ),
+      restoreConstellationAgent: vi.fn(
+        async (id: string, adapter: "openclaw" | "codex" | "claude-code") => {
+          if (adapter === "claude-code") throw new Error("quarantined");
+          return acceptedResult(id, adapter, adapter);
+        },
+      ),
+    };
+    await expect(
+      restoreModule.restoreWorldEntryConstellation(client, projection),
+    ).resolves.toBeNull();
+    const available =
+      await restoreModule.restoreAvailableWorldEntryConstellationAgents(
+        client,
+        projection,
+      );
+    expect(available).toHaveLength(3);
+    const retained = restoreModule.retainedWorldEntryConstellationProjection(
+      projection,
+      available,
+    );
+    expect(retained.entryReady).toBe(false);
+    expect(retained.agents[3]).toMatchObject({
+      connection: "unavailable",
+      continuity: "unavailable",
+      avatar: projection.agents[3]!.avatar,
+    });
+    expect(retained.agents.slice(0, 3)).toEqual(projection.agents.slice(0, 3));
+  });
   it("keeps one accepted Phase 18 Hermes session in Single Agent mode without another avatar", () => {
     const result = acceptedResult("session-hermes", "hermes", "Mr Fluff");
 
@@ -263,7 +296,7 @@ describe("Phase 19 Task 13 recovery and migration", () => {
       { rosterId: "roster-openclaw", displayName: "Claw" },
       { rosterId: "roster-claude", displayName: "Claude" },
     ]);
-    expect(restoreHermes).toHaveBeenCalledWith("session-hermes");
+    expect(restoreHermes).toHaveBeenCalledWith("session-hermes", undefined);
     expect(restoreConstellationAgent.mock.calls).toEqual([
       ["session-openclaw", "openclaw"],
       ["session-claude", "claude-code"],
@@ -305,7 +338,7 @@ describe("Phase 19 Task 13 recovery and migration", () => {
       primaryRosterId: "roster-hermes",
       agents: [{ rosterId: "roster-hermes" }, {}, {}, {}],
     });
-    expect(restoreHermes).toHaveBeenCalledWith("session-hermes");
+    expect(restoreHermes).toHaveBeenCalledWith("session-hermes", undefined);
     expect(restoreConstellationAgent.mock.calls).toEqual([
       ["session-openclaw", "openclaw"],
       ["session-codex", "codex"],

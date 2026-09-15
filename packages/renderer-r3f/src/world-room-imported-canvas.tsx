@@ -5,6 +5,7 @@ import { AvatarMaterialization } from "./avatar-materialization.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -688,6 +689,8 @@ function WorldRoomScene({
   reducedMotion,
   avatarReady,
   materializationReady,
+  onMaterializationPrepared,
+  onMaterializationStart,
   avatarLod,
   renderQuality,
   onAvatarReady,
@@ -729,6 +732,8 @@ function WorldRoomScene({
   readonly reducedMotion: boolean;
   readonly avatarReady: Readonly<{ user: boolean; agent: boolean }>;
   readonly materializationReady: boolean;
+  readonly onMaterializationPrepared?: (() => void) | undefined;
+  readonly onMaterializationStart?: (() => void) | undefined;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly renderQuality: WorldRenderQuality;
   readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
@@ -765,6 +770,12 @@ function WorldRoomScene({
   const renderedAgentAvatars = (
     agentAvatars?.length ? agentAvatars : [agentAvatar]
   ).slice(0, 4);
+  // Add Agent appends slots. Preserve existing bodies when single-session IDs
+  // become roster IDs during promotion to a multi-agent World.
+  const [initialAgentCount] = useState(renderedAgentAvatars.length);
+  const [readyArrivalIds, setReadyArrivalIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const renderedAgentImports = agentImportedAvatars?.length
     ? agentImportedAvatars.slice(0, 4)
     : [agentImportedAvatar];
@@ -975,6 +986,8 @@ function WorldRoomScene({
       ) : null}
       <AvatarMaterialization
         ready={materializationReady}
+        onPrepared={onMaterializationPrepared}
+        onMaterializationStart={onMaterializationStart}
         reducedMotion={reducedMotion}
       >
         {userImportedAvatar ? (
@@ -1059,6 +1072,7 @@ function WorldRoomScene({
         })}
         {renderedAgentAvatars.map((selection, index) => {
           const state = agentStates?.[index];
+          const arrivalId = state?.rosterId ?? `agent-${index}`;
           const imported = renderedAgentImports[index];
           const position = state
             ? ([state.position.x, 0, state.position.z] as const)
@@ -1089,7 +1103,14 @@ function WorldRoomScene({
                 0,
               ]}
               scale={imported ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale}
-              onReady={(role) => onAvatarReady(role, index)}
+              onReady={(role) => {
+                onAvatarReady(role, index);
+                setReadyArrivalIds((current) =>
+                  current.has(arrivalId)
+                    ? current
+                    : new Set([...current, arrivalId]),
+                );
+              }}
               onLodChange={onAvatarLodChange}
               onAnimationSample={onImportedAnimationSample}
               onOneShotComplete={onImportedOneShotComplete}
@@ -1098,7 +1119,14 @@ function WorldRoomScene({
             />
           );
           return (
-            <group key={`agent-group-${index + 1}`}>
+            <AvatarMaterialization
+              key={`agent-${index}`}
+              arrivalId={arrivalId}
+              onMaterializationStart={onMaterializationStart}
+              enabled={index >= initialAgentCount}
+              ready={readyArrivalIds.has(arrivalId)}
+              reducedMotion={reducedMotion}
+            >
               {state?.workState === "coding" ? (
                 <CodingWorkHalo position={position} />
               ) : null}
@@ -1108,14 +1136,16 @@ function WorldRoomScene({
                   position={position}
                 />
               ) : null}
-              {avatarMotion.lightweight ? (
-                <LightweightAvatarMotion phase={Math.PI + index}>
-                  {model}
-                </LightweightAvatarMotion>
-              ) : (
-                model
-              )}
-            </group>
+              <Suspense fallback={null}>
+                {avatarMotion.lightweight ? (
+                  <LightweightAvatarMotion phase={Math.PI + index}>
+                    {model}
+                  </LightweightAvatarMotion>
+                ) : (
+                  model
+                )}
+              </Suspense>
+            </AvatarMaterialization>
           );
         })}
       </AvatarMaterialization>
@@ -1160,6 +1190,7 @@ export function WorldRoomCanvas({
   onCitySettled,
   onCityReady,
   onSceneReady,
+  onMaterializationStart,
 }: {
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
@@ -1197,6 +1228,7 @@ export function WorldRoomCanvas({
   readonly onCitySettled: (instanceId: string) => void;
   readonly onCityReady: () => void;
   readonly onSceneReady?: (() => void) | undefined;
+  readonly onMaterializationStart?: (() => void) | undefined;
 } & WorldScreensProps) {
   const userImportedClip = userImportedAvatar?.resolvedClip;
   const agentImportedClip = agentImportedAvatar?.resolvedClip;
@@ -1235,8 +1267,7 @@ export function WorldRoomCanvas({
   const [environmentReady, setEnvironmentReady] = useState(false);
   const markEnvironmentReady = useCallback(() => {
     setEnvironmentReady(true);
-    onSceneReady?.();
-  }, [onSceneReady]);
+  }, []);
   const onAvatarLodChange = useCallback(
     (role: "user" | "agent", lod: AvatarLod) => {
       setAvatarLod((current) =>
@@ -1380,6 +1411,7 @@ export function WorldRoomCanvas({
       data-avatar-render-ready={
         avatarReady.user && avatarReady.agent ? "true" : "false"
       }
+      data-ready-avatar-count={readyAvatarIds.size}
       shadows
       camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46, far: 1000 }}
       dpr={renderQuality.dpr}
@@ -1408,6 +1440,8 @@ export function WorldRoomCanvas({
         onScreenDrag={onScreenDrag}
       />
       <WorldRoomScene
+        onMaterializationPrepared={onSceneReady}
+        onMaterializationStart={onMaterializationStart}
         materializationReady={
           environmentReady &&
           readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)

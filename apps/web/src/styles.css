@@ -2023,6 +2023,19 @@
   box-shadow: 0 1.2rem 4rem rgba(0, 0, 0, 0.55);
 }
 
+.world-escape-dialog.world-add-agent--avatar {
+  width: min(100%, 92rem);
+  max-height: 92dvh;
+  align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 700px) {
+  .world-add-agent--avatar .avatar-builder.avatar-builder--onboarding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .world-escape-dialog[data-large-text="true"] {
   font-size: 1.12rem;
 }

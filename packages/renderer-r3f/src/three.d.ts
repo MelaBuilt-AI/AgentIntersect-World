@@ -257,6 +257,12 @@ declare module "three" {
     setClearColor(color: ColorRepresentation, alpha?: number): void;
     clear(): void;
     render(scene: Object3D, camera: Object3D): void;
+    initTexture(texture: Texture): void;
+    compileAsync(
+      scene: Object3D,
+      camera: Object3D,
+      targetScene?: Object3D,
+    ): Promise<Object3D>;
   }
   export class AmbientLight extends Object3D {
     constructor(color?: ColorRepresentation, intensity?: number);

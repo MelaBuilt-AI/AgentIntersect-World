@@ -1,4 +1,8 @@
 import { expect, test } from "@playwright/test";
+import {
+  RegistrationSchema,
+  type AgentRegistration,
+} from "@agentintersect-world/world-schema/agent-setup";
 
 test("setup explicitly selects native Hermes conversation and confirms each prerequisite change", async ({
   page,
@@ -141,5 +145,122 @@ test("setup explicitly selects native Hermes conversation and confirms each prer
   await expect(
     page.getByRole("button", { name: "Agent Setup Menu", exact: true }),
   ).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("@setup-feedback groups environments, confirms attachment and restores inputs after failed recheck", async ({
+  page,
+}, testInfo) => {
+  const installation = {
+    id: "codex-wsl",
+    adapterId: "codex",
+    environment: {
+      id: "wsl:Ubuntu",
+      kind: "wsl",
+      label: "WSL (Ubuntu)",
+      distro: "Ubuntu",
+    },
+    executablePath: "/usr/local/bin/codex",
+    homePath: "/home/user",
+    identities: [
+      {
+        id: "default",
+        label: "Default",
+        kind: "profile",
+        profilePath: "/home/user/.codex",
+      },
+    ],
+    status: "found",
+  };
+  const state: {
+    schema: "aiw.agent-setup/1";
+    completed: boolean;
+    registrations: AgentRegistration[];
+  } = { schema: "aiw.agent-setup/1", completed: false, registrations: [] };
+  let ready = true;
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.route("**/api/agent-setup**", async (route) => {
+    const url = new URL(route.request().url());
+    let data: unknown = state;
+    if (url.pathname.endsWith("/discover"))
+      data = {
+        currentWslDistro: "Ubuntu",
+        defaultWslDistro: "Ubuntu",
+        environments: [
+          { id: "wsl:Ubuntu", label: "WSL (Ubuntu)", status: "scanned" },
+        ],
+        installations: [
+          installation,
+          {
+            ...installation,
+            id: "codex-alternative",
+            executablePath: "/other/codex",
+          },
+        ],
+      };
+    if (url.pathname.endsWith("/attach")) {
+      const input = route.request().postDataJSON();
+      const registration = RegistrationSchema.parse({
+        ...installation,
+        id: "11111111-1111-4111-8111-111111111111",
+        installationId: input.installationId,
+        identity: installation.identities[0],
+        displayName: input.displayName,
+        connectedAt: new Date().toISOString(),
+      });
+      state.registrations = [registration];
+      data = {
+        registration,
+        check: { status: "ready", message: "Native connection ready" },
+      };
+    }
+    if (url.pathname.endsWith("/recheck"))
+      data = {
+        status: ready ? "ready" : "needs-attention",
+        message: ready
+          ? "Native connection ready"
+          : "Selected native installation is unavailable. Retry or select another.",
+      };
+    await route.fulfill({ json: { ok: true, data } });
+  });
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Discover Agents", exact: true })
+    .click();
+  await page.locator("summary").filter({ hasText: "Codex" }).click();
+  const group = page.locator('[data-setup-environment="wsl"]');
+  await expect(group).toHaveCount(1);
+  await group.getByLabel("Agent name", { exact: true }).fill("Codex 1");
+  await group
+    .getByRole("button", { name: "Attach to Agent Intersect World" })
+    .click();
+  const success = group.getByRole("button", {
+    name: /Codex · WSL \(Ubuntu\) · “Codex 1” — Successfully Connected/,
+  });
+  await expect(success).toBeVisible();
+  await expect(group.getByLabel("Agent name", { exact: true })).toBeHidden();
+  await expect(success).toHaveCSS("background-color", "rgb(23, 103, 61)");
+  await page.screenshot({ path: testInfo.outputPath("setup-green.png") });
+  ready = false;
+  await page.getByRole("button", { name: "Recheck", exact: true }).click();
+  await expect(success).toBeHidden();
+  await expect(group.getByLabel("Agent name", { exact: true })).toHaveValue(
+    "Codex 1",
+  );
+  await expect(group.getByLabel("Agent name", { exact: true })).toBeVisible();
+  await expect(group.getByLabel("Native identity")).toHaveValue("default");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await group
+    .getByLabel("Agent name", { exact: true })
+    .scrollIntoViewIfNeeded();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("setup-recheck-mobile.png"),
+  });
   expect(errors).toEqual([]);
 });

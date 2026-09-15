@@ -4,8 +4,14 @@ import type {
   AgentSetupState,
   DiscoveryResult,
   SetupHarness,
+  AgentRegistration,
+  SetupCheck,
 } from "@agentintersect-world/world-schema/agent-setup";
 import "./agent-setup.css";
+import {
+  installationRegistration,
+  setupEnvironmentLabel,
+} from "./agent-setup-presentation.js";
 import { InstallationSetupActions } from "./InstallationSetupActions.js";
 
 type AttachInput = {
@@ -22,19 +28,31 @@ const harnesses: readonly { id: SetupHarness; label: string }[] = [
 ];
 function InstallationForm({
   installation,
+  registration,
+  check,
+  onAddAgent,
   busy,
   onAttach,
 }: {
   readonly installation: AgentInstallation;
+  readonly registration?: AgentRegistration | undefined;
+  readonly check?: SetupCheck | undefined;
+  readonly onAddAgent?: ((id: string) => void) | undefined;
   readonly busy: boolean;
   readonly onAttach: (input: AttachInput) => void;
 }) {
   const [identityId, setIdentityId] = useState(
-    installation.identities[0]?.id ?? "",
+    registration?.identity.id ?? installation.identities[0]?.id ?? "",
   );
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState(
+    registration?.displayName ?? "",
+  );
+  const [editing, setEditing] = useState(false);
+  const connected = registration && check?.status === "ready";
   const [working, setWorking] = useState(false);
-  const [conversationRef, setConversationRef] = useState("");
+  const [conversationRef, setConversationRef] = useState(
+    registration?.conversationRef ?? "",
+  );
   return (
     <form
       className="agent-setup-installation"
@@ -49,9 +67,36 @@ function InstallationForm({
           });
       }}
     >
-      <fieldset disabled={busy || working}>
-        <legend>{installation.environment.label}</legend>
-        <span className="agent-setup-found">Found — not attached</span>
+      {connected ? (
+        <div className="agent-setup-connected" role="status">
+          <button
+            type="button"
+            className="agent-setup-success"
+            aria-expanded={editing}
+            onClick={() => setEditing((value) => !value)}
+          >
+            {harnesses.find((h) => h.id === registration.adapterId)?.label} ·{" "}
+            {setupEnvironmentLabel(installation.environment)} · “
+            {registration.displayName}” — Successfully Connected
+          </button>
+          {onAddAgent ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onAddAgent(registration.id)}
+            >
+              Add Agent
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      <fieldset hidden={!!connected && !editing} disabled={busy || working}>
+        <legend>{setupEnvironmentLabel(installation.environment)}</legend>
+        <span className="agent-setup-found">
+          {registration
+            ? (check?.message ?? "Saved — Recheck to verify connection")
+            : "Found — not attached"}
+        </span>
         <code className="agent-setup-path">{installation.executablePath}</code>
         <label>
           Native identity
@@ -109,6 +154,124 @@ function InstallationForm({
   );
 }
 
+function EnvironmentInstallations({
+  installations,
+  discovery,
+  registrations,
+  checks,
+  busy,
+  onAttach,
+  onAddAgent,
+}: {
+  readonly installations: readonly AgentInstallation[];
+  readonly discovery: DiscoveryResult;
+  readonly registrations: readonly AgentRegistration[];
+  readonly checks: Readonly<Record<string, SetupCheck>>;
+  readonly busy: boolean;
+  readonly onAttach: (input: AttachInput) => void;
+  readonly onAddAgent?: ((id: string) => void) | undefined;
+}) {
+  const kind = installations[0]!.environment.kind;
+  const distributions =
+    kind === "wsl"
+      ? [
+          ...new Set([
+            ...discovery.environments
+              .filter((e) => e.id.startsWith("wsl:") && e.id !== "wsl:limit")
+              .map((e) => e.id.slice(4)),
+            ...installations.flatMap((i) =>
+              i.environment.distro ? [i.environment.distro] : [],
+            ),
+          ]),
+        ]
+      : [];
+  const preferred =
+    discovery.defaultWslDistro ??
+    discovery.currentWslDistro ??
+    (distributions.length === 1 ? distributions[0] : "");
+  const [distro, setDistro] = useState(preferred ?? "");
+  const candidates = installations.filter(
+    (i) =>
+      kind !== "wsl" ||
+      !distributions.length ||
+      i.environment.distro === distro,
+  );
+  const [selected, setSelected] = useState("");
+  const installation =
+    candidates.find((i) => i.id === selected) ?? candidates[0];
+  const environment = discovery.environments.find(
+    (e) => e.id === `wsl:${distro}`,
+  );
+  const registration = installation
+    ? installationRegistration(
+        installation,
+        registrations,
+        discovery.currentWslDistro,
+      )
+    : undefined;
+  return (
+    <section className="agent-setup-environment" data-setup-environment={kind}>
+      {kind === "wsl" && distributions.length > 1 ? (
+        <label>
+          WSL distribution
+          <select
+            value={distro}
+            disabled={busy}
+            onChange={(e) => {
+              setDistro(e.target.value);
+              setSelected("");
+            }}
+          >
+            <option value="">Choose a distribution</option>
+            {distributions.map((d) => (
+              <option key={d} value={d}>
+                {d}
+                {d === discovery.defaultWslDistro ? " · Default" : ""}
+                {d === discovery.currentWslDistro ? " · Current" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      {candidates.length > 1 ? (
+        <details className="agent-setup-note">
+          <summary>Installation options ({candidates.length})</summary>
+          <label>
+            Installation
+            <select
+              value={installation?.id ?? ""}
+              disabled={busy}
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              {candidates.map((i) => (
+                <option key={i.id} value={i.id}>
+                  {i.executablePath} · {i.homePath}
+                </option>
+              ))}
+            </select>
+          </label>
+        </details>
+      ) : null}
+      {installation ? (
+        <InstallationForm
+          key={installation.id}
+          installation={installation}
+          registration={registration}
+          check={checks[registration?.id ?? ""]}
+          busy={busy}
+          onAttach={onAttach}
+          onAddAgent={onAddAgent}
+        />
+      ) : (
+        <p>
+          {environment?.message ??
+            "Select a distribution with an installed agent."}
+        </p>
+      )}
+    </section>
+  );
+}
+
 export function AgentSetupMenu({
   state,
   discovery,
@@ -119,8 +282,13 @@ export function AgentSetupMenu({
   onRecheck,
   onComplete,
   onClose,
+  closeOnEscape = false,
+  checks = {},
+  onAddAgent,
 }: {
   readonly state: AgentSetupState;
+  readonly checks?: Readonly<Record<string, SetupCheck>>;
+  readonly onAddAgent?: ((id: string) => void) | undefined;
   readonly discovery: DiscoveryResult | null;
   readonly busy: boolean;
   readonly message: string;
@@ -129,6 +297,7 @@ export function AgentSetupMenu({
   readonly onRecheck: (connectionId: string) => void;
   readonly onComplete: () => void;
   readonly onClose?: () => void;
+  readonly closeOnEscape?: boolean;
 }) {
   const [additionalDirectory, setAdditionalDirectory] = useState("");
   const dialog = useRef<HTMLElement>(null);
@@ -153,6 +322,12 @@ export function AgentSetupMenu({
         data-agent-setup="true"
         tabIndex={-1}
         onKeyDown={(event) => {
+          if (event.key === "Escape" && closeOnEscape && onClose) {
+            event.preventDefault();
+            event.stopPropagation();
+            onClose();
+            return;
+          }
           if (event.key !== "Tab") return;
           const controls = [
             ...(dialog.current?.querySelectorAll<HTMLElement>(
@@ -200,8 +375,9 @@ export function AgentSetupMenu({
             Discover Agents
           </button>
           <p>
-            Read-only search of accessible Windows and WSL installations. No
-            installs, logins, provider changes or service restarts.
+            Read-only search of this computer’s native and accessible WSL
+            installations. No installs, logins, provider changes or service
+            restarts.
           </p>
         </div>
         <details className="agent-setup-note">
@@ -260,12 +436,20 @@ export function AgentSetupMenu({
                   </span>
                 </summary>
                 {installations.length ? (
-                  installations.map((installation) => (
-                    <InstallationForm
-                      key={installation.id}
-                      installation={installation}
+                  [
+                    ...new Set(installations.map((i) => i.environment.kind)),
+                  ].map((kind) => (
+                    <EnvironmentInstallations
+                      key={kind}
+                      installations={installations.filter(
+                        (i) => i.environment.kind === kind,
+                      )}
+                      discovery={discovery!}
+                      registrations={state.registrations}
+                      checks={checks}
                       busy={busy}
                       onAttach={onAttach}
+                      onAddAgent={onAddAgent}
                     />
                   ))
                 ) : (
@@ -296,11 +480,18 @@ export function AgentSetupMenu({
                           (harness) => harness.id === registration.adapterId,
                         )?.label
                       }{" "}
-                      · {registration.environment.label} ·{" "}
-                      {registration.identity.label}
+                      ·{" "}
+                      {setupEnvironmentLabel(
+                        registration.environment,
+                        discovery?.currentWslDistro,
+                      )}{" "}
+                      · {registration.identity.label}
                     </span>
                     <small>
-                      Saved — connection readiness is checked before use
+                      {checks[registration.id]?.status === "ready"
+                        ? "Connection verified"
+                        : (checks[registration.id]?.message ??
+                          "Saved — connection readiness is checked before use")}
                     </small>
                   </div>
                   <button

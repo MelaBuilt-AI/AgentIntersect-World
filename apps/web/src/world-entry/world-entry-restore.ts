@@ -155,6 +155,7 @@ export async function restoreAvailableWorldEntryConstellationAgents(
   client: {
     readonly restoreHermes: (
       sessionId: string,
+      worldInstanceId?: string,
     ) => Promise<HermesConnectionResult>;
     readonly restoreConstellationAgent: (
       sessionId: string,
@@ -176,7 +177,12 @@ export async function restoreAvailableWorldEntryConstellationAgents(
         try {
           const result =
             agent.adapterId === "hermes"
-              ? await client.restoreHermes(agent.worldSessionId)
+              ? await client.restoreHermes(
+                  agent.worldSessionId,
+                  agent.sessionOwnership === "world-owned"
+                    ? agent.worldInstanceId
+                    : undefined,
+                )
               : await client.restoreConstellationAgent(
                   agent.worldSessionId,
                   agent.adapterId,
@@ -196,6 +202,7 @@ export async function restoreWorldEntryConstellation(
   client: {
     readonly restoreHermes: (
       sessionId: string,
+      worldInstanceId?: string,
     ) => Promise<HermesConnectionResult>;
     readonly restoreConstellationAgent: (
       sessionId: string,
@@ -220,11 +227,26 @@ export async function restoreWorldEntryConstellation(
         [
           agent.rosterId,
           agent.adapterId === "hermes"
-            ? await client.restoreHermes(agent.worldSessionId)
-            : await client.restoreConstellationAgent(
-                agent.worldSessionId,
-                agent.adapterId,
-              ),
+            ? await client
+                .restoreHermes(
+                  agent.worldSessionId,
+                  agent.sessionOwnership === "world-owned"
+                    ? agent.worldInstanceId
+                    : undefined,
+                )
+                .catch(() => ({
+                  status: "unavailable" as const,
+                  message: "agent unavailable_" as const,
+                }))
+            : await client
+                .restoreConstellationAgent(
+                  agent.worldSessionId,
+                  agent.adapterId,
+                )
+                .catch(() => ({
+                  status: "unavailable" as const,
+                  message: "agent unavailable_" as const,
+                })),
         ] as const,
     ),
   );
@@ -232,4 +254,20 @@ export async function restoreWorldEntryConstellation(
     projection,
     Object.fromEntries(entries),
   );
+}
+
+export function retainedWorldEntryConstellationProjection(
+  projection: ConstellationState["projection"],
+  restored: readonly WorldEntryConstellationRestoreAgent[],
+): ConstellationState["projection"] {
+  return {
+    ...projection,
+    entryReady: false,
+    agents: projection.agents.map((agent) =>
+      agent.connection === "connected" &&
+      !restored.some((item) => item.rosterId === agent.rosterId)
+        ? { ...agent, connection: "unavailable", continuity: "unavailable" }
+        : agent,
+    ),
+  };
 }

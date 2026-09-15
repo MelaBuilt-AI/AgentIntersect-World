@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type {
   AgentSetupState,
   DiscoveryResult,
+  SetupCheck,
 } from "@agentintersect-world/world-schema/agent-setup";
 import { AgentSetupMenu } from "./AgentSetupMenu.js";
 import { AgentSetupContext } from "./agent-setup-context.js";
@@ -34,6 +35,8 @@ export function AgentSetupBoundary({
   const [open, setOpen] = useState(false);
   const [discovery, setDiscovery] = useState<DiscoveryResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const [checks, setChecks] = useState<Record<string, SetupCheck>>({});
+  const [addingToWorld, setAddingToWorld] = useState(false);
   const pending = useRef(false);
   const [message, setMessage] = useState("");
   const [preferences, setPreferences] = useState(() =>
@@ -54,12 +57,37 @@ export function AgentSetupBoundary({
             error instanceof Error ? error.message : "Agent Setup unavailable",
           );
       });
-    const show = () => setOpen(true);
+    const show = (event: Event) => {
+      setAddingToWorld(
+        event instanceof CustomEvent && event.detail?.addToWorld === true,
+      );
+      setOpen(true);
+    };
+    const unavailable = (event: Event) => {
+      if (
+        !(event instanceof CustomEvent) ||
+        typeof event.detail?.connectionId !== "string"
+      )
+        return;
+      setChecks((current) => ({
+        ...current,
+        [event.detail.connectionId]: {
+          status: "needs-attention",
+          message:
+            "World connection failed. Recheck the selected environment and retry.",
+        },
+      }));
+    };
+    window.addEventListener("aiw:agent-connection-unavailable", unavailable);
     window.addEventListener("aiw:open-agent-setup", show);
     return () => {
       active = false;
       window.clearTimeout(timer);
       window.removeEventListener("aiw:open-agent-setup", show);
+      window.removeEventListener(
+        "aiw:agent-connection-unavailable",
+        unavailable,
+      );
     };
   }, []);
   const run = async (action: () => Promise<void>) => {
@@ -86,7 +114,9 @@ export function AgentSetupBoundary({
       value={state?.registrations.length ? state : null}
     >
       {state?.completed && !opening ? (
-        <div inert={visible || undefined}>{children}</div>
+        <div className="agent-setup-content" inert={visible || undefined}>
+          {children}
+        </div>
       ) : (
         <main className="identify-shell" data-testid="agent-setup-opening">
           <img
@@ -117,6 +147,21 @@ export function AgentSetupBoundary({
           discovery={discovery}
           busy={busy}
           message={message}
+          checks={checks}
+          closeOnEscape={addingToWorld}
+          onAddAgent={
+            addingToWorld
+              ? (connectionId) => {
+                  setOpen(false);
+                  setAddingToWorld(false);
+                  window.dispatchEvent(
+                    new CustomEvent("aiw:add-saved-agent", {
+                      detail: { connectionId },
+                    }),
+                  );
+                }
+              : undefined
+          }
           onDiscover={(additionalDirectory) =>
             void run(async () => {
               setDiscovery(
@@ -131,12 +176,19 @@ export function AgentSetupBoundary({
             void run(async () => {
               const result = await attachSetupAgent(input);
               setState(await loadAgentSetup());
+              if (result.registration)
+                setChecks((current) => ({
+                  ...current,
+                  [result.registration!.id]: result.check,
+                }));
               setMessage(result.check.message);
             })
           }
           onRecheck={(id) =>
             void run(async () => {
-              setMessage((await recheckSetupAgent(id)).message);
+              const check = await recheckSetupAgent(id);
+              setChecks((current) => ({ ...current, [id]: check }));
+              setMessage(check.message);
             })
           }
           onComplete={() =>

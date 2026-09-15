@@ -24,6 +24,7 @@ export type AgentInstallation = {
   readonly adapterId: SetupHarness;
   readonly environment: AgentEnvironment;
   readonly executablePath: string;
+  readonly canonicalExecutablePath?: string;
   readonly homePath: string;
   readonly identities: readonly NativeIdentity[];
   /** Finding an executable is not authentication or execution proof. */
@@ -31,6 +32,8 @@ export type AgentInstallation = {
 };
 
 export type DiscoveryResult = {
+  readonly defaultWslDistro?: string;
+  readonly currentWslDistro?: string;
   readonly installations: readonly AgentInstallation[];
   readonly environments: readonly {
     readonly id: string;

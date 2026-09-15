@@ -22,8 +22,11 @@ type FixtureControl = {
   readonly invalidHelp?: boolean;
   readonly attestHang?: boolean;
   readonly realSystemEvents?: boolean;
+  readonly rateLimitEvent?: boolean;
+  readonly createHang?: boolean;
   readonly realToolResultEnvelope?: boolean;
   readonly invalidToolResultError?: boolean;
+  readonly permissionDenied?: boolean;
   readonly failure?:
     | "malformed"
     | "stdout-flood"
@@ -66,6 +69,99 @@ type Fixture = {
 };
 
 const temporaryRoots: string[] = [];
+it("cancels initial native connection without a saved World binding", async () => {
+  const fixture = await fixtureExecutable({ createHang: true });
+  const native = adapter(fixture, { turnTimeoutMs: 5000 });
+  const controller = new AbortController();
+  const promise = native.createWorldSession(
+    "cancel-connect",
+    "Claude",
+    controller.signal,
+  );
+  const timer = setTimeout(() => controller.abort(), 100);
+  try {
+    await expect(promise).rejects.toThrow(/cancel/i);
+  } finally {
+    clearTimeout(timer);
+  }
+  expect(await native.listSessions()).toEqual([]);
+});
+
+it("accepts native rate-limit telemetry without killing a successful connection", async () => {
+  const fixture = await fixtureExecutable({ rateLimitEvent: true });
+  const native = adapter(fixture);
+  const created = await native.createWorldSession("rate-limit-probe", "Claude");
+  expect(created.id).toBeTruthy();
+  await native.endWorldSession("rate-limit-probe", created.id);
+});
+
+it("preserves denied-tool policy and continues the same session after permission telemetry", async () => {
+  const fixture = await fixtureExecutable({
+    permissionDenied: true,
+    realToolResultEnvelope: true,
+  });
+  const native = adapter(fixture);
+  const created = await native.createWorldSession("denial-recovery", "Claude");
+  const events: unknown[] = [];
+  const result = await native.sendText(created.id, "try the tool", {
+    mode: "explore",
+    rootSessionRef: created.id,
+    onEvent: (event) => {
+      events.push(event);
+    },
+  });
+  expect(result.sessionRef).toBe(created.id);
+  expect(
+    events.filter(
+      (event) => (event as { type: string }).type === "tool.failed",
+    ),
+  ).toHaveLength(1);
+  expect(JSON.stringify(events)).not.toContain("PRIVATE_DENIAL_CANARY");
+  const reopened = adapter(fixture);
+  await expect(
+    reopened.attach(created.id, { worldInstanceId: "denial-recovery" }),
+  ).resolves.toMatchObject({ id: created.id });
+  await expect(
+    reopened.sendText(created.id, "next turn", {
+      mode: "explore",
+      rootSessionRef: created.id,
+    }),
+  ).resolves.toMatchObject({ sessionRef: created.id });
+});
+
+it("recovers a quarantined exact session only after explicit tool-free resume validation", async () => {
+  const fixture = await fixtureExecutable({ failure: "unexpected-exit" });
+  const native = adapter(fixture);
+  const created = await native.createWorldSession("recover-exact", "Claude");
+  await expect(native.sendText(created.id, "failed request")).rejects.toThrow();
+  await writeFile(
+    path.join(fixture.nativeSessionRoot, "fixture-control.json"),
+    "{}",
+  );
+  const reopened = adapter(fixture);
+  await expect(
+    reopened.attach(created.id, { worldInstanceId: "recover-exact" }),
+  ).rejects.toThrow(/quarantined/);
+  await expect(
+    reopened.attach(created.id, {
+      worldInstanceId: "other-world",
+      recover: true,
+    }),
+  ).rejects.toThrow(/not owned/);
+  await expect(
+    reopened.attach(created.id, {
+      worldInstanceId: "recover-exact",
+      recover: true,
+    }),
+  ).resolves.toMatchObject({ id: created.id, rootId: created.id });
+  const calls = await fixture.invocations();
+  const recoveryArgs = calls.at(-1)!.args;
+  expect(recoveryArgs[recoveryArgs.indexOf("--tools") + 1]).toBe("");
+  expect(recoveryArgs[recoveryArgs.indexOf("--resume") + 1]).toBe(created.id);
+  await expect(
+    reopened.sendText(created.id, "new request"),
+  ).resolves.toMatchObject({ sessionRef: created.id });
+});
 
 afterEach(async () => {
   delete process.env.CLAUDE_ADAPTER_SECRET_CANARY;
@@ -148,9 +244,11 @@ const sessionId =
   isResume && control.failure === "session-mismatch"
     ? "99999999-9999-4999-8999-999999999999"
     : requestedSessionId;
+if(control.createHang) await new Promise(() => setInterval(() => {},1000));
 const emit = (event) => process.stdout.write(JSON.stringify(event) + "\\n");
 
 emit({ type: "system", subtype: "init", session_id: sessionId, cwd, tools: [] });
+if (control.rateLimitEvent) emit({type: "rate_limit_event", rate_limit_info: {status: "allowed"}});
 if (control.realSystemEvents) {
   emit({ type: "system", subtype: "status", status: "requesting", session_id: sessionId });
   emit({ type: "system", subtype: "thinking_tokens", estimated_tokens: 1, estimated_tokens_delta: 1, session_id: sessionId });
@@ -227,6 +325,7 @@ if (isResume) {
       ],
     },
   });
+  if (control.permissionDenied) emit({ type: "system", subtype: "permission_denied", session_id: sessionId, tool_name: "bad tool name!", tool_use_id: "tool-2", decision_reason_type: "mode", message: "PRIVATE_DENIAL_CANARY" });
   emit({
     type: "user",
     session_id: sessionId,

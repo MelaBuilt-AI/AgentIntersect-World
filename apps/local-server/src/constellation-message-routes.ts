@@ -58,6 +58,7 @@ export function registerConstellationMessageRoutes(
     "requestId",
     "idempotencyKey",
     "text",
+    "intent",
     "targetRosterId",
     "userDisplayName",
   ]);
