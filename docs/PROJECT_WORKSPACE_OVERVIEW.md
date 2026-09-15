@@ -16,8 +16,22 @@ This PR implements those together on top of merged PR12. It does not replace Wor
 
 ## Delivery and non-goals
 
-Direct implementation with focused RED/GREEN, affected type/lint/build and isolated production-browser proof. Update migrated callers/tests rather than retaining misleading labels. Open a private PR; leave unmerged pending Aaron's first-hand acceptance. No provider/gateway changes, native coding dispatch, TEST45345 reload/replacement, history deletion, publication, releases, Phase20, original AgentIntersect changes, or historical residual staging.
+Direct implementation with focused RED/GREEN, affected type/lint/build and isolated production-browser proof. Update migrated callers/tests rather than retaining misleading labels. Open a private PR; leave unmerged pending Aaron's first-hand acceptance. Aaron subsequently authorized closing the old TEST45345, launching a fresh matching TEST after implementation, leaving it running, and preparing the end-session handoff. Preserve the old saved profile/history on disk. No provider/gateway changes, automated native coding dispatch, history deletion, publication, releases, Phase20, original AgentIntersect changes, or historical residual staging.
 
 ## Verification
 
-Implementation and verification in progress. No manual acceptance or CI success claimed yet.
+- Focused RED→GREEN for contextual code questions, default overview/optional arrangement, current-worktree binding and snapshot-derived diff/validation; skipped checks do not invent a passed source event.
+- Final web suite: **81 files / 426 tests passed**. Web and root non-emitting typechecks, scoped ESLint, formatting and whitespace checks passed. Monorepo build: **20/20 tasks successful**; final normal frontend rebuilt after the last metadata correction. Existing large-renderer chunk advisory remains unchanged.
+- Four distinct production-browser journeys passed across scoped attempts: normal Workstream conversation/contextual source draft; source spatial/fullscreen scroll continuity; no-WebGL prop placement; spatial screen movement/projection/Reduced Motion/fallback. The corrected overview clears Escape and keeps Arrange visible; pixels inspected. Final metadata-only source-event correction was covered by its RED/GREEN plus final web suite, not claimed as a new complete browser matrix.
+- Preserved failed attempts: overview geometry regression before CSS correction; migrated spatial helper initially assumed one toggle although Arrange now contains three. Assertion now checks the explicit set without weakening disabled-state or motion checks.
+- Private PR13 remains draft/unmerged; manual review and exact-head hosted CI are separate gates. No native coding dispatch or operator acceptance inferred from fixture-driven browser proof.
+
+## Operator review
+
+1. In the fresh TEST, complete your own avatar/agent setup and load a repository. A no-remote starter repository is provided by the TEST launcher; old history is preserved separately, not imported.
+2. Check Project / Current Work in empty/current/completed states; use its Workbench, New Workstream and work-details controls.
+3. Click a file, inspect source, then Ask about this. Confirm the chat draft names the selected file and correct repository/worktree branch; it must not send automatically.
+4. Perform your chosen real Workstream task. Inspect changed-file source, diff and validation objects; they should open the existing source/details surfaces.
+5. Open Arrange workspace, move/project screens, focus/pin an object, reveal Visual-only props, place/remove a prop and close arrangement. Live work should continue; props must not create work.
+
+Saved layouts and spatial planning remain future scope. This is a local open-World arrangement, not persistence across reload or a new task engine.

@@ -44,6 +44,94 @@ const record = {
 const work = projectAuthoritativeWorkstream(record);
 
 describe("Workstream embodiment", () => {
+  it("keeps skipped validation pending without inventing a passed source event", () => {
+    const objects = createWorkstreamObjects(
+      {
+        ...work,
+        validation: [
+          {
+            id: "skipped",
+            label: "Not run",
+            state: "skipped",
+            summary: "Not executed",
+          },
+        ],
+      },
+      [],
+    );
+    const validation = objects.find(
+      (object) => object.linkedRepoData?.kind === "validation",
+    );
+    expect(validation?.status).toBe("pending");
+    expect(validation?.sourceEvent).toBeNull();
+  });
+  it("binds an existing city file to current-worktree source without duplicating its identity", () => {
+    const existing = {
+      instanceId: "repository:existing",
+      assetId: "01-code-slab",
+      position: { x: 9, z: 9 },
+      status: "idle",
+      lifecycle: "idle",
+      pinned: true,
+      manual: false,
+      sourceEvent: "file.updated",
+      linkedRepoData: {
+        ref: "existing",
+        path: "index.html",
+        kind: "file",
+        repositoryRef: "repo-one",
+      },
+    } as const;
+    const current = projectAuthoritativeWorkstream({
+      ...record,
+      projection: {
+        ...record.projection,
+        changedFiles: [
+          { path: "index.html", change: "modified", diffSummary: "heading" },
+        ],
+      },
+    });
+    const overlay = createWorkstreamObjects(current, [existing]).find(
+      (object) => object.instanceId === existing.instanceId,
+    );
+    expect(overlay?.linkedRepoData?.workstreamId).toBe("work-one");
+    expect(overlay?.position).toEqual(existing.position);
+    expect(overlay?.pinned).toBe(true);
+  });
+  it("projects diff and failed validation only from real work evidence", () => {
+    expect(
+      createWorkstreamObjects(work, []).some(
+        (object) => object.linkedRepoData?.kind === "validation",
+      ),
+    ).toBe(false);
+    const current = projectAuthoritativeWorkstream({
+      ...record,
+      status: "blocked",
+      projection: {
+        ...record.projection,
+        diff: {
+          summary: "index.html changed",
+          patch: "-old\n+new",
+          truncated: false,
+        },
+        validation: [
+          { command: "npm test", exitCode: 1, summary: "Title mismatch" },
+        ],
+      },
+    });
+    const objects = createWorkstreamObjects(current, []);
+    expect(
+      objects.find((object) => object.assetId === "23-diff-projector")
+        ?.linkedRepoData?.workstreamId,
+    ).toBe("work-one");
+    expect(
+      objects.find((object) => object.linkedRepoData?.kind === "validation"),
+    ).toMatchObject({
+      assetId: "07-failing-build-alarm",
+      status: "failure",
+      linkedRepoData: { workstreamId: "work-one" },
+    });
+  });
   it("admits generated slab and nested-file targets through the real movement controller", () => {
     const current = projectAuthoritativeWorkstream({
       ...record,

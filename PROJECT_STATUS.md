@@ -1,10 +1,18 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-14
+Updated: 2026-09-15
 
 ## Current milestone
 
-### September 14 — accepted cumulative delivery authorized
+### September 15 — project/current-work overview, PR13 awaiting operator review
+
+Aaron (`1549274105780641875`) approved the complete Live/Director proposal and requested a new PR. The compact Project / Current Work overview replaces the default asset catalog; Code View owns source identity and Ask about this; Workstream retains plan/diff/validation/evidence; the city projects real current-work files and evidence; optional Arrange workspace tucks away clearly visual-only props. Existing screen IDs/hotkeys and Workbench execution authority are preserved. Details, limitations and checklist: [Project workspace overview](docs/PROJECT_WORKSPACE_OVERVIEW.md).
+
+Local verification: 426 web tests, web/root types, scoped lint/format, monorepo build and four distinct affected production-browser journeys passed across recorded attempts. Corrected overview geometry is pixel-checked. Snapshot-summary objects do not invent emitted passing test events. Native visual/interaction acceptance remains **PENDING**; PR13 remains draft/unmerged and no release/publication is authorized. Final exact-SHA hosted CI receipts belong to the PR/handoff, not this status commit.
+
+Aaron subsequently requested closing old TEST45345, opening a fresh test, leaving it running, then prep end session. Preserve old profile/history on disk; do not import old setup/roster into the new lane. Current launch/readiness/stop details are recorded in `/home/mela_ai/.hermes/runs/aiw-project-overview-test-20260915/README.md` and the latest Obsidian handoff. This supersedes old TEST-retention restrictions below for this authorized replacement only. Seven historical local residuals remain protected. Saved layouts, spatial planning, broader restart/Omarchy work, Hermes changes and Phase20 remain separate scope.
+
+### Historical September 14 — accepted cumulative delivery authorized
 
 Aaron (`1549226613546422411`) reports **FULL PASS** for the accumulated changes and fixes on the fresh TEST at `http://127.0.0.1:45345/`. He then authorizes (`1549227029160009831`) commit/push, correction of concrete CI/readiness failures, merge only after green, verification of merged-main green, and end-session handoff. This current cumulative-delivery instruction supersedes older delivery-held and split-delivery planning prose for the accepted candidate; historical sections below retain their original evidence boundaries.
 

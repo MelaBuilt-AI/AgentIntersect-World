@@ -1,5 +1,6 @@
 import "./repository-code-screen.css";
 import { audioCue } from "../audio/world-audio.js";
+import { buildCodeQuestionPrompt } from "./repository-explain-prompt.js";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { WEB_API_BASE_PATH } from "@agentintersect-world/config";
 import { type RepositoryCityInstance } from "@agentintersect-world/renderer-r3f";
@@ -23,6 +24,7 @@ export function RepositoryCodeScreen({
   openingYaw,
   reducedMotion,
   onClose,
+  onAskAgent,
   onInspectionChange,
   fullscreen: controlledFullscreen,
   onFullscreenChange,
@@ -32,6 +34,7 @@ export function RepositoryCodeScreen({
   readonly openingYaw: number;
   readonly reducedMotion: boolean;
   readonly onClose: () => void;
+  readonly onAskAgent?: ((prompt: string) => void) | undefined;
   readonly onInspectionChange: (active: boolean) => void;
   readonly fullscreen?: boolean;
   readonly onFullscreenChange?: import("react").Dispatch<
@@ -232,6 +235,11 @@ export function RepositoryCodeScreen({
         <header>
           <div>
             <strong>Repository code · read only</strong>
+            <small>
+              {workstream
+                ? `Workstream source · ${workstream.authority?.authority.branch ?? "branch unavailable"}`
+                : "Loaded repository source · not a Workstream worktree"}
+            </small>
             <p>
               {data?.path ||
                 String(
@@ -242,6 +250,27 @@ export function RepositoryCodeScreen({
             </p>
           </div>
           <div className="repository-code-screen__actions">
+            <button
+              type="button"
+              className={
+                data && onAskAgent ? "world-action--enabled" : undefined
+              }
+              disabled={!data || !onAskAgent}
+              onClick={() => {
+                if (!data || !onAskAgent) return;
+                onAskAgent(
+                  buildCodeQuestionPrompt({
+                    path: data.path,
+                    repositoryRef: data.repositoryRef,
+                    content: data.content,
+                    workstream,
+                  }),
+                );
+                onClose();
+              }}
+            >
+              Ask about this
+            </button>
             {spatial ? (
               <button
                 type="button"
@@ -287,7 +316,8 @@ export function RepositoryCodeScreen({
         </header>
         <p className="repository-code-screen__hint">
           Click code to focus · scroll to inspect · Alt+4 fullscreen / object ·
-          Escape releases focus
+          Escape releases focus · Ask about this prepares a chat draft, never
+          sends it
         </p>
         <div
           ref={scroll}

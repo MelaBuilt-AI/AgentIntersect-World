@@ -392,6 +392,7 @@ export function WorldEntryExperience({
     "idle" | "loading" | "ready" | "error"
   >("idle");
   const [layoutGeneration, setLayoutGeneration] = useState("blank-world");
+  const [repositoryName, setRepositoryName] = useState("Loaded repository");
   const [activeRepositoryAuthority, setActiveRepositoryAuthority] =
     useState<WorkstreamReference | null>(null);
   const [repositoryIntakeOpen, setRepositoryIntakeOpen] = useState(false);
@@ -571,6 +572,11 @@ export function WorldEntryExperience({
           if (!restoredRepository) return;
           const nextObjects = renderObjects(restoredRepository.snapshot);
           setObjects(nextObjects);
+          setRepositoryName(
+            restoredRepository.snapshot.objects.find(
+              (object) => object.kind === "repository",
+            )?.name ?? "Loaded repository",
+          );
           setLayoutGeneration(`layout-${restoredRepository.generationId}`);
           setActiveRepositoryAuthority(restoredRepository.repository);
           setRepositoryReadiness("loading");
@@ -1251,6 +1257,10 @@ export function WorldEntryExperience({
     };
     const repositorySummary = `${repositoryCounts.packages} packages · ${repositoryCounts.directories} directories · ${repositoryCounts.files} files`;
     setObjects(nextObjects);
+    setRepositoryName(
+      result.snapshot.objects.find((object) => object.kind === "repository")
+        ?.name ?? "Loaded repository",
+    );
     setLayoutGeneration(`layout-${result.generationId}`);
     setActiveRepositoryAuthority(result.repository);
     dispatch({
@@ -2669,6 +2679,8 @@ export function WorldEntryExperience({
               showControlHints={preferences.showControlHints}
               repositoryReadiness={repositoryReadiness}
               liveWorkstream={normalWorkstream}
+              projectName={repositoryName}
+              onInspectWorkstream={() => setNormalWorkstreamOpen(true)}
               workstreamAuthority={workstreamAuthority}
               workstreamTask={workstreamTask.task}
               workstreamCreateUnavailableReason={
@@ -2697,9 +2709,15 @@ export function WorldEntryExperience({
                 setNewWorkstreamBase("HEAD");
                 setWheelTaskOpen(true);
               }}
-              onAskAgent={(prompt) =>
-                setMessage(`@${activeProposal.displayName} ${prompt}`)
-              }
+              onAskAgent={(prompt) => {
+                const name =
+                  state.sessionMode === "multi"
+                    ? worldAgentAvatars.find(
+                        (agent) => agent.rosterId === selectedRecipientId,
+                      )?.name
+                    : activeProposal.displayName;
+                setMessage(name ? `@${name} ${prompt}` : prompt);
+              }}
             />
           </Suspense>
           {state.step !== "world_entering" ? (

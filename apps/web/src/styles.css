@@ -1177,6 +1177,51 @@
   box-shadow: 0 0 1.8rem rgba(25, 181, 255, 0.14);
 }
 
+.world-screen--hud .project-overview {
+  top: max(2.75rem, calc(env(safe-area-inset-top) + 2.75rem));
+  max-height: min(54vh, 34rem);
+}
+
+.project-overview {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+}
+.project-overview :is(header, section, label) {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.project-overview :is(h2, h3, p) {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.project-overview h2 {
+  font-size: 1.05rem;
+}
+.project-overview h3 {
+  font-size: 1rem;
+}
+.project-overview__branch {
+  color: #9ddcff;
+}
+.project-overview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.project-overview :is(button, select, input) {
+  min-width: 0;
+  max-width: 100%;
+}
+.project-overview button {
+  min-height: 36px;
+}
+.repository-code-screen header small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
 .repository-assets summary {
   cursor: pointer;
   padding: 0.7rem;

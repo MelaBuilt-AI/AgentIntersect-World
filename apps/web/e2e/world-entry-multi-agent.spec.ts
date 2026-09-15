@@ -1849,14 +1849,14 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   await page.getByLabel("Local repository path").fill("/fixture");
   await page.getByRole("button", { name: "Open local", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Place Live / Director in World" }),
+    page.getByRole("button", { name: "Place Project / Current Work in World" }),
   ).toBeVisible();
   await openCodeWheel(page);
   await wheel.getByRole("button", { name: "Screens", exact: true }).click();
   const beforePlacement = await wheel.boundingBox();
   await page
     .locator(".code-wheel__outer")
-    .getByRole("button", { name: "Live / Director", exact: true })
+    .getByRole("button", { name: "Project / Current Work", exact: true })
     .click();
   await expect(
     page.locator(
@@ -1870,7 +1870,7 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   await expect(page.getByLabel("Message Claw")).toBeVisible();
   await page
     .locator(".code-wheel__outer")
-    .getByRole("button", { name: "Live / Director", exact: true })
+    .getByRole("button", { name: "Project / Current Work", exact: true })
     .click();
   expect(await wheel.boundingBox()).toEqual(beforePlacement);
   await wheel.getByRole("button", { name: "All agents", exact: true }).click();
@@ -1957,7 +1957,7 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   await wheel.getByRole("button", { name: "Screens", exact: true }).click();
   const screenButtons = page.locator(".code-wheel__outer");
   await screenButtons
-    .getByRole("button", { name: "Live / Director", exact: true })
+    .getByRole("button", { name: "Project / Current Work", exact: true })
     .click();
   await screenButtons
     .getByRole("button", { name: "Workbench", exact: true })

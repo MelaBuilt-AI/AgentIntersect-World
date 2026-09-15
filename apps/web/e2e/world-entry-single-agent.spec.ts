@@ -15,7 +15,9 @@ import { seedConfiguredAvatar } from "./helpers.js";
 const test = base.extend({ trace: "off" });
 const traceTest = test.extend({ trace: "retain-on-failure" });
 
-const evidenceDirectory = resolve("artifacts/phase18");
+const evidenceDirectory = resolve(
+  process.env.AIW_PHASE18_EVIDENCE_DIR ?? "artifacts/phase18",
+);
 const phase18_5EvidenceDirectory = resolve("artifacts/phase18-5");
 mkdirSync(evidenceDirectory, { recursive: true });
 mkdirSync(phase18_5EvidenceDirectory, { recursive: true });
@@ -1763,14 +1765,35 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   });
   await expect(actor).toHaveAttribute("data-avatar-action", /Dig|Work/);
   await expect(actor).toContainText("Owned worktree is current and ready.");
-  const assetDetails = page.locator(".repository-assets > details");
-  if (
-    await assetDetails.evaluate(
-      (element) => (element as HTMLDetailsElement).open,
+  const overview = page.getByRole("complementary", {
+    name: "Project / Current Work",
+    exact: true,
+  });
+  await expect(overview).toContainText(baseWorkstream.title);
+  await expect(overview).toContainText(baseWorkstream.authority.branch);
+  await expect(overview.locator(".repository-assets__thumbnail")).toHaveCount(
+    0,
+  );
+  await expect(
+    overview.getByRole("region", { name: "Work Inspector" }),
+  ).toHaveCount(0);
+  await expect
+    .poll(() =>
+      overview.evaluate((element) => {
+        const panel = element.getBoundingClientRect();
+        const hint = document
+          .querySelector(".agent-setup-escape-hint")!
+          .getBoundingClientRect();
+        const arrange = element
+          .querySelector('[aria-controls="workspace-arrangement"]')!
+          .getBoundingClientRect();
+        return panel.top > hint.bottom && arrange.bottom <= panel.bottom;
+      }),
     )
-  )
-    await assetDetails.locator("summary").click();
-  await expect(assetDetails).not.toHaveAttribute("open", "");
+    .toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("project-current-work-desktop.png"),
+  });
   await page.screenshot({
     path: testInfo.outputPath("workstream-slab-actor.png"),
   });
@@ -1807,7 +1830,14 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await page.screenshot({
     path: testInfo.outputPath("workstream-slab-coding.png"),
   });
-  await page.getByRole("button", { name: "Close code", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Ask about this", exact: true })
+    .click();
+  await expect(composer).toHaveValue(/settings\.tsx/);
+  await expect(composer).toHaveValue(/workstream\/settings/);
+  await expect(composer).toHaveValue(/export const settings = true/);
+  expect(streamRequests).toEqual([]);
+  expect(createRequests).toBe(1);
   const inspect = workstream.getByRole("button", {
     name: "Inspect current Workstream",
   });
@@ -1819,8 +1849,9 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(1440);
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(900);
 
-  await composer.fill("inspect current workstream");
-  await composer.press("Enter");
+  await overview
+    .getByRole("button", { name: "Open work details", exact: true })
+    .click();
   await expect(
     workstream.getByRole("region", { name: "Work Inspector" }),
   ).toBeVisible();
@@ -3933,20 +3964,27 @@ async function completeJourney(
   if (evidence === "desktop") {
     const room = page.locator("main.world-room");
     const canvas = page.locator('canvas[data-floor-state="repository"]');
-    await page.getByRole("button", { name: "Director", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Arrange workspace", exact: true })
+      .click();
+    await page.getByText("Visual-only props", { exact: true }).click();
     await page.getByLabel("Search assets").fill("deployment");
-    await page.getByRole("button", { name: "Place on grid" }).click();
-    const inspector = page.getByRole("region", { name: "Asset Inspector" });
+    await page.getByRole("button", { name: "Place prop" }).click();
+    const inspector = page.getByRole("region", {
+      name: "Selected object details",
+    });
     await inspector.getByRole("button", { name: "Focus" }).click();
     await expect(canvas).toHaveAttribute(
       "data-camera-focus",
       "repository-city",
       { timeout: 30_000 },
     );
-    await inspector.getByRole("button", { name: "Remove" }).click();
+    await inspector.getByRole("button", { name: "Remove prop" }).click();
     await expect(canvas).toHaveAttribute("data-camera-focus", "user");
     await page.getByLabel("Search assets").fill("");
-    await page.getByRole("button", { name: "Live", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Done arranging", exact: true })
+      .click();
     await expect(room).toHaveAttribute("data-repository-city-mode", "live");
   }
   if (
@@ -5459,26 +5497,33 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
   const cityCount = Number(
     await room.getAttribute("data-repository-city-count"),
   );
-  await page.getByRole("button", { name: "Director", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Arrange workspace", exact: true })
+    .click();
+  await page.getByText("Visual-only props", { exact: true }).click();
   await page.getByLabel("Search assets").fill("deployment");
   await expect(page.locator(".repository-assets__card")).toHaveCount(1);
-  await page.getByRole("button", { name: "Place on grid" }).click();
+  await page.getByRole("button", { name: "Place prop" }).click();
   await expect(room).toHaveAttribute(
     "data-repository-city-count",
     String(cityCount + 1),
   );
-  const inspector = page.getByRole("region", { name: "Asset Inspector" });
+  const inspector = page.getByRole("region", {
+    name: "Selected object details",
+  });
   await expect(inspector).toContainText("Deployment Portal");
   await inspector.getByRole("button", { name: "Unpin" }).click();
   await inspector.getByRole("button", { name: "Pin", exact: true }).click();
-  await inspector.getByRole("button", { name: "Ask Agent to Explain" }).click();
+  await inspector
+    .getByRole("button", { name: "Explain visual metaphor" })
+    .click();
   await expect(page.getByLabel("Message Mr Fluff")).toHaveValue(
     "@Mr Fluff Explain that this Director placement has no linked repository item. Do not invent a path or code role. Then explain the Deployment Portal (26-deployment-portal) visual metaphor.",
   );
   await page.screenshot({
     path: `${evidenceDirectory}/repository-city-director.png`,
   });
-  await inspector.getByRole("button", { name: "Remove" }).click();
+  await inspector.getByRole("button", { name: "Remove prop" }).click();
   await expect(room).toHaveAttribute(
     "data-repository-city-count",
     String(cityCount),
@@ -5492,7 +5537,7 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
     String(cityCount + 1),
   );
   await expect(inspector).toContainText("Code Slab");
-  await inspector.getByRole("button", { name: "Remove" }).click();
+  await inspector.getByRole("button", { name: "Remove prop" }).click();
   await expect(room).toHaveAttribute(
     "data-repository-city-count",
     String(cityCount),
