@@ -1,10 +1,36 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-15
+Updated: 2026-09-16
 
 ## Current milestone
 
-### September 15 evening — manual acceptance and conditional PR13 delivery
+### September 16 — recovery polish and conditional PR14 delivery
+
+Aaron (`1549800076539469976`) supersedes the earlier cloud deferral and delivery hold: include the cloud correction and concrete recovery polish in PR14, commit/push, merge only after exact-head CI and readiness are green, then prepare the end-session handoff.
+
+The canvas/cloud layer now clears all four ordinary spatial-screen ranks while retaining depth-aware nearer-screen masks and higher focused/HUD layers. Accepted single-agent restoration reads the saved repository snapshot without reindexing or dispatching work; unavailable repository state does not discard the valid session. Successful Continue closes the saved-work dialog and returns to the visible current-work summary, with Work Inspector available explicitly. Failed preview recovery remains in the dialog for inspection/retry. The compact summary avoids inspector autofocus scrolling the recovery message out of view.
+
+Verification includes a real Chromium composition RED→GREEN for all four ranks, saved-repository/no-write/failure browser assertions, and the existing normal conversation, near/far screen occlusion, spatial placement and focused-code journeys. Final affected feedback/layout retest and exact-head CI receipts are external, not self-referential source commits. Detailed evidence/acceptance distinctions: [Application restart continuity](docs/APPLICATION_RESTART_CONTINUITY.md).
+
+Preserve Aaron's manual completed-work recovery and same-Workstream follow-up PASS, qualified by the manual repository reload, Workbench close and spatial-screen replacement in that earlier build. Automated polish verification is not a new operator verdict or saved-layout persistence. Keep TEST45363, TEST45353, TEST45351 and all seven inherited residuals; no runtime reset/teardown, broader host/WSL recovery, Phase20, release or publication is authorized.
+
+### Historical September 16 — bounded application-restart continuity baseline
+
+Aaron (`1549772861923926187`) authorized the recommended application-restart slice, durable continuity and a new private PR from merged PR13/main `0d88b3a`. Scope/results/operator cutline: [Application restart continuity](docs/APPLICATION_RESTART_CONTINUITY.md). This is not Phase20 authorization or a WSL reboot/environment matrix.
+
+Existing restoration and preview ownership remain unchanged. A reproduced browser defect discarded the server's preview recovery outcome and showed only generic restoration success. The client/Workbench now distinguish failed preview recovery, healthy recovery and no restart needed, with consistent status copy and a successful retry clearing failure. Production-startup coverage now includes a real process restart, dirty-file/branch/task/session/history preservation, old-preview closure and approved-preview relaunch.
+
+Local technical proof: 47 focused tests, web/server no-emit types, scoped lint/format, package and isolated web builds; three affected built-browser journeys pass, with failure/retry screenshots inspected. Real native Codex proof passes initial edit/test → graceful application restart → identical session/worktree/files/history → explicit Continue without dispatch → approved preview relaunch → same-session follow-up edit/test and updated healthy preview. Independent final focused test and filesystem readback agree. Native HTTP/process/Git proof and deterministic browser fixtures are separate evidence layers; full user-operated browser/application close-and-return acceptance remains pending.
+
+Private PR/head/CI receipts are recorded externally after delivery rather than recursively embedded in source. Merge is held for acceptance and authorization; no release/publication. TEST45353/43953 and older TEST45351/43951, their original served artifacts/history/browser state, and all seven inherited residuals remain preserved. Hermes/OpenClaw are untouched. Other Workbench breadth, saved layouts, Omarchy/host reboot, active-turn crash recovery, Hermes bookkeeping and Phase20 stay separate.
+
+### Historical September 16 — operator results and subsequently superseded cloud deferral
+
+Aaron (`1549797505435312138`) confirms the deliberate follow-up completed and everything updated in the same Workstream. Supplied screenshot shows ready-for-review, two passing checks / zero failed, current verified preview revision 3 and `Back after restart`: manual PASS for that edit/test/preview transition. Earlier Continue restored work/preview without Aaron sending a Codex message; no independent operator-lane no-dispatch audit is claimed. Repository selection required manual Load Repo → recent repository, Continue left Workbench open until manually closed, and spatial screens were manually replaced. Preserve those qualifications rather than claiming seamless automatic project/layout restoration or a blanket acceptance verdict.
+
+**Marked for after, not implementation now:** Codex chat cloud is occluded by the Project / Current Work spatial screen when Codex is between Aaron/the camera and that screen; the nearer cloud should appear in front. Other screens work properly per Aaron and must remain unchanged. Screenshot evidence and criterion-level record: [Application restart continuity](docs/APPLICATION_RESTART_CONTINUITY.md), TESTKIT `operator-evidence/`. Keep test45363/state/profile alive. No source-code correction, cleanup, commit/push/merge, or Phase20 authorization follows from this report; repository-restoration scope and Workbench completion feedback remain open observations.
+
+### Historical September 15 evening — manual acceptance and conditional PR13 delivery
 
 Aaron (`1549581992486641685`) tested the corrected TEST45353 and reports everything good except minor vertical alignment of the Project / Current Work move strip. The final CSS correction centers the title and both wrapped instructions within the existing 42px strip without changing controls or camera behavior. Aaron explicitly waived another manual test and authorized commit/push → green CI/readiness → merge → merged-main green → end-session handoff. This supersedes the previous delivery hold; merge remains conditional on verified green gates.
 

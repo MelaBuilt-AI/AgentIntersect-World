@@ -26,7 +26,7 @@ export function RepositoryWorkbench({
   agentName: string | null;
   hasCurrentWork?: boolean;
   onClose: () => void;
-  onContinue: (record: WorkstreamApiRecord) => Promise<void>;
+  onContinue: (record: WorkstreamApiRecord) => Promise<string>;
   onInspect: () => void;
   onNew: (sha: string) => void;
 }) {
@@ -81,10 +81,7 @@ export function RepositoryWorkbench({
     setError(null);
     setMessage(null);
     try {
-      await onContinue(selected);
-      setMessage(
-        "Saved work restored. No coding turn was sent. Open current work / World View, or send your next task in chat.",
-      );
+      setMessage(await onContinue(selected));
       setConfirmed(false);
       setVersion((value) => value + 1);
     } catch (reason) {

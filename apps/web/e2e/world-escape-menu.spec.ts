@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { ApiErrorSchema } from "@agentintersect-world/world-schema";
 
 const sessionId = "11111111-1111-4111-8111-111111111111";
 const proposalId = "22222222-2222-4222-8222-222222222222";
@@ -61,7 +62,17 @@ const envelope = (data: unknown) => ({
 function capturePageErrors(page: Page) {
   const errors: string[] = [];
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    // The real current-World contract returns 404 for this blank-floor fixture.
+    // Keep every other endpoint/status and all page errors fatal.
+    if (
+      message.text() ===
+        "Failed to load resource: the server responded with a status of 404 (Not Found)" &&
+      message.location().url ===
+        `${new URL(page.url()).origin}/api/world/current`
+    )
+      return;
+    if (message.type() === "error")
+      errors.push(`${message.text()} (${message.location().url})`);
   });
   page.on("pageerror", (error) => errors.push(error.message));
   return errors;
@@ -120,6 +131,7 @@ async function installSessionFixture(
   let acceptedProposal: Record<string, unknown> =
     options.initialProposal ?? importedProposal;
   const mutationPaths: string[] = [];
+  let repositoryReads = 0;
   await page.route("**/api/**", async (route) => {
     // Keep the real server-owned setup gate; these fixtures replace native work only.
     if (
@@ -133,6 +145,22 @@ async function installSessionFixture(
     const pathname = new URL(request.url()).pathname;
     if (request.method() !== "GET" && !pathname.endsWith("/attach"))
       mutationPaths.push(`${request.method()} ${pathname}`);
+    if (request.method() === "GET" && pathname === "/api/world/current") {
+      repositoryReads += 1;
+      await route.fulfill({
+        status: 404,
+        json: ApiErrorSchema.parse({
+          ok: false,
+          error: {
+            code: "not_found",
+            message: "No successful repository generation is available",
+            retryable: false,
+          },
+          meta: envelope(null).meta,
+        }),
+      });
+      return;
+    }
     let data: unknown;
     if (pathname.includes("/world-actions/")) {
       await route.fulfill({
@@ -214,6 +242,7 @@ async function installSessionFixture(
   });
   return {
     mutationPaths,
+    repositoryReads: () => repositoryReads,
     acceptedProposal: () => acceptedProposal,
   };
 }
@@ -342,7 +371,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
   test.setTimeout(90_000);
   const errors = capturePageErrors(page);
   await installWorldState(page);
-  await installSessionFixture(page);
+  const fixture = await installSessionFixture(page);
   const authority = await installAutonomousMovementFixture(page);
   let releaseTexture!: () => void;
   const textureGate = new Promise<void>((resolve) => {
@@ -365,6 +394,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
     releaseTimer = setTimeout(releaseTexture, 1_500);
     await openRestoredWorld(page);
     expect(await room.getAttribute("data-scene-ready")).toBe("true");
+    expect(fixture.repositoryReads()).toBe(1);
   } finally {
     clearTimeout(releaseTimer);
     releaseTexture();

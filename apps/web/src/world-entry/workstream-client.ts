@@ -230,6 +230,7 @@ export class WorkstreamClient {
   ): Promise<{
     readonly workstream: WorkstreamApiRecord;
     readonly replayed: boolean;
+    readonly previewResume?: "ready" | "failed" | "not-needed";
   }> {
     const response = await this.fetcher(url, {
       method: "POST",
@@ -244,12 +245,22 @@ export class WorkstreamClient {
     const envelope = responseBody as ApiResult<{
       workstream?: unknown;
       replayed?: unknown;
+      previewResume?: unknown;
     }>;
     if (envelope.ok !== true || typeof envelope.data?.replayed !== "boolean")
       throw new Error("Invalid Workstream response");
+    const previewResume = envelope.data.previewResume;
+    if (
+      previewResume !== undefined &&
+      previewResume !== "ready" &&
+      previewResume !== "failed" &&
+      previewResume !== "not-needed"
+    )
+      throw new Error("Invalid preview recovery response");
     return {
       workstream: recordFrom(envelope.data.workstream),
       replayed: envelope.data.replayed,
+      ...(previewResume ? { previewResume } : {}),
     };
   }
 }
