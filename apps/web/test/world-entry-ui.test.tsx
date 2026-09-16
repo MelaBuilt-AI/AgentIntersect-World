@@ -573,7 +573,8 @@ describe("Phase 18 World entry experience", () => {
     expect(room).toContain("Repository floor");
     expect(room).toContain("world-entry.ts");
     expect(room).not.toMatch(/Repository portal|WorldActionPanel|dashboard/i);
-    expect(room).toContain("Deployment Portal");
+    expect(room).toContain("Project / Current Work");
+    expect(room).not.toContain("Deployment Portal");
 
     const hud = renderToStaticMarkup(
       createElement(component(api.WorldHud), {

@@ -147,7 +147,10 @@ describe("acceptance command graph", () => {
     const projects = config.projects ?? [];
 
     expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
-    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(3);
+    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(4);
+    expect(worldEntrySpec).toContain(
+      "@arrangement-controls @pointer-lock contains selectors and manipulates visual props",
+    );
     expect(worldEntrySpec).toContain(
       "@repository-code-screen @pointer-lock inspects an object in World and fullscreen",
     );
@@ -225,7 +228,8 @@ describe("acceptance command graph", () => {
         "playwright.config.ts",
         "--grep-invert",
         "@phase18-5-performance",
-        "--shard=4/4",
+        "--fully-parallel",
+        "--shard=6/6",
         "--list",
       ],
       { cwd: repositoryRoot, encoding: "utf8" },
@@ -313,10 +317,12 @@ describe("acceptance command graph", () => {
       "--shard=${{ matrix.shard }}",
     ]);
     expect(workflow.jobs["e2e-flagged"]?.strategy?.matrix?.shard).toEqual([
-      "1/4",
-      "2/4",
-      "3/4",
-      "4/4",
+      "1/6",
+      "2/6",
+      "3/6",
+      "4/6",
+      "5/6",
+      "6/6",
     ]);
     expect(workflow.jobs["e2e-flagged"]?.["timeout-minutes"]).toBe(30);
     expect(workflow.jobs["e2e-flagged"]?.steps).toContainEqual({

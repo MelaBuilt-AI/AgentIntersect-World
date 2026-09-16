@@ -123,7 +123,7 @@ describe("World View", () => {
     const surfaces = [
       {
         id: "director",
-        label: "Live / Director",
+        label: "Project / Current Work",
         element: createElement(RepositoryAssetPalette, {
           mode: "live",
           selected: null,

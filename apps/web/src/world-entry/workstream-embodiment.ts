@@ -67,9 +67,7 @@ export function createWorkstreamObjects(
   const active = work.authority.projection.activeFile;
   const paths = [
     ...new Set([
-      ...work.authority.projection.changedFiles
-        .filter((file) => file.change !== "deleted")
-        .map((file) => file.path),
+      ...work.authority.projection.changedFiles.map((file) => file.path),
       ...(active ? [active.path] : []),
     ]),
   ].slice(0, 256);
@@ -78,8 +76,29 @@ export function createWorkstreamObjects(
   };
   const added = [slab];
   for (const path of paths) {
-    if (instances.some((object) => object.linkedRepoData?.path === path))
+    const existing = instances.find(
+      (object) => object.linkedRepoData?.path === path,
+    );
+    const change = work.authority.projection.changedFiles.find(
+      (file) => file.path === path,
+    )?.change;
+    if (existing) {
+      added.push({
+        ...existing,
+        status:
+          change === "deleted"
+            ? "failure"
+            : work.status === "working" && active?.path === path
+              ? "active"
+              : "idle",
+        linkedRepoData: {
+          ...existing.linkedRepoData,
+          workstreamId: work.workstreamId,
+          change: change ?? null,
+        },
+      });
       continue;
+    }
     const ref = `aiw://object/workstream-file-${work.workstreamId}-${presentationKey(path)}`;
     city = reduceRepositoryCity(city, {
       type: "event",
@@ -96,6 +115,7 @@ export function createWorkstreamObjects(
           path,
           label: path,
           kind: "file",
+          change: change ?? null,
           workstreamId: work.workstreamId,
           repositoryRef: work.authority.repository.repositoryId,
         },
@@ -105,6 +125,55 @@ export function createWorkstreamObjects(
       (item) => item.linkedRepoData?.ref === ref,
     );
     if (object) added.push(object);
+  }
+  const evidence = [
+    ...(work.diff?.patch || work.changedFiles.length
+      ? [
+          {
+            kind: "diff",
+            type: "diff.created",
+            label: "Current work diff",
+            status: "idle" as const,
+          },
+        ]
+      : []),
+    ...(work.validation.length
+      ? [
+          {
+            kind: "validation",
+            type: work.validation.some((check) => check.state === "failed")
+              ? "test.failed"
+              : "test.passed",
+            label: "Current work validation",
+            status: work.validation.some((check) => check.state === "failed")
+              ? ("failure" as const)
+              : work.validation.every((check) => check.state === "passed")
+                ? ("active" as const)
+                : ("pending" as const),
+          },
+        ]
+      : []),
+  ];
+  for (const item of evidence) {
+    const id = `workstream-evidence:${work.workstreamId}:${item.kind}`;
+    city = reduceRepositoryCity(city, {
+      type: "event",
+      event: {
+        id,
+        type: item.type,
+        status: item.status,
+        linkedRepoData: {
+          ref: id,
+          workstreamId: work.workstreamId,
+          kind: item.kind,
+          label: item.label,
+          repositoryRef: work.authority.repository.repositoryId,
+        },
+      },
+    });
+    const instance = city.instances.at(-1)!;
+    // This is a snapshot-derived summary, not a newly emitted test/diff event.
+    added.push({ ...instance, instanceId: id, sourceEvent: null });
   }
   return added;
 }

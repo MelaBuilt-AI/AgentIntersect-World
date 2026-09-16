@@ -58,8 +58,12 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
     .poll(async () => Number(await room.getAttribute("data-camera-zoom")))
     .toBeCloseTo(1, 5);
   const palette = page.getByRole("complementary", {
-    name: "Repository assets",
+    name: "Project / Current Work",
   });
+  await palette
+    .getByRole("button", { name: "Arrange workspace", exact: true })
+    .click();
+  await palette.getByText("Visual-only props", { exact: true }).click();
   await palette.getByLabel("Search assets").fill("code");
   const searchBox = await palette.getByLabel("Search assets").boundingBox();
   const zoomBeforeScroll = await room.getAttribute("data-camera-zoom");
@@ -178,12 +182,13 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
     await page.mouse.up();
     await expect(page.locator('[data-world-screen="code"]')).toHaveCount(0);
   }
-  await palette.getByRole("button", { name: "Director", exact: true }).click();
   await expect(room).toHaveAttribute("data-repository-city-mode", "director");
-  await palette.getByRole("button", { name: "Live", exact: true }).click();
+  await palette
+    .getByRole("button", { name: "Done arranging", exact: true })
+    .click();
   await page.keyboard.press("Alt+Digit1");
   await expect(screen("director")).toHaveAttribute("data-screen-mode", "hud");
-  await palette.locator(".world-screen__toggle").click();
+  await palette.locator("header .world-screen__toggle").click();
   await room.focus();
   // Make crowding explicit instead of assuming the desktop layout has no
   // valid slot: the live slab/agent can legitimately change that layout.
@@ -289,7 +294,11 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
     "transform-style",
     "preserve-3d",
   );
-  // All cards must contribute to layout before the following Asset Inspector.
+  // Optional prop cards remain contained when explicitly opened.
+  await palette
+    .getByRole("button", { name: "Arrange workspace", exact: true })
+    .click();
+  await palette.getByText("Visual-only props", { exact: true }).click();
   await palette.getByLabel("Search assets").fill("");
   const assetGrid = palette.locator(".repository-assets__grid");
   const cardOverflow = await assetGrid.evaluate((grid) => {
@@ -413,7 +422,7 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
     await iframe.evaluate((node, original) => node === original, iframeHandle),
   ).toBe(true);
   const grab = screen("director").getByRole("button", {
-    name: "Move Live / Director screen",
+    name: "Move Project / Current Work screen",
   });
   const escapeGrab = await exposedFooterPoint(grab);
   await page.mouse.move(escapeGrab.x, escapeGrab.y);
@@ -664,7 +673,14 @@ export async function exerciseSpatialScreens(page: Page, testInfo: TestInfo) {
   await expect(room).toHaveAttribute("data-renderer", "semantic");
   for (const id of ["director", "workbench", "preview"]) {
     await expect(screen(id)).toHaveAttribute("data-screen-mode", "hud");
-    await expect(screen(id).locator(".world-screen__toggle")).toBeDisabled();
+    await expect(screen(id).locator(".world-screen__toggle")).toHaveCount(
+      id === "director" ? 3 : 1,
+    );
+    for (const toggle of await screen(id)
+      .locator(".world-screen__toggle")
+      .all()) {
+      await expect(toggle).toBeDisabled();
+    }
   }
   expect(
     await iframe.evaluate((node, original) => node === original, iframeHandle),

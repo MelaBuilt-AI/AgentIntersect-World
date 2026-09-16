@@ -10,6 +10,35 @@ import {
 } from "../src/repository-city-state.js";
 
 describe("repository city state", () => {
+  it("moves and rotates manual props without moving live repository objects", () => {
+    const state = reduceRepositoryCity(createRepositoryCityState(), {
+      type: "manual.add",
+      instanceId: "manual:1",
+      assetId: "01-code-slab",
+      position: { x: 5, z: 5 },
+    });
+    const moved = reduceRepositoryCity(state, {
+      type: "manual.transform",
+      instanceId: "manual:1",
+      position: { x: 3.25, z: 4.5 },
+      yaw: 1.2,
+    });
+    expect(moved.instances[0]).toMatchObject({
+      position: { x: 3.25, z: 4.5 },
+      yaw: 1.2,
+      manual: true,
+      pinned: true,
+    });
+    const live = { instances: [{ ...state.instances[0]!, manual: false }] };
+    expect(
+      reduceRepositoryCity(live, {
+        type: "manual.transform",
+        instanceId: "manual:1",
+        position: { x: 0, z: 0 },
+        yaw: 2,
+      }).instances[0],
+    ).toEqual(live.instances[0]);
+  });
   it("keeps a dense repository and separately loaded relay inside the rendered floor", () => {
     const objects: RepositoryRenderObject[] = Array.from(
       { length: 1_125 },

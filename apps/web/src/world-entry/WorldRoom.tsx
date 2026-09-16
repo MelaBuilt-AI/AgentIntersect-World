@@ -41,6 +41,7 @@ import {
 } from "../phase14/phase14-client.js";
 import {
   completeAvatarOneShot,
+  nameWorldActivity,
   createAvatarAnimationState,
   setAvatarLocomotion,
   triggerAvatarOneShot,
@@ -68,6 +69,7 @@ import {
 } from "./workstream-embodiment.js";
 import { wheelPosition } from "./world-code-wheel-model.js";
 import { RepositoryAssetPalette } from "./RepositoryAssetPalette.js";
+import { WorkstreamTracerPanel } from "./WorkstreamTracerPanel.js";
 import { buildRepositoryExplainPrompt } from "./repository-explain-prompt.js";
 import {
   demoWorkstreamFromSearch,
@@ -217,11 +219,15 @@ export function WorldRoom({
   workstreamCreateUnavailableReason,
   onWorkstreamSessionChanged,
   onAskAgent,
+  onInspectWorkstream,
+  projectName,
   onCodeWheelAction,
   onRepositoryReady,
   onRepositoryError,
 }: {
   readonly liveWorkstream?: Workstream | null;
+  readonly projectName?: string | undefined;
+  readonly onInspectWorkstream?: (() => void) | undefined;
   readonly floor: "blank" | "repository";
   readonly objects: readonly RepositoryRenderObject[];
   readonly reducedMotion: boolean;
@@ -311,8 +317,9 @@ export function WorldRoom({
     yaw: number;
     sequence: number;
   } | null>(null);
+  const [propDragging, setPropDragging] = useState(false);
   const screenDragging =
-    (screenController?.dragging ?? false) || codeInspection;
+    (screenController?.dragging ?? false) || codeInspection || propDragging;
   const updateScreenAnchor = screenController?.updateAnchor;
   const setScreensEnabled = screenController?.setEnabled;
   const roomRef = useRef<HTMLElement>(null);
@@ -443,14 +450,12 @@ export function WorldRoom({
             detail: "" as const,
           },
   );
+  const chatActivity = agentAvatars?.length
+    ? activity
+    : nameWorldActivity(activity, agentName);
   const presentedActivity = embodiment?.request
     ? renderedAgentActivities[0]!
-    : agentAvatars?.length
-      ? activity
-      : {
-          ...activity,
-          label: activity.label.replace(/^Mr Fluff\b/u, agentName),
-        };
+    : chatActivity;
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
     createAgentMovementState(
@@ -509,11 +514,33 @@ export function WorldRoom({
     undefined,
     createRepositoryCityState,
   );
+  const [cityPins, setCityPins] = useState<Record<string, boolean>>({});
   const city = useMemo(
     () => ({
-      instances: [...repositoryCity.instances, ...workstreamObjects],
+      instances: [
+        ...repositoryCity.instances.filter(
+          (instance) =>
+            !workstreamObjects.some(
+              (work) => work.instanceId === instance.instanceId,
+            ),
+        ),
+        ...workstreamObjects.map((instance) => {
+          const existing = repositoryCity.instances.find(
+            (candidate) => candidate.instanceId === instance.instanceId,
+          );
+          return {
+            ...instance,
+            position: existing?.position ?? instance.position,
+            pinned:
+              cityPins[instance.instanceId] ??
+              existing?.pinned ??
+              instance.pinned,
+            lifecycle: existing?.lifecycle ?? instance.lifecycle,
+          };
+        }),
+      ],
     }),
-    [repositoryCity, workstreamObjects],
+    [repositoryCity, workstreamObjects, cityPins],
   );
   const [floorExtent, setFloorExtent] = useState(REPOSITORY_CITY_FLOOR_SIZE);
   const floorSize = worldFloorSize(
@@ -764,12 +791,12 @@ export function WorldRoom({
               ? "active"
               : "pending",
         linkedRepoData: {
-          label: activity.label,
-          detail: activity.detail || null,
+          label: chatActivity.label,
+          detail: chatActivity.detail || null,
         },
       },
     });
-  }, [activity.detail, activity.label, activity.state, floor]);
+  }, [chatActivity.detail, chatActivity.label, activity.state, floor]);
   const addManualCityInstance = useCallback(
     (assetId: RepositoryAssetId, position?: { x: number; z: number }) => {
       const sequence = nextManualCityInstance.current++;
@@ -794,6 +821,24 @@ export function WorldRoom({
         (item) => item.instanceId === instanceId,
       );
       if (!instance) return;
+      setSelectedCityInstanceId(instanceId);
+      if (
+        instance.linkedRepoData?.kind === "diff" ||
+        instance.linkedRepoData?.kind === "validation" ||
+        instance.linkedRepoData?.change === "deleted"
+      ) {
+        setCodeOpening(null);
+        onInspectWorkstream?.();
+        return;
+      }
+      if (
+        !instance.linkedRepoData?.ref ||
+        !instance.linkedRepoData?.repositoryRef
+      ) {
+        setCodeOpening(null);
+        setCityMode("director");
+        return;
+      }
       randomAudioCue("repo-select");
       audioCue("screen-extrude-on");
       setSelectedCityInstanceId(instanceId);
@@ -809,6 +854,7 @@ export function WorldRoom({
     },
     [
       city.instances,
+      onInspectWorkstream,
       setSelectedCityInstanceId,
       setSelectedWorkstreamId,
       setCityFocusPosition,
@@ -2078,6 +2124,7 @@ export function WorldRoom({
       data-user-position-x={userPosition.x}
       data-user-position-z={userPosition.z}
       data-mouse-look={mouseLookActive ? "active" : "idle"}
+      data-prop-dragging={propDragging}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       data-camera-zoom={camera.zoom ?? 1}
@@ -2159,8 +2206,9 @@ export function WorldRoom({
     >
       {floor === "repository" && codeInstance ? (
         <RepositoryCodeScreen
-          key={`${codeInstance.instanceId}:${codeOpening?.sequence}`}
+          key={`${codeInstance.instanceId}:${codeInstance.linkedRepoData?.workstreamId ?? "repository"}:${codeOpening?.sequence}`}
           instance={codeInstance}
+          onAskAgent={onAskAgent}
           workstream={
             codeInstance.linkedRepoData?.workstreamId ===
             sceneWorkstream?.workstreamId
@@ -2199,32 +2247,34 @@ export function WorldRoom({
             mode={cityMode}
             selected={selectedCityInstance}
             availableWorkstream={availableWorkstream}
-            workstream={selectedWorkstream}
-            workstreamSource={tracerMode ?? undefined}
-            tracerMessage={availableWorkstream ? null : liveTracerMessage}
-            onCreateWorkstream={
-              tracerMode === "live" &&
-              workstreamAuthority &&
-              !availableWorkstream &&
-              liveTracerMessage === "No current Workstream." &&
-              !workstreamActionPending
-                ? () => void createWorkstream()
+            projectName={projectName}
+            agentName={
+              renderedAgents.find(
+                (agent) =>
+                  agent.rosterId ===
+                    sceneWorkstream?.authority?.agent.agentId ||
+                  agent.worldSessionId ===
+                    sceneWorkstream?.authority?.agent.agentId,
+              )?.name ?? agentName
+            }
+            instances={city.instances}
+            onSelectObject={setSelectedCityInstanceId}
+            onOpenWorkbench={
+              onCodeWheelAction
+                ? () => onCodeWheelAction("workbench")
                 : undefined
             }
-            workstreamTask={workstreamTask}
-            workstreamCreateUnavailableReason={
-              workstreamCreateUnavailableReason
-            }
-            onCancelWorkstream={
-              tracerMode === "live" && selectedWorkstream?.authority
-                ? () => void cancelWorkstream()
+            onNewWorkstream={
+              onCodeWheelAction
+                ? () => onCodeWheelAction("new-workstream")
                 : undefined
             }
-            workstreamActionPending={workstreamActionPending}
-            onSelectWorkstream={(workstreamId) => {
-              setSelectedCityInstanceId(null);
-              setSelectedWorkstreamId(workstreamId);
-              setCityFocusPosition(null);
+            onSelectWorkstream={() => {
+              if (sceneWorkstream) onInspectWorkstream?.();
+              else
+                setSelectedWorkstreamId(
+                  availableWorkstream?.workstreamId ?? null,
+                );
             }}
             onMode={setCityMode}
             onPlace={addManualCityInstance}
@@ -2237,9 +2287,10 @@ export function WorldRoom({
               setSelectedWorkstreamId(null);
               setCityFocusPosition(instance.position);
             }}
-            onPin={(instanceId, pinned) =>
-              dispatchCity({ type: "pin", instanceId, pinned })
-            }
+            onPin={(instanceId, pinned) => {
+              setCityPins((current) => ({ ...current, [instanceId]: pinned }));
+              dispatchCity({ type: "pin", instanceId, pinned });
+            }}
             onRemove={(instanceId) => {
               dispatchCity({ type: "remove", instanceId });
               setSelectedCityInstanceId(null);
@@ -2250,9 +2301,31 @@ export function WorldRoom({
               onAskAgent?.(buildRepositoryExplainPrompt(instance));
             }}
           />
+          {tracerMode ? (
+            <WorkstreamTracerPanel
+              source={tracerMode}
+              workstream={availableWorkstream}
+              selected={selectedWorkstream}
+              message={liveTracerMessage}
+              pending={workstreamActionPending}
+              onInspect={() =>
+                setSelectedWorkstreamId(
+                  availableWorkstream?.workstreamId ?? null,
+                )
+              }
+              onCreate={() => void createWorkstream()}
+              onCancel={() => void cancelWorkstream()}
+              unavailable={
+                workstreamCreateUnavailableReason ??
+                (!workstreamTask
+                  ? "Send a feature request in World chat first."
+                  : null)
+              }
+            />
+          ) : null}
           {cityMode === "director" ? (
             <p className="repository-city-drop-hint" role="status">
-              Director grid active · drop an asset outside the center zone
+              Visual-only prop placement · live work continues
             </p>
           ) : null}
         </>
@@ -2350,6 +2423,21 @@ export function WorldRoom({
                 {sceneWorkstream?.title} · live Workstream code slab
               </button>
             ) : null}
+            {workstreamObjects
+              .filter(
+                (instance) =>
+                  instance.linkedRepoData?.kind === "diff" ||
+                  instance.linkedRepoData?.kind === "validation",
+              )
+              .map((instance) => (
+                <button
+                  key={instance.instanceId}
+                  type="button"
+                  onClick={() => selectCityInstance(instance.instanceId)}
+                >
+                  {String(instance.linkedRepoData?.label)}
+                </button>
+              ))}
             <ol
               className="world-room__repository-objects"
               aria-label="Repository floor objects"
@@ -2444,6 +2532,17 @@ export function WorldRoom({
                     setContextLost(true);
                     onRepositoryError?.();
                   }}
+                  cityInteraction={{
+                    floorSize,
+                    onDragging: setPropDragging,
+                    onTransform: (instanceId, position, yaw) =>
+                      dispatchCity({
+                        type: "manual.transform",
+                        instanceId,
+                        position,
+                        yaw,
+                      }),
+                  }}
                   onCitySelect={selectCityInstance}
                   onCitySettled={(instanceId) =>
                     dispatchCity({ type: "settled", instanceId })
@@ -2483,6 +2582,17 @@ export function WorldRoom({
                     setRendererFailure("context-lost");
                     setContextLost(true);
                     onRepositoryError?.();
+                  }}
+                  cityInteraction={{
+                    floorSize,
+                    onDragging: setPropDragging,
+                    onTransform: (instanceId, position, yaw) =>
+                      dispatchCity({
+                        type: "manual.transform",
+                        instanceId,
+                        position,
+                        yaw,
+                      }),
                   }}
                   onCitySelect={selectCityInstance}
                   onCitySettled={(instanceId) =>

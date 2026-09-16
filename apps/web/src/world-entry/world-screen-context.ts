@@ -7,7 +7,7 @@ import type {
 } from "@agentintersect-world/renderer-r3f";
 
 export const SCREEN_LABELS = {
-  director: "Live / Director",
+  director: "Project / Current Work",
   workbench: "Workbench",
   preview: "World View",
   code: "Repository code",
@@ -19,7 +19,7 @@ export const SCREEN_KEYS = {
   code: "4",
 } as const;
 export const SCREEN_DIMENSIONS = {
-  director: [620, 680],
+  director: [540, 500],
   workbench: [720, 680],
   preview: [1100, 720],
   code: [880, 480],

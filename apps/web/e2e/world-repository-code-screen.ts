@@ -101,11 +101,11 @@ export async function exerciseRepositoryCodeScreen(
         ),
     );
     await page
-      .getByRole("button", { name: /Place Live \/ Director in World/ })
+      .getByRole("button", { name: /Place Project \/ Current Work in World/ })
       .click();
     await expect(behind).toHaveAttribute("data-screen-mode", "spatial");
     const mover = behind.getByRole("button", {
-      name: "Move Live / Director screen",
+      name: "Move Project / Current Work screen",
     });
     await mover.focus();
     for (const [attribute, target, positive, negative] of [
@@ -351,6 +351,6 @@ export async function exerciseRepositoryCodeScreen(
   await panel.getByRole("button", { name: "Close code", exact: true }).click();
   await expect(panel).toHaveCount(0);
   await expect(
-    page.getByRole("complementary", { name: "Repository assets" }),
+    page.getByRole("complementary", { name: "Project / Current Work" }),
   ).toBeVisible();
 }

@@ -159,7 +159,8 @@ export function WorldScreen({
                 });
               }}
             >
-              ⠿ {SCREEN_LABELS[id]} · Hold here to move
+              <span className="world-screen__title">⠿ {SCREEN_LABELS[id]}</span>
+              <span className="world-screen__move-hint">Hold here to move</span>
               <small>Hold + scroll to rotate</small>
             </button>
           ) : null}
