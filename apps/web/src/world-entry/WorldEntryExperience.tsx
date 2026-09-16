@@ -562,25 +562,28 @@ export function WorldEntryExperience({
         )
           ? currentConstellation.projection
           : null;
+      const applyRestoredRepository = (
+        restoredRepository: Awaited<
+          ReturnType<typeof client.currentRepository>
+        >,
+      ) => {
+        if (!restoredRepository) return;
+        setObjects(renderObjects(restoredRepository.snapshot));
+        setRepositoryName(
+          restoredRepository.snapshot.objects.find(
+            (object) => object.kind === "repository",
+          )?.name ?? "Loaded repository",
+        );
+        setLayoutGeneration(`layout-${restoredRepository.generationId}`);
+        setActiveRepositoryAuthority(restoredRepository.repository);
+        setRepositoryReadiness("loading");
+      };
       if (retainedProjection) {
         let restoreProjection = retainedProjection;
         const restoredRepository = await client.currentRepository();
         const restoredMessageGroups = await groupedClient
           .messageGroups()
           .catch(() => []);
-        const applyRestoredRepository = () => {
-          if (!restoredRepository) return;
-          const nextObjects = renderObjects(restoredRepository.snapshot);
-          setObjects(nextObjects);
-          setRepositoryName(
-            restoredRepository.snapshot.objects.find(
-              (object) => object.kind === "repository",
-            )?.name ?? "Loaded repository",
-          );
-          setLayoutGeneration(`layout-${restoredRepository.generationId}`);
-          setActiveRepositoryAuthority(restoredRepository.repository);
-          setRepositoryReadiness("loading");
-        };
         let plan = await restoreWorldEntryConstellation(
           client,
           restoreProjection,
@@ -683,7 +686,7 @@ export function WorldEntryExperience({
               avatarProfileId: agent.avatarProfileId,
             })),
           });
-          applyRestoredRepository();
+          applyRestoredRepository(restoredRepository);
           if (restoredRepository) {
             setStatus("agent constellation and repository restored");
           }
@@ -759,7 +762,7 @@ export function WorldEntryExperience({
             avatarProfileId: agent.avatar.profileId!,
           })),
         });
-        applyRestoredRepository();
+        applyRestoredRepository(restoredRepository);
         setStatus(
           "agent constellation retained · reconnect or remove stale agents",
         );
@@ -813,6 +816,12 @@ export function WorldEntryExperience({
         messages: result.history.messages,
       });
       if (disposition === "world") {
+        // Restore the saved snapshot, not a recent-project guess or a new index.
+        // Repository failure must not discard an otherwise valid session.
+        const restoredRepository = await client
+          .currentRepository()
+          .catch(() => null);
+        if (!active) return;
         setAgentAvatar(avatarDraftFromProposal(result.proposal));
         setStatus(
           `agent connected · ${connectionLabel(result)} · avatar accepted`,
@@ -824,6 +833,21 @@ export function WorldEntryExperience({
           agentName: result.proposal.displayName,
           avatarProfileId: result.proposal.proposalId,
         });
+        if (restoredRepository) {
+          applyRestoredRepository(restoredRepository);
+          dispatch({
+            type: "REQUEST_REPOSITORY",
+            request: "restored repository",
+          });
+          dispatch({
+            type: "ACTIVATE_REPOSITORY",
+            generationId: restoredRepository.generationId,
+            projectionTruth: restoredRepository.status,
+          });
+          setStatus(
+            "agent and repository restored · Continue saved work in Workbench",
+          );
+        }
       } else {
         setAgentAvatar(null);
         setAgentAvatarMode(
@@ -2880,6 +2904,10 @@ export function WorldEntryExperience({
                     );
                     if (refreshed.sessionId === session?.sessionId)
                       setSession(refreshed);
+                    if (result.previewResume !== "failed") {
+                      setNormalWorkstreamOpen(false);
+                      setWorkbenchOpen(false);
+                    }
                     return message;
                   }}
                   onInspect={() => {

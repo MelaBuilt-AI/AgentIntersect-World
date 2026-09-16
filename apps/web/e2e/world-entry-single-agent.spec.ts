@@ -1350,15 +1350,30 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await workbench
     .getByRole("button", { name: "Continue saved work", exact: true })
     .click();
-  await expect(workbench).toContainText(
+  await expect(workbench).toHaveCount(0);
+  const restoredWork = page.locator(".world-workstream-status");
+  await expect(restoredWork).toContainText(
     "Approved preview restarted and is ready.",
   );
-  await expect(workbench).not.toContainText("Preview could not restart.");
+  await expect(restoredWork).not.toContainText("Preview could not restart.");
+  await expect(
+    restoredWork
+      .getByRole("status")
+      .filter({ hasText: "Saved work restored." }),
+  ).toBeInViewport();
+  await expect(
+    restoredWork.getByRole("region", { name: "Work Inspector", exact: true }),
+  ).toHaveCount(0);
   expect(continued).toBe(2);
   expect(created).toBe(0);
   await page.screenshot({
     path: testInfo.outputPath("continuity-preview-ready.png"),
   });
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Workbench", exact: true }).click();
+  await workbench
+    .getByRole("button", { name: /Latest · Build a settings panel/ })
+    .click();
   await expect(
     workbench.getByRole("button", { name: "Open current work / World View" }),
   ).toBeEnabled();
@@ -3369,6 +3384,21 @@ async function restoreFixtureWorld(
       },
     },
   });
+  // These camera/layout journeys explicitly start without a saved repository.
+  // Later repository loads still use the normal snapshot fixture.
+  await page.route(
+    "**/api/world/current",
+    (route) =>
+      route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ok: false,
+          error: { code: "not_found", message: "No saved repository" },
+        }),
+      }),
+    { times: 1 },
+  );
   await page.goto("/");
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
@@ -4207,13 +4237,26 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
     },
   });
 
+  const restoreWrites: string[] = [];
+  page.on("request", (request) => {
+    const path = new URL(request.url()).pathname;
+    if (
+      request.method() === "POST" &&
+      /repository-indexes|repository-intake|workstreams|\/stream$/.test(path)
+    ) {
+      restoreWrites.push(path);
+    }
+  });
   for (let load = 0; load < 2; load += 1) {
     if (load === 0) await page.goto("/");
     else await page.reload();
     await expect(page.locator("main.world-room")).toHaveAttribute(
       "data-floor-state",
-      "blank",
+      "repository",
     );
+    await expect(
+      page.getByRole("complementary", { name: "Project / Current Work" }),
+    ).toContainText("AgentIntersect World");
     await expect(page.getByTestId("world-hud")).toBeVisible();
     const transcript = page.getByRole("log", {
       name: "Conversation and activity",
@@ -4233,6 +4276,31 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
     );
     await expect(transcript.locator("li")).toHaveCount(2);
   }
+  expect(restoreWrites).toEqual([]);
+  // An unavailable repository does not invalidate the accepted native session.
+  await page.route("**/api/world/current", (route) =>
+    route.fulfill({
+      status: 404,
+      json: {
+        ok: false,
+        error: { code: "not_found", message: "No saved repository" },
+      },
+    }),
+  );
+  await page.reload();
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-floor-state",
+    "blank",
+  );
+  await expect(
+    page.getByRole("log", { name: "Conversation and activity" }),
+  ).toContainText("Yes — this is the same exact session.");
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("aiw.agent-session.pointer.0.12"),
+    ),
+  ).toBe(session.sessionId);
+  expect(restoreWrites).toEqual([]);
 });
 
 test("agent-name prompt replaces the completed session choice without overlap", async ({

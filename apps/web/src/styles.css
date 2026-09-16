@@ -1359,9 +1359,10 @@
   border-top: 1px solid rgba(65, 233, 255, 0.48);
 }
 
-/* The canvas depth mask lets avatars/scenery occlude the real DOM screens. */
+/* The canvas depth mask lets avatars/scenery occlude the real DOM screens.
+   All four ordinary screen ranks (1–4) must stay below its cloud layer. */
 .world-room[data-spatial-screens="true"] .world-room__canvas-host {
-  z-index: 3;
+  z-index: 5;
   pointer-events: none;
 }
 .world-room[data-spatial-screens="true"] .world-room__canvas {
