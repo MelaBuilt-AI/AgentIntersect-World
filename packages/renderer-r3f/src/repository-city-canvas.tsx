@@ -1,4 +1,4 @@
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useFrame, useLoader, type ThreeEvent } from "@react-three/fiber";
 import {
   Suspense,
   useCallback,
@@ -21,6 +21,11 @@ import {
   MAX_REPOSITORY_CITY_INSTANCES,
   type RepositoryCityInstance,
 } from "./repository-city-state.js";
+
+import {
+  useRepositoryPropDrag,
+  type RepositoryCityInteraction,
+} from "./repository-prop-drag.js";
 
 export { MAX_REPOSITORY_CITY_INSTANCES as MAX_SEMANTIC_REPOSITORY_GLBS } from "./repository-city-state.js";
 
@@ -147,9 +152,14 @@ function RepositoryCityModel({
   selected,
   onSelect,
   onSettled,
+  onDragStart,
 }: {
   readonly instance: RepositoryCityInstance;
   readonly gltf: GLTF;
+  readonly onDragStart: (
+    instance: RepositoryCityInstance,
+    event: ThreeEvent<PointerEvent>,
+  ) => void;
   readonly reducedMotion: boolean;
   readonly selected: boolean;
   readonly onSelect: (instanceId: string) => void;
@@ -246,6 +256,10 @@ function RepositoryCityModel({
         reducedMotion || instance.lifecycle === "idle" ? 0 : -2.5,
         instance.position.z,
       ]}
+      rotation={[0, instance.yaw ?? 0, 0]}
+      onPointerDown={(event: ThreeEvent<PointerEvent>) =>
+        onDragStart(instance, event)
+      }
       scale={definition.defaultScale}
       onClick={(event: {
         button: number;
@@ -307,14 +321,17 @@ export function RepositoryCityModels({
   onSelect,
   onSettled,
   onReady,
+  interaction,
 }: {
   readonly instances: readonly RepositoryCityInstance[];
+  readonly interaction?: RepositoryCityInteraction | undefined;
   readonly reducedMotion: boolean;
   readonly selectedInstanceId: string | null;
   readonly onSelect: (instanceId: string) => void;
   readonly onSettled: (instanceId: string) => void;
   readonly onReady: () => void;
 }) {
+  const startDrag = useRepositoryPropDrag(interaction);
   const [readyIds, setReadyIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -333,6 +350,7 @@ export function RepositoryCityModels({
         instance={instance}
         reducedMotion={reducedMotion}
         selected={selectedInstanceId === instance.instanceId}
+        onDragStart={startDrag}
         onSelect={onSelect}
         onSettled={onSettled}
         onReady={ready}

@@ -622,7 +622,11 @@ async function installWorldFixtures(
   });
 }
 
-async function enterFixtureWorld(page: Page, path = "/") {
+async function enterFixtureWorld(
+  page: Page,
+  path = "/",
+  displayName = "Mr Fluff",
+) {
   await page.goto(path);
   await page.getByRole("button", { name: /Single Agent/ }).click();
   await page.getByRole("button", { name: "Connect hermes" }).click();
@@ -631,7 +635,7 @@ async function enterFixtureWorld(page: Page, path = "/") {
   await expect(
     page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible();
-  await page.getByLabel("Agent name", { exact: true }).fill("Mr Fluff");
+  await page.getByLabel("Agent name", { exact: true }).fill(displayName);
   await page
     .getByRole("button", { name: "Open Cat Agent 1 3D preview", exact: true })
     .click();
@@ -1869,7 +1873,18 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   });
 
   await composer.fill("/work change it to use the blue active state");
-  await composer.press("Enter");
+  const [iterationResponse] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response
+          .url()
+          .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
+        response.request().method() === "POST",
+    ),
+    composer.press("Enter"),
+  ]);
+  expect(iterationResponse.ok()).toBe(true);
+  expect(await iterationResponse.finished()).toBeNull();
   await expect
     .poll(() => streamRequests)
     .toEqual(["change it to use the blue active state"]);
@@ -2041,15 +2056,23 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   ).toBe(true);
 });
 
-for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
+for (const screenJourney of [
+  "hud",
+  "spatial",
+  "code",
+  "code-overlap",
+  "arrangement",
+])
   test(
-    screenJourney === "code-overlap"
-      ? "@code-screen-overlap stays opaque over a rear screen from multiple positions"
-      : screenJourney === "code"
-        ? "@repository-code-screen @pointer-lock inspects an object in World and fullscreen"
-        : screenJourney === "spatial"
-          ? "@spatial-screens toggles and moves three interactive World screens"
-          : "@workbench-world-view keeps preview interaction inside the mounted World",
+    screenJourney === "arrangement"
+      ? "@arrangement-controls @pointer-lock contains selectors and manipulates visual props"
+      : screenJourney === "code-overlap"
+        ? "@code-screen-overlap stays opaque over a rear screen from multiple positions"
+        : screenJourney === "code"
+          ? "@repository-code-screen @pointer-lock inspects an object in World and fullscreen"
+          : screenJourney === "spatial"
+            ? "@spatial-screens toggles and moves three interactive World screens"
+            : "@workbench-world-view keeps preview interaction inside the mounted World",
     async ({ page }, testInfo) => {
       // Combined preview, focus, spatial placement and motion proof on software WebGL.
       test.setTimeout(300_000);
@@ -2549,14 +2572,20 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
       const { instrumentAudio, assertAudioCues } =
         await import("./world-audio.js");
       await instrumentAudio(page);
-      await enterFixtureWorld(page);
+      await enterFixtureWorld(
+        page,
+        "/",
+        screenJourney === "arrangement" ? "Codex" : "Mr Fluff",
+      );
 
       const recipesResponse = page.waitForResponse(
         (response) =>
           new URL(response.url()).pathname.endsWith("/preview-recipes") &&
           response.request().method() === "GET",
       );
-      const composer = page.getByLabel("Message Mr Fluff");
+      const composer = page.getByLabel(
+        screenJourney === "arrangement" ? "Message Codex" : "Message Mr Fluff",
+      );
       await composer.fill("Let's pick up work on the Notes App");
       await composer.press("Enter");
       await expect(page.locator("main.world-room")).toHaveAttribute(
@@ -2657,6 +2686,13 @@ for (const screenJourney of ["hud", "spatial", "code", "code-overlap"])
       await expect.poll(() => startRequests).toBe(1);
 
       const room = page.locator("main.world-room");
+      if (screenJourney === "arrangement") {
+        const { exerciseArrangementControls } =
+          await import("./world-arrangement-controls.js");
+        await exerciseArrangementControls(page, testInfo);
+        expect(browserErrors).toEqual([]);
+        return;
+      }
       if (screenJourney === "hud") {
         const { openCodeWheel } = await import("./world-code-wheel.js");
         await openCodeWheel(page);
@@ -3138,7 +3174,15 @@ test("@workstream-tracer deterministic Work Inspector stays truthful and keyboar
     ),
   ).toEqual([{ behavior: "auto", block: "nearest" }]);
 
-  const assetSearch = page.getByLabel("Search assets");
+  const overview = page.getByRole("complementary", {
+    name: "Project / Current Work",
+    exact: true,
+  });
+  await overview
+    .getByRole("button", { name: "Arrange workspace", exact: true })
+    .click();
+  await overview.getByText("Visual-only props", { exact: true }).click();
+  const assetSearch = overview.getByLabel("Search assets");
   await assetSearch.fill("branch");
   await expect(assetSearch).toBeFocused();
   expect(

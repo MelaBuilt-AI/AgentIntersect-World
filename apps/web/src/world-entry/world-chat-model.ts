@@ -10,6 +10,16 @@ import {
   type AgentMovementTarget,
 } from "@agentintersect-world/world-action-protocol";
 
+export function nameWorldActivity(
+  activity: WorldActivity,
+  agentName: string,
+): WorldActivity {
+  return {
+    ...activity,
+    label: activity.label.replace(/^Mr Fluff\b/u, () => agentName),
+  };
+}
+
 export type AvatarOneShotSemantic = Exclude<
   ImportedAvatarSemantic,
   "Idle" | "Walk" | "Run"

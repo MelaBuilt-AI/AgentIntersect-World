@@ -17,6 +17,9 @@ describe("code-world spatial controls", () => {
     expect(html).toContain("scroll to rotate");
     expect(html).not.toContain("hold base");
     expect(html).toContain('aria-label="Move World View screen"');
+    expect(html).toContain(
+      '<span class="world-screen__move-hint">Hold here to move</span>',
+    );
   });
   it("rotates a held pose without changing translation, in pixels or lines", () => {
     expect(screens.rotateWorldScreen).toBeTypeOf("function");

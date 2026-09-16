@@ -618,6 +618,7 @@ function WorldRoomScene({
   onAvatarLodChange,
   onContextLost,
   onCitySelect,
+  cityInteraction,
   onCitySettled,
   onCityReady,
 }: {
@@ -649,6 +650,8 @@ function WorldRoomScene({
   readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
   readonly onAvatarLodChange: (role: "user" | "agent", lod: AvatarLod) => void;
   readonly onContextLost: () => void;
+  readonly cityInteraction?:
+    import("./repository-prop-drag.js").RepositoryCityInteraction | undefined;
   readonly onCitySelect: (instanceId: string) => void;
   readonly onCitySettled: (instanceId: string) => void;
   readonly onCityReady: () => void;
@@ -796,6 +799,7 @@ function WorldRoomScene({
               instances={cityPlan.semantic}
               reducedMotion={reducedMotion}
               selectedInstanceId={selectedCityInstanceId}
+              interaction={cityInteraction}
               onSelect={onCitySelect}
               onSettled={onCitySettled}
               onReady={onCityReady}
@@ -961,6 +965,7 @@ export function WorldRoomCanvas({
   reducedMotion,
   onContextLost,
   onCitySelect,
+  cityInteraction,
   onCitySettled,
   onCityReady,
   onSceneReady,
@@ -985,6 +990,8 @@ export function WorldRoomCanvas({
   readonly agentLayerState: AvatarLayerState;
   readonly reducedMotion: boolean;
   readonly onContextLost: () => void;
+  readonly cityInteraction?:
+    import("./repository-prop-drag.js").RepositoryCityInteraction | undefined;
   readonly onCitySelect: (instanceId: string) => void;
   readonly onCitySettled: (instanceId: string) => void;
   readonly onCityReady: () => void;
@@ -1145,6 +1152,7 @@ export function WorldRoomCanvas({
         onAvatarReady={onAvatarReady}
         onAvatarLodChange={onAvatarLodChange}
         onContextLost={onContextLost}
+        cityInteraction={cityInteraction}
         onCitySelect={onCitySelect}
         onCitySettled={onCitySettled}
         onCityReady={onCityReady}

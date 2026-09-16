@@ -1,5 +1,6 @@
 import {
   createWorldChatState,
+  nameWorldActivity,
   classifyWorldMessage,
   reduceWorldChat,
 } from "../src/world-entry/world-chat-model.js";
@@ -33,6 +34,22 @@ const startTurn = () => {
 };
 
 describe("World repository intake commands", () => {
+  it("uses the selected agent identity for completion projections", () => {
+    const activity = {
+      state: "completed" as const,
+      icon: "",
+      label: "Mr Fluff completed the request",
+      detail: "",
+    };
+    expect(nameWorldActivity(activity, "Codex").label).toBe(
+      "Codex completed the request",
+    );
+    expect(
+      nameWorldActivity({ ...activity, label: "2 agents completed" }, "Codex")
+        .label,
+    ).toBe("2 agents completed");
+    expect(activity.label).toBe("Mr Fluff completed the request");
+  });
   it("recognizes unambiguous conversational follow, relative movement, and stop without hijacking questions", () => {
     expect(classifyWorldMessage("Could you follow me please?")).toEqual({
       kind: "local-agent-movement",

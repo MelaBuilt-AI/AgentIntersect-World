@@ -41,6 +41,7 @@ import {
 } from "../phase14/phase14-client.js";
 import {
   completeAvatarOneShot,
+  nameWorldActivity,
   createAvatarAnimationState,
   setAvatarLocomotion,
   triggerAvatarOneShot,
@@ -316,8 +317,9 @@ export function WorldRoom({
     yaw: number;
     sequence: number;
   } | null>(null);
+  const [propDragging, setPropDragging] = useState(false);
   const screenDragging =
-    (screenController?.dragging ?? false) || codeInspection;
+    (screenController?.dragging ?? false) || codeInspection || propDragging;
   const updateScreenAnchor = screenController?.updateAnchor;
   const setScreensEnabled = screenController?.setEnabled;
   const roomRef = useRef<HTMLElement>(null);
@@ -448,14 +450,12 @@ export function WorldRoom({
             detail: "" as const,
           },
   );
+  const chatActivity = agentAvatars?.length
+    ? activity
+    : nameWorldActivity(activity, agentName);
   const presentedActivity = embodiment?.request
     ? renderedAgentActivities[0]!
-    : agentAvatars?.length
-      ? activity
-      : {
-          ...activity,
-          label: activity.label.replace(/^Mr Fluff\b/u, agentName),
-        };
+    : chatActivity;
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
     createAgentMovementState(
@@ -791,12 +791,12 @@ export function WorldRoom({
               ? "active"
               : "pending",
         linkedRepoData: {
-          label: activity.label,
-          detail: activity.detail || null,
+          label: chatActivity.label,
+          detail: chatActivity.detail || null,
         },
       },
     });
-  }, [activity.detail, activity.label, activity.state, floor]);
+  }, [chatActivity.detail, chatActivity.label, activity.state, floor]);
   const addManualCityInstance = useCallback(
     (assetId: RepositoryAssetId, position?: { x: number; z: number }) => {
       const sequence = nextManualCityInstance.current++;
@@ -2124,6 +2124,7 @@ export function WorldRoom({
       data-user-position-x={userPosition.x}
       data-user-position-z={userPosition.z}
       data-mouse-look={mouseLookActive ? "active" : "idle"}
+      data-prop-dragging={propDragging}
       data-camera-yaw={camera.yaw.toFixed(3)}
       data-camera-pitch={camera.pitch.toFixed(3)}
       data-camera-zoom={camera.zoom ?? 1}
@@ -2531,6 +2532,17 @@ export function WorldRoom({
                     setContextLost(true);
                     onRepositoryError?.();
                   }}
+                  cityInteraction={{
+                    floorSize,
+                    onDragging: setPropDragging,
+                    onTransform: (instanceId, position, yaw) =>
+                      dispatchCity({
+                        type: "manual.transform",
+                        instanceId,
+                        position,
+                        yaw,
+                      }),
+                  }}
                   onCitySelect={selectCityInstance}
                   onCitySettled={(instanceId) =>
                     dispatchCity({ type: "settled", instanceId })
@@ -2570,6 +2582,17 @@ export function WorldRoom({
                     setRendererFailure("context-lost");
                     setContextLost(true);
                     onRepositoryError?.();
+                  }}
+                  cityInteraction={{
+                    floorSize,
+                    onDragging: setPropDragging,
+                    onTransform: (instanceId, position, yaw) =>
+                      dispatchCity({
+                        type: "manual.transform",
+                        instanceId,
+                        position,
+                        yaw,
+                      }),
                   }}
                   onCitySelect={selectCityInstance}
                   onCitySettled={(instanceId) =>

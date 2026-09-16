@@ -28,6 +28,15 @@ const base = {
 };
 
 describe("project/current-work overview", () => {
+  it("keeps object choices in the panel instead of a native browser popup", () => {
+    const html = renderToStaticMarkup(
+      <RepositoryAssetPalette {...base} mode="director" />,
+    );
+    expect(html).not.toContain("<select");
+    expect(html).toContain('role="combobox"');
+    expect(html).toContain('aria-label="Arrange object"');
+    expect(html).toContain('role="listbox"');
+  });
   it("starts compact with project and work truth, not the asset grid or a duplicate inspector", () => {
     const html = renderToStaticMarkup(
       <RepositoryAssetPalette

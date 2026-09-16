@@ -6,6 +6,7 @@ import {
   type RepositoryAssetId,
   type RepositoryCityInstance,
 } from "@agentintersect-world/renderer-r3f";
+import { PanelSelect } from "./PanelSelect.js";
 import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
 import { useWorldScreens } from "./world-screen-context.js";
 import type { Workstream } from "./workstream-tracer.js";
@@ -149,31 +150,32 @@ export function RepositoryAssetPalette({
                   <WorldScreenToggle key={id} id={id} />
                 ))}
             </div>
-            <label>
-              Choose object to focus or pin
-              <select
-                aria-label="Arrange object"
+            <div>
+              <span>Choose object to focus or pin</span>
+              <PanelSelect
+                label="Arrange object"
                 value={selected?.instanceId ?? ""}
-                onChange={(event) =>
-                  onSelectObject?.(event.currentTarget.value)
-                }
-              >
-                <option value="">Choose an object</option>
-                {instances.map((instance) => (
-                  <option key={instance.instanceId} value={instance.instanceId}>
-                    {instance.manual ? "Prop · " : ""}
-                    {String(
+                onChange={(id) => onSelectObject?.(id)}
+                options={[
+                  { value: "", label: "Choose an object" },
+                  ...instances.map((instance) => ({
+                    value: instance.instanceId,
+                    label: `${instance.manual ? "Prop · " : ""}${String(
                       instance.linkedRepoData?.label ??
                         REPOSITORY_ASSET_BY_ID.get(instance.assetId)?.label,
-                    )}
-                  </option>
-                ))}
-              </select>
-            </label>
+                    )}`,
+                  })),
+                ]}
+              />
+            </div>
             {selected && asset ? (
               <section
                 className="repository-asset-inspector"
                 aria-label="Selected object details"
+                data-object-id={selected.instanceId}
+                data-object-x={selected.position.x}
+                data-object-z={selected.position.z}
+                data-object-yaw={selected.yaw ?? 0}
               >
                 <h3>{String(selected.linkedRepoData?.label ?? asset.label)}</h3>
                 <p>
@@ -226,7 +228,8 @@ export function RepositoryAssetPalette({
               <summary>Visual-only props</summary>
               <p>
                 Optional decoration, not work commands. Drag to the floor or use
-                Place prop.
+                Place prop. Hold left-click on a placed prop to move it; scroll
+                while holding to rotate. Release to place.
               </p>
               {catalogOpen ? (
                 <>
@@ -238,22 +241,21 @@ export function RepositoryAssetPalette({
                       onChange={(event) => setQuery(event.currentTarget.value)}
                     />
                   </label>
-                  <label>
-                    Category
-                    <select
+                  <div>
+                    <span>Category</span>
+                    <PanelSelect
+                      label="Category"
                       value={category}
-                      onChange={(event) =>
-                        setCategory(event.currentTarget.value)
-                      }
-                    >
-                      <option value="all">All categories</option>
-                      {REPOSITORY_ASSET_CATEGORIES.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                      onChange={setCategory}
+                      options={[
+                        { value: "all", label: "All categories" },
+                        ...REPOSITORY_ASSET_CATEGORIES.map((value) => ({
+                          value,
+                          label: value,
+                        })),
+                      ]}
+                    />
+                  </div>
                   <ul className="repository-assets__grid">
                     {visible.map((item) => (
                       <li key={item.id}>

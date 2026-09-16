@@ -40,6 +40,8 @@ export function WorkstreamTracerPanel({
         <button
           type="button"
           className="world-action--enabled"
+          aria-expanded={Boolean(selected)}
+          aria-controls="work-inspector"
           onClick={onInspect}
         >
           {selected

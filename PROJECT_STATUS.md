@@ -4,7 +4,19 @@ Updated: 2026-09-15
 
 ## Current milestone
 
-### September 15 — project/current-work overview, PR13 awaiting operator review
+### September 15 evening — manual acceptance and conditional PR13 delivery
+
+Aaron (`1549581992486641685`) tested the corrected TEST45353 and reports everything good except minor vertical alignment of the Project / Current Work move strip. The final CSS correction centers the title and both wrapped instructions within the existing 42px strip without changing controls or camera behavior. Aaron explicitly waived another manual test and authorized commit/push → green CI/readiness → merge → merged-main green → end-session handoff. This supersedes the previous delivery hold; merge remains conditional on verified green gates.
+
+The earlier dropdown, manual-prop held-left drag/held-wheel rotation/release, and selected-agent naming corrections are accepted. Prior verification: 541 web/renderer tests across 98 files; final scroll adjustment received 27 focused tests plus production-headed browser proof. Final footer rendering reproduced the low text and verifies centered, contained text after correction. Exact-head push/PR and merged-main receipts belong in the PR and external handoff, not recursive source commits.
+
+Readiness follow-up preserves the query-gated Workstream tracer's expanded/control accessibility metadata and migrates its browser journey to open Arrange workspace and Visual-only props before searching. The normal Workstream journey now waits for the actual iteration-stream response to finish before testing post-turn availability rather than treating request receipt as completion. Final local proof: 29 focused tests, web types/scoped lint/format/build, demo and Phase14 tracer browser journeys, plus the complete normal Workstream journey passed across retained attempts. Prior CI failures and local attempts remain recorded externally; complete replacement CI is the integrated delivery gate. No thresholds or timeouts are relaxed.
+
+**Retained TEST: http://127.0.0.1:45353/**, backend43953/native Edge49353, `aiw-arrangement-review-20260915.service`. Preserve its current user setup/history and served artifact; the final footer patch is not activated there and no additional operator retest is required. Kit `/home/mela_ai/.hermes/runs/aiw-arrangement-review-20260915/README.md`. Prior TEST45351 browser was closed by Aaron; services/state/profile and original shared web dist remain retained. Seven inherited residuals are excluded from delivery.
+
+Saved layouts, broader application/WSL restart and environment/Omarchy restoration, active-work/chat/preview continuity, Workbench pagination/branch/PR/history follow-ups, Hermes session-lock investigation and Phase20 remain separately scoped. Buzz remains explicitly disabled; primary Hermes/OpenClaw gateways are preserved. No release, tag, publication, deployment, public visibility or original AgentIntersect changes are authorized.
+
+### Historical September 15 — project/current-work overview, PR13 awaiting operator review
 
 Aaron (`1549274105780641875`) approved the complete Live/Director proposal and requested a new PR. The compact Project / Current Work overview replaces the default asset catalog; Code View owns source identity and Ask about this; Workstream retains plan/diff/validation/evidence; the city projects real current-work files and evidence; optional Arrange workspace tucks away clearly visual-only props. Existing screen IDs/hotkeys and Workbench execution authority are preserved. Details, limitations and checklist: [Project workspace overview](docs/PROJECT_WORKSPACE_OVERVIEW.md).
 

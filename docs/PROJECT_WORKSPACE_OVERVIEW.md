@@ -16,7 +16,7 @@ This PR implements those together on top of merged PR12. It does not replace Wor
 
 ## Delivery and non-goals
 
-Direct implementation with focused RED/GREEN, affected type/lint/build and isolated production-browser proof. Update migrated callers/tests rather than retaining misleading labels. Open a private PR; leave unmerged pending Aaron's first-hand acceptance. Aaron subsequently authorized closing the old TEST45345, launching a fresh matching TEST after implementation, leaving it running, and preparing the end-session handoff. Preserve the old saved profile/history on disk. No provider/gateway changes, automated native coding dispatch, history deletion, publication, releases, Phase20, original AgentIntersect changes, or historical residual staging.
+Direct implementation with focused RED/GREEN, affected type/lint/build and isolated production-browser proof. Update migrated callers/tests rather than retaining misleading labels. Open a private PR; the initial hold pending first-hand acceptance is superseded by Aaron’s September 15 acceptance and conditional delivery authorization below. Aaron subsequently authorized closing the old TEST45345, launching a fresh matching TEST after implementation, leaving it running, and preparing the end-session handoff. Preserve the old saved profile/history on disk. No provider/gateway changes, automated native coding dispatch, history deletion, publication, releases, Phase20, original AgentIntersect changes, or historical residual staging.
 
 ## Verification
 
@@ -24,9 +24,20 @@ Direct implementation with focused RED/GREEN, affected type/lint/build and isola
 - Final web suite: **81 files / 426 tests passed**. Web and root non-emitting typechecks, scoped ESLint, formatting and whitespace checks passed. Monorepo build: **20/20 tasks successful**; final normal frontend rebuilt after the last metadata correction. Existing large-renderer chunk advisory remains unchanged.
 - Four distinct production-browser journeys passed across scoped attempts: normal Workstream conversation/contextual source draft; source spatial/fullscreen scroll continuity; no-WebGL prop placement; spatial screen movement/projection/Reduced Motion/fallback. The corrected overview clears Escape and keeps Arrange visible; pixels inspected. Final metadata-only source-event correction was covered by its RED/GREEN plus final web suite, not claimed as a new complete browser matrix.
 - Preserved failed attempts: overview geometry regression before CSS correction; migrated spatial helper initially assumed one toggle although Arrange now contains three. Assertion now checks the explicit set without weakening disabled-state or motion checks.
-- Private PR13 remains draft/unmerged; manual review and exact-head hosted CI are separate gates. No native coding dispatch or operator acceptance inferred from fixture-driven browser proof.
+- Initial PR13 was draft/unmerged during review. Exact-head hosted CI remains distinct from first-hand acceptance; final PR/merge receipts are recorded externally. No native coding dispatch or operator acceptance is inferred from fixture-driven browser proof.
 
-## Operator review
+## September 15 operator corrections
+
+Aaron reported two native dropdown popups escaping their spatial screens, move-handle text wrapping incorrectly, and a Codex conversation activity object incorrectly labelled Mr Fluff. He accepted the other tested behavior and additionally authorized placed-prop manipulation. Aaron subsequently passed the corrected behavior (`1549581992486641685`), requesting only vertical centering of the footer text. That final CSS adjustment is verified separately; he explicitly waived another manual test and authorized commit/push, green CI/readiness, conditional merge, merged-main green and end-session handoff.
+
+- Object/category menus now render in-flow inside the same transformed/scrolling screen, with mouse and keyboard selection.
+- Manual visual-only props support held left-button floor dragging, held-wheel rotation and release placement. Live repository objects keep their existing layout authority. Pointer cancellation, Escape, blur and hidden-page transitions end the hold. Layout remains local to the open World.
+- The footer uses separate title, movement instruction and rotation instruction columns. Its fixed-height grid centers content with zero vertical padding so wrapped instructions remain contained and vertically balanced.
+- City activity labels use the same selected-agent presentation identity as the chat status, preserving multi-agent aggregate labels.
+- Verification: 541 web/renderer tests across 98 files passed; affected typechecks, scoped lint and production build passed. The dedicated production-browser fixture journey passed spatial-menu containment, footer geometry, Codex-named activity, real prop drag/rotation, camera-zoom exclusion and release. Captured pixels inspected. This is fixture-driven rendering/input proof, not native Codex execution or manual acceptance.
+- Fresh review URL: http://127.0.0.1:45353/ (readiness tracked in the run README). Prior TEST45351 state/profile and all seven inherited residual files are preserved. The retained TEST is not rebuilt/reloaded for final footer alignment; delivery uses the source candidate and exact-head CI.
+
+## Completed operator review scope
 
 1. In the fresh TEST, complete your own avatar/agent setup and load a repository. A no-remote starter repository is provided by the TEST launcher; old history is preserved separately, not imported.
 2. Check Project / Current Work in empty/current/completed states; use its Workbench, New Workstream and work-details controls.

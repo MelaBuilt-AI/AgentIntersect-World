@@ -23,6 +23,7 @@ export type RepositoryCityInstance = {
   readonly instanceId: string;
   readonly assetId: RepositoryAssetId;
   readonly position: RepositoryCityPosition;
+  readonly yaw?: number;
   readonly status: RepositoryCityStatus;
   readonly lifecycle: "materializing" | "idle";
   readonly pinned: boolean;
@@ -52,6 +53,12 @@ export type RepositoryCityAction =
       readonly type: "pin";
       readonly instanceId: string;
       readonly pinned: boolean;
+    }
+  | {
+      readonly type: "manual.transform";
+      readonly instanceId: string;
+      readonly position: RepositoryCityPosition;
+      readonly yaw: number;
     }
   | { readonly type: "remove"; readonly instanceId: string };
 
@@ -383,6 +390,14 @@ export function reduceRepositoryCity(
     };
     return { instances: [...state.instances, manual] };
   }
+  if (action.type === "manual.transform")
+    return {
+      instances: state.instances.map((instance) =>
+        instance.instanceId === action.instanceId && instance.manual
+          ? { ...instance, position: action.position, yaw: action.yaw }
+          : instance,
+      ),
+    };
   if (action.type === "remove")
     return {
       instances: state.instances.filter(
