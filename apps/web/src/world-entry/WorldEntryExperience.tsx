@@ -2866,14 +2866,21 @@ export function WorldEntryExperience({
                     setNormalWorkstream(
                       projectAuthoritativeWorkstream(result.workstream),
                     );
-                    setNormalWorkstreamMessage(
-                      "Saved Workstream restored. No coding turn sent.",
-                    );
+                    const message = [
+                      "Saved work restored. No coding turn was sent.",
+                      result.previewResume === "failed"
+                        ? "Preview could not restart. Open current work / World View to review and retry the approved preview."
+                        : result.previewResume === "ready"
+                          ? "Approved preview restarted and is ready. Open current work / World View, or send your next task in chat."
+                          : "Open current work / World View, or send your next task in chat.",
+                    ].join(" ");
+                    setNormalWorkstreamMessage(message);
                     const refreshed = await client.refreshSession(
                       authority.agent.agentId,
                     );
                     if (refreshed.sessionId === session?.sessionId)
                       setSession(refreshed);
+                    return message;
                   }}
                   onInspect={() => {
                     setWorkbenchOpen(false);

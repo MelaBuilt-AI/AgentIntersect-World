@@ -1,10 +1,20 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-15
+Updated: 2026-09-16
 
 ## Current milestone
 
-### September 15 evening — manual acceptance and conditional PR13 delivery
+### September 16 — bounded application-restart continuity
+
+Aaron (`1549772861923926187`) authorized the recommended application-restart slice, durable continuity and a new private PR from merged PR13/main `0d88b3a`. Scope/results/operator cutline: [Application restart continuity](docs/APPLICATION_RESTART_CONTINUITY.md). This is not Phase20 authorization or a WSL reboot/environment matrix.
+
+Existing restoration and preview ownership remain unchanged. A reproduced browser defect discarded the server's preview recovery outcome and showed only generic restoration success. The client/Workbench now distinguish failed preview recovery, healthy recovery and no restart needed, with consistent status copy and a successful retry clearing failure. Production-startup coverage now includes a real process restart, dirty-file/branch/task/session/history preservation, old-preview closure and approved-preview relaunch.
+
+Local technical proof: 47 focused tests, web/server no-emit types, scoped lint/format, package and isolated web builds; three affected built-browser journeys pass, with failure/retry screenshots inspected. Real native Codex proof passes initial edit/test → graceful application restart → identical session/worktree/files/history → explicit Continue without dispatch → approved preview relaunch → same-session follow-up edit/test and updated healthy preview. Independent final focused test and filesystem readback agree. Native HTTP/process/Git proof and deterministic browser fixtures are separate evidence layers; full user-operated browser/application close-and-return acceptance remains pending.
+
+Private PR/head/CI receipts are recorded externally after delivery rather than recursively embedded in source. Merge is held for acceptance and authorization; no release/publication. TEST45353/43953 and older TEST45351/43951, their original served artifacts/history/browser state, and all seven inherited residuals remain preserved. Hermes/OpenClaw are untouched. Other Workbench breadth, saved layouts, Omarchy/host reboot, active-turn crash recovery, Hermes bookkeeping and Phase20 stay separate.
+
+### Historical September 15 evening — manual acceptance and conditional PR13 delivery
 
 Aaron (`1549581992486641685`) tested the corrected TEST45353 and reports everything good except minor vertical alignment of the Project / Current Work move strip. The final CSS correction centers the title and both wrapped instructions within the existing 42px strip without changing controls or camera behavior. Aaron explicitly waived another manual test and authorized commit/push → green CI/readiness → merge → merged-main green → end-session handoff. This supersedes the previous delivery hold; merge remains conditional on verified green gates.
 

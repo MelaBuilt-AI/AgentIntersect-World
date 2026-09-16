@@ -1212,7 +1212,11 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
         expect(body.agent.agentId).toBe(session.sessionId);
         continued++;
         current = { ...current, agent, revision: current.revision + 1 };
-        return fulfill(route, { workstream: current, replayed: false });
+        return fulfill(route, {
+          workstream: current,
+          replayed: false,
+          previewResume: continued === 1 ? "failed" : "ready",
+        });
       }
       if (
         route.request().method() === "POST" &&
@@ -1332,8 +1336,29 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await expect(workbench).toContainText(
     "Saved work restored. No coding turn was sent.",
   );
+  await expect(workbench).toContainText(
+    "Preview could not restart. Open current work / World View to review and retry the approved preview.",
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("continuity-preview-failed.png"),
+  });
   expect(continued).toBe(1);
   expect(created).toBe(0);
+  await workbench
+    .getByRole("checkbox", { name: /Continue this saved worktree/ })
+    .check();
+  await workbench
+    .getByRole("button", { name: "Continue saved work", exact: true })
+    .click();
+  await expect(workbench).toContainText(
+    "Approved preview restarted and is ready.",
+  );
+  await expect(workbench).not.toContainText("Preview could not restart.");
+  expect(continued).toBe(2);
+  expect(created).toBe(0);
+  await page.screenshot({
+    path: testInfo.outputPath("continuity-preview-ready.png"),
+  });
   await expect(
     workbench.getByRole("button", { name: "Open current work / World View" }),
   ).toBeEnabled();

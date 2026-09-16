@@ -305,7 +305,7 @@ describe("production Workstream startup composition", () => {
 
   it("registers the real lifecycle only with exact current repository and World session bindings", async () => {
     const fixture = await productionFixture();
-    const { baseUrl, process } = await startAtAvailablePort({
+    const environment = {
       AIW_AGENT_SESSIONS_ENABLED: "true",
       AIW_AGENT_SESSION_DATA_DIR: path.join(fixture.root, "agent-sessions"),
       AIW_HERMES_API_URL: `http://127.0.0.1:${fixture.hermesPort}`,
@@ -314,7 +314,8 @@ describe("production Workstream startup composition", () => {
       AIW_PRESENTATION_DATA_DIR: path.join(fixture.root, "presentation"),
       AIW_PHASE16_REPOSITORY_ROOT: fixture.repositoryRoot,
       AIW_PHASE16_WORKTREE_PARENT: fixture.worktreeParent,
-    });
+    };
+    let { baseUrl, process } = await startAtAvailablePort(environment);
 
     const constellation = await fetch(`${baseUrl}/constellation/current`);
     expect(constellation.status).toBe(200);
@@ -657,7 +658,6 @@ describe("production Workstream startup composition", () => {
     expect(resumeBody.data.workstream.authority.worktreeId).toBe(
       created.authority.worktreeId,
     );
-    latestRevision = resumeBody.data.workstream.revision;
     currentWorkstream.agent = resumeBody.data.workstream.agent;
     expect(resumeBody.data.workstream.task).toBe(savedBefore.task);
     expect(resumeBody.data.workstream.authority.branch).toBe(
@@ -699,6 +699,138 @@ describe("production Workstream startup composition", () => {
     expect(await (await fetch(preview.url)).text()).toContain(
       "exact Workstream preview",
     );
+
+    // A new application process must recover the same work, not just Continue
+    // while the original preview is still alive. External Hermes stays a fixture.
+    const historyBeforeRestart = (
+      await (
+        await fetch(`${baseUrl}/agent-sessions/${session.sessionId}/history`)
+      ).json()
+    ).data;
+    const originalPid = process.child.pid;
+    await stopProductionServer(process);
+    expect(process.child.exitCode).toBe(0);
+    await expect(fetch(preview.url)).rejects.toThrow();
+    ({ baseUrl, process } = await startAtAvailablePort(environment));
+    expect(process.child.pid).not.toBe(originalPid);
+    const interruptedPreview = (
+      await (
+        await fetch(
+          `${baseUrl}/workstreams/${created.workstreamId}/previews/current`,
+        )
+      ).json()
+    ).data;
+    expect(interruptedPreview.active).toBeNull();
+    expect(interruptedPreview.display).toBeNull();
+    expect(interruptedPreview.previousVerified.state).toBe("stopped");
+
+    const reindex = await fetch(`${baseUrl}/repository-indexes`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": randomUUID(),
+      },
+      body: JSON.stringify({ rootPath: fixture.repositoryRoot }),
+    });
+    expect(reindex.status).toBe(202);
+    const reindexId = (await reindex.json()).data.id;
+    await waitFor(async () => {
+      const value = (
+        await (await fetch(`${baseUrl}/repository-indexes/${reindexId}`)).json()
+      ).data;
+      if (value.status === "running") return false;
+      expect(value.status).toBe("succeeded");
+      repository.revision = value.generation.id;
+      return true;
+    }, "restarted repository index");
+    expect(
+      (await (await fetch(`${baseUrl}/world/current`)).json()).data.snapshot
+        .repositoryRef,
+    ).toBe(repository.repositoryId);
+    const reattached = await fetch(`${baseUrl}/agent-sessions/attach`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        adapterId: "hermes",
+        adapterSessionRef:
+          sessionBefore.adapterRootSessionRef ??
+          sessionBefore.adapterSessionRef,
+        profile: "fixture",
+        workspaceId: "workspace_fixture",
+        repositoryRef: repository.repositoryId,
+        mode: "collaborate",
+        modeConfirmed: true,
+      }),
+    });
+    const reattachedSession = (await reattached.json()).data;
+    expect(reattached.status).toBe(201);
+    expect(reattachedSession.sessionId).toBe(session.sessionId);
+    expect(reattachedSession.adapterSessionRef).toBe(
+      sessionBefore.adapterSessionRef,
+    );
+    const recovered = (
+      await (await fetch(`${baseUrl}/workstreams/current`)).json()
+    ).data;
+    const restartContinue = await fetch(
+      `${baseUrl}/workstreams/${created.workstreamId}/continue`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          confirm: true,
+          expectedRevision: recovered.revision,
+          repository,
+          agent: {
+            ...currentWorkstream.agent,
+            revision: String(reattachedSession.permissionRevision),
+          },
+        }),
+      },
+    );
+    const restartResult = (await restartContinue.json()).data;
+    expect(restartContinue.status, JSON.stringify(restartResult)).toBe(200);
+    expect(restartResult.previewResume).toBe("ready");
+    expect(restartResult.workstream).toMatchObject({
+      workstreamId: created.workstreamId,
+      task: savedBefore.task,
+      authority: {
+        worktreeId: created.authority.worktreeId,
+        relativePath: created.authority.relativePath,
+        branch: commitBody.data.status.branch,
+        head: commitBody.data.status.head,
+      },
+    });
+    expect(await git(worktreePath, ["status", "--porcelain=v1"])).toBe(
+      dirtyBefore,
+    );
+    expect(
+      await readFile(path.join(worktreePath, "untracked.txt"), "utf8"),
+    ).toBe("unsaved work stays here\n");
+    expect(await readFile(path.join(worktreePath, "index.ts"), "utf8")).toBe(
+      "export const ready = 'edited';\n",
+    );
+    expect(
+      (
+        await (
+          await fetch(`${baseUrl}/agent-sessions/${session.sessionId}/history`)
+        ).json()
+      ).data.messages,
+    ).toEqual(historyBeforeRestart.messages);
+    const restartedPreview = (
+      await (
+        await fetch(
+          `${baseUrl}/workstreams/${created.workstreamId}/previews/current`,
+        )
+      ).json()
+    ).data.display;
+    expect(restartedPreview.truth).toBe("current");
+    expect(restartedPreview.preview.state).toBe("ready");
+    expect(await (await fetch(restartedPreview.preview.url)).text()).toContain(
+      "exact Workstream preview",
+    );
+    latestRevision = restartResult.workstream.revision;
+    currentWorkstream.agent = restartResult.workstream.agent;
+    preview.url = restartedPreview.preview.url;
 
     // Commit only fixture-owned changes so the existing clean-cancel proof
     // remains distinct from restoration's dirty-file preservation assertions.

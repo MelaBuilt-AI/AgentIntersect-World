@@ -703,6 +703,39 @@ describe("authoritative Workstream client", () => {
     ).toBeNull();
   });
 
+  it.each(["ready", "failed", "not-needed"])(
+    "preserves preview recovery outcome %s when continuing saved work",
+    async (previewResume) => {
+      const fetcher = vi.fn(async () =>
+        Response.json({
+          ok: true,
+          data: { workstream: apiWorkstream, replayed: false, previewResume },
+        }),
+      );
+      const result = await new WorkstreamClient(fetcher).continueSaved(
+        apiWorkstream,
+        { repository: apiWorkstream.repository, agent: apiWorkstream.agent },
+      );
+      expect(result).toMatchObject({
+        workstream: apiWorkstream,
+        previewResume,
+      });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      expect(fetcher).toHaveBeenCalledWith(
+        `/api/workstreams/${apiWorkstream.workstreamId}/continue`,
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevision: apiWorkstream.revision,
+            repository: apiWorkstream.repository,
+            agent: apiWorkstream.agent,
+            confirm: true,
+          }),
+        }),
+      );
+    },
+  );
+
   it("sends only bounded create and ownership-bound cancel references", async () => {
     const requests: { url: string; init?: RequestInit }[] = [];
     const fetcher = async (
