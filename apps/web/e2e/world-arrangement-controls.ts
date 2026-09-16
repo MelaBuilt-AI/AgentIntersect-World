@@ -98,13 +98,17 @@ export async function exerciseArrangementControls(
   await detail.getByRole("button", { name: "Focus", exact: true }).click();
   const canvas = page.locator('canvas[data-scene-id="world-room"]');
   await expect(canvas).toHaveAttribute("data-camera-focus", "repository-city");
+  // A new GLB enters from below the floor; pick its final position only once
+  // the renderer has reported materialization complete, not merely selection.
+  await expect(detail).toHaveAttribute("data-object-lifecycle", "idle");
   const original = {
     x: Number(await detail.getAttribute("data-object-x")),
     z: Number(await detail.getAttribute("data-object-z")),
   };
   const bounds = (await canvas.boundingBox())!;
   const pick = projectWorldPointToViewport({
-    point: [original.x, 0.5, original.z],
+    // The lower face remains exposed below the normal World View HUD.
+    point: [original.x, 0.1, original.z],
     camera: calculateWorldCameraPose({
       userPosition: original,
       camera: {
@@ -117,6 +121,15 @@ export async function exerciseArrangementControls(
     viewport: bounds,
     fovDegrees: 46,
   });
+  expect(
+    await page.evaluate(
+      ({ x, y }) =>
+        Boolean(
+          document.elementFromPoint(x, y)?.closest(".world-room__canvas-host"),
+        ),
+      { x: bounds.x + pick.x, y: bounds.y + pick.y },
+    ),
+  ).toBe(true);
   await page.mouse.move(bounds.x + pick.x, bounds.y + pick.y);
   await page.mouse.down();
   await expect(room).toHaveAttribute("data-prop-dragging", "true");

@@ -1781,6 +1781,11 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await expect(
     overview.getByRole("region", { name: "Work Inspector" }),
   ).toHaveCount(0);
+  // Exercise the Linux fallback even on hosts with Consolas installed.
+  await page.addStyleTag({
+    content:
+      '.project-overview, .project-overview * { font-family: "Liberation Mono", monospace; }',
+  });
   await expect
     .poll(() =>
       overview.evaluate((element) => {

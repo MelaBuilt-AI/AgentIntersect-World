@@ -176,6 +176,7 @@ export function RepositoryAssetPalette({
                 data-object-x={selected.position.x}
                 data-object-z={selected.position.z}
                 data-object-yaw={selected.yaw ?? 0}
+                data-object-lifecycle={selected.lifecycle}
               >
                 <h3>{String(selected.linkedRepoData?.label ?? asset.label)}</h3>
                 <p>

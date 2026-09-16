@@ -1179,7 +1179,7 @@
 
 .world-screen--hud .project-overview {
   top: max(2.75rem, calc(env(safe-area-inset-top) + 2.75rem));
-  max-height: min(54vh, 34rem);
+  max-height: min(64vh, 38rem);
 }
 
 .project-overview {

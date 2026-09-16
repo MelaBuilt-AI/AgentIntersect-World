@@ -147,7 +147,10 @@ describe("acceptance command graph", () => {
     const projects = config.projects ?? [];
 
     expect(phase13Spec.match(/@pointer-lock/g)).toHaveLength(2);
-    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(3);
+    expect(worldEntrySpec.match(/@pointer-lock/g)).toHaveLength(4);
+    expect(worldEntrySpec).toContain(
+      "@arrangement-controls @pointer-lock contains selectors and manipulates visual props",
+    );
     expect(worldEntrySpec).toContain(
       "@repository-code-screen @pointer-lock inspects an object in World and fullscreen",
     );
