@@ -5537,6 +5537,10 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await completeJourney(page, "no-webgl");
+  await page.addStyleTag({
+    content:
+      '.world-room, .world-room * { font-family: "Liberation Mono", monospace; }',
+  });
   await expect(page.locator('[data-renderer="semantic"]')).toBeVisible();
   await expect(
     page.getByText("WorldEntryExperience.tsx", { exact: false }),
@@ -5549,6 +5553,15 @@ test("no-WebGL semantic state completes the same repository-floor journey", asyn
   await page
     .getByRole("button", { name: "Arrange workspace", exact: true })
     .click();
+  expect(
+    await page.locator(".project-overview").evaluate((element) => {
+      const panel = element.getBoundingClientRect();
+      const transcript = document
+        .querySelector(".world-transcript")!
+        .getBoundingClientRect();
+      return panel.bottom < transcript.top;
+    }),
+  ).toBe(true);
   await page.getByText("Visual-only props", { exact: true }).click();
   await page.getByLabel("Search assets").fill("deployment");
   await expect(page.locator(".repository-assets__card")).toHaveCount(1);

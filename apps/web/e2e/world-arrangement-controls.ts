@@ -9,6 +9,9 @@ export async function exerciseArrangementControls(
   testInfo: TestInfo,
 ) {
   page.setDefaultTimeout(10000);
+  await page.addStyleTag({
+    content: ".world-room, .world-room * { font-family: monospace; }",
+  });
   const room = page.locator("main.world-room");
   await expect(room).toHaveAttribute("data-repository-readiness", "ready", {
     timeout: 30000,
@@ -121,15 +124,20 @@ export async function exerciseArrangementControls(
     viewport: bounds,
     fovDegrees: 46,
   });
-  expect(
-    await page.evaluate(
-      ({ x, y }) =>
-        Boolean(
-          document.elementFromPoint(x, y)?.closest(".world-room__canvas-host"),
-        ),
-      { x: bounds.x + pick.x, y: bounds.y + pick.y },
-    ),
-  ).toBe(true);
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const element = document.elementFromPoint(x, y);
+      return {
+        isCanvasHost: Boolean(element?.closest(".world-room__canvas-host")),
+        tag: element?.tagName,
+        className: element?.className,
+        rectangle: element?.getBoundingClientRect().toJSON(),
+      };
+    },
+    { x: bounds.x + pick.x, y: bounds.y + pick.y },
+  );
+  await page.screenshot({ path: testInfo.outputPath("prop-pick.png") });
+  expect(hit.isCanvasHost, JSON.stringify({ bounds, pick, hit })).toBe(true);
   await page.mouse.move(bounds.x + pick.x, bounds.y + pick.y);
   await page.mouse.down();
   await expect(room).toHaveAttribute("data-prop-dragging", "true");
