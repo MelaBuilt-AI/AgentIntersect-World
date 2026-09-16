@@ -9,6 +9,9 @@ export async function exerciseArrangementControls(
   testInfo: TestInfo,
 ) {
   page.setDefaultTimeout(10000);
+  // Keep the real prop exposed below the normal preview HUD on Linux fonts.
+  // Resize the viewport instead of forcing clicks through or hiding that panel.
+  await page.setViewportSize({ width: 1440, height: 1100 });
   await page.addStyleTag({
     content: ".world-room, .world-room * { font-family: monospace; }",
   });
