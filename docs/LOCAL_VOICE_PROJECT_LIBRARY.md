@@ -33,4 +33,36 @@ Focused RED→GREEN tests per behavior, affected type/lint/build gates, built-br
 
 ## Status
 
-Scope frozen; implementation in progress. This document is not a completion or acceptance claim.
+Implementation complete in the PR worktree; private draft PR #15 remains unmerged. Local verification passed; remote CI is reported on the exact PR head rather than inferred from these local results. Human microphone and full native Windows harness acceptance are still separate.
+
+## Delivered behavior
+
+- Left hold/release and keyboard PTT remain supported. A too-short recording shows the exact no-recording message above. Right-click starts one hands-free capture; Send finishes and dispatches once, Cancel discards, neither rearms.
+- **Local voice setup (optional)** appears in first-run Agent Setup and remains reachable through the later Agent Setup menu. Opening setup only reads readiness. Installation requires its own checked consent. It does not request microphone permission, enable voice, or change the agent/harness setup.
+- The managed provider defaults to a private versioned directory under `$XDG_DATA_HOME/AgentIntersect-World/voice` (fallback `~/.local/share`) or `%LOCALAPPDATA%\AgentIntersect-World\voice`. `AIW_LOCAL_VOICE_DIR` overrides this directory for isolated tests. Existing `AIW_PHASE15_STT_PROVIDER_ROOT` remains an explicit legacy-provider override; remove that override to use the managed install.
+- Official whisper.cpp **v1.9.1** Linux/Windows x64 CPU artifacts and English `base.en` model revision **5359861c739e955e79d9a303bcbc70fb988958b1** are pinned by size and SHA-256. Exact runtime member/license inventories are in `packages/voice/src/runtime-pins.ts`; model pins are in the declared Node-only voice entrypoint. Only the CLI and its allowlisted runtime/license files are materialized. Approved Linux shared-library aliases become regular files. No bundled server, PATH change, package postinstall, cloud fallback, or automatic version update.
+- Downloads stage privately, verify before activation, and are cleaned on failure. New provider instances discover the verified versioned installation. Existing damaged installations are not overwritten in place; setup reports that explicit repair is required. macOS/non-x64 show unsupported and leave typed chat available.
+- The saved project catalog no longer evicts the oldest unpinned entries after 50 opens. It reports missing/unavailable directories without removing them, shows saved Workstreams including dirty work and native conversation references, and combines retained Workstream milestones with durable explicit Git checkpoint/commit milestones.
+- **Open project** loads only the selected repository. **Resume saved work** requires confirmation, verifies the saved agent/native root, reuses existing continuation/worktree/preview authority, restores the conversation, and never sends a coding turn. An unavailable saved session is not silently replaced. In multi-agent World, reconnect the saved agent to the constellation first. New Workstream is separate.
+- Normal refresh restores accepted agent identity/history into a blank World; repository selection is explicit through Load Repo. No automatic commit, reset, checkout, or historical rollback was added.
+
+## Verified locally
+
+- Full unit/integration suite: **215 files, 1,319 tests passed**.
+- Repository-wide formatting, lint, typecheck, architecture, build, and smoke passed. The architecture gate caught the installer in browser-reachable source; it now lives in the existing declared Node-only entrypoint rather than weakening the gate.
+- Built-browser checks: optional setup consent/no microphone, existing grouped PTT, hands-free Send/Cancel/no rearm, project intake, saved-work/preview/library Resume with zero coding requests, and identity-only refresh passed. Library screenshots were inspected at desktop and portrait sizes; human acceptance remains pending.
+- Fresh Linux x64 and **native Windows x64 Node 24.18.0** Fastify setup/provider smokes both went from not-installed to ready, rejected missing consent, remained ready from a new installer instance, transcribed the public sample, and left zero volatile audio files. Sanitized measurements: `artifacts/pr15/local-voice-smoke.json`.
+- Windows proof used an isolated portable official Node executable and bundled the tracked smoke with its actual route/provider dependencies. It did **not** run a Windows browser against WSL as a substitute for native backend proof. It is not full Windows World/harness acceptance and makes no Windows peak-RSS claim.
+- No changes to the original live checkout, retained TEST45365/45363/45353/45351 sessions/builds, gateway configuration, repo visibility, or release state.
+
+## Human acceptance checklist (not yet performed)
+
+Use a fresh disposable app-state directory and unused ports; do not repoint retained operator lanes. Build this PR, start the backend with native Node on the target OS, and confirm its setup response reports that OS before testing.
+
+1. Open optional Local voice setup. Decline/leave consent unchecked: no download and no microphone prompt. Consent and install, then restart the backend and confirm ready.
+2. Enable voice separately. Quick-click PTT: exact no-recording message. Hold and speak: final caption. Right-click and speak: Send transcribes/sends once and stops; Cancel sends nothing and stops. No streaming-caption claim.
+3. Load a disposable project, start work, and leave uncommitted changes. Refresh: identity/history return but the floor starts blank. Load Repo shows the saved project, path, availability, dirty work and conversation.
+4. Confirm Resume: same Workstream/worktree/native conversation, unfinished file bytes preserved, approved preview recovery attempted, no coding turn. Explicit checkpoint/commit adds a milestone. A missing project or disconnected saved session fails visibly without deletion/replacement.
+5. Run that complete browser/harness path separately on native Windows before claiming full Windows product acceptance. Backend/provider smoke alone does not close this gate.
+
+The bounded provider smoke is `apps/local-server/scripts/exercise-local-voice.ts`, taking a private install directory and a plain 16-kHz mono PCM16 English test WAV. It uses an ephemeral loopback port and always closes its server.

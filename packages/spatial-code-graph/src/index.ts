@@ -252,6 +252,12 @@ function opaqueId(...values: string[]): string {
   return digest(...values).slice(0, 32);
 }
 
+export function repositoryReferenceForPath(rootPath: string): WorldObjectRef {
+  return objectRef(
+    opaqueId(WORLD_IDENTITY_VERSION, privateRootKey(rootPath), "repository"),
+  );
+}
+
 function objectRef(id: string): WorldObjectRef {
   return `aiw://object/${id}` as WorldObjectRef;
 }

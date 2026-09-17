@@ -21,6 +21,7 @@ import { PresentationSnapshotStore } from "@agentintersect-world/sync-yjs/node";
 import {
   WorldProjectionError,
   projectRepositoryGeneration,
+  repositoryReferenceForPath,
   queryWorldTiles,
 } from "@agentintersect-world/spatial-code-graph";
 import {
@@ -100,8 +101,12 @@ import {
 import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
 import { registerPhase14Routes } from "./phase14-routes.js";
 import type { Phase14Service } from "./phase14-service.js";
+import { LocalVoiceInstaller } from "@agentintersect-world/voice/node";
 import type { VoiceService } from "./voice-service.js";
-import { registerVoiceRoutes } from "./voice-routes.js";
+import {
+  registerLocalVoiceSetupRoutes,
+  registerVoiceRoutes,
+} from "./voice-routes.js";
 import type { CoordinationService } from "./coordination-service.js";
 import { registerCoordinationRoutes } from "./coordination-routes.js";
 import type { Phase17Service } from "./phase17-service.js";
@@ -115,7 +120,10 @@ import type { ConstellationService } from "./constellation-service.js";
 import { registerConstellationRoutes } from "./constellation-routes.js";
 import type { ConstellationMessageService } from "./constellation-message-service.js";
 import { registerConstellationMessageRoutes } from "./constellation-message-routes.js";
-import { RepositoryIntakeService } from "./repository-intake.js";
+import {
+  RepositoryIntakeService,
+  projectSavedWork,
+} from "./repository-intake.js";
 import { registerAgentSetupRoutes } from "./agent-setup-routes.js";
 import { AgentSetupService } from "./agent-setup-service.js";
 import { registerRepositoryIntakeRoutes } from "./repository-intake-routes.js";
@@ -141,6 +149,7 @@ export type LocalServer = FastifyInstance & {
   readonly worldActionService?: WorldActionService;
   readonly phase14Service?: Phase14Service;
   readonly voiceService?: VoiceService;
+  readonly localVoiceInstaller?: LocalVoiceInstaller;
   readonly coordinationService?: CoordinationService;
   readonly phase17Service?: Phase17Service;
   readonly workstreamService?: WorkstreamService;
@@ -182,6 +191,7 @@ export type LocalServerOptions = {
     | readonly WorldActionProposalResult[];
   readonly phase14Service?: Phase14Service;
   readonly voiceService?: VoiceService;
+  readonly localVoiceInstaller?: LocalVoiceInstaller;
   readonly coordinationService?: CoordinationService;
   readonly phase17Service?: Phase17Service;
   readonly workstreamService?: WorkstreamService;
@@ -463,10 +473,40 @@ export function createLocalServer(
 
     registerAgentSetupRoutes(server, agentSetupService, { success, failure });
     registerCodeGraphRoutes(server, codeGraphService, { success, failure });
-    registerRepositoryIntakeRoutes(server, repositoryIntakeService, {
-      success,
-      failure,
-    });
+    registerRepositoryIntakeRoutes(
+      server,
+      repositoryIntakeService,
+      { success, failure },
+      async (project) => {
+        const repositoryId = repositoryReferenceForPath(project.rootPath);
+        if (!options.workstreamService)
+          return {
+            repositoryId,
+            savedWorkState: "unavailable",
+            workstreams: [],
+          };
+        try {
+          const saved = projectSavedWork(
+            await options.workstreamService.history(repositoryId),
+          );
+          return {
+            repositoryId,
+            savedWorkState: "available",
+            workstreams: saved.workstreams,
+            milestones: [
+              ...(project.milestones ?? []),
+              ...saved.milestones,
+            ].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)),
+          };
+        } catch {
+          return {
+            repositoryId,
+            savedWorkState: "unavailable",
+            workstreams: [],
+          };
+        }
+      },
+    );
     server.get<{ Querystring: { repositoryId?: string } }>(
       "/repository-intake/selected",
       async (request, reply) => {
@@ -493,38 +533,43 @@ export function createLocalServer(
     );
     registerRepositoryGitRoutes(
       server,
-      new RepositoryGitService(async (projectId, workstreamId) => {
-        const project = (await repositoryIntakeService.list()).find(
-          (project) => project.id === projectId,
-        );
-        if (!project)
-          throw new RepositoryIntakeError(
-            "not-found",
-            "Saved repository not found",
+      new RepositoryGitService(
+        async (projectId, workstreamId) => {
+          const project = (await repositoryIntakeService.list()).find(
+            (project) => project.id === projectId,
           );
-        if (!workstreamId) return project.rootPath;
-        const selected = currentRepositorySelection();
-        if (
-          !selected ||
-          selected.generation.rootPath !== project.rootPath ||
-          !options.workstreamService
-        )
-          throw new RepositoryIntakeError(
-            "conflict",
-            "Load this repository before inspecting its owned Workstreams",
-          );
-        try {
-          return await options.workstreamService.gitDirectory(
-            workstreamId,
-            selected.snapshot.repositoryRef,
-          );
-        } catch (error) {
-          throw new RepositoryIntakeError(
-            "conflict",
-            error instanceof Error ? error.message : "Worktree unavailable",
-          );
-        }
-      }),
+          if (!project)
+            throw new RepositoryIntakeError(
+              "not-found",
+              "Saved repository not found",
+            );
+          if (!workstreamId) return project.rootPath;
+          const selected = currentRepositorySelection();
+          if (
+            !selected ||
+            selected.generation.rootPath !== project.rootPath ||
+            !options.workstreamService
+          )
+            throw new RepositoryIntakeError(
+              "conflict",
+              "Load this repository before inspecting its owned Workstreams",
+            );
+          try {
+            return await options.workstreamService.gitDirectory(
+              workstreamId,
+              selected.snapshot.repositoryRef,
+            );
+          } catch (error) {
+            throw new RepositoryIntakeError(
+              "conflict",
+              error instanceof Error ? error.message : "Worktree unavailable",
+            );
+          }
+        },
+        undefined,
+        (projectId, milestone) =>
+          repositoryIntakeService.recordMilestone(projectId, milestone),
+      ),
       { success, failure },
     );
     if (options.agentSessionGateway)
@@ -550,6 +595,11 @@ export function createLocalServer(
       );
     if (options.phase14Service)
       registerPhase14Routes(server, options.phase14Service);
+    registerLocalVoiceSetupRoutes(
+      server,
+      options.localVoiceInstaller ?? new LocalVoiceInstaller(),
+      { success, failure },
+    );
     if (options.voiceService)
       registerVoiceRoutes(server, options.voiceService, { success, failure });
     if (options.coordinationService)

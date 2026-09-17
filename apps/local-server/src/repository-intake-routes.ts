@@ -3,6 +3,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import {
   RepositoryIntakeError,
   type RepositoryIntakeService,
+  type RepositoryProject,
 } from "./repository-intake.js";
 
 export type RouteEnvelope = {
@@ -54,6 +55,7 @@ export function registerRepositoryIntakeRoutes(
   server: FastifyInstance,
   service: RepositoryIntakeService,
   envelope: RouteEnvelope,
+  savedWork?: (project: RepositoryProject) => Promise<object>,
 ): void {
   const tags = ["repository-intake"];
   server.get("/repository-intake/discover-path", async (request, reply) => {
@@ -89,9 +91,16 @@ export function registerRepositoryIntakeRoutes(
 
   server.get(
     "/repository-intake/projects",
-    { schema: { tags, summary: "List recent local projects" } },
+    { schema: { tags, summary: "List durable saved projects and work" } },
     async (request) =>
-      envelope.success(request, { projects: await service.list() }),
+      envelope.success(request, {
+        projects: await Promise.all(
+          (await service.list()).map(async (project) => ({
+            ...project,
+            ...(savedWork ? await savedWork(project) : {}),
+          })),
+        ),
+      }),
   );
 
   server.post(

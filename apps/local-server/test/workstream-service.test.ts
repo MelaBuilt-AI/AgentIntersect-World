@@ -13,6 +13,8 @@ import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { repositoryReferenceForPath } from "@agentintersect-world/spatial-code-graph";
+import { RepositoryIntakeService } from "../src/repository-intake.js";
 import { WorktreeAuthority } from "../src/worktree-authority.js";
 import { createLocalServer } from "../src/server.js";
 import {
@@ -166,6 +168,49 @@ afterEach(async () => {
 });
 
 describe("WorkstreamService", () => {
+  it("lists saved dirty work in the project library without loading or dispatching work", async () => {
+    const value = await fixture();
+    const repository = {
+      ...repositoryReference,
+      repositoryId: repositoryReferenceForPath(value.repository),
+    };
+    value.currentRepository = repository;
+    const work = (await value.service.create(createRequest({ repository })))
+      .workstream;
+    const dirtyFile = join(
+      value.worktrees,
+      work.authority.relativePath,
+      "unfinished.txt",
+    );
+    await writeFile(dirtyFile, "keep my unfinished work");
+    await value.service.recordAgentTurnOutcome(agentReference.agentId);
+    const intake = new RepositoryIntakeService(
+      join(value.root, "library.json"),
+    );
+    await intake.openLocal({ rootPath: value.repository });
+    const server = createLocalServer({
+      workstreamService: value.service,
+      repositoryIntakeService: intake,
+    });
+    try {
+      const response = await server.inject({
+        method: "GET",
+        url: "/repository-intake/projects",
+      });
+      expect(response.statusCode).toBe(200);
+      const project = response.json().data.projects[0];
+      expect(project.workstreams[0]).toMatchObject({
+        workstreamId: work.workstreamId,
+        nativeSessionId: agentReference.nativeSessionId,
+        worktreeState: "dirty",
+      });
+      expect(project.milestones).not.toHaveLength(0);
+      expect(server.currentRepositorySelection()).toBeNull();
+      expect(await readFile(dirtyFile, "utf8")).toBe("keep my unfinished work");
+    } finally {
+      await server.close();
+    }
+  });
   it("records a readable completion without clipped native narration", async () => {
     const value = await fixture();
     await value.service.create(createRequest());

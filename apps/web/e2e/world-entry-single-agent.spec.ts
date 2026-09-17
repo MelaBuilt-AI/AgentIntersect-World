@@ -1060,7 +1060,7 @@ test("@repository-intake selects a local project from normal World", async ({
 
   const intake = page.getByRole("dialog", { name: "Repository Intake_" });
   await expect(intake).toBeVisible();
-  await expect(intake).toContainText("Recent / pinned");
+  await expect(intake).toContainText("Saved project library");
   await expect(intake).toContainText("Open local");
   await expect(intake).toContainText("Create new");
   await expect(intake).toContainText("Clone GitHub");
@@ -1146,6 +1146,30 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
 
   const project = {
     id: "menu-test",
+    repositoryId: repository.repositoryId,
+    availability: "available",
+    savedWorkState: "available",
+    workstreams: [
+      {
+        workstreamId: baseWorkstream.workstreamId,
+        title: baseWorkstream.title,
+        status: "ready-for-review",
+        updatedAt: baseWorkstream.updatedAt,
+        branch: baseWorkstream.authority.branch,
+        worktreeState: "dirty",
+        agentId: agent.agentId,
+        nativeSessionId: agent.nativeSessionId,
+      },
+    ],
+    milestones: [
+      {
+        id: "checkpoint",
+        kind: "checkpoint",
+        label: "Saved settings",
+        occurredAt: baseWorkstream.updatedAt,
+        head: "a".repeat(40),
+      },
+    ],
     name: "Menu Test",
     rootPath: "/home/browser-fixture/projects/menu-test",
     source: "local",
@@ -1304,7 +1328,7 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   );
   await page.screenshot({ path: testInfo.outputPath("load-repo-desktop.png") });
   await intake
-    .getByRole("button", { name: "Open recent", exact: true })
+    .getByRole("button", { name: "Open project", exact: true })
     .click();
   await expect(page.getByTestId("world-hud")).toContainText("Repository floor");
   const errors: string[] = [];
@@ -1369,6 +1393,74 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await page.screenshot({
     path: testInfo.outputPath("continuity-preview-ready.png"),
   });
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+  await expect(intake).toContainText("Saved project library");
+  await expect(intake).toContainText("workstream/settings · dirty");
+  await intake.getByText("Work and Git milestones (1)").click();
+  await expect(intake).toContainText("Saved settings");
+  const resume = intake.getByRole("button", {
+    name: "Resume saved work",
+    exact: true,
+  });
+  await expect(resume).toBeDisabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: testInfo.outputPath("project-library-portrait.png"),
+  });
+  expect(
+    await intake.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+  ).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await intake
+    .getByRole("checkbox", {
+      name: "Resume this saved worktree and conversation without a coding turn",
+    })
+    .check();
+  const accepted = {
+    ...proposal,
+    avatarSource: {
+      kind: "imported",
+      version: 2,
+      mode: "original",
+      modelId: "cat-agent-01",
+    },
+  };
+  await page.route(
+    `**/api/agent-sessions/${session.sessionId}/history`,
+    (route) =>
+      fulfill(route, {
+        sessionId: session.sessionId,
+        continuity: "current",
+        messages: [{ role: "user", text: "Keep my unfinished settings" }],
+        transcriptAuthority: "hermes",
+        avatarConsent: { state: "accepted", current: accepted, previous: null },
+      }),
+  );
+  await page.route(
+    `**/api/agent-sessions/${session.sessionId}/avatar-proposal`,
+    (route) => fulfill(route, accepted),
+  );
+  const codingRequests: string[] = [];
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      /\/stream$/.test(new URL(request.url()).pathname)
+    )
+      codingRequests.push(request.url());
+  });
+  await page.screenshot({
+    path: testInfo.outputPath("project-library-desktop.png"),
+  });
+  await resume.click();
+  await expect(intake).toHaveCount(0);
+  expect(continued).toBe(3);
+  await expect(
+    page.getByRole("log", { name: "Conversation and activity" }),
+  ).toContainText("Keep my unfinished settings");
+  expect(created).toBe(0);
+  expect(codingRequests).toEqual([]);
+
   await openCodeWheel(page);
   await page.getByRole("button", { name: "Workbench", exact: true }).click();
   await workbench
@@ -4252,11 +4344,8 @@ test("ordinary refresh restores the accepted exact session and authoritative tra
     else await page.reload();
     await expect(page.locator("main.world-room")).toHaveAttribute(
       "data-floor-state",
-      "repository",
+      "blank",
     );
-    await expect(
-      page.getByRole("complementary", { name: "Project / Current Work" }),
-    ).toContainText("AgentIntersect World");
     await expect(page.getByTestId("world-hud")).toBeVisible();
     const transcript = page.getByRole("log", {
       name: "Conversation and activity",

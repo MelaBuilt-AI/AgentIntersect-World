@@ -13,6 +13,50 @@ import {
 import { basename, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 
+import type { Workstream } from "./workstream-service.js";
+export type ProjectMilestone = {
+  readonly id: string;
+  readonly kind: "work" | "commit" | "checkpoint";
+  readonly label: string;
+  readonly occurredAt: string;
+  readonly workstreamId?: string;
+  readonly head?: string;
+};
+export function projectSavedWork(records: readonly Workstream[]) {
+  const workstreams = [...records]
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .map((work) => ({
+      workstreamId: work.workstreamId,
+      title: work.title,
+      status: work.status,
+      updatedAt: work.updatedAt,
+      branch: work.authority.branch,
+      worktreeState:
+        work.projection.changedFiles.length && work.worktreeState === "current"
+          ? "dirty"
+          : work.worktreeState,
+      agentId: work.agent.agentId,
+      nativeSessionId: work.agent.nativeSessionId,
+    }));
+  const milestones: ProjectMilestone[] = records.flatMap((work) =>
+    work.events
+      .filter(
+        (event) =>
+          ["ready-for-review", "completed"].includes(event.status) &&
+          !/No coding turn sent|continued with a new session/i.test(
+            event.summary,
+          ),
+      )
+      .map((event) => ({
+        id: event.eventId,
+        kind: "work" as const,
+        label: event.summary,
+        occurredAt: event.occurredAt,
+        workstreamId: work.workstreamId,
+      })),
+  );
+  return { workstreams, milestones };
+}
 export type RepositoryProject = {
   readonly id: string;
   readonly name: string;
@@ -20,7 +64,9 @@ export type RepositoryProject = {
   readonly source: "local" | "created" | "github";
   readonly githubRepository?: string;
   readonly pinned: boolean;
+  readonly milestones?: readonly ProjectMilestone[];
   readonly lastOpenedAt: string;
+  readonly availability?: "available" | "missing" | "unavailable";
 };
 
 type RepositoryIntakeStore = {
@@ -133,13 +179,32 @@ export class RepositoryIntakeService {
 
   async list(): Promise<readonly RepositoryProject[]> {
     await this.#load();
-    return structuredClone(
-      [...this.#projects!].sort(
-        (left, right) =>
-          Number(right.pinned) - Number(left.pinned) ||
-          right.lastOpenedAt.localeCompare(left.lastOpenedAt) ||
-          left.name.localeCompare(right.name),
-      ),
+    return Promise.all(
+      structuredClone(
+        [...this.#projects!].sort(
+          (left, right) =>
+            Number(right.pinned) - Number(left.pinned) ||
+            right.lastOpenedAt.localeCompare(left.lastOpenedAt) ||
+            left.name.localeCompare(right.name),
+        ),
+      ).map(async (project) => {
+        try {
+          return {
+            ...project,
+            availability: (await stat(project.rootPath)).isDirectory()
+              ? ("available" as const)
+              : ("missing" as const),
+          };
+        } catch (error) {
+          return {
+            ...project,
+            availability:
+              (error as NodeJS.ErrnoException).code === "ENOENT"
+                ? ("missing" as const)
+                : ("unavailable" as const),
+          };
+        }
+      }),
     );
   }
 
@@ -246,6 +311,30 @@ export class RepositoryIntakeService {
     });
   }
 
+  async recordMilestone(
+    id: string,
+    milestone: ProjectMilestone,
+  ): Promise<void> {
+    await this.#serialize(async () => {
+      const project = this.#projects!.find((item) => item.id === id);
+      if (!project)
+        throw new RepositoryIntakeError(
+          "not-found",
+          "Saved project was not found",
+        );
+      const milestones = [
+        ...(project.milestones ?? []).filter(
+          (item) => item.id !== milestone.id,
+        ),
+        milestone,
+      ];
+      this.#projects = this.#projects!.map((item) =>
+        item.id === id ? { ...item, milestones } : item,
+      );
+      await this.#save();
+    });
+  }
+
   async pin(id: string, pinned: boolean): Promise<RepositoryProject> {
     return await this.#serialize(async () => {
       const index = this.#projects!.findIndex((project) => project.id === id);
@@ -303,6 +392,7 @@ export class RepositoryIntakeService {
     );
     const github = githubRepository ?? existing?.githubRepository;
     const project: RepositoryProject = {
+      ...existing,
       id: projectId(rootPath),
       name: this.#name(requestedName ?? existing?.name ?? basename(rootPath)),
       rootPath,
@@ -314,7 +404,7 @@ export class RepositoryIntakeService {
     this.#projects = [
       project,
       ...this.#projects!.filter((candidate) => candidate.id !== project.id),
-    ].slice(0, 50);
+    ];
     await this.#save();
     return structuredClone(project);
   }

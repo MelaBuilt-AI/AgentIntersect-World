@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { MAX_ENCODED_AUDIO_BYTES } from "@agentintersect-world/voice";
 
+import type { LocalVoiceInstaller } from "@agentintersect-world/voice/node";
 import { VoiceService, VoiceServiceError } from "./voice-service.js";
 
 type RouteEnvelope = {
@@ -16,6 +17,44 @@ type RouteEnvelope = {
     message: string,
   ) => unknown;
 };
+
+export function registerLocalVoiceSetupRoutes(
+  server: FastifyInstance,
+  installer: LocalVoiceInstaller,
+  envelope: RouteEnvelope,
+) {
+  server.get("/voice/setup", async (request) =>
+    envelope.success(request, await installer.status()),
+  );
+  server.post(
+    "/voice/setup",
+    {
+      schema: {
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["consent"],
+          properties: { consent: { const: true } },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        return envelope.success(request, await installer.install(true));
+      } catch {
+        return reply
+          .code(503)
+          .send(
+            envelope.failure(
+              request,
+              "authority_unavailable",
+              (await installer.status()).message,
+            ),
+          );
+      }
+    },
+  );
+}
 
 function fail(
   error: unknown,

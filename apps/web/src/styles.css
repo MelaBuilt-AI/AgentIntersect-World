@@ -2268,6 +2268,27 @@
   padding: 0.65rem 0.75rem;
 }
 
+.repository-intake .saved-project-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.repository-intake .saved-project-card select {
+  max-width: 100%;
+  min-width: 0;
+}
+.repository-intake label.saved-project-card__consent {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.repository-intake .saved-project-card__consent input[type="checkbox"] {
+  flex: 0 0 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  padding: 0;
+}
+
 .repository-intake input {
   min-width: 0;
   color: #f8fafc;

@@ -12,13 +12,189 @@ export type RepositoryProject = {
   readonly githubRepository?: string;
   readonly pinned: boolean;
   readonly lastOpenedAt: string;
+  readonly availability?: "available" | "missing" | "unavailable";
+  readonly repositoryId?: string;
+  readonly savedWorkState?: "available" | "unavailable";
+  readonly workstreams?: readonly {
+    workstreamId: string;
+    title: string;
+    status: string;
+    updatedAt: string;
+    branch: string;
+    worktreeState: string;
+    agentId: string;
+    nativeSessionId: string;
+  }[];
+  readonly milestones?: readonly {
+    id: string;
+    kind: string;
+    label: string;
+    occurredAt: string;
+    workstreamId?: string;
+    head?: string;
+  }[];
 };
+
+function SavedProjectCard({
+  project,
+  busy,
+  onOpen,
+  onPin,
+  onResume,
+}: {
+  readonly project: RepositoryProject;
+  readonly busy: boolean;
+  readonly onOpen: (rootPath: string, name?: string) => void;
+  readonly onPin: (id: string, pinned: boolean) => void;
+  readonly onResume?: (
+    project: RepositoryProject,
+    workstreamId: string,
+  ) => void;
+}) {
+  const [selectedId, setSelectedId] = useState(
+    project.workstreams?.[0]?.workstreamId ?? "",
+  );
+  const [confirmed, setConfirmed] = useState(false);
+  const selected = project.workstreams?.find(
+    (work) => work.workstreamId === selectedId,
+  );
+  const unavailable =
+    project.availability === "missing" ||
+    project.availability === "unavailable";
+  const resumable =
+    !!selected &&
+    !["missing", "removed", "wrong-branch"].includes(selected.worktreeState) &&
+    selected.status !== "cancelled";
+  return (
+    <li className="saved-project-card">
+      <strong>{project.name}</strong>
+      <code>{project.rootPath}</code>
+      <small>
+        {project.availability ?? "Availability checked on open"} · Last opened{" "}
+        {new Date(project.lastOpenedAt).toLocaleString()}
+      </small>
+      <div>
+        <button
+          type="button"
+          className={
+            !busy && !unavailable ? "world-action--enabled" : undefined
+          }
+          disabled={busy || unavailable}
+          onClick={() => onOpen(project.rootPath, project.name)}
+        >
+          Open project
+        </button>
+        <button
+          type="button"
+          className={!busy ? "world-action--enabled" : undefined}
+          disabled={busy}
+          onClick={() => onPin(project.id, !project.pinned)}
+        >
+          {project.pinned ? "Unpin" : "Pin"}
+        </button>
+      </div>
+      {project.savedWorkState === "unavailable" ? (
+        <p>
+          Saved work is currently unavailable. Its files and history have not
+          been removed.
+        </p>
+      ) : project.workstreams?.length ? (
+        <>
+          <label>
+            Saved work for {project.name}
+            <select
+              value={selectedId}
+              disabled={busy}
+              onChange={(event) => {
+                setSelectedId(event.target.value);
+                setConfirmed(false);
+              }}
+            >
+              {project.workstreams.map((work, index) => (
+                <option key={work.workstreamId} value={work.workstreamId}>
+                  {index === 0 ? "Latest · " : ""}
+                  {work.title} · {work.status}
+                </option>
+              ))}
+            </select>
+          </label>
+          {selected ? (
+            <>
+              <p>
+                {selected.branch} · {selected.worktreeState} · Saved{" "}
+                {new Date(selected.updatedAt).toLocaleString()}
+              </p>
+              <small>Conversation: {selected.nativeSessionId}</small>
+            </>
+          ) : null}
+          <label className="saved-project-card__consent">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              disabled={busy || unavailable || !resumable}
+              onChange={(event) => setConfirmed(event.target.checked)}
+            />{" "}
+            Resume this saved worktree and conversation without a coding turn
+          </label>
+          <button
+            type="button"
+            className={
+              confirmed && !busy && !unavailable && resumable
+                ? "world-action--enabled"
+                : undefined
+            }
+            disabled={
+              busy || unavailable || !resumable || !confirmed || !onResume
+            }
+            onClick={() => {
+              if (selected) onResume?.(project, selected.workstreamId);
+            }}
+          >
+            Resume saved work
+          </button>
+          {!resumable ? (
+            <p>
+              This saved work is unavailable to resume. Open the project to
+              inspect it; no files will be reset.
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <p>
+          No saved Workstreams. Open the project, then choose New Workstream.
+        </p>
+      )}
+      {project.milestones?.length ? (
+        <details>
+          <summary>
+            Work and Git milestones ({project.milestones.length})
+          </summary>
+          <ol>
+            {project.milestones.map((milestone) => (
+              <li key={milestone.id}>
+                <strong>{milestone.kind}</strong> ·{" "}
+                {new Date(milestone.occurredAt).toLocaleString()}
+                <p>{milestone.label}</p>
+                {milestone.head ? <code>{milestone.head}</code> : null}
+              </li>
+            ))}
+          </ol>
+        </details>
+      ) : null}
+      <small>
+        Resume verifies current files. Milestones are history, not rollback
+        actions.
+      </small>
+    </li>
+  );
+}
 
 export function RepositoryIntakeDialog({
   projects,
   busy,
   message,
   onOpen,
+  onResume,
   onCreate,
   onClone,
   onPin,
@@ -28,6 +204,10 @@ export function RepositoryIntakeDialog({
   readonly busy: boolean;
   readonly message: string;
   readonly onOpen: (rootPath: string, name?: string) => void;
+  readonly onResume?: (
+    project: RepositoryProject,
+    workstreamId: string,
+  ) => void;
   readonly onCreate: (rootPath: string, name: string) => void;
   readonly onClone: (
     repository: string,
@@ -134,37 +314,24 @@ export function RepositoryIntakeDialog({
       </section>
       <div className="repository-intake__grid">
         <section aria-labelledby="repository-recents-title">
-          <h3 id="repository-recents-title">Recent / pinned</h3>
+          <h3 id="repository-recents-title">Saved project library</h3>
+          <p>
+            Projects opened through World stay here. Open loads files only;
+            Resume restores saved work without sending a task.
+          </p>
           {projects.length === 0 ? (
             <p>No saved projects yet.</p>
           ) : (
             <ul>
               {projects.map((project) => (
-                <li key={project.id}>
-                  <strong>{project.name}</strong>
-                  <small>
-                    {project.source === "github"
-                      ? project.githubRepository
-                      : project.source}
-                  </small>
-                  <div>
-                    <button
-                      type="button"
-                      className="world-action--enabled"
-                      disabled={busy}
-                      onClick={() => onOpen(project.rootPath, project.name)}
-                    >
-                      Open recent
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => onPin(project.id, !project.pinned)}
-                    >
-                      {project.pinned ? "Unpin" : "Pin"}
-                    </button>
-                  </div>
-                </li>
+                <SavedProjectCard
+                  key={project.id}
+                  project={project}
+                  busy={busy}
+                  onOpen={onOpen}
+                  onPin={onPin}
+                  {...(onResume ? { onResume } : {})}
+                />
               ))}
             </ul>
           )}

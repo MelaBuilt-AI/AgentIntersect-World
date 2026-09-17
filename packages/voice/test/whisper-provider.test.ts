@@ -22,6 +22,31 @@ import {
 const root = () => mkdtempSync(path.join(tmpdir(), "aiw-voice-provider-test-"));
 
 describe("Phase 15 pinned whisper provider", () => {
+  it("maps a short-input missing result without leaking the private path", async () => {
+    const provider = new WhisperCliProvider({
+      providerRoot: root(),
+      attest: async () => ({ available: true, reason: null }),
+      runner: async () => ({
+        exitCode: 0,
+        signal: null,
+        elapsedMs: 1,
+        peakRssBytes: 1,
+      }),
+    });
+    await expect(
+      provider.transcribe(encodePcm16Wav(new Float32Array(160), 16_000)),
+    ).rejects.toMatchObject({
+      code: "empty-transcript",
+      message: "Nothing recorded. Left click and hold while talking.",
+    });
+    await expect(
+      provider.transcribe(encodePcm16Wav(new Float32Array(16000), 16_000)),
+    ).rejects.toMatchObject({
+      code: "provider-failed",
+      message:
+        "Local transcription did not produce a result. Please try again.",
+    });
+  });
   it("re-attests every current runtime file against the pinned inventory", () => {
     const root = mkdtempSync(path.join(tmpdir(), "aiw-runtime-inventory-"));
     const runtimeRoot = path.join(root, "runtime-extracted");

@@ -12,6 +12,11 @@ import {
   type VoiceProviderAttestation,
 } from "./index.js";
 
+import { gunzipSync } from "node:zlib";
+import { extract } from "tar-stream";
+import { unzipSync } from "fflate";
+import { RUNTIME_PINS } from "./runtime-pins.js";
+
 const PROVIDER_ID = "whisper.cpp-v1.9.1-base.en" as const;
 const CLI_SHA256 =
   "427dfb509f2c04d0f01c101978b5666102c6f7e3abf2a236452db5939f5b533a";
@@ -312,6 +317,7 @@ function transcriptText(raw: unknown): string {
 
 export class WhisperCliProvider {
   readonly #providerRoot: string | undefined;
+  readonly #managed: boolean;
   readonly #tempRoot: string;
   readonly #runner: WhisperProcessRunner;
   readonly #attestOverride: AttestOverride | undefined;
@@ -320,11 +326,14 @@ export class WhisperCliProvider {
 
   constructor(options: {
     readonly providerRoot?: string;
+    readonly managedDirectory?: string;
     readonly tempRoot?: string;
     readonly runner?: WhisperProcessRunner;
     readonly attest?: AttestOverride;
   }) {
-    this.#providerRoot = options.providerRoot;
+    this.#managed = !options.providerRoot;
+    this.#providerRoot =
+      options.providerRoot ?? managedVoiceRoot(options.managedDirectory);
     this.#tempRoot =
       options.tempRoot ?? path.join(os.tmpdir(), "agentintersect-world-voice");
     this.#runner = options.runner ?? defaultRunner;
@@ -343,6 +352,15 @@ export class WhisperCliProvider {
     if (this.#attestOverride) {
       const result = await this.#attestOverride();
       return attestation(result.available, result.reason);
+    }
+    if (this.#managed) {
+      const available = await verifyManagedVoice(this.#providerRoot!);
+      return attestation(
+        available,
+        available
+          ? null
+          : "Local voice is not installed or could not be verified. Open Local voice setup.",
+      );
     }
     if (!this.#providerRoot)
       return attestation(
@@ -453,8 +471,14 @@ export class WhisperCliProvider {
       const providerRoot = fs.realpathSync(
         this.#providerRoot ?? this.#tempRoot,
       );
-      const executable = path.join(providerRoot, CLI_RELATIVE);
-      const model = path.join(providerRoot, MODEL_RELATIVE);
+      const executable = path.join(
+        providerRoot,
+        this.#managed ? voicePlatformPin()!.cli : CLI_RELATIVE,
+      );
+      const model = path.join(
+        providerRoot,
+        this.#managed ? "ggml-base.en.bin" : MODEL_RELATIVE,
+      );
       let capturedBytes = 0;
       const result = await this.#runner({
         executable,
@@ -479,7 +503,18 @@ export class WhisperCliProvider {
         ],
         cwd: directory,
         env: {
-          PATH: "/usr/bin:/bin",
+          ...(process.platform === "win32"
+            ? {
+                SystemRoot: process.env.SystemRoot,
+                WINDIR: process.env.WINDIR,
+                TEMP: directory,
+                TMP: directory,
+              }
+            : {}),
+          PATH:
+            process.platform === "win32"
+              ? `${path.dirname(executable)};${process.env.SystemRoot}\\System32`
+              : "/usr/bin:/bin",
           HOME: directory,
           LD_LIBRARY_PATH: path.dirname(executable),
           LC_ALL: "C",
@@ -518,6 +553,15 @@ export class WhisperCliProvider {
           "provider-failed",
           "Local transcription failed.",
         );
+      if (!fs.existsSync(resultPath)) {
+        const short = inspectPcm16Wav(wav).durationMs < 200;
+        throw new VoiceProviderError(
+          short ? "empty-transcript" : "provider-failed",
+          short
+            ? "Nothing recorded. Left click and hold while talking."
+            : "Local transcription did not produce a result. Please try again.",
+        );
+      }
       const stat = fs.statSync(resultPath);
       if (capturedBytes + stat.size > MAX_PROVIDER_OUTPUT_BYTES)
         throw new VoiceProviderError(
@@ -543,5 +587,281 @@ export class WhisperCliProvider {
       fs.rmSync(directory, { recursive: true, force: true });
       this.#active = false;
     }
+  }
+}
+
+export const MODEL_PIN = {
+  url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.en.bin",
+  size: 147_964_211,
+  sha256: "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002",
+};
+export function voicePlatformPin(
+  platform: string = process.platform,
+  arch: string = process.arch,
+) {
+  return arch === "x64" && (platform === "linux" || platform === "win32")
+    ? RUNTIME_PINS[platform]
+    : null;
+}
+export function defaultVoiceDirectory() {
+  if (process.env.AIW_LOCAL_VOICE_DIR)
+    return path.resolve(process.env.AIW_LOCAL_VOICE_DIR);
+  return path.join(
+    process.platform === "win32"
+      ? (process.env.LOCALAPPDATA ??
+          path.join(os.homedir(), "AppData", "Local"))
+      : (process.env.XDG_DATA_HOME ??
+          path.join(os.homedir(), ".local", "share")),
+    "AgentIntersect-World",
+    "voice",
+  );
+}
+export function managedVoiceRoot(
+  directory = defaultVoiceDirectory(),
+  platform = process.platform,
+  arch = process.arch,
+) {
+  return path.join(directory, `whisper-v1.9.1-base.en-${platform}-${arch}`);
+}
+const hash = (bytes: Uint8Array) =>
+  createHash("sha256").update(bytes).digest("hex");
+export async function verifyManagedVoice(
+  root: string,
+  platform: string = process.platform,
+  arch: string = process.arch,
+) {
+  const pin = voicePlatformPin(platform, arch);
+  if (!pin) return false;
+  try {
+    for (const file of [
+      ...pin.files,
+      { ...MODEL_PIN, path: "ggml-base.en.bin" },
+    ]) {
+      const target = path.join(root, file.path);
+      const stat = await fs.promises.lstat(target);
+      if (
+        !stat.isFile() ||
+        stat.isSymbolicLink() ||
+        stat.size !== file.size ||
+        hash(await fs.promises.readFile(target)) !== file.sha256
+      )
+        return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+export type LocalVoiceStatus = {
+  state: "unsupported" | "not-installed" | "installing" | "ready" | "failed";
+  platform: string;
+  message: string;
+  downloadBytes: number;
+};
+export class LocalVoiceInstaller {
+  readonly root: string;
+  readonly #directory: string;
+  readonly #platform: string;
+  readonly #arch: string;
+  readonly #fetch: typeof fetch;
+  #installing = false;
+  #failure = "";
+  constructor(
+    options: {
+      directory?: string;
+      platform?: string;
+      arch?: string;
+      fetcher?: typeof fetch;
+    } = {},
+  ) {
+    this.#directory = options.directory ?? defaultVoiceDirectory();
+    this.#platform = options.platform ?? process.platform;
+    this.#arch = options.arch ?? process.arch;
+    this.root = path.join(
+      this.#directory,
+      `whisper-v1.9.1-base.en-${this.#platform}-${this.#arch}`,
+    );
+    this.#fetch = options.fetcher ?? fetch;
+  }
+  async status(): Promise<LocalVoiceStatus> {
+    const pin = voicePlatformPin(this.#platform, this.#arch);
+    const base = {
+      platform: `${this.#platform}-${this.#arch}`,
+      downloadBytes: pin ? pin.size + MODEL_PIN.size : 0,
+    };
+    if (!pin)
+      return {
+        ...base,
+        state: "unsupported",
+        message:
+          "Local voice setup supports Linux x64 and native Windows x64 only. Typed chat remains available.",
+      };
+    if (this.#installing)
+      return {
+        ...base,
+        state: "installing",
+        message:
+          "Downloading and verifying local voice. The microphone remains off.",
+      };
+    if (await verifyManagedVoice(this.root, this.#platform, this.#arch))
+      return {
+        ...base,
+        state: "ready",
+        message:
+          "Local voice installed and verified. English, final captions only. Microphone remains off until enabled.",
+      };
+    return {
+      ...base,
+      state: this.#failure ? "failed" : "not-installed",
+      message:
+        this.#failure ||
+        "Optional local English transcription is not installed.",
+    };
+  }
+  async #download(pin: { url: string; size: number; sha256: string }) {
+    const response = await this.#fetch(pin.url, {
+      signal: AbortSignal.timeout(300_000),
+    });
+    if (!response.ok || !response.body)
+      throw new Error("Download unavailable. Check your connection and retry.");
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    const reader = response.body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > pin.size)
+          throw new Error(
+            "Download verification failed; nothing was activated.",
+          );
+        chunks.push(value);
+      }
+    } finally {
+      await reader.cancel();
+    }
+    const bytes = Buffer.concat(chunks);
+    if (size !== pin.size || hash(bytes) !== pin.sha256)
+      throw new Error("Download verification failed; nothing was activated.");
+    return bytes;
+  }
+  async install(consent: boolean): Promise<LocalVoiceStatus> {
+    if (consent !== true)
+      throw new Error("Explicit local voice installation consent is required.");
+    if (this.#installing) return this.status();
+    const pin = voicePlatformPin(this.#platform, this.#arch);
+    if (!pin) return this.status();
+    if ((await this.status()).state === "ready") return this.status();
+    this.#installing = true;
+    this.#failure = "";
+    let staging: string | undefined;
+    try {
+      await fs.promises.mkdir(this.#directory, {
+        recursive: true,
+        mode: 0o700,
+      });
+      staging = await fs.promises.mkdtemp(
+        path.join(this.#directory, ".install-"),
+      );
+      const archive = await this.#download(pin);
+      const members = new Map<string, Uint8Array>();
+      if (this.#platform === "win32") {
+        // Exact pinned archive verified before decompression; select only the CLI and its libraries.
+        const files = unzipSync(archive, {
+          filter: (entry) => pin.files.some((file) => file.path === entry.name),
+        });
+        for (const [name, bytes] of Object.entries(files))
+          members.set(name, bytes);
+      } else {
+        const parser = extract();
+        const complete = new Promise<void>((resolve, reject) => {
+          parser.on("error", reject);
+          parser.on("finish", resolve);
+          parser.on("entry", (header, stream, next) => {
+            const chunks: Buffer[] = [];
+            const wanted = pin.files.some((file) => file.path === header.name);
+            stream.on("data", (chunk: Buffer) => {
+              if (wanted && header.type === "file") chunks.push(chunk);
+            });
+            stream.on("error", reject);
+            stream.on("end", () => {
+              if (wanted && header.type === "file")
+                members.set(header.name, Buffer.concat(chunks));
+              next();
+            });
+            stream.resume();
+          });
+        });
+        parser.end(gunzipSync(archive, { maxOutputLength: 128 * 1024 * 1024 }));
+        await complete;
+        // Approved upstream library aliases become regular copies, never links.
+        const aliases: Record<string, string> = pin.aliases;
+        const resolveAlias = (name: string): Uint8Array | undefined =>
+          members.get(name) ??
+          (aliases[name]
+            ? resolveAlias(
+                path.posix.join(path.posix.dirname(name), aliases[name]!),
+              )
+            : undefined);
+        for (const file of pin.files) {
+          const bytes = resolveAlias(file.path);
+          if (bytes) members.set(file.path, bytes);
+        }
+      }
+      for (const file of pin.files) {
+        const bytes = members.get(file.path);
+        if (
+          !bytes ||
+          bytes.byteLength !== file.size ||
+          hash(bytes) !== file.sha256
+        )
+          throw new Error(
+            "Runtime verification failed; nothing was activated.",
+          );
+        const target = path.join(staging, file.path);
+        await fs.promises.mkdir(path.dirname(target), {
+          recursive: true,
+          mode: 0o700,
+        });
+        await fs.promises.writeFile(target, bytes, {
+          mode: file.path === pin.cli ? 0o700 : 0o600,
+          flag: "wx",
+        });
+      }
+      await fs.promises.writeFile(
+        path.join(staging, "ggml-base.en.bin"),
+        await this.#download(MODEL_PIN),
+        { mode: 0o600, flag: "wx" },
+      );
+      if (!(await verifyManagedVoice(staging, this.#platform, this.#arch)))
+        throw new Error(
+          "Installation verification failed; nothing was activated.",
+        );
+      // Never replace an existing damaged install or an active provider in place.
+      try {
+        await fs.promises.access(this.root);
+        throw new Error(
+          "Existing local voice files need attention. Remove the damaged installation before retrying.",
+        );
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      await fs.promises.rename(staging, this.root);
+    } catch (error) {
+      this.#failure =
+        error instanceof Error &&
+        /verification|Download unavailable|Existing local voice/.test(
+          error.message,
+        )
+          ? error.message
+          : "Local voice installation failed. Check disk space and connectivity, then retry.";
+      throw new Error(this.#failure, { cause: error });
+    } finally {
+      if (staging)
+        await fs.promises.rm(staging, { recursive: true, force: true });
+      this.#installing = false;
+    }
+    return this.status();
   }
 }

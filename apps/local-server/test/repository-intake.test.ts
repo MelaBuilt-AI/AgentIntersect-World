@@ -43,6 +43,25 @@ afterEach(async () => {
 });
 
 describe("repository intake API", () => {
+  it("keeps all saved projects across restart and reports missing folders without dropping them", async () => {
+    const state = await fixture();
+    const file = join(state.root, "library.json");
+    const service = new RepositoryIntakeService(file);
+    for (let i = 0; i < 52; i++) {
+      const rootPath = join(state.root, `project-${i}`);
+      await mkdir(rootPath);
+      await service.openLocal({ rootPath });
+    }
+    await rm(join(state.root, "project-0"), { recursive: true });
+    const saved = await new RepositoryIntakeService(file).list();
+    expect(saved).toHaveLength(52);
+    expect(saved.find((item) => item.name === "project-0")).toMatchObject({
+      availability: "missing",
+    });
+    expect(saved.find((item) => item.name === "project-51")).toMatchObject({
+      availability: "available",
+    });
+  });
   it("discovers the real configured home without writes and explicitly creates projects", async () => {
     const state = await fixture();
     const intake = new RepositoryIntakeService(

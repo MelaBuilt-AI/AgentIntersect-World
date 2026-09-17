@@ -1,0 +1,57 @@
+{
+  "scope": "Fresh installs and native Node/Fastify provider smokes, not human microphone/full Windows harness acceptance",
+  "date": "2026-09-17",
+  "sample": {
+    "source": "https://raw.githubusercontent.com/ggml-org/whisper.cpp/v1.9.1/samples/jfk.wav",
+    "preparation": "Public sample rewritten as plain PCM16 WAV (16 kHz mono) for the bounded input contract",
+    "inputSha256": "d7d4e74b8a333ed02186008bc109a1b1a19d16da668bd56e785d80d69a16a72f"
+  },
+  "results": [
+    {
+      "platform": "linux",
+      "arch": "x64",
+      "node": "v24.18.0",
+      "before": "not-installed",
+      "consentGate": 400,
+      "setup": {
+        "platform": "linux-x64",
+        "downloadBytes": 157343446,
+        "state": "ready",
+        "message": "Local voice installed and verified. English, final captions only. Microphone remains off until enabled."
+      },
+      "restartReady": true,
+      "volatileFiles": 0,
+      "scope": "native Fastify setup routes and real CLI; not full harness or microphone acceptance",
+      "transcription": {
+        "elapsedMs": 805.362,
+        "peakRssBytes": 301129728,
+        "providerId": "whisper.cpp-v1.9.1-base.en",
+        "outputBytes": 7763,
+        "matchedExpectedPhrase": true
+      }
+    },
+    {
+      "platform": "win32",
+      "arch": "x64",
+      "node": "v24.18.0",
+      "before": "not-installed",
+      "consentGate": 400,
+      "setup": {
+        "platform": "win32-x64",
+        "downloadBytes": 155946312,
+        "state": "ready",
+        "message": "Local voice installed and verified. English, final captions only. Microphone remains off until enabled."
+      },
+      "restartReady": true,
+      "volatileFiles": 0,
+      "scope": "native Fastify setup routes and real CLI; not full harness or microphone acceptance",
+      "transcription": {
+        "elapsedMs": 897.645,
+        "peakRssBytes": null,
+        "providerId": "whisper.cpp-v1.9.1-base.en",
+        "outputBytes": 8319,
+        "matchedExpectedPhrase": true
+      }
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import {
 import type { WorldAgentSession } from "../sessions/session-client.js";
 
 type CaptureCode =
+  | "empty-recording"
   | "permission-denied"
   | "no-device"
   | "lost-device"
@@ -348,6 +349,16 @@ export class VoiceCaptureController {
       Math.floor((MAX_ENCODED_AUDIO_BYTES - 44) / 2),
       Math.floor((MAX_UTTERANCE_MS * 16_000) / 1_000),
     );
+    if (resampled.length < 1_600) {
+      samples.fill(0);
+      resampled.fill(0);
+      this.#chunks = [];
+      this.#sampleCount = 0;
+      throw new BrowserVoiceError(
+        "empty-recording",
+        "Nothing recorded. Left click and hold while talking.",
+      );
+    }
     const wav = encodePcm16Wav(resampled.subarray(0, maxSamples), 16_000);
     samples.fill(0);
     resampled.fill(0);

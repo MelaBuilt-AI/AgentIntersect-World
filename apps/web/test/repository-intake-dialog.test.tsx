@@ -30,7 +30,9 @@ describe("RepositoryIntakeDialog", () => {
     expect(html).toContain('role="dialog"');
     expect(html).toContain("Repository Intake_");
     expect(html).toContain("Notes App");
-    expect(html).toContain("Open recent");
+    expect(html).toContain("Open project");
+    expect(html).toContain("Saved project library");
+    expect(html).toContain("/projects/notes-app");
     expect(html).toContain("Open local");
     expect(html).toContain("Create new");
     expect(html).toContain("Clone GitHub");

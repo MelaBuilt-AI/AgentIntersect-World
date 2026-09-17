@@ -556,3 +556,52 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
     ),
   ).toBe(0);
 });
+
+test("hands-free recording ends on Send or Cancel and never rearms", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const fixture = await installFixture(page);
+  await page.goto("/");
+  const roster = page.getByRole("region", {
+    name: "Connected agent constellation",
+  });
+  await expect(
+    roster.locator("li").filter({ hasText: "Mr Fluff" }),
+  ).toHaveAttribute("data-connection", "connected");
+  await roster
+    .locator("li")
+    .filter({ hasText: "Codex" })
+    .getByRole("button", { name: "Reconnect", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Enter World" }).click();
+  const ptt = page.locator("button.world-ptt");
+  await ptt.click();
+  await page
+    .getByRole("button", { name: "Enable microphone", exact: true })
+    .click();
+  await ptt.click({ button: "right" });
+  const panel = page.getByRole("region", { name: "Final voice caption" });
+  await expect(panel).toBeVisible();
+  await expect(ptt).toHaveAttribute("aria-pressed", "true");
+  await panel.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(ptt).toHaveAttribute("aria-pressed", "false");
+  expect(fixture.transcriptionBodies).toHaveLength(0);
+  await ptt.click({ button: "right" });
+  await expect(ptt).toHaveAttribute("aria-pressed", "true");
+  await panel.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(panel).toBeHidden();
+  await expect(ptt).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(() => fixture.groupedBodies.length).toBe(1);
+  expect(fixture.transcriptionBodies).toHaveLength(1);
+  expect(fixture.groupedBodies[0]).toMatchObject({ text: "voice final 1" });
+  await expect(page.getByLabel("Message All agents")).toBeEnabled();
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __task14GetUserMediaCalls: number })
+          .__task14GetUserMediaCalls,
+    ),
+  ).toBe(3);
+});

@@ -11,6 +11,20 @@ import {
 } from "@agentintersect-world/voice";
 
 describe("Phase 15 browser capture and playback", () => {
+  it("reports a quick empty click without producing a provider WAV", async () => {
+    const controller = new VoiceCaptureController({
+      fixtureSamples: new Float32Array(0),
+    });
+    await controller.enable();
+    await controller.start();
+    await expect(controller.stop()).rejects.toMatchObject({
+      code: "empty-recording",
+      message: "Nothing recorded. Left click and hold while talking.",
+    });
+    expect(controller.snapshot().sampleCount).toBe(0);
+    await controller.start();
+    controller.cancel();
+  });
   it("truthfully reports permission denied, no device, and unsupported audio", async () => {
     const denied = new VoiceCaptureController({
       getUserMedia: vi
