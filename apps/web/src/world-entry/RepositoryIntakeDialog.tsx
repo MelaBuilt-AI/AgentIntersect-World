@@ -217,6 +217,15 @@ export function RepositoryIntakeDialog({
   readonly onPin: (projectId: string, pinned: boolean) => void;
   readonly onClose: () => void;
 }) {
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
+  const orderedProjects = [...projects].sort((left, right) =>
+    right.lastOpenedAt.localeCompare(left.lastOpenedAt),
+  );
+  const lastOpened = orderedProjects[0];
+  const selectedProject =
+    projects.find((project) => project.id === selectedProjectId) ?? lastOpened;
   const [localPath, setLocalPath] = useState("");
   const [localName, setLocalName] = useState("");
   const [newPath, setNewPath] = useState("");
@@ -237,6 +246,7 @@ export function RepositoryIntakeDialog({
         found.homePath + (found.homePath.includes("\\") ? "\\" : "/"),
       );
       setNewPath(found.projectsExists ? found.projectsPath : found.homePath);
+      setClonePath(found.projectsPath);
       setPathMessage(
         found.projectsExists
           ? "Projects folder found. Choose a project name or edit the local path."
@@ -259,6 +269,23 @@ export function RepositoryIntakeDialog({
     newPath.replace(/[\\/]+$/u, "") +
     (newPath.includes("\\") ? "\\" : "/") +
     newName.trim();
+
+  const validCloneName = Boolean(
+    cloneName.trim() &&
+    !/[\\/]/u.test(cloneName) &&
+    ![".", ".."].includes(cloneName.trim()),
+  );
+  const cloneDestination =
+    clonePath.trim().replace(/[\\/]+$/u, "") +
+    (clonePath.includes("\\") ? "\\" : "/") +
+    cloneName.trim();
+  const canClone = Boolean(
+    !busy &&
+    !pathBusy &&
+    githubRepository.trim() &&
+    clonePath.trim() &&
+    validCloneName,
+  );
 
   return (
     <section
@@ -319,21 +346,42 @@ export function RepositoryIntakeDialog({
             Projects opened through World stay here. Open loads files only;
             Resume restores saved work without sending a task.
           </p>
-          {projects.length === 0 ? (
-            <p>No saved projects yet.</p>
-          ) : (
-            <ul>
-              {projects.map((project) => (
+          {lastOpened && selectedProject ? (
+            <>
+              <div className="saved-project-library__last-opened">
+                <small>Last opened</small>
+                <strong>{lastOpened.name}</strong>
+                <code>{lastOpened.rootPath}</code>
+              </div>
+              <label className="saved-project-library__selector">
+                Select Project
+                <select
+                  value={selectedProject.id}
+                  disabled={busy}
+                  onChange={(event) => setSelectedProjectId(event.target.value)}
+                >
+                  {orderedProjects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                      {project.id === lastOpened.id ? " · Last opened" : ""}
+                      {project.pinned ? " · Pinned" : ""} · {project.rootPath}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <ul>
                 <SavedProjectCard
-                  key={project.id}
-                  project={project}
+                  key={selectedProject.id}
+                  project={selectedProject}
                   busy={busy}
                   onOpen={onOpen}
                   onPin={onPin}
                   {...(onResume ? { onResume } : {})}
                 />
-              ))}
-            </ul>
+              </ul>
+            </>
+          ) : (
+            <p>No saved projects yet.</p>
           )}
         </section>
 
@@ -418,7 +466,12 @@ export function RepositoryIntakeDialog({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            onClone(githubRepository, clonePath, cloneName.trim() || undefined);
+            if (canClone)
+              onClone(
+                githubRepository.trim(),
+                cloneDestination,
+                cloneName.trim(),
+              );
           }}
         >
           <h3>Clone GitHub</h3>
@@ -438,13 +491,15 @@ export function RepositoryIntakeDialog({
             <input
               value={clonePath}
               onChange={(event) => setClonePath(event.currentTarget.value)}
-              placeholder="Full destination folder for this clone"
+              placeholder="Discover path or enter a parent folder"
               autoComplete="off"
             />
           </label>
+          <p>The new folder will be created inside this destination.</p>
           <label>
-            <span>Friendly name (optional)</span>
+            <span>Folder Name to Create</span>
             <input
+              required
               value={cloneName}
               onChange={(event) => setCloneName(event.currentTarget.value)}
               maxLength={120}
@@ -452,15 +507,21 @@ export function RepositoryIntakeDialog({
           </label>
           <button
             type="submit"
-            className={
-              githubRepository.trim() && clonePath.trim()
-                ? "world-action--enabled"
-                : undefined
-            }
-            disabled={busy || !githubRepository.trim() || !clonePath.trim()}
+            className={canClone ? "world-action--enabled" : undefined}
+            disabled={!canClone}
           >
             Clone GitHub
           </button>
+          {clonePath.trim() && validCloneName ? (
+            <p>
+              Will clone into: <code>{cloneDestination}</code>
+            </p>
+          ) : null}
+          {cloneName && !validCloneName ? (
+            <p role="alert">
+              Use one folder name, without slashes or dot traversal.
+            </p>
+          ) : null}
         </form>
       </div>
     </section>

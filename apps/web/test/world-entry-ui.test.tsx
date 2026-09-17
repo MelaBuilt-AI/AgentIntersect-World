@@ -601,7 +601,7 @@ describe("Phase 18 World entry experience", () => {
       }),
     );
     expect(hud).toContain("Message Mr Fluff");
-    expect(hud).toContain("Push to talk");
+    expect(hud).toContain("Push to Talk");
     expect(hud).toContain("Voice provider unavailable");
     expect(hud).toContain('disabled=""');
     expect(hud).toContain('aria-live="polite"');

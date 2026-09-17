@@ -51,6 +51,7 @@ export function WorldPushToTalk({
   const [disclosureOpen, setDisclosureOpen] = useState(false);
   const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
   const [caption, setCaption] = useState("");
+  const [inputLevel, setInputLevel] = useState(0);
   const [voiceStatus, setVoiceStatus] = useState(
     "Microphone is off. First use shows local voice disclosure.",
   );
@@ -205,6 +206,42 @@ export function WorldPushToTalk({
     };
   }, [clearActivity, providedCapture, transcribeWav, updatePhase]);
 
+  useEffect(() => {
+    if (phase !== "listening" || !capture) return;
+    const timer = window.setInterval(() => {
+      setInputLevel(Math.min(1, capture.snapshot().inputLevel * 4));
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [capture, phase]);
+
+  const recordingMeter =
+    phase === "listening" ? (
+      <div className="world-voice-recording">
+        <div
+          className="world-voice-meter"
+          role="meter"
+          aria-label="Microphone input level"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(inputLevel * 100)}
+        >
+          {[0.35, 0.55, 0.75, 0.9, 1, 0.9, 0.75, 0.55, 0.35].map(
+            (scale, index) => (
+              <span
+                key={index}
+                aria-hidden="true"
+                style={{ height: `${3 + inputLevel * scale * 25}px` }}
+              />
+            ),
+          )}
+        </div>
+        <span>
+          Recording ·{" "}
+          {inputLevel > 0.04 ? "Audio detected" : "Waiting for audio"}
+        </span>
+      </div>
+    ) : null;
+
   const browserAvailable = capture?.availability().available === true;
   const canUseVoice = available && Boolean(session) && browserAvailable;
   const canHold =
@@ -286,6 +323,7 @@ export function WorldPushToTalk({
     const generation = activeUtterance.current;
     activeUtterance.current = null;
     stopping.current = true;
+    updatePhase("transcribing");
     void capture
       .stop()
       .then((wav) => {
@@ -324,6 +362,7 @@ export function WorldPushToTalk({
       transcriptionAbort.current?.abort();
       transcriptionAbort.current = null;
       setCaption("");
+      setInputLevel(0);
       setVoiceStatus("Starting push-to-talk capture…");
       void capture
         .start()
@@ -347,7 +386,7 @@ export function WorldPushToTalk({
           updatePhase("listening");
           setVoiceStatus(
             handsFreeRef.current
-              ? "Hands-free recording. Send stops and sends the final transcript; Cancel discards. Maximum 30 seconds."
+              ? "Hands-free recording. Transcribe to review before sending, Send to send now, or Cancel to discard. Maximum 30 seconds."
               : "Listening while held. Release to transcribe.",
           );
         })
@@ -476,8 +515,9 @@ export function WorldPushToTalk({
           if (holding.current && !handsFreeRef.current) cancel();
         }}
       >
-        <span aria-hidden="true">◉</span>
-        {phase === "listening" ? "Listening" : "Push to talk"}
+        <small>L Click Hold</small>
+        <span>{phase === "listening" ? "Listening" : "Push to Talk"}</span>
+        <small>R Click = On</small>
       </button>
       {unavailableReason ? (
         <p id="world-ptt-unavailable" className="world-hud__voice-reason">
@@ -534,6 +574,7 @@ export function WorldPushToTalk({
           aria-label="Final voice caption"
           aria-live="polite"
         >
+          {recordingMeter}
           {handsFree ? <p role="status">{voiceStatus}</p> : null}
           <label htmlFor="world-voice-caption">Final caption</label>
           <textarea
@@ -582,6 +623,25 @@ export function WorldPushToTalk({
             >
               Send
             </button>
+            {handsFree ? (
+              <button
+                type="button"
+                className={
+                  phase === "listening"
+                    ? "world-action--enabled"
+                    : "world-action--unavailable"
+                }
+                disabled={phase !== "listening"}
+                onClick={() => {
+                  if (phaseRef.current !== "listening") return;
+                  sendAfterTranscription.current = false;
+                  holding.current = false;
+                  stopCapture();
+                }}
+              >
+                Transcribe
+              </button>
+            ) : null}
             <button
               type="button"
               className="world-action--enabled"
@@ -599,6 +659,7 @@ export function WorldPushToTalk({
           aria-label="Voice input status"
           role="status"
         >
+          {recordingMeter}
           <p>{voiceStatus}</p>
           <button
             type="button"

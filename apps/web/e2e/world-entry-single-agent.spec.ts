@@ -1084,6 +1084,312 @@ test("@repository-intake selects a local project from normal World", async ({
   ).toBeVisible();
 });
 
+for (const source of ["clone", "open", "create"] as const) {
+  test(`@repository-loading holds the animated indicator through ${source}, indexing and rendered city`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await seedConfiguredAvatar(page, "Aaron");
+    await installWorldFixtures(page, { repositoryProjects: [] });
+    let releaseOperation!: () => void;
+    let releaseIndex!: () => void;
+    let releaseModels!: () => void;
+    const operationGate = new Promise<void>((resolve) => {
+      releaseOperation = resolve;
+    });
+    const indexGate = new Promise<void>((resolve) => {
+      releaseIndex = resolve;
+    });
+    const modelGate = new Promise<void>((resolve) => {
+      releaseModels = resolve;
+    });
+    let indexStarted = false;
+    let modelStarted = false;
+    await page.route(`**/api/repository-intake/${source}`, async (route) => {
+      await operationGate;
+      await route.fulfill({
+        json: envelope({
+          project: {
+            id: "loading-test",
+            name: "Loading test",
+            rootPath: "/tmp/loading-test",
+            source:
+              source === "clone"
+                ? "github"
+                : source === "create"
+                  ? "created"
+                  : "local",
+            pinned: false,
+            lastOpenedAt: "2026-09-17T12:00:00.000Z",
+          },
+        }),
+      });
+    });
+    await page.route("**/api/repository-indexes", async (route) => {
+      indexStarted = true;
+      await indexGate;
+      await route.fallback();
+    });
+    await page.route("**/assets/repository-city/*.glb", async (route) => {
+      modelStarted = true;
+      await modelGate;
+      await route.continue();
+    });
+    try {
+      await enterFixtureWorld(page);
+      const { openCodeWheel } = await import("./world-code-wheel.js");
+      await openCodeWheel(page);
+      await page
+        .getByRole("button", { name: "Load Repo", exact: true })
+        .click();
+      const intake = page.getByRole("dialog", { name: "Repository Intake_" });
+      if (source === "clone") {
+        await intake
+          .getByLabel("GitHub repository", { exact: true })
+          .fill("netbox-community/netbox");
+        await intake
+          .getByLabel("Clone destination", { exact: true })
+          .fill("/tmp");
+        await intake
+          .getByLabel("Folder Name to Create", { exact: true })
+          .fill("loading-test");
+        await intake
+          .getByRole("button", { name: "Clone GitHub", exact: true })
+          .click();
+      } else if (source === "create") {
+        await intake
+          .getByLabel("Project parent folder", { exact: true })
+          .fill("/tmp");
+        await intake
+          .getByLabel("Project name", { exact: true })
+          .fill("loading-test");
+        await intake
+          .getByRole("button", { name: "Create new", exact: true })
+          .click();
+      } else {
+        await intake
+          .getByLabel("Local repository path", { exact: true })
+          .fill("/tmp/loading-test");
+        await intake
+          .getByRole("button", { name: "Open local", exact: true })
+          .click();
+      }
+      const loading = page.getByRole("status", {
+        name: "Loading repository",
+        exact: true,
+      });
+      await expect(loading).toBeVisible();
+      const indicator = await loading.elementHandle();
+      await expect(loading.locator(".world-type-line")).toHaveAttribute(
+        "data-state",
+        "complete",
+      );
+      await expect(loading.locator(".world-type-line")).toContainText(
+        "Loading...",
+      );
+      if (source === "clone") {
+        await expect(loading.locator(".terminal-cursor")).toHaveCSS(
+          "animation-name",
+          /cursor/,
+        );
+        const artwork = loading.locator("svg");
+        await expect(artwork.locator("image")).toHaveCount(1);
+        await expect(artwork.locator("mask, clipPath")).toHaveCount(0);
+        await expect(artwork.locator("image")).toHaveCSS("transform", "none");
+        const trails = artwork.locator(".world-loading-indicator__trail");
+        await expect(trails).toHaveCount(12);
+        await expect(trails.first()).toHaveCSS(
+          "animation-name",
+          "world-loader-orbit",
+        );
+        const frame = async (time: number) => {
+          await loading.evaluate((element, t) => {
+            for (const animation of element.getAnimations({ subtree: true })) {
+              animation.pause();
+              animation.currentTime = t;
+            }
+          }, time);
+          return await artwork.screenshot();
+        };
+        const first = await frame(700);
+        const second = await frame(1900);
+        expect(first.equals(second)).toBe(false);
+        await page.screenshot({
+          path: testInfo.outputPath("repository-loading-desktop.png"),
+        });
+        await page.setViewportSize({ width: 390, height: 844 });
+        await expect(artwork).toBeInViewport();
+        await expect(loading.locator(".world-type-line")).toBeInViewport();
+        await page.screenshot({
+          path: testInfo.outputPath("repository-loading-portrait.png"),
+        });
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await expect(
+          loading.locator(".world-loading-indicator__art"),
+        ).toHaveCSS("animation-name", "none");
+        await expect(loading.locator(".terminal-cursor")).toHaveCSS(
+          "animation-name",
+          "none",
+        );
+      }
+      releaseOperation();
+      await expect.poll(() => indexStarted).toBe(true);
+      await expect(intake).toBeHidden();
+      await expect(loading).toBeVisible();
+      expect(await indicator!.evaluate((el) => el.isConnected)).toBe(true);
+      releaseIndex();
+      await expect.poll(() => modelStarted).toBe(true);
+      await expect(loading).toBeVisible();
+      expect(await indicator!.evaluate((el) => el.isConnected)).toBe(true);
+      releaseModels();
+      await expect(loading).toHaveCount(0, { timeout: 30_000 });
+      await expect(page.locator(".world-experience--room")).toHaveAttribute(
+        "data-repository-readiness",
+        "ready",
+      );
+      await expect(page.getByTestId("world-hud")).toContainText(
+        "Repository city · ready",
+      );
+    } finally {
+      releaseOperation();
+      releaseIndex();
+      releaseModels();
+    }
+  });
+}
+
+for (const paths of [
+  {
+    homePath: "/home/browser-fixture",
+    projectsPath: "/home/browser-fixture/projects",
+    projectsExists: true,
+    separator: "/",
+  },
+  {
+    homePath: "C:\\Users\\Fixture",
+    projectsPath: "C:\\Users\\Fixture\\projects",
+    projectsExists: false,
+    separator: "\\",
+  },
+]) {
+  test(`@github-clone-folder discovers a clone parent and requires a child folder (${paths.separator === "/" ? "posix" : "windows"})`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await seedConfiguredAvatar(page, "Aaron");
+    await installWorldFixtures(page, { repositoryProjects: [] });
+    const clones: unknown[] = [];
+    let discoveryWrites = 0;
+    await page.route("**/api/repository-intake/**", async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("discover-path")) {
+        return route.fulfill({
+          json: envelope({
+            homePath: paths.homePath,
+            projectsPath: paths.projectsPath,
+            projectsExists: paths.projectsExists,
+          }),
+        });
+      }
+      if (path.endsWith("projects-directory")) discoveryWrites++;
+      if (path.endsWith("/clone")) {
+        const input = route.request().postDataJSON();
+        clones.push(input);
+        return route.fulfill({
+          json: envelope({
+            project: {
+              id: "clone-test",
+              name: input.name,
+              rootPath: input.destination,
+              source: "github",
+              pinned: false,
+              lastOpenedAt: "2026-09-17T12:00:00.000Z",
+            },
+          }),
+        });
+      }
+      return route.fallback();
+    });
+    await enterFixtureWorld(page);
+    const { openCodeWheel } = await import("./world-code-wheel.js");
+    await openCodeWheel(page);
+    await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+    const intake = page.getByRole("dialog", { name: "Repository Intake_" });
+    await intake
+      .getByRole("button", { name: "Discover path", exact: true })
+      .click();
+    const parent = intake.getByLabel("Clone destination", { exact: true });
+    await expect(parent).toHaveValue(paths.projectsPath);
+    expect(discoveryWrites).toBe(0);
+    const clone = intake.getByRole("button", {
+      name: "Clone GitHub",
+      exact: true,
+    });
+    await intake
+      .getByLabel("GitHub repository", { exact: true })
+      .fill("https://github.com/netbox-community/netbox");
+    await expect(clone).toBeDisabled();
+    const folder = intake.getByLabel("Folder Name to Create", { exact: true });
+    await expect(folder).toHaveAttribute("required", "");
+    for (const invalid of [
+      "   ",
+      "..",
+      "../outside",
+      "nested/folder",
+      "nested\\folder",
+    ]) {
+      await folder.fill(invalid);
+      await expect(clone).toBeDisabled();
+      // Programmatic submission must share the disabled-state predicate.
+      await clone.evaluate((button) =>
+        button
+          .closest("form")!
+          .dispatchEvent(
+            new Event("submit", { bubbles: true, cancelable: true }),
+          ),
+      );
+    }
+    expect(clones).toEqual([]);
+    await folder.fill(" Clone test ");
+    const target = `${paths.projectsPath}${paths.separator}Clone test`;
+    await expect(intake).toContainText(`Will clone into: ${target}`);
+    // Editable parent, optional trailing separator, and spaces remain supported.
+    await parent.fill("");
+    await expect(clone).toBeDisabled();
+    await parent.fill(`${paths.projectsPath}${paths.separator}`);
+    await expect(clone).toBeEnabled();
+    await expect(intake).toContainText(`Will clone into: ${target}`);
+    await page.screenshot({
+      path: testInfo.outputPath("clone-folder-desktop.png"),
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await clone.scrollIntoViewIfNeeded();
+    expect(
+      await intake.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    ).toBe(true);
+    await expect(clone).toBeInViewport();
+    await page.screenshot({
+      path: testInfo.outputPath("clone-folder-portrait.png"),
+    });
+    expect(clones).toEqual([]);
+    await clone.click();
+    await expect(intake).toBeHidden();
+    expect(clones).toEqual([
+      {
+        repository: "https://github.com/netbox-community/netbox",
+        destination: target,
+        name: "Clone test",
+      },
+    ]);
+    await expect(page.getByTestId("world-hud")).toContainText(
+      "Repository floor",
+    );
+  });
+}
+
 test("@repository-workbench distinct menus discover paths and continue saved work with explicit Git actions", async ({
   page,
 }, testInfo) => {
@@ -1210,9 +1516,23 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
       contentType: "application/json",
       body: JSON.stringify(envelope(data)),
     });
+  const libraryProjects = [
+    ...Array.from({ length: 79 }, (_, index) => ({
+      ...project,
+      id: `archive-${index}`,
+      name: `Archive ${index}`,
+      rootPath: `/home/browser-fixture/projects/archive-${index}`,
+      pinned: true,
+      lastOpenedAt: "2026-09-01T00:00:00.000Z",
+      workstreams: [],
+      milestones: [],
+    })),
+    project,
+  ];
+  let openSequence = 0;
   await installWorldFixtures(page, {
     restoreStatus: true,
-    repositoryProjects: [project],
+    repositoryProjects: libraryProjects,
     fulfillPreviewManager: async (route, path) => {
       await fulfill(
         route,
@@ -1273,6 +1593,13 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
         projectsExists: directoryWrites > 0,
       });
     }
+    if (path.endsWith("/open") && route.request().method() === "POST") {
+      const opened = libraryProjects.find(
+        (entry) => entry.rootPath === route.request().postDataJSON().rootPath,
+      )!;
+      opened.lastOpenedAt = `2026-09-17T12:00:0${++openSequence}.000Z`;
+      return fulfill(route, { project: opened });
+    }
     if (path.endsWith("selected")) return fulfill(route, { project });
     if (path.endsWith("/git")) {
       if (route.request().method() === "POST") {
@@ -1311,6 +1638,66 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await openCodeWheel(page);
   await page.getByRole("button", { name: "Load Repo", exact: true }).click();
   const intake = page.getByRole("dialog", { name: "Repository Intake_" });
+  const projectSelect = intake.getByRole("combobox", {
+    name: "Select Project",
+    exact: true,
+  });
+  await expect(projectSelect).toHaveValue(project.id);
+  await expect(projectSelect.locator("option")).toHaveCount(80);
+  await expect(intake.locator(".saved-project-card")).toHaveCount(1);
+  await expect(
+    intake.locator(".saved-project-library__last-opened"),
+  ).toContainText("Menu Test");
+  const libraryOpens: unknown[] = [];
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      new URL(request.url()).pathname.endsWith("/repository-intake/open")
+    )
+      libraryOpens.push(request.postDataJSON());
+  });
+  await projectSelect.selectOption("archive-78");
+  await expect(intake.locator(".saved-project-card")).toContainText(
+    "Archive 78",
+  );
+  expect(libraryOpens).toHaveLength(0);
+  await intake
+    .getByRole("button", { name: "Open project", exact: true })
+    .click();
+  await expect(intake).toBeHidden();
+  expect(libraryOpens).toEqual([
+    {
+      rootPath: "/home/browser-fixture/projects/archive-78",
+      name: "Archive 78",
+    },
+  ]);
+  await page.reload();
+  // This menu fixture does not persist avatar consent; finish its explicit re-entry gate.
+  await expect(
+    page.getByRole("region", { name: "Agent avatar selection" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByTestId("avatar-preview")
+      .locator(
+        '.imported-avatar-canvas[data-avatar-imported-id="cat-agent-01"]',
+      ),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 60_000 });
+  await page
+    .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Enter World", exact: true }).click();
+  await expect(page.getByTestId("world-hud")).toBeVisible();
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+  await expect(projectSelect).toHaveValue("archive-78");
+  await expect(
+    intake.locator(".saved-project-library__last-opened"),
+  ).toContainText("Archive 78");
+  await page.screenshot({
+    path: testInfo.outputPath("compact-project-library.png"),
+  });
+  await projectSelect.selectOption(project.id);
   await intake
     .getByRole("button", { name: "Discover path", exact: true })
     .click();
@@ -1330,7 +1717,14 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await intake
     .getByRole("button", { name: "Open project", exact: true })
     .click();
-  await expect(page.getByTestId("world-hud")).toContainText("Repository floor");
+  await expect(page.locator(".world-experience--room")).toHaveAttribute(
+    "data-repository-readiness",
+    "ready",
+    { timeout: 30_000 },
+  );
+  await expect(
+    page.getByRole("status", { name: "Loading repository", exact: true }),
+  ).toHaveCount(0);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await openCodeWheel(page);
@@ -3513,7 +3907,7 @@ async function preparePhase18_5World(page: Page) {
   await seedConfiguredAvatar(page, "Aaron");
   await restoreFixtureWorld(page, "cat-agent-01");
   await expect(
-    page.getByRole("button", { name: /Push to talk/ }),
+    page.getByRole("button", { name: /Push to Talk/ }),
   ).toBeEnabled();
   await expectSharedHudBottomTrack(page);
 
@@ -4001,7 +4395,7 @@ async function completeJourney(
   ).toBeHidden({ timeout: 30_000 });
   await expect(page.getByTestId("world-hud")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /Push to talk/ }),
+    page.getByRole("button", { name: /Push to Talk/ }),
   ).toBeEnabled();
   await expectSharedHudBottomTrack(page);
   if (

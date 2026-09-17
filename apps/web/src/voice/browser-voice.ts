@@ -98,6 +98,7 @@ export type VoiceCaptureSnapshot = {
     | "cancelled"
     | "failed";
   readonly sampleCount: number;
+  readonly inputLevel: number;
   readonly deviceLabel: string;
   readonly permission: "unknown" | "granted" | "denied";
   readonly stopReason: CaptureCode | "operator" | null;
@@ -168,6 +169,7 @@ export class VoiceCaptureController {
   #processor: ProcessorLike | null = null;
   #chunks: Float32Array[] = [];
   #sampleCount = 0;
+  #inputLevel = 0;
   #timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: CaptureOptions = {}) {
@@ -210,6 +212,7 @@ export class VoiceCaptureController {
     return {
       state: this.#state,
       sampleCount: this.#sampleCount,
+      inputLevel: this.#inputLevel,
       deviceLabel: this.#deviceLabel,
       permission: this.#permission,
       stopReason: this.#stopReason,
@@ -299,6 +302,11 @@ export class VoiceCaptureController {
         this.#processor.onaudioprocess = (event) => {
           if (this.#state !== "listening") return;
           const chunk = event.inputBuffer.getChannelData(0).slice();
+          let energy = 0;
+          for (const sample of chunk) energy += sample * sample;
+          this.#inputLevel = chunk.length
+            ? Math.min(1, Math.sqrt(energy / chunk.length))
+            : 0;
           this.#chunks.push(chunk);
           this.#sampleCount += chunk.length;
           const estimated =
@@ -398,6 +406,7 @@ export class VoiceCaptureController {
   };
 
   #release(): void {
+    this.#inputLevel = 0;
     if (this.#timer) this.#clearTimer(this.#timer);
     this.#timer = null;
     if (this.#processor) this.#processor.onaudioprocess = null;

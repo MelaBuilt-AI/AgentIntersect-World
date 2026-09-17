@@ -49,6 +49,7 @@ import { WorldEscapeMenu } from "./WorldEscapeMenu.js";
 import { startWorldPolling } from "./world-entry-polling.js";
 import { WorldEntryLogo, WorldTypeLine } from "./WorldEntryLogo.js";
 import { WorldHud } from "./WorldHud.js";
+import { WorldLoadingIndicator } from "./WorldLoadingIndicator.js";
 import {
   canEnterWorld,
   createReturningWorldEntryState,
@@ -400,6 +401,9 @@ export function WorldEntryExperience({
     readonly RepositoryProject[]
   >([]);
   const [repositoryIntakeBusy, setRepositoryIntakeBusy] = useState(false);
+  const [repositoryPreparing, setRepositoryPreparing] = useState(false);
+  const repositoryLoading =
+    repositoryPreparing || repositoryReadiness === "loading";
   const [repositoryIntakeMessage, setRepositoryIntakeMessage] = useState(
     "Choose a repository for this World.",
   );
@@ -1264,6 +1268,7 @@ export function WorldEntryExperience({
   const activateSelectedProject = async (
     operation: Promise<RepositoryProject>,
   ) => {
+    setRepositoryPreparing(true);
     setRepositoryIntakeBusy(true);
     setRepositoryIntakeMessage("Preparing repository…");
     try {
@@ -1281,8 +1286,12 @@ export function WorldEntryExperience({
           ? error.message
           : "Repository intake unavailable",
       );
+      setRepositoryReadiness("error");
     } finally {
-      if (mounted.current) setRepositoryIntakeBusy(false);
+      if (mounted.current) {
+        setRepositoryIntakeBusy(false);
+        setRepositoryPreparing(false);
+      }
     }
   };
 
@@ -1615,6 +1624,7 @@ export function WorldEntryExperience({
     workstreamId: string,
   ) => {
     if (repositoryIntakeBusy || chatBusy || normalWorkstreamPending) return;
+    setRepositoryPreparing(true);
     setRepositoryIntakeBusy(true);
     setRepositoryIntakeMessage("Restoring saved work and conversation…");
     try {
@@ -1716,8 +1726,10 @@ export function WorldEntryExperience({
           ? error.message
           : "Saved work could not be resumed. Nothing was reset.",
       );
+      setRepositoryReadiness("error");
     } finally {
       setRepositoryIntakeBusy(false);
+      setRepositoryPreparing(false);
     }
   };
 
@@ -2679,6 +2691,8 @@ export function WorldEntryExperience({
         <div
           className="world-experience world-experience--room"
           data-repository-readiness={repositoryReadiness}
+          inert={repositoryLoading}
+          aria-busy={repositoryLoading}
         >
           {addingAgent && session && activeProposal ? (
             <Suspense fallback={<p role="status">Loading Add Agent…</p>}>
@@ -2735,7 +2749,7 @@ export function WorldEntryExperience({
               objects={objects}
               reducedMotion={reducedMotion}
               forceNoWebGL={forceNoWebGL}
-              inputOwner={worldInputOwner}
+              inputOwner={repositoryLoading ? "preview" : worldInputOwner}
               userName={profile.agentName}
               agentName={activeProposal.displayName}
               userAvatar={profile}
@@ -3091,6 +3105,14 @@ export function WorldEntryExperience({
             />
           ) : null}
         </div>
+        {repositoryLoading ? (
+          <div className="world-loading-overlay">
+            <WorldLoadingIndicator
+              label="Loading repository"
+              reducedMotion={reducedMotion}
+            />
+          </div>
+        ) : null}
       </WorldScreenProvider>
     );
   }

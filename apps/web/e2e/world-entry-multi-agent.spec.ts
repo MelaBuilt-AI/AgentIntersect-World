@@ -2334,7 +2334,7 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
     pointerId: 11,
     pointerType: "mouse",
   });
-  await expect(pushToTalk).toContainText("Push to talk");
+  await expect(pushToTalk).toContainText("Push to Talk");
   expect(fixture.transcriptionBodies).toHaveLength(0);
 
   await recordPointer(page, "mouse", 2);

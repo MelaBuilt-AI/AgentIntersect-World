@@ -130,6 +130,8 @@ describe("repository intake API", () => {
       pinned: false,
     });
 
+    const lastOpenedAt = opened.json().data.project.lastOpenedAt;
+    expect(Number.isFinite(Date.parse(lastOpenedAt))).toBe(true);
     await server.close();
     servers.splice(servers.indexOf(server), 1);
     server = createLocalServer({ config: state.config });
@@ -145,6 +147,7 @@ describe("repository intake API", () => {
         name: "Notes App",
         rootPath: state.repository,
         source: "local",
+        lastOpenedAt,
       }),
     ]);
   });
