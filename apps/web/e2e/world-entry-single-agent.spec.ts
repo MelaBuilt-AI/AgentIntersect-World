@@ -3476,21 +3476,7 @@ async function restoreFixtureWorld(
       },
     },
   });
-  // These camera/layout journeys explicitly start without a saved repository.
-  // Later repository loads still use the normal snapshot fixture.
-  await page.route(
-    "**/api/world/current",
-    (route) =>
-      route.fulfill({
-        status: 404,
-        contentType: "application/json",
-        body: JSON.stringify({
-          ok: false,
-          error: { code: "not_found", message: "No saved repository" },
-        }),
-      }),
-    { times: 1 },
-  );
+  // Identity restoration leaves the floor blank; explicit loads use the normal snapshot fixture.
   await page.goto("/");
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",

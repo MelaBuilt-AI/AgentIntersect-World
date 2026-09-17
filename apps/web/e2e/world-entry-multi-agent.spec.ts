@@ -1608,7 +1608,7 @@ for (const [action, dialogName] of [
     await expect(dialog).toBeVisible();
     if (action === "Workbench") {
       await expect(
-        dialog.getByText(/No saved Workstreams for this repository/),
+        dialog.getByText(/Load a repository first using Load Repo/),
       ).toBeVisible();
     }
     await expect(dialog.getByRole("alert")).toHaveCount(0);
@@ -2479,9 +2479,10 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
   fixture.delayConstellationReadyUntilRestore();
   await page.reload();
   await expect(page.getByTestId("world-hud")).toBeVisible();
+  // PR15 restores the roster/transcript, not an implicitly selected repository.
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
-    "repository",
+    "blank",
   );
   await openCodeWheel(page);
   await expect(
