@@ -1393,7 +1393,10 @@ for (const paths of [
 test("@repository-workbench distinct menus discover paths and continue saved work with explicit Git actions", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(180_000);
+  // Includes avatar entry/re-entry, saved-project loading, preview recovery and Git.
+  // The unchanged journey took 208s on two CPUs; hosted passes approached 180s.
+  // Allow whole-journey headroom without changing individual assertion deadlines.
+  test.setTimeout(300_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
   const repository = {
