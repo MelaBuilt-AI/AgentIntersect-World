@@ -43,6 +43,8 @@ export type WorldScreenBinding = {
   readonly focused?: boolean;
   readonly movable?: boolean;
   readonly revealStartedAt?: number;
+  /** Renderer-owned progress shared by the DOM, physical shell and cloud mask. */
+  revealProgress?: number;
   readonly reducedMotion?: boolean;
   readonly pose: WorldScreenPose;
   readonly width: number;

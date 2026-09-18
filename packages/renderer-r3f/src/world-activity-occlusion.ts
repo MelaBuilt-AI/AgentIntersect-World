@@ -5,7 +5,6 @@ import {
   WORLD_SCREEN_SHELL_PADDING,
   WORLD_SCREEN_SHELL_DEPTH,
   WORLD_SCREEN_SHELL_Z,
-  worldScreenReveal,
   type WorldScreenBinding,
 } from "./world-screen-types.js";
 
@@ -62,12 +61,7 @@ export function activityScreenMask({
       cos = Math.cos(yaw);
     // Both the DOM front and the opaque scene-rendered back occlude clouds.
     const reveal =
-      screen.revealStartedAt === undefined
-        ? 1
-        : worldScreenReveal(
-            (performance.now() - screen.revealStartedAt) / 1000,
-            screen.reducedMotion ?? false,
-          );
+      screen.revealProgress ?? (screen.revealStartedAt === undefined ? 1 : 0);
     if (!reveal) continue;
     const w = (screen.width * WORLD_SCREEN_SCALE) / 2;
     const h = (screen.height * WORLD_SCREEN_SCALE) / 2;

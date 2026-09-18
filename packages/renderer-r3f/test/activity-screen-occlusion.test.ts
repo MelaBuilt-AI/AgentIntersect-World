@@ -109,3 +109,9 @@ it("respects the screen reveal and clips a screen crossing the near plane", () =
   const value = mask([{ ...screen(9, 1.2), width: 1500 }]);
   expect(value).not.toMatch(/NaN|Infinity/);
 });
+
+it("uses rendered reveal progress rather than time spent waiting for a frame", () => {
+  const opening = { ...screen(4), revealStartedAt: 0 };
+  expect(mask([{ ...opening, revealProgress: 0 }])).toBe("none");
+  expect(mask([{ ...opening, revealProgress: 1 }])).toContain("polygon");
+});

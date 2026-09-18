@@ -1493,7 +1493,9 @@ export function WorldRoom({
     const tick = (timestamp: number) => {
       const previous = lastFrame.current ?? timestamp;
       lastFrame.current = timestamp;
-      const elapsedSeconds = Math.min(0.1, (timestamp - previous) / 1_000);
+      // Keep real walking/sprint speed down to two rendered frames per second.
+      // Bound long-stall catch-up; blur/hidden/focus changes still release input.
+      const elapsedSeconds = Math.min(0.5, (timestamp - previous) / 1_000);
       if (
         pressedKeys.current.size > 0 &&
         !isEditableWorldTarget(document.activeElement)

@@ -4,6 +4,16 @@ Updated: 2026-09-18
 
 ## Current milestone
 
+### September 18 — bounded correction of reveal timing, movement and cloud proof
+
+Aaron (`1550622541041770528`) approved one further bounded correction pass after both `f4c1f7e` workflows remained red following their single evidence-backed retries. Commit/push and green-only merge authority remain; no further blind retries, visual redesign, retained-runtime replacement, cleanup, publication, provider change or Phase20 work.
+
+The earlier **code-screen viewport-identity diagnosis was incorrect**: both exact-attempt archives contain the screenshot written after that assertion passed. Replaying the pinned Playwright Babel transform of the committed helper proves reported line 289 is the later intermediate-reveal assertion. The actual cloud and spatial failures also map to emitted helper lines (keyboard placement and distance respectively), not the misleading original-source snippets. Preserve the raw failures, but use this corrected attribution.
+
+The local candidate starts code-screen reveal on its first rendered frame and advances bounded frame progress shared by the DOM, physical shell and cloud mask; Reduced Motion remains immediate and focus/fullscreen re-registration retains progress. A delayed-first-frame regression fails before the change and passes after it. A slowed-frame spatial probe reproduces lost travel time: roughly 12 seconds of frames become 3.5 seconds under the old 100ms clamp. User movement now permits up to 500ms per frame (at most six sprint units), preserving blur/hidden/focus release and floor bounds. The original >38/12s browser assertion is unchanged. Cloud setup retains 140 actual quarter-unit arrow events as held-key repeats with guaranteed release and an added exact displacement check; all visual/depth assertions and deadlines remain.
+
+Twenty-one focused tests, scoped lint/format, web/renderer types and isolated renderer/web production builds pass. Rebuilt browser proof passes: the same slowed-frame spatial reproduction, the full headed code journey with six intermediate reveal samples, and the full cloud journey under its unchanged420s ceiling. Serial held-key repeats did not improve runtime and were superseded by batches of ten real key-down events: all140 events and exact35-unit displacement pass, with the measured input span reduced from38.3s to5.8s. The full cloud journey passes in341.5s; no native FPS or hosted success is inferred. Complete integrated proof remains the replacement exact-SHA push/PR workflows before merge. Builds are isolated outside retained destinations; final SHA/run receipts remain external. Detailed diagnosis and proof: `/home/mela_ai/.hermes/runs/aiw-pr17-ci-round-20260918/round2/`.
+
 ### September 18 — PR17 CI correction candidate; exact-head green required
 
 Aaron (`1550602582047719478`) renews private commit/push and conditional merge authorization: require both push and PR workflows plus readiness green on the correction commit, then merge. The accepted effects/Graphics/fog revision is already pushed at `01613bd34792762055865f7a9c714070b519af04`; its hosted checks remain non-green. This correction does not reopen visual acceptance or change retained TEST45379/45377 builds, profiles or state.
