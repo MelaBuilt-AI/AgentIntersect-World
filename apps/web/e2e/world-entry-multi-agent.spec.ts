@@ -1163,6 +1163,9 @@ for (const initialCount of [0, 2, 3]) {
     }
     await expect(page.getByTestId("world-hud")).toBeVisible();
     const room = page.locator('[data-scene-id="world-room"]').first();
+    await expect(room).toHaveAttribute("data-scene-ready", "true", {
+      timeout: 60_000,
+    });
     await room.evaluate((el) =>
       el.setAttribute("data-add-continuity", "same-mounted-world"),
     );

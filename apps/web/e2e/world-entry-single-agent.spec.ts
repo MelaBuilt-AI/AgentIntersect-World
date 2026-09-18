@@ -2570,6 +2570,9 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await expect(page.getByText("Authoritative Workbench")).toHaveCount(0);
 
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: testInfo.outputPath("workstream-mobile-hud.png"),
+  });
   const mobileBounds = await workstream.boundingBox();
   const hudBounds = await page.getByTestId("world-hud").boundingBox();
   expect(mobileBounds).not.toBeNull();
@@ -3089,7 +3092,7 @@ for (const screenJourney of [
         },
       });
       // Preview readiness must not stand in for the independently loaded city.
-      // Hold real city assets until the spatial assertions have started.
+      // Hold real city assets until the loading barrier has been observed.
       let releaseCityAssets: (() => void) | undefined;
       if (screenJourney === "spatial") {
         const cityAssetsReleased = new Promise<void>((resolve) => {
@@ -3128,6 +3131,33 @@ for (const screenJourney of [
       await expect(
         page.getByRole("log", { name: "Conversation and activity" }),
       ).toContainText("Repository loaded locally");
+      if (screenJourney === "spatial") {
+        await expect(page.locator("main.world-room")).toHaveAttribute(
+          "data-repository-readiness",
+          "loading",
+        );
+        await expect(page.locator(".world-loading-overlay")).toBeVisible();
+        // The mounted canvas survives the load, but input is intentionally held.
+        await expect(
+          page.locator('canvas[data-scene-id="world-room"]'),
+        ).toBeVisible();
+        const releaseTimer = setTimeout(() => releaseCityAssets?.(), 6_500);
+        try {
+          await expect(page.locator("main.world-room")).toHaveAttribute(
+            "data-repository-readiness",
+            "ready",
+            { timeout: 60_000 },
+          );
+        } finally {
+          clearTimeout(releaseTimer);
+          releaseCityAssets?.();
+        }
+      }
+      await expect(page.locator("main.world-room")).toHaveAttribute(
+        "data-repository-readiness",
+        "ready",
+        { timeout: 60_000 },
+      );
       await composer.fill("Build World View");
       await expect(
         page.getByRole("button", { name: "Send", exact: true }),
@@ -3294,23 +3324,7 @@ for (const screenJourney of [
       if (screenJourney === "spatial") {
         const { exerciseSpatialScreens } =
           await import("./world-spatial-screens.js");
-        // Deliberately outlast the 5s visibility assertion; synchronization must
-        // use renderer readiness, not an assumed asset-load duration.
-        await expect(room).toHaveAttribute(
-          "data-repository-readiness",
-          "loading",
-        );
-        // A new city load must not suspend the mounted World/canvas.
-        await expect(
-          page.locator('canvas[data-scene-id="world-room"]'),
-        ).toBeVisible();
-        const releaseTimer = setTimeout(() => releaseCityAssets?.(), 6_500);
-        try {
-          await exerciseSpatialScreens(page, testInfo);
-        } finally {
-          clearTimeout(releaseTimer);
-          releaseCityAssets?.();
-        }
+        await exerciseSpatialScreens(page, testInfo);
         expect(browserErrors).toEqual([]);
         expect(startRequests).toBe(1);
         await assertAudioCues(page, testInfo, [
@@ -3659,6 +3673,11 @@ test("@workstream-tracer deterministic Work Inspector stays truthful and keyboar
     { timeout: 30_000 },
   );
 
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-repository-readiness",
+    "ready",
+    { timeout: 60_000 },
+  );
   const inspect = page.getByRole("button", {
     name: "Inspect demo workstream",
   });
@@ -3814,6 +3833,11 @@ test("@workstream-tracer-live reads and inspects only the current Phase 14 journ
     { timeout: 30_000 },
   );
 
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-repository-readiness",
+    "ready",
+    { timeout: 60_000 },
+  );
   const inspect = page.getByRole("button", {
     name: "Inspect current Phase 14 workstream",
   });
@@ -5283,6 +5307,11 @@ test("mobile keyboard/reduced-motion/forced-colors journey remains contained", a
       .slice(0, 10),
   );
   expect(overflow).toEqual([]);
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-repository-readiness",
+    "ready",
+    { timeout: 60_000 },
+  );
   const messageComposer = page.getByLabel("Message Mr Fluff");
   await messageComposer.focus();
   await expect(messageComposer).toBeFocused();

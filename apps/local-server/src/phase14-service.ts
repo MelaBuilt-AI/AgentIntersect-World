@@ -1109,6 +1109,19 @@ export class Phase14Service {
     });
     this.#touch(journey);
     await this.#persist();
+    // Cancellation can finish while persistence yields, before a child exists.
+    // Do not spawn in the disposable directory that cancel has already removed.
+    if (journey.status === "cancelled") {
+      record.state = "cancelled";
+      record.stoppedAt = timestamp(this.#now());
+      record.portClosed = true;
+      this.#emit(journey, "preview", "cancelled", {
+        currentRef: null,
+        previousRef: null,
+      });
+      await this.#persist();
+      return { ...clone(record), step: 9 };
+    }
     const logs = new BoundedText(TOOL_EVENT_LIMITS.maximumPreviewLogBytes);
     const child = spawn(
       process.execPath,

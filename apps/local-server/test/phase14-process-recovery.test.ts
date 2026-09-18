@@ -1,8 +1,18 @@
+import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  return { ...actual, writeFile: vi.fn(actual.writeFile) };
+});
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return { ...actual, spawn: vi.fn(actual.spawn) };
+});
 
 import {
   PHASE14_DISPOSABLE_ROOT,
@@ -123,6 +133,58 @@ describe("Phase 14 loopback preview failure and cancellation truth", () => {
     const result = await service.startPreview(await tested(service));
     expect(result.state).toBe("failed");
     expect(result.portClosed).toBe(true);
+  });
+
+  it("does not spawn after cancellation during preview persistence", async () => {
+    const service = make({
+      testingPreviewMode: "hang-startup",
+      previewTimeoutMs: 150,
+    });
+    const operationId = await tested(service);
+    const actual =
+      await vi.importActual<typeof import("node:fs/promises")>(
+        "node:fs/promises",
+      );
+    let release!: () => void;
+    let reached!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const entered = new Promise<void>((resolve) => {
+      reached = resolve;
+    });
+    vi.mocked(writeFile).mockImplementationOnce(async (...args) => {
+      await actual.writeFile(...args);
+      reached();
+      await held;
+    });
+    const starting = service.startPreview(operationId);
+    const spawnedBefore = vi.mocked(spawn).mock.calls.length;
+    // Observe the former failure without letting a late failed spawn escape.
+    const nativeSpawn =
+      await vi.importActual<typeof import("node:child_process")>(
+        "node:child_process",
+      );
+    vi.mocked(spawn).mockImplementationOnce(
+      (...args: Parameters<typeof spawn>) => {
+        const child = nativeSpawn.spawn(...args);
+        child.on("error", () => undefined);
+        return child;
+      },
+    );
+    try {
+      await entered;
+      await service.cancel(operationId);
+    } finally {
+      release();
+    }
+    await expect(starting).resolves.toMatchObject({
+      state: "cancelled",
+      portClosed: true,
+    });
+    expect(vi.mocked(spawn).mock.calls).toHaveLength(spawnedBefore);
+    expect(service.snapshot(operationId).status).toBe("cancelled");
+    vi.mocked(spawn).mockReset().mockImplementation(nativeSpawn.spawn);
   });
 
   it("cancels during preview startup", async () => {
