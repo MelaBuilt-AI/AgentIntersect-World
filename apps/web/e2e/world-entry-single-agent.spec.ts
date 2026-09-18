@@ -1088,7 +1088,8 @@ for (const source of ["clone", "open", "create"] as const) {
   test(`@repository-loading holds the animated indicator through ${source}, indexing and rendered city`, async ({
     page,
   }, testInfo) => {
-    test.setTimeout(120_000);
+    // This journey now observes the longer city assembly AND its upward/downward launch.
+    test.setTimeout(source === "open" ? 180_000 : 120_000);
     await page.setViewportSize({ width: 1440, height: 900 });
     await seedConfiguredAvatar(page, "Aaron");
     await installWorldFixtures(page, { repositoryProjects: [] });
@@ -1281,6 +1282,16 @@ for (const source of ["clone", "open", "create"] as const) {
         { timeout: 20_000 },
       );
       if (source === "open") {
+        const completionTime = Number(
+          await cityCanvas.getAttribute("data-city-rain-time"),
+        );
+        await expect
+          .poll(
+            async () =>
+              Number(await cityCanvas.getAttribute("data-city-rain-time")),
+            { timeout: 20_000 },
+          )
+          .toBeGreaterThan(completionTime + 4.3);
         const time = Number(
           await cityCanvas.getAttribute("data-city-rain-time"),
         );
@@ -1321,6 +1332,31 @@ for (const source of ["clone", "open", "create"] as const) {
         await page.screenshot({
           path: testInfo.outputPath("city-rain-reduced.png"),
         });
+        await page.locator(".world-room").focus();
+        await page.keyboard.press("Escape");
+        await page
+          .getByRole("button", { name: "Graphics", exact: true })
+          .click();
+        await page
+          .getByRole("button", { name: "Disable all effects", exact: true })
+          .click();
+        await expect(cityCanvas).toHaveAttribute("data-world-bloom", "off");
+        await expect(cityCanvas).toHaveAttribute(
+          "data-world-reflections",
+          "off",
+        );
+        await page
+          .getByRole("button", {
+            name: "Restore effects defaults",
+            exact: true,
+          })
+          .click();
+        await expect(cityCanvas).toHaveAttribute("data-world-bloom", "on");
+        await expect(cityCanvas).toHaveAttribute(
+          "data-world-reflections",
+          "on",
+        );
+        await page.keyboard.press("Escape");
       }
       expect(renderErrors).toEqual([]);
       await expect(page.locator(".world-experience--room")).toHaveAttribute(

@@ -135,11 +135,11 @@ describe("repository city renderer policy", () => {
   });
 
   it("preserves source materials when idle and bounds status tint to truthful state", () => {
-    expect(repositoryMaterialTint("idle", false, true)).toBeNull();
-    expect(repositoryMaterialTint("idle", true, true)).toBe("#41e9ff");
-    expect(repositoryMaterialTint("idle", false, false)).toBe("#41e9ff");
-    expect(repositoryMaterialTint("pending", false, true)).toBe("#ffbf47");
-    expect(repositoryMaterialTint("failure", false, true)).toBe("#ff4d63");
-    expect(repositoryMaterialTint("special", false, true)).toBe("#b76cff");
+    expect(repositoryMaterialTint("idle", false)).toBeNull();
+    expect(repositoryMaterialTint("idle", true)).toBe("#41e9ff");
+    expect(repositoryMaterialTint("idle", false)).toBeNull();
+    expect(repositoryMaterialTint("pending", false)).toBe("#ffbf47");
+    expect(repositoryMaterialTint("failure", false)).toBe("#ff4d63");
+    expect(repositoryMaterialTint("special", false)).toBe("#b76cff");
   });
 });

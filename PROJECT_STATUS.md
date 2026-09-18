@@ -4,7 +4,25 @@ Updated: 2026-09-18
 
 ## Current milestone
 
-### September 18 — repository-city effects, separate PR pending visual acceptance
+### September 18 — effects/Graphics/fog accepted; conditional private delivery
+
+Aaron (`1550536501660745810`) approves the corrected fog from the supplied images while away from his PC and authorizes **commit/push → exact-head GitHub CI and readiness green → merge PR17**. This is image-based fog approval, not a new native interactive/performance verdict; no additional manual retest is required. Preserve the earlier first-hand effects/Graphics acceptance and all retained environments. No release, publication, branch cleanup, provider/gateway changes or runtime replacement is authorized. Exact final SHA/CI/merge receipts are external to avoid recursive status commits.
+
+Aaron (`1550499387300519978`) likes the initial direction but reports a late materialization pop in his video. This is not blanket acceptance. The local revision adds a longer city-only reveal/glow tail, upward code/sparks before falling rain, more frequent overlapping eased logo-color pulses, selected-only rings, base fog, alpha-preserving bloom, localized shafts, and real wet-floor reflections. Seven independent persisted Escape → Graphics switches default ON. Avatar timing, audio policy, accepted floor/sky artwork and camera identity remain unchanged.
+
+[Revision contract and evidence](docs/REPOSITORY_CITY_EFFECTS_V2.md): 126 renderer/settings tests, workspace types/lint/architecture, startup chunk gate, deterministic real-WebGL pixels/resource/alpha-mask proof, menu persistence/portrait browser journey and integrated city/audio/Reduced Motion/Graphics journey pass. Historical unsuccessful attempts remain retained; no first-hand visual/listening or native-performance verdict is inferred.
+
+Separate normal-UI review: **http://127.0.0.1:45379/**, kit `/home/mela_ai/.hermes/runs/aiw-pr17-city-v2-review-20260918`. Original TEST45377 and all older lanes remain untouched. This cumulative revision builds on PR17 baseline `e58a4b2`; its final exact-head delivery gates are recorded separately. Aaron (`1550516167171379241`) reports the effects working as intended and the Graphics menu “perfect,” with one remaining visual defect: the base fog appears as three separated layers cutting across models from most angles. Preserve that earlier qualified verdict; the later corrected-fog image approval is recorded above. Screenshot: `/home/mela_ai/.hermes/cache/images/img_41ad2bb3e6d6.png`. The fog-only correction is now implemented and technically verified as described below; the retained preview has not been replaced. Subsequent exact-new-head CI remains pending.
+
+### Base-fog correction — implemented and image-approved
+
+Aaron (`1550521858040799454`) authorized the focused correction. [Fog implementation and evidence](docs/REPOSITORY_CITY_EFFECTS_V2.md#fog-only-correction--implemented-and-image-approved): three sheets replaced by continuous low mist, analytical density integration clipped to shared scene depth, subtle drift, Reduced Motion and real off-path cleanup.19 focused tests, renderer/web types, scoped lint/format, producer/normal production builds and multi-angle real-WebGL pixels/occlusion/alpha/resource proof pass. The unchanged production arrival/audio/Graphics journey passes at four CPUs; two-CPU complete-journey timing remains unresolved, explicitly retained rather than relabeled green. No deadline or assertion was changed.
+
+Corrected fog is **image-approved for delivery**; no new native interactive test is claimed. TEST45379/current user state and older lanes are untouched; its read-only health/served-index check passed. Automated proof servers are stopped. Evidence `/home/mela_ai/.hermes/runs/aiw-fog-20260918/`; normal candidate `/tmp/aiw-fog-20260918/web`. Commit/push and green-gated merge are now authorized. No separate manual retest is required; retained-runtime replacement or cleanup remains unapproved.
+
+Pre-delivery GitHub snapshot: PR17 was draft/open/unmerged at `e58a4b22c6390f5f7e3ae36acd5f586b54806bdc`, with failed hosted checks on that **committed baseline**. Require new exact-head hosted results for this cumulative revision, preserving baseline failures and constrained local timing limitations rather than inferring CI success from accepted appearance.
+
+### Historical September 18 baseline — repository-city effects, separate PR pending visual acceptance
 
 Aaron (`1550481379584770188`) requested a new private PR: reuse avatar/agent materialization and sound for city objects; replace overhead dots with roof-to-sky terminal-rain ribbons from the supplied texture; add restrained intermittent logo-color highlights and complementary atmosphere. PR16 merged-main run `35303937945` completed successfully at `fed8c15` (all nine jobs). Earlier failed attempts remain historical, not relabeled.
 

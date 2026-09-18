@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import {
   cityRainPulse,
+  cityRainPulses,
   cityRainTop,
   CITY_RAIN_COLORS,
 } from "../src/repository-terminal-rain.js";
@@ -22,7 +23,7 @@ it("connects straight vertical rays to the moving sky rather than a fixed short 
   }
 });
 
-it("uses sparse six-second eased pulses, randomized objects/colors, and long quiet gaps", () => {
+it("uses more frequent six-second eased pulses with quiet gaps", () => {
   const targets = new Set<number>();
   const colors = new Set<number>();
   let previous = cityRainPulse(0, 48, 53, false);
@@ -39,7 +40,8 @@ it("uses sparse six-second eased pulses, randomized objects/colors, and long qui
     }
     previous = pulse;
   }
-  expect(activeSamples / 18000).toBeLessThan(0.36);
+  expect(activeSamples / 18000).toBeGreaterThan(0.55);
+  expect(activeSamples / 18000).toBeLessThan(0.65);
   expect(targets.size).toBeGreaterThan(5);
   expect(colors.size).toBe(CITY_RAIN_COLORS.length);
 });
@@ -52,4 +54,19 @@ it("disables highlights under Reduced Motion and in empty cities", () => {
     });
     expect(cityRainPulse(time, 0, 1, false).index).toBe(-1);
   }
+});
+
+it("allows staggered overlapping colors while bounding city-wide activity", () => {
+  let maximum = 0;
+  for (let t = 0; t < 30; t += 0.1) {
+    const pulses = cityRainPulses(t, 48, 53, false).filter((p) => p.index >= 0);
+    maximum = Math.max(maximum, pulses.length);
+    expect(new Set(pulses.map((p) => p.index)).size).toBe(pulses.length);
+    expect(pulses.every((p) => p.index < 48)).toBe(true);
+  }
+  expect(maximum).toBeGreaterThan(4);
+  expect(maximum).toBeLessThanOrEqual(12);
+  expect(cityRainPulses(3, 48, 53, true).every((p) => p.strength === 0)).toBe(
+    true,
+  );
 });

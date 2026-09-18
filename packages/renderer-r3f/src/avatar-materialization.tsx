@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Box3, Group, Mesh, Sprite, Texture, type Material } from "three";
+import { cityAssemblyFrame } from "./city-arrival-timing.js";
 import { useCodeTexture } from "./code-world-texture.js";
 
 export const ArrivalRainContext = createContext<Texture | null | undefined>(
@@ -19,6 +20,7 @@ export function AvatarMaterialization({
   ready,
   revealReady = true,
   telemetryPrefix = "avatar",
+  cityAssembly = false,
   onComplete,
   enabled = true,
   arrivalId,
@@ -29,6 +31,7 @@ export function AvatarMaterialization({
 }: {
   readonly ready: boolean;
   readonly revealReady?: boolean;
+  readonly cityAssembly?: boolean;
   readonly telemetryPrefix?: "avatar" | "city";
   readonly onComplete?: (() => void) | undefined;
   readonly enabled?: boolean;
@@ -199,11 +202,16 @@ uniform sampler2D aiwArrivalRain;
     }
     if (preparation.current !== "ready" || !revealReady) return;
     elapsed.current += Math.min(delta, 0.1);
-    const progress = reducedMotion
-      ? elapsed.current >= 1
+    const cityFrame = cityAssemblyFrame(elapsed.current, reducedMotion);
+    const progress = cityAssembly
+      ? cityFrame.complete
         ? 1
-        : 0
-      : Math.min(1, Math.max(0, (elapsed.current - 1) / 2.4));
+        : cityFrame.progress
+      : reducedMotion
+        ? elapsed.current >= 1
+          ? 1
+          : 0
+        : Math.min(1, Math.max(0, (elapsed.current - 1) / 2.4));
     dataset[`${telemetryPrefix}Arrival`] =
       progress === 0
         ? "waiting"
@@ -217,7 +225,9 @@ uniform sampler2D aiwArrivalRain;
       started.current = true;
       onMaterializationStart?.();
     }
-    uniforms.aiwArrivalProgress.value = progress;
+    uniforms.aiwArrivalProgress.value = cityAssembly
+      ? cityFrame.shaderProgress
+      : progress;
     uniforms.aiwArrivalTime.value = elapsed.current;
     if (progress === 1) {
       restore.current?.();

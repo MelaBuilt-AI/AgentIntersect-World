@@ -1,3 +1,4 @@
+export * from "./world-graphics.js";
 export type RenderObjectKind = "package" | "directory" | "file" | "symbol";
 export * from "./repository-asset-manifest.js";
 export * from "./repository-city-state.js";

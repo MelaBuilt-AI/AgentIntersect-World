@@ -62,6 +62,9 @@ declare module "three" {
   export const NoBlending: number;
   export const DoubleSide: number;
   export const BackSide: number;
+  export const CustomBlending: number;
+  export const OneFactor: number;
+  export const ZeroFactor: number;
   export const AdditiveBlending: number;
   export const RepeatWrapping: number;
   export const SRGBColorSpace: string;
@@ -77,8 +80,14 @@ declare module "three" {
     customProgramCacheKey(): string;
     needsUpdate: boolean;
     blending: number;
+    blendSrc: number;
+    blendDst: number;
+    blendSrcAlpha: number;
+    blendDstAlpha: number;
     side: number;
     depthWrite: boolean;
+    depthTest: boolean;
+    alphaTest: number;
     fog: boolean;
     toneMapped: boolean;
     name: string;
@@ -89,6 +98,7 @@ declare module "three" {
     dispose(): void;
   }
   export class Texture {
+    name: string;
     minFilter: unknown;
     magFilter: unknown;
     generateMipmaps: boolean;
@@ -109,6 +119,10 @@ declare module "three" {
     constructor(canvas: HTMLCanvasElement);
   }
   export const LinearFilter: unknown;
+  export const NearestFilter: number;
+  export class DepthTexture extends Texture {
+    constructor(width: number, height: number);
+  }
   export class SpriteMaterial extends Material {
     constructor(parameters?: {
       map?: Texture;
@@ -232,6 +246,11 @@ declare module "three" {
       opacity?: number;
     });
   }
+  export class Points extends Object3D {
+    geometry: BufferGeometry;
+    material: Material;
+    constructor(geometry?: unknown, material?: unknown);
+  }
   export class LineSegments extends Object3D {
     constructor(geometry?: unknown, material?: unknown);
   }
@@ -250,16 +269,37 @@ declare module "three" {
   export class Scene extends Group {
     fog: Fog | null;
   }
-  export class PerspectiveCamera extends Object3D {
+  export class Camera extends Object3D {
+    matrixWorld: Matrix4;
+    projectionMatrixInverse: Matrix4;
+  }
+  export class PerspectiveCamera extends Camera {
     constructor(fov?: number, aspect?: number, near?: number, far?: number);
     lookAt(target: Vector3): void;
   }
   export class WebGLRenderTarget {
-    constructor(width: number, height: number);
+    constructor(
+      width: number,
+      height: number,
+      options?: {
+        minFilter?: number;
+        magFilter?: number;
+        depthTexture?: DepthTexture;
+      },
+    );
+    width: number;
+    height: number;
+    depthTexture: DepthTexture | null;
     texture: Texture;
+    setSize(width: number, height: number): void;
     dispose(): void;
   }
   export class WebGLRenderer {
+    autoClear: boolean;
+    shadowMap: { autoUpdate: boolean };
+    info: { render: { frame: number } };
+    getDrawingBufferSize(target: Vector2): Vector2;
+    getPixelRatio(): number;
     capabilities: { getMaxAnisotropy(): number };
     domElement: HTMLCanvasElement;
     getContext(): WebGLRenderingContext | WebGL2RenderingContext;
@@ -299,6 +339,7 @@ declare module "three" {
 
   export class Matrix4 {
     elements: number[];
+    copy(matrix: Matrix4): this;
     compose(position: Vector3, quaternion: Quaternion, scale: Vector3): this;
     fromArray(array: ArrayLike<number>, offset?: number): this;
   }

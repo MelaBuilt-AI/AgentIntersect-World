@@ -7,6 +7,7 @@ import {
 import {
   Suspense,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -17,10 +18,16 @@ import {
   AvatarMaterialization,
   ArrivalRainContext,
 } from "./avatar-materialization.js";
+import { WorldGraphicsContext } from "./world-graphics-context.js";
+import { RepositoryLocalAtmosphere } from "./repository-local-atmosphere.js";
+import {
+  createRepositoryFogDepth,
+  RepositoryFogDepthContext,
+} from "./repository-fog-depth.js";
 import { useCodeTexture } from "./code-world-texture.js";
 import {
   RepositoryTerminalRain,
-  cityRainPulse,
+  cityRainPulses,
   type CityRainClock,
   type CityRainHighlight,
 } from "./repository-terminal-rain.js";
@@ -114,9 +121,8 @@ export function selectRepositoryCityRenderPlan(
 export function repositoryMaterialTint(
   status: RepositoryCityInstance["status"],
   selected: boolean,
-  settled: boolean,
 ): string | null {
-  if (selected || !settled) return REPOSITORY_STATUS_PRESENTATION.active.color;
+  if (selected) return REPOSITORY_STATUS_PRESENTATION.active.color;
   return status === "idle"
     ? null
     : REPOSITORY_STATUS_PRESENTATION[status].color;
@@ -154,12 +160,14 @@ function RepositoryCityModel({
   readonly rain: Texture | null;
   readonly index: number;
   readonly clock: CityRainClock;
-  readonly highlight: { current: CityRainHighlight };
+  readonly highlight: { current: readonly CityRainHighlight[] };
 }) {
-  const [settled, setSettled] = useState(false);
+  const [launchComplete, setLaunchComplete] = useState(reducedMotion);
+  const [settledAt, setSettledAt] = useState<number | null>(null);
+  const settled = settledAt !== null;
+  const graphics = useContext(WorldGraphicsContext);
   const definition = REPOSITORY_ASSET_BY_ID.get(instance.assetId)!;
-  const status = REPOSITORY_STATUS_PRESENTATION[instance.status];
-  const { model, materials, roof } = useMemo(() => {
+  const { model, materials, roof, radius } = useMemo(() => {
     const copy = gltf.scene.clone(true);
     const ownedMaterials: MeshStandardMaterial[] = [];
     copy.traverse((object) => {
@@ -178,7 +186,14 @@ function RepositoryCityModel({
         ownedMaterials.push(material);
       }
     });
+    const bounds = new Box3().setFromObject(copy);
     return {
+      radius: Math.max(
+        0.6,
+        Math.max(bounds.max.x - bounds.min.x, bounds.max.z - bounds.min.z) *
+          definition.defaultScale *
+          0.6,
+      ),
       model: copy,
       materials: ownedMaterials,
       roof: new Box3().setFromObject(copy).max.y * definition.defaultScale,
@@ -191,7 +206,7 @@ function RepositoryCityModel({
     [materials],
   );
   useFrame(() => {
-    const tint = repositoryMaterialTint(instance.status, selected, settled);
+    const tint = repositoryMaterialTint(instance.status, selected);
     for (const material of materials) {
       material.emissive.set(
         tint ?? String(material.userData.baseEmissive ?? "#000000"),
@@ -222,6 +237,7 @@ function RepositoryCityModel({
         }}
       >
         <AvatarMaterialization
+          cityAssembly
           ready={Boolean(rain)}
           revealReady={revealReady}
           arrivalId={instance.instanceId}
@@ -230,28 +246,44 @@ function RepositoryCityModel({
           onPrepared={() => onReady(instance.instanceId)}
           onMaterializationStart={() => onArrival(instance.instanceId)}
           onComplete={() => {
-            setSettled(true);
+            setSettledAt(clock.value);
             onSettled(instance.instanceId);
           }}
         >
           <primitive object={model} dispose={null} />
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-            <ringGeometry
-              args={[0.58, selected || instance.pinned ? 0.78 : 0.68, 28]}
-            />
-            <meshBasicMaterial
-              color={
-                selected
-                  ? REPOSITORY_STATUS_PRESENTATION.active.color
-                  : status.color
-              }
-              transparent
-              opacity={selected ? 0.95 : instance.pinned ? 0.72 : 0.42}
-            />
-          </mesh>
         </AvatarMaterialization>
       </group>
-      {settled && rain ? (
+      {selected && settled ? (
+        <mesh
+          name="repository-selection-ring"
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[instance.position.x, 0.03, instance.position.z]}
+          raycast={() => {}}
+        >
+          <ringGeometry args={[radius * 0.95, radius * 1.06, 48]} />
+          <meshBasicMaterial
+            color={REPOSITORY_STATUS_PRESENTATION.active.color}
+            transparent
+            opacity={0.85}
+            depthWrite={false}
+          />
+        </mesh>
+      ) : null}
+      {settled &&
+      (graphics.baseFog || graphics.lightShafts || graphics.arrivalSparks) ? (
+        <RepositoryLocalAtmosphere
+          x={instance.position.x}
+          z={instance.position.z}
+          radius={radius}
+          roof={roof}
+          clock={clock}
+          settledAt={settledAt ?? 0}
+          reducedMotion={reducedMotion}
+        />
+      ) : null}
+      {settled &&
+      rain &&
+      (graphics.terminalRain || (graphics.arrivalSparks && !launchComplete)) ? (
         <RepositoryTerminalRain
           texture={rain}
           x={instance.position.x}
@@ -260,6 +292,9 @@ function RepositoryCityModel({
           index={index}
           clock={clock}
           highlight={highlight}
+          onLaunchComplete={() => setLaunchComplete(true)}
+          settledAt={settledAt ?? 0}
+          reducedMotion={reducedMotion}
         />
       ) : null}
     </>
@@ -297,11 +332,17 @@ export function RepositoryCityModels({
   readonly onMaterializationStart?: (() => void) | undefined;
 }) {
   const { gl } = useThree();
+  const graphics = useContext(WorldGraphicsContext);
+  const fogDepth = useMemo(
+    () => (graphics.baseFog ? createRepositoryFogDepth() : null),
+    [graphics.baseFog],
+  );
+  useEffect(() => () => fogDepth?.dispose(), [fogDepth]);
   const startDrag = useRepositoryPropDrag(interaction);
   const rain = useCodeTexture("02_terminal_rain");
   const clock = useMemo(() => ({ value: 0 }), []);
   const [seed] = useState(() => Math.random() * 10000);
-  const highlight = useRef(cityRainPulse(0, 0, seed, reducedMotion));
+  const highlight = useRef(cityRainPulses(0, 0, seed, reducedMotion));
   const started = useRef(new Set<string>());
   const [readyIds, setReadyIds] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -319,39 +360,42 @@ export function RepositoryCityModels({
   }, [allReady, onReady]);
   useFrame((_, delta) => {
     if (!reducedMotion) clock.value += Math.min(delta, 0.1);
-    highlight.current = cityRainPulse(
-      clock.value,
-      instances.length,
-      seed,
-      reducedMotion,
-    );
+    highlight.current = graphics.huePulses
+      ? cityRainPulses(clock.value, instances.length, seed, reducedMotion)
+      : [];
     gl.domElement.dataset.cityRainTime = clock.value.toFixed(4);
-    gl.domElement.dataset.cityRainHighlight = String(highlight.current.index);
+    gl.domElement.dataset.cityRainHighlight =
+      highlight.current
+        .filter((pulse) => pulse.index >= 0)
+        .map((pulse) => pulse.index)
+        .join(",") || "-1";
   });
   return (
     <ArrivalRainContext.Provider value={rain}>
-      {instances.map((instance, index) => (
-        <Suspense key={instance.instanceId} fallback={null}>
-          <LoadedRepositoryCityModel
-            instance={instance}
-            reducedMotion={reducedMotion}
-            selected={selectedInstanceId === instance.instanceId}
-            onDragStart={startDrag}
-            onSelect={onSelect}
-            onSettled={onSettled}
-            onReady={ready}
-            revealReady={allReady}
-            onArrival={(id) => {
-              if (markCityArrivalBatch(started.current, id, instances))
-                onMaterializationStart?.();
-            }}
-            rain={rain}
-            index={index}
-            clock={clock}
-            highlight={highlight}
-          />
-        </Suspense>
-      ))}
+      <RepositoryFogDepthContext.Provider value={fogDepth}>
+        {instances.map((instance, index) => (
+          <Suspense key={instance.instanceId} fallback={null}>
+            <LoadedRepositoryCityModel
+              instance={instance}
+              reducedMotion={reducedMotion}
+              selected={selectedInstanceId === instance.instanceId}
+              onDragStart={startDrag}
+              onSelect={onSelect}
+              onSettled={onSettled}
+              onReady={ready}
+              revealReady={allReady}
+              onArrival={(id) => {
+                if (markCityArrivalBatch(started.current, id, instances))
+                  onMaterializationStart?.();
+              }}
+              rain={rain}
+              index={index}
+              clock={clock}
+              highlight={highlight}
+            />
+          </Suspense>
+        ))}
+      </RepositoryFogDepthContext.Provider>
     </ArrivalRainContext.Provider>
   );
 }

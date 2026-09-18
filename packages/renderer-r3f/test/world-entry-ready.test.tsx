@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
+  useContext: (context: { _currentValue: unknown }) => context._currentValue,
   useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
   useEffect: (effect: () => unknown) => {

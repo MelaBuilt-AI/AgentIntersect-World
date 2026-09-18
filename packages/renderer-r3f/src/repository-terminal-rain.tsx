@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useContext, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   AdditiveBlending,
@@ -7,6 +7,8 @@ import {
   type ShaderMaterial,
   type Texture,
 } from "three";
+import { WorldGraphicsContext } from "./world-graphics-context.js";
+import { cityLaunchFrame } from "./city-arrival-timing.js";
 import { CODE_SKY_LAYERS } from "./code-world-texture.js";
 
 // Exact gold, red, blue and orange stops from agentintersect_animated.svg.
@@ -22,17 +24,17 @@ const random = (seed: number) => {
   return value - Math.floor(value);
 };
 
-/** One gentle traveling highlight city-wide, with randomized quiet gaps. */
+/** Slow six-second envelopes with independently staggered city lanes. */
 export function cityRainPulse(
   time: number,
   count: number,
   seed: number,
   reducedMotion: boolean,
 ) {
-  const cycle = Math.floor(time / 18);
-  const start = 2 + random(seed + cycle * 7) * 4;
+  const cycle = Math.floor(time / 10);
+  const start = 1 + random(seed + cycle * 7) * 2;
   const duration = 6;
-  const progress = ((time % 18) - start) / duration;
+  const progress = ((time % 10) - start) / duration;
   return {
     index:
       reducedMotion || count === 0 || progress <= 0 || progress >= 1
@@ -44,6 +46,27 @@ export function cityRainPulse(
       ? 0
       : Math.sin(Math.PI * Math.max(0, Math.min(1, progress))) ** 2,
   };
+}
+
+export function cityRainPulses(
+  time: number,
+  count: number,
+  seed: number,
+  reducedMotion: boolean,
+): readonly CityRainHighlight[] {
+  const lanes = Math.min(12, Math.ceil(count / 4));
+  return Array.from({ length: lanes }, (_, lane) => {
+    const pulse = cityRainPulse(
+      time + lane * 1.37,
+      Math.ceil((count - lane) / lanes),
+      seed + lane * 29,
+      reducedMotion,
+    );
+    return {
+      ...pulse,
+      index: pulse.index < 0 ? -1 : lane + pulse.index * lanes,
+    };
+  });
 }
 
 /** World-space vertical ray / camera-centered innermost sky intersection. */
@@ -78,6 +101,9 @@ export function RepositoryTerminalRain({
   index,
   clock,
   highlight,
+  settledAt = 0,
+  reducedMotion = false,
+  onLaunchComplete,
 }: {
   readonly texture: Texture;
   readonly x: number;
@@ -85,13 +111,23 @@ export function RepositoryTerminalRain({
   readonly roof: number;
   readonly index: number;
   readonly clock: CityRainClock;
-  readonly highlight: { current: CityRainHighlight };
+  readonly highlight: { current: readonly CityRainHighlight[] };
+  readonly settledAt?: number;
+  readonly reducedMotion?: boolean;
+  readonly onLaunchComplete?: (() => void) | undefined;
 }) {
+  const graphics = useContext(WorldGraphicsContext);
+  const skipLaunch = useRef(reducedMotion);
+  const completedLaunch = useRef(false);
   const uniforms = useMemo(
     () => ({
       rainMap: { value: texture },
       rainTime: clock,
       rainHeight: { value: 440 },
+      rainReach: { value: 0 },
+      rainSpark: { value: 0 },
+      rainDown: { value: 0 },
+      rainVisible: { value: 1 },
       rainPulse: { value: -1 },
       rainStrength: { value: 0 },
       rainColor: { value: [0, 0, 0] },
@@ -133,15 +169,35 @@ export function RepositoryTerminalRain({
     // R3F copies uniform descriptors: update the mounted material, not props.
     const live = material.current?.uniforms;
     if (!live) return;
-    live.rainTime!.value = clock.value;
+    if (reducedMotion) skipLaunch.current = true;
+    const age = Math.max(0, clock.value - settledAt);
+    const launch = cityLaunchFrame(
+      age,
+      skipLaunch.current || !graphics.arrivalSparks,
+    );
+    if (launch.down === 1 && !completedLaunch.current) {
+      completedLaunch.current = true;
+      onLaunchComplete?.();
+    }
+    live.rainTime!.value =
+      skipLaunch.current || !graphics.arrivalSparks
+        ? clock.value * 0.055
+        : launch.offset;
+    live.rainReach!.value = launch.reach;
+    live.rainSpark!.value = launch.spark;
+    live.rainDown!.value = launch.down;
+    live.rainVisible!.value = graphics.terminalRain ? 1 : 1 - launch.down;
     live.rainHeight!.value = Math.max(
       1,
       cityRainTop(x, z, camera.position) - roof,
     );
-    const pulse = highlight.current;
-    live.rainPulse!.value = pulse.progress;
-    live.rainStrength!.value = pulse.index === index ? pulse.strength : 0;
-    live.rainColor!.value = RAIN_COLOR_VALUES[pulse.color]!;
+    const pulse = highlight.current.find((pulse) => pulse.index === index);
+    live.rainPulse!.value = pulse?.progress ?? 0;
+    live.rainStrength!.value =
+      graphics.huePulses && !reducedMotion
+        ? (pulse?.strength ?? 0) * launch.down
+        : 0;
+    live.rainColor!.value = RAIN_COLOR_VALUES[pulse?.color ?? 0]!;
   });
   return (
     <mesh
@@ -179,22 +235,32 @@ export function RepositoryTerminalRain({
         uniform sampler2D rainMap;
         uniform float rainTime;
         uniform float rainHeight;
+        uniform float rainReach;
+        uniform float rainSpark;
+        uniform float rainDown;
+        uniform float rainVisible;
         uniform float rainPulse;
         uniform float rainStrength;
         uniform vec3 rainColor;
         varying vec2 rainUv;
         void main() {
+          if (rainUv.y > rainReach || rainVisible < 0.001) discard;
           // Positive V sample motion makes the visible glyphs travel DOWN.
-          vec3 code = texture2D(rainMap, vec2(rainUv.x, rainUv.y * rainHeight / 18.0 + rainTime * 0.055)).rgb;
+          vec3 code = texture2D(rainMap, vec2(rainUv.x, rainUv.y * rainHeight / 18.0 + rainTime)).rgb;
           float ink = max(code.r, max(code.g, code.b));
           float glyph = smoothstep(0.008, 0.055, ink);
           // Broad packets move at four world units/second, not hundreds of
           // units/second across the entire sky height. Six-second eased envelope.
-          float packet = mod(rainUv.y * rainHeight + rainPulse * 24.0, 36.0);
-          float pulse = exp(-pow((packet - 18.0) / 5.0, 2.0)) * rainStrength;
+          float pulse = 0.0;
+          if (rainStrength > 0.0) {
+            float packet = mod(rainUv.y * rainHeight + rainPulse * 24.0, 36.0);
+            pulse = exp(-pow((packet - 18.0) / 5.0, 2.0)) * rainStrength;
+          }
           vec3 tint = mix(vec3(0.12, 0.55, 0.76), rainColor, pulse);
           float root = smoothstep(0.0, 0.003, rainUv.y);
-          gl_FragColor = vec4(tint * (1.0 + pulse * 0.35), glyph * root * (0.65 + pulse * 0.15));
+          float spark = exp(-pow((rainUv.y - rainReach) * rainHeight / 3.0, 2.0)) * rainSpark;
+          gl_FragColor = vec4(tint * (1.0 + pulse * 0.35) + vec3(0.35, 0.7, 1.0) * spark,
+            max(glyph * root * (0.65 + pulse * 0.15), spark * 0.6) * rainVisible);
           #include <colorspace_fragment>
         }
       `}

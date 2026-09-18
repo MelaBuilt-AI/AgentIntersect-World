@@ -757,7 +757,7 @@ test("first-run setup gates selection without discovering automatically and reta
     page.getByRole("dialog", { name: "Agent Setup Menu", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Single Agent", exact: true }),
+    page.getByRole("button", { name: "Single Agent — available", exact: true }),
   ).toHaveCount(0);
   expect(discoveryRequests).toBe(0);
   await page.keyboard.press("Escape");
@@ -1186,5 +1186,59 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   ).toBeLessThanOrEqual(
     await page.evaluate(() => document.documentElement.clientWidth),
   );
+  expect(errors).toEqual([]);
+});
+
+test("Graphics defaults, independent toggles, persistence and portrait layout", async ({
+  page,
+}, testInfo) => {
+  const errors = capturePageErrors(page);
+  await installWorldState(page, false);
+  await installSessionFixture(page);
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "Single Agent — available", exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Graphics", exact: true }).click();
+  const menu = page.getByRole("dialog", { name: "Graphics", exact: true });
+  const switches = menu.getByRole("checkbox");
+  await expect(switches).toHaveCount(7);
+  for (const control of await switches.all())
+    await expect(control).toBeChecked();
+  await menu
+    .getByRole("checkbox", { name: "Subtle bloom", exact: true })
+    .uncheck();
+  await expect(
+    menu.getByRole("checkbox", { name: "Wet-floor reflections", exact: true }),
+  ).toBeChecked();
+  await page.screenshot({ path: testInfo.outputPath("graphics-desktop.png") });
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Single Agent — available", exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Graphics", exact: true }).click();
+  await expect(
+    menu.getByRole("checkbox", { name: "Subtle bloom", exact: true }),
+  ).not.toBeChecked();
+  await menu
+    .getByRole("button", { name: "Disable all effects", exact: true })
+    .click();
+  for (const control of await switches.all())
+    await expect(control).not.toBeChecked();
+  await menu
+    .getByRole("button", { name: "Restore effects defaults", exact: true })
+    .click();
+  for (const control of await switches.all())
+    await expect(control).toBeChecked();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    menu.getByRole("button", { name: "Restore effects defaults", exact: true }),
+  ).toBeInViewport();
+  expect(await menu.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
+    true,
+  );
+  await page.screenshot({ path: testInfo.outputPath("graphics-portrait.png") });
   expect(errors).toEqual([]);
 });

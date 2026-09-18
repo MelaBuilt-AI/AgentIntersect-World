@@ -508,6 +508,12 @@ export function WorldEntryExperience({
       ? DEFAULT_WORLD_DISPLAY_PREFERENCES
       : loadWorldDisplayPreferences(window.localStorage),
   );
+  useEffect(() => {
+    const sync = () =>
+      setPreferences(loadWorldDisplayPreferences(window.localStorage));
+    window.addEventListener("aiw:display-preferences", sync);
+    return () => window.removeEventListener("aiw:display-preferences", sync);
+  }, []);
   const [addingAgent, setAddingAgent] = useState(false);
   useEffect(() => {
     const open = () => setAddingAgent(true);
@@ -2806,6 +2812,7 @@ export function WorldEntryExperience({
               layoutGeneration={layoutGeneration}
               onAgentMovementEvent={reportAgentMovementEvent}
               showControlHints={preferences.showControlHints}
+              graphics={preferences.graphics}
               repositoryReadiness={repositoryReadiness}
               liveWorkstream={normalWorkstream}
               projectName={repositoryName}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useContext, useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
   AdditiveBlending,
@@ -15,6 +15,9 @@ import {
   useCodeTexture,
 } from "./code-world-texture.js";
 
+import { WorldGraphicsContext } from "./world-graphics-context.js";
+import { WorldBloom, WorldWetFloor } from "./world-atmosphere-effects.js";
+
 export function WorldEnvironment({
   floor,
   size,
@@ -28,6 +31,7 @@ export function WorldEnvironment({
   readonly reducedMotion: boolean;
   readonly userPosition: { readonly x: number; readonly z: number };
 }) {
+  const graphics = useContext(WorldGraphicsContext);
   const { camera, gl, invalidate, scene } = useThree();
   useEffect(() => {
     const previous = scene.fog;
@@ -121,6 +125,10 @@ export function WorldEnvironment({
   });
   return (
     <group name="world-code-environment">
+      {graphics.bloom ? <WorldBloom /> : null}
+      {floor === "repository" && graphics.wetFloorReflections ? (
+        <WorldWetFloor size={size} />
+      ) : null}
       <ambientLight
         color="#bbd3eb"
         intensity={floor === "repository" ? 0.65 : 0.85}

@@ -1,3 +1,8 @@
+import { WorldGraphicsContext } from "./world-graphics-context.js";
+import {
+  DEFAULT_WORLD_GRAPHICS,
+  type WorldGraphics,
+} from "./world-graphics.js";
 import type { WorldScreenBinding } from "./world-screen-types.js";
 import { useActivityBillboard } from "./world-activity-billboard.js";
 import { WorldEnvironment } from "./world-environment.js";
@@ -480,6 +485,7 @@ function ImportedAvatarGroundingMarker({
 }
 
 export function prepareWorldRoomScene(input: {
+  readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
   readonly userAvatar: AvatarSelection;
@@ -708,6 +714,7 @@ function WorldRoomScene({
   onCityReady,
 }: {
   readonly screens?: readonly WorldScreenBinding[] | undefined;
+  readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
   readonly cityInstances: readonly RepositoryCityInstance[];
@@ -1159,6 +1166,7 @@ function WorldRoomScene({
 }
 
 export function WorldRoomCanvas({
+  graphics = DEFAULT_WORLD_GRAPHICS,
   screenEventSource,
   floorSize = 68,
   screens,
@@ -1198,6 +1206,7 @@ export function WorldRoomCanvas({
   onSceneReady,
   onMaterializationStart,
 }: {
+  readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
   readonly cityInstances: readonly RepositoryCityInstance[];
@@ -1433,66 +1442,68 @@ export function WorldRoomCanvas({
       {renderLoop.mode === "continuous-constrained" ? (
         <CooperativeWorldInvalidation />
       ) : null}
-      <WorldEnvironment
-        onReady={markEnvironmentReady}
-        floor={floor}
-        size={floorSize}
-        reducedMotion={reducedMotion}
-        userPosition={userPosition}
-      />
-      <WorldScreens
-        floorSize={floorSize}
-        reducedMotion={reducedMotion}
-        screens={screens}
-        onScreenMove={onScreenMove}
-        onScreenDrag={onScreenDrag}
-      />
-      <WorldRoomScene
-        onMaterializationPrepared={onSceneReady}
-        onMaterializationStart={onMaterializationStart}
-        materializationReady={
-          environmentReady &&
-          readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
-        }
-        screens={screens}
-        floor={floor}
-        objects={objects}
-        cityInstances={cityInstances}
-        selectedCityInstanceId={selectedCityInstanceId}
-        cityFocusPosition={cityFocusPosition}
-        userPosition={userPosition}
-        camera={camera}
-        activity={activity}
-        {...(agentActivities ? { agentActivities } : {})}
-        userAvatar={userAvatar}
-        agentAvatar={agentAvatar}
-        {...(agentAvatars ? { agentAvatars } : {})}
-        {...(agentStates ? { agentStates } : {})}
-        userImportedAvatar={userImportedAvatar}
-        agentImportedAvatar={agentImportedAvatar}
-        {...(agentImportedAvatars ? { agentImportedAvatars } : {})}
-        userAction={userAction}
-        agentAction={agentAction}
-        userLayerState={userLayerState}
-        agentLayerState={agentLayerState}
-        reducedMotion={reducedMotion}
-        avatarReady={avatarReady}
-        avatarLod={avatarLod}
-        renderQuality={renderQuality}
-        onAvatarReady={onAvatarReady}
-        onAvatarLodChange={onAvatarLodChange}
-        onImportedAnimationSample={onImportedAnimationSample}
-        onImportedOneShotComplete={onImportedOneShotComplete}
-        userAnimationGeneration={userAnimationGeneration}
-        agentAnimationGeneration={agentAnimationGeneration}
-        agentPosition={agentPosition}
-        agentHeading={agentHeading}
-        onContextLost={onContextLost}
-        cityInteraction={cityInteraction}
-        onCitySelect={onCitySelect}
-        onCitySettled={onCitySettled}
-        onCityReady={onCityReady}
-      />
+      <WorldGraphicsContext.Provider value={graphics}>
+        <WorldEnvironment
+          onReady={markEnvironmentReady}
+          floor={floor}
+          size={floorSize}
+          reducedMotion={reducedMotion}
+          userPosition={userPosition}
+        />
+        <WorldScreens
+          floorSize={floorSize}
+          reducedMotion={reducedMotion}
+          screens={screens}
+          onScreenMove={onScreenMove}
+          onScreenDrag={onScreenDrag}
+        />
+        <WorldRoomScene
+          onMaterializationPrepared={onSceneReady}
+          onMaterializationStart={onMaterializationStart}
+          materializationReady={
+            environmentReady &&
+            readyAvatarIds.size >= 1 + Math.min(4, agentAvatars?.length || 1)
+          }
+          screens={screens}
+          floor={floor}
+          objects={objects}
+          cityInstances={cityInstances}
+          selectedCityInstanceId={selectedCityInstanceId}
+          cityFocusPosition={cityFocusPosition}
+          userPosition={userPosition}
+          camera={camera}
+          activity={activity}
+          {...(agentActivities ? { agentActivities } : {})}
+          userAvatar={userAvatar}
+          agentAvatar={agentAvatar}
+          {...(agentAvatars ? { agentAvatars } : {})}
+          {...(agentStates ? { agentStates } : {})}
+          userImportedAvatar={userImportedAvatar}
+          agentImportedAvatar={agentImportedAvatar}
+          {...(agentImportedAvatars ? { agentImportedAvatars } : {})}
+          userAction={userAction}
+          agentAction={agentAction}
+          userLayerState={userLayerState}
+          agentLayerState={agentLayerState}
+          reducedMotion={reducedMotion}
+          avatarReady={avatarReady}
+          avatarLod={avatarLod}
+          renderQuality={renderQuality}
+          onAvatarReady={onAvatarReady}
+          onAvatarLodChange={onAvatarLodChange}
+          onImportedAnimationSample={onImportedAnimationSample}
+          onImportedOneShotComplete={onImportedOneShotComplete}
+          userAnimationGeneration={userAnimationGeneration}
+          agentAnimationGeneration={agentAnimationGeneration}
+          agentPosition={agentPosition}
+          agentHeading={agentHeading}
+          onContextLost={onContextLost}
+          cityInteraction={cityInteraction}
+          onCitySelect={onCitySelect}
+          onCitySettled={onCitySettled}
+          onCityReady={onCityReady}
+        />
+      </WorldGraphicsContext.Provider>
     </Canvas>
   );
 }

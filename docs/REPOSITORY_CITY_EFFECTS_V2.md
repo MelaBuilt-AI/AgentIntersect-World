@@ -1,0 +1,52 @@
+# Repository City effects — operator revision
+
+Aaron1550499387300519978 likes the direction and hue pulses but reports a completion pop in `C:\Users\Mela AI\Videos\city materialize.mp4`. Current TEST45377 at e58a4b2 remains retained; this is not a blanket PASS. Scope expands explicitly to the previously planned atmosphere and graphics menu.
+
+## Acceptance
+
+- Preserve existing avatar entrance; city assembly lasts longer and finishes with a smooth final shader/material handoff, without changing the all-model readiness gate or camera identity.
+- After each city body completes, code/sparks shoot upward to establish its roof-to-sky streams, then ease into the accepted downward rain. Reduced Motion skips launch and holds decoration static.
+- More frequent, independently staggered overlapping logo-color pulses, still smoothly eased (no strobe). Bound simultaneous work; hue color is decorative, not status authority.
+- Remove all unselected ground rings, including pinned-object rings; show only the clicked object's selection ring. Add low, soft drifting base fog with pointer-transparent decoration.
+- Subtle bloom, localized light shafts, and actual reflected scene geometry on the wet floor, preserving accepted artwork and screen/input depth behavior.
+- Escape → Graphics: independent switches for bloom, shafts, wet reflections, base fog, terminal rain, hue pulses, and arrival sparks. Defaults all ON; save browser-local preferences, preserve old settings, apply without remounting actors/camera. Off stops owned rendering/allocation, not merely its visible output. Reduced Motion still applies.
+
+## Boundaries and proof
+
+Standard-risk presentation changes only. No provider/harness/backend authority, repository execution, collision, old-test reset/cleanup, release or publication. Merge is permitted only under the later conditional authorization below. Implement directly. Focused regressions, producer build/types/lint, isolated real-WebGL pixels/motion/reflection/off-path proof, and built-browser menu/persistence/selection/arrival journey. First-hand visual/listening acceptance remains Aaron's. No universal FPS or medical photosensitivity guarantee. Keep new preview separate from TEST45377.
+
+## User acceptance and conditional delivery authorization
+
+Aaron (`1550536501660745810`) approves the corrected fog from the supplied pictures while away from his PC: “that looks really really good! Let’s go with it.” He explicitly requests commit/push, then merge once GitHub CI and readiness are green. No further manual test is required by this delivery instruction. Record this as image-based visual acceptance, not a new native interactive/performance test. Earlier first-hand acceptance of the other effects and Graphics menu remains intact.
+
+Commit/push of the cumulative PR17 revision is authorized; merge is conditional on all applicable exact-head push/PR workflows and GitHub readiness being green. Preserve prior local constrained-run failures and baseline hosted failures. No release/publication, provider/gateway change, branch deletion, or retained-runtime replacement/cleanup is authorized. Final SHA/CI/merge receipts belong in the PR and external delivery record, not a recursive source-status commit.
+
+## Fog-only correction — implemented and image-approved
+
+Aaron authorized implementation in message `1550521858040799454`. The original three horizontal sheets were reproduced at low/close angles, then replaced with one shallow continuous ellipsoidal mist volume per object. Its smoothly vanishing density is integrated analytically along the camera ray, clipped at scene depth, and gently modulated by drifting noise. This removes the sheet geometry rather than disguising it with opacity or more layers. Density is strongest at the floor and fades upwards.
+
+All volumes share one lazy depth/coverage capture per scene render. Plain opaque geometry uses an unlit capture material rather than repeating artwork/lighting work; custom arrival/discard shaders, alpha-tested materials and transparent-black spatial masks retain their actual materials. Original materials, visibility and render state are restored immediately. The capture excludes reflections/decoration and is never recursively used by the reflector. Base Fog off disposes the capture/material and unmounts all fog proxies; actors and camera remain mounted. Existing timing/audio/rain/pulses/shafts/bloom/reflections/Graphics UI are unchanged.
+
+Verification on the final source:
+
+- **19 focused tests / 7 files** pass, including the original geometry RED→GREEN, actual uniform updates and shared capture/state restoration/disposal. Renderer/web no-emit types, scoped lint/format, renderer producer and isolated normal-UI production build pass. Vite retains its large lazy-renderer chunk advisory; no budget changed.
+- Actual WebGL proof covers nine shipped model shapes at low, oblique, close, top and inside-volume camera positions; actual World artwork and effects are texture-ready before final captures. Pixel inspection shows no original three-slice cuts or proxy-box edges. Nearby patches blend softly.
+- A calibrated opaque-wall probe reads a continuous vertical fog contribution (64 rows, final maximum adjacent change **1/255**) and **zero** fog contribution through a foreground occluder. Bloom plus the real transparent-black mask retains framebuffer RGBA **[0,0,0,0]**. Half-DPR rendering is exercised.
+- Frozen Reduced Motion images are identical; normal-motion fog pixels differ with advancing mounted time. Independent fog-off removes nine proxy geometries and two shared textures in the oblique nine-model scene; restore returns them without another arrival.
+- The unchanged production journey passes repository load/arrival/audio, launch-to-rain, Reduced Motion, live Graphics off/default restore and strict errors on the rebuilt final candidate with **four CPU equivalents / 3 GiB**, in **1.9 minutes**. No selectors, assertions or deadlines were weakened.
+
+Keep the limitations explicit: the two-CPU full production journey is **not green**. Attempt1 missed the existing launch predicate (11.9 vs required >12.2); after the unlit-capture optimization, attempt2 passed that predicate but exhausted the existing 180-second whole-journey budget at a screenshot. Attempt3 changed only the local CPU allocation and passed. The final isolated multi-angle/pixel/resource probe passes at two CPUs; that does not replace the failed complete journey or establish native FPS/hosted-CI readiness. An earlier isolated probe also timed out while draining many software-rendered frames; its shorter explicit motion sample and all failures remain recorded.
+
+Evidence: `/home/mela_ai/.hermes/runs/aiw-fog-20260918/`. Normal candidate build: `/tmp/aiw-fog-20260918/web`. The disposable automated servers are stopped. TEST45379 retains its old served bytes and user state; its read-only health/process/index check passed. No existing operator window was driven, rebuilt or reset.
+
+Delivery gate: commit/push this approved revision, then require fresh exact-head GitHub checks and readiness before merging. The PR17 baseline `e58a4b22c6390f5f7e3ae36acd5f586b54806bdc` has separately recorded failed hosted checks; predecessor results do not decide the new tip. Image-based approval supersedes the pending fog-only manual retest without claiming a native interaction test. Existing accepted effects/menu remain accepted.
+
+## Historical pre-fog-correction verification and retest
+
+- Final focused renderer/settings suite: **126 passed / 21 files**. Workspace typecheck, lint, architecture (11 assertions), startup chunk-boundary build test, formatting and diff check passed. Renderer producer rebuilt before web consumers.
+- Actual WebGL probe renders nine different shipped city GLBs with all effects, samples final assembly/glow/launch/falling stages, and verifies selected-only ring, held Reduced Motion, independent rain removal/re-enable without relaunch, reflector removal, all-off cleanup and restoration. GPU texture count changes **31 → 17 → 31**; geometry count also falls. Frozen reflection difference shows actual reflected silhouettes. A real transparent-black spatial-screen-style depth mask retains framebuffer RGBA **[0,0,0,0]** with bloom enabled. No shader/page/console errors in the final probe.
+- Built-browser Graphics journey passes all-on defaults, individual toggles, reload persistence, Disable all, Restore defaults, desktop/portrait containment. Integrated production journey passes shared materialization sound playback, longer arrival, launch-to-rain settling, rain movement, Reduced Motion hold, and live Escape graphics off/on reaching the canvas.
+- Historical attempts are not erased: an initial probe import path and never-loop readiness driver were fixture errors; browser attempt1 exhausted the old total journey budget and used an incomplete exact entry-button label. Attempt2 menu passed but the newly added launch wait inherited a five-second poll deadline, insufficient for four-plus seconds of clamped simulation under software rendering. Final arrival attempt3 passes with the same product bytes as attempt2 and an explicit twenty-second launch predicate. The open journey's total budget now includes the intentionally longer assembly plus new launch (180 seconds); assertion semantics and existing per-stage readiness deadlines stay intact.
+- Auxiliary bloom/reflection resolution respects effective renderer DPR. All effects remain ON by default; this does not claim a measured native FPS target.
+- Evidence retained under `/home/mela_ai/.hermes/runs/aiw-city-v2-evidence-20260918`; fresh normal-UI operator kit `/home/mela_ai/.hermes/runs/aiw-pr17-city-v2-review-20260918`, URL `http://127.0.0.1:45379/`. Native Windows Edge uses a fresh profile and WSL backend. Setup starts anew; older browser profiles and saved sessions are not imported or reset.
+- Operator report `1550516167171379241`: effects work as intended and Graphics menu is “perfect,” **except base fog**, whose three visible layers cut across model bases from most angles. Other scoped acceptance is preserved; fog appearance remains unresolved. Screenshot `/home/mela_ai/.hermes/cache/images/img_41ad2bb3e6d6.png`. That was the pre-correction verdict; the fog-only implementation and subsequent image-based approval are recorded above. No retained preview was replaced. The cumulative revision is authorized for private delivery under the green-CI/readiness merge gate above; release and public actions remain unapproved.

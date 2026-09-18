@@ -6,7 +6,23 @@ import {
   type WorldDisplayPreferences,
 } from "./world-escape-menu-model.js";
 
-type WorldEscapeView = "menu" | "settings" | "avatar-target" | "reset";
+import {
+  DEFAULT_WORLD_GRAPHICS,
+  type WorldGraphics,
+} from "@agentintersect-world/renderer-r3f";
+
+const GRAPHICS_LABELS: Record<keyof WorldGraphics, string> = {
+  bloom: "Subtle bloom",
+  lightShafts: "Localized light shafts",
+  wetFloorReflections: "Wet-floor reflections",
+  baseFog: "Object base fog",
+  terminalRain: "Terminal rain",
+  huePulses: "Colored rain pulses",
+  arrivalSparks: "Arrival sparks and upward launch",
+};
+
+type WorldEscapeView =
+  "graphics" | "menu" | "settings" | "avatar-target" | "reset";
 
 const focusableSelector = [
   "button:not([disabled])",
@@ -107,6 +123,7 @@ export function WorldEscapeMenu({
   if (!open)
     return entryOnly ? null : <span hidden data-world-menu-owner="true" />;
 
+  const graphics = preferences.graphics ?? DEFAULT_WORLD_GRAPHICS;
   const act = (action: () => void) => {
     setOpen(false);
     setView("menu");
@@ -164,6 +181,13 @@ export function WorldEscapeMenu({
               <button
                 type="button"
                 className="world-action--enabled"
+                onClick={() => setView("graphics")}
+              >
+                Graphics
+              </button>
+              <button
+                type="button"
+                className="world-action--enabled"
                 onClick={() =>
                   act(() =>
                     window.dispatchEvent(new Event("aiw:open-agent-setup")),
@@ -216,6 +240,69 @@ export function WorldEscapeMenu({
                 onClick={() => act(onChangeAgent)}
               >
                 Change Agent
+              </button>
+            </div>
+          </>
+        ) : null}
+        {view === "graphics" ? (
+          <>
+            <span className="terminal-kicker">world_graphics_</span>
+            <h2 id="world-escape-title">Graphics</h2>
+            <p>
+              Turn effects off to reduce GPU work. Changes apply immediately and
+              are saved on this browser. Reduced Motion still applies.
+            </p>
+            {(Object.keys(GRAPHICS_LABELS) as (keyof WorldGraphics)[]).map(
+              (key) => (
+                <label className="world-escape-setting" key={key}>
+                  <input
+                    type="checkbox"
+                    checked={graphics[key]}
+                    onChange={(event) =>
+                      onPreferences({
+                        ...preferences,
+                        graphics: { ...graphics, [key]: event.target.checked },
+                      })
+                    }
+                  />
+                  {GRAPHICS_LABELS[key]}
+                </label>
+              ),
+            )}
+            <div className="world-escape-actions">
+              <button
+                type="button"
+                className="world-action--enabled"
+                onClick={() =>
+                  onPreferences({
+                    ...preferences,
+                    graphics: Object.fromEntries(
+                      Object.keys(graphics).map((key) => [key, false]),
+                    ) as WorldGraphics,
+                  })
+                }
+              >
+                Disable all effects
+              </button>
+              <button
+                type="button"
+                className="world-action--enabled"
+                onClick={() =>
+                  onPreferences({
+                    ...preferences,
+                    graphics: DEFAULT_WORLD_GRAPHICS,
+                  })
+                }
+              >
+                Restore effects defaults
+              </button>
+              <button
+                ref={initialFocusRef}
+                type="button"
+                className="world-action--enabled"
+                onClick={() => setView("menu")}
+              >
+                Back to World menu
               </button>
             </div>
           </>

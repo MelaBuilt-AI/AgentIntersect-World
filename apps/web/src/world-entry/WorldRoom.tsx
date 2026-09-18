@@ -186,6 +186,11 @@ const isInteractiveMouseTarget = (target: EventTarget | null): boolean =>
     ),
   );
 
+import {
+  DEFAULT_WORLD_GRAPHICS,
+  type WorldGraphics,
+} from "@agentintersect-world/renderer-r3f";
+
 export function WorldRoom({
   floor,
   objects,
@@ -213,6 +218,7 @@ export function WorldRoom({
   layoutGeneration = "blank-world",
   onAgentMovementEvent: reportMovementEvent,
   showControlHints = true,
+  graphics = DEFAULT_WORLD_GRAPHICS,
   repositoryReadiness = "idle",
   workstreamAuthority,
   workstreamTask,
@@ -293,6 +299,7 @@ export function WorldRoom({
     | ((event: AgentMovementEvent, position: { x: number; z: number }) => void)
     | undefined;
   readonly showControlHints?: boolean;
+  readonly graphics?: WorldGraphics | undefined;
   readonly repositoryReadiness?: "idle" | "loading" | "ready" | "error";
   readonly workstreamAuthority?:
     WorkstreamAuthorityDescriptor | null | undefined;
@@ -2490,6 +2497,7 @@ export function WorldRoom({
             <Suspense fallback={null}>
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
+                  graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
                   screenEventSource={screenEventSource ?? undefined}
@@ -2551,6 +2559,7 @@ export function WorldRoom({
                 />
               ) : (
                 <WorldRoomCanvas
+                  graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
                   screenEventSource={screenEventSource ?? undefined}

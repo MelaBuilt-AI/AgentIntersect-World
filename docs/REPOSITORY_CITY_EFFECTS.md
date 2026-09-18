@@ -1,5 +1,7 @@
 # Repository City materialization and terminal rain
 
+> Historical baseline scope and receipts. The expanded, accepted effects/Graphics/fog revision and current conditional merge authorization are recorded in [Repository City effects V2](REPOSITORY_CITY_EFFECTS_V2.md). The baseline restrictions and pending verdict below describe the earlier delivery era, not the current authorization.
+
 ## Scope (2026-09-18)
 
 Aaron authorized a separate private PR for city-object effects after checking PR16 merged-main CI. Run 35303937945 completed successfully on fed8c1524d23fca6edc3eee96d74d2ed935ccf72, attempt 1, all nine jobs successful. Historical failed attempts remain historical.
