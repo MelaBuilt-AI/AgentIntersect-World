@@ -8,6 +8,7 @@ import type {
   SetupCheck,
 } from "@agentintersect-world/world-schema/agent-setup";
 import "./agent-setup.css";
+import { LocalVoiceSetup } from "./LocalVoiceSetup.js";
 import {
   installationRegistration,
   setupEnvironmentLabel,
@@ -509,6 +510,7 @@ export function AgentSetupMenu({
             <p>No agents attached yet.</p>
           )}
         </section>
+        <LocalVoiceSetup />
         <footer className="agent-setup-footer">
           <p>Setup saves connections, not your current World roster.</p>
           <button

@@ -66,11 +66,25 @@ test("Phase 15 exact numbered push-to-talk journey is accessible and authority-b
         return { connect: () => undefined, disconnect: () => undefined };
       }
       createScriptProcessor() {
-        return {
-          onaudioprocess: null,
-          connect: () => undefined,
+        const processor = {
+          onaudioprocess: null as
+            | null
+            | ((event: {
+                inputBuffer: { getChannelData: () => Float32Array };
+              }) => void),
+          // Deliver one real-sized PCM block after capture enters listening.
+          // An empty fake microphone now correctly exercises the quick-click guard instead.
+          connect: () =>
+            queueMicrotask(() =>
+              processor.onaudioprocess?.({
+                inputBuffer: {
+                  getChannelData: () => new Float32Array(4096).fill(0.1),
+                },
+              }),
+            ),
           disconnect: () => undefined,
         };
+        return processor;
       }
       async close() {}
     }

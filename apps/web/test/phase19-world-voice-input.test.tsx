@@ -49,7 +49,9 @@ describe("Phase 19 World voice input", () => {
       }),
     );
 
-    expect(html).toContain("Push to talk");
+    expect(html).toContain("Push to Talk");
+    expect(html).toContain("L Click Hold");
+    expect(html).toContain("R Click = On");
     expect(html).toContain('aria-pressed="false"');
     expect(html).not.toMatch(/\sdisabled(?:=|>)/u);
     expect(html).not.toMatch(

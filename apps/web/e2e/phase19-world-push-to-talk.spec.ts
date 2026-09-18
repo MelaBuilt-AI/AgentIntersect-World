@@ -178,6 +178,14 @@ async function installFixture(page: Page) {
           },
           disconnect: () => undefined,
         };
+        Object.assign(window, {
+          __task14FeedAudio: (level: number) =>
+            processor.onaudioprocess?.({
+              inputBuffer: {
+                getChannelData: () => new Float32Array(1_600).fill(level),
+              },
+            }),
+        });
         return processor;
       }
       async close() {}
@@ -480,7 +488,7 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
     pointerId: 11,
     pointerType: "mouse",
   });
-  await expect(pushToTalk).toContainText("Push to talk");
+  await expect(pushToTalk).toContainText("Push to Talk");
   expect(fixture.transcriptionBodies).toHaveLength(0);
 
   await recordPointer(page, "mouse", 2);
@@ -555,4 +563,104 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
           .__task14SpeechSpeakCalls,
     ),
   ).toBe(0);
+});
+
+test("hands-free recording ends on Send or Cancel and never rearms", async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const fixture = await installFixture(page);
+  await page.goto("/");
+  const roster = page.getByRole("region", {
+    name: "Connected agent constellation",
+  });
+  await expect(
+    roster.locator("li").filter({ hasText: "Mr Fluff" }),
+  ).toHaveAttribute("data-connection", "connected");
+  await roster
+    .locator("li")
+    .filter({ hasText: "Codex" })
+    .getByRole("button", { name: "Reconnect", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Enter World" }).click();
+  const ptt = page.locator("button.world-ptt");
+  await ptt.click();
+  await page
+    .getByRole("button", { name: "Enable microphone", exact: true })
+    .click();
+  await ptt.click({ button: "right" });
+  const panel = page.getByRole("region", { name: "Final voice caption" });
+  await expect(panel).toBeVisible();
+  await expect(ptt).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    panel.getByRole("button", { name: "Transcribe", exact: true }),
+  ).toBeEnabled();
+  await expect(ptt).toContainText("L Click Hold");
+  await expect(ptt).toContainText("R Click = On");
+  const meter = panel.getByRole("meter", { name: "Microphone input level" });
+  const feed = (level: number) =>
+    page.evaluate((value) => {
+      (
+        window as unknown as { __task14FeedAudio: (level: number) => void }
+      ).__task14FeedAudio(value);
+    }, level);
+  await feed(0);
+  await expect(meter).toHaveAttribute("aria-valuenow", "0");
+  await expect(panel).toContainText("Waiting for audio");
+  await feed(0.125);
+  await expect(meter).toHaveAttribute("aria-valuenow", "50");
+  await expect(panel).toContainText("Audio detected");
+  const loudHeight = await meter
+    .locator("span")
+    .nth(4)
+    .evaluate((element) => element.getBoundingClientRect().height);
+  await page.screenshot({ path: testInfo.outputPath("voice-recording.png") });
+  await feed(0);
+  await expect(meter).toHaveAttribute("aria-valuenow", "0");
+  expect(
+    await meter
+      .locator("span")
+      .nth(4)
+      .evaluate((element) => element.getBoundingClientRect().height),
+  ).toBeLessThan(loudHeight);
+  await panel.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(ptt).toHaveAttribute("aria-pressed", "false");
+  expect(fixture.transcriptionBodies).toHaveLength(0);
+  await ptt.click({ button: "right" });
+  await expect(ptt).toHaveAttribute("aria-pressed", "true");
+  await panel.getByRole("button", { name: "Transcribe", exact: true }).click();
+  await expect(page.getByLabel("Final caption")).toHaveValue("voice final 1");
+  await expect(ptt).toHaveAttribute("aria-pressed", "false");
+  await expect(meter).toBeHidden();
+  await expect(
+    panel.getByRole("button", { name: "Transcribe", exact: true }),
+  ).toBeDisabled();
+  expect(fixture.transcriptionBodies).toHaveLength(1);
+  expect(fixture.groupedBodies).toHaveLength(0);
+  await page.getByLabel("Final caption").fill("reviewed before sending");
+  await page.screenshot({ path: testInfo.outputPath("voice-transcribed.png") });
+  await panel.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(panel).toBeHidden();
+  await expect.poll(() => fixture.groupedBodies.length).toBe(1);
+  expect(fixture.groupedBodies[0]).toMatchObject({
+    text: "reviewed before sending",
+  });
+  expect(fixture.transcriptionBodies).toHaveLength(1);
+  await ptt.click({ button: "right" });
+  await expect(ptt).toHaveAttribute("aria-pressed", "true");
+  await panel.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(panel).toBeHidden();
+  await expect(ptt).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(() => fixture.groupedBodies.length).toBe(2);
+  expect(fixture.transcriptionBodies).toHaveLength(2);
+  expect(fixture.groupedBodies[1]).toMatchObject({ text: "voice final 2" });
+  await expect(page.getByLabel("Message All agents")).toBeEnabled();
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { __task14GetUserMediaCalls: number })
+          .__task14GetUserMediaCalls,
+    ),
+  ).toBe(4);
 });

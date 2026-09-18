@@ -664,16 +664,19 @@ export class WorkstreamService {
   async history(repositoryId: string): Promise<Workstream[]> {
     await this.#ensureLoaded();
     const records = await this.#historyRecords();
-    return [...records.values()]
-      .map((record) => clone(record.workstream))
-      .filter(
-        (workstream) => workstream.repository.repositoryId === repositoryId,
-      )
-      .sort(
-        (a, b) =>
-          b.updatedAt.localeCompare(a.updatedAt) ||
-          a.workstreamId.localeCompare(b.workstreamId),
-      );
+    return Promise.all(
+      [...records.values()]
+        .map((record) => clone(record.workstream))
+        .filter(
+          (workstream) => workstream.repository.repositoryId === repositoryId,
+        )
+        .sort(
+          (a, b) =>
+            b.updatedAt.localeCompare(a.updatedAt) ||
+            a.workstreamId.localeCompare(b.workstreamId),
+        )
+        .map((workstream) => this.#project(workstream)),
+    );
   }
 
   async #historyRecords(): Promise<Map<string, WorkstreamRecord>> {

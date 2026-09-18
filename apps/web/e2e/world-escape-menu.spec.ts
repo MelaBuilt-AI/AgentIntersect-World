@@ -394,7 +394,7 @@ test("validated autonomous movement walks, arrives, runs, and remains interrupte
     releaseTimer = setTimeout(releaseTexture, 1_500);
     await openRestoredWorld(page);
     expect(await room.getAttribute("data-scene-ready")).toBe("true");
-    expect(fixture.repositoryReads()).toBe(1);
+    expect(fixture.repositoryReads()).toBe(0);
   } finally {
     clearTimeout(releaseTimer);
     releaseTexture();

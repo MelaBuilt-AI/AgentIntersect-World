@@ -2,7 +2,10 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { devNull } from "node:os";
 import { z } from "zod";
-import { RepositoryIntakeError } from "./repository-intake.js";
+import {
+  RepositoryIntakeError,
+  type ProjectMilestone,
+} from "./repository-intake.js";
 
 const execute = promisify(execFile);
 export async function workspaceCommand(
@@ -106,6 +109,10 @@ export class RepositoryGitService {
       workstreamId?: string,
     ) => Promise<string>,
     readonly run: typeof workspaceCommand = workspaceCommand,
+    readonly recordMilestone: (
+      projectId: string,
+      milestone: ProjectMilestone,
+    ) => Promise<void> = async () => {},
   ) {}
   readonly git = (cwd: string, args: readonly string[]) =>
     this.run(cwd, "git", [
@@ -394,6 +401,14 @@ export class RepositoryGitService {
             "unavailable",
             "Initial checkpoint could not be verified",
           );
+        await this.recordMilestone(projectId, {
+          id: `git-${status.head}`,
+          kind: "checkpoint",
+          head: status.head,
+          label: "Initial project checkpoint",
+          occurredAt: new Date().toISOString(),
+          ...(action.workstreamId ? { workstreamId: action.workstreamId } : {}),
+        });
         return {
           message: `Initial checkpoint ${status.head}. No source files added and no push performed.`,
           status,
@@ -505,6 +520,14 @@ export class RepositoryGitService {
           "unavailable",
           "Commit could not be verified",
         );
+      await this.recordMilestone(projectId, {
+        id: `git-${status.head}`,
+        kind: "commit",
+        head: status.head,
+        label: action.message,
+        occurredAt: new Date().toISOString(),
+        ...(action.workstreamId ? { workstreamId: action.workstreamId } : {}),
+      });
       return {
         message: `Committed ${status.head}. No push performed.`,
         status,

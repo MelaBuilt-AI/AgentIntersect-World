@@ -49,6 +49,7 @@ import { WorldEscapeMenu } from "./WorldEscapeMenu.js";
 import { startWorldPolling } from "./world-entry-polling.js";
 import { WorldEntryLogo, WorldTypeLine } from "./WorldEntryLogo.js";
 import { WorldHud } from "./WorldHud.js";
+import { WorldLoadingIndicator } from "./WorldLoadingIndicator.js";
 import {
   canEnterWorld,
   createReturningWorldEntryState,
@@ -400,6 +401,9 @@ export function WorldEntryExperience({
     readonly RepositoryProject[]
   >([]);
   const [repositoryIntakeBusy, setRepositoryIntakeBusy] = useState(false);
+  const [repositoryPreparing, setRepositoryPreparing] = useState(false);
+  const repositoryLoading =
+    repositoryPreparing || repositoryReadiness === "loading";
   const [repositoryIntakeMessage, setRepositoryIntakeMessage] = useState(
     "Choose a repository for this World.",
   );
@@ -562,25 +566,8 @@ export function WorldEntryExperience({
         )
           ? currentConstellation.projection
           : null;
-      const applyRestoredRepository = (
-        restoredRepository: Awaited<
-          ReturnType<typeof client.currentRepository>
-        >,
-      ) => {
-        if (!restoredRepository) return;
-        setObjects(renderObjects(restoredRepository.snapshot));
-        setRepositoryName(
-          restoredRepository.snapshot.objects.find(
-            (object) => object.kind === "repository",
-          )?.name ?? "Loaded repository",
-        );
-        setLayoutGeneration(`layout-${restoredRepository.generationId}`);
-        setActiveRepositoryAuthority(restoredRepository.repository);
-        setRepositoryReadiness("loading");
-      };
       if (retainedProjection) {
         let restoreProjection = retainedProjection;
-        const restoredRepository = await client.currentRepository();
         const restoredMessageGroups = await groupedClient
           .messageGroups()
           .catch(() => []);
@@ -669,14 +656,6 @@ export function WorldEntryExperience({
           );
           dispatch({
             type: "RESTORE_CONSTELLATION",
-            ...(restoredRepository
-              ? {
-                  repository: {
-                    generationId: restoredRepository.generationId,
-                    projectionTruth: restoredRepository.status,
-                  },
-                }
-              : {}),
             agents: plan.agents.map((agent) => ({
               rosterId: agent.rosterId,
               adapterId: agent.adapterId,
@@ -686,10 +665,6 @@ export function WorldEntryExperience({
               avatarProfileId: agent.avatarProfileId,
             })),
           });
-          applyRestoredRepository(restoredRepository);
-          if (restoredRepository) {
-            setStatus("agent constellation and repository restored");
-          }
           setRestorePending(false);
           return;
         }
@@ -762,7 +737,7 @@ export function WorldEntryExperience({
             avatarProfileId: agent.avatar.profileId!,
           })),
         });
-        applyRestoredRepository(restoredRepository);
+
         setStatus(
           "agent constellation retained · reconnect or remove stale agents",
         );
@@ -816,11 +791,6 @@ export function WorldEntryExperience({
         messages: result.history.messages,
       });
       if (disposition === "world") {
-        // Restore the saved snapshot, not a recent-project guess or a new index.
-        // Repository failure must not discard an otherwise valid session.
-        const restoredRepository = await client
-          .currentRepository()
-          .catch(() => null);
         if (!active) return;
         setAgentAvatar(avatarDraftFromProposal(result.proposal));
         setStatus(
@@ -833,21 +803,6 @@ export function WorldEntryExperience({
           agentName: result.proposal.displayName,
           avatarProfileId: result.proposal.proposalId,
         });
-        if (restoredRepository) {
-          applyRestoredRepository(restoredRepository);
-          dispatch({
-            type: "REQUEST_REPOSITORY",
-            request: "restored repository",
-          });
-          dispatch({
-            type: "ACTIVATE_REPOSITORY",
-            generationId: restoredRepository.generationId,
-            projectionTruth: restoredRepository.status,
-          });
-          setStatus(
-            "agent and repository restored · Continue saved work in Workbench",
-          );
-        }
       } else {
         setAgentAvatar(null);
         setAgentAvatarMode(
@@ -1307,11 +1262,13 @@ export function WorldEntryExperience({
           ? `Repository loaded locally · Previous / recovered · ${repositorySummary}`
           : `Repository loaded locally · Current · ${repositorySummary}`,
     });
+    return result.repository;
   };
 
   const activateSelectedProject = async (
     operation: Promise<RepositoryProject>,
   ) => {
+    setRepositoryPreparing(true);
     setRepositoryIntakeBusy(true);
     setRepositoryIntakeMessage("Preparing repository…");
     try {
@@ -1329,8 +1286,12 @@ export function WorldEntryExperience({
           ? error.message
           : "Repository intake unavailable",
       );
+      setRepositoryReadiness("error");
     } finally {
-      if (mounted.current) setRepositoryIntakeBusy(false);
+      if (mounted.current) {
+        setRepositoryIntakeBusy(false);
+        setRepositoryPreparing(false);
+      }
     }
   };
 
@@ -1628,6 +1589,148 @@ export function WorldEntryExperience({
         revision: String(targetSession.permissionRevision),
       },
     };
+  };
+
+  const continueSavedWork = async (
+    record: WorkstreamApiRecord,
+    providedAuthority?: WorkstreamAuthorityDescriptor,
+  ) => {
+    const authority =
+      providedAuthority ?? (await workstreamAuthorityForConversation(true));
+    if (!authority)
+      throw new Error("Load a repository and select one connected agent first");
+    const result = await workstreamClient.continueSaved(record, authority);
+    setNormalWorkstream(projectAuthoritativeWorkstream(result.workstream));
+    const message = [
+      "Saved work restored. No coding turn was sent.",
+      result.previewResume === "failed"
+        ? "Preview could not restart. Open current work / World View to review and retry the approved preview."
+        : result.previewResume === "ready"
+          ? "Approved preview restarted and is ready. Open current work / World View, or send your next task in chat."
+          : "Open current work / World View, or send your next task in chat.",
+    ].join(" ");
+    setNormalWorkstreamMessage(message);
+    const refreshed = await client.refreshSession(authority.agent.agentId);
+    if (refreshed.sessionId === session?.sessionId) setSession(refreshed);
+    if (result.previewResume !== "failed") {
+      setNormalWorkstreamOpen(false);
+      setWorkbenchOpen(false);
+    }
+    return message;
+  };
+
+  const resumeLibraryProject = async (
+    project: RepositoryProject,
+    workstreamId: string,
+  ) => {
+    if (repositoryIntakeBusy || chatBusy || normalWorkstreamPending) return;
+    setRepositoryPreparing(true);
+    setRepositoryIntakeBusy(true);
+    setRepositoryIntakeMessage("Restoring saved work and conversation…");
+    try {
+      if (!project.repositoryId)
+        throw new Error("Project history is unavailable. Refresh the library.");
+      const record = (
+        await workstreamClient.history(project.repositoryId)
+      ).find((work) => work.workstreamId === workstreamId);
+      if (!record)
+        throw new Error(
+          "Saved work is unavailable. Nothing was reset or recreated.",
+        );
+      const rosterAgent = constellation?.agents.find(
+        (agent) => agent.worldSessionId === record.agent.agentId,
+      );
+      if (state.sessionMode === "multi" && !rosterAgent)
+        throw new Error(
+          "Reconnect the saved agent to this constellation before resuming its work.",
+        );
+      const savedSession = await client.refreshSession(record.agent.agentId);
+      const adapter = savedSession.adapterId;
+      if (
+        adapter !== "hermes" &&
+        adapter !== "openclaw" &&
+        adapter !== "codex" &&
+        adapter !== "claude-code"
+      )
+        throw new Error("This saved agent adapter cannot be resumed here.");
+      const restored =
+        adapter === "hermes"
+          ? await client.restoreHermes(
+              record.agent.agentId,
+              constellation?.worldInstanceId,
+            )
+          : await client.restoreConstellationAgent(
+              record.agent.agentId,
+              adapter,
+            );
+      if (
+        (restored.status !== "connected" && restored.status !== "recovered") ||
+        !restored.proposal ||
+        !restored.avatarAccepted ||
+        restored.avatarSetup !== "complete"
+      )
+        throw new Error(
+          "Reconnect the saved conversation before resuming. No replacement session was created.",
+        );
+      const restoredRoot =
+        restored.session.adapterRootSessionRef ??
+        restored.session.adapterSessionRef;
+      if (
+        restored.session.sessionId !== record.agent.agentId ||
+        restoredRoot !== record.agent.rootNativeSessionId
+      )
+        throw new Error(
+          "The saved native conversation does not match. Resume stopped without sending a task.",
+        );
+      await openRepositoryProject({
+        rootPath: project.rootPath,
+        name: project.name,
+      });
+      const repository = await activateRepository(
+        project.rootPath,
+        `Resume ${project.name}`,
+      );
+      if (!repository)
+        throw new Error(
+          "Project could not be loaded. Saved files and conversation remain unchanged.",
+        );
+      const message = await continueSavedWork(record, {
+        repository,
+        agent: {
+          agentId: restored.session.sessionId,
+          nativeSessionId: restored.session.adapterSessionRef,
+          rootNativeSessionId: restoredRoot,
+          revision: String(restored.session.permissionRevision),
+        },
+      });
+      if (state.sessionMode === "multi" && rosterAgent)
+        setSelectedRecipientId(rosterAgent.rosterId);
+      else {
+        setSession(await client.refreshSession(restored.session.sessionId));
+        setProposal(restored.proposal);
+        setAgentAvatar(avatarDraftFromProposal(restored.proposal));
+        window.localStorage.setItem(
+          SESSION_POINTER_KEY,
+          restored.session.sessionId,
+        );
+        updateChat({
+          type: "RESTORE_HISTORY",
+          messages: restored.history.messages,
+        });
+      }
+      setStatus(message);
+      setRepositoryIntakeOpen(false);
+    } catch (error) {
+      setRepositoryIntakeMessage(
+        error instanceof Error
+          ? error.message
+          : "Saved work could not be resumed. Nothing was reset.",
+      );
+      setRepositoryReadiness("error");
+    } finally {
+      setRepositoryIntakeBusy(false);
+      setRepositoryPreparing(false);
+    }
   };
 
   const runWorkstreamConversation = async (
@@ -2588,6 +2691,8 @@ export function WorldEntryExperience({
         <div
           className="world-experience world-experience--room"
           data-repository-readiness={repositoryReadiness}
+          inert={repositoryLoading}
+          aria-busy={repositoryLoading}
         >
           {addingAgent && session && activeProposal ? (
             <Suspense fallback={<p role="status">Loading Add Agent…</p>}>
@@ -2644,7 +2749,7 @@ export function WorldEntryExperience({
               objects={objects}
               reducedMotion={reducedMotion}
               forceNoWebGL={forceNoWebGL}
-              inputOwner={worldInputOwner}
+              inputOwner={repositoryLoading ? "preview" : worldInputOwner}
               userName={profile.agentName}
               agentName={activeProposal.displayName}
               userAvatar={profile}
@@ -2876,40 +2981,7 @@ export function WorldEntryExperience({
                       : activeProposal.displayName
                   }
                   onClose={() => setWorkbenchOpen(false)}
-                  onContinue={async (record: WorkstreamApiRecord) => {
-                    const authority =
-                      await workstreamAuthorityForConversation(true);
-                    if (!authority)
-                      throw new Error(
-                        "Load a repository and select one connected agent first",
-                      );
-                    const result = await workstreamClient.continueSaved(
-                      record,
-                      authority,
-                    );
-                    setNormalWorkstream(
-                      projectAuthoritativeWorkstream(result.workstream),
-                    );
-                    const message = [
-                      "Saved work restored. No coding turn was sent.",
-                      result.previewResume === "failed"
-                        ? "Preview could not restart. Open current work / World View to review and retry the approved preview."
-                        : result.previewResume === "ready"
-                          ? "Approved preview restarted and is ready. Open current work / World View, or send your next task in chat."
-                          : "Open current work / World View, or send your next task in chat.",
-                    ].join(" ");
-                    setNormalWorkstreamMessage(message);
-                    const refreshed = await client.refreshSession(
-                      authority.agent.agentId,
-                    );
-                    if (refreshed.sessionId === session?.sessionId)
-                      setSession(refreshed);
-                    if (result.previewResume !== "failed") {
-                      setNormalWorkstreamOpen(false);
-                      setWorkbenchOpen(false);
-                    }
-                    return message;
-                  }}
+                  onContinue={(record) => continueSavedWork(record)}
                   onInspect={() => {
                     setWorkbenchOpen(false);
                     setNormalWorkstreamOpen(true);
@@ -2973,7 +3045,10 @@ export function WorldEntryExperience({
           {repositoryIntakeOpen ? (
             <RepositoryIntakeDialog
               projects={repositoryProjects}
-              busy={repositoryIntakeBusy}
+              busy={repositoryIntakeBusy || chatBusy || normalWorkstreamPending}
+              onResume={(project, workstreamId) =>
+                void resumeLibraryProject(project, workstreamId)
+              }
               message={repositoryIntakeMessage}
               onOpen={(rootPath, name) =>
                 void activateSelectedProject(
@@ -3030,6 +3105,14 @@ export function WorldEntryExperience({
             />
           ) : null}
         </div>
+        {repositoryLoading ? (
+          <div className="world-loading-overlay">
+            <WorldLoadingIndicator
+              label="Loading repository"
+              reducedMotion={reducedMotion}
+            />
+          </div>
+        ) : null}
       </WorldScreenProvider>
     );
   }

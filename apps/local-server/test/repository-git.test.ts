@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, expect, it } from "vitest";
+import { RepositoryIntakeService } from "../src/repository-intake.js";
 import { createLocalServer } from "../src/server.js";
 import {
   RepositoryGitService,
@@ -54,6 +55,44 @@ async function fixture() {
     url: `/repository-intake/projects/${project.id}/git`,
   };
 }
+it("persists explicit checkpoints and commits as project milestones without auto-committing dirty work", async () => {
+  const f = await fixture();
+  const checkpoint = await f.server.inject({
+    method: "POST",
+    url: f.url,
+    payload: {
+      action: "checkpoint",
+      expectedHead: null,
+      expectedBranch: "main",
+      confirm: true,
+    },
+  });
+  expect(checkpoint.statusCode).toBe(200);
+  await writeFile(join(f.repo, "draft.txt"), "unfinished");
+  const before = await f.server.repositoryIntakeService.list();
+  expect(before[0]?.milestones).toHaveLength(1);
+  const commit = await f.server.inject({
+    method: "POST",
+    url: f.url,
+    payload: {
+      action: "commit",
+      expectedHead: checkpoint.json().data.status.head,
+      expectedBranch: "main",
+      confirm: true,
+      message: "Save draft",
+      files: ["draft.txt"],
+    },
+  });
+  expect(commit.statusCode).toBe(200);
+  const saved = await new RepositoryIntakeService(
+    join(f.root, "repository-intake", "projects.json"),
+  ).list();
+  expect(saved[0]?.milestones?.map((item) => item.kind)).toEqual([
+    "checkpoint",
+    "commit",
+  ]);
+  expect(saved[0]?.milestones?.[1]?.head).toBe(commit.json().data.status.head);
+});
 it("performs verified non-force push, fetch and fast-forward pull against a real local remote", async () => {
   const f = await fixture();
   let result = await f.server.inject({

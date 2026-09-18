@@ -5,6 +5,10 @@ export async function openCodeWheel(page: Page) {
     await page.getByRole("group", { name: "Code Wheel", exact: true }).count()
   )
     return;
+  // The loading barrier intentionally owns input until the city is rendered.
+  await expect(page.locator(".world-loading-overlay")).toBeHidden({
+    timeout: 60_000,
+  });
   // A normal middle press on exposed World; never dispatch a synthetic UI click.
   const point = await page.locator("main.world-room").evaluate((room) => {
     const bounds = room.getBoundingClientRect();

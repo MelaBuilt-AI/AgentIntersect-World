@@ -7,6 +7,7 @@ import {
   BrowserVoiceError,
   VoiceCaptureController,
 } from "../voice/browser-voice.js";
+import { LocalVoiceSetup } from "./LocalVoiceSetup.js";
 import { VoiceClient } from "../voice/voice-client.js";
 
 type VoicePhase =
@@ -50,11 +51,19 @@ export function WorldPushToTalk({
   const [disclosureOpen, setDisclosureOpen] = useState(false);
   const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
   const [caption, setCaption] = useState("");
+  const [inputLevel, setInputLevel] = useState(0);
   const [voiceStatus, setVoiceStatus] = useState(
     "Microphone is off. First use shows local voice disclosure.",
   );
   const phaseRef = useRef<VoicePhase>(phase);
   const holding = useRef(false);
+  const [handsFree, setHandsFree] = useState(false);
+  const handsFreeRef = useRef(false);
+  const sendAfterTranscription = useRef(false);
+  const acceptedText = useRef(onAcceptedText);
+  useEffect(() => {
+    acceptedText.current = onAcceptedText;
+  }, [onAcceptedText]);
   const stopping = useRef(false);
   const utteranceGeneration = useRef(0);
   const activeUtterance = useRef<number | null>(null);
@@ -105,11 +114,28 @@ export function WorldPushToTalk({
           generation !== utteranceGeneration.current
         )
           return;
-        setCaption(result.finalText);
-        updatePhase("final");
-        setVoiceStatus("Final caption ready. Edit it before Send or Cancel.");
+        if (sendAfterTranscription.current) {
+          sendAfterTranscription.current = false;
+          handsFreeRef.current = false;
+          setHandsFree(false);
+          setCaption("");
+          updatePhase("enabled");
+          setVoiceStatus("Voice text sent. Microphone is not capturing.");
+          acceptedText.current(result.finalText);
+        } else {
+          setCaption(result.finalText);
+          updatePhase("final");
+          setVoiceStatus("Final caption ready. Edit it before Send or Cancel.");
+        }
       } catch (error) {
-        if (controller.signal.aborted) return;
+        if (
+          controller.signal.aborted ||
+          generation !== utteranceGeneration.current
+        )
+          return;
+        sendAfterTranscription.current = false;
+        handsFreeRef.current = false;
+        setHandsFree(false);
         updatePhase("failed");
         setVoiceStatus(
           error instanceof Error
@@ -152,6 +178,9 @@ export function WorldPushToTalk({
           utteranceGeneration.current += 1;
           activeUtterance.current = null;
           setMicrophoneEnabled(false);
+          handsFreeRef.current = false;
+          sendAfterTranscription.current = false;
+          setHandsFree(false);
           setDisclosureOpen(true);
           transcriptionAbort.current?.abort();
           transcriptionAbort.current = null;
@@ -176,6 +205,42 @@ export function WorldPushToTalk({
       void clearActivity();
     };
   }, [clearActivity, providedCapture, transcribeWav, updatePhase]);
+
+  useEffect(() => {
+    if (phase !== "listening" || !capture) return;
+    const timer = window.setInterval(() => {
+      setInputLevel(Math.min(1, capture.snapshot().inputLevel * 4));
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [capture, phase]);
+
+  const recordingMeter =
+    phase === "listening" ? (
+      <div className="world-voice-recording">
+        <div
+          className="world-voice-meter"
+          role="meter"
+          aria-label="Microphone input level"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(inputLevel * 100)}
+        >
+          {[0.35, 0.55, 0.75, 0.9, 1, 0.9, 0.75, 0.55, 0.35].map(
+            (scale, index) => (
+              <span
+                key={index}
+                aria-hidden="true"
+                style={{ height: `${3 + inputLevel * scale * 25}px` }}
+              />
+            ),
+          )}
+        </div>
+        <span>
+          Recording ·{" "}
+          {inputLevel > 0.04 ? "Audio detected" : "Waiting for audio"}
+        </span>
+      </div>
+    ) : null;
 
   const browserAvailable = capture?.availability().available === true;
   const canUseVoice = available && Boolean(session) && browserAvailable;
@@ -258,6 +323,7 @@ export function WorldPushToTalk({
     const generation = activeUtterance.current;
     activeUtterance.current = null;
     stopping.current = true;
+    updatePhase("transcribing");
     void capture
       .stop()
       .then((wav) => {
@@ -268,6 +334,10 @@ export function WorldPushToTalk({
         return transcribeWav(wav, "operator", generation);
       })
       .catch((error: unknown) => {
+        if (generation !== utteranceGeneration.current) return;
+        sendAfterTranscription.current = false;
+        handsFreeRef.current = false;
+        setHandsFree(false);
         updatePhase("failed");
         setVoiceStatus(
           error instanceof Error
@@ -280,67 +350,81 @@ export function WorldPushToTalk({
       });
   }, [capture, transcribeWav, updatePhase]);
 
-  const startCapture = useCallback(() => {
-    if (!capture || !canHold || holding.current) return;
-    const generation = ++utteranceGeneration.current;
-    activeUtterance.current = generation;
-    holding.current = true;
-    transcriptionAbort.current?.abort();
-    transcriptionAbort.current = null;
-    setCaption("");
-    setVoiceStatus("Starting push-to-talk capture…");
-    void capture
-      .start()
-      .then(async () => {
-        if (generation !== utteranceGeneration.current) {
+  const startCapture = useCallback(
+    (continuous = false) => {
+      if (!capture || !canHold || holding.current) return;
+      handsFreeRef.current = continuous;
+      setHandsFree(continuous);
+      sendAfterTranscription.current = false;
+      const generation = ++utteranceGeneration.current;
+      activeUtterance.current = generation;
+      holding.current = true;
+      transcriptionAbort.current?.abort();
+      transcriptionAbort.current = null;
+      setCaption("");
+      setInputLevel(0);
+      setVoiceStatus("Starting push-to-talk capture…");
+      void capture
+        .start()
+        .then(async () => {
+          if (generation !== utteranceGeneration.current) {
+            capture.cancel();
+            return;
+          }
+          if (!session) return;
+          activityOwned.current = true;
+          await voiceClient.markActivity(session.sessionId, "capture");
+          if (generation !== utteranceGeneration.current) {
+            capture.cancel();
+            return;
+          }
+          if (capture.snapshot().state !== "listening") return;
+          if (!holding.current) {
+            stopCapture();
+            return;
+          }
+          updatePhase("listening");
+          setVoiceStatus(
+            handsFreeRef.current
+              ? "Hands-free recording. Transcribe to review before sending, Send to send now, or Cancel to discard. Maximum 30 seconds."
+              : "Listening while held. Release to transcribe.",
+          );
+        })
+        .catch((error: unknown) => {
+          if (generation !== utteranceGeneration.current) return;
+          holding.current = false;
+          activeUtterance.current = null;
           capture.cancel();
-          return;
-        }
-        if (!session) return;
-        activityOwned.current = true;
-        await voiceClient.markActivity(session.sessionId, "capture");
-        if (generation !== utteranceGeneration.current) {
-          capture.cancel();
-          return;
-        }
-        if (capture.snapshot().state !== "listening") return;
-        if (!holding.current) {
-          stopCapture();
-          return;
-        }
-        updatePhase("listening");
-        setVoiceStatus("Listening while held. Release to transcribe.");
-      })
-      .catch((error: unknown) => {
-        if (generation !== utteranceGeneration.current) return;
-        holding.current = false;
-        activeUtterance.current = null;
-        capture.cancel();
-        void clearActivity();
-        updatePhase("failed");
-        setVoiceStatus(
-          error instanceof Error
-            ? error.message
-            : "Voice capture failed. Typed text remains ready.",
-        );
-      });
-  }, [
-    canHold,
-    capture,
-    clearActivity,
-    session,
-    stopCapture,
-    updatePhase,
-    voiceClient,
-  ]);
+          void clearActivity();
+          updatePhase("failed");
+          setVoiceStatus(
+            error instanceof Error
+              ? error.message
+              : "Voice capture failed. Typed text remains ready.",
+          );
+        });
+    },
+    [
+      canHold,
+      capture,
+      clearActivity,
+      session,
+      stopCapture,
+      updatePhase,
+      voiceClient,
+    ],
+  );
 
   const releaseCapture = () => {
-    if (!holding.current) return;
+    if (!holding.current || handsFreeRef.current) return;
     holding.current = false;
     stopCapture();
   };
 
   const cancel = () => {
+    handsFreeRef.current = false;
+    sendAfterTranscription.current = false;
+    setHandsFree(false);
     holding.current = false;
     utteranceGeneration.current += 1;
     activeUtterance.current = null;
@@ -385,7 +469,13 @@ export function WorldPushToTalk({
         onClick={() => {
           if (!microphoneEnabled) revealDisclosure();
         }}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          if (!microphoneEnabled) revealDisclosure();
+          else startCapture(true);
+        }}
         onPointerDown={(event) => {
+          if (event.button !== 0) return;
           if (!microphoneEnabled) {
             revealDisclosure();
             return;
@@ -400,6 +490,7 @@ export function WorldPushToTalk({
           startCapture();
         }}
         onPointerUp={(event) => {
+          if (event.button !== 0) return;
           try {
             if (event.currentTarget.hasPointerCapture(event.pointerId))
               event.currentTarget.releasePointerCapture(event.pointerId);
@@ -421,11 +512,12 @@ export function WorldPushToTalk({
           releaseCapture();
         }}
         onBlur={() => {
-          if (holding.current) cancel();
+          if (holding.current && !handsFreeRef.current) cancel();
         }}
       >
-        <span aria-hidden="true">◉</span>
-        {phase === "listening" ? "Listening" : "Push to talk"}
+        <small>L Click Hold</small>
+        <span>{phase === "listening" ? "Listening" : "Push to Talk"}</span>
+        <small>R Click = On</small>
       </button>
       {unavailableReason ? (
         <p id="world-ptt-unavailable" className="world-hud__voice-reason">
@@ -439,6 +531,13 @@ export function WorldPushToTalk({
           aria-live="polite"
         >
           <strong>Local voice input</strong>
+          {!provider?.available ? (
+            <LocalVoiceSetup
+              onReady={() => {
+                void voiceClient.disclosure().then(setProvider);
+              }}
+            />
+          ) : null}
           <p>
             {provider
               ? `${provider.implementation} · ${provider.language} · final captions only. Raw audio stays on this machine and is volatile until text send.`
@@ -469,32 +568,53 @@ export function WorldPushToTalk({
             </button>
           </div>
         </section>
-      ) : phase === "final" ? (
+      ) : phase === "final" || handsFree ? (
         <section
           className="world-voice-surface"
           aria-label="Final voice caption"
           aria-live="polite"
         >
+          {recordingMeter}
+          {handsFree ? <p role="status">{voiceStatus}</p> : null}
           <label htmlFor="world-voice-caption">Final caption</label>
           <textarea
             id="world-voice-caption"
             value={caption}
             maxLength={4_000}
-            autoFocus
+            disabled={phase !== "final"}
+            placeholder={
+              handsFree
+                ? "Final transcript appears when recording ends."
+                : undefined
+            }
+            autoFocus={!handsFree}
             onChange={(event) => setCaption(event.target.value)}
           />
           <div>
             <button
               type="button"
               className={
-                caption.trim()
+                caption.trim() || (handsFree && phase === "listening")
                   ? "world-action--enabled"
                   : "world-action--unavailable"
               }
-              disabled={!caption.trim()}
+              disabled={
+                phase === "transcribing" ||
+                (!caption.trim() && !(handsFree && phase === "listening"))
+              }
               onClick={() => {
+                if (handsFreeRef.current && phaseRef.current === "listening") {
+                  sendAfterTranscription.current = true;
+                  handsFreeRef.current = false;
+                  holding.current = false;
+                  stopCapture();
+                  return;
+                }
                 const accepted = caption.trim();
                 if (!accepted) return;
+                handsFreeRef.current = false;
+                sendAfterTranscription.current = false;
+                setHandsFree(false);
                 onAcceptedText(accepted);
                 setCaption("");
                 updatePhase("enabled");
@@ -503,6 +623,25 @@ export function WorldPushToTalk({
             >
               Send
             </button>
+            {handsFree ? (
+              <button
+                type="button"
+                className={
+                  phase === "listening"
+                    ? "world-action--enabled"
+                    : "world-action--unavailable"
+                }
+                disabled={phase !== "listening"}
+                onClick={() => {
+                  if (phaseRef.current !== "listening") return;
+                  sendAfterTranscription.current = false;
+                  holding.current = false;
+                  stopCapture();
+                }}
+              >
+                Transcribe
+              </button>
+            ) : null}
             <button
               type="button"
               className="world-action--enabled"
@@ -520,6 +659,7 @@ export function WorldPushToTalk({
           aria-label="Voice input status"
           role="status"
         >
+          {recordingMeter}
           <p>{voiceStatus}</p>
           <button
             type="button"

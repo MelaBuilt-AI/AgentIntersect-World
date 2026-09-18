@@ -1163,6 +1163,9 @@ for (const initialCount of [0, 2, 3]) {
     }
     await expect(page.getByTestId("world-hud")).toBeVisible();
     const room = page.locator('[data-scene-id="world-room"]').first();
+    await expect(room).toHaveAttribute("data-scene-ready", "true", {
+      timeout: 60_000,
+    });
     await room.evaluate((el) =>
       el.setAttribute("data-add-continuity", "same-mounted-world"),
     );
@@ -1608,7 +1611,7 @@ for (const [action, dialogName] of [
     await expect(dialog).toBeVisible();
     if (action === "Workbench") {
       await expect(
-        dialog.getByText(/No saved Workstreams for this repository/),
+        dialog.getByText(/Load a repository first using Load Repo/),
       ).toBeVisible();
     }
     await expect(dialog.getByRole("alert")).toHaveCount(0);
@@ -2334,7 +2337,7 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
     pointerId: 11,
     pointerType: "mouse",
   });
-  await expect(pushToTalk).toContainText("Push to talk");
+  await expect(pushToTalk).toContainText("Push to Talk");
   expect(fixture.transcriptionBodies).toHaveLength(0);
 
   await recordPointer(page, "mouse", 2);
@@ -2479,9 +2482,10 @@ test("Task 15 composes four exact agents with grouped text, targeting, and push-
   fixture.delayConstellationReadyUntilRestore();
   await page.reload();
   await expect(page.getByTestId("world-hud")).toBeVisible();
+  // PR15 restores the roster/transcript, not an implicitly selected repository.
   await expect(page.locator("main.world-room")).toHaveAttribute(
     "data-floor-state",
-    "repository",
+    "blank",
   );
   await openCodeWheel(page);
   await expect(

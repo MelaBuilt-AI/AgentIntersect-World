@@ -11,6 +11,80 @@ import {
 } from "@agentintersect-world/voice";
 
 describe("Phase 15 browser capture and playback", () => {
+  it("reports actual microphone levels and clears them when recording ends", async () => {
+    const processor = {
+      onaudioprocess: null as
+        | null
+        | ((event: {
+            inputBuffer: { getChannelData(channel: number): Float32Array };
+          }) => void),
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    };
+    const track = { stop: vi.fn() };
+    const controller = new VoiceCaptureController({
+      getUserMedia: async () => ({ getTracks: () => [track] }),
+      audioContext: () => ({
+        sampleRate: 16_000,
+        destination: {},
+        createMediaStreamSource: () => ({
+          connect: vi.fn(),
+          disconnect: vi.fn(),
+        }),
+        createScriptProcessor: () => processor,
+        close: async () => undefined,
+      }),
+    });
+    await controller.enable();
+    await controller.start();
+    const feed = (level: number) =>
+      processor.onaudioprocess?.({
+        inputBuffer: {
+          getChannelData: () => new Float32Array(1_600).fill(level),
+        },
+      });
+    try {
+      feed(0);
+      expect(controller.snapshot()).toMatchObject({ inputLevel: 0 });
+      feed(0.25);
+      expect(controller.snapshot()).toMatchObject({ inputLevel: 0.25 });
+      feed(-0.5);
+      expect(controller.snapshot()).toMatchObject({ inputLevel: 0.5 });
+      feed(0);
+      expect(controller.snapshot()).toMatchObject({ inputLevel: 0 });
+      feed(0.25);
+      await controller.stop();
+      expect(controller.snapshot()).toMatchObject({
+        state: "stopped",
+        inputLevel: 0,
+      });
+      await controller.start();
+      expect(controller.snapshot()).toMatchObject({ inputLevel: 0 });
+      feed(0.5);
+      controller.cancel();
+      expect(controller.snapshot()).toMatchObject({
+        state: "cancelled",
+        inputLevel: 0,
+      });
+      expect(processor.onaudioprocess).toBeNull();
+    } finally {
+      controller.cancel();
+    }
+  });
+  it("reports a quick empty click without producing a provider WAV", async () => {
+    const controller = new VoiceCaptureController({
+      fixtureSamples: new Float32Array(0),
+    });
+    await controller.enable();
+    await controller.start();
+    await expect(controller.stop()).rejects.toMatchObject({
+      code: "empty-recording",
+      message: "Nothing recorded. Left click and hold while talking.",
+    });
+    expect(controller.snapshot().sampleCount).toBe(0);
+    await controller.start();
+    controller.cancel();
+  });
   it("truthfully reports permission denied, no device, and unsupported audio", async () => {
     const denied = new VoiceCaptureController({
       getUserMedia: vi

@@ -737,7 +737,13 @@ describe("Phase 18 shared World room canvas", () => {
     expect(source).toContain("cadenceDiagnostics");
     expect(source).toContain("longTaskDiagnostics");
     expect(source).toContain("samplesOverThreshold");
-    expect(source).not.toMatch(
+    // Inspect the cadence sampler, not unrelated loading-animation callbacks.
+    const sampler = source.slice(
+      source.indexOf("async function measurePhase18_5Frames("),
+      source.indexOf("async function completeJourney("),
+    );
+    expect(sampler).toContain("cadenceSampleCount");
+    expect(sampler).not.toMatch(
       /const frame = async[\s\S]*renderWorkMs\.push\(await render\(\)\)/u,
     );
   });
