@@ -2065,18 +2065,7 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   expect(errors).toEqual([]);
 });
 
-test("@workbench-normal drives one Workstream through normal World conversation", async ({
-  page,
-}, testInfo) => {
-  // Includes the full discussion/queue journey and front/back/oblique cloud proofs.
-  // The unchanged journey passed locally in 253s and on hosted CI in ~286s;
-  // two hosted attempts reached different late actions at the old 300s watchdog.
-  // Allow whole-journey runtime headroom; retain every per-assertion deadline.
-  test.setTimeout(420_000);
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await seedConfiguredAvatar(page, "Aaron");
-
+async function installNormalWorkstreamFixtures(page: Page) {
   const repository = {
     repositoryId: snapshot.repositoryRef,
     revision: "77777777-7777-4777-8777-777777777777",
@@ -2130,24 +2119,26 @@ test("@workbench-normal drives one Workstream through normal World conversation"
       },
     ],
   } as const;
-  let currentWorkstream: Record<string, unknown> | null = {
-    ...baseWorkstream,
-    workstreamId: "old-session-workstream",
-    status: "blocked",
-    agent: {
-      ...agent,
-      agentId: "old-agent",
-      nativeSessionId: "old-root",
-      rootNativeSessionId: "old-root",
-    },
-  };
   const plainFeedback =
     "In this existing website, change only the heading to Fresh Food, Happy People.";
-  let finishPlainTurn: (() => void) | undefined;
-  let websiteSource: string | null = null;
-  let createRequests = 0;
-  let iterationRequests = 0;
-  const streamRequests: string[] = [];
+  const state = {
+    currentWorkstream: {
+      ...baseWorkstream,
+      workstreamId: "old-session-workstream",
+      status: "blocked",
+      agent: {
+        ...agent,
+        agentId: "old-agent",
+        nativeSessionId: "old-root",
+        rootNativeSessionId: "old-root",
+      },
+    } as Record<string, unknown> | null,
+    finishPlainTurn: undefined as (() => void) | undefined,
+    websiteSource: null as string | null,
+    createRequests: 0,
+    iterationRequests: 0,
+    streamRequests: [] as string[],
+  };
   await installWorldFixtures(page, {
     restoreStatus: true,
     repositoryProjects: [
@@ -2161,7 +2152,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
       },
     ],
     fulfillStream: async (route, requestText, userDisplayName) => {
-      streamRequests.push(requestText);
+      state.streamRequests.push(requestText);
       const intent = route.request().postDataJSON().intent;
       expect(intent).toBe(
         requestText === "hi codex" ||
@@ -2179,7 +2170,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
             occurredAt: new Date().toISOString(),
           },
         ];
-        currentWorkstream = {
+        state.currentWorkstream = {
           ...baseWorkstream,
           revision: 3,
           status: "working",
@@ -2198,10 +2189,10 @@ test("@workbench-normal drives one Workstream through normal World conversation"
           },
         };
         await new Promise<void>((resolve) => {
-          finishPlainTurn = resolve;
+          state.finishPlainTurn = resolve;
         });
-        currentWorkstream = {
-          ...currentWorkstream,
+        state.currentWorkstream = {
+          ...state.currentWorkstream,
           status: "ready-for-review",
           revision: 4,
           events: [
@@ -2235,13 +2226,13 @@ test("@workbench-normal drives one Workstream through normal World conversation"
                 file ??
                 `aiw://object/workstream-${baseWorkstream.workstreamId}`,
               path: file,
-              content: file ? websiteSource : null,
-              files: websiteSource
+              content: file ? state.websiteSource : null,
+              files: state.websiteSource
                 ? [{ ref: "settings.tsx", path: "settings.tsx" }]
                 : [],
               startLine: 1,
               truncated: false,
-              message: websiteSource
+              message: state.websiteSource
                 ? "Owned Workstream source"
                 : "No source files yet.",
             }),
@@ -2254,7 +2245,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
         request.method() === "GET" &&
         pathname.endsWith("/workstreams/current")
       ) {
-        if (!currentWorkstream) {
+        if (!state.currentWorkstream) {
           await route.fulfill({
             status: 404,
             contentType: "application/json",
@@ -2268,17 +2259,17 @@ test("@workbench-normal drives one Workstream through normal World conversation"
         await route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify(envelope(currentWorkstream)),
+          body: JSON.stringify(envelope(state.currentWorkstream)),
         });
         return;
       }
       if (request.method() === "POST" && pathname.endsWith("/workstreams")) {
-        createRequests += 1;
+        state.createRequests += 1;
         const input = request.postDataJSON() as {
           readonly title: string;
           readonly task: string;
         };
-        currentWorkstream = {
+        state.currentWorkstream = {
           ...baseWorkstream,
           title: input.title,
           task: input.task,
@@ -2287,26 +2278,26 @@ test("@workbench-normal drives one Workstream through normal World conversation"
           status: 201,
           contentType: "application/json",
           body: JSON.stringify(
-            envelope({ workstream: currentWorkstream, replayed: false }),
+            envelope({ workstream: state.currentWorkstream, replayed: false }),
           ),
         });
         return;
       }
       if (request.method() === "POST" && pathname.endsWith("/iterations")) {
-        iterationRequests += 1;
+        state.iterationRequests += 1;
         const input = request.postDataJSON() as Record<string, unknown>;
         expect(input).toEqual({
           requestId: expect.stringMatching(/^iterate-/u),
           correlationId: expect.any(String),
-          expectedRevision: iterationRequests,
+          expectedRevision: state.iterationRequests,
           feedback:
-            iterationRequests === 1
+            state.iterationRequests === 1
               ? "change it to use the blue active state"
               : plainFeedback,
           repository,
           agent,
         });
-        currentWorkstream = {
+        state.currentWorkstream = {
           ...baseWorkstream,
           revision: 2,
           updatedAt: "2026-09-03T15:01:00.000Z",
@@ -2325,13 +2316,13 @@ test("@workbench-normal drives one Workstream through normal World conversation"
           status: 200,
           contentType: "application/json",
           body: JSON.stringify(
-            envelope({ workstream: currentWorkstream, replayed: false }),
+            envelope({ workstream: state.currentWorkstream, replayed: false }),
           ),
         });
         return;
       }
       if (request.method() === "POST" && pathname.endsWith("/cancel")) {
-        currentWorkstream = {
+        state.currentWorkstream = {
           ...baseWorkstream,
           revision: 3,
           status: "cancelled",
@@ -2345,7 +2336,7 @@ test("@workbench-normal drives one Workstream through normal World conversation"
           status: 200,
           contentType: "application/json",
           body: JSON.stringify(
-            envelope({ workstream: currentWorkstream, replayed: false }),
+            envelope({ workstream: state.currentWorkstream, replayed: false }),
           ),
         });
         return;
@@ -2353,6 +2344,16 @@ test("@workbench-normal drives one Workstream through normal World conversation"
       await route.fulfill({ status: 404, body: "workstream fixture missing" });
     },
   });
+  return { baseWorkstream, plainFeedback, state };
+}
+
+async function enterNormalWorkstream(page: Page) {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await seedConfiguredAvatar(page, "Aaron");
+
+  const { baseWorkstream, plainFeedback, state } =
+    await installNormalWorkstreamFixtures(page);
   await enterFixtureWorld(page);
 
   const composer = page.getByLabel("Message Mr Fluff");
@@ -2400,8 +2401,8 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   });
   await expect(workstream).toBeVisible();
   await expect(workstream).toContainText("Workbench · working");
-  await expect.poll(() => createRequests).toBe(1);
-  expect(streamRequests).toEqual([]);
+  await expect.poll(() => state.createRequests).toBe(1);
+  expect(state.streamRequests).toEqual([]);
   const actor = page.locator(".world-room__avatars li[data-roster-id]").first();
   await expect(actor).toHaveAttribute("data-avatar-action", "Run");
   const startX = Number(await actor.getAttribute("data-position-x"));
@@ -2413,6 +2414,17 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   });
   await expect(actor).toHaveAttribute("data-avatar-action", /Dig|Work/);
   await expect(actor).toContainText("Owned worktree is current and ready.");
+  return { baseWorkstream, plainFeedback, state, composer, workstream, actor };
+}
+
+test("@workbench-normal drives one Workstream through normal World conversation", async ({
+  page,
+}, testInfo) => {
+  // Conversation, source, FIFO, completion and cancellation own this journey.
+  // Expensive cloud motion/depth proof has a separate normal-motion owner below.
+  test.setTimeout(420_000);
+  const { baseWorkstream, plainFeedback, state, composer, workstream, actor } =
+    await enterNormalWorkstream(page);
   const overview = page.getByRole("complementary", {
     name: "Project / Current Work",
     exact: true,
@@ -2459,9 +2471,9 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await expect(
     page.getByRole("region", { name: "Source code viewport" }),
   ).toContainText("No source files yet.");
-  websiteSource = "export const settings = true;";
-  currentWorkstream = {
-    ...currentWorkstream,
+  state.websiteSource = "export const settings = true;";
+  state.currentWorkstream = {
+    ...state.currentWorkstream,
     projection: {
       ...baseWorkstream.projection,
       currentActivity: "Writing settings.tsx",
@@ -2489,8 +2501,8 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await expect(composer).toHaveValue(/settings\.tsx/);
   await expect(composer).toHaveValue(/workstream\/settings/);
   await expect(composer).toHaveValue(/export const settings = true/);
-  expect(streamRequests).toEqual([]);
-  expect(createRequests).toBe(1);
+  expect(state.streamRequests).toEqual([]);
+  expect(state.createRequests).toBe(1);
   const inspect = workstream.getByRole("button", {
     name: "Inspect current Workstream",
   });
@@ -2535,10 +2547,10 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   expect(iterationResponse.ok()).toBe(true);
   expect(await iterationResponse.finished()).toBeNull();
   await expect
-    .poll(() => streamRequests)
+    .poll(() => state.streamRequests)
     .toEqual(["change it to use the blue active state"]);
-  expect(createRequests).toBe(1);
-  expect(iterationRequests).toBe(1);
+  expect(state.createRequests).toBe(1);
+  expect(state.iterationRequests).toBe(1);
   // This sequential journey waits for the turn to finish; FIFO-in-flight behavior
   // has separate coverage below. A received stream request is not turn completion.
   await expect(
@@ -2550,73 +2562,17 @@ test("@workbench-normal drives one Workstream through normal World conversation"
 
   await composer.fill(`/work ${plainFeedback}`);
   await composer.press("Enter");
-  await expect.poll(() => streamRequests.at(-1)).toBe(plainFeedback);
+  await expect.poll(() => state.streamRequests.at(-1)).toBe(plainFeedback);
   await expect(actor).toHaveAttribute("data-object-ref", /workstream-file-/);
   await expect(actor).toHaveAttribute("data-work-state", "coding", {
     timeout: 20000,
   });
   await expect(actor).toHaveAttribute("data-avatar-action", /Dig|Work/);
-  const bubbleRoom = page.locator(".world-room");
-  await page.screenshot({ path: testInfo.outputPath("bubble-near.png") });
-  const initialZ = Number(
-    await bubbleRoom.getAttribute("data-user-position-z"),
-  );
-  await bubbleRoom.focus();
-  await page.keyboard.down("s");
-  try {
-    await expect
-      .poll(
-        async () =>
-          Number(await bubbleRoom.getAttribute("data-user-position-z")),
-        { timeout: 15_000 },
-      )
-      .toBeGreaterThan(initialZ + 12);
-  } finally {
-    await page.keyboard.up("s");
-  }
-  // Face the agent through ordinary lateral travel, keeping real HUDs visible.
-  const agentX = Number(await bubbleRoom.getAttribute("data-agent-position-x"));
-  const userX = Number(await bubbleRoom.getAttribute("data-user-position-x"));
-  const lateral = agentX < userX ? "a" : "d";
-  await page.keyboard.down(lateral);
-  try {
-    await expect
-      .poll(
-        async () => {
-          const x = Number(
-            await bubbleRoom.getAttribute("data-user-position-x"),
-          );
-          return lateral === "a" ? x <= agentX : x >= agentX;
-        },
-        { timeout: 20_000 },
-      )
-      .toBe(true);
-  } finally {
-    await page.keyboard.up(lateral);
-  }
-  const readableBubble = page.locator(".world-activity-bubble:visible").first();
-  await expect(readableBubble).toBeVisible();
-  await (
-    await import("./world-activity-cloud.js")
-  ).verifyActivityCloud(page, readableBubble, testInfo);
-  const bubbleBox = (await readableBubble.boundingBox())!;
-  expect(bubbleBox.x).toBeGreaterThanOrEqual(0);
-  expect(bubbleBox.y).toBeGreaterThanOrEqual(0);
-  expect(bubbleBox.x + bubbleBox.width).toBeLessThanOrEqual(1440);
-  expect(bubbleBox.y + bubbleBox.height).toBeLessThanOrEqual(900);
-  await page.screenshot({ path: testInfo.outputPath("bubble-far.png") });
-  await testInfo.attach("bubble-distance", {
-    body: JSON.stringify({
-      initialZ,
-      farZ: Number(await bubbleRoom.getAttribute("data-user-position-z")),
-    }),
-    contentType: "application/json",
-  });
   await expect(
     page.getByRole("log", { name: "Conversation and activity" }),
   ).toContainText("Starting report");
-  expect(createRequests).toBe(1);
-  expect(iterationRequests).toBe(2); // only explicit /work resumes coding
+  expect(state.createRequests).toBe(1);
+  expect(state.iterationRequests).toBe(2); // only explicit /work resumes coding
   await page.screenshot({
     path: testInfo.outputPath("continued-file-dig.png"),
   });
@@ -2625,12 +2581,12 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await expect(
     page.getByText("1 queued · waiting for the current turn", { exact: true }),
   ).toBeVisible();
-  expect(streamRequests).not.toContain("hi codex");
-  const eventsBeforeDiscussion = (currentWorkstream!.events as unknown[])
+  expect(state.streamRequests).not.toContain("hi codex");
+  const eventsBeforeDiscussion = (state.currentWorkstream!.events as unknown[])
     .length;
   await page.screenshot({ path: testInfo.outputPath("discussion-queued.png") });
-  finishPlainTurn!();
-  await expect.poll(() => streamRequests.at(-1)).toBe("hi codex");
+  state.finishPlainTurn!();
+  await expect.poll(() => state.streamRequests.at(-1)).toBe("hi codex");
   await expect(
     page.getByText("1 queued · waiting for the current turn", { exact: true }),
   ).toHaveCount(0);
@@ -2647,14 +2603,14 @@ test("@workbench-normal drives one Workstream through normal World conversation"
   await composer.fill("change the title to food is good");
   await composer.press("Enter");
   await expect
-    .poll(() => streamRequests.at(-1))
+    .poll(() => state.streamRequests.at(-1))
     .toBe("change the title to food is good");
   await expect(page.locator(".world-chat")).toHaveAttribute(
     "aria-busy",
     "false",
   );
-  expect(iterationRequests).toBe(2);
-  expect((currentWorkstream!.events as unknown[]).length).toBe(
+  expect(state.iterationRequests).toBe(2);
+  expect((state.currentWorkstream!.events as unknown[]).length).toBe(
     eventsBeforeDiscussion + 1,
   );
   await expect(
@@ -6333,4 +6289,181 @@ test("normal entry never exposes the internal dashboard", async ({ page }) => {
   await expect(page.locator(".world-entry-logo")).toBeVisible();
   await expect(page.getByText(/diagnostics|evidence|recovery/i)).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Agents" })).toHaveCount(0);
+});
+
+// Keep this independent visual journey after the other entry tests so the
+// six-shard CI collection separates it from the conversation-heavy journey.
+test("@activity-cloud preserves sizing, motion and screen-depth occlusion during coding", async ({
+  page,
+}, testInfo) => {
+  // Keep the original combined journey's ceiling and all cloud assertions.
+  // Real World entry and coding stay normal-motion; no render-quality shortcut.
+  test.setTimeout(420_000);
+  const { baseWorkstream, plainFeedback, state, composer, workstream, actor } =
+    await enterNormalWorkstream(page);
+  const slab = page.locator(
+    `[data-workstream-slab="${baseWorkstream.workstreamId}"]`,
+  );
+  await expect(slab).toHaveCount(1);
+  await slab.focus();
+  await slab.press("Enter");
+  await expect(
+    page.getByRole("region", { name: "Source code viewport" }),
+  ).toContainText("No source files yet.");
+  state.websiteSource = "export const settings = true;";
+  state.currentWorkstream = {
+    ...state.currentWorkstream,
+    projection: {
+      ...baseWorkstream.projection,
+      currentActivity: "Writing settings.tsx",
+      diff: {
+        summary: "Added settings",
+        patch: "+export const settings = true;",
+        truncated: false,
+      },
+    },
+  };
+  await page
+    .getByRole("region", { name: "Source code viewport" })
+    .getByRole("button", { name: "settings.tsx", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Source code viewport" }),
+  ).toContainText("export const settings = true;");
+  await expect(actor).toContainText("Writing settings.tsx");
+  await page.screenshot({
+    path: testInfo.outputPath("workstream-slab-coding.png"),
+  });
+  // This transition closes the focused code view and restores the World HUD;
+  // it is a setup prerequisite, not just conversation-specific draft coverage.
+  await page
+    .getByRole("button", { name: "Ask about this", exact: true })
+    .click();
+  await expect(composer).toHaveValue(/settings\.tsx/);
+  await expect(
+    page.getByRole("complementary", {
+      name: "Project / Current Work",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("complementary", {
+      name: "Project / Current Work",
+      exact: true,
+    })
+    .getByRole("button", { name: "Open work details", exact: true })
+    .click();
+  await expect(
+    workstream.getByRole("region", { name: "Work Inspector" }),
+  ).toBeVisible();
+  await composer.fill("/work change it to use the blue active state");
+  const [iterationResponse] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response
+          .url()
+          .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
+        response.request().method() === "POST",
+    ),
+    composer.press("Enter"),
+  ]);
+  expect(iterationResponse.ok()).toBe(true);
+  expect(await iterationResponse.finished()).toBeNull();
+  await expect
+    .poll(() => state.streamRequests)
+    .toEqual(["change it to use the blue active state"]);
+  expect(state.createRequests).toBe(1);
+  expect(state.iterationRequests).toBe(1);
+  // This sequential journey waits for the turn to finish; FIFO-in-flight behavior
+  // has separate coverage below. A received stream request is not turn completion.
+  await expect(
+    workstream.getByRole("button", {
+      name: "Close Work Inspector",
+      exact: true,
+    }),
+  ).toBeEnabled();
+
+  try {
+    await composer.fill(`/work ${plainFeedback}`);
+    await composer.press("Enter");
+    await expect.poll(() => state.streamRequests.at(-1)).toBe(plainFeedback);
+    await expect(actor).toHaveAttribute("data-object-ref", /workstream-file-/);
+    await expect(actor).toHaveAttribute("data-work-state", "coding", {
+      timeout: 20000,
+    });
+    await expect(actor).toHaveAttribute("data-avatar-action", /Dig|Work/);
+    const bubbleRoom = page.locator(".world-room");
+    await page.screenshot({ path: testInfo.outputPath("bubble-near.png") });
+    const initialZ = Number(
+      await bubbleRoom.getAttribute("data-user-position-z"),
+    );
+    await bubbleRoom.focus();
+    await page.keyboard.down("s");
+    try {
+      await expect
+        .poll(
+          async () =>
+            Number(await bubbleRoom.getAttribute("data-user-position-z")),
+          { timeout: 15_000 },
+        )
+        .toBeGreaterThan(initialZ + 12);
+    } finally {
+      await page.keyboard.up("s");
+    }
+    // Face the agent through ordinary lateral travel, keeping real HUDs visible.
+    const agentX = Number(
+      await bubbleRoom.getAttribute("data-agent-position-x"),
+    );
+    const userX = Number(await bubbleRoom.getAttribute("data-user-position-x"));
+    const lateral = agentX < userX ? "a" : "d";
+    await page.keyboard.down(lateral);
+    try {
+      await expect
+        .poll(
+          async () => {
+            const x = Number(
+              await bubbleRoom.getAttribute("data-user-position-x"),
+            );
+            return lateral === "a" ? x <= agentX : x >= agentX;
+          },
+          { timeout: 20_000 },
+        )
+        .toBe(true);
+    } finally {
+      await page.keyboard.up(lateral);
+    }
+    const readableBubble = page
+      .locator(".world-activity-bubble:visible")
+      .first();
+    await expect(readableBubble).toBeVisible();
+    await (
+      await import("./world-activity-cloud.js")
+    ).verifyActivityCloud(page, readableBubble, testInfo);
+    const bubbleBox = (await readableBubble.boundingBox())!;
+    expect(bubbleBox.x).toBeGreaterThanOrEqual(0);
+    expect(bubbleBox.y).toBeGreaterThanOrEqual(0);
+    expect(bubbleBox.x + bubbleBox.width).toBeLessThanOrEqual(1440);
+    expect(bubbleBox.y + bubbleBox.height).toBeLessThanOrEqual(900);
+    await page.screenshot({ path: testInfo.outputPath("bubble-far.png") });
+    await testInfo.attach("bubble-distance", {
+      body: JSON.stringify({
+        initialZ,
+        farZ: Number(await bubbleRoom.getAttribute("data-user-position-z")),
+      }),
+      contentType: "application/json",
+    });
+    await expect(
+      page.getByRole("log", { name: "Conversation and activity" }),
+    ).toContainText("Starting report");
+    expect(state.createRequests).toBe(1);
+    expect(state.iterationRequests).toBe(2); // only explicit /work resumes coding
+  } finally {
+    // Release the held real stream even if a visual assertion fails.
+    state.finishPlainTurn?.();
+  }
+  await expect(workstream).toHaveAttribute(
+    "data-workstream-status",
+    "ready-for-review",
+  );
+  await expect(actor).toHaveAttribute("data-avatar-action", "Idle");
 });

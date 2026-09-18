@@ -1787,6 +1787,11 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   await openCodeWheel(page);
   await expect(wheelHint).toBeHidden();
   const wheel = page.getByRole("group", { name: "Code Wheel", exact: true });
+  const stream = wheel.locator(".code-wheel__stream");
+  await expect(stream).toHaveCSS("animation-name", "code-wheel-stream");
+  const initialFlow = await stream.evaluate(
+    (element) => getComputedStyle(element).transform,
+  );
   const nameButton = (name: string) =>
     wheel.getByRole("button", {
       name: `Send next message to ${name}`,
@@ -1814,6 +1819,15 @@ test("@code-wheel real controls isolate scene input, retain targeting and spatia
   expect(await page.locator(".repository-code-screen").count()).toBe(
     selectedCodeBefore,
   );
+  // Prove animated pointer selection first. The remaining targeting, dialogs,
+  // placement and reload assertions do not need a continuously drawn World.
+  await expect
+    .poll(() =>
+      stream.evaluate((element) => getComputedStyle(element).transform),
+    )
+    .not.toBe(initialFlow);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(stream).toHaveCSS("animation-name", "none");
   const draft = page.getByRole("textbox", { name: /^Message / });
   await draft.fill("keep this unsent draft");
   await nameButton("Claw").click();

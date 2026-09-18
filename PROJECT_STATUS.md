@@ -4,6 +4,14 @@ Updated: 2026-09-18
 
 ## Current milestone
 
+### September 18 — PR17 CI correction candidate; exact-head green required
+
+Aaron (`1550602582047719478`) renews private commit/push and conditional merge authorization: require both push and PR workflows plus readiness green on the correction commit, then merge. The accepted effects/Graphics/fog revision is already pushed at `01613bd34792762055865f7a9c714070b519af04`; its hosted checks remain non-green. This correction does not reopen visual acceptance or change retained TEST45379/45377 builds, profiles or state.
+
+The correction acknowledges a reconciled already-ready city on repeated repository loads, with a RED→GREEN readiness regression and unchanged full repository-workbench journey PASS. Code Wheel retains normal-motion pointer selection/clear and explicit stream-motion proof before testing remaining targeting/dialog/placement/reload behavior in supported Reduced Motion. The normal Workstream conversation and expensive cloud visual proof now have independent fresh fixtures and retain the original assertion/deadline contracts; the omitted cloud setup close/draft transition was corrected through the real Ask about this action. Both owners pass separately. Actual collection is 120 unique tests across six shards, with conversation in shard 5 and cloud in shard 6.
+
+Verification venue: reuse the recorded affected local GREEN and type/build evidence, perform final scoped static/regression checks, then use the exact correction-SHA clean GitHub push and PR workflows for complete integrated proof. No complete post-correction local shard pass is claimed. Prior voice-stop, code-screen identity and spatial-movement failures remain unresolved until that proof; neither sibling passes nor the test split waive them. Preserve all earlier failed attempts. Final SHA, workflow and merge receipts are external; do not create recursive status commits. No release, publication, branch/runtime cleanup, provider change or Phase20 work is authorized.
+
 ### September 18 — effects/Graphics/fog accepted; conditional private delivery
 
 Aaron (`1550536501660745810`) approves the corrected fog from the supplied images while away from his PC and authorizes **commit/push → exact-head GitHub CI and readiness green → merge PR17**. This is image-based fog approval, not a new native interactive/performance verdict; no additional manual retest is required. Preserve the earlier first-hand effects/Graphics acceptance and all retained environments. No release, publication, branch cleanup, provider/gateway changes or runtime replacement is authorized. Exact final SHA/CI/merge receipts are external to avoid recursive status commits.

@@ -356,8 +356,10 @@ export function RepositoryCityModels({
     readyIds.has(instanceId),
   );
   useEffect(() => {
+    // A second load can reuse every prepared model while its parent returns
+    // to loading. Acknowledge the reconciled population, not only false→true.
     if (allReady) onReady();
-  }, [allReady, onReady]);
+  }, [allReady, instances, onReady]);
   useFrame((_, delta) => {
     if (!reducedMotion) clock.value += Math.min(delta, 0.1);
     highlight.current = graphics.huePulses
