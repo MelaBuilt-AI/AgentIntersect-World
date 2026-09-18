@@ -1,10 +1,18 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-16
+Updated: 2026-09-18
 
 ## Current milestone
 
-### September 16 — recovery polish and conditional PR14 delivery
+### September 18 — repository-city effects, separate PR pending visual acceptance
+
+Aaron (`1550481379584770188`) requested a new private PR: reuse avatar/agent materialization and sound for city objects; replace overhead dots with roof-to-sky terminal-rain ribbons from the supplied texture; add restrained intermittent logo-color highlights and complementary atmosphere. PR16 merged-main run `35303937945` completed successfully at `fed8c15` (all nine jobs). Earlier failed attempts remain historical, not relabeled.
+
+Scope, design limits and evidence: [Repository city effects](docs/REPOSITORY_CITY_EFFECTS.md). Avatar assembly/audio are reused behind the existing all-model-ready barrier. City ribbons share a clock, use sparse one-at-a-time eased highlights and static Reduced Motion fallback, and reach the existing camera-centered sky sphere. The sky artwork/floor remain unchanged; restrained cyan lighting and distant haze add depth. No work/evidence status is inferred from decorative colors.
+
+This is technical delivery, **not Aaron's visual acceptance**. Keep the PR unmerged pending his verdict and exact-head CI. Existing accepted TEST45375 and all older retained runtimes/profiles/state remain untouched; this build is isolated. No provider, gateway, visibility, publication, release, shutdown or old-environment cleanup is authorized.
+
+### Historical September 16 — recovery polish and conditional PR14 delivery
 
 Aaron (`1549800076539469976`) supersedes the earlier cloud deferral and delivery hold: include the cloud correction and concrete recovery polish in PR14, commit/push, merge only after exact-head CI and readiness are green, then prepare the end-session handoff.
 

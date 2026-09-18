@@ -33,9 +33,9 @@ describe("repository asset manifest", () => {
       expect(asset.eventTypes.length).toBeGreaterThan(0);
       expect(asset.effects).toEqual(
         expect.objectContaining({
-          materialize: "rise-scan-particles",
-          idle: "hover-emissive-pulse",
-          reducedMotion: "instant-semantic-marker",
+          materialize: "avatar-code-assembly",
+          idle: "terminal-rain",
+          reducedMotion: "static-rain-semantic-marker",
         }),
       );
     }

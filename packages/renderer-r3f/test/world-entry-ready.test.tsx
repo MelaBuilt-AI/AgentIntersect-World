@@ -17,6 +17,7 @@ vi.mock("react", async () => ({
 vi.mock("@react-three/fiber", () => ({
   useThree: () => ({
     gl: { domElement: { dataset: {} } },
+    scene: { fog: null },
     invalidate: state.invalidate,
   }),
   useFrame: (callback: (state: unknown, delta: number) => void) =>

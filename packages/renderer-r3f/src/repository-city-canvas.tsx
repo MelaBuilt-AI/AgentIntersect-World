@@ -1,4 +1,9 @@
-import { useFrame, useLoader, type ThreeEvent } from "@react-three/fiber";
+import {
+  useFrame,
+  useLoader,
+  useThree,
+  type ThreeEvent,
+} from "@react-three/fiber";
 import {
   Suspense,
   useCallback,
@@ -7,7 +12,18 @@ import {
   useRef,
   useState,
 } from "react";
-import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from "three";
+import { Box3, Mesh, MeshStandardMaterial, type Texture } from "three";
+import {
+  AvatarMaterialization,
+  ArrivalRainContext,
+} from "./avatar-materialization.js";
+import { useCodeTexture } from "./code-world-texture.js";
+import {
+  RepositoryTerminalRain,
+  cityRainPulse,
+  type CityRainClock,
+  type CityRainHighlight,
+} from "./repository-terminal-rain.js";
 import {
   GLTFLoader,
   type GLTF,
@@ -95,45 +111,6 @@ export function selectRepositoryCityRenderPlan(
   } as const;
 }
 
-export type RepositoryMaterializationFrame = {
-  readonly y: number;
-  readonly opacity: number;
-  readonly emissive: number;
-  readonly scanOpacity: number;
-  readonly particleProgress: number;
-  readonly settled: boolean;
-};
-
-export function repositoryMaterializationFrame(
-  rawProgress: number,
-  reducedMotion: boolean,
-): RepositoryMaterializationFrame {
-  if (reducedMotion)
-    return {
-      y: 0,
-      opacity: 1,
-      emissive: 0,
-      scanOpacity: 0,
-      particleProgress: 1,
-      settled: true,
-    };
-  const progress = Math.max(0, Math.min(1, rawProgress));
-  const overshoot =
-    progress === 0
-      ? 0
-      : progress === 1
-        ? 1
-        : 1 + 2.70158 * (progress - 1) ** 3 + 1.70158 * (progress - 1) ** 2;
-  return {
-    y: -2.5 + overshoot * 2.5,
-    opacity: Math.min(1, 0.2 + progress * 1.35),
-    emissive: 1.8 * (1 - progress),
-    scanOpacity: progress < 0.72 ? 0.8 * (1 - progress / 0.72) : 0,
-    particleProgress: progress,
-    settled: progress >= 1,
-  };
-}
-
 export function repositoryMaterialTint(
   status: RepositoryCityInstance["status"],
   selected: boolean,
@@ -153,6 +130,13 @@ function RepositoryCityModel({
   onSelect,
   onSettled,
   onDragStart,
+  onReady,
+  revealReady,
+  onArrival,
+  rain,
+  index,
+  clock,
+  highlight,
 }: {
   readonly instance: RepositoryCityInstance;
   readonly gltf: GLTF;
@@ -164,15 +148,18 @@ function RepositoryCityModel({
   readonly selected: boolean;
   readonly onSelect: (instanceId: string) => void;
   readonly onSettled: (instanceId: string) => void;
+  readonly onReady: (instanceId: string) => void;
+  readonly revealReady: boolean;
+  readonly onArrival: (instanceId: string) => void;
+  readonly rain: Texture | null;
+  readonly index: number;
+  readonly clock: CityRainClock;
+  readonly highlight: { current: CityRainHighlight };
 }) {
-  const group = useRef<Group>(null);
-  const particleGroup = useRef<Group>(null);
-  const scanMaterial = useRef<MeshBasicMaterial>(null);
-  const startedAt = useRef<number | null>(null);
-  const reportedSettled = useRef(false);
+  const [settled, setSettled] = useState(false);
   const definition = REPOSITORY_ASSET_BY_ID.get(instance.assetId)!;
   const status = REPOSITORY_STATUS_PRESENTATION[instance.status];
-  const { model, materials } = useMemo(() => {
+  const { model, materials, roof } = useMemo(() => {
     const copy = gltf.scene.clone(true);
     const ownedMaterials: MeshStandardMaterial[] = [];
     copy.traverse((object) => {
@@ -186,132 +173,108 @@ function RepositoryCityModel({
       object.material = Array.isArray(object.material) ? cloned : cloned[0]!;
       for (const material of cloned) {
         if (!(material instanceof MeshStandardMaterial)) continue;
-        material.userData.baseOpacity = material.opacity;
         material.userData.baseEmissive = `#${material.emissive.getHexString()}`;
         material.userData.baseEmissiveIntensity = material.emissiveIntensity;
-        material.transparent = true;
         ownedMaterials.push(material);
       }
     });
-    return { model: copy, materials: ownedMaterials };
-  }, [gltf]);
+    return {
+      model: copy,
+      materials: ownedMaterials,
+      roof: new Box3().setFromObject(copy).max.y * definition.defaultScale,
+    };
+  }, [gltf, definition.defaultScale]);
   useEffect(
     () => () => {
       for (const material of materials) material.dispose();
     },
     [materials],
   );
-  useFrame(({ clock }) => {
-    if (!group.current) return;
-    const start = startedAt.current ?? clock.elapsedTime;
-    startedAt.current = start;
-    const elapsed = clock.elapsedTime - start;
-    const frame = repositoryMaterializationFrame(
-      instance.lifecycle === "idle" ? 1 : elapsed / 1.05,
-      reducedMotion,
-    );
-    const idle = frame.settled && !reducedMotion;
-    const hover = idle
-      ? Math.sin(clock.elapsedTime * 1.35 + instance.position.x) * 0.07
-      : 0;
-    group.current.position.y = frame.y + hover;
-    if (particleGroup.current)
-      particleGroup.current.position.y = frame.particleProgress * 1.2;
-    if (scanMaterial.current) scanMaterial.current.opacity = frame.scanOpacity;
-    const failureFlicker =
-      instance.status === "failure" && idle
-        ? Math.sin(clock.elapsedTime * 16) * 0.14
-        : 0;
-    const tint = repositoryMaterialTint(
-      instance.status,
-      selected,
-      frame.settled,
-    );
+  useFrame(() => {
+    const tint = repositoryMaterialTint(instance.status, selected, settled);
     for (const material of materials) {
-      material.opacity =
-        Number(material.userData.baseOpacity ?? 1) * frame.opacity;
       material.emissive.set(
         tint ?? String(material.userData.baseEmissive ?? "#000000"),
       );
       material.emissiveIntensity = tint
-        ? Math.max(
-            0.2,
-            frame.emissive +
-              failureFlicker +
-              (idle ? Math.sin(clock.elapsedTime * 1.8) * 0.08 : 0),
-          )
+        ? 0.25
         : Number(material.userData.baseEmissiveIntensity ?? 0);
-    }
-    if (frame.settled && !reportedSettled.current) {
-      reportedSettled.current = true;
-      onSettled(instance.instanceId);
     }
   });
   return (
-    <group
-      ref={group}
-      name={`repository-city-${instance.instanceId}`}
-      position={[
-        instance.position.x,
-        reducedMotion || instance.lifecycle === "idle" ? 0 : -2.5,
-        instance.position.z,
-      ]}
-      rotation={[0, instance.yaw ?? 0, 0]}
-      onPointerDown={(event: ThreeEvent<PointerEvent>) =>
-        onDragStart(instance, event)
-      }
-      scale={definition.defaultScale}
-      onClick={(event: {
-        button: number;
-        delta: number;
-        stopPropagation: () => void;
-      }) => {
-        if (event.button !== 0 || event.delta > 5) return;
-        event.stopPropagation();
-        onSelect(instance.instanceId);
-      }}
-    >
-      <primitive object={model} dispose={null} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <ringGeometry
-          args={[0.58, selected || instance.pinned ? 0.78 : 0.68, 28]}
-        />
-        <meshBasicMaterial
-          color={
-            selected
-              ? REPOSITORY_STATUS_PRESENTATION.active.color
-              : status.color
-          }
-          transparent
-          opacity={selected ? 0.95 : instance.pinned ? 0.72 : 0.42}
-        />
-      </mesh>
-      {!reducedMotion && instance.lifecycle === "materializing" ? (
-        <group name="repository-city-materialization-effects">
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.025, 0]}>
-            <ringGeometry args={[0.9, 1, 36]} />
+    <>
+      <group
+        name={`repository-city-${instance.instanceId}`}
+        position={[instance.position.x, 0, instance.position.z]}
+        rotation={[0, instance.yaw ?? 0, 0]}
+        onPointerDown={(event: ThreeEvent<PointerEvent>) =>
+          onDragStart(instance, event)
+        }
+        scale={definition.defaultScale}
+        onClick={(event: {
+          button: number;
+          delta: number;
+          stopPropagation: () => void;
+        }) => {
+          if (event.button !== 0 || event.delta > 5) return;
+          event.stopPropagation();
+          onSelect(instance.instanceId);
+        }}
+      >
+        <AvatarMaterialization
+          ready={Boolean(rain)}
+          revealReady={revealReady}
+          arrivalId={instance.instanceId}
+          telemetryPrefix="city"
+          reducedMotion={reducedMotion}
+          onPrepared={() => onReady(instance.instanceId)}
+          onMaterializationStart={() => onArrival(instance.instanceId)}
+          onComplete={() => {
+            setSettled(true);
+            onSettled(instance.instanceId);
+          }}
+        >
+          <primitive object={model} dispose={null} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+            <ringGeometry
+              args={[0.58, selected || instance.pinned ? 0.78 : 0.68, 28]}
+            />
             <meshBasicMaterial
-              ref={scanMaterial}
-              color={status.color}
+              color={
+                selected
+                  ? REPOSITORY_STATUS_PRESENTATION.active.color
+                  : status.color
+              }
               transparent
-              opacity={0.8}
+              opacity={selected ? 0.95 : instance.pinned ? 0.72 : 0.42}
             />
           </mesh>
-          <group ref={particleGroup}>
-            {[-0.42, -0.2, 0, 0.2, 0.42].map((x, index) => (
-              <mesh
-                key={x}
-                position={[x, 0.25 + index * 0.18, (index % 2) * 0.28 - 0.14]}
-              >
-                <sphereGeometry args={[0.035, 5, 5]} />
-                <meshBasicMaterial color={status.color} />
-              </mesh>
-            ))}
-          </group>
-        </group>
+        </AvatarMaterialization>
+      </group>
+      {settled && rain ? (
+        <RepositoryTerminalRain
+          texture={rain}
+          x={instance.position.x}
+          z={instance.position.z}
+          roof={roof}
+          index={index}
+          clock={clock}
+          highlight={highlight}
+        />
       ) : null}
-    </group>
+    </>
   );
+}
+
+/** One sound for simultaneous objects; later batches retain their own cue. */
+export function markCityArrivalBatch(
+  started: Set<string>,
+  id: string,
+  instances: readonly RepositoryCityInstance[],
+) {
+  if (started.has(id)) return false;
+  for (const instance of instances) started.add(instance.instanceId);
+  return true;
 }
 
 export function RepositoryCityModels({
@@ -321,6 +284,7 @@ export function RepositoryCityModels({
   onSelect,
   onSettled,
   onReady,
+  onMaterializationStart,
   interaction,
 }: {
   readonly instances: readonly RepositoryCityInstance[];
@@ -330,8 +294,15 @@ export function RepositoryCityModels({
   readonly onSelect: (instanceId: string) => void;
   readonly onSettled: (instanceId: string) => void;
   readonly onReady: () => void;
+  readonly onMaterializationStart?: (() => void) | undefined;
 }) {
+  const { gl } = useThree();
   const startDrag = useRepositoryPropDrag(interaction);
+  const rain = useCodeTexture("02_terminal_rain");
+  const clock = useMemo(() => ({ value: 0 }), []);
+  const [seed] = useState(() => Math.random() * 10000);
+  const highlight = useRef(cityRainPulse(0, 0, seed, reducedMotion));
+  const started = useRef(new Set<string>());
   const [readyIds, setReadyIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -340,40 +311,58 @@ export function RepositoryCityModels({
       current.has(id) ? current : new Set([...current, id]),
     );
   }, []);
+  const allReady = instances.every(({ instanceId }) =>
+    readyIds.has(instanceId),
+  );
   useEffect(() => {
-    if (instances.every(({ instanceId }) => readyIds.has(instanceId)))
-      onReady();
-  }, [instances, onReady, readyIds]);
-  return instances.map((instance) => (
-    <Suspense key={instance.instanceId} fallback={null}>
-      <LoadedRepositoryCityModel
-        instance={instance}
-        reducedMotion={reducedMotion}
-        selected={selectedInstanceId === instance.instanceId}
-        onDragStart={startDrag}
-        onSelect={onSelect}
-        onSettled={onSettled}
-        onReady={ready}
-      />
-    </Suspense>
-  ));
+    if (allReady) onReady();
+  }, [allReady, onReady]);
+  useFrame((_, delta) => {
+    if (!reducedMotion) clock.value += Math.min(delta, 0.1);
+    highlight.current = cityRainPulse(
+      clock.value,
+      instances.length,
+      seed,
+      reducedMotion,
+    );
+    gl.domElement.dataset.cityRainTime = clock.value.toFixed(4);
+    gl.domElement.dataset.cityRainHighlight = String(highlight.current.index);
+  });
+  return (
+    <ArrivalRainContext.Provider value={rain}>
+      {instances.map((instance, index) => (
+        <Suspense key={instance.instanceId} fallback={null}>
+          <LoadedRepositoryCityModel
+            instance={instance}
+            reducedMotion={reducedMotion}
+            selected={selectedInstanceId === instance.instanceId}
+            onDragStart={startDrag}
+            onSelect={onSelect}
+            onSettled={onSettled}
+            onReady={ready}
+            revealReady={allReady}
+            onArrival={(id) => {
+              if (markCityArrivalBatch(started.current, id, instances))
+                onMaterializationStart?.();
+            }}
+            rain={rain}
+            index={index}
+            clock={clock}
+            highlight={highlight}
+          />
+        </Suspense>
+      ))}
+    </ArrivalRainContext.Provider>
+  );
 }
 
-// Only the new object waits for its asset. Existing city objects, avatars,
-// floor, screens and their animation clocks stay mounted throughout loading.
-function LoadedRepositoryCityModel({
-  onReady,
-  ...props
-}: Omit<Parameters<typeof RepositoryCityModel>[0], "gltf"> & {
-  readonly onReady: (id: string) => void;
-}) {
+// New assets wait locally; established objects, actors and camera stay mounted.
+function LoadedRepositoryCityModel(
+  props: Omit<Parameters<typeof RepositoryCityModel>[0], "gltf">,
+) {
   const gltf = useLoader(
     RepositoryCityGLTFLoader,
     REPOSITORY_ASSET_BY_ID.get(props.instance.assetId)!.glbUrl,
-  );
-  useEffect(
-    () => onReady(props.instance.instanceId),
-    [onReady, props.instance.instanceId],
   );
   return <RepositoryCityModel {...props} gltf={gltf} />;
 }

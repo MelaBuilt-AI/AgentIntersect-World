@@ -129,6 +129,17 @@ declare module "three" {
     constructor(geometry?: unknown, material?: unknown);
     material: Material | Material[];
   }
+  export class BufferAttribute {
+    constructor(array: Float32Array, itemSize: number);
+  }
+  export class ShaderMaterial extends Material {
+    uniforms: Record<string, { value: unknown }>;
+    vertexShader: string;
+    fragmentShader: string;
+  }
+  export class Fog {
+    constructor(color: ColorRepresentation, near?: number, far?: number);
+  }
   export class BufferGeometry {
     dispose(): void;
     setFromPoints(points: readonly Vector3[]): this;
@@ -236,7 +247,9 @@ declare module "three" {
     getCenter(target: Vector3): Vector3;
     getSize(target: Vector3): Vector3;
   }
-  export class Scene extends Group {}
+  export class Scene extends Group {
+    fog: Fog | null;
+  }
   export class PerspectiveCamera extends Object3D {
     constructor(fov?: number, aspect?: number, near?: number, far?: number);
     lookAt(target: Vector3): void;

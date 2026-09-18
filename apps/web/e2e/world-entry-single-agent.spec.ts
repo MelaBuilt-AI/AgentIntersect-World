@@ -1106,6 +1106,26 @@ for (const source of ["clone", "open", "create"] as const) {
     });
     let indexStarted = false;
     let modelStarted = false;
+    const renderErrors: string[] = [];
+    page.on("pageerror", (error) => renderErrors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") renderErrors.push(message.text());
+    });
+    await page.addInitScript(() => {
+      const originalPlay = HTMLMediaElement.prototype.play;
+      const arrivals: { currentTime: number }[] = [];
+      Object.assign(window, { __cityArrivalPlayback: arrivals });
+      HTMLMediaElement.prototype.play = function () {
+        if (this.src.endsWith("/avatar-materialize.wav")) {
+          const sample = { currentTime: 0 };
+          arrivals.push(sample);
+          this.addEventListener("timeupdate", () => {
+            sample.currentTime = Math.max(sample.currentTime, this.currentTime);
+          });
+        }
+        return originalPlay.call(this);
+      };
+    });
     await page.route(`**/api/repository-intake/${source}`, async (route) => {
       await operationGate;
       await route.fulfill({
@@ -1244,6 +1264,65 @@ for (const source of ["clone", "open", "create"] as const) {
       expect(await indicator!.evaluate((el) => el.isConnected)).toBe(true);
       releaseModels();
       await expect(loading).toHaveCount(0, { timeout: 30_000 });
+      const cityCanvas = page.locator(".world-room canvas");
+      if (source === "open") {
+        await expect(cityCanvas).toHaveAttribute(
+          "data-city-arrival",
+          "materializing",
+          { timeout: 15_000 },
+        );
+        await page.screenshot({
+          path: testInfo.outputPath("city-assembly.png"),
+        });
+      }
+      await expect(cityCanvas).toHaveAttribute(
+        "data-city-arrival",
+        "complete",
+        { timeout: 20_000 },
+      );
+      if (source === "open") {
+        const time = Number(
+          await cityCanvas.getAttribute("data-city-rain-time"),
+        );
+        const before = await cityCanvas.screenshot({
+          path: testInfo.outputPath("city-rain-first.png"),
+        });
+        await expect
+          .poll(async () =>
+            Number(await cityCanvas.getAttribute("data-city-rain-time")),
+          )
+          .toBeGreaterThan(time + 0.5);
+        const after = await cityCanvas.screenshot({
+          path: testInfo.outputPath("city-rain-later.png"),
+        });
+        expect(after.equals(before)).toBe(false);
+        const playback = () =>
+          page.evaluate(
+            () =>
+              (
+                window as unknown as {
+                  __cityArrivalPlayback: { currentTime: number }[];
+                }
+              ).__cityArrivalPlayback,
+          );
+        // One initial avatar cue plus one city batch cue, not one per model.
+        await expect.poll(async () => (await playback()).length).toBe(2);
+        await expect
+          .poll(async () => (await playback())[1]?.currentTime ?? 0)
+          .toBeGreaterThan(0.05);
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await expect(cityCanvas).toHaveAttribute(
+          "data-city-rain-highlight",
+          "-1",
+        );
+        const held = await cityCanvas.getAttribute("data-city-rain-time");
+        await page.waitForTimeout(400);
+        expect(await cityCanvas.getAttribute("data-city-rain-time")).toBe(held);
+        await page.screenshot({
+          path: testInfo.outputPath("city-rain-reduced.png"),
+        });
+      }
+      expect(renderErrors).toEqual([]);
       await expect(page.locator(".world-experience--room")).toHaveAttribute(
         "data-repository-readiness",
         "ready",

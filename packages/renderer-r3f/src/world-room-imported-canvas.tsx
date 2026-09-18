@@ -969,6 +969,7 @@ function WorldRoomScene({
               onSelect={onCitySelect}
               onSettled={onCitySettled}
               onReady={onCityReady}
+              onMaterializationStart={onMaterializationStart}
             />
           </group>
           {cityPlan.aggregateCount > 0 ? (

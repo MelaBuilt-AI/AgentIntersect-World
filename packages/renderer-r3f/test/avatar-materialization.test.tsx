@@ -17,7 +17,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
-  useContext: () => null,
+  useContext: () => undefined,
   useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
   useEffect: (effect: () => unknown) => {
@@ -116,7 +116,9 @@ for (const reducedMotion of [false, true]) {
     vi.useFakeTimers();
     state.dataset = {};
     const onMaterializationStart = vi.fn();
+    const onComplete = vi.fn();
     const element = AvatarMaterialization({
+      onComplete,
       onMaterializationStart,
       ready: true,
       reducedMotion,
@@ -149,6 +151,7 @@ for (const reducedMotion of [false, true]) {
     for (let i = 0; i < 30; i++) state.frame({}, 0.1);
     expect(state.dataset.avatarArrival).toBe("complete");
     expect(onMaterializationStart).toHaveBeenCalledOnce();
+    expect(onComplete).toHaveBeenCalledOnce();
     expect(mesh.material).toBe(original);
     expect(sprite.material).toBe(spriteMaterial);
     expect(mesh.castShadow).toBe(true);
@@ -156,6 +159,36 @@ for (const reducedMotion of [false, true]) {
     expect(actors.children[0]).toBe(mesh);
   });
 }
+it("prepares city objects behind the loading barrier, then reports completion once without overwriting avatar telemetry", async () => {
+  state.dataset = { avatarArrival: "complete" };
+  const onPrepared = vi.fn();
+  const onComplete = vi.fn();
+  const onMaterializationStart = vi.fn();
+  const props = {
+    ready: true,
+    revealReady: false,
+    telemetryPrefix: "city" as const,
+    onPrepared,
+    onComplete,
+    onMaterializationStart,
+    reducedMotion: false,
+    children: null,
+  };
+  const element = AvatarMaterialization(props);
+  const objects = new Group();
+  objects.add(new Mesh(new BoxGeometry(1, 2, 1), new MeshStandardMaterial()));
+  element.props.ref.current = objects;
+  state.frame({}, 0);
+  await Promise.resolve();
+  await Promise.resolve();
+  for (let i = 0; i < 60; i++) state.frame({}, 0.1);
+  expect(onPrepared).toHaveBeenCalledOnce();
+  expect(onMaterializationStart).not.toHaveBeenCalled();
+  expect(onComplete).not.toHaveBeenCalled();
+  expect(objects.visible).toBe(false);
+  expect(state.dataset.avatarArrival).toBe("complete");
+});
+
 it("leaves initial actors to the shared entrance when individual arrival is disabled", () => {
   state.initTexture.mockClear();
   const element = AvatarMaterialization({

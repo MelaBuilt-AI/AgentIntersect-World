@@ -25,9 +25,9 @@ export const REPOSITORY_STATUS_PRESENTATION = Object.freeze({
 >);
 
 const REPOSITORY_ASSET_EFFECTS = Object.freeze({
-  materialize: "rise-scan-particles" as const,
-  idle: "hover-emissive-pulse" as const,
-  reducedMotion: "instant-semantic-marker" as const,
+  materialize: "avatar-code-assembly" as const,
+  idle: "terminal-rain" as const,
+  reducedMotion: "static-rain-semantic-marker" as const,
 });
 
 type RepositoryAssetSeed = readonly [
