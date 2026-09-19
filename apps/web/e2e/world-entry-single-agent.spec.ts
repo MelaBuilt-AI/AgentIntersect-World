@@ -1509,9 +1509,9 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   page,
 }, testInfo) => {
   // Includes avatar entry/re-entry, saved-project loading, preview recovery and Git.
-  // The unchanged journey took 208s on two CPUs; hosted passes approached 180s.
-  // Allow whole-journey headroom without changing individual assertion deadlines.
-  test.setTimeout(300_000);
+  // Complete two-CPU runs take 280–288s; hosted execution exhausted 300s at
+  // the final dialog. Keep assertion deadlines intact with whole-journey headroom.
+  test.setTimeout(360_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
   const repository = {
@@ -3555,12 +3555,32 @@ for (const screenJourney of [
       await expanded.getByRole("button", { name: "Close World View" }).click();
       await expect(room).toHaveAttribute("data-input-owner", "world");
 
+      // Updating is shown before the coding stream and authority refresh finish.
+      // Establish turn completion before checking its preview-start side effect.
+      const iterationCompleted = page.waitForResponse(
+        (response) =>
+          response
+            .url()
+            .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
+          response.request().method() === "POST",
+      );
       await composer.fill("/work change it to use the blue active state");
       await composer.press("Enter");
       await expect(view).toHaveAttribute("data-preview-id", preview.previewId);
       await expect(view).toHaveAttribute("data-iteration-state", "updating");
       await expect(view).toContainText(
         "Updating from visual feedback · preview revision 4 remains verified.",
+      );
+      const iterationResponse = await iterationCompleted;
+      expect(iterationResponse.ok()).toBe(true);
+      expect(await iterationResponse.finished()).toBeNull();
+      await expect(page.locator(".world-chat")).toHaveAttribute(
+        "aria-busy",
+        "false",
+      );
+      await expect(workstream).toHaveAttribute(
+        "data-workstream-status",
+        "ready-for-review",
       );
       await expect.poll(() => startRequests).toBe(2);
       await expect(view).toHaveAttribute(
@@ -3573,6 +3593,13 @@ for (const screenJourney of [
       );
       await expect(view).toContainText("Preview revision 5");
 
+      const nextIterationCompleted = page.waitForResponse(
+        (response) =>
+          response
+            .url()
+            .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
+          response.request().method() === "POST",
+      );
       await composer.fill("/work make the heading larger");
       await composer.press("Enter");
       await expect(view).toHaveAttribute(
@@ -3580,6 +3607,17 @@ for (const screenJourney of [
         updatedPreview.previewId,
       );
       await expect(view).toHaveAttribute("data-iteration-state", "updating");
+      const nextIterationResponse = await nextIterationCompleted;
+      expect(nextIterationResponse.ok()).toBe(true);
+      expect(await nextIterationResponse.finished()).toBeNull();
+      await expect(page.locator(".world-chat")).toHaveAttribute(
+        "aria-busy",
+        "false",
+      );
+      await expect(workstream).toHaveAttribute(
+        "data-workstream-status",
+        "ready-for-review",
+      );
       await expect.poll(() => startRequests).toBe(3);
       await expect(view).toHaveAttribute(
         "data-preview-truth",
@@ -6384,9 +6422,26 @@ test("@activity-cloud preserves sizing, motion and screen-depth occlusion during
   ).toBeEnabled();
 
   try {
+    // Request receipt does not mean the polling client has received the new
+    // file target. Establish that authoritative input before its actor projection.
+    const activeFileReceived = page.waitForResponse(async (response) => {
+      if (
+        !response.url().endsWith("/workstreams/current") ||
+        response.request().method() !== "GET" ||
+        !response.ok()
+      )
+        return false;
+      const body = await response.json();
+      return (
+        body.data?.workstreamId === baseWorkstream.workstreamId &&
+        body.data?.revision === 3 &&
+        body.data?.projection.activeFile?.path === "settings.tsx"
+      );
+    });
     await composer.fill(`/work ${plainFeedback}`);
     await composer.press("Enter");
     await expect.poll(() => state.streamRequests.at(-1)).toBe(plainFeedback);
+    expect(await (await activeFileReceived).finished()).toBeNull();
     await expect(actor).toHaveAttribute("data-object-ref", /workstream-file-/);
     await expect(actor).toHaveAttribute("data-work-state", "coding", {
       timeout: 20000,
@@ -6457,6 +6512,38 @@ test("@activity-cloud preserves sizing, motion and screen-depth occlusion during
     ).toContainText("Starting report");
     expect(state.createRequests).toBe(1);
     expect(state.iterationRequests).toBe(2); // only explicit /work resumes coding
+    // Releasing the fixture is not a browser receipt. Observe the completed
+    // stream and the authoritative refresh before checking their UI projection.
+    const completedStream = page.waitForResponse(
+      (response) =>
+        response
+          .url()
+          .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
+        response.request().method() === "POST" &&
+        response.request().postDataJSON().text === plainFeedback,
+    );
+    const completedWorkstream = page.waitForResponse(async (response) => {
+      if (
+        !response.url().endsWith("/workstreams/current") ||
+        response.request().method() !== "GET" ||
+        !response.ok()
+      )
+        return false;
+      const body = await response.json();
+      return (
+        body.data?.workstreamId === baseWorkstream.workstreamId &&
+        body.data?.revision === 4 &&
+        body.data?.status === "ready-for-review"
+      );
+    });
+    state.finishPlainTurn!();
+    const [streamResponse, workstreamResponse] = await Promise.all([
+      completedStream,
+      completedWorkstream,
+    ]);
+    expect(streamResponse.ok()).toBe(true);
+    expect(await streamResponse.finished()).toBeNull();
+    expect(await workstreamResponse.finished()).toBeNull();
   } finally {
     // Release the held real stream even if a visual assertion fails.
     state.finishPlainTurn?.();

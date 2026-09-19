@@ -61,7 +61,9 @@ export default defineConfig({
         AIW_PHASE16_REPOSITORY_ROOT: approvedRepositoryRoot,
         AIW_PHASE16_WORKTREE_PARENT: approvedWorktreeParent,
       },
-      port: serverPort,
+      // Readiness belongs to the child we launched, not an arbitrary socket
+      // that a concurrent TCP probe can mistake for successful startup.
+      wait: { stdout: /AgentIntersect World local server ready at / },
       reuseExistingServer: false,
       timeout: 30_000,
     },

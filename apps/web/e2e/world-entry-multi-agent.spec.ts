@@ -1645,7 +1645,9 @@ for (const [action, dialogName] of [
 test("@code-wheel real controls isolate scene input, retain targeting and spatial state", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(120_000);
+  // The complete two-CPU journey takes about 115s; both local and hosted
+  // runs exhausted 120s during its final reload. Preserve assertion deadlines.
+  test.setTimeout(180_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");

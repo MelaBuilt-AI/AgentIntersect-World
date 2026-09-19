@@ -4,7 +4,17 @@ Updated: 2026-09-18
 
 ## Current milestone
 
-### September 18 — bounded correction of reveal timing, movement and cloud proof
+### September 18 — PR17 startup/readiness reconciliation; green-gated merge
+
+Aaron (`1550645289113624627`) requests continued correction to GitHub green, then merge. This supersedes the previous single-pass stopping point for concrete CI blockers, not the accepted visuals or unrelated work. Both `321bf4b` workflows ended red: 12 successful jobs, five failed and one cancelled. Saved logs/traces distinguish Code Wheel's final-reload whole-test exhaustion, cold World entry before avatar identity, cloud final-state failure following held-stream release, Workbench's final-dialog whole-test exhaustion, delayed preview-start observation, and a backend bind failure followed by cascading connection errors.
+
+This candidate changes tests/configuration only. Backend readiness now waits for the launched child's successful startup line rather than any TCP listener; a real bind-collision probe reproduced the old false readiness and the corrected fail-closed behavior. Avatar identity checks follow explicit room entry, with a delayed-real-module RED→GREEN regression. Cloud and World View checks establish stream/domain completion before their original UI/counter assertions. Code Wheel's complete diagnostic took115s after local/hosted120s exhaustion; its final whole-journey budget is180s. Workbench's complete two-CPU runs take280–288s with a hosted300s cutoff at the final dialog; its budget is360s. Individual assertion deadlines, performance thresholds, retries, graphics, motion and all existing behavior assertions remain intact.
+
+The original five-journey local reproduction was four PASS / Code Wheel timeout; that RED is retained. Final affected proof passes across the recorded attempts: Code Wheel109695ms, legacy migration70106ms, Workbench279043ms, World View105695ms and cloud340234ms. The intermediate candidate's cloud target assertion failed before receiving its polled active-file input; an explicit authoritative response boundary corrected that setup race, and the full cloud journey then passed. The delayed-real-World-module regression is independently RED→GREEN (88252ms complete GREEN); command-graph tests, root formatting/lint and tooling types pass. All120 collected test identities and every prior assertion expression are preserved. Complete integrated acceptance remains the final exact-head normal push AND PR workflows plus GitHub readiness. Only then perform the authorized expected-head guarded merge and separately verify merge-SHA CI. Final receipts belong outside this commit to avoid a recursive status chain. Evidence: `/home/mela_ai/.hermes/runs/aiw-pr17-green-20260918/` and the named proof attempts under the preceding CI evidence root.
+
+No production assets/build outputs or retained TEST45379/45377 sessions/profiles were changed. Prior first-hand effects/Graphics acceptance and corrected-fog image approval remain authoritative; no new native FPS verdict is implied. Provider changes, cleanup/branch deletion, Phase20 and release/publication remain out of scope.
+
+### Historical September 18 — bounded correction of reveal timing, movement and cloud proof
 
 Aaron (`1550622541041770528`) approved one further bounded correction pass after both `f4c1f7e` workflows remained red following their single evidence-backed retries. Commit/push and green-only merge authority remain; no further blind retries, visual redesign, retained-runtime replacement, cleanup, publication, provider change or Phase20 work.
 

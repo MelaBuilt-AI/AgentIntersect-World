@@ -1136,11 +1136,15 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   const enterWorld = page.getByRole("button", { name: "Enter World" });
   await expect(enterWorld).toBeEnabled({ timeout: 30_000 });
   await enterWorld.click();
+  // Cold lazy World loading owns the entry budget; avatar identity is checked
+  // only after the room exists, with its original assertion deadline.
+  await expect(page.locator(".world-room")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator(".world-room")).toHaveAttribute(
     "data-agent-avatar-imported-id",
     "cat-agent-01",
   );
   await page.reload();
+  await expect(page.locator(".world-room")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator(".world-room")).toHaveAttribute(
     "data-agent-avatar-imported-id",
     "cat-agent-01",
@@ -1162,6 +1166,7 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
     "robot-agent-05",
   );
   await page.reload();
+  await expect(page.locator(".world-room")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator(".world-room")).toHaveAttribute(
     "data-agent-avatar-imported-id",
     "robot-agent-05",
