@@ -290,7 +290,13 @@ describe("acceptance command graph", () => {
     ];
 
     expect(workflowSource).not.toMatch(/cache:\s*pnpm/);
-    for (const job of Object.values(workflow.jobs)) {
+    for (const name of [
+      "core",
+      "measurements",
+      "e2e-flagged",
+      "e2e-unflagged",
+    ]) {
+      const job = workflow.jobs[name]!;
       expect(job.steps).toContainEqual(
         expect.objectContaining({
           uses: "actions/setup-node@v7",

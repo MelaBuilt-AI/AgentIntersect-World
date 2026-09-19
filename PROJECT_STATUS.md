@@ -4,7 +4,15 @@ Updated: 2026-09-18
 
 ## Current milestone
 
-### September 18 — PR17 startup/readiness reconciliation; green-gated merge
+### September 18 — proportional CI after merged PR17
+
+PR17 is merged at `093e51239eddca1b87654c76139ccb9c1bcd09fd`, after both final-head workflows at `042e4ce` passed all18 checks with clean readiness. Its separate merge-SHA result and any bounded same-tree reconciliation remain recorded externally; PR-head success is not substituted for main-SHA execution.
+
+Aaron (`1550677643073032345`, confirmed by the follow-up approval prompt) authorizes the separate CI change, green-gated merge and requiring `merge-gate` on main with no added review requirements. [CI policy](docs/CI.md): feature pushes/draft PRs run core feedback; ready code PRs retain full browser/measurement gates; narrowly allowlisted documentation-only changes receive formatting checks. Main code pushes/manual dispatch retain full acceptance. Failed/skipped required jobs fail closed, and duplicate full push/PR runs are removed. Existing test thresholds, source behavior and user acceptance are unchanged. Actual hosted routing and branch-policy activation must be verified before final delivery; final receipts remain external.
+
+A separate fresh latest-version review is requested and will remain running for Aaron with manual verdict PENDING. Old test environments/profiles/history remain protected. No Phase20, provider changes, publication or release authorization follows from this CI slice.
+
+### Historical September 18 — PR17 startup/readiness reconciliation; green-gated merge
 
 Aaron (`1550645289113624627`) requests continued correction to GitHub green, then merge. This supersedes the previous single-pass stopping point for concrete CI blockers, not the accepted visuals or unrelated work. Both `321bf4b` workflows ended red: 12 successful jobs, five failed and one cancelled. Saved logs/traces distinguish Code Wheel's final-reload whole-test exhaustion, cold World entry before avatar identity, cloud final-state failure following held-stream release, Workbench's final-dialog whole-test exhaustion, delayed preview-start observation, and a backend bind failure followed by cascading connection errors.
 
