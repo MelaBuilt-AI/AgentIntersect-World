@@ -186,6 +186,11 @@ const isInteractiveMouseTarget = (target: EventTarget | null): boolean =>
     ),
   );
 
+import {
+  DEFAULT_WORLD_GRAPHICS,
+  type WorldGraphics,
+} from "@agentintersect-world/renderer-r3f";
+
 export function WorldRoom({
   floor,
   objects,
@@ -213,6 +218,7 @@ export function WorldRoom({
   layoutGeneration = "blank-world",
   onAgentMovementEvent: reportMovementEvent,
   showControlHints = true,
+  graphics = DEFAULT_WORLD_GRAPHICS,
   repositoryReadiness = "idle",
   workstreamAuthority,
   workstreamTask,
@@ -293,6 +299,7 @@ export function WorldRoom({
     | ((event: AgentMovementEvent, position: { x: number; z: number }) => void)
     | undefined;
   readonly showControlHints?: boolean;
+  readonly graphics?: WorldGraphics | undefined;
   readonly repositoryReadiness?: "idle" | "loading" | "ready" | "error";
   readonly workstreamAuthority?:
     WorkstreamAuthorityDescriptor | null | undefined;
@@ -1486,7 +1493,9 @@ export function WorldRoom({
     const tick = (timestamp: number) => {
       const previous = lastFrame.current ?? timestamp;
       lastFrame.current = timestamp;
-      const elapsedSeconds = Math.min(0.1, (timestamp - previous) / 1_000);
+      // Keep real walking/sprint speed down to two rendered frames per second.
+      // Bound long-stall catch-up; blur/hidden/focus changes still release input.
+      const elapsedSeconds = Math.min(0.5, (timestamp - previous) / 1_000);
       if (
         pressedKeys.current.size > 0 &&
         !isEditableWorldTarget(document.activeElement)
@@ -2490,6 +2499,7 @@ export function WorldRoom({
             <Suspense fallback={null}>
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
+                  graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
                   screenEventSource={screenEventSource ?? undefined}
@@ -2551,6 +2561,7 @@ export function WorldRoom({
                 />
               ) : (
                 <WorldRoomCanvas
+                  graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
                   screenEventSource={screenEventSource ?? undefined}

@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
+  useContext: (context: { _currentValue: unknown }) => context._currentValue,
   useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
   useEffect: (effect: () => unknown) => {
@@ -17,6 +18,7 @@ vi.mock("react", async () => ({
 vi.mock("@react-three/fiber", () => ({
   useThree: () => ({
     gl: { domElement: { dataset: {} } },
+    scene: { fog: null },
     invalidate: state.invalidate,
   }),
   useFrame: (callback: (state: unknown, delta: number) => void) =>

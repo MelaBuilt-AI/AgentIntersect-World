@@ -187,12 +187,17 @@ describe("acceptance command graph", () => {
       : [config.webServer];
     expect(webServers).toHaveLength(2);
     expect(webServers[0]).toMatchObject({
+      // A TCP probe can race a failed bind and accept somebody else's socket.
+      // Only this child process can publish the backend's successful startup.
+      wait: { stdout: /AgentIntersect World local server ready at / },
       env: {
         AIW_AGENT_SESSIONS_ENABLED: "true",
         AIW_AGENT_SESSION_DATA_DIR: expect.stringMatching(/\/agent-sessions$/u),
         AIW_HERMES_API_KEY: "playwright-fixture-key",
       },
     });
+    expect(webServers[0]).not.toHaveProperty("port");
+    expect(webServers[0]).not.toHaveProperty("url");
   });
 
   it("retains traces only for the repository city correction journey", async () => {

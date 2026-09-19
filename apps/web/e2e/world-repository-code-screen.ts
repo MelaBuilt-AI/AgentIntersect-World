@@ -291,6 +291,7 @@ export async function exerciseRepositoryCodeScreen(
       (element, original) => element === original,
       handle,
     ),
+    "The source viewport stays mounted across fullscreen and spatial modes",
   ).toBe(true);
   await expect
     .poll(() => viewport.evaluate((element) => element.scrollTop))
@@ -342,11 +343,14 @@ export async function exerciseRepositoryCodeScreen(
     () =>
       (window as unknown as { codeRevealSamples: number[] }).codeRevealSamples,
   );
-  expect(animatedSamples.some((value) => value > 0 && value < 1)).toBe(true);
   writeFileSync(
     testInfo.outputPath("code-reveal-animated.json"),
     JSON.stringify(animatedSamples),
   );
+  expect(
+    animatedSamples.some((value) => value > 0 && value < 1),
+    "Normal-motion code opening renders intermediate reveal frames",
+  ).toBe(true);
   await page.keyboard.press("Alt+Digit4");
   await panel.getByRole("button", { name: "Close code", exact: true }).click();
   await expect(panel).toHaveCount(0);

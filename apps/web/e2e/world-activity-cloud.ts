@@ -201,7 +201,21 @@ export async function verifyActivityCloud(
   // This exercises pose updates and depth reversal without touching agent state.
   const footer = screen.getByRole("button", { name: "Move Workbench screen" });
   await footer.focus();
-  for (let step = 0; step < 140; step++) await page.keyboard.press("ArrowUp");
+  const beforeNudge = Number(await screen.getAttribute("data-screen-z"));
+  // Send bounded batches of real held-key repeats. Every quarter-unit nudge
+  // still crosses the browser input path; avoid waiting for a paint per event.
+  try {
+    for (let step = 0; step < 140; step += 10) {
+      await Promise.all(
+        Array.from({ length: 10 }, () => page.keyboard.down("ArrowUp")),
+      );
+    }
+  } finally {
+    await page.keyboard.up("ArrowUp");
+  }
+  await expect
+    .poll(async () => Number(await screen.getAttribute("data-screen-z")))
+    .toBeCloseTo(beforeNudge - 140 * 0.25, 5);
   // Keep visible overlap in the reverse case, not just absence of a mask.
   const object = screen.locator(".world-screen__object");
   for (let step = 0; step < 100; step++) {

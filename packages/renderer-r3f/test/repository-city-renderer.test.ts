@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   RepositoryCityGLTFLoader,
-  repositoryMaterializationFrame,
+  markCityArrivalBatch,
   repositoryMaterialTint,
   selectRepositoryCityRenderPlan,
 } from "../src/repository-city-canvas.js";
@@ -116,34 +116,30 @@ describe("repository city renderer policy", () => {
     expect(plan.aggregateCount).toBe(14);
   });
 
-  it("provides animated and reduced-motion semantic frames", () => {
-    expect(repositoryMaterializationFrame(0, false)).toMatchObject({
-      y: -2.5,
-      scanOpacity: 0.8,
-      settled: false,
-    });
-    expect(repositoryMaterializationFrame(1, false)).toMatchObject({
-      y: 0,
-      emissive: 0,
-      scanOpacity: 0,
-      settled: true,
-    });
-    expect(repositoryMaterializationFrame(0, true)).toEqual({
-      y: 0,
-      opacity: 1,
-      emissive: 0,
-      scanOpacity: 0,
-      particleProgress: 1,
-      settled: true,
-    });
+  it("coalesces simultaneous city sounds and plays again for a later arrival", () => {
+    const started = new Set<string>();
+    const batch = [instance(0), instance(1)];
+    expect(markCityArrivalBatch(started, batch[0]!.instanceId, batch)).toBe(
+      true,
+    );
+    expect(markCityArrivalBatch(started, batch[1]!.instanceId, batch)).toBe(
+      false,
+    );
+    const later = [...batch, instance(2)];
+    expect(markCityArrivalBatch(started, later[2]!.instanceId, later)).toBe(
+      true,
+    );
+    expect(markCityArrivalBatch(started, later[2]!.instanceId, later)).toBe(
+      false,
+    );
   });
 
   it("preserves source materials when idle and bounds status tint to truthful state", () => {
-    expect(repositoryMaterialTint("idle", false, true)).toBeNull();
-    expect(repositoryMaterialTint("idle", true, true)).toBe("#41e9ff");
-    expect(repositoryMaterialTint("idle", false, false)).toBe("#41e9ff");
-    expect(repositoryMaterialTint("pending", false, true)).toBe("#ffbf47");
-    expect(repositoryMaterialTint("failure", false, true)).toBe("#ff4d63");
-    expect(repositoryMaterialTint("special", false, true)).toBe("#b76cff");
+    expect(repositoryMaterialTint("idle", false)).toBeNull();
+    expect(repositoryMaterialTint("idle", true)).toBe("#41e9ff");
+    expect(repositoryMaterialTint("idle", false)).toBeNull();
+    expect(repositoryMaterialTint("pending", false)).toBe("#ffbf47");
+    expect(repositoryMaterialTint("failure", false)).toBe("#ff4d63");
+    expect(repositoryMaterialTint("special", false)).toBe("#b76cff");
   });
 });

@@ -45,6 +45,12 @@ export function AgentSetupBoundary({
       : loadWorldDisplayPreferences(window.localStorage),
   );
   useEffect(() => {
+    const sync = () =>
+      setPreferences(loadWorldDisplayPreferences(window.localStorage));
+    window.addEventListener("aiw:display-preferences", sync);
+    return () => window.removeEventListener("aiw:display-preferences", sync);
+  }, []);
+  useEffect(() => {
     let active = true;
     const timer = window.setTimeout(() => setOpening(false), 1200);
     void loadAgentSetup()

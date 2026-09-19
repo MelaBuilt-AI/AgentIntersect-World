@@ -2282,7 +2282,13 @@
   padding: 0.65rem 0.75rem;
 }
 
+.world-escape-setting:has(input:checked) {
+  border-color: rgba(56, 189, 248, 0.7);
+  background: rgba(14, 116, 144, 0.13);
+}
+
 .world-escape-setting input {
+  accent-color: #38bdf8;
   width: 1.15rem;
   height: 1.15rem;
 }

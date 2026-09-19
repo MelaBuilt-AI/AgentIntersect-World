@@ -4,7 +4,11 @@ import { readFile, mkdir } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 import type { WorldScreenBinding } from "../src/world-screen-types.js";
 const frames = vi.hoisted(
-  () => [] as { callback: () => void; priority: number }[],
+  () =>
+    [] as {
+      callback: (state?: unknown, delta?: number) => void;
+      priority: number;
+    }[],
 );
 const state = vi.hoisted(() => ({ value: null as unknown }));
 vi.mock("react", async (original) => ({
@@ -14,11 +18,65 @@ vi.mock("react", async (original) => ({
 }));
 vi.mock("@react-three/fiber", () => ({
   useThree: () => state.value,
-  useFrame: (callback: () => void, priority = 0) =>
-    frames.push({ callback, priority }),
+  useFrame: (
+    callback: (state?: unknown, delta?: number) => void,
+    priority = 0,
+  ) => frames.push({ callback, priority }),
 }));
 vi.mock("../src/code-world-texture.js", () => ({ useCodeTexture: () => null }));
 import { WorldScreens } from "../src/world-screens.js";
+
+it("shows intermediate reveal frames even when the first render is delayed", () => {
+  frames.length = 0;
+  const camera = new PerspectiveCamera(50, 1.6, 0.1, 1000);
+  camera.updateMatrixWorld();
+  const element = () => ({ style: {}, dataset: {}, inert: false });
+  const screen = {
+    id: "code",
+    spatial: true,
+    width: 880,
+    height: 480,
+    pose: { x: 0, y: 2.6, z: -18, yaw: 0 },
+    revealStartedAt: 0,
+    reducedMotion: false,
+    viewport: element(),
+    cameraElement: element(),
+    element: element(),
+  } as unknown as WorldScreenBinding;
+  const screens = [screen];
+  state.value = {
+    camera,
+    size: { width: 1440, height: 900 },
+    invalidate: vi.fn(),
+    gl: { domElement: { getBoundingClientRect: () => ({ left: 0, top: 0 }) } },
+  };
+  const now = vi.spyOn(performance, "now").mockReturnValue(1000);
+  try {
+    WorldScreens({ screens });
+    const tick = (delta: number) =>
+      frames.forEach(({ callback }) => callback(undefined, delta));
+    tick(1);
+    expect(Number(screen.viewport.dataset.screenReveal)).toBe(0);
+    now.mockReturnValue(3000);
+    tick(2);
+    const intermediate = Number(screen.viewport.dataset.screenReveal);
+    expect(intermediate).toBeGreaterThan(0);
+    expect(intermediate).toBeLessThan(1);
+    // Re-registration for focus must not restart the same opening.
+    screens[0] = { ...screen, focused: true };
+    tick(0.1);
+    expect(Number(screen.viewport.dataset.screenReveal)).toBeGreaterThan(
+      intermediate,
+    );
+    for (let frame = 0; frame < 6; frame++) tick(0.1);
+    expect(screen.viewport.dataset.screenReveal).toBe("1.000");
+    screens[0] = { ...screen, revealStartedAt: 3000, reducedMotion: true };
+    tick(1);
+    expect(screen.viewport.dataset.screenReveal).toBe("1.000");
+  } finally {
+    now.mockRestore();
+  }
+});
 
 it("ranks overlapping ordinary screens without rounded-distance ties", () => {
   frames.length = 0;

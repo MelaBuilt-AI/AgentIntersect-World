@@ -8,13 +8,20 @@ import {
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Box3, Group, Mesh, Sprite, Texture, type Material } from "three";
+import { cityAssemblyFrame } from "./city-arrival-timing.js";
 import { useCodeTexture } from "./code-world-texture.js";
 
-const ArrivalRainContext = createContext<Texture | null>(null);
+export const ArrivalRainContext = createContext<Texture | null | undefined>(
+  undefined,
+);
 
 /** One entrance per mounted group; later agents own independent groups. */
 export function AvatarMaterialization({
   ready,
+  revealReady = true,
+  telemetryPrefix = "avatar",
+  cityAssembly = false,
+  onComplete,
   enabled = true,
   arrivalId,
   onPrepared,
@@ -23,6 +30,10 @@ export function AvatarMaterialization({
   children,
 }: {
   readonly ready: boolean;
+  readonly revealReady?: boolean;
+  readonly cityAssembly?: boolean;
+  readonly telemetryPrefix?: "avatar" | "city";
+  readonly onComplete?: (() => void) | undefined;
   readonly enabled?: boolean;
   readonly arrivalId?: string;
   readonly onPrepared?: (() => void) | undefined;
@@ -43,9 +54,9 @@ export function AvatarMaterialization({
   const { gl, camera, scene, invalidate } = useThree();
   const sharedRain = useContext(ArrivalRainContext);
   const ownedRain = useCodeTexture(
-    enabled && !sharedRain ? "02_terminal_rain" : null,
+    enabled && sharedRain === undefined ? "02_terminal_rain" : null,
   );
-  const rain = sharedRain ?? ownedRain;
+  const rain = sharedRain === undefined ? ownedRain : sharedRain;
   const uniforms = useMemo(
     () => ({
       aiwArrivalProgress: { value: 0 },
@@ -75,16 +86,16 @@ export function AvatarMaterialization({
     const actors = group.current;
     if (!enabled || !actors || finished.current) return;
     const dataset = gl.domElement.dataset;
-    if (arrivalId) dataset.avatarArrivalId = arrivalId;
+    if (arrivalId) dataset[`${telemetryPrefix}ArrivalId`] = arrivalId;
     if (!ready || !rain) {
       actors.visible = false;
-      dataset.avatarArrival = "loading";
+      dataset[`${telemetryPrefix}Arrival`] = "loading";
       return;
     }
     if (preparation.current === "pending") {
       preparation.current = "compiling";
       actors.visible = false;
-      dataset.avatarArrival = "preparing";
+      dataset[`${telemetryPrefix}Arrival`] = "preparing";
       const textures = new Set<Texture>([rain]);
       actors.traverse((object) => {
         if (!(object instanceof Mesh) && !(object instanceof Sprite)) return;
@@ -189,31 +200,39 @@ uniform sampler2D aiwArrivalRain;
       });
       return;
     }
-    if (preparation.current !== "ready") return;
+    if (preparation.current !== "ready" || !revealReady) return;
     elapsed.current += Math.min(delta, 0.1);
-    const progress = reducedMotion
-      ? elapsed.current >= 1
+    const cityFrame = cityAssemblyFrame(elapsed.current, reducedMotion);
+    const progress = cityAssembly
+      ? cityFrame.complete
         ? 1
-        : 0
-      : Math.min(1, Math.max(0, (elapsed.current - 1) / 2.4));
-    dataset.avatarArrival =
+        : cityFrame.progress
+      : reducedMotion
+        ? elapsed.current >= 1
+          ? 1
+          : 0
+        : Math.min(1, Math.max(0, (elapsed.current - 1) / 2.4));
+    dataset[`${telemetryPrefix}Arrival`] =
       progress === 0
         ? "waiting"
         : progress === 1
           ? "complete"
           : "materializing";
-    dataset.avatarArrivalProgress = progress.toFixed(4);
+    dataset[`${telemetryPrefix}ArrivalProgress`] = progress.toFixed(4);
     actors.visible = progress > 0;
     if (progress === 0) return;
     if (!started.current) {
       started.current = true;
       onMaterializationStart?.();
     }
-    uniforms.aiwArrivalProgress.value = progress;
+    uniforms.aiwArrivalProgress.value = cityAssembly
+      ? cityFrame.shaderProgress
+      : progress;
     uniforms.aiwArrivalTime.value = elapsed.current;
     if (progress === 1) {
       restore.current?.();
       finished.current = true;
+      onComplete?.();
       clearInterval(wakeTimer.current);
     }
     invalidate();
@@ -223,7 +242,7 @@ uniform sampler2D aiwArrivalRain;
       ref={group}
       name={
         arrivalId
-          ? `agent-materialization:${arrivalId}`
+          ? `${telemetryPrefix === "avatar" ? "agent" : "city"}-materialization:${arrivalId}`
           : "world-avatar-materialization"
       }
       visible={!enabled}

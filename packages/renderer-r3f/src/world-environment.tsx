@@ -1,12 +1,22 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useContext, useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { AdditiveBlending, BackSide, GridHelper, Group, Object3D } from "three";
+import {
+  AdditiveBlending,
+  BackSide,
+  Fog,
+  GridHelper,
+  Group,
+  Object3D,
+} from "three";
 import {
   CODE_SKY_LAYERS,
   animateCodeSky,
   configureCodeSky,
   useCodeTexture,
 } from "./code-world-texture.js";
+
+import { WorldGraphicsContext } from "./world-graphics-context.js";
+import { WorldBloom, WorldWetFloor } from "./world-atmosphere-effects.js";
 
 export function WorldEnvironment({
   floor,
@@ -21,7 +31,15 @@ export function WorldEnvironment({
   readonly reducedMotion: boolean;
   readonly userPosition: { readonly x: number; readonly z: number };
 }) {
-  const { camera, gl, invalidate } = useThree();
+  const graphics = useContext(WorldGraphicsContext);
+  const { camera, gl, invalidate, scene } = useThree();
+  useEffect(() => {
+    const previous = scene.fog;
+    if (floor === "repository") scene.fog = new Fog("#061321", 24, 130);
+    return () => {
+      scene.fog = previous;
+    };
+  }, [floor, scene]);
   const floorTexture = useCodeTexture(
     "12_repository_map_floor",
     "floor",
@@ -107,7 +125,14 @@ export function WorldEnvironment({
   });
   return (
     <group name="world-code-environment">
-      <ambientLight color="#bbd3eb" intensity={0.85} />
+      {graphics.bloom ? <WorldBloom /> : null}
+      {floor === "repository" && graphics.wetFloorReflections ? (
+        <WorldWetFloor size={size} />
+      ) : null}
+      <ambientLight
+        color="#bbd3eb"
+        intensity={floor === "repository" ? 0.65 : 0.85}
+      />
       <directionalLight
         color="#e2f5ff"
         intensity={2.1}
@@ -126,8 +151,8 @@ export function WorldEnvironment({
       />
       <primitive object={lightTarget} />
       <directionalLight
-        color="#9284e8"
-        intensity={0.55}
+        color={floor === "repository" ? "#43bfff" : "#9284e8"}
+        intensity={floor === "repository" ? 0.8 : 0.55}
         position={[-12, 8, -14]}
       />
       <mesh

@@ -72,6 +72,9 @@ export function WorldScreens({
     pose: WorldScreenPose;
     offset: Vector3;
   } | null>(null);
+  const reveals = useRef(
+    new Map<WorldScreenId, { opening: number; elapsed: number }>(),
+  );
   const scratch = useRef({
     ray: new Raycaster(),
     pointer: new Vector2(),
@@ -258,7 +261,7 @@ export function WorldScreens({
     };
   }, [camera, focusedScreen, invalidate]);
 
-  useFrame(() => {
+  useFrame((_, delta = 0) => {
     if (focusedScreen) {
       const distance =
         Math.max(
@@ -304,6 +307,26 @@ export function WorldScreens({
       depthOrder.map(({ screen }, index) => [screen.id, index + 1]),
     );
     for (const screen of screens) {
+      let reveal = 1;
+      if (screen.revealStartedAt !== undefined) {
+        const previous = reveals.current.get(screen.id);
+        const clock = {
+          opening: screen.revealStartedAt,
+          // Registration may precede the first rendered frame by seconds.
+          // Retain frame progress across focus and fullscreen re-registration.
+          elapsed: screen.reducedMotion
+            ? 0.65
+            : previous?.opening === screen.revealStartedAt
+              ? Math.min(0.65, previous.elapsed + Math.min(delta, 0.1))
+              : 0,
+        };
+        reveals.current.set(screen.id, clock);
+        reveal = worldScreenReveal(
+          clock.elapsed,
+          screen.reducedMotion ?? false,
+        );
+      }
+      screen.revealProgress = reveal;
       if (!screen.spatial) {
         screen.viewport.style.cssText = "";
         screen.cameraElement.style.cssText = "";
@@ -325,13 +348,6 @@ export function WorldScreens({
       tools.rotation.setFromAxisAngle(new Vector3(0, 1, 0), screen.pose.yaw);
       tools.matrix.compose(tools.position, tools.rotation, tools.scale);
       screen.element.style.transform = screenObjectCss(tools.matrix);
-      const reveal =
-        screen.revealStartedAt === undefined
-          ? 1
-          : worldScreenReveal(
-              (performance.now() - screen.revealStartedAt) / 1000,
-              screen.reducedMotion ?? false,
-            );
       screen.element.style.clipPath =
         reveal < 1 ? `inset(${(1 - reveal) * 100}% 0 0)` : "";
       screen.viewport.dataset.screenReveal = reveal.toFixed(3);
@@ -397,12 +413,7 @@ function ProjectedScreen({
   useFrame(() => {
     if (!face.current) return;
     const reveal =
-      screen.revealStartedAt === undefined
-        ? 1
-        : worldScreenReveal(
-            (performance.now() - screen.revealStartedAt) / 1000,
-            screen.reducedMotion ?? false,
-          );
+      screen.revealProgress ?? (screen.revealStartedAt === undefined ? 1 : 0);
     face.current.scale.y = Math.max(0.001, reveal);
     face.current.position.y = bottom + (height * reveal) / 2;
     if (reveal < 1) invalidate();
