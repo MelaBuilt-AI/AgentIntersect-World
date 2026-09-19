@@ -1673,6 +1673,10 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
         expect(body.confirm).toBe(true);
         expect(body.agent.agentId).toBe(session.sessionId);
         continued++;
+        // Resume includes repository activation before this authoritative reply.
+        // Keep the UI assertion independent of a slow continuation response.
+        if (continued === 3)
+          await new Promise((resolve) => setTimeout(resolve, 8_000));
         current = { ...current, agent, revision: current.revision + 1 };
         return fulfill(route, {
           workstream: current,
@@ -1964,12 +1968,23 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   await page.screenshot({
     path: testInfo.outputPath("project-library-desktop.png"),
   });
+  const resumedWork = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname ===
+        `/api/workstreams/${current.workstreamId}/continue`,
+  );
   await resume.click();
-  await expect(intake).toHaveCount(0);
-  expect(continued).toBe(3);
+  const resumedResponse = await resumedWork;
+  expect(resumedResponse.ok()).toBe(true);
+  expect(await resumedResponse.finished()).toBeNull();
+  // Conversation restoration follows the final session refresh. Establish that
+  // domain transition before requiring its dialog to have closed.
   await expect(
     page.getByRole("log", { name: "Conversation and activity" }),
   ).toContainText("Keep my unfinished settings");
+  await expect(intake).toHaveCount(0);
+  expect(continued).toBe(3);
   expect(created).toBe(0);
   expect(codingRequests).toEqual([]);
 
@@ -2852,6 +2867,22 @@ for (const screenJourney of [
         url: "http://127.0.0.1:43123/preview-plain-fixture",
       };
       let iterationRequests = 0;
+      let nextIterationStream: Promise<void> | undefined;
+      const holdNextIterationStream = () => {
+        let release!: () => void;
+        nextIterationStream = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        return release;
+      };
+      const iterationMutation = (feedback: string) =>
+        page.waitForResponse(
+          (response) =>
+            response.request().method() === "POST" &&
+            new URL(response.url()).pathname ===
+              `/api/workstreams/${baseWorkstream.workstreamId}/iterations` &&
+            response.request().postDataJSON().feedback === feedback,
+        );
       let latestAttemptFailed = false;
       const browserErrors: string[] = [];
       await page.route("**/preview-plain-fixture", (route) =>
@@ -3044,6 +3075,10 @@ for (const screenJourney of [
               repository,
               agent,
             });
+            // The pending UI starts after this mutation, not after Enter.
+            // Exercise a response slower than the unchanged UI deadline.
+            if (screenJourney === "hud" && iterationRequests === 2)
+              await new Promise((resolve) => setTimeout(resolve, 8_000));
             currentWorkstream = {
               ...baseWorkstream,
               revision: iterationRequests + 1,
@@ -3130,7 +3165,10 @@ for (const screenJourney of [
                 },
               ],
             };
-          await new Promise((resolve) => setTimeout(resolve, 250));
+          const heldStream = nextIterationStream;
+          nextIterationStream = undefined;
+          if (heldStream) await heldStream;
+          else await new Promise((resolve) => setTimeout(resolve, 250));
           if (currentWorkstream && iterationRequests > 0)
             currentWorkstream = {
               ...currentWorkstream,
@@ -3564,13 +3602,27 @@ for (const screenJourney of [
             .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
           response.request().method() === "POST",
       );
-      await composer.fill("/work change it to use the blue active state");
-      await composer.press("Enter");
-      await expect(view).toHaveAttribute("data-preview-id", preview.previewId);
-      await expect(view).toHaveAttribute("data-iteration-state", "updating");
-      await expect(view).toContainText(
-        "Updating from visual feedback · preview revision 4 remains verified.",
+      const firstMutation = iterationMutation(
+        "change it to use the blue active state",
       );
+      const releaseFirstStream = holdNextIterationStream();
+      try {
+        await composer.fill("/work change it to use the blue active state");
+        await composer.press("Enter");
+        const mutationResponse = await firstMutation;
+        expect(mutationResponse.ok()).toBe(true);
+        expect(await mutationResponse.finished()).toBeNull();
+        await expect(view).toHaveAttribute(
+          "data-preview-id",
+          preview.previewId,
+        );
+        await expect(view).toHaveAttribute("data-iteration-state", "updating");
+        await expect(view).toContainText(
+          "Updating from visual feedback · preview revision 4 remains verified.",
+        );
+      } finally {
+        releaseFirstStream();
+      }
       const iterationResponse = await iterationCompleted;
       expect(iterationResponse.ok()).toBe(true);
       expect(await iterationResponse.finished()).toBeNull();
@@ -3600,13 +3652,22 @@ for (const screenJourney of [
             .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
           response.request().method() === "POST",
       );
-      await composer.fill("/work make the heading larger");
-      await composer.press("Enter");
-      await expect(view).toHaveAttribute(
-        "data-preview-id",
-        updatedPreview.previewId,
-      );
-      await expect(view).toHaveAttribute("data-iteration-state", "updating");
+      const nextMutation = iterationMutation("make the heading larger");
+      const releaseNextStream = holdNextIterationStream();
+      try {
+        await composer.fill("/work make the heading larger");
+        await composer.press("Enter");
+        const mutationResponse = await nextMutation;
+        expect(mutationResponse.ok()).toBe(true);
+        expect(await mutationResponse.finished()).toBeNull();
+        await expect(view).toHaveAttribute(
+          "data-preview-id",
+          updatedPreview.previewId,
+        );
+        await expect(view).toHaveAttribute("data-iteration-state", "updating");
+      } finally {
+        releaseNextStream();
+      }
       const nextIterationResponse = await nextIterationCompleted;
       expect(nextIterationResponse.ok()).toBe(true);
       expect(await nextIterationResponse.finished()).toBeNull();

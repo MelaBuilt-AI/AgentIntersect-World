@@ -4,7 +4,19 @@ Updated: 2026-09-18
 
 ## Current milestone
 
-### September 18 — PR17 startup/readiness reconciliation; green-gated merge
+### September 18 — proportional CI after merged PR17
+
+PR17 is merged at `093e51239eddca1b87654c76139ccb9c1bcd09fd`, after both final-head workflows at `042e4ce` passed all18 checks with clean readiness. Its separate merge-SHA result and any bounded same-tree reconciliation remain recorded externally; PR-head success is not substituted for main-SHA execution.
+
+Aaron (`1550677643073032345`, confirmed by the follow-up approval prompt) authorizes the separate CI change, green-gated merge and requiring `merge-gate` on main with no added review requirements. [CI policy](docs/CI.md): feature pushes/draft PRs run core feedback; ready code PRs retain full browser/measurement gates; narrowly allowlisted documentation-only changes receive formatting checks. Main code pushes/manual dispatch retain full acceptance. Failed/skipped required jobs fail closed, and duplicate full push/PR runs are removed. Existing test thresholds, source behavior and user acceptance are unchanged. Actual hosted routing and branch-policy activation must be verified before final delivery; final receipts remain external.
+
+The lightweight push at `e985851` passed on GitHub. The full PR's bounded retry passed the original spatial-animation case but failed Repository Intake closure and World View's `updating` observation. Aaron (`1550705765122187296`) authorizes resolving these concrete blockers, merging once green, then preparing the handoff. Main already requires `merge-gate`; rollout remains incomplete until this workflow merges, and no bypass is authorized.
+
+A focused diagnostic passed unchanged but confirmed sequential API prerequisites before either UI transition. Delaying the continuation and second iteration replies by8s reproduced both exact original5s assertion failures. The test-only correction waits for the owning mutation response, establishes restored conversation before dialog closure, and holds each mocked iteration stream until its pending-state assertions complete (released in `finally`). All original assertions/deadlines, production bytes, motion, retries and shard membership remain unchanged. The delayed replies remain as regressions. Final uninstrumented affected journeys pass: Workbench277760ms and World View109205ms on the unchanged isolated production build, two-CPU/4GiB/no-swap scope. These reproduce a synchronization weakness, not the exact uninstrumented hosted scheduling cause. Final exact-head full PR CI supplies integrated proof; merge-SHA CI is verified separately, with final receipts external rather than recursive status commits.
+
+The separate latest-product review **http://127.0.0.1:45381/** remains running for Aaron with manual verdict PENDING. Old test environments/builds/profiles/history remain protected. No Phase20, provider changes, publication or release authorization follows from this CI slice.
+
+### Historical September 18 — PR17 startup/readiness reconciliation; green-gated merge
 
 Aaron (`1550645289113624627`) requests continued correction to GitHub green, then merge. This supersedes the previous single-pass stopping point for concrete CI blockers, not the accepted visuals or unrelated work. Both `321bf4b` workflows ended red: 12 successful jobs, five failed and one cancelled. Saved logs/traces distinguish Code Wheel's final-reload whole-test exhaustion, cold World entry before avatar identity, cloud final-state failure following held-stream release, Workbench's final-dialog whole-test exhaustion, delayed preview-start observation, and a backend bind failure followed by cascading connection errors.
 

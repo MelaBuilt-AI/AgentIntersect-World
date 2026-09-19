@@ -2,10 +2,49 @@ name: phase-1-checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - run: python3 -m unittest discover -s .github/scripts -p test_ci_scope.py -v
+      - id: scope
+        run: python3 .github/scripts/ci_scope.py
+
+  docs:
+    needs: scope
+    if: needs.scope.outputs.mode == 'docs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: corepack prepare pnpm@11.15.0 --activate
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec prettier --check '**/*.md'
+
   core:
+    needs: scope
+    if: needs.scope.outputs.mode != 'docs'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -26,6 +65,8 @@ jobs:
       - run: pnpm check:core
 
   measurements:
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -45,6 +86,8 @@ jobs:
       - run: pnpm measure:phase11
 
   e2e-flagged:
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -84,6 +127,8 @@ jobs:
           retention-days: 7
 
   e2e-unflagged:
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -104,3 +149,37 @@ jobs:
       - run: >-
           xvfb-run -a pnpm exec playwright test
           --config playwright.unflagged.config.ts
+
+  push-checks:
+    needs: [scope, docs, core]
+    if: >-
+      always() &&
+      ((github.event_name == 'push' && github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.draft))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 .github/scripts/ci_scope.py
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+
+  merge-gate:
+    # A skipped feature-push job must not publish the required check's name.
+    name: >-
+      ${{ ((github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+      github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') ||
+      github.event_name == 'workflow_dispatch') && 'merge-gate' || 'merge-gate-not-applicable' }}
+    needs: [scope, docs, core, measurements, e2e-flagged, e2e-unflagged]
+    if: >-
+      always() &&
+      (github.event_name != 'push' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) &&
+      (github.event_name != 'pull_request' || !github.event.pull_request.draft)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 .github/scripts/ci_scope.py
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+          CI_MERGE_GATE: "true"
