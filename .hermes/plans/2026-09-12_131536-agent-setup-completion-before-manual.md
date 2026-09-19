@@ -94,7 +94,7 @@ corepack pnpm@11.15.0 --filter @agentintersect-world/web typecheck
 1. Add regressions for every newly supported behavior; retain no-write discovery, secret-free DTOs, native configuration preservation and explicit approvals.
 2. Run the impacted lint/build and architecture gates, then the full regression and existing exact-SHA CI. Preserve first-run/returning flow, avatar onboarding and saved-roster behavior.
 3. Browser catch-all native-work fixtures must pass the real setup-state GET through. Update only intentionally changed contracts; no production gate bypass or generic timeout increase.
-4. Reuse or rerun the native Workstream checkpoint when changed runtime semantics warrant it. Runner `/home/mela_ai/.hermes/runs/aiw-pr12-workstream-restart.py`; preserved root `/home/mela_ai/.hermes/runs/aiw-pr12-workstream-_b6vbhjw`. Inspect runner before use; pin Node 24/PATH explicitly when entering systemd/tmux. Never substitute a new generated task for a failing continuation of the preserved work.
+4. Reuse or rerun the native Workstream checkpoint when changed runtime semantics warrant it. Runner `/home/user/.hermes/runs/aiw-pr12-workstream-restart.py`; preserved root `/home/user/.hermes/runs/aiw-pr12-workstream-_b6vbhjw`. Inspect runner before use; pin Node 24/PATH explicitly when entering systemd/tmux. Never substitute a new generated task for a failing continuation of the preserved work.
 5. Update `README.md`, `docs/AGENT_SETUP_MENU.md` and `PROJECT_STATUS.md` so supported paths and remaining limitations match the tested implementation.
 6. Push bounded corrections within draft PR #12. Verify exact SHA and every CI conclusion; do not merge.
 

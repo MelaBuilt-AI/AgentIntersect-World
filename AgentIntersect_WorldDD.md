@@ -3304,7 +3304,7 @@ None may bypass the core authority invariants. In particular, unrelated-user exe
 2. `/mnt/c/Fluff Obsidian Vault/_inbox/AgentIntersect World/AIW tech stack.docx` — companion concept/opportunity source despite its filename.
 3. `/mnt/c/Fluff Obsidian Vault/comparisons/agentintersect-agentworld-studio-base-evaluation.md` — accepted sibling/control-plane evaluation and provenance.
 
-The historical `/mnt/c/Users/Mela AI/OneDrive/Documents/Mela AI/AgentWorld Studio/AI Agent World.docx` was verified byte-for-byte identical to the relocated canonical `AgentIntersect World.docx` and is not treated as a competing source.
+The historical `/mnt/c/Users/User/OneDrive/Documents/User/AgentWorld Studio/AI Agent World.docx` was verified byte-for-byte identical to the relocated canonical `AgentIntersect World.docx` and is not treated as a competing source.
 
 ### Current private AgentIntersect source anchors reviewed
 

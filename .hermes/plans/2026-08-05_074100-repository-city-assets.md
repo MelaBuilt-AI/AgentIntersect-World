@@ -93,7 +93,7 @@ Complete coherent vertical slices in the listed order. At the soft deadline, sto
 
 ## Safe-pause continuation boundary — 2026-08-05 09:25 EDT
 
-- The bounded worker completed all eight slices and wrote `/home/mela_ai/.hermes/runs/aiw-repository-city-20260805T113254Z/final-report.md` with inner exit `0`. Its pre-parent verification era reported focused 99/99, typecheck 38/38 tasks, lint, build 20/20 tasks, one production WebGL journey, and one reduced-motion Director journey green.
+- The bounded worker completed all eight slices and wrote `/home/user/.hermes/runs/aiw-repository-city-20260805T113254Z/final-report.md` with inner exit `0`. Its pre-parent verification era reported focused 99/99, typecheck 38/38 tasks, lint, build 20/20 tasks, one production WebGL journey, and one reduced-motion Director journey green.
 - Parent inspection then found that the Inspector `Focus` action did not move the camera. Parent added direct `cityFocusPosition` camera targeting to both normal World canvas implementations. The immediate renderer/web build and typecheck exited `0`; the focused renderer/palette/World UI slice passed 3 files / 25 tests. However, the package runner warned that these post-Focus checks used Node 22 despite the requested PATH, so they are useful focused evidence but not final Node-24 acceptance.
 - The only persisted Playwright result remains the intentional RED run from **08:23:49 EDT**, before the Focus implementation: repository semantic state was ready while the canvas still identified itself as `world-room`, so the new `repository-city` assertion failed. Do not mislabel this stale result as a post-Focus failure.
 - Two attempts to run the corrected production journey directly under Node 24 in a foreground Hermes tool call produced no newer Playwright artifact and wedged the conversation until Aaron restarted the Hermes gateway. Do not repeat that execution shape or add timeout. Run future browser proof as a tracked background job with durable stdout/stderr and `notify_on_complete=true`.
@@ -119,7 +119,7 @@ Complete coherent vertical slices in the listed order. At the soft deadline, sto
   the earlier accepted movement milestone as historical truth, but reproduce both
   exact transitions before inferring a cause.
 - Durable screenshot:
-  `/home/mela_ai/.hermes/runs/aiw-repository-city-manual-20260805T140129Z/operator-evidence/repository-city-uniform-cyan-operator.png`
+  `/home/user/.hermes/runs/aiw-repository-city-manual-20260805T140129Z/operator-evidence/repository-city-uniform-cyan-operator.png`
   (`a8af2686caacfde0566c9fd2460f74fd18c8da2a9dcbb5ecc959d72a7e69e982`).
 - No remediation or delivery authority is inferred. A later authorized correction
   should begin with focused REDs for idle material preservation and command-result
@@ -135,14 +135,14 @@ Complete coherent vertical slices in the listed order. At the soft deadline, sto
 - Two attempted recovery turns later wedged before Codex launched. The final exact
   failure was isolated to Hermes terminal pre-execution scanning, not to the shell,
   Git, Node, or Codex: the gateway lifecycle guard classified the absolute
-  `/home/mela_ai/.nvm/versions/node/v24.18.0/bin/node` executable as a referenced
+  `/home/user/.nvm/versions/node/v24.18.0/bin/node` executable as a referenced
   script and its remote fallback attempted to `cat` the 123,655,872-byte binary
   through Hermes Relay. No terminal start/completion event was recorded, inner and
   outer timeouts never became active, and gateway RSS jumped from roughly 397 MiB
   to 1.88 GiB.
 - Do not invoke binaries by absolute path in gateway terminal commands or nested
   worker scripts. Pin the exact runtime with
-  `PATH=/home/mela_ai/.nvm/versions/node/v24.18.0/bin:$PATH`, then invoke bare
+  `PATH=/home/user/.nvm/versions/node/v24.18.0/bin:$PATH`, then invoke bare
   `node`, `python3`, `codex`, `tmux`, and `systemd-run`. The live safe-path probe
   returned Node `v24.18.0` and `safe-path-probe=pass`.
 - Keep terminal calls serialized and small. Perform baseline/manifests with direct
@@ -184,7 +184,7 @@ Complete coherent vertical slices in the listed order. At the soft deadline, sto
   the selected opaque object to its real repository path or code meaning.
 - Exact text, screenshot, criterion ledger, direct probes, and retained candidate
   state are frozen under
-  `/home/mela_ai/.hermes/runs/aiw-repository-city-manual-corrections-20260805T204944Z/`.
+  `/home/user/.hermes/runs/aiw-repository-city-manual-corrections-20260805T204944Z/`.
 - One Codex-orchestrated two-hour diagnosis/correction lane is authorized. Use
   exact RED reproductions, direct pragmatic fixes, and independent parent proof.
   Safely pause and prepare the end-session handoff at the deadline or a genuine
@@ -194,7 +194,7 @@ Complete coherent vertical slices in the listed order. At the soft deadline, sto
 ## Final correction closeout and protected activation boundary — 2026-08-05 18:30 EDT
 
 - The sole Codex worker exited `0` and persisted its final report under
-  `/home/mela_ai/.hermes/runs/aiw-repository-city-final-corrections-20260805T215306Z/`.
+  `/home/user/.hermes/runs/aiw-repository-city-final-corrections-20260805T215306Z/`.
 - All five frozen slices are implemented in source: dynamic `current` World-action
   authority after repository selection; stale actor/helper-sequence conversational
   movement repair with queue-only truth; result-timed local repository acknowledgement;

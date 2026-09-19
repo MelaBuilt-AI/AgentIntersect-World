@@ -2,7 +2,7 @@
 
 **Status:** CORE AND UI USER-ACCEPTED; PRIVATE COMMIT/PUSH AUTHORIZED; EXACT-SHA CI REQUIRED
 **Accepted:** 2026-09-02
-**Repository:** `/home/mela_ai/AgentIntersect-World`
+**Repository:** `/home/user/AgentIntersect-World`
 **Base:** private `main` at `ada73b14327440ffed5820c34d047edb9ee0c4c3`
 
 ## 1. Scope and authority
@@ -149,11 +149,11 @@ Aaron then returned `PASS UI check`. Supporting read-only DOM evidence showed:
 
 Primary acceptance roots:
 
-- Original failed movement lane: `/home/mela_ai/.hermes/runs/aiw-animation-manual-20260902T101751-0400/`
-- Locator-corrected lane: `/home/mela_ai/.hermes/runs/aiw-animation-retest-20260902T184034-0400/`
-- First Single Agent chat-failure lane: `/home/mela_ai/.hermes/runs/aiw-animation-single-retest-20260902T190053-0400/`
-- Core PASS and mixed-state lane: `/home/mela_ai/.hermes/runs/aiw-animation-single-retest2-20260902T191648-0400/`
-- Final UI PASS lane: `/home/mela_ai/.hermes/runs/aiw-animation-ui-check-20260902T200459-0400/`
+- Original failed movement lane: `/home/user/.hermes/runs/aiw-animation-manual-20260902T101751-0400/`
+- Locator-corrected lane: `/home/user/.hermes/runs/aiw-animation-retest-20260902T184034-0400/`
+- First Single Agent chat-failure lane: `/home/user/.hermes/runs/aiw-animation-single-retest-20260902T190053-0400/`
+- Core PASS and mixed-state lane: `/home/user/.hermes/runs/aiw-animation-single-retest2-20260902T191648-0400/`
+- Final UI PASS lane: `/home/user/.hermes/runs/aiw-animation-ui-check-20260902T200459-0400/`
 
 The final UI receipt records one Codex session, one accepted user message, one completed assistant reply, exact Codex labels, zero false warning, and a hash-only candidate-state manifest without transcript or credential bodies.
 

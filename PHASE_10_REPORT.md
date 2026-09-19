@@ -109,7 +109,7 @@ Only the allowlisted runtime, JavaScript/JSX, TypeScript, and TSX WASM files loa
 ## Boundaries and residual risks
 
 - Phase 10 remains one private/local trusted operator. No public ingress, accounts, multi-tenancy, cloud parser service, runtime grammar download, release, deployment, package publication, tag, or visibility change was added.
-- Original `/home/mela_ai/AgentIntersect` was not modified or used as a Phase 10 implementation surface.
+- Original `/home/user/AgentIntersect` was not modified or used as a Phase 10 implementation surface.
 - Tier 1 remains deliberately limited to TypeScript/TSX/JavaScript/JSX. Unsupported/malformed/unavailable/over-budget files truthfully remain file-level World state.
 - The pinned third-party WASM parser can still contain defects; hash pinning, workers, resource limits, timeout/replacement, whole-file fallback, and manual-only upgrades bound that residual risk.
 - One lazy repository/R3F chunk remains above Vite's generic 500 kB warning. It no longer burdens initial shell startup, is loaded only when World opens, and remains bounded by the Phase 10 renderer/API caps.

@@ -1,0 +1,11 @@
+AgentIntersect World - private release candidate
+
+This installer places World and its bundled Node.js runtime in your per-user Programs directory. It creates Start Menu shortcuts and an uninstall entry. It does not need administrator privileges, change system PATH, install services, open firewall ports, or install/configure your agents.
+
+World opens in your browser and runs only on loopback (127.0.0.1). Keep its console open while using it. Type quit and press Enter, or use Ctrl+C, to stop it.
+
+Git and at least one supported, installed and configured agent harness are required for development workflows. Optional voice setup needs separate consent. Harness/model services have their own authentication, costs and data policies. World may send your messages and selected project information to the agents/services you explicitly connect and operate.
+
+Application state is saved separately in your local application-data directory. Uninstall removes installed program files but preserves your saved state, projects and native agent profiles. See README.md for optional state removal instructions.
+
+This candidate is not yet signed by SignPath. Windows/SmartScreen or antivirus warnings may occur. Verify the release checksum and publisher/source before deciding whether to run it. Package acceptance testing remains pending; repository visibility remains private.

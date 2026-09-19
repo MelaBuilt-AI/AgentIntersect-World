@@ -24,7 +24,7 @@ Current45285 and older user lanes/site remain intact. No reset, replacement brow
 
 ### Final verification
 
-Evidence root: `/home/mela_ai/.hermes/runs/aiw-presentation-refinements-20260908/`.
+Evidence root: `/home/user/.hermes/runs/aiw-presentation-refinements-20260908/`.
 
 - Final `gates.json`: runtime/packages/web-types/server-types/tests/build all0; **1184 passed,0 failed,0 skipped** after the DOM bubble correction. Affected ESLint and diff checks passed.
 - Final **7 browser journeys passed**: six in `browser-attempt-2`, plus the normal-Workstream/distant-bubble journey in `distance-attempt-3`. Coverage includes held texture/reveal, stalled-load fallback, preview/menu/report formatting, focused code with open wheel, and both pointer input guards.
@@ -34,4 +34,4 @@ Evidence root: `/home/mela_ai/.hermes/runs/aiw-presentation-refinements-20260908
 
 ### Delivery boundary
 
-The corrected build is `aiw-presentation-refinements-20260908/web/`. After Aaron1546900180811382854 authorized a new test, it was activated in **http://127.0.0.1:45287/** / backend43887 with fresh isolated state, Codex capability and a dedicated Edge profile at untouched Create Avatar. See `/home/mela_ai/.hermes/runs/aiw-presentation-manual-20260908/README.md`, runtime/readiness/native-window receipts and entry screenshot. Copied three-file website passed its existing test and is checkpointed; no previous Workstream/native history imported. Zero user-lane clicks, agent dispatches or preview approvals by the assistant. Old45285 and older lanes remain intact. User requested leaving the new test running and end-session prep; visual/native acceptance is still pending. Nothing staged, committed, pushed or published.
+The corrected build is `aiw-presentation-refinements-20260908/web/`. After Aaron1546900180811382854 authorized a new test, it was activated in **http://127.0.0.1:45287/** / backend43887 with fresh isolated state, Codex capability and a dedicated Edge profile at untouched Create Avatar. See `/home/user/.hermes/runs/aiw-presentation-manual-20260908/README.md`, runtime/readiness/native-window receipts and entry screenshot. Copied three-file website passed its existing test and is checkpointed; no previous Workstream/native history imported. Zero user-lane clicks, agent dispatches or preview approvals by the assistant. Old45285 and older lanes remain intact. User requested leaving the new test running and end-session prep; visual/native acceptance is still pending. Nothing staged, committed, pushed or published.

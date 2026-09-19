@@ -58,8 +58,8 @@ const minimalSnapshot = {
 describe("Phase 4 World schemas", () => {
   it("accepts the sanitized four-adapter safe configuration and stays strict", () => {
     const safeConfig = {
-      phase: "Phase 14",
-      version: "0.14.0-phase14",
+      phase: "Release candidate",
+      version: "0.15.0-rc.1",
       instanceName: "AgentIntersect World Local",
       networkScope: "loopback",
       host: "127.0.0.1",

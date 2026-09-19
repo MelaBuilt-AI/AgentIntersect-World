@@ -15,9 +15,9 @@ The Phase 11 kit is entirely project-owned and self-authored from low-poly Blend
 Regenerate and verify:
 
 ```sh
-PATH=/home/mela_ai/.nvm/versions/node/v24.18.0/bin:$PATH corepack pnpm@11.15.0 avatar:build
-PATH=/home/mela_ai/.nvm/versions/node/v24.18.0/bin:$PATH corepack pnpm@11.15.0 avatar:inspect
-PATH=/home/mela_ai/.nvm/versions/node/v24.18.0/bin:$PATH corepack pnpm@11.15.0 avatar:verify
+PATH=/home/user/.nvm/versions/node/v24.18.0/bin:$PATH corepack pnpm@11.15.0 avatar:build
+PATH=/home/user/.nvm/versions/node/v24.18.0/bin:$PATH corepack pnpm@11.15.0 avatar:inspect
+PATH=/home/user/.nvm/versions/node/v24.18.0/bin:$PATH corepack pnpm@11.15.0 avatar:verify
 ```
 
 The canonical command fixes Blender's embedded Python hash seed, triangulates and canonically orders mesh data directly before export, omits unused/nondeterministic UV attributes, canonicalizes equivalent glTF triangle ordering, writes opaque RGB evidence, and removes Blender's volatile PNG date/render-time metadata. Geometry, names, materials, rig, actions, GLB content, and rendered pixels are therefore deterministic. Blender container metadata may still alter the compressed `.blend` hash between Blender builds or hosts; the independent structural contract is authoritative for source regeneration equivalence.

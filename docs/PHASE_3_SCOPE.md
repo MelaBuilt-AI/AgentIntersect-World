@@ -230,7 +230,7 @@ Parent also performs:
 
 ## Frozen non-goals
 
-- Accessing, indexing, diffing, hashing, testing, or modifying `/home/mela_ai/AgentIntersect`.
+- Accessing, indexing, diffing, hashing, testing, or modifying `/home/user/AgentIntersect`.
 - Executing target repository scripts, hooks, package managers, binaries, shell/PTY commands, or arbitrary code.
 - Durable SQLite/database persistence or restart recovery.
 - Background filesystem watchers; Phase 3 uses explicit manual rescan.

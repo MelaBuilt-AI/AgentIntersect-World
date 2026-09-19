@@ -38,7 +38,7 @@ The production startup may instantiate and register Workstream support only when
 
 ## Current Starting Point
 
-- Worktree: `/home/mela_ai/.hermes/runs/aiw-repository-city-next-feature/worktree`
+- Worktree: `/home/user/.hermes/runs/aiw-repository-city-next-feature/worktree`
 - Branch: `work/in-world-agent-workbench`
 - Immutable stacked base / current HEAD: `4741e1906bc38fc2d814566bf63fa4b347fd1604`
 - Existing implementation before this plan: eight modified tracked paths and three untracked source/test paths; zero staged; no upstream.

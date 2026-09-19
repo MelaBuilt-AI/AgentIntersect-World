@@ -21,7 +21,7 @@ Complete the one-agent development magic slice by connecting real World-owned re
 
 ## Inherited boundaries
 
-- AgentIntersect World remains independent. Do not inspect or modify `/home/mela_ai/AgentIntersect`.
+- AgentIntersect World remains independent. Do not inspect or modify `/home/user/AgentIntersect`.
 - The topology is one trusted operator with local or trusted-LAN agents/views. Phase 14 preview itself is loopback-only.
 - Phase 12 chat remains independently usable if the Phase 14 lane fails.
 - Phase 13 World Actions remain presentation-only and cannot read, edit, test, launch, approve, cancel, or stop Phase 14 work.

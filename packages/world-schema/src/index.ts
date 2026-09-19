@@ -92,8 +92,8 @@ const AdapterConfigurationStatusSchema = z
 
 export const SafeConfigSchema = z
   .object({
-    phase: z.literal("Phase 14"),
-    version: z.literal("0.14.0-phase14"),
+    phase: z.literal("Release candidate"),
+    version: z.literal("0.15.0-rc.1"),
     instanceName: z.string().min(1).max(80),
     networkScope: z.enum(["loopback", "lan"]),
     host: z.string().min(1),
@@ -128,7 +128,7 @@ export const ReadyDataSchema = z
   .object({
     service: z.literal("agentintersect-world-local-server"),
     status: z.literal("ready"),
-    version: z.literal("0.14.0-phase14"),
+    version: z.literal("0.15.0-rc.1"),
     runtime: RuntimeInfoSchema,
     config: SafeConfigSchema,
   })

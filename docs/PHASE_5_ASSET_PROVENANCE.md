@@ -2,7 +2,7 @@
 
 Manifest frozen: 2026-07-19
 Extraction state: COPY VERIFIED
-Source repository: `/home/mela_ai/AgentIntersect`
+Source repository: `/home/user/AgentIntersect`
 Source commit: `14c620271cd02e455d3244241de951e00ef77a4d`
 Source status at inspection: clean `main`, synchronized with `origin/main`
 Destination repository baseline: `82ff9af0ceec4734e9b8be54e44b49697acaccc0`

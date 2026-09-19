@@ -42,7 +42,7 @@ Task 12 implementation and independent parent acceptance are complete. This plan
 
 Verified before this plan was written:
 
-- Worktree: `/home/mela_ai/.hermes/runs/aiw-repository-city-next-feature/worktree`
+- Worktree: `/home/user/.hermes/runs/aiw-repository-city-next-feature/worktree`
 - Branch: `feature/phase19-multi-agent-constellation`
 - HEAD: `f4b23b31a131580e1ddd9fb10274919be434bf68`
 - Upstream: none
@@ -363,7 +363,7 @@ Write failing cases for:
 Run:
 
 ```bash
-PATH=/home/mela_ai/.nvm/versions/node/v24.18.0/bin:$PATH \
+PATH=/home/user/.nvm/versions/node/v24.18.0/bin:$PATH \
   corepack pnpm@11.15.0 exec vitest run \
   packages/agent-session-protocol/test/phase19-task12-work-focus.test.ts \
   apps/local-server/test/phase19-repository-work-focus.test.ts \
@@ -536,7 +536,7 @@ Visual rejection conditions:
 Use pinned Node:
 
 ```bash
-export PATH=/home/mela_ai/.nvm/versions/node/v24.18.0/bin:$PATH
+export PATH=/home/user/.nvm/versions/node/v24.18.0/bin:$PATH
 node --version                         # v24.18.0
 corepack pnpm@11.15.0 --version       # 11.15.0
 ```

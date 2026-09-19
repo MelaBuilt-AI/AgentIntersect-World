@@ -1,6 +1,6 @@
 {
   "name": "agentintersect-world",
-  "version": "0.14.0-phase14",
+  "version": "0.15.0-rc.1",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.15.0",
@@ -50,7 +50,9 @@
     "verify:imported-avatar-current-inputs": "tsx tooling/scripts/imported-avatar-current-inputs.ts",
     "verify:fresh": "tsx tooling/scripts/verify-fresh.ts",
     "check:core": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts",
-    "check": "corepack pnpm@11.15.0 check:core && corepack pnpm@11.15.0 test:e2e"
+    "check": "corepack pnpm@11.15.0 check:core && corepack pnpm@11.15.0 test:e2e",
+    "start": "node apps/local-server/launch.mjs",
+    "test:package": "node --test tooling/release/launch.test.mjs"
   },
   "devDependencies": {
     "@agentintersect-world/repo-indexer": "workspace:*",
@@ -79,5 +81,6 @@
     "vite": "8.1.5",
     "vitest": "4.1.10",
     "yaml": "2.9.0"
-  }
+  },
+  "license": "Apache-2.0"
 }

@@ -162,6 +162,6 @@ Phase 2 parent proof additionally requires:
 - Authentication/session exchange, CSRF, enterprise policies, broad rate/body/Host/CORS matrices, public-internet threat modeling, unrelated users, cloud multi-tenancy, or public rooms.
 - Persistent operation ledger, database/migrations, restart recovery, distributed operations, real workers, shell/PTY execution, or repository mutation.
 - Repository discovery/indexing, spatial world, rendering, avatar, Yjs/PartyKit, or Phase 3+ product behavior.
-- Inspection or modification of `/home/mela_ai/AgentIntersect`.
+- Inspection or modification of `/home/user/AgentIntersect`.
 - Remote creation, push, tag, release, publication, or visibility change.
 - A second broad audit or recursive hardening loop.

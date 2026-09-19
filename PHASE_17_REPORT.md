@@ -95,7 +95,7 @@ Tracked evidence: `artifacts/phase17/recovery-drill.json`.
 
 ## Parent verification
 
-All commands ran from `/home/mela_ai/AgentIntersect-World` with Node `v24.18.0`
+All commands ran from `/home/user/AgentIntersect-World` with Node `v24.18.0`
 and pnpm `11.15.0`.
 
 1. `corepack pnpm@11.15.0 conformance:phase17`

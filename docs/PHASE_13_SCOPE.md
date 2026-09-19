@@ -30,7 +30,7 @@ Live session continuity is one-way for this phase: the operator starts the exact
 - Existing accessible semantic shell, current-versus-previous labels, local/private authority, and one-human trusted local/LAN scope.
 - Hermes remains authoritative for transcripts, approvals, tools, skills, memory, and project context.
 - World Actions are presentation-only. They cannot edit files, dispatch arbitrary tools or commands, launch processes, approve work, mutate repository state, advance phases, or become authority merely because action-like prose exists.
-- The original `/home/mela_ai/AgentIntersect` repository remains untouched.
+- The original `/home/user/AgentIntersect` repository remains untouched.
 
 ## Frozen decisions
 

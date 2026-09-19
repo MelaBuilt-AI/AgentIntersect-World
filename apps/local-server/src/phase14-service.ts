@@ -15,6 +15,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import net from "node:net";
+import { homedir } from "node:os";
 import path, { dirname, resolve } from "node:path";
 
 import {
@@ -31,7 +32,15 @@ import {
 } from "@agentintersect-world/tool-protocol";
 
 export const PHASE14_DISPOSABLE_ROOT =
-  "/tmp/agentintersect-world-phase14" as const;
+  process.platform === "win32"
+    ? path.join(
+        homedir(),
+        "AppData",
+        "Local",
+        "Temp",
+        "agentintersect-world-phase14",
+      )
+    : "/tmp/agentintersect-world-phase14";
 const PHASE14_WORLD_SESSION_ID = "55555555-5555-4555-8555-555555555555";
 const PHASE14_ADAPTER_SESSION_REF = "phase14-hermes-fixture-session";
 const PHASE14_ROOT_SESSION_REF = "phase14-hermes-fixture-root";
@@ -471,7 +480,7 @@ export class Phase14Service {
     if (this.#disposableRoot !== PHASE14_DISPOSABLE_ROOT)
       throw new Phase14ServiceError(
         "fixture-invalid",
-        "Phase 14 disposable root must be the canonical /tmp root",
+        "Phase 14 disposable root must be the canonical platform temporary root",
       );
     this.#now = options.now ?? Date.now;
     this.#id = options.id ?? randomUUID;

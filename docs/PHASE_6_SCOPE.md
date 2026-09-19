@@ -137,7 +137,7 @@ Phase 7 remains the first bounded command-authority and real-worker milestone.
 - First-hand operator-style testing immediately after parent proof.
 - Audit only when parent/first-hand testing exposes a concrete supported issue or the user explicitly requests one. Do not run a routine post-correction audit or targeted re-audit.
 - If testing proves a defect, use one focused regression/correction pass and rerun the affected functional proof; place speculative hardening outside this phase.
-- Codex may edit/test only inside `/home/mela_ai/AgentIntersect-World`. It may not commit, push, tag, release, publish, change visibility, modify AgentIntersect, or access unrelated credentials.
+- Codex may edit/test only inside `/home/user/AgentIntersect-World`. It may not commit, push, tag, release, publish, change visibility, modify AgentIntersect, or access unrelated credentials.
 - After all gates pass, Mr Fluff may commit and push privately through the user-authorized normal path and must verify exact-final-SHA CI success. No release or publication action is authorized.
 
 ## Acceptance criteria

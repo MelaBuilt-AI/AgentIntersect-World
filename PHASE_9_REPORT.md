@@ -58,7 +58,7 @@ The one targeted correction added strict RED regressions, moved presentation tra
 - Production dependency audit: no known vulnerabilities.
 - Fresh-copy verification: passed for 266 project source files, including format, lint, typecheck, architecture, 235/235 Vitest, 14/14 build, smoke, and 22/22 Playwright.
 - First-hand desktop browser proof displayed one connected private loopback room, a real authoritative World object focus/default ID, zero invented agents, and zero orphans. Adding an annotation, bookmark, and layout produced visible `1/1/1` durable counts while retaining `0 orphans` and the explicit “Presentation-only. No command authority.” result. Active controls were blue, disabled controls grey, the panel remained fully reachable without clipping/overlap, and the console reported zero JavaScript errors.
-- The original `/home/mela_ai/AgentIntersect` repository remained clean at `14c620271cd02e455d3244241de951e00ef77a4d`.
+- The original `/home/user/AgentIntersect` repository remained clean at `14c620271cd02e455d3244241de951e00ef77a4d`.
 
 ## Boundaries and residual risks
 

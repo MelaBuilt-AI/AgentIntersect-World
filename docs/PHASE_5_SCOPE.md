@@ -71,7 +71,7 @@ No additional production dependency may be added unless the implementation canno
 
 Authorized source repository:
 
-- `/home/mela_ai/AgentIntersect`
+- `/home/user/AgentIntersect`
 - exact source commit `14c620271cd02e455d3244241de951e00ef77a4d`
 
 Authorized read surface after this document is frozen:

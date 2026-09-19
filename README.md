@@ -2,7 +2,52 @@
 
 A local 3D workspace for working with your own Hermes, OpenClaw, Codex and Claude Code agents.
 
-## Start locally
+## Explore World
+
+- [Website](https://agentintersect.com/)
+- [Field Guide](https://guide.agentintersect.com/getting-started/)
+- [Downloads and current availability](https://agentintersect.com/download/)
+
+**Private release-candidate preparation:** `0.15.0-rc.1`. The source repository remains private while Windows/Linux packages undergo hands-on testing. No stable-release or signing claim is made. Download controls activate only after real artifacts are hosted and verified.
+
+## Screenshots
+
+These are real development-build captures, not the website's concept artwork. Images are cropped to the relevant UI; repository-entry personal paths are masked and its dialog backing was made opaque for documentation privacy. They do not imply a completed agent task or successful voice installation.
+
+![First-launch avatar selection](docs/images/avatar-onboarding.webp)
+![World movement controls](docs/images/movement.webp)
+![Repository entry](docs/images/repository-entry.webp)
+
+## Release-candidate installation
+
+World is a browser-based local application. Packages include Node.js; they do **not** install or configure your agents. Install Git and at least one supported, authenticated harness yourself. Use a modern browser with hardware acceleration. Cross-environment Windows/WSL execution additionally needs Python in the target environment, as described below.
+
+### Windows x64
+
+When the candidate is available, verify its SHA-256 against the accompanying `SHA256SUMS`, then run `AgentIntersect-World-0.15.0-rc.1-windows-x64-setup.exe`. Installation is per-user and does not require administrator privileges. Open **AgentIntersect World** from the Start Menu. Keep its console open; type `quit` and press Enter or use Ctrl+C to stop it.
+
+The candidate is **unsigned** until a verified signed replacement is explicitly announced. SignPath approval has not been obtained; signing never guarantees the absence of SmartScreen/antivirus warnings. Do not disable antivirus or device protections to install it.
+
+Uninstall through Windows Installed Apps or the Start Menu uninstall entry. Program files are removed; `%LOCALAPPDATA%\AgentIntersect-World` state and your source repositories/native agent profiles are retained. Remove saved state manually only after backing it up and confirming you no longer need it.
+
+### Linux x64
+
+The tarball targets glibc-based x64 distributions supported by Node24. It is not an ARM or Alpine/musl package.
+
+After downloading the candidate and checksum file to the same directory:
+
+```sh
+sha256sum --check SHA256SUMS --ignore-missing
+tar -xzf AgentIntersect-World-0.15.0-rc.1-linux-x64.tar.gz
+cd AgentIntersect-World-0.15.0-rc.1-linux-x64
+./agentintersect-world
+```
+
+The launcher prints/opens `http://127.0.0.1:3771` and runs its backend on loopback3770. `--no-open` skips browser auto-open. If ports are occupied, select distinct `AIW_APP_PORT`/`AIW_PORT` values. Do not expose these ports to the Internet. Keep the terminal open; type `quit` and Enter or press Ctrl+C to stop both listeners.
+
+Uninstall by stopping World and removing its extracted package directory. Saved state remains at `$XDG_STATE_HOME/agentintersect-world` (default `~/.local/state/agentintersect-world`); retain or explicitly remove it after backup. Project repositories and native agent profiles are never uninstalled.
+
+## Build from source
 
 Prerequisites: **Node.js 24 or newer**, Corepack, Git, and at least one installed, signed-in supported harness. Same-environment attachment works directly. Windows/WSL cross-environment process execution additionally requires native Python 3 in the target environment and a shared drive-backed World data directory/repository.
 
