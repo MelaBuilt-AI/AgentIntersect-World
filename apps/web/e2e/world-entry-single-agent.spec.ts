@@ -3656,8 +3656,27 @@ for (const screenJourney of [
             window as unknown as { continuationFrame: Element }
           ).continuationFrame = frame;
         });
+        const plainIterationCompleted = page.waitForResponse(
+          (response) =>
+            response
+              .url()
+              .endsWith(`/agent-sessions/${session.sessionId}/stream`) &&
+            response.request().method() === "POST" &&
+            response.request().postDataJSON().text === plainFeedback,
+        );
         await composer.fill(`/work ${plainFeedback}`);
         await composer.press("Enter");
+        const plainIterationResponse = await plainIterationCompleted;
+        expect(plainIterationResponse.ok()).toBe(true);
+        expect(await plainIterationResponse.finished()).toBeNull();
+        await expect(page.locator(".world-chat")).toHaveAttribute(
+          "aria-busy",
+          "false",
+        );
+        await expect(workstream).toHaveAttribute(
+          "data-workstream-status",
+          "ready-for-review",
+        );
         await expect.poll(() => startRequests).toBe(5);
         await expect(view).toHaveAttribute(
           "data-preview-id",
