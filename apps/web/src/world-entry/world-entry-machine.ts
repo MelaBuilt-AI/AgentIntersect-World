@@ -284,8 +284,9 @@ export function reduceWorldEntry(
     case "SELECT_HARNESS":
       return (state.step === "constellation_single" ||
         state.step === "constellation_multi" ||
+        state.step === "agent_prompt" ||
+        state.step === "agent_not_found" ||
         (state.step === "enter_ready" && state.sessionMode === "multi")) &&
-        state.pendingAgent === null &&
         state.roster.length < 4
         ? projectSetupAuthority({
             ...state,

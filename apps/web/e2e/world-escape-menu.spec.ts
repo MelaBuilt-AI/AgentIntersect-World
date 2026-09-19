@@ -995,6 +995,17 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Change Agent" }).click();
   await expect(page.getByLabel("Agent name")).toBeVisible();
+  // These buttons were visually enabled while the reducer ignored every click,
+  // leaving the Change Agent prompt pinned to Hermes.
+  for (const name of ["Connect claude", "Connect codex", "Connect claude"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(
+      page.getByRole("button", { name, exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("button", { name: "Connect hermes", exact: true }),
+    ).toHaveAttribute("aria-pressed", "false");
+  }
   expect(fixture.mutationPaths).toEqual([]);
 
   await page.evaluate((activeSessionId) => {

@@ -361,6 +361,7 @@ export function RepositoryCityModels({
     if (allReady) onReady();
   }, [allReady, instances, onReady]);
   useFrame((_, delta) => {
+    fogDepth?.beginFrame();
     if (!reducedMotion) clock.value += Math.min(delta, 0.1);
     highlight.current = graphics.huePulses
       ? cityRainPulses(clock.value, instances.length, seed, reducedMotion)

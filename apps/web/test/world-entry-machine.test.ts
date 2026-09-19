@@ -399,6 +399,54 @@ describe("Phase 18 World entry state machine", () => {
     });
   });
 
+  it("honors Claude and Codex selection from the Change Agent prompt", () => {
+    if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
+    const world = api.reduceWorldEntry(
+      api.createReturningWorldEntryState({
+        profileId: "avatar_user",
+        name: "Mela",
+      }),
+      {
+        type: "RESTORE_WORLD",
+        sessionId: "world_current",
+        continuity: "current",
+        agentName: "Claude",
+        avatarProfileId: "avatar_claude",
+      },
+    );
+    let state = api.reduceWorldEntry(world, {
+      type: "LEAVE_WORLD",
+      destination: "agent_prompt",
+    });
+    for (const harness of ["claude-code", "codex", "claude-code"]) {
+      state = api.reduceWorldEntry(state, { type: "SELECT_HARNESS", harness });
+      expect(state).toMatchObject({
+        selectedHarness: harness,
+        pendingAgent: { adapterId: harness, connection: { status: "none" } },
+      });
+    }
+    state = api.reduceWorldEntry(state, {
+      type: "SUBMIT_AGENT_NAME",
+      name: "Claude",
+    });
+    const connecting = state;
+    expect(
+      api.reduceWorldEntry(state, { type: "SELECT_HARNESS", harness: "codex" }),
+    ).toBe(connecting);
+    state = api.reduceWorldEntry(state, {
+      type: "CONNECTION_UNAVAILABLE",
+      stale: false,
+    });
+    state = api.reduceWorldEntry(state, {
+      type: "SELECT_HARNESS",
+      harness: "codex",
+    });
+    expect(state).toMatchObject({
+      selectedHarness: "codex",
+      connection: { status: "none" },
+    });
+  });
+
   it("ignores animation as authority and activates only a successful current or disclosed recovered floor", () => {
     if (!api.createReturningWorldEntryState || !api.reduceWorldEntry) return;
     const initial = api.createReturningWorldEntryState({

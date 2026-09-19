@@ -32,6 +32,7 @@ it("uses a continuous depth-clipped volume rather than intersecting horizontal f
     settledAt: 0,
     reducedMotion: true,
   });
+
   const fog = element.props.children[0];
   const volume = typeof fog.type === "function" ? fog.type(fog.props) : fog;
   expect(volume.props.children[0].type).toBe("boxGeometry");
@@ -104,6 +105,22 @@ it("shares one lazy capture per render, preserves scene state and releases the t
     ),
   ).toBe(target);
   expect(renderer.render).toHaveBeenCalledTimes(1);
+  // A planar reflection advances Three's render counter inside this same
+  // presentation frame. It must not make the next mist volume recapture.
+  renderer.info.render.frame++;
+  depth.capture(
+    renderer as unknown as WebGLRenderer,
+    scene,
+    new PerspectiveCamera(),
+  );
+  expect(renderer.render).toHaveBeenCalledTimes(1);
+  depth.beginFrame();
+  depth.capture(
+    renderer as unknown as WebGLRenderer,
+    scene,
+    new PerspectiveCamera(),
+  );
+  expect(renderer.render).toHaveBeenCalledTimes(2);
   expect(atmosphere.visible).toBe(true);
   expect(floor.material).toBe(originalFloor);
   expect(mask.material).toBe(originalMask);
