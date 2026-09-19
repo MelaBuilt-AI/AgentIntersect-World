@@ -62,8 +62,8 @@ describe("Phase 6 authority inspection API", () => {
       url: "/config",
     });
     expect(configResponse.json().data).toEqual({
-      phase: "Phase 14",
-      version: "0.14.0-phase14",
+      phase: "Release candidate",
+      version: "0.15.0-rc.1",
       instanceName: "Test World",
       networkScope: "loopback",
       host: "127.0.0.1",
@@ -108,7 +108,7 @@ describe("Phase 6 authority inspection API", () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({
       openapi: "3.0.3",
-      info: { version: "0.14.0-phase14" },
+      info: { version: "0.15.0-rc.1" },
       paths: {
         "/ready": expect.any(Object),
         "/operations": expect.any(Object),
@@ -150,7 +150,7 @@ describe("Phase 6 authority inspection API", () => {
     expect(response.headers["x-correlation-id"]).toBe(suppliedCorrelationId);
     expect(response.json()).toMatchObject({
       status: "ok",
-      version: "0.14.0-phase14",
+      version: "0.15.0-rc.1",
       correlationId: suppliedCorrelationId,
     });
   });

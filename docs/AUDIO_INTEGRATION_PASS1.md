@@ -8,7 +8,7 @@ Aaron authorized direct end-to-end implementation in message `154640053943088336
 
 Aaron accepted the Code Wheel audio (`1546558521611518223`) and subsequently confirmed the full coding flow and new website opening in World View (`1546575094506328175`). Earlier first-preview failure is now handled visibly, and the Codex default coding deadline is bounded at ten minutes. Idle alone remains insufficient evidence of coding success.
 
-The remaining wheel failure was reproduced natively: changing the iframe from pointer-events none to auto left uncancelled wheel events unable to scroll. Keeping the iframe enabled from initial mount and controlling ownership with a separate input shield passes 36/36 points each in Windows Chrome and Edge, using the actual website and served production stylesheet. Normal World HUD/spatial journeys 2/2 and focused tests/types/lint/build pass. **Aaron's final mouse-scroll acceptance is pending**, not implied by technical proof. See `PROJECT_STATUS.md` and `/home/mela_ai/.hermes/runs/aiw-scroll-current-20260907/`.
+The remaining wheel failure was reproduced natively: changing the iframe from pointer-events none to auto left uncancelled wheel events unable to scroll. Keeping the iframe enabled from initial mount and controlling ownership with a separate input shield passes 36/36 points each in Windows Chrome and Edge, using the actual website and served production stylesheet. Normal World HUD/spatial journeys 2/2 and focused tests/types/lint/build pass. **Aaron's final mouse-scroll acceptance is pending**, not implied by technical proof. See `PROJECT_STATUS.md` and `/home/user/.hermes/runs/aiw-scroll-current-20260907/`.
 
 At handoff (`1546613809068908545`) Aaron explicitly asked to keep World45279 and current website46381 running until his return. Existing Workstream/session preserved; no coding retry, restart, rebuild or Git delivery during closeout. Prior complete audio listening pass remains accepted; the later setup-autoplay launch change has technical proof but no separate explicit operator verdict.
 
@@ -27,13 +27,13 @@ Aaron authorized all reported fixes in `1546548733208952903`.
 - **Scrolling NOT fixed:** operator video retained. Isolated native Edge and Chrome replay of captured spatial DOM, including the actual old homepage, delivered wheel input and scrolled at sampled points. A tall-page angle matrix also passed. These results do not reproduce or invalidate Aaron's native angle/spot failure; no speculative scroll handler was added. The old homepage is short, not the requested multi-section test page, because those later tasks were rejected. Retest after a successful fresh homepage request; exact live failing pose/input capture may still be needed.
 - **Activated:** only `aiw-pass1-acceptance-20260907.service` restarted after verifying selected Codex idle. Same frontend `http://127.0.0.1:45279/`, backend43879, state directory and ready session retained. Session and Workstream store files remained byte-identical across restart (`post-reload.json`); served entry assets match the fresh build. The owned preview process may need starting again through normal controls. No browser reset, automatic Codex request, Hermes restart, provider change, commit/push or phase promotion.
 
-Evidence root: `/home/mela_ai/.hermes/runs/aiw-operator-notes-20260907/`. Manual acceptance is still Aaron's; refresh the existing page, retry the multi-section homepage request, then test scrolling, follow-up pages, setup playback and wheel dismissal.
+Evidence root: `/home/user/.hermes/runs/aiw-operator-notes-20260907/`. Manual acceptance is still Aaron's; refresh the existing page, retry the multi-section homepage request, then test scrolling, follow-up pages, setup playback and wheel dismissal.
 
 ## Historical technical closeout — 2026-09-07
 
 Implemented and technically verified; Aaron's listening/visual approval is still pending. Final local lint/types/build and 1,153 tests across 184 files passed. Four affected production-browser journeys passed. Real native Codex selected-root/worktree/edit/receipt/approved-preview/follow-up/revision-2 proof passed in `native-attempt6`; no Hermes acceptance is implied. The later player-height/Workbench spacing correction passed the final affected browser gate without changing backend behavior.
 
-The checklist below records the implemented technical scope, not human acceptance. Earlier failed runs are preserved. Current manual preview: http://127.0.0.1:45279/ (fresh isolated Codex-only state, Node24). Evidence and operator steps: `/home/mela_ai/.hermes/runs/aiw-pass1-completion-20260907/OUTCOME.md`.
+The checklist below records the implemented technical scope, not human acceptance. Earlier failed runs are preserved. Current manual preview: http://127.0.0.1:45279/ (fresh isolated Codex-only state, Node24). Evidence and operator steps: `/home/user/.hermes/runs/aiw-pass1-completion-20260907/OUTCOME.md`.
 
 ## Delivery slices
 

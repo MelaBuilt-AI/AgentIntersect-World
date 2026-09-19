@@ -6,7 +6,7 @@ Status: **WORKER IMPLEMENTATION CANDIDATE / DETERMINISTIC FIXTURE GREEN /
 INDEPENDENT PARENT AND LIVE BEANS PROOF PENDING**
 
 This report covers only the uncommitted worker result in
-`/home/mela_ai/AgentIntersect-World-phase16-fluff` on branch `phase16/fluff`.
+`/home/user/AgentIntersect-World-phase16-fluff` on branch `phase16/fluff`.
 It does not claim a real OpenClaw/Beans run, Mr Fluff parent proof, user
 acceptance, integration, commit, push, private exact-SHA CI, publication, or
 deployment.

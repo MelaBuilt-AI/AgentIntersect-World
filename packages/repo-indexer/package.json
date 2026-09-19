@@ -16,5 +16,11 @@
   "dependencies": {
     "@agentintersect-world/world-schema": "workspace:*",
     "ignore": "7.0.6"
-  }
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ]
 }

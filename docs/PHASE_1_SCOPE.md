@@ -116,7 +116,7 @@ No recursive broad review or security-hardening cycle is authorized.
 
 ## Prohibited side effects
 
-- Do not inspect or modify the original `/home/mela_ai/AgentIntersect` repository.
+- Do not inspect or modify the original `/home/user/AgentIntersect` repository.
 - Do not create a remote, commit, push, tag, release, publish, or change visibility.
 - Do not start Phase 2 or later feature implementation.
 - Do not add public-internet, unrelated-user, cloud multi-tenant, or hosted-room infrastructure.

@@ -158,7 +158,7 @@ The parent must independently inspect the diff, challenge at least one no-NUL/ma
 - Full-detail whole-repository symbol rendering, generalized semantic editing, or repository mutation.
 - Phase 11 avatar work or later lifecycle/observability work.
 - Public ingress, unrelated users/agents, accounts, multi-tenancy, cloud parser services, or internet discovery.
-- Modification or routine inspection of original `/home/mela_ai/AgentIntersect`.
+- Modification or routine inspection of original `/home/user/AgentIntersect`.
 - Commit, push, tag, release, deployment, package publication, public visibility, or external publication by the Codex worker. Mr Fluff retains private commit/push/exact-SHA-CI authority; release/public actions remain explicit user gates.
 
 ## Completion boundary

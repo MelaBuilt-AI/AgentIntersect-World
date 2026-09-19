@@ -18,7 +18,7 @@ Fix focused-code occlusion, recurring focused-sky stutter, readable current-iter
 
 ## Verification and evidence eras
 
-Evidence root: `/home/mela_ai/.hermes/runs/aiw-focus-corrections-20260907/`.
+Evidence root: `/home/user/.hermes/runs/aiw-focus-corrections-20260907/`.
 
 - `gates.json`: Node24.18.0, producer-package builds, web/server typechecks, full **1179 tests in189 files**, isolated production build all exit0. This full run preceded the final HUD pointer-only CSS correction; subsequent browser proof covers that correction.
 - After formatting: affected lint/web types and6 focused tests in4 files passed. Final affected lint and `git diff --check` passed after the browser changes. No project commit or exact-dirty-tree CI claim.
@@ -33,9 +33,9 @@ Evidence root: `/home/mela_ai/.hermes/runs/aiw-focus-corrections-20260907/`.
 ## Manual test running
 
 - **http://127.0.0.1:45285/** / backend43885; tmux `aiw-focus-20260907`.
-- Root `/home/mela_ai/.hermes/runs/aiw-focus-manual-20260907/` contains README, launcher, runtime identity, health, read-only checker, browser/native entry observations and seed provenance.
+- Root `/home/user/.hermes/runs/aiw-focus-manual-20260907/` contains README, launcher, runtime identity, health, read-only checker, browser/native entry observations and seed provenance.
 - Fresh Codex-only Edge profile/CDP49285; left on Create Avatar with empty storage and no automated setup/consent/messages. Native main window visible/enabled/unowned by a modal; matching frontend/proxy/backend healthy, Codex capability available; served entry HTML/JS/CSS matched final build.
-- Existing repository to load: `/home/mela_ai/.hermes/runs/aiw-focus-manual-20260907/veggie-focus-test`.
+- Existing repository to load: `/home/user/.hermes/runs/aiw-focus-manual-20260907/veggie-focus-test`.
 - Three actual website files copied into separate no-remote repository; initial checkpoint already satisfied, homepage seed test1/1 PASS; source hashes unchanged. **Old Workstream/native history NOT imported.** Full two-prompt checklist and generation-specific owner-validated cleanup are in its README. Leave running as explicitly requested.
 
 ## Next gate

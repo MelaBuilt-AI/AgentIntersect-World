@@ -37,14 +37,14 @@ At the cutoff or the first genuinely new decision/manual-acceptance gate, stop s
 
 Deterministic Task 15 composition is green, including the consolidated four-agent production-browser journey, Task 12 desktop/mobile/no-WebGL companions, Task 14 voice companion, `109/109` impacted tests, and `41/41` Phase 16 conformance. Fresh Codex `0.149.1` and Claude Code `2.1.228` two-turn/reattach/teardown/later-World lifecycles passed. Two concrete compatibility defects were corrected through direct RED→GREEN: Codex's stale `0.147.0` version pin and OpenClaw `sessions.create` omitting an explicit unique World-owned key.
 
-Task 15 is **not complete or user-accepted**. The corrected real OpenClaw path now creates and attaches, but its first harmless turn reaches the live protected gateway and emits provider-fallback exhaustion plus `chat:error`; changing provider/model/configuration is outside all selected A defaults. The exact current Hermes two-turn proof requires a post-turn boundary because this implementation turn is running inside that same operator-persistent session. Combined four-agent real proof, explicit complete teardown rotation, and Aaron's Edge verdict remain pending. Parent report: `/home/mela_ai/.hermes/runs/aiw-phase19-task15-20260826T222646-0400/task15-parent-report.md`.
+Task 15 is **not complete or user-accepted**. The corrected real OpenClaw path now creates and attaches, but its first harmless turn reaches the live protected gateway and emits provider-fallback exhaustion plus `chat:error`; changing provider/model/configuration is outside all selected A defaults. The exact current Hermes two-turn proof requires a post-turn boundary because this implementation turn is running inside that same operator-persistent session. Combined four-agent real proof, explicit complete teardown rotation, and Aaron's Edge verdict remain pending. Parent report: `/home/user/.hermes/runs/aiw-phase19-task15-20260826T222646-0400/task15-parent-report.md`.
 
 ## 2. Re-attested baseline
 
 Planning preflight at `2026-08-26T22:06:01-04:00` established:
 
 - repository: private `MelaBuilt-AI/AgentIntersect-World`;
-- worktree: `/home/mela_ai/.hermes/runs/aiw-repository-city-next-feature/worktree`;
+- worktree: `/home/user/.hermes/runs/aiw-repository-city-next-feature/worktree`;
 - branch: `feature/phase19-multi-agent-constellation`;
 - local HEAD: `78c150f2d56f9de187f34fd89e0638fe9731c101`;
 - upstream: exact same SHA;
@@ -112,7 +112,7 @@ The following defaults make the plan implementation-ready. Aaron may override th
 3. Use one external run root:
 
    ```text
-   /home/mela_ai/.hermes/runs/aiw-phase19-task15-<YYYYMMDDTHHMMSS-0400>/
+   /home/user/.hermes/runs/aiw-phase19-task15-<YYYYMMDDTHHMMSS-0400>/
    ```
 
 4. Put disposable AgentIntersect World state, Codex runtime home, Claude runtime home, candidate logs, browser profile, screenshots, videos, and receipts under that run root or a separately owner-tagged child root recorded in `candidate-owner.json`.

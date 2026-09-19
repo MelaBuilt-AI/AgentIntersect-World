@@ -2,7 +2,7 @@
 
 - **Prepared:** 2026-08-29 EDT; pragmatically closed 2026-08-30 EDT
 - **Repository:** private `MelaBuilt-AI/AgentIntersect-World`
-- **Canonical worktree:** `/home/mela_ai/AgentIntersect-World`
+- **Canonical worktree:** `/home/user/AgentIntersect-World`
 - **Delivered predecessor SHA:** `b0b58bd18e4c3fd784b39e8c8a344125c9e2e6a0`
 - **Phase 19 implementation SHA:** `7d63199ea9068ba82bd90d8070df6ea8c72aa00e`
 - **Implementation exact-SHA CI:** run `33294618965`, attempt 1, **7/7 jobs green with zero annotations**
@@ -111,7 +111,7 @@ The gate passed locked installation, all 18 package builds, and Phase 10 measure
 
 Historical evidence integrity and the accepted screenshot remained valid; only current production-input binding failed. The verifier correctly refuses to rebind old native metrics to changed runtime source. The worktree status hash was identical before and after the run, its temporary fresh root was removed, and no owned process or listener remained.
 
-Result: **FRESH-COPY BLOCKED — CURRENT NATIVE WINDOWS EDGE HARDWARE RECAPTURE REQUIRED.** The run log is `/home/mela_ai/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.log` (SHA-256 `2bf98062bb9650bbf7ed08115087044395f1297e9e247f8456363b745033ecb2`); the result marker is `fresh-verification.result` (SHA-256 `85acfd2e79dd47df07d214334642196301332f72d792b52068cdfd8898755409`).
+Result: **FRESH-COPY BLOCKED — CURRENT NATIVE WINDOWS EDGE HARDWARE RECAPTURE REQUIRED.** The run log is `/home/user/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.log` (SHA-256 `2bf98062bb9650bbf7ed08115087044395f1297e9e247f8456363b745033ecb2`); the result marker is `fresh-verification.result` (SHA-256 `85acfd2e79dd47df07d214334642196301332f72d792b52068cdfd8898755409`).
 
 ## 4. Criterion-level Phase 19 evidence matrix
 
@@ -169,32 +169,32 @@ Classification vocabulary:
 
 Every reused receipt named below was resolved at its exact final path before this report. The key retained files and SHA-256 values are:
 
-| Evidence                                                                                                        | SHA-256                                                            |
-| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task1/worker-report.md`                                                 | `92a137ac148a824e5df38316eeff09cca0e92d9ebcf998054dcf2ce5754baefa` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-timebox/task4-live-acceptance.json`                                     | `15250e90947f2be34c71436cbe271270b4e7184b037936a3e7a39cf7c81dc7f6` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task5-codex/task5-parent-acceptance.md`                                 | `9522facee2b88e2ed1294e11da5a201f12f3f834d741f776272316052312092d` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task6-claude-code/task6-parent-acceptance.md`                           | `0c7078c66203a4cc3af8a6ae933aaaf9d8c02015ad543b381de05034253e29ea` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task7-parent-retry-20260813/task7-parent-acceptance.md`                 | `d673d5ea2903ec5e6fbb13d44ebd258c4ba078bb651f5fc1f4fc416b3b471a5d` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task8-parent-20260813/task8-parent-acceptance.md`                       | `3bae8490b758899458ee4fcbf42701d9237edd1c1050c07b550afbb9354e446c` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task9-20260813/task9-parent-acceptance.md`                              | `7b2a33558295154131b28591da11aad61359fb167d15f91f7dbd3e8c1ec378d8` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task10-20260813/task10-parent-acceptance.md`                            | `93646e089390f99ac14e63cc65695061785b876fa4ea849007b42f290d1a1c43` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task11-20260813/task11-parent-acceptance.md`                            | `3f9841bbd615739d11b791fce4f341f9bd4dc7440789747f3b16abca3041a904` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task12-headed-20260820/task12-parent-acceptance.md`                     | `934c63e330d264a40de46fc57e66fa113688a1333f213641182d5b5614f33cb4` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task13-manual-20260824T114819Z/manual-acceptance-verdict.json`          | `0abe7f51b8799b2f61b24abd6beb7afd65ae5f670965fbdca8502a2a3c21bf20` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task14-manual-20260826T065547-0400/manual-acceptance-verdict.json`      | `fa755bb3aad504e72d285670bc571a1a14d74c4857f7d22984d3454772ff5e28` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-completion-20260827T090644-0400/real-harness-hermes.json`        | `b2055e5eb4ed3710ba431efc0593a585b658b3f5ed75307f4ff7766fe77301ae` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-openclaw-reauth-20260827T083602-0400/real-harness-openclaw.json` | `1067cc8fcd42e337a7423a458dae4892eec82368c30634453cf2ee9221ef80e0` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-20260826T222646-0400/real-harness-codex.json`                    | `15d7f4fdb56e8cbb1301e2214ee45fc62c3379064db55bc46ed9678ada86dc66` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-20260826T222646-0400/real-harness-claude-code.json`              | `7b039799304ad717da18178e769d4b23e308ab44ff136bae078d20042e33aa2c` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-continuation-20260827T230113-0400/task15-parent-report.md`       | `a624539ebd6e389c0d5b4bd1e979cd8dc7584179df3d4593f6ebab045ebf07b4` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/manual-acceptance-verdict.json`     | `c20df5f40f870295aeb94d64280f04aa20c4f908255a4daa25030d7b0627d9af` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/retest8-live-state.json`            | `219c583d649f5efe83883334d15547b7bc4dd9accd0253a42a9ca8ae6eb96dbe` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/retest8-post-arrival-pass.json`     | `bcf960bc27cec364185faed02006eda9101db1416547a369b73d6e7b6c1be25e` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/world-close.json`                   | `81e68e951bd7423a3d8fac474c277b0eeb6322308bf484a179744f5fe88b1f36` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/private-checkpoint-delivery.json`   | `d64a104b70da5299b3bfac57516aefa1608004953a2aa2118fc2558e0cb5108c` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.log`                                 | `2bf98062bb9650bbf7ed08115087044395f1297e9e247f8456363b745033ecb2` |
-| `/home/mela_ai/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.result`                              | `85acfd2e79dd47df07d214334642196301332f72d792b52068cdfd8898755409` |
+| Evidence                                                                                                     | SHA-256                                                            |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `/home/user/.hermes/runs/aiw-phase19-task1/worker-report.md`                                                 | `92a137ac148a824e5df38316eeff09cca0e92d9ebcf998054dcf2ce5754baefa` |
+| `/home/user/.hermes/runs/aiw-phase19-timebox/task4-live-acceptance.json`                                     | `15250e90947f2be34c71436cbe271270b4e7184b037936a3e7a39cf7c81dc7f6` |
+| `/home/user/.hermes/runs/aiw-phase19-task5-codex/task5-parent-acceptance.md`                                 | `9522facee2b88e2ed1294e11da5a201f12f3f834d741f776272316052312092d` |
+| `/home/user/.hermes/runs/aiw-phase19-task6-claude-code/task6-parent-acceptance.md`                           | `0c7078c66203a4cc3af8a6ae933aaaf9d8c02015ad543b381de05034253e29ea` |
+| `/home/user/.hermes/runs/aiw-phase19-task7-parent-retry-20260813/task7-parent-acceptance.md`                 | `d673d5ea2903ec5e6fbb13d44ebd258c4ba078bb651f5fc1f4fc416b3b471a5d` |
+| `/home/user/.hermes/runs/aiw-phase19-task8-parent-20260813/task8-parent-acceptance.md`                       | `3bae8490b758899458ee4fcbf42701d9237edd1c1050c07b550afbb9354e446c` |
+| `/home/user/.hermes/runs/aiw-phase19-task9-20260813/task9-parent-acceptance.md`                              | `7b2a33558295154131b28591da11aad61359fb167d15f91f7dbd3e8c1ec378d8` |
+| `/home/user/.hermes/runs/aiw-phase19-task10-20260813/task10-parent-acceptance.md`                            | `93646e089390f99ac14e63cc65695061785b876fa4ea849007b42f290d1a1c43` |
+| `/home/user/.hermes/runs/aiw-phase19-task11-20260813/task11-parent-acceptance.md`                            | `3f9841bbd615739d11b791fce4f341f9bd4dc7440789747f3b16abca3041a904` |
+| `/home/user/.hermes/runs/aiw-phase19-task12-headed-20260820/task12-parent-acceptance.md`                     | `934c63e330d264a40de46fc57e66fa113688a1333f213641182d5b5614f33cb4` |
+| `/home/user/.hermes/runs/aiw-phase19-task13-manual-20260824T114819Z/manual-acceptance-verdict.json`          | `0abe7f51b8799b2f61b24abd6beb7afd65ae5f670965fbdca8502a2a3c21bf20` |
+| `/home/user/.hermes/runs/aiw-phase19-task14-manual-20260826T065547-0400/manual-acceptance-verdict.json`      | `fa755bb3aad504e72d285670bc571a1a14d74c4857f7d22984d3454772ff5e28` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-completion-20260827T090644-0400/real-harness-hermes.json`        | `b2055e5eb4ed3710ba431efc0593a585b658b3f5ed75307f4ff7766fe77301ae` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-openclaw-reauth-20260827T083602-0400/real-harness-openclaw.json` | `1067cc8fcd42e337a7423a458dae4892eec82368c30634453cf2ee9221ef80e0` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-20260826T222646-0400/real-harness-codex.json`                    | `15d7f4fdb56e8cbb1301e2214ee45fc62c3379064db55bc46ed9678ada86dc66` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-20260826T222646-0400/real-harness-claude-code.json`              | `7b039799304ad717da18178e769d4b23e308ab44ff136bae078d20042e33aa2c` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-continuation-20260827T230113-0400/task15-parent-report.md`       | `a624539ebd6e389c0d5b4bd1e979cd8dc7584179df3d4593f6ebab045ebf07b4` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/manual-acceptance-verdict.json`     | `c20df5f40f870295aeb94d64280f04aa20c4f908255a4daa25030d7b0627d9af` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/retest8-live-state.json`            | `219c583d649f5efe83883334d15547b7bc4dd9accd0253a42a9ca8ae6eb96dbe` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/retest8-post-arrival-pass.json`     | `bcf960bc27cec364185faed02006eda9101db1416547a369b73d6e7b6c1be25e` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/world-close.json`                   | `81e68e951bd7423a3d8fac474c277b0eeb6322308bf484a179744f5fe88b1f36` |
+| `/home/user/.hermes/runs/aiw-phase19-task15-retest8-20260828T201604-0400/private-checkpoint-delivery.json`   | `d64a104b70da5299b3bfac57516aefa1608004953a2aa2118fc2558e0cb5108c` |
+| `/home/user/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.log`                                 | `2bf98062bb9650bbf7ed08115087044395f1297e9e247f8456363b745033ecb2` |
+| `/home/user/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.result`                              | `85acfd2e79dd47df07d214334642196301332f72d792b52068cdfd8898755409` |
 
 Additional canonical sources:
 
@@ -205,7 +205,7 @@ Additional canonical sources:
 - `AGENTS.md`;
 - `/mnt/c/Fluff Obsidian Vault/concepts/agentintersect-world-animation-confirmations.md`;
 - GitHub Actions run `33231542008` and authenticated logs for jobs `99046967505`, `99046956023`, `99046955573`, `99046966767`, `99046955642`, `99046956224`, and `99046956331`;
-- Task 16 fresh-copy log: `/home/mela_ai/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.log`.
+- Task 16 fresh-copy log: `/home/user/.hermes/runs/aiw-phase19-task16-20260829/fresh-verification.log`.
 
 ## 8. Post-report Task 16 closeout — complete under the pragmatic development contract
 

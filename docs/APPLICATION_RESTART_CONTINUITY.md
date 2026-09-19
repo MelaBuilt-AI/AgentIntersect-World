@@ -93,7 +93,7 @@ session, persistence, execution, process-ownership or consent policy was changed
   the separate native message dispatch. These are not product defects or
   evidence for a broader integration PASS.
 
-Evidence namespace: `/home/mela_ai/.hermes/runs/aiw-continuity-20260916/`.
+Evidence namespace: `/home/user/.hermes/runs/aiw-continuity-20260916/`.
 All seven inherited residual hashes remain unchanged. Retained operator Worlds
 are not candidates for this code, and no operator visual verdict is inferred.
 
@@ -170,7 +170,7 @@ external to avoid recursive status-only commits.
   repository loads still use the normal snapshot; product restoration is not
   disabled to preserve an obsolete test assumption.
 
-Polish evidence: `/home/mela_ai/.hermes/runs/aiw-continuity-polish-20260916/`.
+Polish evidence: `/home/user/.hermes/runs/aiw-continuity-polish-20260916/`.
 This is deterministic UI/composition evidence. Real native restart and first-hand
 operator evidence remain the separately scoped baseline above/below; retained
 operator services are not rebuilt or used for automated actions.
@@ -210,7 +210,7 @@ overlap, not its rendering cause. The original deferral alone authorized no fix;
 the subsequent instruction explicitly includes it in PR14.
 
 Evidence retained in
-`/home/mela_ai/.hermes/runs/aiw-continuity-test-20260916/operator-evidence/`:
+`/home/user/.hermes/runs/aiw-continuity-test-20260916/operator-evidence/`:
 `deferred-codex-cloud-occlusion.png` and `same-workstream-followup.png`.
 The operator lane/state/profile remain retained. Successful recovery and follow-up
 are qualified by the manual repository/screen steps above; no blanket seamless

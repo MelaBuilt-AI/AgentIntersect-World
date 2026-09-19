@@ -26,7 +26,7 @@
 - Independent Node 24 proof passed package builds, world-schema/local-server typecheck and build, focused Task 7/API `12/12`, shared gateway `26/26`, concrete adapter matrix `57/57`, protocol/config/world-schema `50/50`, focused ESLint/Prettier, and `git diff --check`.
 - A disposable loopback production entrypoint returned HTTP 200 for health/config/readiness/capabilities. All four canonical adapters were configured and runtime-attested. No session lifecycle action occurred, protected files/process identities were unchanged, and candidate cleanup passed.
 - The first evidence-verdict script had a harness-only assertion against `body.agentSessionsEnabled` rather than the standard `body.data` envelope. Corrected offline verification of the already captured product evidence passed without repeating live contact.
-- Final receipt: `/home/mela_ai/.hermes/runs/aiw-phase19-task7-parent-retry-20260813/task7-parent-acceptance.md`. Task 8 remains not started.
+- Final receipt: `/home/user/.hermes/runs/aiw-phase19-task7-parent-retry-20260813/task7-parent-acceptance.md`. Task 8 remains not started.
 
 ### 2026-08-12 implementation authority
 
@@ -39,7 +39,7 @@
 Planning inspection on 2026-08-12 established:
 
 - Repository: private `MelaBuilt-AI/AgentIntersect-World`.
-- Worktree: `/home/mela_ai/.hermes/runs/aiw-repository-city-next-feature/worktree`.
+- Worktree: `/home/user/.hermes/runs/aiw-repository-city-next-feature/worktree`.
 - Branch: `feature/phase19-multi-agent-constellation`.
 - HEAD: `f4b23b31a131580e1ddd9fb10274919be434bf68`.
 - Upstream: none configured.

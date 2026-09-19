@@ -73,7 +73,7 @@ The implementation must not:
 - call cloud image or model services;
 - install ComfyUI, models, npm packages, pip packages, or other dependencies;
 - download or incorporate third-party models, textures, assets, or concept art;
-- inspect or modify the original `/home/mela_ai/AgentIntersect` repository;
+- inspect or modify the original `/home/user/AgentIntersect` repository;
 - work on Phase 18 live harness/voice acceptance, Phase 19, Phase 20, LAN setup
   UI, custom Mr Fluff voice, provider activation, publication, release, tags,
   deployment, public ingress, visibility, commit, or push.

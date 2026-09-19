@@ -1,0 +1,94 @@
+name: private-release-packages
+on:
+  workflow_dispatch:
+  push:
+    branches: ["release/**"]
+permissions:
+  contents: read
+concurrency:
+  group: private-packages-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.18.0
+      - run: corepack enable
+      - run: corepack pnpm@11.15.0 install --frozen-lockfile
+      - run: corepack pnpm@11.15.0 build
+        env:
+          TURBO_CONCURRENCY: "2"
+      - run: python3 -m unittest discover -s tooling/release -p test_build.py -v
+      - run: node --test tooling/release/launch.test.mjs
+      - run: python3 tooling/release/build.py --out "$RUNNER_TEMP/world-packages"
+      - name: Test extracted Linux archive with its bundled runtime
+        run: |
+          mkdir "$RUNNER_TEMP/world-installed"
+          tar -xzf "$RUNNER_TEMP/world-packages/AgentIntersect-World-0.15.0-rc.1-linux-x64.tar.gz" -C "$RUNNER_TEMP/world-installed"
+          cd "$RUNNER_TEMP/world-installed/AgentIntersect-World-0.15.0-rc.1-linux-x64"
+          ./runtime/node --test "$GITHUB_WORKSPACE/tooling/release/launch.test.mjs"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux-package
+          compression-level: 0
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/world-packages/*linux-x64.tar.gz
+            ${{ runner.temp }}/world-packages/SHA256SUMS
+            ${{ runner.temp }}/world-packages/artifacts.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-portable
+          compression-level: 0
+          retention-days: 14
+          path: ${{ runner.temp }}/world-packages/*windows-x64.zip
+  windows-installer:
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: windows-portable
+          path: ${{ runner.temp }}/world-packages
+      - name: Verify compiler and build the unsigned installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:RUNNER_TEMP 'world-packages'
+          $compiler=Join-Path $env:RUNNER_TEMP 'innosetup-6.7.3.exe'
+          Invoke-WebRequest 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe' -OutFile $compiler
+          if((Get-FileHash $compiler -Algorithm SHA256).Hash -ne '9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732'){throw 'Compiler checksum mismatch'}
+          if((Get-AuthenticodeSignature $compiler).Status -ne 'Valid'){throw 'Compiler signature invalid'}
+          $tools=Join-Path $env:RUNNER_TEMP 'PinnedInnoSetup'
+          $p=Start-Process $compiler -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/NOICONS','/TASKS=""',('/DIR="'+$tools+'"')) -Wait -PassThru
+          if($p.ExitCode -ne 0){throw 'Compiler setup failed'}
+          python -m zipfile -e "$root\AgentIntersect-World-0.15.0-rc.1-windows-x64.zip" $root
+          $package=Join-Path $root 'AgentIntersect-World-0.15.0-rc.1-windows-x64'
+          $metadata=Get-Content "$package\BUILD.json" | ConvertFrom-Json
+          if($metadata.sourceDirty -or $metadata.sourceCommit -ne $env:GITHUB_SHA){throw 'Package source identity mismatch'}
+          & "$tools\ISCC.exe" /Q ("/DPackageRoot="+$package) ("/DOutputPath="+$root) tooling/release/windows.iss
+          if($LASTEXITCODE -ne 0){throw 'Installer compilation failed'}
+      - name: Install, exercise real native API/WebSocket, uninstall
+        shell: pwsh
+        run: |
+          $root=Join-Path $env:RUNNER_TEMP 'world-packages'
+          ./tooling/release/install-smoke.ps1 -Installer "$root\AgentIntersect-World-0.15.0-rc.1-windows-x64-setup.exe" -SmokeTest "$env:GITHUB_WORKSPACE\tooling\release\launch.test.mjs" -Receipt "$root\windows-smoke.json"
+          $file=Get-Item "$root\AgentIntersect-World-0.15.0-rc.1-windows-x64-setup.exe"
+          ((Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()+'  '+$file.Name) | Set-Content "$root\WINDOWS-SHA256SUMS" -Encoding utf8NoBOM
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer
+          compression-level: 0
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/world-packages/*setup.exe
+            ${{ runner.temp }}/world-packages/WINDOWS-SHA256SUMS
+            ${{ runner.temp }}/world-packages/windows-smoke.json

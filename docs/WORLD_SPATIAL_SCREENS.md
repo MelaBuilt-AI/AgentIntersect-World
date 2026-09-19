@@ -23,7 +23,7 @@ Technical GREEN; Aaron's manual verdict pending. Both production-shaped browser 
 - Use `Interact with preview` for iframe input and `Return to World` to resume avatar controls. Docking keeps that return control available even when preview input is still owned.
 - A real WebGL context-loss regression confirms HUD recovery, disabled undock controls, and preserved iframe identity.
 
-Final retained technical receipts/screenshots: `/home/mela_ai/.hermes/outputs/world-spatial-screens-2026-09-04-final2/`. Browser run `/tmp/aiw-spatial-screens-final2/`: both selected journeys passed. The JSON receipt enumerates all three unique screen IDs and preserved preview-node/text state. Screenshots are from an automated test scene; they are not a manual real-project verdict. Test servers are stopped. No commit/push/PR was performed.
+Final retained technical receipts/screenshots: `/home/user/.hermes/outputs/world-spatial-screens-2026-09-04-final2/`. Browser run `/tmp/aiw-spatial-screens-final2/`: both selected journeys passed. The JSON receipt enumerates all three unique screen IDs and preserved preview-node/text state. Screenshots are from an automated test scene; they are not a manual real-project verdict. Test servers are stopped. No commit/push/PR was performed.
 
 ## Scope and boundaries
 

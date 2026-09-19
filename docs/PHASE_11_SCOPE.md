@@ -159,7 +159,7 @@ Required artifacts:
 
 ## Verification commands and evidence policy
 
-Use Node `v24.18.0` from `/home/mela_ai/.nvm/versions/node/v24.18.0/bin` and pnpm `11.15.0`. Blender runs headless for deterministic asset generation and inspection. Focused RED→GREEN checks precede one full `pnpm check`, Storybook, Phase 11 measurement, fresh-copy verification, real browser/operator proof, and exact-SHA CI. Worker reports are context only; Mr Fluff independently inspects the `.blend`/GLB/manifest/diff, renders evidence, runs decisive checks, and verifies the live UI.
+Use Node `v24.18.0` from `/home/user/.nvm/versions/node/v24.18.0/bin` and pnpm `11.15.0`. Blender runs headless for deterministic asset generation and inspection. Focused RED→GREEN checks precede one full `pnpm check`, Storybook, Phase 11 measurement, fresh-copy verification, real browser/operator proof, and exact-SHA CI. Worker reports are context only; Mr Fluff independently inspects the `.blend`/GLB/manifest/diff, renders evidence, runs decisive checks, and verifies the live UI.
 
 ## Non-goals and prohibited side effects
 

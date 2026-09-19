@@ -27,7 +27,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ["examples/phase14-magic-slice/**/*.mjs"],
+    files: [
+      "examples/phase14-magic-slice/**/*.mjs",
+      "apps/local-server/*.mjs",
+      "tooling/release/*.mjs",
+    ],
     languageOptions: {
       ecmaVersion: 2024,
       globals: { ...globals.node },
