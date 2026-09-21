@@ -524,6 +524,21 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
   expect(afterDiscussion.currentTaskRef).toBe(before.currentTaskRef);
   expect(afterDiscussion.worktreeRef).toBe(before.worktreeRef);
   expect(afterDiscussion.adapterSessionRef).toBe(before.adapterSessionRef);
+  const blockedReason = "Claude Code denied a required tool permission.";
+  vi.spyOn(adapter, "sendText").mockResolvedValueOnce({
+    finalText: "Unable to write.",
+    deltas: [],
+    blockedReason,
+  });
+  const outcome = vi.fn();
+  gateway.setWorkstreamTurnObserver(outcome);
+  await gateway.sendText(before.sessionId, {
+    text: "create the page",
+    binding: afterDiscussion,
+    intent: "work",
+  });
+  expect(outcome).toHaveBeenCalledWith(before.sessionId, blockedReason);
+  expect(gateway.status(before.sessionId).status).toBe("ready");
 });
 
 type FakeHermesOptions = {

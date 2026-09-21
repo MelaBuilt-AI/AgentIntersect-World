@@ -39,6 +39,8 @@ export type AdapterSessionSummary = {
 export type AdapterTurnResult = {
   readonly finalText: string;
   readonly deltas: readonly string[];
+  /** The conversation completed, but native policy blocked the requested work. */
+  readonly blockedReason?: string;
   readonly runId?: string;
   readonly sessionRef?: string;
 };
@@ -2413,7 +2415,8 @@ export class AgentSessionGateway {
         activeRunId: result.runId ?? null,
         updatedAt: new Date().toISOString(),
       });
-      if (isWorkTurn) await this.#workstreamTurnObserver?.(sessionId);
+      if (isWorkTurn)
+        await this.#workstreamTurnObserver?.(sessionId, result.blockedReason);
       return result;
     } catch (error) {
       const latest = this.#store.requireSession(sessionId);
