@@ -2,6 +2,14 @@
 
 These project-local rules govern Phase 1 and all later phases. They supersede older design or handoff language that requires repeated AgentIntersect checkout verification, security-first implementation, multi-user internet collaboration, or repeated broad reviews.
 
+## CI and readiness override — PR20 and all later work
+
+Aaron explicitly superseded the earlier browser-journey requirement on September 21, 2026 (Discord `1551598468483649678`). Do not run or require automated product-navigation/browser journeys, browser shards, or browser-based measurement journeys for GitHub CI, local readiness, PR acceptance, merge, or release readiness. Do not reinstate them from historical phase reports, skills, handoffs, or optional legacy scripts. A new explicit user request is required to run them again.
+
+Required code verification remains formatting, lint, TypeScript, architecture, unit/integration/component tests, build, startup/API smoke, and applicable static asset/input checks. Existing isolated HTML/CSS component tests are not product-navigation journeys. `pnpm check` uses the conventional core gate; `merge-gate` still fails closed on its required code/documentation checks. Exact-head GitHub success remains required before an authorized merge.
+
+Functional and visual acceptance comes from Aaron's hands-on use after feature changes and scoped Mr Fluff computer-use checks, not scripted journeys. Reuse accepted evidence for unchanged behavior; do not manufacture a new manual-test gate for an unchanged product. Historical browser failures stay recorded as failures, not passed tests; the contract change makes them non-required. Keep release/publication/provider permissions separate. See [CI policy](docs/CI.md).
+
 ## 1. Independent-project boundary
 
 - AgentIntersect World is a separate project with its own code, dependencies, history, tests, and releases.
