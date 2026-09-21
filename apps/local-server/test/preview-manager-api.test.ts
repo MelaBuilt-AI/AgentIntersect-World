@@ -39,10 +39,10 @@ server.listen(Number(process.env.PORT), process.env.HOST);
   );
   const service = new PreviewManagerService({
     directory: join(root, "store"),
-    resolveWorkstream: async () => ({
-      workstreamId: "workstream-one",
+    resolveWorkstream: async (request) => ({
+      workstreamId: request.workstreamId,
       workstreamRevision: 4,
-      repository,
+      repository: request.repository,
       agent,
       worktreeId: "worktree-one",
       worktreeState: "current",
@@ -64,6 +64,90 @@ afterEach(async () => {
 });
 
 describe("Preview Manager API", () => {
+  it.each(["repo-current", "repo-new"])(
+    "does not expose another Workstream's preview after a failed start (%s)",
+    async (repositoryId) => {
+      const server = await fixture();
+      for (const [recipeId, repo, args] of [
+        ["old-page", repository.repositoryId, ["preview.mjs"]],
+        ["missing-page", repositoryId, ["-e", "process.exit(1)"]],
+      ] as const) {
+        const approved = await server.inject({
+          method: "POST",
+          url: "/preview-recipes",
+          payload: {
+            requestId: recipeId,
+            correlationId: recipeId,
+            recipeId,
+            expectedRevision: null,
+            repositoryId: repo,
+            label: recipeId,
+            executable: process.execPath,
+            args,
+            readinessPath: "/health",
+            browserPath: "/",
+          },
+        });
+        expect(approved.statusCode).toBe(201);
+      }
+      const start = (id: string, recipeId: string, repo: string) =>
+        server.inject({
+          method: "POST",
+          url: `/workstreams/${id}/previews`,
+          payload: {
+            requestId: id,
+            correlationId: id,
+            expectedWorkstreamRevision: 4,
+            repository: { ...repository, repositoryId: repo },
+            agent,
+            recipeId,
+            expectedRecipeRevision: 1,
+          },
+        });
+      const old = await start(
+        "workstream-one",
+        "old-page",
+        repository.repositoryId,
+      );
+      expect(old.json().data.preview.state).toBe("ready");
+      const failed = await start(
+        "workstream-two",
+        "missing-page",
+        repositoryId,
+      );
+      expect(failed.json().data.preview.state).toBe("failed");
+      const current = (
+        await server.inject({
+          method: "GET",
+          url: "/workstreams/workstream-two/previews/current",
+        })
+      ).json().data;
+      expect(current).toMatchObject({
+        active: null,
+        previousVerified: null,
+        display: null,
+        latestAttempt: { workstreamId: "workstream-two", state: "failed" },
+      });
+      const retained = (
+        await server.inject({
+          method: "GET",
+          url: "/workstreams/workstream-one/previews/current",
+        })
+      ).json().data;
+      expect(retained).toMatchObject({
+        active: { state: "ready" },
+        latestAttempt: null,
+        display: {
+          truth: "current",
+          preview: { workstreamId: "workstream-one" },
+        },
+      });
+      expect(await (await fetch(old.json().data.preview.url)).text()).toContain(
+        "API preview",
+      );
+    },
+  );
+
   it("approves the owned static-server preset without accepting executable or cwd from the browser", async () => {
     const server = await fixture();
     const payload = {

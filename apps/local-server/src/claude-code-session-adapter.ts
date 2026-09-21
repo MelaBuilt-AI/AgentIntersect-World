@@ -277,7 +277,14 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     this.#fetch = options.fetch ?? globalThis.fetch;
   }
 
-  #args(sessionId: string, resume: boolean, recovery = false): string[] {
+  #args(
+    sessionId: string,
+    resume: boolean,
+    recovery = false,
+    context?: AdapterTurnContext,
+  ): string[] {
+    const coding =
+      !recovery && context?.mode === "collaborate" && context.workingDirectory;
     return [
       "-p",
       ...(this.#options.nativeProfilePath ? [] : ["--model", CLAUDE_MODEL]),
@@ -292,13 +299,27 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       "--include-partial-messages",
       ...(recovery
         ? ["--tools", ""]
-        : this.#options.nativeProfilePath
-          ? []
-          : ["--tools", "Read,Glob,Grep", "--allowedTools", "Read,Glob,Grep"]),
+        : coding
+          ? [
+              "--tools",
+              "Read,Glob,Grep,Edit,Write,Bash",
+              "--allowedTools",
+              "Read,Glob,Grep,Edit,Write,Bash",
+            ]
+          : this.#options.nativeProfilePath
+            ? []
+            : [
+                "--tools",
+                "Read,Glob,Grep",
+                "--allowedTools",
+                "Read,Glob,Grep",
+              ]),
       "--permission-mode",
       "dontAsk",
       "--append-system-prompt",
-      WORLD_COMPLETION_PROMPT,
+      [WORLD_COMPLETION_PROMPT, context?.systemMessage]
+        .filter(Boolean)
+        .join("\n\n"),
       ...(this.#options.nativeProfilePath
         ? []
         : [
@@ -341,6 +362,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     input: string,
     options: {
       readonly runtimeHome: string;
+      readonly workingDirectory?: string;
       readonly timeoutMs: number;
       readonly timeoutMessage: string;
       readonly failureMessage: string;
@@ -351,7 +373,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
   ): Promise<ProcessResult> {
     const bridged = await this.#options.environmentExecution?.spawn(
       args,
-      this.#options.nativeSessionRoot,
+      options.workingDirectory ?? this.#options.nativeSessionRoot,
     );
     return new Promise<ProcessResult>((resolve, reject) => {
       let child: ChildProcessWithoutNullStreams;
@@ -359,7 +381,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         child =
           bridged ??
           spawn(this.#options.executablePath, args, {
-            cwd: this.#options.nativeSessionRoot,
+            cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
             env: processEnvironment(options.runtimeHome, this.#options),
             detached: true,
             stdio: ["pipe", "pipe", "pipe"],
@@ -634,6 +656,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     let seenSessionId: string | undefined;
     let initialized = false;
     let completed = false;
+    let permissionDenied = false;
     let finalText: string | undefined;
     let outputBytes = 0;
     const deltas: string[] = [];
@@ -663,10 +686,13 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     };
 
     await this.#runProcess(
-      this.#args(expectedSessionId, resume, recovery),
+      this.#args(expectedSessionId, resume, recovery, context),
       input,
       {
         runtimeHome,
+        ...(context?.workingDirectory
+          ? { workingDirectory: context.workingDirectory }
+          : {}),
         timeoutMs: this.#options.turnTimeoutMs ?? 120_000,
         timeoutMessage: "Claude Code CLI turn timed out",
         failureMessage: "Claude Code CLI turn failed",
@@ -712,6 +738,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
                 throw claudeFailure();
               // Native policy already refused the tool. Its following tool_result
               // supplies the failed activity; this telemetry is not a turn failure.
+              permissionDenied = true;
               return;
             }
             if (
@@ -790,7 +817,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
                   name,
                   value.input,
                 ),
-                this.#options.nativeSessionRoot,
+                context?.workingDirectory ?? this.#options.nativeSessionRoot,
               );
               toolNames.set(id, { name, ...(locator ? { locator } : {}) });
               emit({
@@ -848,6 +875,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
           if (Buffer.byteLength(envelope.result, "utf8") > MAX_OUTPUT_BYTES)
             throw claudeFailure("Claude Code output exceeded the bound");
           finalText = envelope.result;
+          permissionDenied ||=
+            Array.isArray(envelope.permission_denials) &&
+            envelope.permission_denials.length > 0;
           completed = true;
         },
       },
@@ -859,6 +889,12 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       finalText: finalText as string,
       deltas,
       sessionRef: seenSessionId as string,
+      ...(permissionDenied
+        ? {
+            blockedReason:
+              "Claude Code denied a required tool permission. No permission was bypassed.",
+          }
+        : {}),
     };
   }
 

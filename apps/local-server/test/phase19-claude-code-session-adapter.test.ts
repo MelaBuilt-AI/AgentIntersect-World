@@ -29,6 +29,8 @@ type FixtureControl = {
   readonly realToolResultEnvelope?: boolean;
   readonly invalidToolResultError?: boolean;
   readonly permissionDenied?: boolean;
+  readonly resultPermissionDenied?: boolean;
+  readonly writeWebsite?: boolean;
   readonly failure?:
     | "malformed"
     | "stdout-flood"
@@ -134,6 +136,50 @@ it("accepts native rate-limit telemetry without killing a successful connection"
   await native.endWorldSession("rate-limit-probe", created.id);
 });
 
+it.each([false, true])(
+  "runs authorized work in its owned directory (native profile: %s)",
+  async (nativeProfile) => {
+    const fixture = await fixtureExecutable({ writeWebsite: true });
+    const workspace = path.join(fixture.nativeSessionRoot, "owned project");
+    await mkdir(workspace);
+    const native = adapter(
+      fixture,
+      nativeProfile ? { nativeProfilePath: fixture.nativeSessionRoot } : {},
+    );
+    const session = await native.createWorldSession("owned-workspace");
+    await native.sendText(session.id, "create the page", {
+      mode: "collaborate",
+      rootSessionRef: session.id,
+      workingDirectory: workspace,
+      systemMessage: "Only change this owned Workstream; do not publish.",
+    });
+    const call = (await fixture.invocations()).at(-1)!;
+    expect(call.cwd).toBe(workspace);
+    expect(call.args[call.args.indexOf("--allowedTools") + 1]).toBe(
+      "Read,Glob,Grep,Edit,Write,Bash",
+    );
+    expect(
+      call.args[call.args.indexOf("--append-system-prompt") + 1],
+    ).toContain("Only change this owned Workstream; do not publish.");
+    expect(call.args).not.toContain("--dangerously-skip-permissions");
+    expect(await readFile(path.join(workspace, "index.html"), "utf8")).toBe(
+      "<p>Claude Codes</p>",
+    );
+    await expect(
+      stat(path.join(fixture.nativeSessionRoot, "index.html")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await native.sendText(session.id, "ordinary chat", {
+      mode: "collaborate",
+      rootSessionRef: session.id,
+    });
+    const chat = (await fixture.invocations()).at(-1)!;
+    expect(chat.cwd).toBe(fixture.nativeSessionRoot);
+    expect(chat.args[chat.args.indexOf("--allowedTools") + 1]).not.toContain(
+      "Write",
+    );
+  },
+);
+
 it("preserves denied-tool policy and continues the same session after permission telemetry", async () => {
   const fixture = await fixtureExecutable({
     permissionDenied: true,
@@ -167,6 +213,32 @@ it("preserves denied-tool policy and continues the same session after permission
     }),
   ).resolves.toMatchObject({ sessionRef: created.id });
 });
+
+it.each(["event", "result"])(
+  "reports structured permission denials without quarantining the session (%s)",
+  async (source) => {
+    const fixture = await fixtureExecutable(
+      source === "event"
+        ? { permissionDenied: true }
+        : { resultPermissionDenied: true },
+    );
+    const native = adapter(fixture);
+    const session = await native.createWorldSession("blocked-work");
+    const result = await native.sendText(session.id, "create the page", {
+      mode: "collaborate",
+      rootSessionRef: session.id,
+      workingDirectory: fixture.nativeSessionRoot,
+    });
+    expect(result).toMatchObject({
+      blockedReason:
+        "Claude Code denied a required tool permission. No permission was bypassed.",
+    });
+    expect(result.finalText).toBe("fixture complete");
+    await expect(
+      native.attach(session.id, { worldInstanceId: "blocked-work" }),
+    ).resolves.toMatchObject({ id: session.id });
+  },
+);
 
 it("recovers a quarantined exact session only after explicit tool-free resume validation", async () => {
   const fixture = await fixtureExecutable({ failure: "unexpected-exit" });
@@ -230,12 +302,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 const cwd = process.cwd();
+const fixtureRoot = path.dirname(process.argv[1]);
 const args = process.argv.slice(2);
-const control = JSON.parse(fs.readFileSync(path.join(cwd, "fixture-control.json"), "utf8"));
+const control = JSON.parse(fs.readFileSync(path.join(fixtureRoot, "fixture-control.json"), "utf8"));
 let stdin = "";
 for await (const chunk of process.stdin) stdin += chunk;
 fs.appendFileSync(
-  path.join(cwd, "fixture-invocations.jsonl"),
+  path.join(fixtureRoot, "fixture-invocations.jsonl"),
   JSON.stringify({
     args,
     cwd,
@@ -346,6 +419,9 @@ if (isResume && control.failure === "delay") {
   await new Promise((resolve) => setTimeout(resolve, 150));
 }
 
+if (isResume && control.writeWebsite && option("--allowedTools")?.includes("Write")) {
+  fs.writeFileSync(path.join(cwd, "index.html"), "<p>Claude Codes</p>");
+}
 if (isResume) {
   if (control.toolFlood) for (let i = 0; i < 1025; i++) emit({ type: "assistant", session_id: sessionId, message: { type: "message", role: "assistant", content: [{ type: "tool_use", id: "tool-" + i, name: "Read", input: {} }] } });
   if (control.fragmented) for (let i = 0; i < 1100; i++) emit({ type: "stream_event", session_id: sessionId, event: { type: "content_block_delta", delta: { type: "text_delta", text: "x" } } });
@@ -396,7 +472,7 @@ const result = isResume
     ? "x".repeat(70000)
     : "fixture complete"
   : "ready";
-emit({ type: "result", subtype: "success", is_error: false, result, session_id: sessionId });
+emit({ type: "result", subtype: "success", is_error: false, result, session_id: sessionId, ...(isResume && control.resultPermissionDenied ? { permission_denials: [{tool_name: "Write", tool_input: {file_path: "PRIVATE_DENIAL_CANARY"}}] } : {}) });
 `,
     { mode: 0o700 },
   );

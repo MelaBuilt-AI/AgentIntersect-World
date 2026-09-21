@@ -27,3 +27,34 @@ Focused RED→GREEN per vertical behavior, impacted tests, type/lint/build, one 
 ## Status
 
 Implementation and focused/local production-shaped proof are complete in this cumulative candidate; see the continuation and presentation corrections plus PROJECT_STATUS.md. Saved-session restoration and hosted GitHub controls have not gained new first-hand acceptance merely from the later fresh-seed tests. These remain explicit follow-ups, not proof of full Slice 6.
+
+## September 21 — refresh truth and real remote controls
+
+PR22 adds explicit Git refresh loading/stale/unavailable truth. Last-known data
+may remain visible for the same project/worktree, but Git actions are disabled
+until a successful current read. GitHub checks separately report pending,
+current, stale or unavailable results; Git refresh/actions invalidate previous
+PR results, and retries clear their owning error. Existing backend HEAD/branch
+re-attestation and all explicit confirmations remain unchanged.
+
+Six component regressions cover failed/pending refresh, successful retry,
+authority changes, first-check failure versus a successful empty result, and
+PR invalidation. Full conventional verification passed: 229 test files / 1,395
+tests, separate 11 architecture tests, format, lint, types, build and startup/API
+smoke. No scripted World-navigation journeys were run.
+
+Mr Fluff exercised the real production-built component, client and local-server
+API against a disposable **private GitHub repository**, not mocked Git/PR
+responses: selected-file commit, confirmed push, fetch without local changes,
+fast-forward pull with exact bytes, PR status and confirmed draft PR creation.
+Independent Git/GitHub reads verified remote SHAs and PR identity. Real scoped
+Git/GitHub failures produced stale truth and disabled Git controls; restoring
+the fixture and retrying recovered normally. Final styled pixels were inspected.
+The disposable PR was closed without merging; its repository is retained as
+verification evidence.
+
+This closes the scoped remote-controls check without requiring another operator
+test. It is isolated component/API/GitHub acceptance, not full World onboarding,
+all-provider continuity or native Windows package acceptance. Existing operator
+Worlds and saved work remain unchanged. Exact commit/CI receipts remain on PR22
+and in the external verification record.

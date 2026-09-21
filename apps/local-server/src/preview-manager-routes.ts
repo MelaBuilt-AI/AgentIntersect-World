@@ -332,22 +332,7 @@ export function registerPreviewManagerRoutes(
       },
     },
     async (request) => {
-      const projection = await service.current();
-      const belongs = [
-        projection.active,
-        projection.latestAttempt,
-        projection.previousVerified,
-      ].some(
-        (preview) => preview?.workstreamId === request.params.workstreamId,
-      );
-      if (!belongs)
-        return envelope.success(request, {
-          ...projection,
-          active: null,
-          latestAttempt: null,
-          previousVerified: null,
-          display: null,
-        });
+      const projection = await service.current(request.params.workstreamId);
       return envelope.success(request, projection);
     },
   );

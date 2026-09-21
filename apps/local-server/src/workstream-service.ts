@@ -265,7 +265,7 @@ export type WorkstreamAgentPort = {
     readonly task: string;
     readonly systemContext: string;
     readonly signal: AbortSignal;
-  }) => Promise<void>;
+  }) => Promise<void | { readonly blockedReason?: string }>;
   readonly evidence: (
     agentId: string,
     afterSequence: number,
@@ -548,7 +548,10 @@ export class WorkstreamService {
   #mutationTail: Promise<void> = Promise.resolve();
   readonly #runs = new Map<
     string,
-    { readonly controller: AbortController; readonly turn: Promise<void> }
+    {
+      readonly controller: AbortController;
+      readonly turn: ReturnType<WorkstreamAgentPort["dispatch"]>;
+    }
   >();
 
   constructor(options: WorkstreamServiceOptions) {
@@ -1966,10 +1969,11 @@ export class WorkstreamService {
     });
     this.#runs.set(workstream.workstreamId, { controller, turn });
     void turn.then(
-      () =>
+      (result) =>
         this.#recordDispatchOutcome(
           workstream.workstreamId,
-          "ready-for-review",
+          result?.blockedReason ? "blocked" : "ready-for-review",
+          result?.blockedReason,
         ),
       (error: unknown) =>
         this.#recordDispatchOutcome(

@@ -185,6 +185,20 @@ afterEach(async () => {
 });
 
 describe("Workstream feature loop", () => {
+  it("keeps a completed but permission-blocked dispatch blocked", async () => {
+    const value = await fixture();
+    vi.mocked(value.port.dispatch).mockResolvedValueOnce({
+      blockedReason: "Claude Code denied a required tool permission.",
+    });
+    await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("blocked"),
+    );
+    expect((await value.service.current())?.events.at(-1)?.summary).toContain(
+      "denied a required tool permission",
+    );
+  });
+
   it("refuses stale, busy and foreign continuation sources before allocating or dispatching", async () => {
     const value = await fixture();
     await value.service.create(createRequest());

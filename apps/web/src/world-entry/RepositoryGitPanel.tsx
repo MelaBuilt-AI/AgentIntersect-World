@@ -25,7 +25,13 @@ export function RepositoryGitPanel({
   workstreamId: string;
   onNew: (sha: string) => void;
 }) {
-  const [status, setStatus] = useState<GitStatus | null>(null);
+  const [gitRead, setGitRead] = useState<{
+    projectId: string;
+    workstreamId: string;
+    version: number;
+    status: GitStatus | null;
+    error: string | null;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,7 +43,12 @@ export function RepositoryGitPanel({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [draft, setDraft] = useState(true);
-  const [prs, setPrs] = useState<PullRequest[] | null>(null);
+  const [githubRead, setGithubRead] = useState<{
+    key: string;
+    phase: "loading" | "current" | "stale" | "unavailable";
+    prs: PullRequest[] | null;
+    error: string | null;
+  } | null>(null);
   const [pending, setPending] = useState<GitAction | null>(null);
   const [tab, setTab] = useState<"changes" | "commits" | "sync" | "github">(
     "changes",
@@ -47,27 +58,60 @@ export function RepositoryGitPanel({
     void repositoryGitStatus(projectId, workstreamId)
       .then((value) => {
         if (active) {
-          setStatus(value);
+          setGitRead({
+            projectId,
+            workstreamId,
+            version,
+            status: value,
+            error: null,
+          });
         }
       })
       .catch((reason: unknown) => {
         if (active)
-          setError(
-            reason instanceof Error ? reason.message : "Git status unavailable",
-          );
+          setGitRead((previous) => ({
+            projectId,
+            workstreamId,
+            version,
+            status:
+              previous?.projectId === projectId &&
+              previous.workstreamId === workstreamId
+                ? previous.status
+                : null,
+            error:
+              reason instanceof Error
+                ? reason.message
+                : "Git status unavailable",
+          }));
       });
     return () => {
       active = false;
     };
   }, [projectId, workstreamId, version]);
+  const git =
+    gitRead?.projectId === projectId && gitRead.workstreamId === workstreamId
+      ? gitRead
+      : null;
+  const status = git?.status ?? null;
+  const gitLoading = git?.version !== version;
+  const gitCurrent = !gitLoading && !git?.error && status !== null;
   const selectedRemote = status?.remotes.includes(remote)
     ? remote
     : (status?.remotes[0] ?? "");
   const selectedFiles = files.filter((path) =>
     status?.changes.some((file) => file.path === path),
   );
+  const githubKey = JSON.stringify([
+    projectId,
+    workstreamId,
+    selectedRemote,
+    status?.branch,
+    status?.head,
+  ]);
+  const github = githubRead?.key === githubKey ? githubRead : null;
+  const prs = github?.prs ?? null;
   const confirm = async () => {
-    if (!pending || !status || busy) return;
+    if (!pending || !status || !gitCurrent || busy) return;
     setBusy(true);
     onBusyChange?.(true);
     setError(null);
@@ -79,16 +123,38 @@ export function RepositoryGitPanel({
         status,
         pending,
       );
-      setStatus(result.status);
+      setGitRead({
+        projectId,
+        workstreamId,
+        version,
+        status: result.status,
+        error: null,
+      });
       setMessage(result.message);
       setFiles([]);
-      if (result.pr) setPrs([result.pr]);
+      setGithubRead(
+        result.pr
+          ? {
+              key: JSON.stringify([
+                projectId,
+                workstreamId,
+                selectedRemote,
+                result.status.branch,
+                result.status.head,
+              ]),
+              phase: "current",
+              prs: [result.pr],
+              error: null,
+            }
+          : null,
+      );
       setPending(null);
       if (pending.action === "commit") onCommitted?.(result.status);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Git action failed");
       // A command may have succeeded before a later readback failed. Never blindly replay it.
       setPending(null);
+      setGithubRead(null);
       setVersion((value) => value + 1);
     } finally {
       setBusy(false);
@@ -96,16 +162,30 @@ export function RepositoryGitPanel({
     }
   };
   const checkGithub = async () => {
-    if (!selectedRemote || busy) return;
+    if (!selectedRemote || !gitCurrent || busy) return;
     setBusy(true);
     setError(null);
+    setMessage(null);
+    setGithubRead({ key: githubKey, phase: "loading", prs, error: null });
     try {
-      setPrs(
-        (await repositoryGithubStatus(projectId, workstreamId, selectedRemote))
-          .prs,
+      const result = await repositoryGithubStatus(
+        projectId,
+        workstreamId,
+        selectedRemote,
       );
+      setGithubRead({
+        key: githubKey,
+        phase: "current",
+        prs: result.prs,
+        error: null,
+      });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "GitHub unavailable");
+      setGithubRead({
+        key: githubKey,
+        phase: prs !== null ? "stale" : "unavailable",
+        prs,
+        error: reason instanceof Error ? reason.message : "GitHub unavailable",
+      });
     } finally {
       setBusy(false);
     }
@@ -116,9 +196,11 @@ export function RepositoryGitPanel({
         <h3>Git workspace</h3>
         <button
           type="button"
-          disabled={busy || !!pending}
+          disabled={busy || !!pending || gitLoading}
           onClick={() => {
             setError(null);
+            setMessage(null);
+            setGithubRead(null);
             setVersion((value) => value + 1);
           }}
         >
@@ -126,14 +208,20 @@ export function RepositoryGitPanel({
         </button>
       </div>
       {error ? <p role="alert">{error}</p> : null}
+      {!gitLoading && git?.error ? <p role="alert">{git.error}</p> : null}
       {message ? <p role="status">{message}</p> : null}
-      {!status ? (
+      {!gitCurrent ? (
         <p role="status">
-          {error
-            ? "Status unavailable. Refresh to retry; no action is enabled."
-            : "Reading repository…"}
+          {gitLoading
+            ? status
+              ? "Refreshing Git… Shown data is last known; actions are disabled."
+              : "Reading repository…"
+            : status
+              ? "Git status is stale. Refresh to retry; actions are disabled."
+              : "Status unavailable. Refresh to retry; no action is enabled."}
         </p>
-      ) : (
+      ) : null}
+      {!status ? null : (
         <>
           <p>
             <strong>{status.branch || "Detached HEAD"}</strong> ·{" "}
@@ -168,7 +256,7 @@ export function RepositoryGitPanel({
               )}
             </nav>
           ) : null}
-          <fieldset disabled={busy || !!pending}>
+          <fieldset disabled={busy || !!pending || !gitCurrent}>
             {tab === "changes" ? (
               <>
                 <p>
@@ -269,7 +357,7 @@ export function RepositoryGitPanel({
                   value={selectedRemote}
                   onChange={(event) => {
                     setRemote(event.target.value);
-                    setPrs(null);
+                    setGithubRead(null);
                   }}
                 >
                   {status.remotes.length ? (
@@ -335,6 +423,18 @@ export function RepositoryGitPanel({
                 >
                   Check GitHub status
                 </button>
+                <p role="status">
+                  {!github
+                    ? "GitHub status not checked."
+                    : github.phase === "loading"
+                      ? "Checking GitHub… Previous results are not current."
+                      : github.phase === "stale"
+                        ? "GitHub results are stale. Retry Check GitHub status."
+                        : github.phase === "unavailable"
+                          ? "GitHub status unavailable. Retry Check GitHub status."
+                          : "GitHub status checked. Results belong to the last successful check."}
+                </p>
+                {github?.error ? <p role="alert">{github.error}</p> : null}
                 {prs !== null ? (
                   <div aria-label="GitHub pull requests">
                     {prs.length === 0 ? (
@@ -437,7 +537,7 @@ export function RepositoryGitPanel({
               </>
             ) : null}
           </fieldset>
-          {pending ? (
+          {pending && gitCurrent ? (
             <section
               className="repository-workbench__confirm"
               aria-label="Confirm Git action"

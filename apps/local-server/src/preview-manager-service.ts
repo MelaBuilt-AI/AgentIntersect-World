@@ -685,7 +685,7 @@ export class PreviewManagerService {
     }
   }
 
-  async current(): Promise<{
+  async current(workstreamId?: string): Promise<{
     readonly schema: "aiw.preview-manager/1";
     readonly active: PreviewRecord | null;
     readonly latestAttempt: PreviewRecord | null;
@@ -696,17 +696,17 @@ export class PreviewManagerService {
     } | null;
   }> {
     await this.#ensureLoaded();
-    const active = this.#state.active ? clone(this.#state.active) : null;
-    const latestAttempt = this.#state.latestAttempt
-      ? clone(this.#state.latestAttempt)
-      : null;
+    const scoped = (preview: PreviewRecord | null) =>
+      preview && (!workstreamId || preview.workstreamId === workstreamId)
+        ? clone(preview)
+        : null;
+    const active = scoped(this.#state.active);
+    const latestAttempt = scoped(this.#state.latestAttempt);
     return {
       schema: "aiw.preview-manager/1",
       active,
       latestAttempt,
-      previousVerified: this.#state.previousVerified
-        ? clone(this.#state.previousVerified)
-        : null,
+      previousVerified: scoped(this.#state.previousVerified),
       display:
         active?.state === "ready"
           ? {

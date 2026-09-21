@@ -474,7 +474,7 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
           },
           dispatch: async ({ agentId, task, systemContext, signal }) => {
             const binding = agentSessionGateway.status(agentId);
-            await agentSessionGateway.sendText(
+            return agentSessionGateway.sendText(
               agentId,
               {
                 text: task,
