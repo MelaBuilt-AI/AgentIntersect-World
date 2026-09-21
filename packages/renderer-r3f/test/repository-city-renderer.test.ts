@@ -11,7 +11,11 @@ import {
   repositoryMaterialTint,
   selectRepositoryCityRenderPlan,
 } from "../src/repository-city-canvas.js";
-import type { RepositoryCityInstance } from "../src/repository-city-state.js";
+import {
+  createRepositoryCityState,
+  reduceRepositoryCity,
+  type RepositoryCityInstance,
+} from "../src/repository-city-state.js";
 
 const instance = (index: number): RepositoryCityInstance => ({
   instanceId: `repository:${index}`,
@@ -159,6 +163,43 @@ describe("repository city renderer policy", () => {
     expect(markCityArrivalBatch(started, later[2]!.instanceId, later)).toBe(
       false,
     );
+  });
+
+  it("highlights only the selected manual prop after placement and settling", () => {
+    let state = createRepositoryCityState();
+    for (const [index, assetId] of [
+      "07-failing-build-alarm",
+      "01-code-slab",
+    ].entries()) {
+      state = reduceRepositoryCity(state, {
+        type: "manual.add",
+        instanceId: `manual:${index}`,
+        assetId: assetId as RepositoryCityInstance["assetId"],
+        position: { x: index * 5, z: 5 },
+      });
+    }
+    const tints = (selected: string | null) =>
+      state.instances.map((item) =>
+        repositoryMaterialTint(item.status, item.instanceId === selected),
+      );
+    expect(tints("manual:0")).toEqual(["#41e9ff", null]);
+    for (const item of state.instances) {
+      state = reduceRepositoryCity(state, {
+        type: "settled",
+        instanceId: item.instanceId,
+      });
+    }
+    state = reduceRepositoryCity(state, {
+      type: "manual.transform",
+      instanceId: "manual:0",
+      position: { x: 3, z: 4 },
+      yaw: 1.2,
+    });
+    expect(tints("manual:1")).toEqual([null, "#41e9ff"]);
+    expect(tints("repository:other")).toEqual([null, null]);
+    expect(tints(null)).toEqual([null, null]);
+    expect(state.instances.every((item) => item.pinned)).toBe(true);
+    expect(repositoryMaterialTint("active", false)).toBe("#41e9ff");
   });
 
   it("preserves source materials when idle and bounds status tint to truthful state", () => {

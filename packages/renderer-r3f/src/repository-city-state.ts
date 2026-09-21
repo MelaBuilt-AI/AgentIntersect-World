@@ -381,7 +381,7 @@ export function reduceRepositoryCity(
         },
         action.instanceId,
       ),
-      status: "active",
+      status: "idle",
       lifecycle: "materializing",
       pinned: true,
       manual: true,
