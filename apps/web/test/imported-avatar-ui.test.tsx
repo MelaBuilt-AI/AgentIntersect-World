@@ -248,6 +248,25 @@ describe("replacement imported avatar creator", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  it("uses the minimal selector for an in-World agent avatar change without saving on open", () => {
+    const onAccept = vi.fn();
+    const html = renderToStaticMarkup(
+      <WorldEntryAgentAvatar
+        proposal={agentProposal}
+        mode="change"
+        busy={false}
+        error=""
+        AvatarBuilderComponent={AvatarBuilder}
+        onAccept={onAccept}
+      />,
+    );
+    expect(html).toContain('aria-label="Agent avatar selection"');
+    expect(html).toContain(">Accept Agent Avatar</button>");
+    expect(html).not.toContain("Use Complete Avatar");
+    expect(html).not.toContain("avatar-nameplate");
+    expect(onAccept).not.toHaveBeenCalled();
+  });
+
   it("keeps agent migration copy consistent with its unsaved actual-GLB preload", () => {
     const html = renderToStaticMarkup(
       <WorldEntryAgentAvatar

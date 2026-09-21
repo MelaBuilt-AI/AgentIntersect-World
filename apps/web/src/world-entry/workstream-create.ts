@@ -35,14 +35,19 @@ export function resolveWorkstreamConversationRequest(
     };
   if (!workstream || ["completed", "cancelled"].includes(workstream.status))
     return { kind: "create", task };
+  if (workstream.repository.repositoryId !== authority.repository.repositoryId)
+    return { kind: "create", task };
   if (
-    workstream.repository.repositoryId !== authority.repository.repositoryId ||
     workstream.agent.agentId !== authority.agent.agentId ||
     (workstream.agent.rootNativeSessionId ??
       workstream.agent.nativeSessionId) !==
       (authority.agent.rootNativeSessionId ?? authority.agent.nativeSessionId)
   )
-    return { kind: "create", task };
+    return {
+      kind: "unavailable",
+      message:
+        "Workbench error · Existing work owned by another agent. Start a new Workstream to continue this project.",
+    };
   if (workstream.status === "cleanup-required")
     return {
       kind: "unavailable",
@@ -120,7 +125,7 @@ export async function executeWorkstreamConversation(
     );
     if (resolution.kind === "unavailable")
       return {
-        workstream: current ? projectAuthoritativeWorkstream(current) : null,
+        workstream: null,
         message: resolution.message,
         openInspector: false,
         continued: false,

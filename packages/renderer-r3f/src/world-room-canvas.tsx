@@ -45,6 +45,7 @@ import {
 } from "./repository-visual-kit.js";
 import {
   RepositoryCityModels,
+  type CityStreamSound,
   selectRepositoryCityRenderPlan,
 } from "./repository-city-canvas.js";
 import { type RepositoryCityInstance } from "./repository-city-state.js";
@@ -618,6 +619,7 @@ function WorldRoomScene({
   materializationReady,
   onMaterializationPrepared,
   onMaterializationStart,
+  onCityStream,
   avatarLod,
   renderQuality,
   onAvatarReady,
@@ -652,6 +654,7 @@ function WorldRoomScene({
   readonly materializationReady: boolean;
   readonly onMaterializationPrepared?: (() => void) | undefined;
   readonly onMaterializationStart?: (() => void) | undefined;
+  readonly onCityStream?: CityStreamSound | undefined;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly renderQuality: WorldRenderQuality;
   readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
@@ -811,6 +814,7 @@ function WorldRoomScene({
               onSettled={onCitySettled}
               onReady={onCityReady}
               onMaterializationStart={onMaterializationStart}
+              onCityStream={onCityStream}
             />
           </group>
           {cityPlan.aggregateCount > 0 ? (
@@ -979,6 +983,7 @@ export function WorldRoomCanvas({
   onCityReady,
   onSceneReady,
   onMaterializationStart,
+  onCityStream,
 }: {
   readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
@@ -1007,6 +1012,7 @@ export function WorldRoomCanvas({
   readonly onCityReady: () => void;
   readonly onSceneReady?: (() => void) | undefined;
   readonly onMaterializationStart?: (() => void) | undefined;
+  readonly onCityStream?: CityStreamSound | undefined;
 } & WorldScreensProps) {
   const [renderQuality] = useState(() =>
     selectWorldRenderQuality(
@@ -1108,7 +1114,8 @@ export function WorldRoomCanvas({
       dpr={renderQuality.dpr}
       frameloop={renderLoop.frameloop}
       gl={{
-        antialias: renderQuality.antialias,
+        // MSAA belongs to the switchable postprocess target, not immutable context attributes.
+        antialias: false,
         powerPreference: "high-performance",
       }}
       onPointerMissed={() => undefined}
@@ -1132,6 +1139,7 @@ export function WorldRoomCanvas({
           onScreenDrag={onScreenDrag}
         />
         <WorldRoomScene
+          onCityStream={onCityStream}
           onMaterializationPrepared={onSceneReady}
           onMaterializationStart={onMaterializationStart}
           materializationReady={

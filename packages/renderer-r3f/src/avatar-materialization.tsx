@@ -4,6 +4,8 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -14,6 +16,45 @@ import { useCodeTexture } from "./code-world-texture.js";
 export const ArrivalRainContext = createContext<Texture | null | undefined>(
   undefined,
 );
+
+type AppearanceArrivalProps = {
+  readonly appearanceKey: string;
+  readonly initialArrival: boolean;
+  readonly arrivalId: string;
+  readonly reducedMotion: boolean;
+  readonly onMaterializationStart?: (() => void) | undefined;
+  readonly children: (onReady: () => void) => ReactNode;
+};
+
+/** Keep the actor slot mounted; replace only its appearance/arrival generation. */
+export function AvatarAppearanceArrival(props: AppearanceArrivalProps) {
+  const [generation, setGeneration] = useState({
+    key: props.appearanceKey,
+    initial: props.initialArrival,
+  });
+  if (generation.key !== props.appearanceKey)
+    setGeneration({ key: props.appearanceKey, initial: false });
+  return (
+    <AppearanceArrivalGeneration
+      key={props.appearanceKey}
+      {...props}
+      enabled={!generation.initial}
+    />
+  );
+}
+
+function AppearanceArrivalGeneration({
+  children,
+  ...props
+}: AppearanceArrivalProps & { readonly enabled: boolean }) {
+  const [ready, setReady] = useState(false);
+  const markReady = useCallback(() => setReady(true), []);
+  return (
+    <AvatarMaterialization {...props} ready={ready}>
+      {children(markReady)}
+    </AvatarMaterialization>
+  );
+}
 
 /** One entrance per mounted group; later agents own independent groups. */
 export function AvatarMaterialization({
@@ -44,6 +85,7 @@ export function AvatarMaterialization({
   const group = useRef<Group>(null);
   const elapsed = useRef(0);
   const finished = useRef(false);
+  const [complete, setComplete] = useState(false);
   const started = useRef(false);
   const preparation = useRef<"pending" | "compiling" | "ready">("pending");
   const disposed = useRef(false);
@@ -51,6 +93,7 @@ export function AvatarMaterialization({
     undefined,
   );
   const restore = useRef<(() => void) | null>(null);
+  const compiling = useRef<Promise<unknown> | null>(null);
   const { gl, camera, scene, invalidate } = useThree();
   const sharedRain = useContext(ArrivalRainContext);
   const ownedRain = useCodeTexture(
@@ -107,7 +150,10 @@ export function AvatarMaterialization({
         }
       });
       for (const texture of textures) gl.initTexture(texture);
-      const originalsReady = gl.compileAsync(actors, camera, scene);
+      // The original materials can belong to a replaceable impostor snapshot.
+      // Submit their precompile without an async poll over externally owned
+      // materials; that snapshot may dispose them when its semantic changes.
+      gl.compile(actors, camera, scene);
       if (!reducedMotion) {
         actors.updateMatrixWorld(true);
         const bounds = new Box3().setFromObject(actors);
@@ -184,15 +230,22 @@ uniform sampler2D aiwArrivalRain;
           for (const { mesh, material, shadow, clones } of originals) {
             mesh.material = material;
             mesh.castShadow = shadow;
-            for (const clone of clones) clone.dispose();
+            // Three's compileAsync polls these materials' programs. A rapid
+            // replacement must not dispose them out from under that poll.
+            const dispose = () => clones.forEach((clone) => clone.dispose());
+            if (compiling.current)
+              void compiling.current.then(dispose, dispose);
+            else dispose();
           }
           restore.current = null;
         };
       }
-      void Promise.all([
-        originalsReady,
-        gl.compileAsync(actors, camera, scene),
-      ]).then(() => {
+      // Only our arrival clones have a lifetime we can hold through the poll.
+      compiling.current = reducedMotion
+        ? Promise.resolve()
+        : gl.compileAsync(actors, camera, scene);
+      void compiling.current.then(() => {
+        compiling.current = null;
         if (disposed.current) return;
         preparation.current = "ready";
         onPrepared?.();
@@ -232,6 +285,7 @@ uniform sampler2D aiwArrivalRain;
     if (progress === 1) {
       restore.current?.();
       finished.current = true;
+      setComplete(true);
       onComplete?.();
       clearInterval(wakeTimer.current);
     }
@@ -245,7 +299,9 @@ uniform sampler2D aiwArrivalRain;
           ? `${telemetryPrefix === "avatar" ? "agent" : "city"}-materialization:${arrivalId}`
           : "world-avatar-materialization"
       }
-      visible={!enabled}
+      // R3F restores this declarative value after Suspense hides the tree.
+      // Keep completed bodies visible, not only their imperative frame state.
+      visible={!enabled || complete}
     >
       <ArrivalRainContext.Provider value={rain}>
         {children}

@@ -284,6 +284,7 @@ export function AgentSetupMenu({
   onComplete,
   onClose,
   closeOnEscape = false,
+  focusHarness,
   checks = {},
   onAddAgent,
 }: {
@@ -299,6 +300,7 @@ export function AgentSetupMenu({
   readonly onComplete: () => void;
   readonly onClose?: () => void;
   readonly closeOnEscape?: boolean;
+  readonly focusHarness?: SetupHarness | undefined;
 }) {
   const [additionalDirectory, setAdditionalDirectory] = useState("");
   const dialog = useRef<HTMLElement>(null);
@@ -312,6 +314,17 @@ export function AgentSetupMenu({
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
   }, []);
+  useEffect(() => {
+    if (!focusHarness) return;
+    const section = dialog.current?.querySelector<HTMLDetailsElement>(
+      `[data-setup-harness="${focusHarness}"]`,
+    );
+    if (section) {
+      section.open = true;
+      section.querySelector("summary")?.focus();
+      section.scrollIntoView({ block: "nearest" });
+    }
+  }, [focusHarness]);
   return (
     <div className="agent-setup-layer" data-agent-setup="true">
       <section
@@ -426,6 +439,7 @@ export function AgentSetupMenu({
               <details
                 key={harness.id}
                 name="agent-setup-harness"
+                data-setup-harness={harness.id}
                 className="agent-setup-harness"
               >
                 <summary>

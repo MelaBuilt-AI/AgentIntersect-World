@@ -89,6 +89,10 @@ export type WorldEntryEvent =
   | { readonly type: "RETRY_CONNECTION" }
   | { readonly type: "CANCEL_AGENT_SELECTION" }
   | {
+      readonly type: "WORLD_AGENT_CHANGED";
+      readonly agent: WorldEntryRosterEntry;
+    }
+  | {
       readonly type: "WORLD_ROSTER_ADDED";
       readonly roster: readonly WorldEntryRosterEntry[];
     }
@@ -335,6 +339,21 @@ export function reduceWorldEntry(
             },
           })
         : state;
+    case "WORLD_AGENT_CHANGED":
+      if (
+        state.sessionMode !== "single" ||
+        !["world_blank", "world_repository", "repository_loading"].includes(
+          state.step,
+        )
+      )
+        return state;
+      return {
+        ...state,
+        selectedHarness: event.agent.adapterId,
+        agentName: event.agent.agentName,
+        connection: event.agent.connection,
+        agentAvatar: event.agent.agentAvatar,
+      };
     case "WORLD_ROSTER_ADDED":
       if (
         !["world_blank", "world_repository", "repository_loading"].includes(

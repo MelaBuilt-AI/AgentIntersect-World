@@ -620,7 +620,7 @@ function isAdapterSessionRef(value: unknown): value is string {
 }
 
 const HERMES_STREAM_MAX_BYTES = 1_048_576;
-const HERMES_STREAM_MAX_EVENTS = 1_024;
+const HERMES_STREAM_MAX_TOOL_EVENTS = 1_024;
 const HERMES_STREAM_MAX_EVENT_BYTES = 32_768;
 const HERMES_STREAM_MAX_DELTA_BYTES = 65_536;
 
@@ -648,7 +648,6 @@ async function consumeSse(
   let dataLines: string[] = [];
   let frameBytes = 0;
   let totalBytes = 0;
-  let eventCount = 0;
 
   const fail = (message: string): never => {
     throw new GatewayError("upstream", message);
@@ -658,9 +657,7 @@ async function consumeSse(
       frameBytes = 0;
       return;
     }
-    eventCount += 1;
-    if (eventCount > HERMES_STREAM_MAX_EVENTS)
-      fail("Hermes turn stream exceeds the bounded event limit");
+
     if (!eventName || dataLines.length === 0)
       fail("Hermes turn stream contains a malformed event");
     let parsed: unknown;
@@ -1411,7 +1408,16 @@ export class HermesSessionAdapter implements AgentAdapter {
         }
       | undefined;
     const toolLocators = new Map<string, AdapterRepositoryLocator>();
+    let toolEventCount = 0;
     const emit = async (event: AdapterTurnEvent) => {
+      if (
+        event.type !== "assistant.delta" &&
+        ++toolEventCount > HERMES_STREAM_MAX_TOOL_EVENTS
+      )
+        throw new GatewayError(
+          "upstream",
+          "Hermes turn stream exceeds the bounded tool event limit",
+        );
       await context?.onEvent?.(event);
     };
     await consumeSse(response.body, context?.signal, async (event, data) => {

@@ -18,6 +18,32 @@ it("plays the materialization WAV on the effects bus and respects mute and dispo
   expect(media.every((m) => m.paused)).toBe(true);
 });
 
+it("plays each repository stream WAV through the existing effects policy", async () => {
+  const { audio, media } = fixture();
+  const cues = [
+    "repo-stream-up",
+    "repo-stream-in",
+    "repo-stream-up-collective",
+    "repo-stream-in-collective",
+  ] as const;
+  for (const cue of cues) audio.cue(cue);
+  expect(media).toHaveLength(1); // No queued sounds before browser unlock.
+  await audio.play();
+  for (const cue of cues) audio.cue(cue);
+  const streams = media.filter((m) => m.src.includes("repo-stream-"));
+  expect(streams.map((m) => m.src)).toEqual(
+    cues.map((cue) => `/audio/${cue}.wav`),
+  );
+  expect(streams.every((m) => !m.paused && !m.loop)).toBe(true);
+  audio.setMuted("effects", true);
+  expect(streams.every((m) => m.muted)).toBe(true);
+  const count = media.length;
+  for (const cue of cues) audio.cue(cue);
+  expect(media).toHaveLength(count);
+  audio.dispose();
+  expect(streams.every((m) => m.paused)).toBe(true);
+});
+
 it("imports a local M3U in its stated order without fetching external URLs", async () => {
   const { audio } = fixture();
   const a = new File(["a"], "a.ogg", { type: "audio/ogg" }),

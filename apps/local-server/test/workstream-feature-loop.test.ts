@@ -14,6 +14,7 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { WorktreeAuthority } from "../src/worktree-authority.js";
+import { createLocalServer } from "../src/server.js";
 import {
   WorkstreamService,
   type WorkstreamAgentPort,
@@ -184,6 +185,172 @@ afterEach(async () => {
 });
 
 describe("Workstream feature loop", () => {
+  it("refuses stale, busy and foreign continuation sources before allocating or dispatching", async () => {
+    const value = await fixture();
+    await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    const source = (await value.service.current())!;
+    const nextAgent = {
+      ...selectedAgent,
+      agentId: "next-agent",
+      nativeSessionId: "next-native",
+      rootNativeSessionId: "next-native",
+    };
+    value.setCurrentAgent(nextAgent);
+    const sourceWorkstream = {
+      workstreamId: source.workstreamId,
+      expectedRevision: source.revision,
+      expectedHead: source.authority.head,
+      mode: "uncommitted",
+    };
+    const input = {
+      ...createRequest(),
+      requestId: "new-request",
+      correlationId: "new-correlation",
+      agent: nextAgent,
+      sourceWorkstream,
+    };
+    await expect(
+      value.service.create({
+        ...input,
+        sourceWorkstream: { ...sourceWorkstream, expectedRevision: 0 },
+      }),
+    ).rejects.toThrow("Source work changed");
+    await expect(
+      value.service.create({
+        ...input,
+        sourceWorkstream: { ...sourceWorkstream, expectedHead: "f".repeat(40) },
+      }),
+    ).rejects.toThrow("Source branch or commit changed");
+    await expect(
+      value.service.create({
+        ...input,
+        sourceWorkstream: {
+          ...sourceWorkstream,
+          workstreamId: "foreign-workstream",
+        },
+      }),
+    ).rejects.toThrow("Select a source Workstream in this project");
+    vi.spyOn(value.port, "busy").mockImplementation(
+      (agentId) => agentId === source.agent.agentId,
+    );
+    await expect(value.service.create(input)).rejects.toThrow(
+      /still active|source agent/,
+    );
+    expect(value.port.dispatch).toHaveBeenCalledTimes(1);
+    expect(await readdir(value.worktrees)).toEqual([
+      source.authority.relativePath,
+    ]);
+    expect((await value.service.current())?.revision).toBe(source.revision);
+  });
+
+  it.each(["uncommitted", "last-commit"])(
+    "starts a different agent from %s without changing the source",
+    async (mode) => {
+      const value = await fixture();
+      await value.service.create(createRequest());
+      await vi.waitFor(async () =>
+        expect((await value.service.current())?.status).toBe(
+          "ready-for-review",
+        ),
+      );
+      const source = (await value.service.current())!;
+      const from = join(value.worktrees, source.authority.relativePath);
+      await writeFile(join(from, "index.html"), "Beans is Cute!\n");
+      await writeFile(join(from, "remove.txt"), "old\n");
+      await writeFile(join(from, ".gitignore"), "ignored.txt\n");
+      await git(from, ["add", "."]);
+      await git(from, ["commit", "-m", "Beans website"]);
+      const head = (await git(from, ["rev-parse", "HEAD"])).trim();
+      await writeFile(
+        join(from, "index.html"),
+        "Beans latest uncommitted version\n",
+      );
+      await git(from, ["add", "index.html"]);
+      await writeFile(
+        join(from, "src/collision.ts"),
+        "export const collides = false;\n",
+      );
+      await rm(join(from, "remove.txt"));
+      await writeFile(join(from, "asset.bin"), Buffer.from([0, 255, 3]));
+      await writeFile(join(from, "ignored.txt"), "do not inherit\n");
+      const before = await git(from, ["status", "--porcelain=v1"]);
+      const index = await git(from, ["diff", "--cached", "--binary"]);
+      const nextAgent = {
+        ...selectedAgent,
+        agentId: "next-agent",
+        nativeSessionId: "next-native",
+        rootNativeSessionId: "next-native",
+      };
+      value.setCurrentAgent(nextAgent);
+      let inspected = false;
+      vi.mocked(value.port.dispatch).mockImplementationOnce(async () => {
+        const next = (await value.service.current())!;
+        const to = join(value.worktrees, next.authority.relativePath);
+        expect(to).not.toBe(from);
+        expect(await readFile(join(to, "index.html"), "utf8")).toBe(
+          mode === "uncommitted"
+            ? "Beans latest uncommitted version\n"
+            : "Beans is Cute!\n",
+        );
+        expect(await git(to, ["rev-parse", "HEAD"])).toBe(`${head}\n`);
+        expect(await readFile(join(to, "src/collision.ts"), "utf8")).toBe(
+          mode === "uncommitted"
+            ? "export const collides = false;\n"
+            : "export const collides = true;\n",
+        );
+        if (mode === "uncommitted") {
+          expect(await readFile(join(to, "asset.bin"))).toEqual(
+            Buffer.from([0, 255, 3]),
+          );
+          await expect(readFile(join(to, "remove.txt"))).rejects.toThrow();
+        } else {
+          expect(await readFile(join(to, "remove.txt"), "utf8")).toBe("old\n");
+          await expect(readFile(join(to, "asset.bin"))).rejects.toThrow();
+        }
+        await expect(readFile(join(to, "ignored.txt"))).rejects.toThrow();
+        inspected = true;
+      });
+      const server = await createLocalServer({
+        workstreamService: value.service,
+      });
+      const response = await server.inject({
+        method: "POST",
+        url: "/workstreams",
+        payload: {
+          ...createRequest(),
+          requestId: "handoff-request",
+          correlationId: "handoff-correlation",
+          agent: nextAgent,
+          sourceWorkstream: {
+            workstreamId: source.workstreamId,
+            expectedRevision: source.revision,
+            expectedHead: head,
+            mode,
+          },
+        },
+      });
+      try {
+        expect(response.statusCode, response.body).toBe(201);
+        await vi.waitFor(() => expect(inspected).toBe(true));
+      } finally {
+        await server.close();
+      }
+      const next = response.json().data.workstream;
+      expect(next.agent.agentId).toBe(nextAgent.agentId);
+      expect(next.origin).toMatchObject({
+        workstreamId: source.workstreamId,
+        head,
+        mode,
+      });
+      expect(await git(from, ["status", "--porcelain=v1"])).toBe(before);
+      expect(await git(from, ["diff", "--cached", "--binary"])).toBe(index);
+      expect((await git(from, ["rev-parse", "HEAD"])).trim()).toBe(head);
+    },
+  );
+
   it("restores saved files, branch and task after service restart without dispatching replacement work", async () => {
     const value = await fixture();
     await value.service.create(createRequest());

@@ -26,7 +26,7 @@ const CODEX_MODEL = "gpt-5.6-sol";
 const CODEX_REASONING = 'model_reasoning_effort="high"';
 const MAX_INPUT_BYTES = 16_384;
 const MAX_EVENT_BYTES = 32_768;
-const MAX_EVENTS = 1_024;
+const MAX_TOOL_EVENTS = 1_024;
 const MAX_STDOUT_BYTES = 262_144;
 const MAX_STDERR_BYTES = 16_384;
 const MAX_OUTPUT_BYTES = 65_536;
@@ -313,7 +313,6 @@ export class CodexSessionAdapter implements AgentAdapter {
       let lineBuffer = "";
       let stdoutBytes = 0;
       let stderrBytes = 0;
-      let eventCount = 0;
       let failure: GatewayError | undefined;
       let closed = false;
       let termination: Promise<void> | undefined;
@@ -328,11 +327,6 @@ export class CodexSessionAdapter implements AgentAdapter {
       const parseLine = (line: string) => {
         if (!line) return;
         if (Buffer.byteLength(line, "utf8") > MAX_EVENT_BYTES) {
-          fail(codexFailure(options.failureMessage));
-          return;
-        }
-        eventCount += 1;
-        if (eventCount > MAX_EVENTS) {
           fail(codexFailure(options.failureMessage));
           return;
         }
@@ -522,7 +516,14 @@ export class CodexSessionAdapter implements AgentAdapter {
       AdapterTurnEvent["repositoryLocator"]
     >();
     let eventDispatch = Promise.resolve();
+    let toolEventCount = 0;
     const emit = (event: AdapterTurnEvent) => {
+      // Raw bytes and text bytes bound fragments; count only retained tool activity.
+      if (
+        event.type !== "assistant.delta" &&
+        ++toolEventCount > MAX_TOOL_EVENTS
+      )
+        throw codexFailure("Codex turn exceeded the tool event bound");
       eventDispatch = eventDispatch.then(async () => context?.onEvent?.(event));
     };
 

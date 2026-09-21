@@ -6,7 +6,10 @@ import {
 import type { WorldScreenBinding } from "./world-screen-types.js";
 import { useActivityBillboard } from "./world-activity-billboard.js";
 import { WorldEnvironment } from "./world-environment.js";
-import { AvatarMaterialization } from "./avatar-materialization.js";
+import {
+  AvatarMaterialization,
+  AvatarAppearanceArrival,
+} from "./avatar-materialization.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
@@ -55,6 +58,7 @@ import {
 } from "./repository-visual-kit.js";
 import {
   RepositoryCityModels,
+  type CityStreamSound,
   selectRepositoryCityRenderPlan,
 } from "./repository-city-canvas.js";
 import type { RepositoryCityInstance } from "./repository-city-state.js";
@@ -697,6 +701,7 @@ function WorldRoomScene({
   materializationReady,
   onMaterializationPrepared,
   onMaterializationStart,
+  onCityStream,
   avatarLod,
   renderQuality,
   onAvatarReady,
@@ -742,6 +747,7 @@ function WorldRoomScene({
   readonly materializationReady: boolean;
   readonly onMaterializationPrepared?: (() => void) | undefined;
   readonly onMaterializationStart?: (() => void) | undefined;
+  readonly onCityStream?: CityStreamSound | undefined;
   readonly avatarLod: Readonly<{ user: AvatarLod; agent: AvatarLod }>;
   readonly renderQuality: WorldRenderQuality;
   readonly onAvatarReady: (role: "user" | "agent", index?: number) => void;
@@ -783,9 +789,6 @@ function WorldRoomScene({
   // Add Agent appends slots. Preserve existing bodies when single-session IDs
   // become roster IDs during promotion to a multi-agent World.
   const [initialAgentCount] = useState(renderedAgentAvatars.length);
-  const [readyArrivalIds, setReadyArrivalIds] = useState<ReadonlySet<string>>(
-    () => new Set(),
-  );
   const renderedAgentImports = agentImportedAvatars?.length
     ? agentImportedAvatars.slice(0, 4)
     : [agentImportedAvatar];
@@ -977,6 +980,7 @@ function WorldRoomScene({
               onSettled={onCitySettled}
               onReady={onCityReady}
               onMaterializationStart={onMaterializationStart}
+              onCityStream={onCityStream}
             />
           </group>
           {cityPlan.aggregateCount > 0 ? (
@@ -1002,59 +1006,81 @@ function WorldRoomScene({
         onMaterializationStart={onMaterializationStart}
         reducedMotion={reducedMotion}
       >
-        {userImportedAvatar ? (
-          <ImportedAvatarGroundingMarker
-            role="user"
-            position={[userPosition.x, 0, userPosition.z]}
-          />
-        ) : null}
-        {avatarMotion.lightweight ? (
-          <LightweightAvatarMotion phase={0}>
-            <WorldAvatarModel
-              role="user"
-              selection={userAvatar}
-              imported={userImportedAvatar}
-              action={userAction}
-              layerState={userLayerState}
-              animate={userAnimationEnabled}
-              position={[userPosition.x, 0, userPosition.z]}
-              rotation={[0, controlledAvatarYaw, 0]}
-              scale={
-                userImportedAvatar
-                  ? IMPORTED_WORLD_AVATAR_SCALE
-                  : AVATARS[0].scale
-              }
-              onReady={onAvatarReady}
-              onLodChange={onAvatarLodChange}
-              onAnimationSample={onImportedAnimationSample}
-              onOneShotComplete={onImportedOneShotComplete}
-              animationGeneration={userAnimationGeneration}
-              importedRepresentation={importedAvatarRepresentation}
-            />
-          </LightweightAvatarMotion>
-        ) : (
-          <WorldAvatarModel
-            role="user"
-            selection={userAvatar}
-            imported={userImportedAvatar}
-            action={userAction}
-            layerState={userLayerState}
-            animate={userAnimationEnabled}
-            position={[userPosition.x, 0, userPosition.z]}
-            rotation={[0, controlledAvatarYaw, 0]}
-            scale={
-              userImportedAvatar
-                ? IMPORTED_WORLD_AVATAR_SCALE
-                : AVATARS[0].scale
-            }
-            onReady={onAvatarReady}
-            onLodChange={onAvatarLodChange}
-            onAnimationSample={onImportedAnimationSample}
-            onOneShotComplete={onImportedOneShotComplete}
-            animationGeneration={userAnimationGeneration}
-            importedRepresentation={importedAvatarRepresentation}
-          />
-        )}
+        <AvatarAppearanceArrival
+          appearanceKey={JSON.stringify([
+            userAvatar,
+            userImportedAvatar?.assetId,
+            userImportedAvatar?.hiddenPartIds,
+          ])}
+          initialArrival
+          arrivalId="user"
+          onMaterializationStart={onMaterializationStart}
+          reducedMotion={reducedMotion}
+        >
+          {(ready) => (
+            <Suspense fallback={null}>
+              {userImportedAvatar ? (
+                <ImportedAvatarGroundingMarker
+                  role="user"
+                  position={[userPosition.x, 0, userPosition.z]}
+                />
+              ) : null}
+              {avatarMotion.lightweight ? (
+                <LightweightAvatarMotion phase={0}>
+                  <WorldAvatarModel
+                    role="user"
+                    selection={userAvatar}
+                    imported={userImportedAvatar}
+                    action={userAction}
+                    layerState={userLayerState}
+                    animate={userAnimationEnabled}
+                    position={[userPosition.x, 0, userPosition.z]}
+                    rotation={[0, controlledAvatarYaw, 0]}
+                    scale={
+                      userImportedAvatar
+                        ? IMPORTED_WORLD_AVATAR_SCALE
+                        : AVATARS[0].scale
+                    }
+                    onReady={(role) => {
+                      onAvatarReady(role);
+                      ready();
+                    }}
+                    onLodChange={onAvatarLodChange}
+                    onAnimationSample={onImportedAnimationSample}
+                    onOneShotComplete={onImportedOneShotComplete}
+                    animationGeneration={userAnimationGeneration}
+                    importedRepresentation={importedAvatarRepresentation}
+                  />
+                </LightweightAvatarMotion>
+              ) : (
+                <WorldAvatarModel
+                  role="user"
+                  selection={userAvatar}
+                  imported={userImportedAvatar}
+                  action={userAction}
+                  layerState={userLayerState}
+                  animate={userAnimationEnabled}
+                  position={[userPosition.x, 0, userPosition.z]}
+                  rotation={[0, controlledAvatarYaw, 0]}
+                  scale={
+                    userImportedAvatar
+                      ? IMPORTED_WORLD_AVATAR_SCALE
+                      : AVATARS[0].scale
+                  }
+                  onReady={(role) => {
+                    onAvatarReady(role);
+                    ready();
+                  }}
+                  onLodChange={onAvatarLodChange}
+                  onAnimationSample={onImportedAnimationSample}
+                  onOneShotComplete={onImportedOneShotComplete}
+                  animationGeneration={userAnimationGeneration}
+                  importedRepresentation={importedAvatarRepresentation}
+                />
+              )}
+            </Suspense>
+          )}
+        </AvatarAppearanceArrival>
         {renderedAgentAvatars.map((_, index) => {
           const state = agentStates?.[index];
           const position = state
@@ -1091,7 +1117,7 @@ function WorldRoomScene({
             : renderedAgentAvatars.length > 1
               ? worldAgentSpawnPosition(index)
               : agentWorldPosition;
-          const model = (
+          const model = (ready: () => void) => (
             <WorldAvatarModel
               key={`agent-${index + 1}`}
               role="agent"
@@ -1117,11 +1143,7 @@ function WorldRoomScene({
               scale={imported ? IMPORTED_WORLD_AVATAR_SCALE : AVATARS[1].scale}
               onReady={(role) => {
                 onAvatarReady(role, index);
-                setReadyArrivalIds((current) =>
-                  current.has(arrivalId)
-                    ? current
-                    : new Set([...current, arrivalId]),
-                );
+                ready();
               }}
               onLodChange={onAvatarLodChange}
               onAnimationSample={onImportedAnimationSample}
@@ -1131,33 +1153,41 @@ function WorldRoomScene({
             />
           );
           return (
-            <AvatarMaterialization
+            <AvatarAppearanceArrival
               key={`agent-${index}`}
+              appearanceKey={JSON.stringify([
+                selection,
+                imported?.assetId,
+                imported?.hiddenPartIds,
+              ])}
+              initialArrival={index < initialAgentCount}
               arrivalId={arrivalId}
               onMaterializationStart={onMaterializationStart}
-              enabled={index >= initialAgentCount}
-              ready={readyArrivalIds.has(arrivalId)}
               reducedMotion={reducedMotion}
             >
-              {state?.workState === "coding" ? (
-                <CodingWorkHalo position={position} />
-              ) : null}
-              {imported ? (
-                <ImportedAvatarGroundingMarker
-                  role="agent"
-                  position={position}
-                />
-              ) : null}
-              <Suspense fallback={null}>
-                {avatarMotion.lightweight ? (
-                  <LightweightAvatarMotion phase={Math.PI + index}>
-                    {model}
-                  </LightweightAvatarMotion>
-                ) : (
-                  model
-                )}
-              </Suspense>
-            </AvatarMaterialization>
+              {(ready) => (
+                <>
+                  {state?.workState === "coding" ? (
+                    <CodingWorkHalo position={position} />
+                  ) : null}
+                  {imported ? (
+                    <ImportedAvatarGroundingMarker
+                      role="agent"
+                      position={position}
+                    />
+                  ) : null}
+                  <Suspense fallback={null}>
+                    {avatarMotion.lightweight ? (
+                      <LightweightAvatarMotion phase={Math.PI + index}>
+                        {model(ready)}
+                      </LightweightAvatarMotion>
+                    ) : (
+                      model(ready)
+                    )}
+                  </Suspense>
+                </>
+              )}
+            </AvatarAppearanceArrival>
           );
         })}
       </AvatarMaterialization>
@@ -1205,6 +1235,7 @@ export function WorldRoomCanvas({
   onCityReady,
   onSceneReady,
   onMaterializationStart,
+  onCityStream,
 }: {
   readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
@@ -1246,6 +1277,7 @@ export function WorldRoomCanvas({
   readonly onCityReady: () => void;
   readonly onSceneReady?: (() => void) | undefined;
   readonly onMaterializationStart?: (() => void) | undefined;
+  readonly onCityStream?: CityStreamSound | undefined;
 } & WorldScreensProps) {
   const userImportedClip = userImportedAvatar?.resolvedClip;
   const agentImportedClip = agentImportedAvatar?.resolvedClip;
@@ -1434,7 +1466,8 @@ export function WorldRoomCanvas({
       dpr={renderQuality.dpr}
       frameloop={renderLoop.frameloop}
       gl={{
-        antialias: renderQuality.antialias,
+        // MSAA belongs to the switchable postprocess target, not immutable context attributes.
+        antialias: false,
         powerPreference: "high-performance",
       }}
       onPointerMissed={() => undefined}
@@ -1458,6 +1491,7 @@ export function WorldRoomCanvas({
           onScreenDrag={onScreenDrag}
         />
         <WorldRoomScene
+          onCityStream={onCityStream}
           onMaterializationPrepared={onSceneReady}
           onMaterializationStart={onMaterializationStart}
           materializationReady={

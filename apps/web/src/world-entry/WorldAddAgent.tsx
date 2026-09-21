@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useEffectEvent, useRef, useState } from "react";
 import type { AvatarDraft } from "@agentintersect-world/avatar-system";
 import type { AgentRegistration } from "@agentintersect-world/world-schema/agent-setup";
 import {
@@ -12,6 +12,9 @@ import { recheckSetupAgent } from "./agent-setup-client.js";
 import { setupEnvironmentLabel } from "./agent-setup-presentation.js";
 import { createWorldEntryClient } from "./world-entry-client.js";
 import { WorldEntryAgentAvatar } from "./WorldEntryAgentAvatar.js";
+import { WorldEntryLogo } from "./WorldEntryLogo.js";
+import { useReducedMotion } from "../motion/use-reduced-motion.js";
+import type { WorldEntryAdapterId } from "./world-entry-machine.js";
 
 function rosterAgent(session: WorldAgentSession, proposal: AvatarProposal) {
   return {
@@ -30,15 +33,34 @@ function rosterAgent(session: WorldAgentSession, proposal: AvatarProposal) {
   };
 }
 
+export type WorldAgentChoice = {
+  session: WorldAgentSession;
+  proposal: AvatarProposal;
+  draft: AvatarDraft;
+};
 type Candidate = { session: WorldAgentSession; proposal: AvatarProposal };
 export default function WorldAddAgent({
   currentSession,
   currentProposal,
+  mode = "add",
+  singleAgent = false,
+  switchBlocked = false,
+  previousAgents = [],
+  onReplaced,
+  userName = "User",
+  onSelect,
   onClose,
   onAdded,
 }: {
   readonly currentSession: WorldAgentSession;
   readonly currentProposal: AvatarProposal;
+  readonly mode?: "add" | "change";
+  readonly singleAgent?: boolean;
+  readonly switchBlocked?: boolean;
+  readonly previousAgents?: readonly WorldAgentChoice[];
+  readonly onReplaced?: (choice: WorldAgentChoice) => void;
+  readonly userName?: string;
+  readonly onSelect?: (rosterId: string) => void;
   readonly onClose: () => void;
   readonly onAdded: (
     roster: ConstellationState,
@@ -48,6 +70,13 @@ export default function WorldAddAgent({
   ) => void;
 }) {
   const setup = useContext(AgentSetupContext);
+  const reducedMotion = useReducedMotion();
+  const [harness, setHarness] = useState<WorldEntryAdapterId>(
+    currentSession.adapterId as WorldEntryAdapterId,
+  );
+  const [name, setName] = useState("");
+  const changing = mode === "change";
+  const replacing = changing && singleAgent;
   const [api] = useState(() => new AgentSessionClient());
   const [client] = useState(() =>
     createWorldEntryClient({ sessionClient: api }),
@@ -59,17 +88,23 @@ export default function WorldAddAgent({
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [busy, setBusy] = useState(false);
   const [requested, setRequested] = useState<string | null>(null);
+  const connectSaved = useEffectEvent((registration: AgentRegistration) => {
+    void connect(registration);
+  });
   useEffect(() => {
     const pick = (e: Event) => {
       if (
         e instanceof CustomEvent &&
         typeof e.detail?.connectionId === "string"
-      )
+      ) {
         setRequested(e.detail.connectionId);
+        if (changing && e.detail.registration)
+          connectSaved(e.detail.registration);
+      }
     };
     window.addEventListener("aiw:add-saved-agent", pick);
     return () => window.removeEventListener("aiw:add-saved-agent", pick);
-  }, []);
+  }, [changing]);
   const [error, setError] = useState("");
   const owner = useRef("");
   const worldInstanceId = roster?.projection.worldInstanceId ?? "";
@@ -114,16 +149,25 @@ export default function WorldAddAgent({
           .catch(() => {});
     };
   }, [api, currentSession]);
+
   const used = new Set(
     Object.values(sessions)
       .map((s) => s.connectionId)
       .filter(Boolean),
   );
-  const available = (setup?.registrations ?? []).filter((r) => !used.has(r.id));
+  const available = (setup?.registrations ?? []).filter(
+    (r) => replacing || !used.has(r.id),
+  );
   const selectedRegistration = available.find((r) => r.id === requested);
   const count = roster ? Math.max(1, roster.projection.agents.length) : 1;
   useEffect(() => {
-    if (roster && count < 4 && !available.length && !openedSetup.current) {
+    if (
+      !changing &&
+      roster &&
+      count < 4 &&
+      !available.length &&
+      !openedSetup.current
+    ) {
       openedSetup.current = true;
       window.dispatchEvent(
         new CustomEvent("aiw:open-agent-setup", {
@@ -131,24 +175,61 @@ export default function WorldAddAgent({
         }),
       );
     }
-  }, [roster, count, available.length]);
-  async function connect(registration: AgentRegistration) {
-    if (busy || !roster || count >= 4) return;
+  }, [roster, count, available.length, changing]);
+  async function connect(registration?: AgentRegistration) {
+    if (
+      busy ||
+      (changing && switchBlocked) ||
+      !roster ||
+      (!replacing && count >= 4)
+    )
+      return;
     setBusy(true);
     setError("");
     const abort = new AbortController();
     controller.current = abort;
     try {
-      const check = await recheckSetupAgent(registration.id);
-      if (abort.signal.aborted) return;
-      if (check.status !== "ready") throw new Error(check.message);
-      const result = await client.connectWorldOwnedAgent(
-        registration.adapterId,
-        worldInstanceId,
-        registration.displayName,
-        registration.id,
-        abort.signal,
-      );
+      if (registration) {
+        const check = await recheckSetupAgent(registration.id);
+        if (abort.signal.aborted) return;
+        if (check.status !== "ready") {
+          window.dispatchEvent(
+            new CustomEvent("aiw:open-agent-setup", {
+              detail: {
+                addToWorld: true,
+                switchAgent: changing,
+                harness: registration.adapterId,
+              },
+            }),
+          );
+          throw new Error(check.message);
+        }
+      }
+      const retained = replacing
+        ? previousAgents.find(
+            (a) => a.session.connectionId === registration?.id && registration,
+          )
+        : undefined;
+      if (retained) {
+        const restored = await api.status(retained.session.sessionId);
+        if (restored.status !== "ready")
+          throw new Error(
+            "Saved agent is unavailable. Recheck it in Agent Setup.",
+          );
+        if (!abort.signal.aborted && live.current)
+          onReplaced?.({ ...retained, session: restored });
+        return;
+      }
+      const result =
+        !registration && harness === "hermes"
+          ? await client.connectHermes(name.trim())
+          : await client.connectWorldOwnedAgent(
+              registration?.adapterId ?? harness,
+              worldInstanceId,
+              registration?.displayName ?? name.trim(),
+              registration?.id,
+              abort.signal,
+            );
       if (!("session" in result)) throw new Error(result.message);
       if (abort.signal.aborted || !live.current) {
         if (result.session.adapterId !== "hermes")
@@ -169,6 +250,64 @@ export default function WorldAddAgent({
       if (live.current) setBusy(false);
     }
   }
+
+  const selectPrevious = async (choice: WorldAgentChoice) => {
+    if (busy || switchBlocked) return;
+    setBusy(true);
+    setError("");
+    try {
+      const session = await api.status(choice.session.sessionId);
+      if (session.status !== "ready")
+        throw new Error(
+          "Saved agent is unavailable. Recheck it in Agent Setup.",
+        );
+      if (live.current) onReplaced?.({ ...choice, session });
+    } catch (e) {
+      if (live.current)
+        setError(
+          e instanceof Error ? e.message : "Saved agent is unavailable.",
+        );
+    } finally {
+      if (live.current) setBusy(false);
+    }
+  };
+  const pickHarness = (adapterId: WorldEntryAdapterId) => {
+    if (busy || switchBlocked || !roster) return;
+    setHarness(adapterId);
+    setError("");
+    if (replacing && adapterId === currentSession.adapterId) {
+      onClose();
+      return;
+    }
+    const previous = replacing
+      ? previousAgents.filter((a) => a.session.adapterId === adapterId)
+      : [];
+    if (previous.length === 1) {
+      void selectPrevious(previous[0]!);
+      return;
+    }
+    const connected = roster.projection.agents.filter(
+      (a) =>
+        a.adapterId === adapterId &&
+        a.connection === "connected" &&
+        a.avatar.status === "accepted",
+    );
+    if (!replacing && connected.length === 1) {
+      onSelect?.(connected[0]!.rosterId);
+      return;
+    }
+    const saved = available.filter((r) => r.adapterId === adapterId);
+    if (saved.length === 1) {
+      void connect(saved[0]);
+      return;
+    }
+    if (saved.length > 1) return; // Explicit environment/identity choice below.
+    window.dispatchEvent(
+      new CustomEvent("aiw:open-agent-setup", {
+        detail: { addToWorld: true, switchAgent: true, harness: adapterId },
+      }),
+    );
+  };
   async function accept(proposal: AvatarProposal, draft: AvatarDraft) {
     if (!candidate || busy) return;
     setBusy(true);
@@ -176,6 +315,11 @@ export default function WorldAddAgent({
     try {
       if (!(await client.acceptAgentAvatar(candidate.session, proposal)))
         throw new Error("Avatar save unavailable. Retry.");
+      if (replacing) {
+        joined.current = true;
+        onReplaced?.({ session: candidate.session, proposal, draft });
+        return;
+      }
       let next = await api.currentConstellation();
       if (
         next.projection.agents.length >= 4 &&
@@ -249,16 +393,18 @@ export default function WorldAddAgent({
     }
   }
   return (
-    <div className="world-escape-backdrop">
+    <div className="world-escape-backdrop" data-world-selection={mode}>
       <section
         ref={dialog}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="Add Agent"
-        className={`world-escape-dialog world-add-agent${candidate ? " world-add-agent--avatar" : ""}`}
+        aria-label={changing ? "Change Agent" : "Add Agent"}
+        aria-busy={busy && !!candidate}
+        data-world-selection={mode}
+        className={`world-escape-dialog world-add-agent${candidate ? " world-add-agent--avatar" : changing ? " world-change-agent" : ""}`}
         onKeyDown={(e) => {
-          if (e.key === "Escape") {
+          if (e.key === "Escape" && !changing) {
             e.preventDefault();
             e.stopPropagation();
             if (!busy || !candidate) onClose();
@@ -281,7 +427,7 @@ export default function WorldAddAgent({
           }
         }}
       >
-        <h2>Add Agent</h2>
+        <h2>{changing ? "Change Agent" : "Add Agent"}</h2>
         <p>{count} of 4 agents</p>
         {candidate ? (
           <WorldEntryAgentAvatar
@@ -293,34 +439,120 @@ export default function WorldAddAgent({
         ) : (
           <>
             <p>Your current World, conversations and work stay open.</p>
+            {changing && switchBlocked ? (
+              <p role="status">
+                Wait for the current chat turn or queued messages to finish
+                before switching agents.
+              </p>
+            ) : null}
+            {changing ? (
+              <>
+                <p>
+                  {replacing
+                    ? "Switch your single active agent. The previous agent’s conversation and work stay saved; they are not transferred."
+                    : "Choose your active agent. Existing agents keep their sessions and any work already in progress."}
+                </p>
+                <div
+                  className="world-escape-actions"
+                  aria-label="Connected agents"
+                >
+                  {(roster?.projection.agents.length
+                    ? roster.projection.agents
+                        .filter(
+                          (a) =>
+                            a.connection === "connected" &&
+                            a.avatar.status === "accepted",
+                        )
+                        .map((a) => ({ id: a.rosterId, name: a.displayName }))
+                    : [
+                        {
+                          id: currentSession.sessionId,
+                          name: currentProposal.displayName,
+                        },
+                      ]
+                  ).map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      className="world-action--enabled"
+                      disabled={busy}
+                      onClick={() => onSelect?.(a.id)}
+                    >
+                      Use {a.name}
+                    </button>
+                  ))}
+                </div>
+                <WorldEntryLogo
+                  userName={userName}
+                  stage="prompt"
+                  reducedMotion={reducedMotion}
+                  singleSelected={false}
+                  selectedHarness={harness}
+                  connectionPending={busy || switchBlocked || !roster}
+                  rosterFull={false}
+                  onSingle={() => {}}
+                  onHarness={pickHarness}
+                />
+                {!setup && count < 4 ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (name.trim() && !busy) void connect();
+                    }}
+                  >
+                    <label>
+                      Agent name
+                      <input
+                        aria-label="Agent name"
+                        value={name}
+                        maxLength={80}
+                        disabled={busy}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className="world-action--enabled"
+                      disabled={busy || !roster || !name.trim()}
+                    >
+                      Connect agent
+                    </button>
+                  </form>
+                ) : null}
+              </>
+            ) : null}
             {selectedRegistration ? (
               <p role="status">
                 “{selectedRegistration.displayName}” is ready to add. Select its
                 Add button below.
               </p>
             ) : null}
-            {count >= 4 ? (
+            {count >= 4 && !replacing ? (
               <p>World is full. Four simultaneous agents are supported.</p>
             ) : (
-              available.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  className="world-action--enabled"
-                  aria-pressed={r.id === requested}
-                  disabled={busy || !roster}
-                  onClick={() => void connect(r)}
-                >
-                  Add{" "}
-                  {r.adapterId === "claude-code" ? "Claude Code" : r.adapterId}{" "}
-                  · {setupEnvironmentLabel(r.environment)} · “{r.displayName}”
-                </button>
-              ))
+              available
+                .filter((r) => !changing || r.adapterId === harness)
+                .map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    className="world-action--enabled"
+                    aria-pressed={r.id === requested}
+                    disabled={busy || !roster}
+                    onClick={() => void connect(r)}
+                  >
+                    {changing ? "Connect" : "Add"}{" "}
+                    {r.adapterId === "claude-code"
+                      ? "Claude Code"
+                      : r.adapterId}{" "}
+                    · {setupEnvironmentLabel(r.environment)} · “{r.displayName}”
+                  </button>
+                ))
             )}
             <button
               type="button"
               className="world-action--enabled"
-              disabled={busy || count >= 4}
+              disabled={busy || (!replacing && count >= 4)}
               onClick={() =>
                 window.dispatchEvent(
                   new CustomEvent("aiw:open-agent-setup", {

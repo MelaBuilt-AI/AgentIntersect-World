@@ -18,6 +18,8 @@ import {
 } from "../src/claude-code-session-adapter.js";
 
 type FixtureControl = {
+  readonly fragmented?: boolean;
+  readonly toolFlood?: boolean;
   readonly version?: string;
   readonly invalidHelp?: boolean;
   readonly attestHang?: boolean;
@@ -69,6 +71,43 @@ type Fixture = {
 };
 
 const temporaryRoots: string[] = [];
+
+it("still bounds normalized tool activity independently of text fragments", async () => {
+  const fixture = await fixtureExecutable({ toolFlood: true });
+  const native = adapter(fixture);
+  const session = await native.createWorldSession("tool-limit-proof");
+  const types: string[] = [];
+  await expect(
+    native.sendText(session.id, "bounded tools", {
+      mode: "explore",
+      rootSessionRef: session.rootId,
+      onEvent: (e) => {
+        types.push(e.type);
+      },
+    }),
+  ).rejects.toThrow();
+  expect(
+    types.filter((type) => type === "tool.started").length,
+  ).toBeLessThanOrEqual(1024);
+});
+
+it("accepts bounded token fragmentation beyond the old raw event count", async () => {
+  const fixture = await fixtureExecutable({ fragmented: true });
+  const native = adapter(fixture);
+  const session = await native.createWorldSession("fragment-proof");
+  const result = await native.sendText(session.id, "finish normally", {
+    mode: "explore",
+    rootSessionRef: session.rootId,
+  });
+  expect(result.finalText).toBe("fixture complete");
+  expect(result.deltas.join("")).toBe("x".repeat(1100) + "fixture ");
+  await expect(
+    native.sendText(session.id, "next turn", {
+      mode: "explore",
+      rootSessionRef: session.rootId,
+    }),
+  ).resolves.toMatchObject({ finalText: "fixture complete" });
+});
 it("cancels initial native connection without a saved World binding", async () => {
   const fixture = await fixtureExecutable({ createHang: true });
   const native = adapter(fixture, { turnTimeoutMs: 5000 });
@@ -308,6 +347,8 @@ if (isResume && control.failure === "delay") {
 }
 
 if (isResume) {
+  if (control.toolFlood) for (let i = 0; i < 1025; i++) emit({ type: "assistant", session_id: sessionId, message: { type: "message", role: "assistant", content: [{ type: "tool_use", id: "tool-" + i, name: "Read", input: {} }] } });
+  if (control.fragmented) for (let i = 0; i < 1100; i++) emit({ type: "stream_event", session_id: sessionId, event: { type: "content_block_delta", delta: { type: "text_delta", text: "x" } } });
   emit({ type: "stream_event", session_id: sessionId, event: { type: "message_start", message: { type: "message" } } });
   emit({ type: "stream_event", session_id: sessionId, event: { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "fixture " } } });
   emit({

@@ -441,7 +441,9 @@ function ImportedAvatarModel({
     scene,
     semanticAction,
   ]);
-  useEffect(
+  // Release the previous mixer before layout initialization of its replacement.
+  // A passive cleanup runs after the new layout effect and would stop its action.
+  useLayoutEffect(
     () => () => {
       activeAction.current?.stop();
       activeAction.current = null;

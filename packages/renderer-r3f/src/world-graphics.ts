@@ -1,4 +1,5 @@
 export const DEFAULT_WORLD_GRAPHICS = Object.freeze({
+  antialiasing: true,
   bloom: true,
   lightShafts: true,
   wetFloorReflections: true,

@@ -104,6 +104,7 @@ export function RepositoryTerminalRain({
   settledAt = 0,
   reducedMotion = false,
   onLaunchComplete,
+  onStreamPhase,
 }: {
   readonly texture: Texture;
   readonly x: number;
@@ -115,10 +116,12 @@ export function RepositoryTerminalRain({
   readonly settledAt?: number;
   readonly reducedMotion?: boolean;
   readonly onLaunchComplete?: (() => void) | undefined;
+  readonly onStreamPhase?: ((phase: "up" | "in") => void) | undefined;
 }) {
   const graphics = useContext(WorldGraphicsContext);
   const skipLaunch = useRef(reducedMotion);
   const completedLaunch = useRef(false);
+  const streamPhases = useRef(new Set<"up" | "in">());
   const uniforms = useMemo(
     () => ({
       rainMap: { value: texture },
@@ -175,6 +178,19 @@ export function RepositoryTerminalRain({
       age,
       skipLaunch.current || !graphics.arrivalSparks,
     );
+    if (
+      !completedLaunch.current &&
+      !skipLaunch.current &&
+      graphics.arrivalSparks &&
+      launch.reach > 0
+    ) {
+      // Match the glyph velocity, not merely the start of the easing interval.
+      const phase = -0.25 + 0.305 * launch.down >= 0 ? "in" : "up";
+      if (!streamPhases.current.has(phase)) {
+        streamPhases.current.add(phase);
+        onStreamPhase?.(phase);
+      }
+    }
     if (launch.down === 1 && !completedLaunch.current) {
       completedLaunch.current = true;
       onLaunchComplete?.();

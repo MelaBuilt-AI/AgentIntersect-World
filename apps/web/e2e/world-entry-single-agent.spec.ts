@@ -1115,8 +1115,19 @@ for (const source of ["clone", "open", "create"] as const) {
     await page.addInitScript(() => {
       const originalPlay = HTMLMediaElement.prototype.play;
       const arrivals: { currentTime: number }[] = [];
-      Object.assign(window, { __cityArrivalPlayback: arrivals });
+      const streams: { src: string; currentTime: number }[] = [];
+      Object.assign(window, {
+        __cityArrivalPlayback: arrivals,
+        __cityStreamPlayback: streams,
+      });
       HTMLMediaElement.prototype.play = function () {
+        if (/\/repo-stream-(up|in)(-collective)?\.wav$/.test(this.src)) {
+          const sample = { src: new URL(this.src).pathname, currentTime: 0 };
+          streams.push(sample);
+          this.addEventListener("timeupdate", () => {
+            sample.currentTime = Math.max(sample.currentTime, this.currentTime);
+          });
+        }
         if (this.src.endsWith("/avatar-materialize.wav")) {
           const sample = { currentTime: 0 };
           arrivals.push(sample);
@@ -1321,6 +1332,48 @@ for (const source of ["clone", "open", "create"] as const) {
         await expect
           .poll(async () => (await playback())[1]?.currentTime ?? 0)
           .toBeGreaterThan(0.05);
+        const streams = () =>
+          page.evaluate(
+            () =>
+              (
+                window as unknown as {
+                  __cityStreamPlayback: { src: string; currentTime: number }[];
+                }
+              ).__cityStreamPlayback,
+          );
+        await expect
+          .poll(async () => (await streams()).map((item) => item.src))
+          .toEqual([
+            "/audio/repo-stream-up-collective.wav",
+            "/audio/repo-stream-in-collective.wav",
+          ]);
+        await expect
+          .poll(async () =>
+            (await streams()).every((item) => item.currentTime > 0.05),
+          )
+          .toBe(true);
+        // A later object uses its own pair, not the load's collective sound.
+        await page
+          .getByRole("button", { name: "Arrange workspace", exact: true })
+          .click();
+        await page.getByText("Visual-only props", { exact: true }).click();
+        await page.getByLabel("Search assets").fill("deployment");
+        await page.getByRole("button", { name: "Place prop" }).click();
+        await expect
+          .poll(async () => (await streams()).map((item) => item.src), {
+            timeout: 30_000,
+          })
+          .toEqual([
+            "/audio/repo-stream-up-collective.wav",
+            "/audio/repo-stream-in-collective.wav",
+            "/audio/repo-stream-up.wav",
+            "/audio/repo-stream-in.wav",
+          ]);
+        await expect
+          .poll(async () =>
+            (await streams()).every((item) => item.currentTime > 0.05),
+          )
+          .toBe(true);
         await page.emulateMedia({ reducedMotion: "reduce" });
         await expect(cityCanvas).toHaveAttribute(
           "data-city-rain-highlight",

@@ -3,6 +3,7 @@ import type {
   AgentSetupState,
   DiscoveryResult,
   SetupCheck,
+  SetupHarness,
 } from "@agentintersect-world/world-schema/agent-setup";
 import { AgentSetupMenu } from "./AgentSetupMenu.js";
 import { AgentSetupContext } from "./agent-setup-context.js";
@@ -37,6 +38,7 @@ export function AgentSetupBoundary({
   const [busy, setBusy] = useState(false);
   const [checks, setChecks] = useState<Record<string, SetupCheck>>({});
   const [addingToWorld, setAddingToWorld] = useState(false);
+  const [switchHarness, setSwitchHarness] = useState<SetupHarness | null>(null);
   const pending = useRef(false);
   const [message, setMessage] = useState("");
   const [preferences, setPreferences] = useState(() =>
@@ -67,6 +69,11 @@ export function AgentSetupBoundary({
       setAddingToWorld(
         event instanceof CustomEvent && event.detail?.addToWorld === true,
       );
+      setSwitchHarness(
+        event instanceof CustomEvent && event.detail?.switchAgent === true
+          ? (event.detail.harness ?? null)
+          : null,
+      );
       setOpen(true);
     };
     const unavailable = (event: Event) => {
@@ -84,12 +91,18 @@ export function AgentSetupBoundary({
         },
       }));
     };
+    const backToWorld = () => {
+      setOpen(false);
+      setAddingToWorld(false);
+    };
+    window.addEventListener("aiw:back-to-world", backToWorld);
     window.addEventListener("aiw:agent-connection-unavailable", unavailable);
     window.addEventListener("aiw:open-agent-setup", show);
     return () => {
       active = false;
       window.clearTimeout(timer);
       window.removeEventListener("aiw:open-agent-setup", show);
+      window.removeEventListener("aiw:back-to-world", backToWorld);
       window.removeEventListener(
         "aiw:agent-connection-unavailable",
         unavailable,
@@ -154,6 +167,7 @@ export function AgentSetupBoundary({
           busy={busy}
           message={message}
           checks={checks}
+          focusHarness={switchHarness ?? undefined}
           closeOnEscape={addingToWorld}
           onAddAgent={
             addingToWorld
@@ -162,7 +176,12 @@ export function AgentSetupBoundary({
                   setAddingToWorld(false);
                   window.dispatchEvent(
                     new CustomEvent("aiw:add-saved-agent", {
-                      detail: { connectionId },
+                      detail: {
+                        connectionId,
+                        registration: state?.registrations.find(
+                          (r) => r.id === connectionId,
+                        ),
+                      },
                     }),
                   );
                 }
@@ -188,6 +207,23 @@ export function AgentSetupBoundary({
                   [result.registration!.id]: result.check,
                 }));
               setMessage(result.check.message);
+              if (
+                switchHarness &&
+                result.registration?.adapterId === switchHarness &&
+                result.check.status === "ready"
+              ) {
+                setOpen(false);
+                setAddingToWorld(false);
+                setSwitchHarness(null);
+                window.dispatchEvent(
+                  new CustomEvent("aiw:add-saved-agent", {
+                    detail: {
+                      connectionId: result.registration.id,
+                      registration: result.registration,
+                    },
+                  }),
+                );
+              }
             })
           }
           onRecheck={(id) =>

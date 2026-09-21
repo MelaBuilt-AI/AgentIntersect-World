@@ -12,6 +12,7 @@ import {
 } from "@agentintersect-world/renderer-r3f";
 
 const GRAPHICS_LABELS: Record<keyof WorldGraphics, string> = {
+  antialiasing: "Anti-aliasing",
   bloom: "Subtle bloom",
   lightShafts: "Localized light shafts",
   wetFloorReflections: "Wet-floor reflections",
@@ -35,6 +36,7 @@ const focusableSelector = [
 export function WorldEscapeMenu({
   userName,
   agentName,
+  agents,
   preferences,
   onPreferences,
   onLogout,
@@ -46,11 +48,15 @@ export function WorldEscapeMenu({
   readonly entryOnly?: boolean;
   readonly userName: string;
   readonly agentName: string;
+  readonly agents?: readonly { rosterId: string; name: string }[];
   readonly preferences: WorldDisplayPreferences;
   readonly onPreferences: (preferences: WorldDisplayPreferences) => void;
   readonly onLogout: () => void;
   readonly onResetSession: () => void;
-  readonly onChangeAvatar: (target: "user" | "agent") => void;
+  readonly onChangeAvatar: (
+    target: "user" | "agent",
+    rosterId?: string,
+  ) => void;
   readonly onChangeAgent: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -91,11 +97,18 @@ export function WorldEscapeMenu({
         document.querySelector("[data-world-menu-owner]") !== null,
       );
       if ((owner === "entry") !== entryOnly) return;
-      if (!entryOnly && !setupOpen && isEditableWorldTarget(event.target))
+      const selectionOpen =
+        document.querySelector("[data-world-selection]") !== null;
+      if (
+        !entryOnly &&
+        !setupOpen &&
+        !selectionOpen &&
+        isEditableWorldTarget(event.target)
+      )
         return;
       if (
         document.querySelector(
-          '[role="dialog"][aria-modal="true"]:not([data-agent-setup])',
+          '[role="dialog"][aria-modal="true"]:not([data-agent-setup]):not([data-world-selection="change"])',
         ) ||
         document.querySelector(
           '[data-mouse-look="active"], [data-screen-dragging="true"], [data-code-focused="true"], .world-view[data-input-owner="preview"]',
@@ -241,6 +254,24 @@ export function WorldEscapeMenu({
               >
                 Change Agent
               </button>
+              <button
+                type="button"
+                className="world-action--enabled"
+                disabled={
+                  !document.querySelector(".world-room") ||
+                  !!document.querySelector(
+                    '[data-world-selection][aria-busy="true"]',
+                  )
+                }
+                onClick={() =>
+                  act(() => {
+                    window.dispatchEvent(new Event("aiw:back-to-world"));
+                    restoreFocus();
+                  })
+                }
+              >
+                Back to World
+              </button>
             </div>
           </>
         ) : null}
@@ -360,13 +391,18 @@ export function WorldEscapeMenu({
               >
                 {userName} · user
               </button>
-              <button
-                type="button"
-                className="world-action--enabled"
-                onClick={() => act(() => onChangeAvatar("agent"))}
-              >
-                {agentName} · connected agent
-              </button>
+              {(agents ?? [{ rosterId: "", name: agentName }]).map((agent) => (
+                <button
+                  key={agent.rosterId}
+                  type="button"
+                  className="world-action--enabled"
+                  onClick={() =>
+                    act(() => onChangeAvatar("agent", agent.rosterId))
+                  }
+                >
+                  {agent.name} · connected agent
+                </button>
+              ))}
               <button
                 type="button"
                 className="world-action--enabled"

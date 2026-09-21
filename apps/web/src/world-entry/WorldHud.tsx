@@ -242,7 +242,7 @@ export function WorldHud({
                     (item.kind === "user"
                       ? "You"
                       : item.kind === "assistant"
-                        ? recipient
+                        ? "Agent"
                         : item.kind === "tool"
                           ? "Activity"
                           : "Error")}

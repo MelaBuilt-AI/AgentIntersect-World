@@ -18,6 +18,8 @@ import {
 } from "../src/codex-session-adapter.js";
 
 type FixtureControl = {
+  readonly fragmented?: boolean;
+  readonly toolFlood?: boolean;
   readonly version?: string;
   readonly invalidHelp?: boolean;
   readonly attestHang?: boolean;
@@ -51,6 +53,43 @@ type Fixture = {
 };
 
 const temporaryRoots: string[] = [];
+
+it("still bounds normalized tool activity independently of text fragments", async () => {
+  const fixture = await fixtureExecutable({ toolFlood: true });
+  const native = adapter(fixture);
+  const session = await native.createWorldSession("tool-limit-proof");
+  const types: string[] = [];
+  await expect(
+    native.sendText(session.id, "bounded tools", {
+      mode: "explore",
+      rootSessionRef: session.rootId,
+      onEvent: (e) => {
+        types.push(e.type);
+      },
+    }),
+  ).rejects.toThrow();
+  expect(
+    types.filter((type) => type === "tool.started").length,
+  ).toBeLessThanOrEqual(1024);
+});
+
+it("accepts bounded token fragmentation beyond the old raw event count", async () => {
+  const fixture = await fixtureExecutable({ fragmented: true });
+  const native = adapter(fixture);
+  const session = await native.createWorldSession("fragment-proof");
+  const result = await native.sendText(session.id, "finish normally", {
+    mode: "explore",
+    rootSessionRef: session.rootId,
+  });
+  expect(result.finalText).toBe("fixture complete");
+  expect(result.deltas.join("")).toBe("x".repeat(1100) + "fixture ");
+  await expect(
+    native.sendText(session.id, "next turn", {
+      mode: "explore",
+      rootSessionRef: session.rootId,
+    }),
+  ).resolves.toMatchObject({ finalText: "fixture complete" });
+});
 
 afterEach(async () => {
   delete process.env.CODEX_ADAPTER_SECRET_CANARY;
@@ -185,6 +224,8 @@ if (isResume && control.failure === "delay") {
 }
 
 if (isResume) {
+  if (control.toolFlood) for (let i = 0; i < 1025; i++) emit({ type: "item.started", item: { id: "tool-" + i, type: "command_execution", command: "pwd", status: "in_progress" } });
+  if (control.fragmented) for (let i = 0; i < 1100; i++) emit({ type: "item.updated", item: { id: "a", type: "agent_message" }, delta: "x" });
   emit({
     type: "item.updated",
     item: { id: "item-1", type: "agent_message" },

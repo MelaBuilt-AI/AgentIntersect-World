@@ -125,7 +125,12 @@ export function WorldEnvironment({
   });
   return (
     <group name="world-code-environment">
-      {graphics.bloom ? <WorldBloom /> : null}
+      {graphics.bloom || graphics.antialiasing ? (
+        <WorldBloom
+          bloom={graphics.bloom}
+          antialiasing={graphics.antialiasing}
+        />
+      ) : null}
       {floor === "repository" && graphics.wetFloorReflections ? (
         <WorldWetFloor size={size} />
       ) : null}

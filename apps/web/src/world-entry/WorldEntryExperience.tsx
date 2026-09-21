@@ -44,6 +44,7 @@ import {
 import { avatarDraftFromProposal } from "./world-entry-avatar.js";
 import { WorldEntryAgentAvatar } from "./WorldEntryAgentAvatar.js";
 const WorldAddAgent = lazy(() => import("./WorldAddAgent.js"));
+import type { WorldAgentChoice } from "./WorldAddAgent.js";
 
 import { WorldEscapeMenu } from "./WorldEscapeMenu.js";
 import { startWorldPolling } from "./world-entry-polling.js";
@@ -149,6 +150,11 @@ type PendingWorldMessage = {
 const RepositoryWorkbench = lazy(() =>
   import("./RepositoryWorkbench.js").then((module) => ({
     default: module.RepositoryWorkbench,
+  })),
+);
+const AgentChangeWorkDialog = lazy(() =>
+  import("./AgentChangeWorkDialog.js").then((module) => ({
+    default: module.AgentChangeWorkDialog,
   })),
 );
 const NewWorkstreamDialog = lazy(() =>
@@ -348,6 +354,9 @@ export function WorldEntryExperience({
   );
   const [agentName, setAgentName] = useState("");
   const [session, setSession] = useState<WorldAgentSession | null>(null);
+  const [previousAgents, setPreviousAgents] = useState<
+    readonly WorldAgentChoice[]
+  >([]);
   const [proposal, setProposal] = useState<AvatarProposal | null>(null);
   const [agentAvatar, setAgentAvatar] = useState<AvatarDraft | null>(null);
   const [constellation, setConstellation] =
@@ -368,6 +377,10 @@ export function WorldEntryExperience({
     null,
   );
   const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarEditingAgent, setAvatarEditingAgent] = useState<{
+    session: WorldAgentSession;
+    proposal: AvatarProposal;
+  } | null>(null);
   const [status, setStatus] = useState("Restored user avatar · Current");
   const [directionRefusal, setDirectionRefusal] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -434,20 +447,15 @@ export function WorldEntryExperience({
   const owner = storedWorkstream?.authority;
   const normalWorkstream =
     owner &&
-    owner.repository.repositoryId === activeRepositoryAuthority?.repositoryId &&
-    (state.sessionMode === "multi"
-      ? constellation?.agents.some(
-          (agent) =>
-            agent.worldSessionId === owner.agent.agentId &&
-            agent.connection === "connected",
-        )
-      : session?.sessionId === owner.agent.agentId)
+    owner.repository.repositoryId === activeRepositoryAuthority?.repositoryId
       ? storedWorkstream
       : null;
   const [normalWorkstreamOpen, setNormalWorkstreamOpen] = useState(false);
   const [wheelTaskOpen, setWheelTaskOpen] = useState(false);
   const [workbenchOpen, setWorkbenchOpen] = useState(false);
   const [newWorkstreamBase, setNewWorkstreamBase] = useState("HEAD");
+  const [changeAgentWork, setChangeAgentWork] =
+    useState<WorkstreamApiRecord | null>(null);
   const [normalWorkstreamPending, setNormalWorkstreamPending] = useState(false);
   const [normalWorkstreamMessage, setNormalWorkstreamMessage] = useState<
     string | null
@@ -515,11 +523,26 @@ export function WorldEntryExperience({
     return () => window.removeEventListener("aiw:display-preferences", sync);
   }, []);
   const [addingAgent, setAddingAgent] = useState(false);
+  const [changingAgent, setChangingAgent] = useState(false);
   useEffect(() => {
-    const open = () => setAddingAgent(true);
+    const open = () => {
+      setChangingAgent(false);
+      setAvatarTarget(null);
+      setAddingAgent(true);
+    };
     window.addEventListener("aiw:open-add-agent", open);
     return () => window.removeEventListener("aiw:open-add-agent", open);
   }, []);
+  useEffect(() => {
+    const back = () => {
+      if (avatarBusy) return;
+      setAddingAgent(false);
+      setChangingAgent(false);
+      setAvatarTarget(null);
+    };
+    window.addEventListener("aiw:back-to-world", back);
+    return () => window.removeEventListener("aiw:back-to-world", back);
+  }, [avatarBusy]);
   const connectAttempt = useRef(0);
   const connectController = useRef<AbortController | null>(null);
   const mounted = useRef(true);
@@ -643,6 +666,7 @@ export function WorldEntryExperience({
           updateChat({
             type: "RESTORE_HISTORY",
             messages: primary.history.messages,
+            recipient: primary.displayName,
             groups: restoredMessageGroups.filter((group) =>
               group.recipientRosterIds.every((rosterId) =>
                 restoreProjection.agents.some(
@@ -708,6 +732,7 @@ export function WorldEntryExperience({
           updateChat({
             type: "RESTORE_HISTORY",
             messages: primary.history.messages,
+            recipient: primary.displayName,
             groups: restoredMessageGroups.filter((group) =>
               group.recipientRosterIds.every((rosterId) =>
                 restoreProjection.agents.some(
@@ -754,8 +779,16 @@ export function WorldEntryExperience({
         finishWithoutRestore(pointer !== null);
         return;
       }
+      const restoreSingleAgent = async (sessionId: string) => {
+        const saved = await client.refreshSession(sessionId);
+        return saved.adapterId === "codex" ||
+          saved.adapterId === "claude-code" ||
+          saved.adapterId === "openclaw"
+          ? client.restoreConstellationAgent(sessionId, saved.adapterId)
+          : client.restoreHermes(sessionId);
+      };
       let result: HermesConnectionResult | null = validPointer
-        ? await client.restoreHermes(validPointer)
+        ? await restoreSingleAgent(validPointer)
         : null;
       let disposition = result ? resolveWorldEntryRestore(result) : null;
       if (
@@ -772,7 +805,7 @@ export function WorldEntryExperience({
           currentAgentId !== validPointer &&
           SESSION_POINTER_PATTERN.test(currentAgentId)
         ) {
-          result = await client.restoreHermes(currentAgentId);
+          result = await restoreSingleAgent(currentAgentId);
           disposition = resolveWorldEntryRestore(result);
         }
       }
@@ -795,6 +828,7 @@ export function WorldEntryExperience({
       updateChat({
         type: "RESTORE_HISTORY",
         messages: result.history.messages,
+        recipient: result.proposal?.displayName ?? "Agent",
       });
       if (disposition === "world") {
         if (!active) return;
@@ -955,6 +989,7 @@ export function WorldEntryExperience({
     updateChat({
       type: "RESTORE_HISTORY",
       messages: result.history.messages,
+      recipient: result.proposal?.displayName ?? "Agent",
     });
     setStatus(`agent connected · ${connectionLabel(result)}`);
     window.localStorage.setItem(SESSION_POINTER_KEY, result.session.sessionId);
@@ -991,84 +1026,137 @@ export function WorldEntryExperience({
     );
   };
 
+  const openAvatarEditor = async (
+    target: "user" | "agent",
+    rosterId?: string,
+  ) => {
+    setChangingAgent(false);
+    setAddingAgent(false);
+    setError("");
+    setAvatarTarget(target);
+    if (target === "user") return;
+    const targetId =
+      constellation?.agents.find((a) => a.rosterId === rosterId)
+        ?.worldSessionId ?? session?.sessionId;
+    if (targetId === session?.sessionId && session && proposal) {
+      setAvatarEditingAgent({ session, proposal });
+      return;
+    }
+    setAvatarEditingAgent(null);
+    if (!targetId) return;
+    setAvatarBusy(true);
+    try {
+      const [editSession, editProposal] = await Promise.all([
+        client.refreshSession(targetId),
+        groupedClient.avatarProposal(targetId),
+      ]);
+      if (!editProposal)
+        throw new Error(
+          "Agent avatar is unavailable. Return to World and retry.",
+        );
+      setAvatarEditingAgent({ session: editSession, proposal: editProposal });
+    } catch {
+      setError("Agent avatar is unavailable. Return to World and retry.");
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
   const acceptAvatar = async (
     acceptedProposal: AvatarProposal,
     acceptedDraft: AvatarDraft,
     returnToWorld = false,
   ) => {
+    const acceptingSession = returnToWorld
+      ? avatarEditingAgent?.session
+      : session;
     if (
-      !session ||
-      acceptedProposal.sessionId !== session.sessionId ||
+      !acceptingSession ||
+      acceptedProposal.sessionId !== acceptingSession.sessionId ||
       acceptedDraft.agentName !== acceptedProposal.displayName
     )
       return;
     setAvatarBusy(true);
     setError("");
-    const accepted = await client.acceptAgentAvatar(session, acceptedProposal);
-    setAvatarBusy(false);
-    if (!accepted) {
-      setError("avatar save unavailable_");
-      return;
-    }
-    const pendingRosterId = state.pendingAgent?.rosterId;
-    if (state.sessionMode === "multi") {
-      if (!constellation || !pendingRosterId) {
-        setError("avatar save unavailable_");
-        return;
-      }
-      try {
-        const next = await client.setConstellationAvatar(pendingRosterId, {
-          worldInstanceId: constellation.worldInstanceId,
-          expectedRevision: constellation.revision,
-          idempotencyKey: `task10-avatar-${crypto.randomUUID()}`,
-          avatar: {
-            status: "accepted",
-            profileId: acceptedProposal.proposalId,
-            sessionId: session.sessionId,
-          },
-        });
-        setConstellation(next.projection);
-        setAcceptedAgentAvatars((current) => ({
-          ...current,
-          [pendingRosterId]: acceptedDraft,
-        }));
-        setSelectedRecipientId((current) => current ?? pendingRosterId);
-      } catch {
-        setError("avatar save unavailable_");
-        return;
-      }
-    }
-    setProposal(acceptedProposal);
-    setAgentAvatar(acceptedDraft);
-    setStatus(
-      `agent connected · ${
-        session.continuity === "previous-recovered"
-          ? "Previous / recovered"
-          : "Current"
-      } · avatar accepted`,
-    );
-    if (returnToWorld) {
-      setAvatarTarget(null);
-      return;
-    }
-    if (state.sessionMode === "multi" && pendingRosterId)
-      dispatch({
-        type: "AGENT_AVATAR_ACCEPTED",
-        rosterId: pendingRosterId,
-        sessionId: session.sessionId,
-        avatarProfileId: acceptedProposal.proposalId,
-      });
-    else
-      dispatch({
-        type: "ACCEPT_AGENT_AVATAR",
-        sessionId: session.sessionId,
-        avatarProfileId: acceptedProposal.proposalId,
-      });
-    if (state.sessionMode === "multi")
-      window.setTimeout(
-        () => dispatch({ type: "RETURN_TO_CONSTELLATION" }),
-        reducedMotion ? 0 : 320,
+    try {
+      const accepted = await client.acceptAgentAvatar(
+        acceptingSession,
+        acceptedProposal,
       );
+      if (!accepted) {
+        setError("avatar save unavailable_");
+        return;
+      }
+      const pendingRosterId = returnToWorld
+        ? constellation?.agents.find(
+            (a) => a.worldSessionId === acceptingSession.sessionId,
+          )?.rosterId
+        : state.pendingAgent?.rosterId;
+      if (state.sessionMode === "multi") {
+        if (!constellation || !pendingRosterId) {
+          setError("avatar save unavailable_");
+          return;
+        }
+        try {
+          const next = await client.setConstellationAvatar(pendingRosterId, {
+            worldInstanceId: constellation.worldInstanceId,
+            expectedRevision: constellation.revision,
+            idempotencyKey: `task10-avatar-${crypto.randomUUID()}`,
+            avatar: {
+              status: "accepted",
+              profileId: acceptedProposal.proposalId,
+              sessionId: acceptingSession.sessionId,
+            },
+          });
+          setConstellation(next.projection);
+          setAcceptedAgentAvatars((current) => ({
+            ...current,
+            [pendingRosterId]: acceptedDraft,
+          }));
+          setSelectedRecipientId((current) => current ?? pendingRosterId);
+        } catch {
+          setError("avatar save unavailable_");
+          return;
+        }
+      }
+      if (acceptingSession.sessionId === session?.sessionId) {
+        setProposal(acceptedProposal);
+        setAgentAvatar(acceptedDraft);
+      }
+      setStatus(
+        `agent connected · ${
+          acceptingSession.continuity === "previous-recovered"
+            ? "Previous / recovered"
+            : "Current"
+        } · avatar accepted`,
+      );
+      if (returnToWorld) {
+        setAvatarTarget(null);
+        return;
+      }
+      if (state.sessionMode === "multi" && pendingRosterId)
+        dispatch({
+          type: "AGENT_AVATAR_ACCEPTED",
+          rosterId: pendingRosterId,
+          sessionId: acceptingSession.sessionId,
+          avatarProfileId: acceptedProposal.proposalId,
+        });
+      else
+        dispatch({
+          type: "ACCEPT_AGENT_AVATAR",
+          sessionId: acceptingSession.sessionId,
+          avatarProfileId: acceptedProposal.proposalId,
+        });
+      if (state.sessionMode === "multi")
+        window.setTimeout(
+          () => dispatch({ type: "RETURN_TO_CONSTELLATION" }),
+          reducedMotion ? 0 : 320,
+        );
+    } catch {
+      setError("avatar save unavailable_");
+    } finally {
+      setAvatarBusy(false);
+    }
   };
 
   const selectMultiAgent = () => {
@@ -1392,7 +1480,11 @@ export function WorldEntryExperience({
         const current = pendingMessages.current.shift();
         if (!current) break;
         setQueuedCount(pendingMessages.current.length);
-        updateChat({ type: "SEND_STARTED", id: current.id });
+        updateChat({
+          type: "SEND_STARTED",
+          id: current.id,
+          recipient: proposal?.displayName ?? "Agent",
+        });
         const recipientRosterIds =
           state.sessionMode === "multi"
             ? resolveChatRecipientRosterIds(
@@ -1722,6 +1814,7 @@ export function WorldEntryExperience({
         updateChat({
           type: "RESTORE_HISTORY",
           messages: restored.history.messages,
+          recipient: restored.proposal.displayName,
         });
       }
       setStatus(message);
@@ -1748,13 +1841,19 @@ export function WorldEntryExperience({
     try {
       const authority =
         action.action === "request"
-          ? await workstreamAuthorityForConversation().catch(() => null)
+          ? await workstreamAuthorityForConversation(
+              state.sessionMode === "single",
+            ).catch(() => null)
           : null;
       const outcome = await executeWorkstreamConversation(
         action,
         authority,
         workstreamClient,
         (text, agentId) => {
+          if (state.sessionMode === "single" && agentId !== session?.sessionId)
+            throw new Error(
+              "Switch back to this Workstream’s agent to continue it. Existing work has not been reassigned.",
+            );
           if (
             state.sessionMode === "multi" &&
             !constellation?.agents.some(
@@ -1955,6 +2054,8 @@ export function WorldEntryExperience({
   };
 
   const leaveWorld = (destination: "session_select" | "agent_prompt") => {
+    setAddingAgent(false);
+    setChangingAgent(false);
     presentationGeneration.current += 1;
     activeChatAbort.current?.abort();
     activeChatAbort.current = null;
@@ -1963,6 +2064,7 @@ export function WorldEntryExperience({
     processingChat.current = false;
     window.localStorage.removeItem(SESSION_POINTER_KEY);
     setSession(null);
+    setPreviousAgents([]);
     setProposal(null);
     setAgentAvatar(null);
     setAvatarTarget(null);
@@ -2646,10 +2748,11 @@ export function WorldEntryExperience({
     const primaryRosterId = worldAgentAvatars.find(
       (agent) => agent.worldSessionId === movementSessionId,
     )?.rosterId;
-    if (avatarTarget === "user")
-      return (
+    const avatarEditor =
+      avatarTarget === "user" ? (
         <main className="world-experience world-experience--avatar">
           <AvatarBuilderLoader
+            onboarding
             role="user"
             initialProfile={profile}
             currentProfile={profile}
@@ -2670,79 +2773,45 @@ export function WorldEntryExperience({
             Cancel avatar change
           </button>
         </main>
-      );
-    if (avatarTarget === "agent")
-      return (
+      ) : avatarTarget === "agent" ? (
         <main className="world-experience world-experience--avatar">
-          <WorldEntryAgentAvatar
-            proposal={activeProposal}
-            mode="change"
-            busy={avatarBusy}
-            error={error}
-            onAccept={(acceptedProposal, acceptedDraft) =>
-              void acceptAvatar(acceptedProposal, acceptedDraft, true)
-            }
-          />
+          {avatarEditingAgent ? (
+            <WorldEntryAgentAvatar
+              proposal={avatarEditingAgent.proposal}
+              mode="change"
+              busy={avatarBusy}
+              error={error}
+              onAccept={(acceptedProposal, acceptedDraft) =>
+                void acceptAvatar(acceptedProposal, acceptedDraft, true)
+              }
+            />
+          ) : (
+            <p role="status">{error || "Loading agent avatar…"}</p>
+          )}
           <button
             type="button"
             className="world-avatar-cancel world-action--enabled"
+            disabled={avatarBusy}
             onClick={() => setAvatarTarget(null)}
           >
             Cancel avatar change
           </button>
         </main>
-      );
+      ) : null;
     return (
       <WorldScreenProvider>
         <div
           className="world-experience world-experience--room"
           data-repository-readiness={repositoryReadiness}
-          inert={repositoryLoading}
+          inert={
+            repositoryLoading ||
+            avatarTarget !== null ||
+            addingAgent ||
+            changingAgent ||
+            changeAgentWork !== null
+          }
           aria-busy={repositoryLoading}
         >
-          {addingAgent && session && activeProposal ? (
-            <Suspense fallback={<p role="status">Loading Add Agent…</p>}>
-              <WorldAddAgent
-                currentSession={session}
-                currentProposal={activeProposal}
-                onClose={() => setAddingAgent(false)}
-                onAdded={(next, _sessions, addedProposal, draft) => {
-                  setConstellation(next.projection);
-                  setAcceptedAgentAvatars((current) => {
-                    const avatars = { ...current };
-                    for (const agent of next.projection.agents) {
-                      if (agent.worldSessionId === addedProposal.sessionId)
-                        avatars[agent.rosterId] = draft;
-                      else if (agent.worldSessionId === session.sessionId)
-                        avatars[agent.rosterId] =
-                          current[agent.rosterId] ??
-                          agentAvatar ??
-                          avatarDraftFromProposal(activeProposal);
-                    }
-                    return avatars;
-                  });
-                  dispatch({
-                    type: "WORLD_ROSTER_ADDED",
-                    roster: next.projection.agents.map((a) => ({
-                      rosterId: a.rosterId,
-                      adapterId: a.adapterId,
-                      agentName: a.displayName,
-                      connection: {
-                        status: a.connection,
-                        sessionId: a.worldSessionId,
-                        continuity:
-                          a.continuity === "previous-recovered"
-                            ? "previous-recovered"
-                            : "current",
-                      },
-                      agentAvatar: a.avatar,
-                    })),
-                  });
-                  setAddingAgent(false);
-                }}
-              />
-            </Suspense>
-          ) : null}
           <Suspense
             fallback={
               <p className="world-entry-overlay" role="status">
@@ -2755,7 +2824,14 @@ export function WorldEntryExperience({
               objects={objects}
               reducedMotion={reducedMotion}
               forceNoWebGL={forceNoWebGL}
-              inputOwner={repositoryLoading ? "preview" : worldInputOwner}
+              inputOwner={
+                repositoryLoading ||
+                avatarTarget !== null ||
+                addingAgent ||
+                changingAgent
+                  ? "preview"
+                  : worldInputOwner
+              }
               userName={profile.agentName}
               agentName={activeProposal.displayName}
               userAvatar={profile}
@@ -3012,6 +3088,7 @@ export function WorldEntryExperience({
                       : activeProposal.displayName
                   }
                   startPoint={newWorkstreamBase}
+                  sourceWorkstream={normalWorkstream?.authority ?? null}
                   onClose={() => setWheelTaskOpen(false)}
                   onWorkbench={() => {
                     setWheelTaskOpen(false);
@@ -3099,19 +3176,180 @@ export function WorldEntryExperience({
               }}
             />
           ) : null}
-          {state.step !== "world_entering" ? (
-            <WorldEscapeMenu
-              userName={profile.agentName}
-              agentName={activeProposal.displayName}
-              preferences={preferences}
-              onPreferences={updatePreferences}
-              onLogout={() => leaveWorld("session_select")}
-              onResetSession={() => leaveWorld("session_select")}
-              onChangeAvatar={setAvatarTarget}
-              onChangeAgent={() => leaveWorld("agent_prompt")}
-            />
-          ) : null}
         </div>
+        {(addingAgent || changingAgent) && session && activeProposal ? (
+          <Suspense fallback={<p role="status">Loading Add Agent…</p>}>
+            <WorldAddAgent
+              currentSession={session}
+              currentProposal={activeProposal}
+              mode={changingAgent ? "change" : "add"}
+              singleAgent={state.sessionMode === "single"}
+              switchBlocked={
+                chatBusy || queuedCount > 0 || normalWorkstreamPending
+              }
+              previousAgents={previousAgents}
+              onReplaced={(choice) => {
+                setPreviousAgents((current) => [
+                  ...current.filter(
+                    (a) =>
+                      a.session.sessionId !== session.sessionId &&
+                      a.session.sessionId !== choice.session.sessionId,
+                  ),
+                  {
+                    session,
+                    proposal: activeProposal,
+                    draft: activeAgentAvatar,
+                  },
+                  choice,
+                ]);
+                setSession(choice.session);
+                setProposal(choice.proposal);
+                setAgentAvatar(choice.draft);
+                setAgentName(choice.proposal.displayName);
+                setSelectedRecipientId(null);
+                window.localStorage.setItem(
+                  SESSION_POINTER_KEY,
+                  choice.session.sessionId,
+                );
+                dispatch({
+                  type: "WORLD_AGENT_CHANGED",
+                  agent: {
+                    rosterId: choice.session.sessionId,
+                    adapterId: choice.session.adapterId as
+                      "hermes" | "openclaw" | "codex" | "claude-code",
+                    agentName: choice.proposal.displayName,
+                    connection: {
+                      status: "connected",
+                      sessionId: choice.session.sessionId,
+                      continuity:
+                        choice.session.continuity === "previous-recovered"
+                          ? "previous-recovered"
+                          : "current",
+                    },
+                    agentAvatar: {
+                      status: "accepted",
+                      sessionId: choice.session.sessionId,
+                      profileId: choice.proposal.proposalId,
+                    },
+                  },
+                });
+                setStatus(
+                  `Active agent: ${choice.proposal.displayName}. Previous conversations and work remain saved.`,
+                );
+                setChangingAgent(false);
+              }}
+              userName={profile.agentName}
+              onSelect={(rosterId) => {
+                setSelectedRecipientId(rosterId);
+                setChangingAgent(false);
+              }}
+              onClose={() => {
+                setAddingAgent(false);
+                setChangingAgent(false);
+              }}
+              onAdded={(next, _sessions, addedProposal, draft) => {
+                setConstellation(next.projection);
+                setAcceptedAgentAvatars((current) => {
+                  const avatars = { ...current };
+                  for (const agent of next.projection.agents) {
+                    if (agent.worldSessionId === addedProposal.sessionId)
+                      avatars[agent.rosterId] = draft;
+                    else if (agent.worldSessionId === session.sessionId)
+                      avatars[agent.rosterId] =
+                        current[agent.rosterId] ??
+                        agentAvatar ??
+                        avatarDraftFromProposal(activeProposal);
+                  }
+                  return avatars;
+                });
+                dispatch({
+                  type: "WORLD_ROSTER_ADDED",
+                  roster: next.projection.agents.map((a) => ({
+                    rosterId: a.rosterId,
+                    adapterId: a.adapterId,
+                    agentName: a.displayName,
+                    connection: {
+                      status: a.connection,
+                      sessionId: a.worldSessionId,
+                      continuity:
+                        a.continuity === "previous-recovered"
+                          ? "previous-recovered"
+                          : "current",
+                    },
+                    agentAvatar: a.avatar,
+                  })),
+                });
+                if (changingAgent) {
+                  const added = next.projection.agents.find(
+                    (a) => a.worldSessionId === addedProposal.sessionId,
+                  );
+                  setSelectedRecipientId(added?.rosterId ?? null);
+                }
+                setAddingAgent(false);
+                setChangingAgent(false);
+              }}
+            />
+          </Suspense>
+        ) : null}
+
+        {changeAgentWork && activeRepositoryAuthority ? (
+          <Suspense fallback={<p role="status">Loading saved-work choices…</p>}>
+            <AgentChangeWorkDialog
+              repositoryId={activeRepositoryAuthority.repositoryId}
+              source={changeAgentWork}
+              agentName={activeProposal.displayName}
+              onCancel={() => setChangeAgentWork(null)}
+              onContinue={() => {
+                setChangeAgentWork(null);
+                setAddingAgent(false);
+                setAvatarTarget(null);
+                setChangingAgent(true);
+              }}
+            />
+          </Suspense>
+        ) : null}
+        {avatarEditor ? (
+          <div
+            className="world-avatar-overlay"
+            data-world-selection="avatar"
+            aria-busy={avatarBusy}
+          >
+            {avatarEditor}
+          </div>
+        ) : null}
+        {state.step !== "world_entering" ? (
+          <WorldEscapeMenu
+            userName={profile.agentName}
+            agentName={activeProposal.displayName}
+            preferences={preferences}
+            onPreferences={updatePreferences}
+            onLogout={() => leaveWorld("session_select")}
+            onResetSession={() => leaveWorld("session_select")}
+            agents={worldAgentAvatars.map((a) => ({
+              rosterId: a.rosterId,
+              name: a.name,
+            }))}
+            onChangeAvatar={(target, rosterId) =>
+              void openAvatarEditor(target, rosterId)
+            }
+            onChangeAgent={() => {
+              const owner = normalWorkstream?.authority;
+              const selected =
+                state.sessionMode === "single"
+                  ? session?.sessionId
+                  : constellation?.agents.find(
+                      (a) => a.rosterId === selectedRecipientId,
+                    )?.worldSessionId;
+              if (owner && owner.agent.agentId === selected) {
+                setChangeAgentWork(owner);
+                return;
+              }
+              setAddingAgent(false);
+              setAvatarTarget(null);
+              setChangingAgent(true);
+            }}
+          />
+        ) : null}
         {repositoryLoading ? (
           <div className="world-loading-overlay">
             <WorldLoadingIndicator

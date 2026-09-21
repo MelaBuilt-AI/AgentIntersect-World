@@ -35,7 +35,7 @@ export function WorldEntryAgentAvatar({
       aria-busy={busy}
     >
       <AvatarBuilderLoader
-        onboarding={!changing}
+        onboarding
         {...(AvatarBuilderComponent
           ? { component: AvatarBuilderComponent }
           : {})}

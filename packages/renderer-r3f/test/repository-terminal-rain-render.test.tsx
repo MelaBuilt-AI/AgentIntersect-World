@@ -27,7 +27,9 @@ it("updates the actual R3F-owned uniforms for motion, sky reach and highlights",
     current: [{ index: 0, color: 1, progress: 0.5, strength: 1 }],
   };
   let completed = 0;
+  const phases: string[] = [];
   const element = RepositoryTerminalRain({
+    onStreamPhase: (phase) => phases.push(phase),
     onLaunchComplete: () => {
       completed += 1;
     },
@@ -50,8 +52,21 @@ it("updates the actual R3F-owned uniforms for motion, sky reach and highlights",
   );
   shader.props.ref.current = material;
   expect(material.uniforms.rainTime).not.toBe(shader.props.uniforms.rainTime);
-  clock.value = 6;
   const camera = { position: { x: 7, y: 8, z: 18 } };
+  state.frame({ camera });
+  expect(phases).toEqual([]);
+  clock.value = 0.1;
+  state.frame({ camera });
+  state.frame({ camera });
+  expect(phases).toEqual(["up"]);
+  clock.value = 3;
+  state.frame({ camera });
+  expect(phases).toEqual(["up"]); // Still moving upward during deceleration.
+  clock.value = 4;
+  state.frame({ camera });
+  state.frame({ camera });
+  expect(phases).toEqual(["up", "in"]);
+  clock.value = 6;
   state.frame({ camera });
   expect(material.uniforms.rainTime!.value).toBe(
     cityLaunchFrame(6, false).offset,
@@ -68,4 +83,27 @@ it("updates the actual R3F-owned uniforms for motion, sky reach and highlights",
     cityLaunchFrame(6, false).offset,
   );
   expect(element.props.raycast()).toBeUndefined();
+});
+
+it("does not announce a launch skipped by Reduced Motion", () => {
+  const phases: string[] = [];
+  const clock = { value: 0 };
+  const element = RepositoryTerminalRain({
+    texture: new Texture(),
+    x: 0,
+    z: 0,
+    roof: 2,
+    index: 0,
+    clock,
+    highlight: { current: [] },
+    reducedMotion: true,
+    onStreamPhase: (phase) => phases.push(phase),
+  });
+  const shader = element.props.children[1];
+  const material = new ShaderMaterial({ uniforms: shader.props.uniforms });
+  shader.props.ref.current = material;
+  state.frame({ camera: { position: { x: 0, y: 3, z: 10 } } });
+  clock.value = 5;
+  state.frame({ camera: { position: { x: 0, y: 3, z: 10 } } });
+  expect(phases).toEqual([]);
 });

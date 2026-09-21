@@ -82,7 +82,8 @@ export function resolveWorldEntryRestore(
     result.proposal.sessionId !== result.session.sessionId ||
     result.history.sessionId !== result.session.sessionId ||
     result.history.continuity !== result.continuity ||
-    result.history.transcriptAuthority !== "hermes"
+    result.history.transcriptAuthority !==
+      (result.session.adapterId === "hermes" ? "hermes" : "world-projection")
   )
     return "clear";
   if (!result.avatarAccepted)

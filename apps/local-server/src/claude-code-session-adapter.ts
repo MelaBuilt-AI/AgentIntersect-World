@@ -27,7 +27,7 @@ const CLAUDE_MODEL = "qwythos:claude-q6-64k";
 const OLLAMA_BASE_URL = "http://localhost:11434";
 const MAX_INPUT_BYTES = 16_384;
 const MAX_EVENT_BYTES = 32_768;
-const MAX_EVENTS = 1_024;
+const MAX_TOOL_EVENTS = 1_024;
 const MAX_STDOUT_BYTES = 262_144;
 const MAX_STDERR_BYTES = 16_384;
 const MAX_OUTPUT_BYTES = 65_536;
@@ -374,7 +374,6 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       let lineBuffer = "";
       let stdoutBytes = 0;
       let stderrBytes = 0;
-      let eventCount = 0;
       let failure: GatewayError | undefined;
       let closed = false;
       let termination: Promise<void> | undefined;
@@ -389,11 +388,6 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       const parseLine = (line: string) => {
         if (!line) return;
         if (Buffer.byteLength(line, "utf8") > MAX_EVENT_BYTES) {
-          fail(claudeFailure(options.failureMessage));
-          return;
-        }
-        eventCount += 1;
-        if (eventCount > MAX_EVENTS) {
           fail(claudeFailure(options.failureMessage));
           return;
         }
@@ -651,7 +645,14 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       }
     >();
     let eventDispatch = Promise.resolve();
+    let toolEventCount = 0;
     const emit = (event: AdapterTurnEvent) => {
+      // Raw bytes and text bytes bound fragments; count only retained tool activity.
+      if (
+        event.type !== "assistant.delta" &&
+        ++toolEventCount > MAX_TOOL_EVENTS
+      )
+        throw claudeFailure("Claude Code turn exceeded the tool event bound");
       eventDispatch = eventDispatch.then(async () => context?.onEvent?.(event));
     };
     const acceptSession = (value: unknown) => {

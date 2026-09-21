@@ -6,6 +6,8 @@ import {
   ZeroFactor,
   PlaneGeometry,
   Vector2,
+  WebGLRenderTarget,
+  HalfFloatType,
   type Object3D,
   type ShaderMaterial,
 } from "three";
@@ -15,44 +17,63 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { Reflector } from "three/examples/jsm/objects/Reflector.js";
 
-/** Mounted only while enabled; alpha holes for the real CSS3D screens survive. */
-export function WorldBloom() {
+/** One render owner for bloom and switchable MSAA; retain CSS3D alpha holes. */
+export function WorldBloom({
+  bloom: bloomEnabled = true,
+  antialiasing = true,
+}: {
+  readonly bloom?: boolean;
+  readonly antialiasing?: boolean;
+}) {
   const { gl, scene, camera, size, invalidate } = useThree();
   const resources = useMemo(() => {
-    const composer = new EffectComposer(gl);
+    const target = new WebGLRenderTarget(1, 1, {
+      type: HalfFloatType,
+      samples: antialiasing ? Math.min(4, gl.capabilities.maxSamples) : 0,
+    });
+    const composer = new EffectComposer(gl, target);
     const render = new RenderPass(scene, camera);
-    const bloom = new UnrealBloomPass(new Vector2(256, 256), 0.18, 0.35, 0.85);
-    bloom.blendMaterial.blending = CustomBlending;
-    bloom.blendMaterial.blendSrc = OneFactor;
-    bloom.blendMaterial.blendDst = OneFactor;
-    bloom.blendMaterial.blendSrcAlpha = ZeroFactor;
-    bloom.blendMaterial.blendDstAlpha = OneFactor;
+    const bloom = bloomEnabled
+      ? new UnrealBloomPass(new Vector2(256, 256), 0.18, 0.35, 0.85)
+      : null;
+    if (bloom) {
+      bloom.blendMaterial.blending = CustomBlending;
+      bloom.blendMaterial.blendSrc = OneFactor;
+      bloom.blendMaterial.blendDst = OneFactor;
+      bloom.blendMaterial.blendSrcAlpha = ZeroFactor;
+      bloom.blendMaterial.blendDstAlpha = OneFactor;
+    }
     const output = new OutputPass();
     composer.addPass(render);
-    composer.addPass(bloom);
+    if (bloom) composer.addPass(bloom);
     composer.addPass(output);
-    return { composer, render, bloom, output };
-  }, [gl, scene, camera]);
+    return { composer, render, bloom, output, samples: target.samples };
+  }, [gl, scene, camera, bloomEnabled, antialiasing]);
   useEffect(() => {
     resources.composer.setPixelRatio(gl.getPixelRatio());
     resources.composer.setSize(size.width, size.height);
     // Blur at a capped lower resolution; the main image retains the canvas DPR.
     const dpr = gl.getPixelRatio();
     const scale = Math.min(dpr, 640 / Math.max(size.width, size.height));
-    resources.bloom.setSize(
+    resources.bloom?.setSize(
       Math.max(1, size.width * scale),
       Math.max(1, size.height * scale),
     );
-    gl.domElement.dataset.worldBloom = "on";
+    gl.domElement.dataset.worldBloom = resources.bloom ? "on" : "off";
+    gl.domElement.dataset.worldAntialiasing =
+      resources.samples > 0 ? "on" : "off";
+    gl.domElement.dataset.worldAntialiasingSamples = String(resources.samples);
     invalidate();
   }, [resources, gl, size.width, size.height, invalidate]);
   useEffect(
     () => () => {
       resources.render.dispose();
-      resources.bloom.dispose();
+      resources.bloom?.dispose();
       resources.output.dispose();
       resources.composer.dispose();
       gl.domElement.dataset.worldBloom = "off";
+      gl.domElement.dataset.worldAntialiasing = "off";
+      gl.domElement.dataset.worldAntialiasingSamples = "0";
       invalidate();
     },
     [resources, gl, invalidate],

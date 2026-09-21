@@ -443,7 +443,7 @@ describe("Phase 18 World entry experience", () => {
     const pending = {
       status: "connected",
       continuity: "current",
-      session: { sessionId },
+      session: { sessionId, adapterId: "hermes" },
       proposal: legacyCatProposal,
       avatarAccepted: false,
       avatarSetup: "required",
@@ -457,6 +457,23 @@ describe("Phase 18 World entry experience", () => {
     };
 
     expect(restoreApi.resolveWorldEntryRestore(pending)).toBe("avatar-create");
+    for (const adapterId of ["codex", "claude-code", "openclaw"]) {
+      const native = {
+        ...pending,
+        session: { ...pending.session, adapterId },
+        history: {
+          ...pending.history,
+          transcriptAuthority: "world-projection",
+        },
+      };
+      expect(restoreApi.resolveWorldEntryRestore(native)).toBe("avatar-create");
+      expect(
+        restoreApi.resolveWorldEntryRestore({
+          ...native,
+          history: pending.history,
+        }),
+      ).toBe("clear");
+    }
     expect(
       restoreApi.resolveWorldEntryRestore({
         ...pending,
@@ -918,6 +935,7 @@ describe("Phase 18 World entry experience", () => {
           {
             id: "assistant-codex",
             kind: "assistant",
+            recipient: "Codex",
             text: "Codex completed the edit.",
           },
         ],

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { RepositoryProject } from "./RepositoryIntakeDialog.js";
 import { RepositoryGitPanel } from "./RepositoryGitPanel.js";
+import { SavedWorkstreamFiles } from "./SavedWorkstreamFiles.js";
 import {
   repositoryGitStatus,
   repositoryGitAction,
@@ -222,9 +223,9 @@ export function RepositoryWorkbench({
           </div>
           <h3>Saved sessions & work</h3>
           <p>
-            Saved in this World server’s data directory. Loading a repo lists
-            its records without rebinding an agent, changing files, or starting
-            a process.
+            Saved work follows this repository across World sessions. Loading
+            its history does not rebind an agent, change files or start a
+            process.
           </p>
           {history === null ? (
             <p>
@@ -236,9 +237,9 @@ export function RepositoryWorkbench({
             <>
               {history.length === 0 ? (
                 <p>
-                  No saved Workstreams for this repository in this server. If
-                  you used another World instance, reopen that instance; do not
-                  recreate the task just to recover it.
+                  No saved Workstreams found for this repository. Its registered
+                  worktrees and retained World history were checked; no task was
+                  started.
                 </p>
               ) : (
                 <ol
@@ -302,6 +303,10 @@ export function RepositoryWorkbench({
                   className="repository-workbench__continuation"
                 >
                   <h4>{selected.title}</h4>
+                  <SavedWorkstreamFiles
+                    key={selected.workstreamId}
+                    workstreamId={selected.workstreamId}
+                  />
                   <p>{selected.task}</p>
                   <code>
                     {selected.authority.branch} ·{" "}
