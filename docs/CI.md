@@ -1,26 +1,40 @@
-# Proportional CI
+# Conventional CI and human-led acceptance
 
-World's `phase-1-checks` workflow separates development feedback from merge acceptance. Normal Git pushes need no special commands.
+## Policy override — PR20 and subsequent work
 
-## Routing
+Aaron explicitly replaced the previous browser-journey requirement on September 21, 2026 (Discord `1551598468483649678`). Automated product-navigation journeys, browser shards and browser-based measurement journeys are **not run or required for GitHub CI or readiness**, including PR20, later PRs and release readiness. Do not silently reintroduce them through aggregate scripts or historical phase instructions.
 
-- **Feature-branch push:** the existing core checks (format, lint, types, architecture, unit tests, build and smoke). No complete browser journeys or measurement lanes.
-- **Draft PR:** core feedback; it does not satisfy `merge-gate`.
-- **Ready PR with code/configuration changes:** core, measurements, all six flagged browser shards and the unflagged browser suite. `merge-gate` succeeds only when every required lane succeeds.
-- **Documentation-only change:** Markdown formatting plus `merge-gate` on a ready PR. The allowlist is deliberately narrow: root Markdown and Markdown under `docs/`. Fixtures, workflow files, unknown paths and mixed code/docs changes retain code coverage. Both sides of renames are checked.
-- **Main or tag push with code changes:** full acceptance, preserving protection for direct changes. Main runs are not automatically cancelled.
-- **Manual workflow dispatch:** full acceptance regardless of changed paths.
+Functional/visual acceptance uses Aaron's hands-on product use after feature changes and scoped Mr Fluff computer-use checks. Existing acceptance remains valid for unchanged product behavior. This is a deliberate verification-contract change, not a claim that prior browser failures passed or that CI proves subjective visual quality.
 
-Feature pushes and ready-PR updates no longer both launch the expensive browser matrix. Newer runs supersede older runs for the same event/ref, not across unrelated branches or push/PR events. Core is intentionally a small complete non-journey gate, rather than a fragile source-to-test dependency guess across built workspace packages. Some unit/smoke checks use Chromium; the long browser journeys are the avoided work.
+## Required checks
 
-`.github/scripts/ci_scope.py` classifies actual Git changes, including new branches, deletions and renames. It also verifies final dependency results; failed, cancelled or unexpectedly skipped required jobs cannot pass a gate. Routing tests exercise real temporary Git histories and the parsed workflow. No existing browser assertion, timeout, threshold, shard selection or retry policy is changed here.
+- Formatting and lint.
+- TypeScript and architecture boundaries.
+- Unit, integration and component regressions.
+- Production build and startup/API smoke.
+- Applicable static imported-avatar input and asset compatibility validation.
 
-## Merge policy
+`pnpm check` invokes `check:core`. Its test runner does not collect `apps/web/e2e/*.spec.ts`; ordinary component tests include a few isolated Chromium HTML/CSS checks, not navigation through the product/World. Chromium installation in the core job supports those tests only.
 
-Use **`merge-gate`**, not a fast `push-checks` result, as the required status check on `main`. Aaron explicitly approved enabling that requirement after this change passes, without adding reviewer requirements. Repository settings are a separate operation and must be read back before claiming protection is active. Do not merge a code PR based only on its feature-push run.
+Legacy E2E/measurement scripts and their evidence remain available for historical reference, but are not dependencies of normal CI or readiness. Run them only on a new explicit user request. `verify:fresh` no longer launches measurement journeys; it remains an optional separate source-copy/asset verification tool, not a routine gate.
 
-Full pre-merge coverage is still required for shared renderer, navigation and session-lifecycle changes. Documentation-only success means documentation checks passed—not that browser tests ran. Full runs and branch-policy activation are recorded in the PR/handoff so status documentation does not create recursive SHA/CI cycles.
+## Routing and merge protection
 
-## Local cadence
+- **Feature push / draft PR:** conventional core checks, reported by `push-checks`.
+- **Ready code/configuration PR:** the same complete core suite, followed by required `merge-gate`.
+- **Documentation-only change:** Markdown formatting. Only root Markdown and Markdown under `docs/` qualify; mixed changes, fixtures and both sides of renames retain code verification.
+- **Main/tag code push and workflow dispatch:** complete core verification and `merge-gate`. Main runs are not automatically cancelled.
 
-Run focused tests for the changed behavior and relevant lint/type/build checks. Reuse current proof for untouched behavior. Run the affected browser journey when interaction changes, broader browser coverage for shared runtime changes, and native/manual visual checks when the changed behavior needs them. Do not rebuild underneath a retained user test environment.
+The internal scope name `full` means merge-eligible conventional verification; it no longer means a browser matrix. Scope, core and documentation checks still fail closed when a required job fails, is cancelled, is missing or is unexpectedly skipped. Draft/feature-only checks do not impersonate the required merge-check name.
+
+Main continues to require **`merge-gate`**. No branch-protection bypass or reviewer requirement is introduced. Bind verification to the exact pushed PR SHA; after an authorized merge, verify the distinct main-SHA workflow separately. Release, publication, tags, provider/profile changes and repository visibility remain separate permissions.
+
+## PR20 transition
+
+The previously accepted product behavior and user-operated TEST45399 are unchanged by this CI-policy revision. Earlier browser CI and diagnostic failures remain historical RED evidence. Uncommitted browser-wait experiments, including the temporary 60-second arrival observation, were preserved outside the repository and removed from the delivery candidate; no unverified journey correction is promoted to satisfy the revised gate.
+
+The replacement candidate must pass the new local code checks and its own exact-head GitHub workflows before merge. Do not use old green checks or claim green before those runs finish.
+
+## Local workflow
+
+Run focused regressions and the relevant code gate. Use `pnpm check` when complete conventional readiness is needed; do not append browser journeys. Reuse existing successful evidence for untouched behavior. Preserve retained test environments, their served builds, browser profiles and all saved work. Do not rebuild underneath a retained operator environment.

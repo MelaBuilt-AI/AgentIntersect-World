@@ -71,7 +71,7 @@ describe("acceptance command graph", () => {
       await rm(directory, { recursive: true, force: true });
     }
   });
-  it("bootstraps project-pinned Chromium before every root E2E path", async () => {
+  it("keeps legacy E2E tools separate from conventional readiness", async () => {
     const manifest = JSON.parse(
       await readProjectFile("package.json"),
     ) as RootManifest;
@@ -123,12 +123,11 @@ describe("acceptance command graph", () => {
     expect(phase13Measurement).toContain(
       "xvfb-run -a playwright test apps/web/e2e/phase13-world-action-journey.spec.ts --workers=1",
     );
-    expect(aggregate).toContain("corepack pnpm@11.15.0 test:e2e");
+    expect(aggregate).toBe("corepack pnpm@11.15.0 check:core");
     expect(aggregate).not.toMatch(/(?:^|&&)\s*playwright test/);
     expect(freshVerification).toContain('["pnpm@11.15.0", "check"]');
-    expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase10"]');
+    expect(freshVerification).not.toMatch(/measure:phase|test:e2e|playwright/);
     expect(freshVerification).toContain('["pnpm@11.15.0", "avatar:verify"]');
-    expect(freshVerification).toContain('["pnpm@11.15.0", "measure:phase11"]');
   });
 
   it("routes only the real pointer-lock journeys through headed Chromium", async () => {
@@ -223,23 +222,6 @@ describe("acceptance command graph", () => {
     expect(worldEntrySpec).toContain(
       "traceTest(repositoryCityCorrectionTitle, async ({ page }) => {",
     );
-
-    const shardListing = execFileSync(
-      process.execPath,
-      [
-        resolve(repositoryRoot, "node_modules/@playwright/test/cli.js"),
-        "test",
-        "--config",
-        "playwright.config.ts",
-        "--grep-invert",
-        "@phase18-5-performance",
-        "--fully-parallel",
-        "--shard=6/6",
-        "--list",
-      ],
-      { cwd: repositoryRoot, encoding: "utf8" },
-    );
-    expect(shardListing).toContain(`› ${journeyTitle}`);
   });
 
   it("installs pinned pnpm before every isolated CI acceptance lane", async () => {
@@ -290,20 +272,13 @@ describe("acceptance command graph", () => {
     ];
 
     expect(workflowSource).not.toMatch(/cache:\s*pnpm/);
-    for (const name of [
-      "core",
-      "measurements",
-      "e2e-flagged",
-      "e2e-unflagged",
-    ]) {
-      const job = workflow.jobs[name]!;
-      expect(job.steps).toContainEqual(
-        expect.objectContaining({
-          uses: "actions/setup-node@v7",
-          with: { "node-version": 24 },
-        }),
-      );
-    }
+    const job = workflow.jobs.core!;
+    expect(job.steps).toContainEqual(
+      expect.objectContaining({
+        uses: "actions/setup-node@v7",
+        with: { "node-version": 24 },
+      }),
+    );
     expectOrderedCommands("core", [
       ...pinnedBootstrap,
       "pnpm exec playwright install --with-deps chromium",
@@ -311,48 +286,8 @@ describe("acceptance command graph", () => {
       "pnpm avatar:verify:compatibility",
       "pnpm check:core",
     ]);
-    expectOrderedCommands("measurements", [
-      ...pinnedBootstrap,
-      "pnpm exec playwright install --with-deps chromium",
-      "pnpm measure:phase10",
-      "pnpm measure:phase11",
-    ]);
-    expectOrderedCommands("e2e-flagged", [
-      ...pinnedBootstrap,
-      "pnpm exec playwright install --with-deps chromium",
-      "pnpm build",
-      "VITE_AIW_LOCAL_DEVELOPER_UI=1 pnpm exec vite build",
-      "VITE_AIW_LOCAL_DEVELOPER_UI=1 xvfb-run -a pnpm exec playwright test",
-      "--config playwright.config.ts",
-      "--fully-parallel --workers=1",
-      "--shard=${{ matrix.shard }}",
-    ]);
-    expect(workflow.jobs["e2e-flagged"]?.strategy?.matrix?.shard).toEqual([
-      "1/6",
-      "2/6",
-      "3/6",
-      "4/6",
-      "5/6",
-      "6/6",
-    ]);
-    expect(workflow.jobs["e2e-flagged"]?.["timeout-minutes"]).toBe(30);
-    expect(workflow.jobs["e2e-flagged"]?.steps).toContainEqual({
-      name: "Upload flagged browser failure evidence",
-      if: "failure()",
-      uses: "actions/upload-artifact@v7",
-      with: {
-        name: "e2e-flagged-failure-${{ strategy.job-index }}",
-        path: "test-results",
-        "retention-days": 7,
-      },
-    });
-    expectOrderedCommands("e2e-unflagged", [
-      ...pinnedBootstrap,
-      "pnpm exec playwright install --with-deps chromium",
-      "pnpm build",
-      "pnpm exec vite build apps/web",
-      "xvfb-run -a pnpm exec playwright test",
-      "--config playwright.unflagged.config.ts",
-    ]);
+    for (const name of ["measurements", "e2e-flagged", "e2e-unflagged"]) {
+      expect(workflow.jobs[name]).toBeUndefined();
+    }
   });
 });

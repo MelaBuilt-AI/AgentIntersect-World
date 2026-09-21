@@ -1,10 +1,18 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-18
+Updated: 2026-09-21
 
 ## Current milestone
 
-### September 18 — proportional CI after merged PR17
+### September 21 — PR20 conventional CI/readiness override
+
+Aaron (`1551598468483649678`) explicitly removes automated product-navigation journeys, browser shards and browser-based measurement journeys from GitHub CI and readiness for PR20 and subsequent work. [Current CI policy](docs/CI.md) supersedes all historical full-browser requirements below. The protected `AGENTS.md` edit awaits separate file-write approval; it has not been changed. Human product use and scoped Mr Fluff computer-use checks supply functional/visual acceptance; formatting, lint, types, architecture, unit/integration/component tests, build, startup/API smoke and static asset/input checks remain required.
+
+The accepted PR20 product is unchanged. Prior browser failures stay historical RED, not relabeled success. Uncommitted browser experiments are archived externally and removed from the candidate. Main's required `merge-gate` remains in place, now depending on conventional code/documentation checks rather than browser lanes. The revised candidate's exact-head CI/readiness must pass before the already-authorized merge; separate main-SHA CI is verified afterward. Final SHA/run receipts remain external to avoid recursive status commits.
+
+TEST45399 and its saved-work roots remain protected. PR19 packaging/release, public visibility, publication, provider changes, website work and Phase20 remain separate and unauthorized by this override.
+
+### Historical September 18 — proportional CI after merged PR17
 
 PR17 is merged at `093e51239eddca1b87654c76139ccb9c1bcd09fd`, after both final-head workflows at `042e4ce` passed all18 checks with clean readiness. Its separate merge-SHA result and any bounded same-tree reconciliation remain recorded externally; PR-head success is not substituted for main-SHA execution.
 

@@ -48,7 +48,8 @@ def required_results(mode):
     if mode == "core":
         return ["core"]
     if mode == "full":
-        return ["core", "measurements", "e2e-flagged", "e2e-unflagged"]
+        # Ready PR/main acceptance is conventional code verification, not UI journeys.
+        return ["core"]
     raise ValueError("Unknown CI scope")
 
 

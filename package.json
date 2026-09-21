@@ -50,7 +50,7 @@
     "verify:imported-avatar-current-inputs": "tsx tooling/scripts/imported-avatar-current-inputs.ts",
     "verify:fresh": "tsx tooling/scripts/verify-fresh.ts",
     "check:core": "corepack pnpm@11.15.0 format:check && corepack pnpm@11.15.0 lint && corepack pnpm@11.15.0 typecheck && corepack pnpm@11.15.0 check:architecture && corepack pnpm@11.15.0 test && corepack pnpm@11.15.0 build && tsx tooling/scripts/smoke.ts",
-    "check": "corepack pnpm@11.15.0 check:core && corepack pnpm@11.15.0 test:e2e"
+    "check": "corepack pnpm@11.15.0 check:core"
   },
   "devDependencies": {
     "@agentintersect-world/repo-indexer": "workspace:*",

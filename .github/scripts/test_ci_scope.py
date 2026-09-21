@@ -59,15 +59,23 @@ class ScopeTests(unittest.TestCase):
 
     def test_gate_rejects_failed_cancelled_or_skipped_required_lanes(self):
         needs = {"scope": {"result": "success", "outputs": {"mode": "full"}},
-                 **{k: {"result": "success"} for k in ["core", "measurements", "e2e-flagged", "e2e-unflagged"]}}
-        self.assertEqual(verify_gate(needs), "full")
-        for name in ["scope", "core", "measurements", "e2e-flagged", "e2e-unflagged"]:
+                 "core": {"result": "success"}}
+        self.assertEqual(verify_gate(needs, merge_gate=True), "full")
+        for name in ["scope", "core"]:
             for result in ["failure", "cancelled", "skipped"]:
                 bad = copy.deepcopy(needs)
                 bad[name]["result"] = result
                 with self.assertRaises(ValueError):
-                    verify_gate(bad)
-        self.assertEqual(verify_gate({"scope": {"result": "success", "outputs": {"mode": "docs"}}, "docs": {"result": "success"}}), "docs")
+                    verify_gate(bad, merge_gate=True)
+        with self.assertRaises(KeyError):
+            verify_gate({"scope": needs["scope"]}, merge_gate=True)
+        docs = {"scope": {"result": "success", "outputs": {"mode": "docs"}}, "docs": {"result": "success"}}
+        self.assertEqual(verify_gate(docs, merge_gate=True), "docs")
+        for result in ["failure", "cancelled", "skipped"]:
+            bad = copy.deepcopy(docs)
+            bad["docs"]["result"] = result
+            with self.assertRaises(ValueError):
+                verify_gate(bad, merge_gate=True)
         core_only = {"scope": {"result": "success", "outputs": {"mode": "core"}}, "core": {"result": "success"}}
         self.assertEqual(verify_gate(core_only), "core")
         with self.assertRaises(ValueError):
