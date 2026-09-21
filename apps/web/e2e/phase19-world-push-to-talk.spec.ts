@@ -426,6 +426,8 @@ async function recordPointer(
 test("normal World push-to-talk sends final-only grouped text without TTS", async ({
   page,
 }) => {
+  // Consent, four captures and recipient switching take ~35s on two CPUs.
+  test.setTimeout(60_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
   const fixture = await installFixture(page);
@@ -568,6 +570,8 @@ test("normal World push-to-talk sends final-only grouped text without TTS", asyn
 test("hands-free recording ends on Send or Cancel and never rearms", async ({
   page,
 }, testInfo) => {
+  // Meter captures plus cancel/review/direct-send cycles take ~32s on two CPUs.
+  test.setTimeout(60_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
   const fixture = await installFixture(page);

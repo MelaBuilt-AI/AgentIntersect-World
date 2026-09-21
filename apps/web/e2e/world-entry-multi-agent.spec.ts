@@ -14,7 +14,8 @@ const worldInstanceId = "80000000-0000-4000-8000-000000000008";
 test("@agent-handoff commit or skip before switching and choose the new Workstream source", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(150_000);
+  // Commit/skip, source choices and retained-World checks take ~120s on two CPUs.
+  test.setTimeout(240_000);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedConfiguredAvatar(page, "Aaron");
@@ -1804,12 +1805,25 @@ for (const [connectAction, single] of [
         page.getByRole("textbox", { name: /^Message / }),
       ).toHaveValue("keep this draft");
     };
-    const menu = async (action: string) => {
+    const menu = async (action: string, reviewSavedWork = false) => {
       await room.focus();
       await page.keyboard.press("Escape");
       await page.getByRole("button", { name: action, exact: true }).click();
+      if (action === "Change Agent" && reviewSavedWork) {
+        const savedWork = page.getByRole("dialog", {
+          name: "Save work before changing agent",
+          exact: true,
+        });
+        await expect(savedWork).toContainText("All changes committed");
+        await savedWork
+          .getByRole("button", {
+            name: "Continue to Change Agent",
+            exact: true,
+          })
+          .click();
+      }
     };
-    await menu("Change Agent");
+    await menu("Change Agent", true);
     await page.screenshot({
       path: testInfo.outputPath("change-agent-desktop.png"),
     });
@@ -1906,7 +1920,7 @@ for (const [connectAction, single] of [
       .getByRole("button", { name: "Accept user Avatar", exact: true })
       .click();
     await assertContinuity();
-    await menu(connectAction);
+    await menu(connectAction, single);
     const change = page.getByRole("dialog", {
       name: connectAction,
       exact: true,
@@ -1921,9 +1935,21 @@ for (const [connectAction, single] of [
       "true",
       { timeout: 30_000 },
     );
+    const avatarAccepted = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname.endsWith(
+          single
+            ? `/agent-sessions/${agents[3].worldSessionId}/avatar-consent`
+            : "/constellation/agents/roster-claude/avatar",
+        ),
+    );
     await change
       .getByRole("button", { name: "Accept Agent Avatar", exact: true })
       .click();
+    const accepted = await avatarAccepted;
+    expect(accepted.ok()).toBe(true);
+    expect(await accepted.finished()).toBeNull();
     await expect(change).toHaveCount(0);
     await expect(
       page.getByLabel(
@@ -2140,7 +2166,8 @@ for (const configured of [true, false]) {
 test("@single-switch-all Codex changes to Claude, Hermes, OpenClaw and back in one World", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(240_000);
+  // Five harness turns, work/motion and restoration measured ~386s on two CPUs.
+  test.setTimeout(480_000);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");
   const fixture = await installFixture(page, 0);
@@ -2325,7 +2352,7 @@ test("@single-switch-all Codex changes to Claude, Hermes, OpenClaw and back in o
     if (label === "codex") {
       await page
         .getByRole("dialog", { name: "Save work before changing agent" })
-        .getByRole("button", { name: "Change without committing" })
+        .getByRole("button", { name: "Continue to Change Agent", exact: true })
         .click();
     }
     const dialog = page.getByRole("dialog", {
@@ -2537,8 +2564,11 @@ for (const initialCount of [0, 2, 3]) {
   test(`@setup-add expands ${initialCount === 0 ? "single" : `${initialCount}-agent`} World without remounting, cancellation and refresh`, async ({
     page,
   }, testInfo) => {
+    // Measured two-CPU add/refresh journeys: ~102s (two agents), ~162s (three).
     // The four-avatar path also exercises 24 preview edits and both layouts.
-    test.setTimeout(initialCount === 3 ? 180000 : 120000);
+    test.setTimeout(
+      initialCount === 3 ? 240_000 : initialCount === 2 ? 180_000 : 120_000,
+    );
     await page.emulateMedia({
       reducedMotion: initialCount === 2 ? "no-preference" : "reduce",
     });
@@ -3105,9 +3135,9 @@ for (const [action, dialogName] of [
 test("@code-wheel real controls isolate scene input, retain targeting and spatial state", async ({
   page,
 }, testInfo) => {
-  // The complete two-CPU journey takes about 115s; both local and hosted
-  // runs exhausted 120s during its final reload. Preserve assertion deadlines.
-  test.setTimeout(180_000);
+  // Full current two-CPU journey measured ~157s; hosted 180s expired at resize.
+  // Preserve the actual containment bounds and individual assertion deadlines.
+  test.setTimeout(240_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");

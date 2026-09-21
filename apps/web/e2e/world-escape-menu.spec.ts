@@ -1004,8 +1004,8 @@ test("Reset and Logout detach explicitly while Change Agent retains the World", 
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Change Agent" }).click();
   await expect(page.getByLabel("Agent name")).toBeVisible();
-  // These buttons were visually enabled while the reducer ignored every click,
-  // leaving the Change Agent prompt pinned to Hermes.
+  // Unconfigured harnesses now hand off to setup instead of merely selecting
+  // a label. Close that explicit layer before choosing the next harness.
   for (const name of ["Connect claude", "Connect codex", "Connect claude"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(
@@ -1014,6 +1014,12 @@ test("Reset and Logout detach explicitly while Change Agent retains the World", 
     await expect(
       page.getByRole("button", { name: "Connect hermes", exact: true }),
     ).toHaveAttribute("aria-pressed", "false");
+    const setup = page.getByRole("dialog", { name: "Agent Setup Menu" });
+    await expect(setup).toBeVisible();
+    await setup
+      .getByRole("button", { name: "Close Agent Setup Menu", exact: true })
+      .click();
+    await expect(setup).toHaveCount(0);
   }
   expect(fixture.mutationPaths).toEqual([]);
 
