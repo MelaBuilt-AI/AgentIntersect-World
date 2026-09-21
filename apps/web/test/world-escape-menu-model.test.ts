@@ -59,7 +59,7 @@ describe("normal-World display preferences", () => {
 it("defaults every graphics effect on and persists independent off flags", () => {
   const storage = new MemoryStorage();
   expect(Object.values(loadWorldDisplayPreferences(storage).graphics!)).toEqual(
-    Array(7).fill(true),
+    Array(8).fill(true),
   );
   saveWorldDisplayPreferences(storage, {
     showControlHints: false,

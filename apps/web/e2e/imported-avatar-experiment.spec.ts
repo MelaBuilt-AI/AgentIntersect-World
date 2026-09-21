@@ -1059,6 +1059,7 @@ test("seventeen agent stances and mounted user-directed movement work in product
     modelId: string,
     screenshotName: string,
   ) => {
+    const previousProposal = acceptedProposal;
     await page.locator(".world-room").focus();
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Change Avatar" }).click();
@@ -1070,11 +1071,16 @@ test("seventeen agent stances and mounted user-directed movement work in product
     ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
     await page.getByRole("button", { name: buttonName }).click();
     await expect(
-      page.getByRole("button", { name: "Accept and save avatar" }),
-    ).toBeDisabled();
-    await page.getByRole("button", { name: "Use Complete Avatar" }).click();
+      page
+        .getByTestId("avatar-preview")
+        .locator(
+          `.imported-avatar-canvas[data-avatar-imported-id="${modelId}"]`,
+        ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
+    expect(acceptedProposal).toBe(previousProposal);
     const saveAvatar = page.getByRole("button", {
-      name: "Accept and save avatar",
+      name: "Accept Agent Avatar",
+      exact: true,
     });
     await expect(saveAvatar).toBeEnabled({ timeout: 30_000 });
     await saveAvatar.click();

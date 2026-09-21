@@ -120,6 +120,7 @@ declare module "three" {
   }
   export const LinearFilter: unknown;
   export const NearestFilter: number;
+  export const HalfFloatType: number;
   export class DepthTexture extends Texture {
     constructor(width: number, height: number);
   }
@@ -285,11 +286,14 @@ declare module "three" {
         minFilter?: number;
         magFilter?: number;
         depthTexture?: DepthTexture;
+        type?: number;
+        samples?: number;
       },
     );
     width: number;
     height: number;
     depthTexture: DepthTexture | null;
+    samples: number;
     texture: Texture;
     setSize(width: number, height: number): void;
     dispose(): void;
@@ -300,7 +304,7 @@ declare module "three" {
     info: { render: { frame: number } };
     getDrawingBufferSize(target: Vector2): Vector2;
     getPixelRatio(): number;
-    capabilities: { getMaxAnisotropy(): number };
+    capabilities: { getMaxAnisotropy(): number; maxSamples: number };
     domElement: HTMLCanvasElement;
     getContext(): WebGLRenderingContext | WebGL2RenderingContext;
     getRenderTarget(): WebGLRenderTarget | null;
@@ -311,6 +315,11 @@ declare module "three" {
     clear(): void;
     render(scene: Object3D, camera: Object3D): void;
     initTexture(texture: Texture): void;
+    compile(
+      scene: Object3D,
+      camera: Object3D,
+      targetScene?: Object3D,
+    ): Set<Material>;
     compileAsync(
       scene: Object3D,
       camera: Object3D,

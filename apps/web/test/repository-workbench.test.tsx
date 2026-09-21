@@ -49,6 +49,56 @@ it("renders distinct accessible empty Workbench and confirmed new-task surfaces"
   expect(create).toContain("Feature / draft PR intended");
   expect(create).toContain('type="submit" disabled=""');
 });
+it("explains uncommitted and committed starting points without silently choosing", () => {
+  const html = renderToStaticMarkup(
+    <NewWorkstreamDialog
+      repositoryId="repo"
+      agentName="Hermes"
+      sourceWorkstream={{
+        workstreamId: "beans-work",
+        revision: 2,
+        title: "Beans website",
+      }}
+      startPoint="HEAD"
+      onStart={async () => {}}
+      onClose={() => {}}
+      onWorkbench={() => {}}
+    />,
+  );
+  expect(html).toContain("Copy current uncommitted work");
+  expect(html).toContain("Start from this Workstream’s last commit");
+  expect(html).toContain("Beans website");
+  expect(html).toContain("No commit is created");
+  expect(html).toContain("Ignored files");
+  expect(html).not.toContain('checked=""');
+  expect(html).toContain('type="submit" disabled=""');
+});
+
+it("checks Git before offering commit choices and preserves ownership", async () => {
+  const component =
+    await import("../src/world-entry/AgentChangeWorkDialog.js").catch(
+      () => null,
+    );
+  expect(component?.AgentChangeWorkDialog).toBeTypeOf("function");
+  if (!component) return;
+  const Dialog = component.AgentChangeWorkDialog;
+  const html = renderToStaticMarkup(
+    <Dialog
+      repositoryId="repo"
+      source={{ workstreamId: "beans-work", title: "Beans website" }}
+      agentName="Beans"
+      onContinue={() => {}}
+      onCancel={() => {}}
+    />,
+  );
+  expect(html).toContain("Checking Workstream Git status");
+  expect(html).not.toContain("Review local commit");
+  expect(html).not.toContain("Change without committing");
+  expect(html).toContain("Cancel");
+  expect(html).toContain("new Workstream");
+  expect(html).not.toContain("All changes committed");
+});
+
 it("routes Workbench to repository continuation rather than the New Workstream fallback", async () => {
   const source = await readFile(
     new URL("../src/world-entry/WorldEntryExperience.tsx", import.meta.url),

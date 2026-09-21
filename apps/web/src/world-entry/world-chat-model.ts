@@ -480,6 +480,7 @@ export type WorldChatState = {
   readonly activity: WorldActivity;
   readonly transcript: readonly WorldTranscriptItem[];
   readonly activeAssistantId: string | null;
+  readonly activeAssistantRecipient?: string;
   readonly animationCue: {
     readonly sequence: number;
     readonly semantic: AvatarOneShotSemantic;
@@ -496,6 +497,7 @@ export type WorldChatAction =
   | {
       readonly type: "RESTORE_HISTORY";
       readonly messages: SessionHistory["messages"];
+      readonly recipient?: string;
       readonly groups?: readonly ConstellationMessageGroup[];
       readonly displayNames?: Readonly<Record<string, string>>;
     }
@@ -507,6 +509,7 @@ export type WorldChatAction =
   | {
       readonly type: "SEND_STARTED";
       readonly id: string;
+      readonly recipient?: string;
     }
   | { readonly type: "AGENT_EVENT"; readonly event: WorldAgentEvent }
   | { readonly type: "SEND_COMPLETED"; readonly text: string }
@@ -667,6 +670,7 @@ const replaceAssistant = (
       {
         id: `assistant-${state.transcript.length}`,
         kind: "assistant",
+        recipient: state.activeAssistantRecipient ?? "Agent",
         text,
       },
     );
@@ -677,6 +681,7 @@ const replaceAssistant = (
     return append(state, {
       id: state.activeAssistantId,
       kind: "assistant",
+      recipient: state.activeAssistantRecipient ?? "Agent",
       text,
     });
   return {
@@ -735,6 +740,9 @@ export function reduceWorldChat(
         id: `history-${index}`,
         kind: message.role,
         text: message.text,
+        ...(message.role === "assistant"
+          ? { recipient: action.recipient ?? "Agent" }
+          : {}),
       })),
       activeAssistantId: null,
       animationCue: null,
@@ -751,6 +759,7 @@ export function reduceWorldChat(
     return {
       ...state,
       activeAssistantId: `assistant-${action.id}`,
+      activeAssistantRecipient: action.recipient ?? "Agent",
       activity: thinkingActivity(),
     };
   if (action.type === "SEND_FAILED")
@@ -846,6 +855,7 @@ export function reduceWorldChat(
     return append(withRequest, {
       id: `local-repository-${action.id}`,
       kind: action.success ? "assistant" : "error",
+      recipient: "World",
       text: action.message,
     });
   }

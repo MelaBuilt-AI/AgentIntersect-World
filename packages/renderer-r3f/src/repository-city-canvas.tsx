@@ -139,6 +139,7 @@ function RepositoryCityModel({
   onReady,
   revealReady,
   onArrival,
+  onStreamPhase,
   rain,
   index,
   clock,
@@ -157,6 +158,7 @@ function RepositoryCityModel({
   readonly onReady: (instanceId: string) => void;
   readonly revealReady: boolean;
   readonly onArrival: (instanceId: string) => void;
+  readonly onStreamPhase: (id: string, phase: "up" | "in") => void;
   readonly rain: Texture | null;
   readonly index: number;
   readonly clock: CityRainClock;
@@ -293,6 +295,7 @@ function RepositoryCityModel({
           clock={clock}
           highlight={highlight}
           onLaunchComplete={() => setLaunchComplete(true)}
+          onStreamPhase={(phase) => onStreamPhase(instance.instanceId, phase)}
           settledAt={settledAt ?? 0}
           reducedMotion={reducedMotion}
         />
@@ -312,6 +315,23 @@ export function markCityArrivalBatch(
   return true;
 }
 
+export type CityStreamSound = (phase: "up" | "in", collective: boolean) => void;
+
+/** Projected repo objects form the load batch; work/event/placed objects do not. */
+export function markCityStreamCue(
+  played: Set<string>,
+  id: string,
+  instances: readonly RepositoryCityInstance[],
+): "collective" | "individual" | null {
+  if (played.has(id)) return null;
+  played.add(id);
+  if (!id.startsWith("repository:")) return "individual";
+  for (const instance of instances)
+    if (instance.instanceId.startsWith("repository:"))
+      played.add(instance.instanceId);
+  return "collective";
+}
+
 export function RepositoryCityModels({
   instances,
   reducedMotion,
@@ -320,6 +340,7 @@ export function RepositoryCityModels({
   onSettled,
   onReady,
   onMaterializationStart,
+  onCityStream,
   interaction,
 }: {
   readonly instances: readonly RepositoryCityInstance[];
@@ -330,6 +351,7 @@ export function RepositoryCityModels({
   readonly onSettled: (instanceId: string) => void;
   readonly onReady: () => void;
   readonly onMaterializationStart?: (() => void) | undefined;
+  readonly onCityStream?: CityStreamSound | undefined;
 }) {
   const { gl } = useThree();
   const graphics = useContext(WorldGraphicsContext);
@@ -344,6 +366,7 @@ export function RepositoryCityModels({
   const [seed] = useState(() => Math.random() * 10000);
   const highlight = useRef(cityRainPulses(0, 0, seed, reducedMotion));
   const started = useRef(new Set<string>());
+  const streamPlayed = useRef({ up: new Set<string>(), in: new Set<string>() });
   const [readyIds, setReadyIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -361,6 +384,7 @@ export function RepositoryCityModels({
     if (allReady) onReady();
   }, [allReady, instances, onReady]);
   useFrame((_, delta) => {
+    fogDepth?.beginFrame();
     if (!reducedMotion) clock.value += Math.min(delta, 0.1);
     highlight.current = graphics.huePulses
       ? cityRainPulses(clock.value, instances.length, seed, reducedMotion)
@@ -389,6 +413,14 @@ export function RepositoryCityModels({
               onArrival={(id) => {
                 if (markCityArrivalBatch(started.current, id, instances))
                   onMaterializationStart?.();
+              }}
+              onStreamPhase={(id, phase) => {
+                const cue = markCityStreamCue(
+                  streamPlayed.current[phase],
+                  id,
+                  instances,
+                );
+                if (cue) onCityStream?.(phase, cue === "collective");
               }}
               rain={rain}
               index={index}

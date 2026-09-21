@@ -469,6 +469,42 @@ describe("authoritative Workstream client", () => {
     expect(expanded).toContain("Cancel Workstream");
   });
 
+  it("refuses another agent before recording an iteration or dispatching work", async () => {
+    const client = {
+      current: async () => apiWorkstream,
+      create: vi.fn(async () => ({
+        workstream: apiWorkstream,
+        replayed: false,
+      })),
+      iterate: vi.fn(async () => ({
+        workstream: apiWorkstream,
+        replayed: false,
+      })),
+      cancel: vi.fn(),
+    };
+    const enqueue = vi.fn();
+    const result = await workstreamCreateModule.executeWorkstreamConversation(
+      {
+        action: "request",
+        task: "Change the homepage text.",
+        text: "/work Change the homepage text.",
+      },
+      {
+        repository: apiWorkstream.repository,
+        agent: { ...apiWorkstream.agent, agentId: "other-agent" },
+      },
+      client,
+      enqueue,
+    );
+    expect(result.message).toBe(
+      "Workbench error · Existing work owned by another agent. Start a new Workstream to continue this project.",
+    );
+    expect(client.iterate).not.toHaveBeenCalled();
+    expect(client.create).not.toHaveBeenCalled();
+    expect(enqueue).not.toHaveBeenCalled();
+    expect(result.workstream).toBeNull();
+  });
+
   it("resolves a feature request to one create or exact-bound continuation", () => {
     const resolve = (
       workstreamCreateModule as typeof workstreamCreateModule & {
@@ -506,7 +542,11 @@ describe("authoritative Workstream client", () => {
         },
         "Create a new homepage.",
       ),
-    ).toEqual({ kind: "create", task: "Create a new homepage." });
+    ).toEqual({
+      kind: "unavailable",
+      message:
+        "Workbench error · Existing work owned by another agent. Start a new Workstream to continue this project.",
+    });
     expect(resolve(apiWorkstream, authority, "Change it to blue.")).toEqual({
       kind: "continue",
       task: "Change it to blue.",

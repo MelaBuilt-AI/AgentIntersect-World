@@ -83,6 +83,12 @@ export type WorkstreamApiRecord = {
 };
 
 export type WorkstreamCreateInput = {
+  readonly sourceWorkstream?: {
+    readonly workstreamId: string;
+    readonly expectedRevision: number;
+    readonly expectedHead: string;
+    readonly mode: "uncommitted" | "last-commit";
+  };
   readonly branch?: string;
   readonly startPoint?: string;
   readonly prIntent?: "local" | "draft-pr";

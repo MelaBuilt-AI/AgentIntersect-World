@@ -15,6 +15,10 @@ import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { promisify } from "node:util";
 
 import { z } from "zod";
+import {
+  applyUncommittedWork,
+  captureUncommittedWork,
+} from "./workstream-start-source.js";
 
 import {
   WorktreeAuthority,
@@ -137,6 +141,13 @@ const WorkstreamEventSchema = z.strictObject({
   occurredAt: timestamp,
 });
 const WorkstreamSchema = z.strictObject({
+  origin: z
+    .strictObject({
+      workstreamId: identifier,
+      head: z.string().regex(/^[a-f0-9]{40,64}$/),
+      mode: z.enum(["uncommitted", "last-commit"]),
+    })
+    .optional(),
   schema: z.literal("aiw.workstream/1"),
   workstreamId: identifier,
   revision: z.number().int().nonnegative(),
@@ -184,6 +195,14 @@ const WorkstreamStoreEnvelopeSchema = z.strictObject({
   checksum: z.string().regex(/^[a-f0-9]{64}$/),
 });
 const WorkstreamCreateRequestSchema = z.strictObject({
+  sourceWorkstream: z
+    .strictObject({
+      workstreamId: identifier,
+      expectedRevision: z.number().int().nonnegative(),
+      expectedHead: z.string().regex(/^[a-f0-9]{40,64}$/),
+      mode: z.enum(["uncommitted", "last-commit"]),
+    })
+    .optional(),
   requestId: identifier,
   correlationId: identifier,
   title: z.string().trim().min(1).max(160),
@@ -511,6 +530,7 @@ export class WorkstreamService {
   readonly #currentPath: string;
   readonly #previousPath: string;
   readonly #worktreeAuthority: WorktreeAuthority;
+  readonly #recordDirectories = new Map<string, string>();
   readonly #worktreeParent: string | null;
   readonly #currentRepository: WorkstreamServiceOptions["currentRepository"];
   readonly #connectedAgent: NonNullable<
@@ -560,9 +580,13 @@ export class WorkstreamService {
 
   async read(workstreamId: string): Promise<Workstream> {
     await this.#ensureLoaded();
-    if (!this.#record || this.#record.workstream.workstreamId !== workstreamId)
+    const record =
+      this.#record?.workstream.workstreamId === workstreamId
+        ? this.#record
+        : (await this.#historyRecords()).get(workstreamId);
+    if (!record)
       throw new WorkstreamServiceError("not-found", "Workstream not found");
-    return this.#project(this.#record.workstream);
+    return this.#project(record.workstream);
   }
 
   /** Source is read from the attested owned tree, never from agent narration. */
@@ -706,6 +730,68 @@ export class WorkstreamService {
     }
     if (this.#record)
       records.set(this.#record.workstream.workstreamId, this.#record);
+    for (const id of records.keys())
+      this.#recordDirectories.set(id, this.#directory);
+    const selected = await this.#currentRepository();
+    if (!selected) return records;
+    const stores = new Map<string, Set<string>>();
+    for (const location of await this.#worktreeAuthority.savedWorkstreamStores()) {
+      const directory = resolve(location.directory);
+      if (directory === this.#directory) continue;
+      const paths = stores.get(directory) ?? new Set<string>();
+      paths.add(resolve(location.worktreePath));
+      stores.set(directory, paths);
+    }
+    for (const [directory, paths] of stores) {
+      const external: WorkstreamRecord[] = [];
+      const currentText = await optionalRead(
+        join(directory, "workstream.current.json"),
+      );
+      if (currentText) {
+        let envelope: WorkstreamStoreEnvelope;
+        try {
+          envelope = parseEnvelope(currentText);
+        } catch {
+          envelope = parseEnvelope(
+            await readFile(join(directory, "workstream.previous.json"), "utf8"),
+          );
+        }
+        if (envelope.payload) external.push(envelope.payload);
+      }
+      let names: string[] = [];
+      try {
+        names = await readdir(join(directory, "archive"));
+      } catch (error) {
+        if (!isMissing(error)) throw error;
+      }
+      for (const name of names.filter((name) =>
+        /^[a-f0-9]{64}\.\d+\.json$/.test(name),
+      )) {
+        const payload = parseEnvelope(
+          await readFile(join(directory, "archive", name), "utf8"),
+        ).payload;
+        if (payload) external.push(payload);
+      }
+      for (const record of external) {
+        const work = record.workstream;
+        if (
+          work.repository.repositoryId !== selected.repositoryId ||
+          work.worktreeState === "removed"
+        )
+          continue;
+        // A locator is discovery only: the saved receipt must resolve back to
+        // one of this repository's exact registered worktrees before exposure.
+        const previous = records.get(work.workstreamId);
+        if (previous && previous.workstream.revision >= work.revision) continue;
+        await this.#worktreeAuthority.restore(work.authority);
+        if (
+          !paths.has(resolve(this.#worktreeAuthority.pathFor(work.authority)))
+        )
+          continue;
+        records.set(work.workstreamId, record);
+        this.#recordDirectories.set(work.workstreamId, directory);
+      }
+    }
     return records;
   }
 
@@ -805,6 +891,16 @@ export class WorkstreamService {
           "Saved worktree branch changed. No files were changed.",
         );
       await this.#archiveCurrent();
+      const savedReport = await boundedRead(
+        this.#reportPath(workstream.workstreamId),
+        64 * 1024,
+      );
+      this.#recordDirectories.set(workstream.workstreamId, this.#directory);
+      if (savedReport !== null) {
+        const reportPath = this.#reportPath(workstream.workstreamId);
+        await mkdir(dirname(reportPath), { recursive: true, mode: 0o700 });
+        await writeFile(reportPath, savedReport, { mode: 0o600 });
+      }
       const binding = this.#agentPort
         ? await this.#bindWorktree({
             agent: request.agent,
@@ -1135,6 +1231,53 @@ export class WorkstreamService {
           "agent-mismatch",
           "Wait for the selected World agent turn to finish",
         );
+      let sourceHead: string | undefined;
+      let changes: Awaited<ReturnType<typeof captureUncommittedWork>> = [];
+      if (request.sourceWorkstream) {
+        if (!this.#worktreeParent)
+          throw new WorkstreamServiceError(
+            "unavailable",
+            "Worktree storage is unavailable",
+          );
+        const source = (await this.#historyRecords()).get(
+          request.sourceWorkstream.workstreamId,
+        )?.workstream;
+        if (
+          !source ||
+          source.repository.repositoryId !== request.repository.repositoryId
+        )
+          throw new WorkstreamServiceError(
+            "repository-mismatch",
+            "Select a source Workstream in this project.",
+          );
+        if (source.revision !== request.sourceWorkstream.expectedRevision)
+          throw new WorkstreamServiceError(
+            "revision-conflict",
+            "Source work changed. Reopen New Workstream.",
+          );
+        if (
+          this.#runs.has(source.workstreamId) ||
+          this.#agentPort?.busy(source.agent.agentId)
+        )
+          throw new WorkstreamServiceError(
+            "active-workstream",
+            "Wait for the source agent to finish before copying its work.",
+          );
+        const receipt = await this.#worktreeAuthority.restore(source.authority);
+        if (
+          receipt.state === "wrong-branch" ||
+          receipt.head !== request.sourceWorkstream.expectedHead
+        )
+          throw new WorkstreamServiceError(
+            "revision-conflict",
+            "Source branch or commit changed. Reopen New Workstream.",
+          );
+        sourceHead = receipt.head;
+        if (request.sourceWorkstream.mode === "uncommitted")
+          changes = await captureUncommittedWork(
+            join(this.#worktreeParent, receipt.relativePath),
+          );
+      }
       if (previous) {
         // Retain the old record and its worktree; never rebind or retry its agent.
         const archive = join(this.#directory, "archive");
@@ -1160,8 +1303,17 @@ export class WorkstreamService {
         requestId: this.#authorityRequestId(request.requestId),
         worktreeId: `worktree-${sha256(workstreamId).slice(0, 24)}`,
         ...(request.branch ? { branch: request.branch } : {}),
-        ...(request.startPoint ? { startPoint: request.startPoint } : {}),
+        ...(sourceHead
+          ? { startPoint: sourceHead }
+          : request.startPoint
+            ? { startPoint: request.startPoint }
+            : {}),
       });
+      if (changes.length && this.#worktreeParent)
+        await applyUncommittedWork(
+          join(this.#worktreeParent, authorityResult.receipt.relativePath),
+          changes,
+        );
       let boundAgent = request.agent;
       let agentEventSequenceStart = 0;
       if (this.#agentPort) {
@@ -1207,6 +1359,15 @@ export class WorkstreamService {
       }
       const workstream = WorkstreamSchema.parse({
         schema: "aiw.workstream/1",
+        ...(request.sourceWorkstream && sourceHead
+          ? {
+              origin: {
+                workstreamId: request.sourceWorkstream.workstreamId,
+                head: sourceHead,
+                mode: request.sourceWorkstream.mode,
+              },
+            }
+          : {}),
         workstreamId,
         revision: 1,
         title: request.title,
@@ -1644,7 +1805,9 @@ export class WorkstreamService {
         "Evidence reader returned an unowned operation reference",
       );
     const projection = await this.#readProjection(workstream);
-    const correlatedAgentRefs = this.#agentPort
+    const correlatedAgentRefs = this.#agentPort?.current(
+      workstream.agent.agentId,
+    )
       ? this.#agentPort
           .evidence(
             workstream.agent.agentId,
@@ -1665,7 +1828,7 @@ export class WorkstreamService {
   async #readProjection(
     workstream: Workstream,
   ): Promise<z.infer<typeof WorkstreamProjectionSchema>> {
-    const agentEvidence = this.#agentPort
+    const agentEvidence = this.#agentPort?.current(workstream.agent.agentId)
       ? this.#agentPort.evidence(
           workstream.agent.agentId,
           workstream.agentEventSequenceStart,
@@ -1679,6 +1842,18 @@ export class WorkstreamService {
         currentActivity: fallbackActivity,
         evidenceRefs: agentEvidence.map(({ ref }) => ref),
       };
+    if (
+      !["missing", "removed"].includes(workstream.worktreeState) &&
+      (await this.#currentRepository())?.repositoryId ===
+        workstream.repository.repositoryId
+    ) {
+      try {
+        await realpath(this.#worktreePath(workstream));
+      } catch (error) {
+        if (!isMissing(error)) throw error;
+        await this.#worktreeAuthority.restore(workstream.authority);
+      }
+    }
     const worktree = this.#worktreePath(workstream);
     try {
       const [status, summary, patch, reportText] = await Promise.all([
@@ -1752,16 +1927,7 @@ export class WorkstreamService {
         "unavailable",
         "Workstream projection root is unavailable",
       );
-    const path = resolve(
-      this.#worktreeParent,
-      workstream.authority.relativePath,
-    );
-    if (!contained(this.#worktreeParent, path))
-      throw new WorkstreamServiceError(
-        "unavailable",
-        "Workstream projection path escapes its owned parent",
-      );
-    return path;
+    return this.#worktreeAuthority.pathFor(workstream.authority);
   }
 
   #systemContext(workstream: Workstream): string {
@@ -1781,7 +1947,9 @@ export class WorkstreamService {
 
   #reportPath(workstreamId: string): string {
     return join(
-      this.#reportsDirectory,
+      this.#recordDirectories.has(workstreamId)
+        ? join(this.#recordDirectories.get(workstreamId)!, "reports")
+        : this.#reportsDirectory,
       identifier.parse(workstreamId),
       `${identifier.parse(workstreamId)}.json`,
     );
@@ -2110,5 +2278,13 @@ export class WorkstreamService {
     await syncDirectory(this.#directory);
     this.#generation = nextGeneration;
     this.#loadedFromPrevious = false;
+    if (
+      this.#record &&
+      !["removed", "missing"].includes(this.#record.workstream.worktreeState)
+    )
+      await this.#worktreeAuthority.rememberStore(
+        this.#record.workstream.authority,
+        this.#directory,
+      );
   }
 }

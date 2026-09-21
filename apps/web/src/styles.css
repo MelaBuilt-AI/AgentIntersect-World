@@ -983,6 +983,26 @@
   position: relative;
 }
 
+.world-experience--room[inert] {
+  isolation: isolate;
+}
+
+.world-avatar-overlay .world-experience--avatar {
+  padding-top: 6rem;
+}
+
+.world-avatar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: auto;
+  background: #030914;
+}
+
+.world-escape-backdrop[data-world-selection] {
+  z-index: 70;
+}
+
 .world-entry-transition {
   position: fixed;
   inset: 0;
@@ -2234,6 +2254,24 @@
   box-shadow: 0 1.2rem 4rem rgba(0, 0, 0, 0.55);
 }
 
+.world-escape-dialog.world-change-agent {
+  width: min(100%, 60rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.world-change-agent .world-entry-logo__terminal {
+  margin-top: 1rem;
+}
+
+.world-change-agent .world-entry-logo__mark {
+  width: min(calc(100% - 1rem), 24rem);
+}
+
+.world-change-agent .world-entry-logo {
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
 .world-escape-dialog.world-add-agent--avatar {
   width: min(100%, 92rem);
   max-height: 92dvh;
@@ -2299,7 +2337,7 @@
 
 .world-avatar-cancel {
   position: fixed;
-  top: max(1rem, env(safe-area-inset-top));
+  top: max(2.75rem, env(safe-area-inset-top));
   left: max(1rem, env(safe-area-inset-left));
   z-index: 90;
 }

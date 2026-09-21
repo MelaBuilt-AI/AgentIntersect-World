@@ -304,5 +304,37 @@ export const AUDIO_CATALOG = [
     loop: false,
     category: "sfx",
   },
+  {
+    id: "repo-stream-up",
+    title: "Repository object stream launch",
+    src: "/audio/repo-stream-up.wav",
+    gain: 0.62,
+    loop: false,
+    category: "sfx",
+  },
+  {
+    id: "repo-stream-in",
+    title: "Repository object stream return",
+    src: "/audio/repo-stream-in.wav",
+    gain: 0.62,
+    loop: false,
+    category: "sfx",
+  },
+  {
+    id: "repo-stream-up-collective",
+    title: "Repository load collective stream launch",
+    src: "/audio/repo-stream-up-collective.wav",
+    gain: 0.62,
+    loop: false,
+    category: "sfx",
+  },
+  {
+    id: "repo-stream-in-collective",
+    title: "Repository load collective stream return",
+    src: "/audio/repo-stream-in-collective.wav",
+    gain: 0.62,
+    loop: false,
+    category: "sfx",
+  },
 ] as const;
 export type AudioCue = (typeof AUDIO_CATALOG)[number]["id"];

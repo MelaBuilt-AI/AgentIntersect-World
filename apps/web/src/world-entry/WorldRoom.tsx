@@ -114,6 +114,8 @@ const ImportedWorldRoomCanvas = lazy(async () => {
 });
 
 const playMaterializationSound = () => audioCue("avatar-materialize");
+const playCityStreamSound = (phase: "up" | "in", collective: boolean) =>
+  audioCue(`repo-stream-${phase}${collective ? "-collective" : ""}`);
 
 const WORLD_AGENT_SPAWN_POSITIONS = [
   { x: -4.2, z: 0.8 },
@@ -516,6 +518,16 @@ export function WorldRoom({
   const lookOwnsPointerLock = useRef(false);
   const lookRequestSequence = useRef(0);
   const [mouseLookActive, setMouseLookActive] = useState(false);
+  // Change Agent preserves the World, but movement/arrival belongs to its actor.
+  // Reset only that state, retaining the body's position and the World/camera.
+  if (agentMovement.actorId !== resolvedAgentActorId) {
+    setAgentMovement({
+      ...createAgentMovementState(resolvedAgentActorId, agentMovement.position),
+      heading: agentMovement.heading,
+    });
+    setAgentWorkArrival(null);
+    setAgentAnimation(createAvatarAnimationState());
+  }
   const [repositoryCity, dispatchCity] = useReducer(
     reduceRepositoryCity,
     undefined,
@@ -877,6 +889,12 @@ export function WorldRoom({
   useEffect(() => {
     agentMovementRef.current = agentMovement;
   }, [agentMovement]);
+
+  useLayoutEffect(() => {
+    handledAgentMovementRequest.current = null;
+    handledAgentMovementControl.current = 0;
+    pendingAgentWorkArrivalRef.current = null;
+  }, [resolvedAgentActorId]);
 
   useEffect(() => {
     secondaryMovementsRef.current = secondaryMovements;
@@ -2502,6 +2520,7 @@ export function WorldRoom({
                   graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
+                  onCityStream={playCityStreamSound}
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
                   floorSize={floorSize}
@@ -2564,6 +2583,7 @@ export function WorldRoom({
                   graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
+                  onCityStream={playCityStreamSound}
                   screenEventSource={screenEventSource ?? undefined}
                   screens={screenController?.screens}
                   floorSize={floorSize}

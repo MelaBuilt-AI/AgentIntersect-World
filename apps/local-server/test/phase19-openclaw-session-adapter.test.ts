@@ -21,11 +21,16 @@ type FixtureOptions = {
   readonly oversizedFrame?: boolean;
   readonly oversizedOutput?: boolean;
   readonly eventFlood?: boolean;
+  readonly noisyStream?: boolean;
+  readonly lateNoise?: boolean;
+  readonly toolFlood?: boolean;
+  readonly toolFloodEnds?: boolean;
   readonly disconnectOnSend?: boolean;
   readonly delayTerminal?: boolean;
   readonly errorCanary?: string;
   readonly ignoreMethod?: string;
   readonly abortConfirmed?: boolean;
+  readonly abortEventFirst?: boolean;
 };
 
 const servers: Array<{ close(): Promise<void> }> = [];
@@ -167,8 +172,55 @@ async function fixtureGateway(options: FixtureOptions = {}) {
               JSON.stringify({ type: "event", event: name, payload }),
             );
           if (options.eventFlood) {
-            for (let index = 0; index < 1_025; index += 1)
+            for (let index = 0; index < 18; index += 1)
+              event("tick", { text: "x".repeat(1_000_000) });
+            return;
+          }
+          if (options.noisyStream) {
+            for (let index = 0; index < 1_500; index += 1) {
               event("tick", { index });
+              event("chat", {
+                runId: "other-run",
+                sessionKey: "other-session",
+                state: "delta",
+                deltaText: "NOT_OUR_TEXT",
+              });
+              event("agent", {
+                runId,
+                sessionKey: key,
+                stream: "reasoning",
+                data: { text: "PRIVATE_REASONING_CANARY" },
+              });
+              event("chat", {
+                runId,
+                sessionKey: key,
+                state: "delta",
+                deltaText: "x",
+              });
+            }
+          }
+          if (options.toolFlood) {
+            for (let index = 0; index < 1_025; index += 1)
+              event("agent", {
+                runId,
+                sessionKey: key,
+                stream: "tool",
+                data: {
+                  phase: "start",
+                  name: "read_file",
+                  toolCallId: `call-${index}`,
+                },
+              });
+            if (options.toolFloodEnds)
+              event("chat", {
+                runId,
+                sessionKey: key,
+                state: "final",
+                message: {
+                  role: "assistant",
+                  content: [{ type: "text", text: "late completion" }],
+                },
+              });
             return;
           }
           if (options.oversizedOutput) {
@@ -224,12 +276,29 @@ async function fixtureGateway(options: FixtureOptions = {}) {
               content: [{ type: "text", text: "fixture complete" }],
             },
           });
+          if (options.lateNoise) {
+            for (let index = 0; index < 1_100; index += 1)
+              event("tick", { index });
+            socket.close();
+          }
         };
         if (options.delayTerminal) pendingTerminals.push(finish);
         else queueMicrotask(finish);
         return;
       }
       if (request.method === "sessions.abort") {
+        if (options.abortEventFirst)
+          socket.send(
+            JSON.stringify({
+              type: "event",
+              event: "chat",
+              payload: {
+                state: "aborted",
+                sessionKey: request.params.key,
+                runId: request.params.runId,
+              },
+            }),
+          );
         respond(
           options.abortConfirmed === false
             ? { ok: false }
@@ -304,6 +373,112 @@ async function waitForCallCount(
 }
 
 describe("OpenClawSessionAdapter", () => {
+  it("bounds raw stream bytes even for ignored telemetry", async () => {
+    const gateway = await fixtureGateway({ eventFlood: true });
+    const native = adapter(gateway.url, { turnTimeoutMs: 5000 });
+    const session = await native.createWorldSession("raw-limit-proof");
+    await expect(
+      native.sendText(session.id, "bounded raw stream", {
+        mode: "explore",
+        rootSessionRef: session.rootId,
+      }),
+    ).rejects.toThrow("OpenClaw gateway response exceeded a bound");
+  });
+  it.each([false, true])(
+    "aborts excessive relevant tool activity once and requires confirmation (late final: %s)",
+    async (toolFloodEnds) => {
+      const gateway = await fixtureGateway({ toolFlood: true, toolFloodEnds });
+      const native = adapter(gateway.url);
+      const session = await native.createWorldSession("tool-limit-proof");
+      await expect(
+        native.sendText(session.id, "bounded tools", {
+          mode: "explore",
+          rootSessionRef: session.rootId,
+        }),
+      ).rejects.toThrow("OpenClaw turn exceeded the tool event bound");
+      await waitForCall(gateway.calls, "sessions.abort");
+      expect(
+        gateway.calls.filter((c) => c.method === "sessions.abort"),
+      ).toHaveLength(1);
+      await expect(
+        native.attach(session.rootId!, { worldInstanceId: "tool-limit-proof" }),
+      ).resolves.toMatchObject({ id: session.id });
+    },
+  );
+  it.each([{ noisyStream: true }, { lateNoise: true }])(
+    "accepts bounded fragmented completion without counting gateway noise: %s",
+    async (options) => {
+      const gateway = await fixtureGateway(options);
+      const native = adapter(gateway.url);
+      const session = await native.createWorldSession("stream-proof");
+      const events: unknown[] = [];
+      const result = await native.sendText(session.id, "bounded turn", {
+        mode: "explore",
+        rootSessionRef: session.rootId,
+        onEvent: async (event) => {
+          if (options.lateNoise)
+            await new Promise((resolve) => setTimeout(resolve, 5));
+          events.push(event);
+        },
+      });
+      expect(result.finalText).toBe("fixture complete");
+      expect(JSON.stringify(events)).not.toContain("NOT_OUR_TEXT");
+      expect(JSON.stringify(events)).not.toContain("PRIVATE_REASONING_CANARY");
+      await expect(
+        native.sendText(session.id, "next turn", {
+          mode: "explore",
+          rootSessionRef: session.rootId,
+        }),
+      ).resolves.toMatchObject({ finalText: "fixture complete" });
+    },
+  );
+
+  it("keeps the timeout reason when native aborted arrives before the abort receipt", async () => {
+    const gateway = await fixtureGateway({
+      delayTerminal: true,
+      abortEventFirst: true,
+    });
+    const native = adapter(gateway.url, { turnTimeoutMs: 30 });
+    const created = await native.createWorldSession("deadline-reason");
+    await expect(
+      native.sendText(created.id, "slow task", {
+        mode: "explore",
+        rootSessionRef: created.rootId,
+      }),
+    ).rejects.toThrow("OpenClaw session turn timed out");
+    expect(
+      gateway.calls.filter((call) => call.method === "sessions.abort"),
+    ).toHaveLength(1);
+  });
+  it("carries owned Workstream context to the same native session with a coding deadline", async () => {
+    const gateway = await fixtureGateway();
+    const native = new OpenClawSessionAdapter({
+      gatewayUrl: gateway.url,
+      credential: "fixture-token",
+    });
+    const created = await native.createWorldSession("workstream-context");
+    await native.sendText(created.id, "Build the home page", {
+      mode: "explore",
+      rootSessionRef: created.rootId,
+      workingDirectory: "/tmp/owned beans worktree",
+      systemMessage:
+        "Write only in the owned worktree. Save the exact Workstream receipt.",
+    });
+    const sent = gateway.calls.find(
+      (call) => call.method === "sessions.send",
+    )!.params;
+    expect(sent.key).toBe(created.rootId);
+    expect(sent.message).toContain("/tmp/owned beans worktree");
+    expect(sent.message).toContain("Save the exact Workstream receipt.");
+    expect(sent.message).toContain("Build the home page");
+    expect(sent.timeoutMs).toBe(600_000);
+    // The installed gateway only accepts context in message, not invented cwd fields.
+    expect(sent).not.toHaveProperty("cwd");
+    expect(
+      gateway.calls.filter((call) => call.method === "sessions.create"),
+    ).toHaveLength(1);
+  });
+
   it("restores exact native ownership across adapter recreation without replacement", async () => {
     const fixture = await fixtureGateway();
     const directory = await mkdtemp(path.join(tmpdir(), "aiw-claw-resume-"));

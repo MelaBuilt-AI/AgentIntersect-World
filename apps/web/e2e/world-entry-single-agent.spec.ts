@@ -1088,8 +1088,11 @@ for (const source of ["clone", "open", "create"] as const) {
   test(`@repository-loading holds the animated indicator through ${source}, indexing and rendered city`, async ({
     page,
   }, testInfo) => {
-    // This journey now observes the longer city assembly AND its upward/downward launch.
-    test.setTimeout(source === "open" ? 180_000 : 120_000);
+    // Software rendering advances the deliberately capped animation clock slowly.
+    // Create measured ~127s; open including the later prop's sound sequence ~223s.
+    test.setTimeout(
+      source === "open" ? 300_000 : source === "create" ? 180_000 : 120_000,
+    );
     await page.setViewportSize({ width: 1440, height: 900 });
     await seedConfiguredAvatar(page, "Aaron");
     await installWorldFixtures(page, { repositoryProjects: [] });
@@ -1115,8 +1118,19 @@ for (const source of ["clone", "open", "create"] as const) {
     await page.addInitScript(() => {
       const originalPlay = HTMLMediaElement.prototype.play;
       const arrivals: { currentTime: number }[] = [];
-      Object.assign(window, { __cityArrivalPlayback: arrivals });
+      const streams: { src: string; currentTime: number }[] = [];
+      Object.assign(window, {
+        __cityArrivalPlayback: arrivals,
+        __cityStreamPlayback: streams,
+      });
       HTMLMediaElement.prototype.play = function () {
+        if (/\/repo-stream-(up|in)(-collective)?\.wav$/.test(this.src)) {
+          const sample = { src: new URL(this.src).pathname, currentTime: 0 };
+          streams.push(sample);
+          this.addEventListener("timeupdate", () => {
+            sample.currentTime = Math.max(sample.currentTime, this.currentTime);
+          });
+        }
         if (this.src.endsWith("/avatar-materialize.wav")) {
           const sample = { currentTime: 0 };
           arrivals.push(sample);
@@ -1279,7 +1293,7 @@ for (const source of ["clone", "open", "create"] as const) {
       await expect(cityCanvas).toHaveAttribute(
         "data-city-arrival",
         "complete",
-        { timeout: 20_000 },
+        { timeout: source === "clone" ? 20_000 : 45_000 },
       );
       if (source === "open") {
         const completionTime = Number(
@@ -1289,7 +1303,7 @@ for (const source of ["clone", "open", "create"] as const) {
           .poll(
             async () =>
               Number(await cityCanvas.getAttribute("data-city-rain-time")),
-            { timeout: 20_000 },
+            { timeout: 45_000 },
           )
           .toBeGreaterThan(completionTime + 4.3);
         const time = Number(
@@ -1321,6 +1335,49 @@ for (const source of ["clone", "open", "create"] as const) {
         await expect
           .poll(async () => (await playback())[1]?.currentTime ?? 0)
           .toBeGreaterThan(0.05);
+        const streams = () =>
+          page.evaluate(
+            () =>
+              (
+                window as unknown as {
+                  __cityStreamPlayback: { src: string; currentTime: number }[];
+                }
+              ).__cityStreamPlayback,
+          );
+        await expect
+          .poll(async () => (await streams()).map((item) => item.src))
+          .toEqual([
+            "/audio/repo-stream-up-collective.wav",
+            "/audio/repo-stream-in-collective.wav",
+          ]);
+        await expect
+          .poll(async () =>
+            (await streams()).every((item) => item.currentTime > 0.05),
+          )
+          .toBe(true);
+        // A later object uses its own pair, not the load's collective sound.
+        await page
+          .getByRole("button", { name: "Arrange workspace", exact: true })
+          .click();
+        await page.getByText("Visual-only props", { exact: true }).click();
+        await page.getByLabel("Search assets").fill("deployment");
+        await page.getByRole("button", { name: "Place prop" }).click();
+        // Cold prop load, materialization and both phases measured ~53s on two CPUs.
+        await expect
+          .poll(async () => (await streams()).map((item) => item.src), {
+            timeout: 90_000,
+          })
+          .toEqual([
+            "/audio/repo-stream-up-collective.wav",
+            "/audio/repo-stream-in-collective.wav",
+            "/audio/repo-stream-up.wav",
+            "/audio/repo-stream-in.wav",
+          ]);
+        await expect
+          .poll(async () =>
+            (await streams()).every((item) => item.currentTime > 0.05),
+          )
+          .toBe(true);
         await page.emulateMedia({ reducedMotion: "reduce" });
         await expect(cityCanvas).toHaveAttribute(
           "data-city-rain-highlight",
@@ -1509,9 +1566,9 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
   page,
 }, testInfo) => {
   // Includes avatar entry/re-entry, saved-project loading, preview recovery and Git.
-  // Complete two-CPU runs take 280–288s; hosted execution exhausted 300s at
-  // the final dialog. Keep assertion deadlines intact with whole-journey headroom.
-  test.setTimeout(360_000);
+  // Current complete two-CPU execution measured ~357s. Keep assertion deadlines
+  // intact while leaving headroom beyond the former 360s whole-journey budget.
+  test.setTimeout(480_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await seedConfiguredAvatar(page, "Aaron");
   const repository = {
@@ -1809,6 +1866,11 @@ test("@repository-workbench distinct menus discover paths and continue saved wor
     .getByRole("button", { name: "Accept Agent Avatar", exact: true })
     .click();
   await page.getByRole("button", { name: "Enter World", exact: true }).click();
+  await expect(page.locator("main.world-room")).toHaveAttribute(
+    "data-scene-ready",
+    "true",
+    { timeout: 60_000 },
+  );
   await expect(page.getByTestId("world-hud")).toBeVisible();
   await openCodeWheel(page);
   await page.getByRole("button", { name: "Load Repo", exact: true }).click();
@@ -2140,6 +2202,12 @@ async function installNormalWorkstreamFixtures(page: Page) {
     currentWorkstream: {
       ...baseWorkstream,
       workstreamId: "old-session-workstream",
+      // An unrelated saved project must not bind into this new project's task.
+      // Same-project/different-agent refusal is covered by @agent-handoff.
+      repository: {
+        ...repository,
+        repositoryId: "aiw://object/99999999999999999999999999999999",
+      },
       status: "blocked",
       agent: {
         ...agent,
@@ -2397,7 +2465,7 @@ async function enterNormalWorkstream(page: Page) {
   await expect(
     page.locator('[data-workstream-slab="old-session-workstream"]'),
   ).toHaveCount(0);
-  await composer.fill("Build a settings panel");
+  await composer.fill("/work Build a settings panel");
   await expect(
     page.getByRole("button", { name: "Send", exact: true }),
   ).toBeEnabled();
@@ -4160,7 +4228,7 @@ async function preparePhase18_5World(page: Page) {
     { timeout: 30_000 },
   );
   await expect(transcript).toContainText(
-    "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
+    "WorldRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
     { timeout: 60_000 },
   );
   await expect(chatForm).toHaveAttribute("aria-busy", "false", {
@@ -4723,7 +4791,7 @@ async function completeJourney(
     { timeout: 30_000 },
   );
   await expect(transcript).toContainText(
-    "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
+    "WorldRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
     { timeout: 60_000 },
   );
   await expect(chatForm).toHaveAttribute("aria-busy", "false", {
@@ -5535,7 +5603,7 @@ test("large desktop World and HUD fill and reflow with the browser viewport", as
     { timeout: 30_000 },
   );
   await expect(transcript).toContainText(
-    "Mr FluffRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
+    "WorldRepository loaded locally · Current · 2 packages · 2 directories · 5 files",
     { timeout: 60_000 },
   );
   await expect(room).toHaveAttribute("data-floor-state", "repository", {

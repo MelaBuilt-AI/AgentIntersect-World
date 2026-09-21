@@ -17,14 +17,19 @@ import {
 /** One lazy capture shared by all city mist volumes, never by the reflector. */
 export function createRepositoryFogDepth() {
   let target: WebGLRenderTarget | null = null;
-  let frame = -1;
+  let captured = false;
   const size = new Vector2();
   const opaque = new MeshBasicMaterial({ color: "#ffffff" });
   opaque.fog = false;
   opaque.toneMapped = false;
   return {
+    // Three advances its counter for nested reflections and postprocessing too.
+    // Invalidate once from the owning R3F frame, not on each gl.render call.
+    beginFrame() {
+      captured = false;
+    },
     capture(gl: WebGLRenderer, scene: Scene, camera: Camera) {
-      if (target && frame === gl.info.render.frame) return target;
+      if (target && captured) return target;
       gl.getDrawingBufferSize(size);
       if (!target) {
         target = new WebGLRenderTarget(size.x, size.y, {
@@ -87,14 +92,14 @@ export function createRepositoryFogDepth() {
         for (const object of hidden) object.visible = true;
         for (const [object, material] of replaced) object.material = material;
       }
-      frame = gl.info.render.frame;
+      captured = true;
       return target;
     },
     dispose() {
       target?.dispose();
       opaque.dispose();
       target = null;
-      frame = -1;
+      captured = false;
     },
   };
 }

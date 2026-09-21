@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   RepositoryCityGLTFLoader,
   markCityArrivalBatch,
+  markCityStreamCue,
   repositoryMaterialTint,
   selectRepositoryCityRenderPlan,
 } from "../src/repository-city-canvas.js";
@@ -114,6 +115,32 @@ describe("repository city renderer policy", () => {
     expect(plan.semantic).toContainEqual(live);
     expect(plan.semantic).toContainEqual(manual);
     expect(plan.aggregateCount).toBe(14);
+  });
+
+  it("uses one collective cue per repo phase without swallowing later individual arrivals", () => {
+    const phases = { up: new Set<string>(), in: new Set<string>() };
+    const batch = Array.from({ length: 15 }, (_, index) => instance(index));
+    const emit = (id: string, phase: "up" | "in", population = batch) =>
+      markCityStreamCue(phases[phase], id, population);
+    expect(
+      batch.map((item) => emit(item.instanceId, "up")).filter(Boolean),
+    ).toEqual(["collective"]);
+    const event = { ...instance(20), instanceId: "event:file.updated:work-1" };
+    const population = [...batch, event];
+    expect(emit(event.instanceId, "up", population)).toBe("individual");
+    expect(
+      batch
+        .map((item) => emit(item.instanceId, "in", population))
+        .filter(Boolean),
+    ).toEqual(["collective"]);
+    expect(emit(event.instanceId, "in", population)).toBe("individual");
+    expect(emit(event.instanceId, "in", population)).toBeNull();
+    expect(
+      emit("repository:next-project", "up", [
+        instance(21),
+        { ...instance(22), instanceId: "repository:next-project" },
+      ]),
+    ).toBe("collective");
   });
 
   it("coalesces simultaneous city sounds and plays again for a later arrival", () => {

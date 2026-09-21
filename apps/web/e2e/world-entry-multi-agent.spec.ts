@@ -11,6 +11,448 @@ import {
 
 const worldInstanceId = "80000000-0000-4000-8000-000000000008";
 
+test("@agent-handoff commit or skip before switching and choose the new Workstream source", async ({
+  page,
+}, testInfo) => {
+  // Commit/skip, source choices and retained-World checks take ~120s on two CPUs.
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedConfiguredAvatar(page, "Aaron");
+  await installFixture(page, 0);
+  await page.addInitScript(
+    (id) => localStorage.setItem("aiw.agent-session.pointer.0.12", id),
+    agents[0].worldSessionId,
+  );
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const registrations = agents.map((a, i) => ({
+    id: `11111111-1111-4111-8111-11111111111${i}`,
+    adapterId: a.adapterId,
+    displayName: a.displayName,
+    installationId: a.adapterId,
+    environment: {
+      id: "wsl:Ubuntu",
+      kind: "wsl",
+      label: "WSL (Ubuntu)",
+      distro: "Ubuntu",
+    },
+    executablePath: "/fixture/agent",
+    homePath: "/fixture",
+    identity: {
+      id: "default",
+      label: "Default",
+      kind: "profile",
+      profilePath: "/fixture/profile",
+    },
+    connectedAt: new Date().toISOString(),
+  }));
+  await page.route("**/api/agent-setup**", (route) =>
+    fulfillJson(
+      route,
+      envelope(
+        route.request().url().endsWith("/recheck")
+          ? { status: "ready", message: "Ready" }
+          : { schema: "aiw.agent-setup/1", completed: true, registrations },
+      ),
+    ),
+  );
+  const repository = {
+    repositoryId: "aiw://object/22222222222222222222222222222222",
+    revision: "77777777-7777-4777-8777-777777777777",
+  };
+  let work = {
+    schema: "aiw.workstream/1",
+    workstreamId: "88888888-8888-4888-8888-888888888888",
+    revision: 2,
+    title: "Existing website",
+    task: "Existing website",
+    repository,
+    agent: {
+      agentId: agents[0].worldSessionId,
+      nativeSessionId: agents[0].nativeRootSessionRef,
+      rootNativeSessionId: agents[0].nativeRootSessionRef,
+      revision: "0",
+    },
+    authority: {
+      schema: "aiw.worktree-authority-receipt/1",
+      ownerId: "source-owner",
+      requestId: "source-request",
+      worktreeId: "worktree-source",
+      repositoryId: repository.repositoryId,
+      relativePath: "worktree-source",
+      branch: "workstream/source",
+      head: "a".repeat(40),
+      state: "dirty",
+      statusSummary: "Dirty",
+      validatedAt: "2026-09-03T15:00:00.000Z",
+      attestation: "b".repeat(64),
+    },
+    worktreeState: "dirty",
+    evidenceOperationRefs: [],
+    projection: {
+      currentActivity: "Homepage ready",
+      changedFiles: [
+        { path: "index.html", change: "added", diffSummary: "?? index.html" },
+      ],
+      diff: { summary: "", patch: "", truncated: false },
+      validation: [],
+      evidenceRefs: [],
+    },
+    status: "ready-for-review",
+    createdAt: "2026-09-03T15:00:00.000Z",
+    updatedAt: "2026-09-03T15:00:00.000Z",
+    events: [],
+  };
+  const sourceId = work.workstreamId;
+  let head = "a".repeat(40);
+  let dirty = true;
+  const creates: Record<string, unknown>[] = [];
+  const iterations: unknown[] = [];
+  const commits: Record<string, unknown>[] = [];
+  const gitStatus = () => ({
+    head,
+    branch: "workstream/source",
+    upstream: null,
+    remotes: [],
+    changes: dirty ? [{ path: "index.html", status: "??" }] : [],
+    commits: [
+      { sha: head, subject: "Website", date: "2026-09-03T15:00:00.000Z" },
+    ],
+  });
+  await page.route(
+    "**/api/repository-intake/projects/code-wheel-project/git**",
+    async (route) => {
+      if (route.request().method() === "POST") {
+        commits.push(route.request().postDataJSON());
+        head = "c".repeat(40);
+        dirty = false;
+        await fulfillJson(
+          route,
+          envelope({ status: gitStatus(), message: "Local commit created" }),
+        );
+      } else await fulfillJson(route, envelope(gitStatus()));
+    },
+  );
+  await page.route("**/api/workstreams**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/source")) {
+      const file = new URL(route.request().url()).searchParams.get("path");
+      return fulfillJson(
+        route,
+        envelope({
+          objectRef: file ?? `aiw://object/workstream-${sourceId}`,
+          repositoryRef: repository.repositoryId,
+          path: file ?? work.title,
+          kind: file ? "file" : "workstream",
+          files: [{ ref: "index.html", path: "index.html" }],
+          content: file ? "<body>Preserved earlier website</body>" : null,
+          message: "Saved Workstream source",
+        }),
+      );
+    }
+    if (path.endsWith("/previews/current"))
+      return fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.preview-manager/1",
+          active: null,
+          latestAttempt: null,
+          previousVerified: null,
+          display: null,
+        }),
+      );
+    if (route.request().method() === "POST") {
+      if (path.endsWith("/iterations")) {
+        iterations.push(route.request().postDataJSON());
+        return fulfillJson(
+          route,
+          envelope({ workstream: work, replayed: false }),
+        );
+      }
+      const body = route.request().postDataJSON();
+      creates.push(body);
+      work = { ...work, ...body, workstreamId: randomUUID(), revision: 1 };
+      return fulfillJson(
+        route,
+        envelope({ workstream: work, replayed: false }),
+      );
+    }
+    return fulfillJson(
+      route,
+      envelope(path.endsWith("/history") ? { workstreams: [work] } : work),
+    );
+  });
+  await page.goto("/");
+  const room = page.locator(".world-room");
+  await expect(room).toHaveAttribute("data-scene-ready", "true", {
+    timeout: 60_000,
+  });
+  await room
+    .locator("canvas")
+    .evaluate((el) => el.setAttribute("data-handoff-retained", "yes"));
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+  await page.getByLabel("Local repository path").fill("/fixture");
+  await page.getByRole("button", { name: "Open local", exact: true }).click();
+  await expect(
+    page.locator(".world-experience[data-repository-readiness]"),
+  ).toHaveAttribute("data-repository-readiness", "ready", { timeout: 60_000 });
+  const initialChat = page.getByRole("textbox", {
+    name: "Message Mr Fluff",
+    exact: true,
+  });
+  await initialChat.fill("/work status");
+  await initialChat.press("Enter");
+  await expect(
+    page.locator(
+      '.world-workstream-status[data-workstream-status="ready-for-review"]',
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Close Work Inspector", exact: true })
+    .click();
+  const openChange = async () => {
+    await room.focus();
+    await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: "Change Agent", exact: true })
+      .click();
+  };
+  const prompt = page.getByRole("dialog", {
+    name: "Save work before changing agent",
+  });
+  await openChange();
+  await expect(prompt).toBeVisible();
+  await expect(page.locator(".world-experience--room")).toHaveAttribute(
+    "inert",
+    "",
+  );
+  await prompt.focus();
+  await page.keyboard.press("Escape");
+  await expect(prompt).toHaveCount(0);
+  await openChange();
+  await expect(prompt).toBeVisible();
+  await prompt.getByRole("button", { name: "Cancel", exact: true }).click();
+  expect(commits).toHaveLength(0);
+  expect(creates).toHaveLength(0);
+  await openChange();
+  await expect(
+    prompt.getByRole("button", { name: "Review local commit" }),
+  ).toBeEnabled();
+  await page.screenshot({
+    path: testInfo.outputPath("change-agent-work-prompt.png"),
+  });
+  await prompt.getByRole("button", { name: "Review local commit" }).click();
+  await prompt.getByRole("checkbox", { name: /index.html/ }).check();
+  await prompt
+    .getByLabel("Commit message", { exact: true })
+    .fill("Save website before switching");
+  await prompt
+    .getByRole("button", { name: "Review commit (1 files)", exact: true })
+    .click();
+  expect(commits).toHaveLength(0);
+  await prompt
+    .getByRole("button", { name: "Confirm commit", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Change Agent", exact: true }),
+  ).toBeVisible();
+  expect(commits).toHaveLength(1);
+  expect(commits[0]).toMatchObject({
+    action: "commit",
+    confirm: true,
+    workstreamId: sourceId,
+    files: ["index.html"],
+  });
+  await page
+    .getByRole("dialog", { name: "Change Agent", exact: true })
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  dirty = true;
+  await openCodeWheel(page);
+  await page.getByRole("button", { name: "Workbench", exact: true }).click();
+  const bench = page.getByRole("dialog", {
+    name: "Repository Workbench",
+    exact: true,
+  });
+  await bench
+    .getByRole("combobox", { name: "Workbench Git target", exact: true })
+    .selectOption(sourceId);
+  await bench
+    .getByRole("button", { name: "Inspect saved files", exact: true })
+    .click();
+  const savedFiles = bench.getByRole("region", {
+    name: "Saved Workstream files",
+    exact: true,
+  });
+  await savedFiles
+    .getByRole("button", { name: "index.html", exact: true })
+    .click();
+  await expect(
+    savedFiles.getByLabel("Saved file contents", { exact: true }),
+  ).toHaveText("<body>Preserved earlier website</body>");
+  expect(commits).toHaveLength(1);
+  expect(creates).toHaveLength(0);
+  expect(iterations).toHaveLength(0);
+  await savedFiles.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath("saved-workstream-files.png"),
+  });
+  await bench
+    .getByRole("button", { name: "Close saved files", exact: true })
+    .click();
+  await bench.getByRole("checkbox", { name: /index.html/ }).check();
+  await bench
+    .getByLabel("Commit message", { exact: true })
+    .fill("Manual Workbench commit");
+  await bench
+    .getByRole("button", { name: "Review commit (1 files)", exact: true })
+    .click();
+  await bench
+    .getByRole("button", { name: "Confirm commit", exact: true })
+    .click();
+  await expect(
+    bench.getByText("Working tree is clean.", { exact: true }),
+  ).toBeVisible();
+  expect(commits).toHaveLength(2);
+  expect(commits[1]).toMatchObject({
+    workstreamId: sourceId,
+    message: "Manual Workbench commit",
+  });
+  await bench
+    .getByRole("button", { name: "Close Workbench", exact: true })
+    .click();
+  // Read actual Git, even while the saved Workstream projection says dirty.
+  await openChange();
+  await expect(prompt.getByText(/All changes committed/)).toBeVisible();
+  await expect(
+    prompt.getByRole("button", { name: "Review local commit" }),
+  ).toHaveCount(0);
+  await expect(
+    prompt.getByRole("button", { name: "Change without committing" }),
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: testInfo.outputPath("change-agent-committed.png"),
+  });
+  await prompt
+    .getByRole("button", { name: "Continue to Change Agent", exact: true })
+    .click();
+  await page
+    .getByRole("dialog", { name: "Change Agent", exact: true })
+    .getByRole("button", { name: "Cancel", exact: true })
+    .click();
+  expect(commits).toHaveLength(2);
+  dirty = true;
+  await openChange();
+  await prompt
+    .getByRole("button", { name: "Change without committing" })
+    .click();
+  const chooser = page.getByRole("dialog", {
+    name: "Change Agent",
+    exact: true,
+  });
+  await chooser
+    .getByRole("button", { name: "Connect codex", exact: true })
+    .click();
+  await expect(
+    chooser.getByRole("button", { name: "Accept Agent Avatar", exact: true }),
+  ).toBeEnabled({ timeout: 30_000 });
+  await chooser
+    .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Message Codex", exact: true }),
+  ).toBeVisible({ timeout: 30_000 });
+  expect(commits).toHaveLength(2);
+  const chat = page.getByRole("textbox", {
+    name: "Message Codex",
+    exact: true,
+  });
+  await chat.fill("/work Change the homepage text");
+  await chat.press("Enter");
+  await expect(
+    page
+      .getByTestId("world-hud")
+      .getByText(
+        "Workbench error · Existing work owned by another agent. Start a new Workstream to continue this project.",
+        { exact: true },
+      ),
+  ).toBeVisible();
+  expect(iterations).toHaveLength(0);
+  expect(creates).toHaveLength(0);
+  await expect(page.getByText("Starting report", { exact: true })).toHaveCount(
+    0,
+  );
+  for (const mode of ["uncommitted", "last-commit"] as const) {
+    const expectedSource = work.workstreamId;
+    await openCodeWheel(page);
+    await page
+      .getByRole("group", { name: "Code Wheel", exact: true })
+      .getByRole("button", { name: "New Workstream", exact: true })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "New Workstream",
+      exact: true,
+    });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveCSS("background-color", "rgb(8, 17, 30)");
+    await expect(dialog.getByRole("radio", { checked: true })).toHaveCount(0);
+    await dialog
+      .getByRole("radio", {
+        name:
+          mode === "uncommitted"
+            ? "Copy current uncommitted work"
+            : "Start from this Workstream’s last commit",
+        exact: true,
+      })
+      .check();
+    await dialog
+      .getByLabel("New Workstream task")
+      .fill("Change only the homepage text");
+    await dialog.getByLabel("Workstream delivery intent").selectOption("local");
+    await dialog.getByRole("checkbox").check();
+    await expect(
+      dialog.getByRole("button", { name: "Start Workstream", exact: true }),
+    ).toBeEnabled();
+    if (mode === "uncommitted") {
+      await page.screenshot({
+        path: testInfo.outputPath("new-workstream-source.png"),
+      });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await dialog
+        .getByRole("button", { name: "Start Workstream", exact: true })
+        .scrollIntoViewIfNeeded();
+      await expect(
+        dialog.getByRole("button", { name: "Start Workstream", exact: true }),
+      ).toBeInViewport();
+      await page.screenshot({
+        path: testInfo.outputPath("new-workstream-source-portrait.png"),
+      });
+      await page.setViewportSize({ width: 1280, height: 900 });
+    }
+    await dialog
+      .getByRole("button", { name: "Start Workstream", exact: true })
+      .click();
+    await expect(dialog).toHaveCount(0);
+    expect(creates.at(-1)).toMatchObject({
+      sourceWorkstream: {
+        workstreamId: expectedSource,
+        mode,
+        expectedHead: head,
+      },
+      agent: { agentId: agents[2].worldSessionId },
+      prIntent: "local",
+    });
+  }
+  expect(creates).toHaveLength(2);
+  await expect(room.locator("canvas")).toHaveAttribute(
+    "data-handoff-retained",
+    "yes",
+  );
+  expect(errors).toEqual([]);
+});
+
 test("slow movement polling stays single-flight and never duplicates the primary roster agent", async ({
   page,
 }) => {
@@ -358,7 +800,11 @@ async function installFixture(
     }
 
     if (initialCount < 4 && pathname === "/api/agent-sessions/world") {
-      await fulfillJson(route, envelope(sessionFor(agents[3])));
+      const adapterId = request.postDataJSON().adapterId;
+      await fulfillJson(
+        route,
+        envelope(sessionFor(agents.find((a) => a.adapterId === adapterId)!)),
+      );
       return;
     }
     if (
@@ -1073,12 +1519,1056 @@ test("@setup-escape returns from automatic setup to a clickable Add Agent dialog
   await expect(add).toHaveCount(0);
 });
 
+for (const [connectAction, single] of [
+  ["Change Agent", false],
+  ["Add Agent", false],
+  ["Change Agent", true],
+] as const) {
+  test(`@menu-continuity ${connectAction} single=${single} retains repository, current work and avatar saves`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await seedConfiguredAvatar(page, "Aaron");
+    const fixture = await installFixture(page, single ? 0 : 2);
+    if (single)
+      await page.addInitScript(
+        (id) => localStorage.setItem("aiw.agent-session.pointer.0.12", id),
+        agents[0].worldSessionId,
+      );
+    await page.route("**/api/constellation/messages", (route) =>
+      route.request().method() === "GET"
+        ? fulfillJson(route, envelope([]))
+        : route.fallback(),
+    );
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    const mutations: string[] = [];
+    page.on("request", (r) => {
+      if (r.method() !== "GET") mutations.push(new URL(r.url()).pathname);
+    });
+    const registration = {
+      id: "11111111-1111-4111-8111-111111111111",
+      adapterId: "claude-code",
+      displayName: "Claude",
+      installationId: "claude",
+      environment: {
+        id: "wsl:Ubuntu",
+        kind: "wsl",
+        label: "WSL (Ubuntu)",
+        distro: "Ubuntu",
+      },
+      executablePath: "/fixture/claude",
+      homePath: "/fixture",
+      identity: {
+        id: "default",
+        label: "Default",
+        kind: "profile",
+        profilePath: "/fixture/.claude",
+      },
+      connectedAt: new Date().toISOString(),
+    };
+    await page.route("**/api/agent-setup**", (route) =>
+      fulfillJson(
+        route,
+        envelope(
+          route.request().url().endsWith("/recheck")
+            ? { status: "ready", message: "Ready" }
+            : {
+                schema: "aiw.agent-setup/1",
+                completed: true,
+                registrations: [registration],
+              },
+        ),
+      ),
+    );
+    const repository = {
+      repositoryId: "aiw://object/22222222222222222222222222222222",
+      revision: "77777777-7777-4777-8777-777777777777",
+    };
+    const workOwner = agents[single ? 0 : 1];
+    const agent = {
+      agentId: workOwner.worldSessionId,
+      nativeSessionId: workOwner.nativeRootSessionRef,
+      rootNativeSessionId: workOwner.nativeRootSessionRef,
+      revision: "0",
+    };
+    const baseWorkstream = {
+      schema: "aiw.workstream/1",
+      workstreamId: "88888888-8888-4888-8888-888888888888",
+      revision: 1,
+      title: "Build a settings panel",
+      task: "Build a settings panel",
+      repository,
+      agent,
+      authority: {
+        schema: "aiw.worktree-authority-receipt/1",
+        ownerId: "workstream-owner",
+        requestId: "workstream-authority-request",
+        worktreeId: "worktree-settings",
+        repositoryId: repository.repositoryId,
+        relativePath: "worktree-settings",
+        branch: "workstream/settings",
+        head: "a".repeat(40),
+        state: "current",
+        statusSummary: "Owned worktree is current and ready.",
+        validatedAt: "2026-09-03T15:00:00.000Z",
+        attestation: "b".repeat(64),
+      },
+      worktreeState: "current",
+      evidenceOperationRefs: [],
+      projection: {
+        currentActivity: "Owned worktree is current and ready.",
+        changedFiles: [],
+        diff: { summary: "", patch: "", truncated: false },
+        validation: [],
+        evidenceRefs: [],
+      },
+      status: "working",
+      createdAt: "2026-09-03T15:00:00.000Z",
+      updatedAt: "2026-09-03T15:00:00.000Z",
+      events: [
+        {
+          eventId: "88888888-8888-4888-8888-888888888888/event/1",
+          status: "working",
+          summary: "Owned worktree is current and ready.",
+          occurredAt: "2026-09-03T15:00:00.000Z",
+        },
+      ],
+    } as const;
+    let currentWorkstream: Record<string, unknown> | null = null;
+    const createRequests: Record<string, unknown>[] = [];
+    await page.route("**/api/workstreams**", async (route) => {
+      if (route.request().method() === "POST") {
+        const body = route.request().postDataJSON();
+        createRequests.push(body);
+        currentWorkstream = { ...baseWorkstream, ...body };
+        await route.fulfill({
+          json: {
+            ok: true,
+            data: { workstream: currentWorkstream, replayed: false },
+          },
+        });
+      } else if (new URL(route.request().url()).pathname.endsWith("/history"))
+        await route.fulfill({
+          json: {
+            ok: true,
+            data: { workstreams: currentWorkstream ? [currentWorkstream] : [] },
+          },
+        });
+      else if (currentWorkstream)
+        await route.fulfill({ json: { ok: true, data: currentWorkstream } });
+      else
+        await route.fulfill({
+          status: 404,
+          json: {
+            ok: false,
+            error: { code: "not_found", message: "No current Workstream" },
+          },
+        });
+    });
+
+    await page.route("**/api/preview-recipes?*", (route) =>
+      fulfillJson(route, envelope([])),
+    );
+    const preview = {
+      schema: "aiw.preview-record/1",
+      previewId: "menu-preview",
+      revision: 1,
+      state: "ready",
+      workstreamId: baseWorkstream.workstreamId,
+      workstreamRevision: 1,
+      repository,
+      agent,
+      worktreeId: "worktree-settings",
+      worktreeState: "current",
+      recipeId: "fixture",
+      recipeRevision: 1,
+      host: "127.0.0.1",
+      port: 45173,
+      pid: null,
+      url: "http://127.0.0.1:45173/menu-preview-fixture",
+      health: { ok: true, status: 200, checkedAt: "2026-09-19T00:00:00Z" },
+      logs: "",
+      logsTruncated: false,
+      startedAt: "2026-09-19T00:00:00Z",
+      readyAt: "2026-09-19T00:00:00Z",
+      stoppedAt: null,
+      portClosed: null,
+      recovered: false,
+      error: null,
+    };
+    await page.route("**/api/workstreams/*/previews/current", (route) =>
+      fulfillJson(
+        route,
+        envelope({
+          schema: "aiw.preview-manager/1",
+          active: preview,
+          latestAttempt: preview,
+          previousVerified: null,
+          display: { truth: "current", preview },
+        }),
+      ),
+    );
+    await page.route("**/menu-preview-fixture", (route) =>
+      route.fulfill({
+        contentType: "text/html",
+        body: "<!doctype html><html><body><p>Fixture live preview</p><input aria-label='Preview draft' value='Preserve this preview document'></body></html>",
+      }),
+    );
+    await page.goto("/");
+    const room = page.locator(".world-room");
+    await expect(room).toHaveAttribute("data-scene-ready", "true", {
+      timeout: 60_000,
+    });
+    await openCodeWheel(page);
+    await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+    await page.getByLabel("Local repository path").fill("/fixture");
+    await page.getByRole("button", { name: "Open local", exact: true }).click();
+    await expect(room).toHaveAttribute("data-floor-state", "repository");
+    await expect(
+      page.locator(".world-experience[data-repository-readiness]"),
+    ).toHaveAttribute("data-repository-readiness", "ready", {
+      timeout: 60_000,
+    });
+    await openCodeWheel(page);
+    if (!single)
+      await page
+        .getByRole("button", { name: "Send next message to Claw", exact: true })
+        .click();
+    await page
+      .locator(".code-wheel")
+      .getByRole("button", { name: "New Workstream", exact: true })
+      .click();
+    const task = page.getByRole("dialog", {
+      name: "New Workstream",
+      exact: true,
+    });
+    await task
+      .getByRole("textbox", { name: "New Workstream task", exact: true })
+      .fill("Keep this running work");
+    await task
+      .getByRole("checkbox", { name: /Create this isolated worktree/ })
+      .check();
+    await task
+      .getByRole("button", { name: "Start Workstream", exact: true })
+      .click();
+    const workStatus = page.getByRole("complementary", {
+      name: "Current Workstream",
+    });
+    await expect(workStatus).toBeVisible();
+    expect(createRequests).toHaveLength(1);
+    await room.evaluate((el) =>
+      el.setAttribute("data-continuity-proof", "original"),
+    );
+    const canvas = room.locator("canvas");
+    await canvas.evaluate((el) =>
+      el.setAttribute("data-continuity-proof", "original"),
+    );
+    await page
+      .getByLabel(single ? "Message Mr Fluff" : "Message Claw", { exact: true })
+      .fill("keep this draft");
+    const previewFrame = page.locator(".world-view__iframe");
+    await expect(previewFrame).toBeVisible();
+    await previewFrame.evaluate((el) =>
+      el.setAttribute("data-continuity-proof", "original"),
+    );
+    const previewDocument = page.frameLocator(".world-view__iframe");
+    await expect(previewDocument.getByLabel("Preview draft")).toHaveValue(
+      "Preserve this preview document",
+    );
+    await previewDocument
+      .getByLabel("Preview draft")
+      .evaluate((el: HTMLInputElement) => {
+        el.value = "Live unsaved preview state";
+      });
+    const assertContinuity = async () => {
+      await expect(previewFrame).toHaveAttribute(
+        "data-continuity-proof",
+        "original",
+      );
+      await expect(previewDocument.getByLabel("Preview draft")).toHaveValue(
+        "Live unsaved preview state",
+      );
+      await expect(room).toHaveAttribute("data-continuity-proof", "original");
+      await expect(canvas).toHaveAttribute("data-continuity-proof", "original");
+      await expect(room).toHaveAttribute("data-floor-state", "repository");
+      await expect(workStatus).toBeVisible();
+      await expect(workStatus).toContainText("Keep this running work");
+      expect(createRequests).toHaveLength(1);
+      expect(currentWorkstream).toMatchObject({
+        status: "working",
+        agent: { agentId: workOwner.worldSessionId },
+      });
+      await expect(
+        page.getByRole("textbox", { name: /^Message / }),
+      ).toHaveValue("keep this draft");
+    };
+    const menu = async (action: string, reviewSavedWork = false) => {
+      await room.focus();
+      await page.keyboard.press("Escape");
+      await page.getByRole("button", { name: action, exact: true }).click();
+      if (action === "Change Agent" && reviewSavedWork) {
+        const savedWork = page.getByRole("dialog", {
+          name: "Save work before changing agent",
+          exact: true,
+        });
+        await expect(savedWork).toContainText("All changes committed");
+        await savedWork
+          .getByRole("button", {
+            name: "Continue to Change Agent",
+            exact: true,
+          })
+          .click();
+      }
+    };
+    await menu("Change Agent", true);
+    await page.screenshot({
+      path: testInfo.outputPath("change-agent-desktop.png"),
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const switchDialog = page.getByRole("dialog", {
+      name: "Change Agent",
+      exact: true,
+    });
+    expect(
+      await switchDialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    ).toBe(true);
+    const logoGeometry = await switchDialog.evaluate((el) => ({
+      labelTop: el
+        .querySelector(".world-entry-logo__terminal")!
+        .getBoundingClientRect().top,
+      controlsBottom: Math.max(
+        ...[...el.querySelectorAll(".world-harness")].map(
+          (button) => button.getBoundingClientRect().bottom,
+        ),
+      ),
+    }));
+    expect(logoGeometry.labelTop).toBeGreaterThanOrEqual(
+      logoGeometry.controlsBottom,
+    );
+    await page.screenshot({
+      path: testInfo.outputPath("change-agent-portrait.png"),
+    });
+    await page.setViewportSize({ width: 1600, height: 1000 });
+    await page
+      .getByRole("button", { name: "Use Mr Fluff", exact: true })
+      .click();
+    await expect(
+      page.getByLabel("Message Mr Fluff", { exact: true }),
+    ).toBeVisible();
+    await assertContinuity();
+    await menu("Change Avatar");
+    await page
+      .getByRole("button", { name: "Mr Fluff · connected agent", exact: true })
+      .click();
+    const selector = page.getByRole("region", {
+      name: "Agent avatar selection",
+      exact: true,
+    });
+    await expect(selector).toBeVisible();
+    await selector
+      .getByRole("button", { name: "Open Robot Agent 5 3D preview" })
+      .click();
+    await expect(
+      selector.locator(
+        '.imported-avatar-canvas[data-avatar-imported-id="robot-agent-05"]',
+      ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
+    await selector
+      .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+      .click();
+    await expect(selector).toHaveCount(0);
+    await assertContinuity();
+    if (!single) {
+      await menu("Change Avatar");
+      await page
+        .getByRole("button", { name: "Claw · connected agent", exact: true })
+        .click();
+      await expect(
+        selector.getByLabel("Agent name", { exact: true }),
+      ).toHaveValue("Claw");
+      await expect(selector.locator(".imported-avatar-canvas")).toHaveAttribute(
+        "data-avatar-render-ready",
+        "true",
+        { timeout: 30_000 },
+      );
+      await selector
+        .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+        .click();
+      await expect(selector).toHaveCount(0);
+      expect(mutations).toContain(
+        `/api/agent-sessions/${agents[1].worldSessionId}/avatar-consent`,
+      );
+    }
+    await assertContinuity();
+    await menu("Change Avatar");
+    await page
+      .getByRole("button", { name: "Aaron · user", exact: true })
+      .click();
+    const user = page.getByRole("region", {
+      name: "User avatar selection",
+      exact: true,
+    });
+    await expect(user.locator(".imported-avatar-canvas")).toHaveAttribute(
+      "data-avatar-render-ready",
+      "true",
+      { timeout: 30_000 },
+    );
+    await user
+      .getByRole("button", { name: "Accept user Avatar", exact: true })
+      .click();
+    await assertContinuity();
+    await menu(connectAction, single);
+    const change = page.getByRole("dialog", {
+      name: connectAction,
+      exact: true,
+    });
+    if (connectAction === "Change Agent")
+      await change
+        .getByRole("button", { name: "Connect claude", exact: true })
+        .click();
+    else await change.getByRole("button", { name: /Add Claude Code/ }).click();
+    await expect(change.locator(".imported-avatar-canvas")).toHaveAttribute(
+      "data-avatar-render-ready",
+      "true",
+      { timeout: 30_000 },
+    );
+    const avatarAccepted = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname.endsWith(
+          single
+            ? `/agent-sessions/${agents[3].worldSessionId}/avatar-consent`
+            : "/constellation/agents/roster-claude/avatar",
+        ),
+    );
+    await change
+      .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+      .click();
+    const accepted = await avatarAccepted;
+    expect(accepted.ok()).toBe(true);
+    expect(await accepted.finished()).toBeNull();
+    await expect(change).toHaveCount(0);
+    await expect(
+      page.getByLabel(
+        connectAction === "Change Agent"
+          ? "Message Claude"
+          : "Message Mr Fluff",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await assertContinuity();
+    await menu("Add Agent");
+    await page
+      .getByRole("dialog", { name: "Add Agent", exact: true })
+      .getByRole("button", { name: "Cancel", exact: true })
+      .click();
+    await assertContinuity();
+    expect(
+      mutations.filter((p) => /end-world|\/end$|\/cancel$|\/continue$/.test(p)),
+    ).toEqual([]);
+    expect(fixture.additions).toHaveLength(single ? 0 : 1);
+    expect(
+      mutations.filter((p) => p === "/api/repository-indexes"),
+    ).toHaveLength(1);
+    await page.screenshot({
+      path: testInfo.outputPath("retained-repository-work.png"),
+    });
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const configured of [true, false]) {
+  test(`@single-switch configured=${configured} changes harness without adding an agent or replacing World`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await seedConfiguredAvatar(page, "Aaron");
+    const fixture = await installFixture(page, 0);
+    await page.addInitScript(
+      (id) => localStorage.setItem("aiw.agent-session.pointer.0.12", id),
+      agents[0].worldSessionId,
+    );
+    const registration = {
+      id: "11111111-1111-4111-8111-111111111111",
+      adapterId: "claude-code",
+      displayName: "Claude",
+      installationId: "claude",
+      environment: {
+        id: "wsl:Ubuntu",
+        kind: "wsl",
+        label: "WSL (Ubuntu)",
+        distro: "Ubuntu",
+      },
+      executablePath: "/fixture/claude",
+      homePath: "/fixture",
+      identity: {
+        id: "default",
+        label: "Default",
+        kind: "profile",
+        profilePath: "/fixture/.claude",
+      },
+      connectedAt: new Date().toISOString(),
+    };
+    let attached = configured;
+    await page.route("**/api/agent-setup**", async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("/attach")) {
+        attached = true;
+        await fulfillJson(
+          route,
+          envelope({
+            registration,
+            check: { status: "ready", message: "Ready" },
+          }),
+        );
+      } else if (path.endsWith("/discover")) {
+        await fulfillJson(
+          route,
+          envelope({
+            installations: [
+              {
+                id: "claude",
+                adapterId: "claude-code",
+                executablePath: "/fixture/claude",
+                homePath: "/fixture",
+                environment: registration.environment,
+                identities: [registration.identity],
+              },
+            ],
+            environments: [
+              { id: "wsl:Ubuntu", label: "WSL (Ubuntu)", status: "scanned" },
+            ],
+            truncated: false,
+            currentWslDistro: "Ubuntu",
+            defaultWslDistro: "Ubuntu",
+          }),
+        );
+      } else
+        await fulfillJson(
+          route,
+          envelope(
+            path.endsWith("/recheck")
+              ? { status: "ready", message: "Ready" }
+              : {
+                  schema: "aiw.agent-setup/1",
+                  completed: true,
+                  registrations: attached ? [registration] : [],
+                },
+          ),
+        );
+    });
+    // restoreHermes delegates non-Hermes pointers through their native adapter.
+    const mutations: string[] = [];
+    page.on("request", (r) => {
+      if (r.method() !== "GET") mutations.push(new URL(r.url()).pathname);
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto("/");
+    const room = page.locator(".world-room");
+    await expect(room).toHaveAttribute("data-scene-ready", "true", {
+      timeout: 60_000,
+    });
+    await openCodeWheel(page);
+    await page.getByRole("button", { name: "Load Repo", exact: true }).click();
+    await page.getByLabel("Local repository path").fill("/fixture");
+    await page.getByRole("button", { name: "Open local", exact: true }).click();
+    await expect(
+      page.locator(".world-experience[data-repository-readiness]"),
+    ).toHaveAttribute("data-repository-readiness", "ready", {
+      timeout: 60_000,
+    });
+    await room.evaluate((el) =>
+      el.setAttribute("data-switch-continuity", "original"),
+    );
+    await room
+      .locator("canvas")
+      .evaluate((el) => el.setAttribute("data-switch-continuity", "original"));
+    await page
+      .getByRole("textbox", { name: /^Message / })
+      .fill("keep this draft");
+    await room.focus();
+    await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: "Change Agent", exact: true })
+      .click();
+    const change = page.getByRole("dialog", {
+      name: "Change Agent",
+      exact: true,
+    });
+    await change
+      .getByRole("button", { name: "Connect claude", exact: true })
+      .click({ timeout: 10_000 });
+    if (!configured) {
+      const setup = page.getByRole("dialog", {
+        name: "Agent Setup Menu",
+        exact: true,
+      });
+      await expect(setup).toBeVisible();
+      const section = setup.locator("details.agent-setup-harness").filter({
+        has: page.locator("summary strong", { hasText: "Claude Code" }),
+      });
+      await expect(section).toHaveAttribute("open", "");
+      await expect(section.locator("summary")).toBeFocused();
+      await setup
+        .getByRole("button", { name: "Discover Agents", exact: true })
+        .click();
+      await section.getByLabel("Agent name", { exact: true }).fill("Claude");
+      await section
+        .getByRole("button", {
+          name: "Attach to Agent Intersect World",
+          exact: true,
+        })
+        .click();
+    }
+    const accept = change.getByRole("button", {
+      name: "Accept Agent Avatar",
+      exact: true,
+    });
+    await expect(accept).toBeEnabled({ timeout: 30_000 });
+    await accept.click();
+    await expect(change).toHaveCount(0);
+    await expect(room).toHaveAttribute("data-switch-continuity", "original");
+    await expect(room.locator("canvas")).toHaveAttribute(
+      "data-switch-continuity",
+      "original",
+    );
+    await expect(room).toHaveAttribute("data-floor-state", "repository");
+    await expect(
+      page.getByRole("textbox", { name: "Message Claude", exact: true }),
+    ).toHaveValue("keep this draft");
+    await expect(
+      page
+        .getByRole("region", { name: "World scene status" })
+        .getByRole("listitem")
+        .filter({ hasText: "connected agent avatar" }),
+    ).toHaveCount(1);
+    expect(fixture.additions).toHaveLength(0);
+    expect(
+      mutations.filter((p) => /end-world|\/end$|\/cancel$|\/continue$/.test(p)),
+    ).toEqual([]);
+    expect(
+      await page.evaluate(() =>
+        localStorage.getItem("aiw.agent-session.pointer.0.12"),
+      ),
+    ).toBe(agents[3].worldSessionId);
+    await page.screenshot({
+      path: testInfo.outputPath("single-agent-replaced.png"),
+    });
+    expect(errors).toEqual([]);
+  });
+}
+
+test("@single-switch-all Codex changes to Claude, Hermes, OpenClaw and back in one World", async ({
+  page,
+}, testInfo) => {
+  // Five harness turns, work/motion and restoration measured ~386s on two CPUs.
+  test.setTimeout(480_000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await seedConfiguredAvatar(page, "Aaron");
+  const fixture = await installFixture(page, 0);
+  const histories = new Map<
+    string,
+    { role: "user" | "assistant"; text: string }[]
+  >();
+  await page.route("**/api/agent-sessions/*/stream", async (route) => {
+    const sessionId = new URL(route.request().url()).pathname
+      .split("/")
+      .at(-2)!;
+    const agent = agents.find(
+      (candidate) => candidate.worldSessionId === sessionId,
+    )!;
+    const text = String(route.request().postDataJSON().text);
+    const finalText = `[fixture] ${agent.displayName} answered: ${text}`;
+    histories.set(sessionId, [
+      ...(histories.get(sessionId) ?? []),
+      { role: "user", text },
+      { role: "assistant", text: finalText },
+    ]);
+    const event = (name: string, data: unknown) =>
+      `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
+    await route.fulfill({
+      contentType: "text/event-stream",
+      body: [
+        event("world.event", {
+          schema: "aiw.agent-event/0.12",
+          eventId: randomUUID(),
+          sessionId,
+          sequence: 1,
+          occurredAt: new Date().toISOString(),
+          correlationId: randomUUID(),
+          type: "message.assistant-delta",
+          payload: { text: finalText },
+          redaction: { applied: false, count: 0 },
+        }),
+        event("world.final", {
+          schema: "aiw.agent-stream-terminal/0.12",
+          sessionId,
+          status: "completed",
+          finalText,
+        }),
+        event("world.done", {
+          schema: "aiw.agent-stream-terminal/0.12",
+          sessionId,
+          status: "completed",
+        }),
+      ].join(""),
+    });
+  });
+  await page.route("**/api/agent-sessions/*/history", async (route) => {
+    const sessionId = new URL(route.request().url()).pathname
+      .split("/")
+      .at(-2)!;
+    const agent = agents.find(
+      (candidate) => candidate.worldSessionId === sessionId,
+    )!;
+    await fulfillJson(
+      route,
+      envelope({
+        sessionId,
+        continuity: "current",
+        messages: histories.get(sessionId) ?? [],
+        transcriptAuthority:
+          agent.adapterId === "hermes" ? "hermes" : "world-projection",
+        avatarConsent: {
+          state: "accepted",
+          current: proposalFor(agent),
+          previous: null,
+        },
+      }),
+    );
+  });
+  const speakers: string[] = [];
+  const assertSpeakers = () =>
+    expect(
+      page.locator(".world-transcript__item--assistant > strong"),
+    ).toHaveText(speakers);
+  const chatWith = async (name: string) => {
+    const input = page.getByRole("textbox", {
+      name: `Message ${name}`,
+      exact: true,
+    });
+    await input.fill(`Hi ${name}`);
+    await input.press("Enter");
+    await expect(
+      page
+        .getByText(`[fixture] ${name} answered: Hi ${name}`, { exact: true })
+        .last(),
+    ).toBeVisible();
+    await expect(page.locator(".world-chat")).toHaveAttribute(
+      "aria-busy",
+      "false",
+    );
+    speakers.push(name);
+    await assertSpeakers();
+  };
+  const registration = {
+    id: "11111111-1111-4111-8111-111111111111",
+    adapterId: "claude-code",
+    displayName: "Claude",
+    installationId: "claude",
+    environment: {
+      id: "wsl:Ubuntu",
+      kind: "wsl",
+      label: "WSL (Ubuntu)",
+      distro: "Ubuntu",
+    },
+    executablePath: "/fixture/claude",
+    homePath: "/fixture",
+    identity: {
+      id: "default",
+      label: "Default",
+      kind: "profile",
+      profilePath: "/fixture/.claude",
+    },
+    connectedAt: new Date().toISOString(),
+  };
+
+  const registrations = agents.map((agent, i) => ({
+    ...registration,
+    id: `11111111-1111-4111-8111-11111111111${i}`,
+    adapterId: agent.adapterId,
+    displayName: agent.displayName,
+  }));
+  await page.route("**/api/agent-setup**", (route) =>
+    fulfillJson(
+      route,
+      envelope(
+        route.request().url().endsWith("/recheck")
+          ? { status: "ready", message: "Ready" }
+          : { schema: "aiw.agent-setup/1", completed: true, registrations },
+      ),
+    ),
+  );
+  let creates = 0;
+  page.on("request", (r) => {
+    if (new URL(r.url()).pathname === "/api/agent-sessions/world") creates++;
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Single Agent — available", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Connect codex", exact: true })
+    .click();
+  await page
+    .getByLabel("Saved agent", { exact: true })
+    .selectOption(registrations[2]!.id);
+  await page
+    .getByRole("button", { name: "Connect agent", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Accept Agent Avatar", exact: true }),
+  ).toBeEnabled({ timeout: 30_000 });
+  await page
+    .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Enter World", exact: true }).click();
+  const room = page.locator(".world-room");
+  await expect(room).toHaveAttribute("data-scene-ready", "true", {
+    timeout: 60_000,
+  });
+  await room
+    .locator("canvas")
+    .evaluate((el) => el.setAttribute("data-four-harness", "original"));
+  await chatWith("Codex");
+  for (const [label, name] of [
+    ["claude", "Claude"],
+    ["hermes", "Mr Fluff"],
+    ["openclaw", "Claw"],
+    ["codex", "Codex"],
+  ]) {
+    await room.focus();
+    await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: "Change Agent", exact: true })
+      .click();
+    if (label === "codex") {
+      await page
+        .getByRole("dialog", { name: "Save work before changing agent" })
+        .getByRole("button", { name: "Continue to Change Agent", exact: true })
+        .click();
+    }
+    const dialog = page.getByRole("dialog", {
+      name: "Change Agent",
+      exact: true,
+    });
+    await dialog
+      .getByRole("button", { name: `Connect ${label}`, exact: true })
+      .click();
+    if (label !== "codex") {
+      await expect(
+        dialog.getByRole("button", {
+          name: "Accept Agent Avatar",
+          exact: true,
+        }),
+      ).toBeEnabled({ timeout: 30_000 });
+      await dialog
+        .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+        .click();
+    }
+    // A cold avatar transition can finish after the generic five-second menu
+    // assertion budget. Wait for the actual new recipient, then check closure.
+    await expect(
+      page.getByRole("textbox", { name: `Message ${name}`, exact: true }),
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(dialog).toHaveCount(0);
+    await expect(room.locator("canvas")).toHaveAttribute(
+      "data-four-harness",
+      "original",
+    );
+    await assertSpeakers();
+    await chatWith(name!);
+    if (label === "openclaw") {
+      const repository = {
+        repositoryId: "aiw://object/22222222222222222222222222222222",
+        revision: "77777777-7777-4777-8777-777777777777",
+      };
+      let working = true;
+      let current: Record<string, unknown> | null = null;
+      await page.route("**/api/workstreams**", async (route) => {
+        if (route.request().method() === "POST") {
+          current = {
+            ...route.request().postDataJSON(),
+            schema: "aiw.workstream/1",
+            workstreamId: "88888888-8888-4888-8888-888888888888",
+            revision: 1,
+            repository,
+            status: "working",
+            title: "Replacement agent work",
+            task: "Replacement agent work",
+            authority: {
+              schema: "aiw.worktree-authority-receipt/1",
+              ownerId: "owner",
+              requestId: "request",
+              worktreeId: "worktree-switch",
+              repositoryId: repository.repositoryId,
+              relativePath: "worktree-switch",
+              branch: "workstream/switch",
+              head: "a".repeat(40),
+              state: "current",
+              statusSummary: "Working",
+              validatedAt: "2026-09-20T12:00:00Z",
+              attestation: "b".repeat(64),
+            },
+            worktreeState: "current",
+            evidenceOperationRefs: [],
+            projection: {
+              currentActivity: "Working",
+              activeFile: null,
+              changedFiles: [],
+              diff: { summary: "", patch: "", truncated: false },
+              validation: [],
+              evidenceRefs: [],
+            },
+            createdAt: "2026-09-20T12:00:00Z",
+            updatedAt: "2026-09-20T12:00:00Z",
+            events: [
+              {
+                eventId: "turn-openclaw",
+                status: "working",
+                summary: "Task: Replacement agent work",
+                occurredAt: "2026-09-20T12:00:00Z",
+              },
+            ],
+          };
+          await fulfillJson(
+            route,
+            envelope({ workstream: current, replayed: false }),
+          );
+        } else if (current) {
+          await fulfillJson(
+            route,
+            envelope({ ...current, status: working ? "working" : "blocked" }),
+          );
+        } else await route.fallback();
+      });
+      await openCodeWheel(page);
+      await page
+        .getByRole("button", { name: "Load Repo", exact: true })
+        .click();
+      await page.getByLabel("Local repository path").fill("/fixture");
+      await page
+        .getByRole("button", { name: "Open local", exact: true })
+        .click();
+      await expect(
+        page.locator(".world-experience[data-repository-readiness]"),
+      ).toHaveAttribute("data-repository-readiness", "ready", {
+        timeout: 60_000,
+      });
+      await openCodeWheel(page);
+      await page
+        .locator(".code-wheel")
+        .getByRole("button", { name: "New Workstream", exact: true })
+        .click();
+      const task = page.getByRole("dialog", {
+        name: "New Workstream",
+        exact: true,
+      });
+      await task
+        .getByRole("textbox", { name: "New Workstream task", exact: true })
+        .fill("Replacement agent work");
+      await task
+        .getByRole("checkbox", { name: /Create this isolated worktree/ })
+        .check();
+      await task
+        .getByRole("button", { name: "Start Workstream", exact: true })
+        .click();
+      await expect(room).toHaveAttribute(
+        "data-agent-movement-state",
+        "moving",
+        { timeout: 15_000 },
+      );
+      await expect(room.locator("canvas")).toHaveAttribute(
+        "data-agent-avatar-action",
+        "Dig",
+        { timeout: 30_000 },
+      );
+      await page.screenshot({
+        path: testInfo.outputPath("switched-openclaw-dig.png"),
+      });
+      working = false;
+      await expect(room.locator("canvas")).toHaveAttribute(
+        "data-agent-avatar-action",
+        "Idle",
+        { timeout: 15_000 },
+      );
+      // Operational acknowledgements/reports are separate from native reply headings.
+      speakers.push("World", "Claw");
+      await assertSpeakers();
+    }
+    await expect(
+      page
+        .getByRole("region", { name: "World scene status" })
+        .getByRole("listitem")
+        .filter({ hasText: "connected agent avatar" }),
+    ).toHaveCount(1);
+  }
+  expect(creates).toBe(4); // Returning to Codex reuses its exact existing native session.
+  expect(fixture.additions).toHaveLength(0);
+  expect(
+    await page.evaluate(() =>
+      localStorage.getItem("aiw.agent-session.pointer.0.12"),
+    ),
+  ).toBe(agents[2].worldSessionId);
+  await page.screenshot({
+    path: testInfo.outputPath("four-harness-roundtrip.png"),
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("textbox", { name: "Message Codex", exact: true }),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.locator(".world-transcript__item--assistant > strong"),
+  ).toHaveText(["Codex", "Codex"]);
+  expect(creates).toBe(4); // Refresh itself preserves the exact native session.
+  await expect(room).toHaveAttribute("data-scene-ready", "true", {
+    timeout: 60_000,
+  });
+  await room.focus();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Change Agent", exact: true }).click();
+  const restoredChange = page.getByRole("dialog", {
+    name: "Change Agent",
+    exact: true,
+  });
+  await restoredChange
+    .getByRole("button", { name: "Connect claude", exact: true })
+    .click();
+  await expect(
+    restoredChange.getByRole("button", {
+      name: "Accept Agent Avatar",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  await restoredChange
+    .getByRole("button", { name: "Accept Agent Avatar", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Message Claude", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".world-transcript__item--assistant > strong"),
+  ).toHaveText(["Codex", "Codex"]);
+  expect(creates).toBe(5); // A reload clears only the mounted-World switch cache.
+  expect(errors).toEqual([]);
+});
+
 for (const initialCount of [0, 2, 3]) {
   test(`@setup-add expands ${initialCount === 0 ? "single" : `${initialCount}-agent`} World without remounting, cancellation and refresh`, async ({
     page,
   }, testInfo) => {
+    // Measured two-CPU add/refresh journeys: ~102s (two agents), ~162s (three).
     // The four-avatar path also exercises 24 preview edits and both layouts.
-    test.setTimeout(initialCount === 3 ? 180000 : 120000);
+    test.setTimeout(
+      initialCount === 3 ? 240_000 : initialCount === 2 ? 180_000 : 120_000,
+    );
     await page.emulateMedia({
       reducedMotion: initialCount === 2 ? "no-preference" : "reduce",
     });
@@ -1645,9 +3135,9 @@ for (const [action, dialogName] of [
 test("@code-wheel real controls isolate scene input, retain targeting and spatial state", async ({
   page,
 }, testInfo) => {
-  // The complete two-CPU journey takes about 115s; both local and hosted
-  // runs exhausted 120s during its final reload. Preserve assertion deadlines.
-  test.setTimeout(180_000);
+  // Full current two-CPU journey measured ~157s; hosted 180s expired at resize.
+  // Preserve the actual containment bounds and individual assertion deadlines.
+  test.setTimeout(240_000);
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await seedConfiguredAvatar(page, "Aaron");

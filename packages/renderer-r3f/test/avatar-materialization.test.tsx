@@ -12,12 +12,20 @@ const state = vi.hoisted(() => ({
   frame: (() => {}) as (state: unknown, delta: number) => void,
   dataset: {} as Record<string, string>,
   cleanups: [] as (() => void)[],
+  complete: false,
   initTexture: vi.fn(),
+  compile: vi.fn(),
   compileAsync: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
   useContext: () => undefined,
+  useState: () => [
+    state.complete,
+    (value: boolean) => {
+      state.complete = value;
+    },
+  ],
   useMemo: (factory: () => unknown) => factory(),
   useRef: (current: unknown) => ({ current }),
   useEffect: (effect: () => unknown) => {
@@ -31,6 +39,7 @@ vi.mock("@react-three/fiber", () => ({
     gl: {
       domElement: { dataset: state.dataset },
       initTexture: state.initTexture,
+      compile: state.compile,
       compileAsync: state.compileAsync,
     },
     invalidate: vi.fn(),
@@ -46,7 +55,9 @@ import { AvatarMaterialization } from "../src/avatar-materialization.js";
 afterEach(() => {
   state.cleanups.splice(0).forEach((cleanup) => cleanup());
   vi.useRealTimers();
+  state.complete = false;
   state.compileAsync.mockReset().mockResolvedValue(undefined);
+  state.compile.mockReset();
   state.initTexture.mockClear();
 });
 
@@ -67,9 +78,17 @@ it("prepares actor and rain GPU resources before starting the visible arrival de
   const material = new MeshStandardMaterial({ map: new Texture() });
   actors.add(new Mesh(new BoxGeometry(1, 2, 1), material));
   element.props.ref.current = actors;
+  state.compile.mockImplementation((group: Group) => {
+    expect((group.children[0] as Mesh).material).toBe(material);
+  });
+  state.compileAsync.mockImplementation((group: Group) => {
+    expect((group.children[0] as Mesh).material).not.toBe(material);
+    return compiled;
+  });
   state.frame({}, 0.1);
   expect(state.initTexture).toHaveBeenCalledWith(material.map);
-  expect(state.compileAsync).toHaveBeenCalled();
+  expect(state.compile).toHaveBeenCalledOnce();
+  expect(state.compileAsync).toHaveBeenCalledOnce();
   for (let i = 0; i < 20; i++) state.frame({}, 0.1);
   expect(actors.visible).toBe(false);
   expect(onPrepared).not.toHaveBeenCalled();
@@ -103,12 +122,15 @@ it("does not reveal an unmounted World when GPU preparation completes late", asy
   element.props.ref.current = actors;
   state.frame({}, 0);
   expect(mesh.material).not.toBe(original);
+  const dispose = vi.spyOn(mesh.material, "dispose");
   state.cleanups.splice(0).forEach((cleanup) => cleanup());
   expect(mesh.material).toBe(original);
+  expect(dispose).not.toHaveBeenCalled();
   finish();
   await Promise.resolve();
   await Promise.resolve();
   expect(onPrepared).not.toHaveBeenCalled();
+  expect(dispose).toHaveBeenCalledOnce();
 });
 
 for (const reducedMotion of [false, true]) {
@@ -157,6 +179,13 @@ for (const reducedMotion of [false, true]) {
     expect(mesh.castShadow).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
     expect(actors.children[0]).toBe(mesh);
+    // A subsequent React render must not declare a finished body hidden.
+    const completed = AvatarMaterialization({
+      ready: true,
+      reducedMotion,
+      children: null,
+    });
+    expect(completed.props.visible).toBe(true);
   });
 }
 it("prepares city objects behind the loading barrier, then reports completion once without overwriting avatar telemetry", async () => {

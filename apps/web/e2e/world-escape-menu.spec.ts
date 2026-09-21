@@ -249,11 +249,11 @@ async function installSessionFixture(
 
 async function openRestoredWorld(page: Page) {
   const room = page.locator(".world-room");
-  await expect(room).toBeVisible();
   // The room DOM mounts before the real textures/renderer finish loading.
   await expect(room).toHaveAttribute("data-scene-ready", "true", {
     timeout: 60_000,
   });
+  await expect(room).toBeVisible();
   await room.focus();
 }
 
@@ -899,16 +899,20 @@ test("Settings stays product-facing and Change Avatar selects the exact role and
     .getByRole("button", { name: "Mr Fluff · connected agent" })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Change Mr Fluff’s avatar" }),
+    page.getByRole("region", { name: "Agent avatar selection" }),
   ).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("User Male 1", { exact: true })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Open Robot Agent 5 3D preview" })
     .click();
-  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
   const saveAgentAvatar = page.getByRole("button", {
-    name: "Accept and save avatar",
+    name: "Accept Agent Avatar",
   });
+  await expect(
+    page.locator(
+      '.world-avatar-overlay .imported-avatar-canvas[data-avatar-imported-id="robot-agent-05"]',
+    ),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
   await expect(saveAgentAvatar).toBeEnabled();
   await saveAgentAvatar.click();
   await expect(page.locator(".world-room")).toBeVisible();
@@ -924,11 +928,16 @@ test("Settings stays product-facing and Change Avatar selects the exact role and
   await page.getByRole("button", { name: "Change Avatar" }).click();
   await page.getByRole("button", { name: "World User · user" }).click();
   await expect(
-    page.getByRole("heading", { name: "Change World User’s avatar" }),
+    page.getByRole("region", { name: "User avatar selection" }),
   ).toBeVisible();
-  await expect(page.getByText("User Male 1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Open User Male 1 3D preview",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(page.getByText("Cat Agent 1", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Save user avatar" }).click();
+  await page.getByRole("button", { name: "Accept user Avatar" }).click();
   await expect(page.locator(".world-room")).toBeVisible();
   await page.reload();
   await openRestoredWorld(page);
@@ -940,7 +949,7 @@ test("Settings stays product-facing and Change Avatar selects the exact role and
   expect(errors).toEqual([]);
 });
 
-test("Reset confirms while Logout and Change Agent clear only the browser attachment", async ({
+test("Reset and Logout detach explicitly while Change Agent retains the World", async ({
   page,
 }) => {
   // Three full restore/detach cycles can exceed the generic 30-second watchdog
@@ -995,6 +1004,23 @@ test("Reset confirms while Logout and Change Agent clear only the browser attach
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Change Agent" }).click();
   await expect(page.getByLabel("Agent name")).toBeVisible();
+  // Unconfigured harnesses now hand off to setup instead of merely selecting
+  // a label. Close that explicit layer before choosing the next harness.
+  for (const name of ["Connect claude", "Connect codex", "Connect claude"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(
+      page.getByRole("button", { name, exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("button", { name: "Connect hermes", exact: true }),
+    ).toHaveAttribute("aria-pressed", "false");
+    const setup = page.getByRole("dialog", { name: "Agent Setup Menu" });
+    await expect(setup).toBeVisible();
+    await setup
+      .getByRole("button", { name: "Close Agent Setup Menu", exact: true })
+      .click();
+    await expect(setup).toHaveCount(0);
+  }
   expect(fixture.mutationPaths).toEqual([]);
 
   await page.evaluate((activeSessionId) => {
@@ -1159,8 +1185,12 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   await page
     .getByRole("button", { name: "Open Robot Agent 5 3D preview" })
     .click();
-  await page.getByRole("button", { name: "Use Complete Avatar" }).click();
-  await page.getByRole("button", { name: "Accept and save avatar" }).click();
+  await expect(
+    page.locator(
+      '.world-avatar-overlay .imported-avatar-canvas[data-avatar-imported-id="robot-agent-05"]',
+    ),
+  ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
+  await page.getByRole("button", { name: "Accept Agent Avatar" }).click();
   await expect(page.locator(".world-room")).toHaveAttribute(
     "data-agent-avatar-imported-id",
     "robot-agent-05",
@@ -1194,6 +1224,367 @@ test("live-shaped authority keeps misses truthful and migrates legacy Mr Fluff t
   expect(errors).toEqual([]);
 });
 
+test("@menu-continuity avatar edits keep the mounted World and use minimal role selectors", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(180_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const errors = capturePageErrors(page);
+  await installWorldState(page);
+  const fixture = await installSessionFixture(page);
+  await page.goto("/");
+  await openRestoredWorld(page);
+  const room = page.locator(".world-room");
+  const canvas = room.locator("canvas");
+  await expect(canvas).toHaveAttribute("data-avatar-render-ready", "true");
+  await room.evaluate((el) =>
+    el.setAttribute("data-continuity-proof", "original"),
+  );
+  await canvas.evaluate((el) =>
+    el.setAttribute("data-continuity-proof", "original"),
+  );
+  await page.getByLabel("Message Mr Fluff").fill("keep my unsent draft");
+  for (const role of ["user", "agent"] as const) {
+    await room.focus();
+    await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: "Change Avatar", exact: true })
+      .click();
+    await page
+      .getByRole("button", {
+        name:
+          role === "user" ? "World User · user" : "Mr Fluff · connected agent",
+        exact: true,
+      })
+      .click();
+    const selector = page.getByRole("region", {
+      name:
+        role === "user" ? "User avatar selection" : "Agent avatar selection",
+      exact: true,
+    });
+    await expect(selector).toBeVisible();
+    await expect(room).toHaveAttribute("data-continuity-proof", "original");
+    await expect(canvas).toHaveAttribute("data-continuity-proof", "original");
+    await expect(
+      page.getByRole("button", { name: "Use Complete Avatar", exact: true }),
+    ).toHaveCount(0);
+    await expect(selector.locator(".avatar-nameplate")).toHaveCount(0);
+    const model = role === "user" ? "user-female-02" : "robot-agent-05";
+    await selector
+      .getByRole("button", {
+        name:
+          role === "user"
+            ? "Open User Female 2 3D preview"
+            : "Open Robot Agent 5 3D preview",
+      })
+      .click();
+    await expect(
+      selector.locator(
+        `.imported-avatar-canvas[data-avatar-imported-id="${model}"]`,
+      ),
+    ).toHaveAttribute("data-avatar-render-ready", "true", { timeout: 30_000 });
+    expect(fixture.mutationPaths).toEqual([]);
+    const hint = await page.locator(".agent-setup-escape-hint").boundingBox();
+    const cancel = await page
+      .getByRole("button", { name: "Cancel avatar change", exact: true })
+      .boundingBox();
+    expect(cancel!.y).toBeGreaterThanOrEqual(hint!.y + hint!.height);
+    await page.screenshot({
+      path: testInfo.outputPath(`${role}-avatar-desktop.png`),
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(
+      selector.getByRole("button", {
+        name: role === "user" ? "Accept user Avatar" : "Accept Agent Avatar",
+        exact: true,
+      }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath(`${role}-avatar-portrait.png`),
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page
+      .getByRole("button", { name: "Cancel avatar change", exact: true })
+      .click();
+    await expect(selector).toHaveCount(0);
+    await expect(room).toHaveAttribute("data-continuity-proof", "original");
+    await expect(canvas).toHaveAttribute("data-continuity-proof", "original");
+    await expect(page.getByLabel("Message Mr Fluff")).toHaveValue(
+      "keep my unsent draft",
+    );
+  }
+  expect(errors).toEqual([]);
+});
+
+test("@menu-continuity Change Agent can cancel or go Back to World without detaching", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const errors = capturePageErrors(page);
+  await installWorldState(page);
+  const fixture = await installSessionFixture(page);
+  await page.goto("/");
+  await openRestoredWorld(page);
+  const room = page.locator(".world-room");
+  await room.evaluate((el) =>
+    el.setAttribute("data-continuity-proof", "original"),
+  );
+  await page.getByLabel("Message Mr Fluff").fill("keep my unsent draft");
+  for (const exit of ["Cancel", "Back to World"]) {
+    await room.focus();
+    await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: "Change Agent", exact: true })
+      .click();
+    await expect(room).toHaveAttribute("data-continuity-proof", "original");
+    expect(
+      await page.evaluate(() =>
+        localStorage.getItem("aiw.agent-session.pointer.0.12"),
+      ),
+    ).toBe(sessionId);
+    if (exit === "Back to World") await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: exit, exact: true }).click();
+    await expect(
+      page.getByRole("dialog", { name: "World menu", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("dialog", { name: "Change Agent", exact: true }),
+    ).toHaveCount(0);
+    await expect(room).toHaveAttribute("data-continuity-proof", "original");
+    await expect(page.getByLabel("Message Mr Fluff")).toHaveValue(
+      "keep my unsent draft",
+    );
+  }
+  expect(fixture.mutationPaths).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+for (const role of ["user", "agent"] as const) {
+  test(`@avatar-swap ${role} initializes Idle and materializes without moving`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const errors = capturePageErrors(page);
+    await installWorldState(page);
+    await installSessionFixture(page);
+    await page.goto("/");
+    await openRestoredWorld(page);
+    const room = page.locator(".world-room");
+    const canvas = room.locator("canvas");
+    const renderer = page.getByTestId("world-room-canvas");
+    await expect(canvas).toHaveAttribute("data-avatar-arrival", "complete", {
+      timeout: 30_000,
+    });
+    await canvas.evaluate((el) =>
+      el.setAttribute("data-swap-continuity", "original"),
+    );
+    const other = role === "user" ? "agent" : "user";
+    const otherRoot = await renderer.getAttribute(
+      `data-${other}-avatar-mixer-root`,
+    );
+    for (const model of role === "user"
+      ? ["user-female-02", "user-male-01"]
+      : ["robot-agent-05", "cat-agent-01"]) {
+      await room.focus();
+      await page.keyboard.press("Escape");
+      await page
+        .getByRole("button", { name: "Change Avatar", exact: true })
+        .click();
+      await page
+        .getByRole("button", {
+          name:
+            role === "user"
+              ? "World User · user"
+              : "Mr Fluff · connected agent",
+          exact: true,
+        })
+        .click();
+      const selector = page.getByRole("region", {
+        name:
+          role === "user" ? "User avatar selection" : "Agent avatar selection",
+        exact: true,
+      });
+      await selector
+        .getByRole("button", {
+          name: (
+            {
+              "user-female-02": "Open User Female 2 3D preview",
+              "user-male-01": "Open User Male 1 3D preview",
+              "robot-agent-05": "Open Robot Agent 5 3D preview",
+              "cat-agent-01": "Open Cat Agent 1 3D preview",
+            } as Record<string, string>
+          )[model],
+        })
+        .click();
+      await expect(
+        selector.locator(
+          `.imported-avatar-canvas[data-avatar-imported-id="${model}"]`,
+        ),
+      ).toHaveAttribute("data-avatar-render-ready", "true", {
+        timeout: 30_000,
+      });
+      await selector
+        .getByRole("button", {
+          name: role === "user" ? "Accept user Avatar" : "Accept Agent Avatar",
+          exact: true,
+        })
+        .click();
+      await expect(selector).toHaveCount(0);
+      // Identity, action time and sampled bone must all belong to the new model.
+      await expect
+        .poll(
+          async () =>
+            renderer.evaluate(
+              (el, { role, model }) => {
+                const d = (el as HTMLElement).dataset;
+                return (
+                  d[`${role}AvatarAnimationSourceId`] === model &&
+                  Number(d[`${role}AvatarActionTime`]) > 0.2
+                );
+              },
+              { role, model },
+            ),
+          { timeout: 15_000 },
+        )
+        .toBe(true);
+      const before = await renderer.getAttribute(
+        `data-${role}-avatar-bone-quaternion`,
+      );
+      await expect
+        .poll(
+          () => renderer.getAttribute(`data-${role}-avatar-bone-quaternion`),
+          { timeout: 10_000 },
+        )
+        .not.toBe(before);
+      await expect(canvas).toHaveAttribute(
+        "data-avatar-arrival",
+        "materializing",
+        { timeout: 15_000 },
+      );
+      await page.screenshot({
+        path: testInfo.outputPath(`${role}-${model}-swap-materializing.png`),
+      });
+      await expect(canvas).toHaveAttribute("data-avatar-arrival", "complete", {
+        timeout: 30_000,
+      });
+      await expect(canvas).toHaveAttribute("data-swap-continuity", "original");
+      await expect(renderer).toHaveAttribute(
+        `data-${other}-avatar-mixer-root`,
+        otherRoot!,
+      );
+      await page.screenshot({
+        path: testInfo.outputPath(`${role}-${model}-swap-idle.png`),
+      });
+    }
+    expect(errors).toEqual([]);
+  });
+}
+
+test("Anti-aliasing toggles real multisampling without replacing World or its canvas", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(120_000);
+  const errors = capturePageErrors(page);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await installWorldState(page);
+  await installSessionFixture(page);
+  await page.addInitScript(() => {
+    const samples: number[] = [];
+    Object.assign(window, { __aaSamples: samples });
+    const original =
+      WebGL2RenderingContext.prototype.renderbufferStorageMultisample;
+    WebGL2RenderingContext.prototype.renderbufferStorageMultisample = function (
+      target,
+      count,
+      format,
+      width,
+      height,
+    ) {
+      samples.push(count);
+      return original.call(this, target, count, format, width, height);
+    };
+  });
+  await page.goto("/");
+  await openRestoredWorld(page);
+  const room = page.locator(".world-room");
+  const canvas = room.locator("canvas");
+  await expect(canvas).toHaveAttribute("data-world-antialiasing", "on");
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (window as unknown as { __aaSamples: number[] }).__aaSamples.some(
+          (n) => n > 0,
+        ),
+      ),
+    )
+    .toBe(true);
+  await canvas.evaluate((el) =>
+    el.setAttribute("data-aa-continuity", "original"),
+  );
+  await room.focus();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Graphics", exact: true }).click();
+  const menu = page.getByRole("dialog", { name: "Graphics", exact: true });
+  const aa = menu.getByRole("checkbox", { name: "Anti-aliasing", exact: true });
+  const bloom = menu.getByRole("checkbox", {
+    name: "Subtle bloom",
+    exact: true,
+  });
+  await expect(aa).toBeChecked();
+  await aa.uncheck();
+  await expect(canvas).toHaveAttribute("data-world-antialiasing-samples", "0");
+  await expect(canvas).toHaveAttribute("data-world-bloom", "on");
+  await bloom.uncheck();
+  await expect(canvas).toHaveAttribute("data-world-bloom", "off");
+  await aa.check();
+  await expect(canvas).toHaveAttribute("data-world-antialiasing", "on");
+  await expect(canvas).toHaveAttribute("data-world-bloom", "off");
+  // Element screenshots include covering DOM. Close Graphics before comparing
+  // World pixels so a changed checkbox cannot masquerade as anti-aliasing.
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const on = await canvas.screenshot({
+    path: testInfo.outputPath("antialiasing-on.png"),
+  });
+  await room.focus();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Graphics", exact: true }).click();
+  await aa.uncheck();
+  await expect(canvas).toHaveAttribute("data-world-antialiasing", "off");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const off = await canvas.screenshot({
+    path: testInfo.outputPath("antialiasing-off.png"),
+  });
+  expect(on.equals(off)).toBe(false);
+  await expect(canvas).toHaveAttribute("data-aa-continuity", "original");
+  await page.reload();
+  await openRestoredWorld(page);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Graphics", exact: true }).click();
+  await expect(aa).not.toBeChecked();
+  await menu
+    .getByRole("button", { name: "Restore effects defaults", exact: true })
+    .click();
+  await expect(aa).toBeChecked();
+  await expect(canvas).toHaveAttribute("data-world-antialiasing", "on");
+  await page.screenshot({
+    path: testInfo.outputPath("antialiasing-graphics.png"),
+  });
+  expect(errors).toEqual([]);
+});
+
 test("Graphics defaults, independent toggles, persistence and portrait layout", async ({
   page,
 }, testInfo) => {
@@ -1208,7 +1599,7 @@ test("Graphics defaults, independent toggles, persistence and portrait layout", 
   await page.getByRole("button", { name: "Graphics", exact: true }).click();
   const menu = page.getByRole("dialog", { name: "Graphics", exact: true });
   const switches = menu.getByRole("checkbox");
-  await expect(switches).toHaveCount(7);
+  await expect(switches).toHaveCount(8);
   for (const control of await switches.all())
     await expect(control).toBeChecked();
   await menu

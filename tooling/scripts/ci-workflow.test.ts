@@ -11,21 +11,20 @@ const workflow = parse(
 );
 
 describe("proportional CI routing", () => {
-  it("keeps full browser lanes behind explicit full scope and a final merge gate", () => {
-    expect(workflow.jobs.scope).toBeDefined();
-    for (const name of ["measurements", "e2e-flagged", "e2e-unflagged"]) {
-      expect(workflow.jobs[name].needs).toBe("scope");
-      expect(workflow.jobs[name].if).toBe("needs.scope.outputs.mode == 'full'");
-    }
+  it("requires conventional code checks without browser journeys or shards", () => {
+    expect(Object.keys(workflow.jobs).sort()).toEqual([
+      "core",
+      "docs",
+      "merge-gate",
+      "push-checks",
+      "scope",
+    ]);
     expect(workflow.jobs.core.if).toBe("needs.scope.outputs.mode != 'docs'");
     expect(workflow.jobs.docs.if).toBe("needs.scope.outputs.mode == 'docs'");
     expect(workflow.jobs["merge-gate"].needs).toEqual([
       "scope",
       "docs",
       "core",
-      "measurements",
-      "e2e-flagged",
-      "e2e-unflagged",
     ]);
     expect(workflow.jobs["merge-gate"].if).toContain("always()");
     expect(workflow.jobs["merge-gate"].if).toContain(
@@ -33,6 +32,15 @@ describe("proportional CI routing", () => {
     );
     expect(workflow.on.pull_request.types).toContain("ready_for_review");
     expect(workflow.concurrency.group).toContain("github.event_name");
+    for (const job of Object.values(workflow.jobs) as Array<{
+      steps: Array<{ run?: string }>;
+    }>) {
+      for (const step of job.steps) {
+        expect(step.run ?? "").not.toMatch(
+          /playwright test|test:e2e|measure:phase|--shard|xvfb-run/,
+        );
+      }
+    }
   });
 
   it("never gives skipped feature/draft jobs the required merge-check name", () => {

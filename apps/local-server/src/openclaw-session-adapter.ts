@@ -20,8 +20,9 @@ export const OPENCLAW_SERVER_VERSION = "2026.7.1";
 
 const MAX_INPUT_BYTES = 16_384;
 const MAX_FRAME_BYTES = 1_048_576;
+const MAX_STREAM_BYTES = 16 * MAX_FRAME_BYTES;
 const MAX_EVENT_BYTES = 32_768;
-const MAX_EVENTS = 1_024;
+const MAX_TOOL_EVENTS = 1_024;
 const MAX_OUTPUT_BYTES = 65_536;
 const REQUIRED_METHODS = [
   "sessions.create",
@@ -129,7 +130,7 @@ class GatewayConnection {
   >();
   readonly #listeners = new Set<(frame: GatewayFrame) => void>();
   readonly #failureListeners = new Set<(error: GatewayError) => void>();
-  #frameCount = 0;
+  #streamBytes = 0;
   #failed: GatewayError | null = null;
 
   constructor(options: OpenClawOptions) {
@@ -249,10 +250,10 @@ class GatewayConnection {
     const bytes = Buffer.isBuffer(data)
       ? data
       : Buffer.from(data as ArrayBuffer);
-    this.#frameCount += 1;
+    this.#streamBytes += bytes.byteLength;
     if (
       bytes.byteLength > MAX_FRAME_BYTES ||
-      this.#frameCount > MAX_EVENTS * 4
+      this.#streamBytes > MAX_STREAM_BYTES
     ) {
       this.#fail(gatewayFailure("OpenClaw gateway response exceeded a bound"));
       return;
@@ -643,7 +644,21 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     context?: AdapterTurnContext,
   ): Promise<AdapterTurnResult> {
     await this.#load();
-    if (Buffer.byteLength(text, "utf8") > MAX_INPUT_BYTES)
+    // sessions.send has no per-turn cwd/system field. Preserve the server-owned
+    // context in the native prompt without replacing this conversation or config.
+    const message = [
+      context?.systemMessage,
+      context?.workingDirectory
+        ? `Working directory for this turn: ${JSON.stringify(context.workingDirectory)}. Use this directory for repository commands and delegated workers, not the agent's default workspace.`
+        : undefined,
+      text,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    const turnTimeoutMs =
+      this.#options.turnTimeoutMs ??
+      (context?.workingDirectory ? 600_000 : 120_000);
+    if (Buffer.byteLength(message, "utf8") > MAX_INPUT_BYTES)
       throw new GatewayError("validation", "OpenClaw input exceeds the bound");
     const binding = this.#ownedBinding(
       sessionRef,
@@ -671,11 +686,12 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     await this.#save();
     const deltas: string[] = [];
     let outputBytes = 0;
-    let eventCount = 0;
+    let toolEventCount = 0;
     let settled = false;
     let mayHaveAdmitted = false;
     let terminalConfirmed = false;
     let abortConfirmed = false;
+    let abortReason: string | undefined;
     let timeout: NodeJS.Timeout | undefined;
     let removeAbort: (() => void) | undefined;
     let unsubscribe: (() => void) | undefined;
@@ -712,6 +728,8 @@ export class OpenClawSessionAdapter implements AgentAdapter {
         else resolve(result);
       };
       const abort = (message: string) => {
+        if (settled || abortReason) return;
+        abortReason = message;
         void connection
           .request("sessions.abort", {
             key: binding.rootSessionRef,
@@ -736,18 +754,14 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       };
       timeout = setTimeout(
         () => abort("OpenClaw session turn timed out"),
-        this.#options.turnTimeoutMs ?? 120_000,
+        turnTimeoutMs,
       );
       const onAbort = () => abort("OpenClaw session turn was cancelled");
       context?.signal?.addEventListener("abort", onAbort, { once: true });
       removeAbort = () =>
         context?.signal?.removeEventListener("abort", onAbort);
       unsubscribe = connection.onEvent((frame) => {
-        eventCount += 1;
-        if (eventCount > MAX_EVENTS) {
-          finish(gatewayFailure("OpenClaw turn exceeded the event bound"));
-          return;
-        }
+        if (settled || terminalConfirmed) return;
         if (!isRecord(frame.payload)) return;
         const payload = frame.payload;
         if (
@@ -756,6 +770,11 @@ export class OpenClawSessionAdapter implements AgentAdapter {
         )
           return;
         if (frame.event === "chat") {
+          if (abortReason) {
+            if (["final", "aborted", "error"].includes(String(payload.state)))
+              finish(gatewayFailure(abortReason), true);
+            return;
+          }
           if (
             payload.state === "delta" &&
             typeof payload.deltaText === "string"
@@ -778,6 +797,13 @@ export class OpenClawSessionAdapter implements AgentAdapter {
               finish(gatewayFailure("OpenClaw output exceeded the bound"));
               return;
             }
+            // Native completion is already authoritative while World drains its
+            // bounded callbacks. Later telemetry/closure must not undo it.
+            terminalConfirmed = true;
+            if (timeout) clearTimeout(timeout);
+            removeAbort?.();
+            unsubscribe?.();
+            removeFailure?.();
             void eventDispatch.then(
               () =>
                 finish(
@@ -792,14 +818,26 @@ export class OpenClawSessionAdapter implements AgentAdapter {
               () => finish(gatewayFailure()),
             );
           } else if (payload.state === "aborted")
-            finish(gatewayFailure("OpenClaw session turn was cancelled"), true);
+            finish(
+              gatewayFailure(
+                abortReason ?? "OpenClaw session turn was cancelled",
+              ),
+              true,
+            );
           else if (payload.state === "error") finish(gatewayFailure(), true);
           return;
         }
-        if (frame.event !== "agent" || payload.stream !== "tool") return;
+        if (abortReason || frame.event !== "agent" || payload.stream !== "tool")
+          return;
         if (!isRecord(payload.data)) return;
         const phase = payload.data.phase;
         if (phase !== "start" && phase !== "result") return;
+        // Token fragments and ignored/broadcast telemetry are bounded by bytes,
+        // not by the semantic tool-activity budget.
+        if (++toolEventCount > MAX_TOOL_EVENTS) {
+          abort("OpenClaw turn exceeded the tool event bound");
+          return;
+        }
         const tool = safeToolName(payload.data.name);
         const providerActivityId =
           typeof payload.data.toolCallId === "string" &&
@@ -874,8 +912,8 @@ export class OpenClawSessionAdapter implements AgentAdapter {
       mayHaveAdmitted = true;
       await connection.request("sessions.send", {
         key: binding.rootSessionRef,
-        message: text,
-        timeoutMs: this.#options.turnTimeoutMs ?? 120_000,
+        message,
+        timeoutMs: turnTimeoutMs,
         idempotencyKey: runId,
       });
       return await terminal;

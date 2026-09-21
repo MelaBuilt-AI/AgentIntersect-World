@@ -1,7 +1,7 @@
 declare module "three/examples/jsm/postprocessing/EffectComposer.js" {
-  import type { WebGLRenderer } from "three";
+  import type { WebGLRenderer, WebGLRenderTarget } from "three";
   export class EffectComposer {
-    constructor(renderer: WebGLRenderer);
+    constructor(renderer: WebGLRenderer, renderTarget?: WebGLRenderTarget);
     addPass(pass: unknown): void;
     setSize(width: number, height: number): void;
     setPixelRatio(ratio: number): void;

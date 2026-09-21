@@ -18,6 +18,7 @@
   pointer-events: auto;
 }
 .repository-workbench--new {
+  background: #08111e;
   max-width: 760px;
   margin-inline: auto;
 }

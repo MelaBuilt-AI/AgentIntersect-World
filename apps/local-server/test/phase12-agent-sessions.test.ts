@@ -527,6 +527,8 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
 });
 
 type FakeHermesOptions = {
+  readonly fragmented?: boolean;
+  readonly toolFlood?: boolean;
   readonly noDeltas?: boolean;
   readonly malformed?: boolean;
   readonly mismatchedTerminal?: boolean;
@@ -736,11 +738,40 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
             run_id: "run_fixture",
             seq: options.noDeltas ? 5 : options.malformed ? 10 : 9,
           }),
-        ].join("");
+        ]
+          .flatMap((frame, index) =>
+            (options.fragmented || options.toolFlood) && index === 2
+              ? [
+                  ...Array.from({ length: 1100 }, () =>
+                    sseEvent(
+                      options.toolFlood ? "tool.started" : "assistant.delta",
+                      {
+                        session_id: sessionId,
+                        run_id: "run_fixture",
+                        message_id: "msg_fixture",
+                        delta: "x",
+                        tool_name: "read_file",
+                      },
+                    ),
+                  ),
+                  frame,
+                ]
+              : [frame],
+          )
+          .map((frame, index) => {
+            if (!options.fragmented && !options.toolFlood) return frame;
+            const [eventLine, dataLine] = frame.trimEnd().split("\n");
+            return sseEvent(eventLine!.slice(7), {
+              ...JSON.parse(dataLine!.slice(6)),
+              seq: index + 1,
+            });
+          })
+          .join("");
         const fragments: string[] = [];
-        const sizes = options.runTranscriptBytes
-          ? [17, 65_536, 32_768]
-          : [1, 2, 5, 3, 11, 7];
+        const sizes =
+          options.runTranscriptBytes || options.fragmented || options.toolFlood
+            ? [17, 65_536, 32_768]
+            : [1, 2, 5, 3, 11, 7];
         for (let offset = 0, index = 0; offset < events.length; index += 1) {
           const next = offset + (sizes[index % sizes.length] ?? 1);
           fragments.push(events.slice(offset, next));
@@ -772,6 +803,36 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
     pluginCapabilityPath,
   };
 }
+
+it("Hermes accepts bounded token fragmentation beyond the old raw event count", async () => {
+  const fixture = await fakeHermes({ fragmented: true });
+  const adapter = new HermesSessionAdapter({
+    baseUrl: fixture.baseUrl,
+    apiKey: "fixture-key",
+    profile: "default",
+    pluginCapabilityPath: fixture.pluginCapabilityPath,
+  });
+  const id = "20260721_011618_330489c8";
+  const result = await adapter.sendText(id, "finish normally");
+  expect(result.finalText).toBe("fixture answer");
+  expect(result.deltas.join("")).toBe("x".repeat(1100) + "fixture answer");
+  await expect(adapter.sendText(id, "next turn")).resolves.toMatchObject({
+    finalText: "fixture answer",
+  });
+});
+
+it("Hermes retains the normalized tool activity bound", async () => {
+  const fixture = await fakeHermes({ toolFlood: true });
+  const adapter = new HermesSessionAdapter({
+    baseUrl: fixture.baseUrl,
+    apiKey: "fixture-key",
+    profile: "default",
+    pluginCapabilityPath: fixture.pluginCapabilityPath,
+  });
+  await expect(
+    adapter.sendText("20260721_011618_330489c8", "bounded tools"),
+  ).rejects.toThrow("bounded tool event limit");
+});
 
 function capabilityManifest(
   adapterId: string,

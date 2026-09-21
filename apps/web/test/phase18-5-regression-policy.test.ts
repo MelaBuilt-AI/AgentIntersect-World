@@ -97,9 +97,9 @@ describe("Phase 18.5 full-gate regression policies", () => {
     );
 
     expect(journey.split(tag)).toHaveLength(2);
-    expect(
-      flaggedRuns.filter((run) => run.includes(`--grep-invert ${tag}`)),
-    ).toHaveLength(1);
+    expect(flaggedRuns).toEqual([]);
+    expect(unflaggedRuns).toEqual([]);
+    expect(jobs["measurements"]).toBeUndefined();
     expect(runs("core")).toContain(
       "pnpm verify:imported-avatar-current-inputs",
     );
@@ -119,8 +119,6 @@ describe("Phase 18.5 full-gate regression policies", () => {
           : [],
       ),
     );
-    expect(taggedWorkflowRuns.map(({ jobName }) => jobName)).toEqual([
-      "e2e-flagged",
-    ]);
+    expect(taggedWorkflowRuns).toEqual([]);
   });
 });

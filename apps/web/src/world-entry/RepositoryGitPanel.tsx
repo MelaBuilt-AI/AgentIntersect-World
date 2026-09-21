@@ -13,8 +13,14 @@ export function RepositoryGitPanel({
   workstreamId,
   onNew,
   showCheckpoint = true,
+  commitOnly = false,
+  onCommitted,
+  onBusyChange,
 }: {
   showCheckpoint?: boolean;
+  commitOnly?: boolean;
+  onCommitted?: (status: GitStatus) => void;
+  onBusyChange?: (busy: boolean) => void;
   projectId: string;
   workstreamId: string;
   onNew: (sha: string) => void;
@@ -63,6 +69,7 @@ export function RepositoryGitPanel({
   const confirm = async () => {
     if (!pending || !status || busy) return;
     setBusy(true);
+    onBusyChange?.(true);
     setError(null);
     setMessage(null);
     try {
@@ -77,6 +84,7 @@ export function RepositoryGitPanel({
       setFiles([]);
       if (result.pr) setPrs([result.pr]);
       setPending(null);
+      if (pending.action === "commit") onCommitted?.(result.status);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Git action failed");
       // A command may have succeeded before a later readback failed. Never blindly replay it.
@@ -84,6 +92,7 @@ export function RepositoryGitPanel({
       setVersion((value) => value + 1);
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   };
   const checkGithub = async () => {
@@ -135,26 +144,30 @@ export function RepositoryGitPanel({
             )}{" "}
             · {status.upstream ?? "No upstream"}
           </p>
-          <nav aria-label="Git sections">
-            {(["changes", "commits", "sync", "github"] as const).map((name) => (
-              <button
-                key={name}
-                type="button"
-                aria-pressed={tab === name}
-                disabled={busy || !!pending}
-                onClick={() => setTab(name)}
-              >
-                {
-                  {
-                    changes: "Changes",
-                    commits: "Commits",
-                    sync: "Sync",
-                    github: "GitHub / PR",
-                  }[name]
-                }
-              </button>
-            ))}
-          </nav>
+          {!commitOnly ? (
+            <nav aria-label="Git sections">
+              {(["changes", "commits", "sync", "github"] as const).map(
+                (name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    aria-pressed={tab === name}
+                    disabled={busy || !!pending}
+                    onClick={() => setTab(name)}
+                  >
+                    {
+                      {
+                        changes: "Changes",
+                        commits: "Commits",
+                        sync: "Sync",
+                        github: "GitHub / PR",
+                      }[name]
+                    }
+                  </button>
+                ),
+              )}
+            </nav>
+          ) : null}
           <fieldset disabled={busy || !!pending}>
             {tab === "changes" ? (
               <>

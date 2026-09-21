@@ -1,7 +1,15 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lstat, realpath } from "node:fs/promises";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { lstat, realpath, readFile, writeFile, rename } from "node:fs/promises";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from "node:path";
 
 const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/;
 const GIT_TIMEOUT_MS = 15_000;
@@ -144,6 +152,10 @@ export class WorktreeAuthority {
   readonly #currentRepositoryRoot: (() => string | null) | undefined;
   readonly #allowedWorktreeParent: string;
   readonly #bindings = new Map<string, WorktreeBinding>();
+  readonly #savedPaths = new Map<
+    string,
+    { path: string; relativePath: string }
+  >();
   readonly #replays = new Map<string, ReplayRecord>();
   #mutationTail: Promise<void> = Promise.resolve();
   #gitTail: Promise<void> = Promise.resolve();
@@ -412,14 +424,150 @@ export class WorktreeAuthority {
     });
   }
 
+  /** Only Git-registered worktrees of the selected repository are discovery roots. */
+  async savedWorkstreamStores(): Promise<
+    { directory: string; worktreePath: string }[]
+  > {
+    const result: { directory: string; worktreePath: string }[] = [];
+    for (const worktreePath of await this.#registeredWorktrees()) {
+      if (!basename(worktreePath).startsWith("aiw-")) continue;
+      try {
+        const locator = await this.#locationPath(worktreePath);
+        const stat = await lstat(locator);
+        if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096)
+          throw new Error("Invalid saved Workstream location");
+        const saved = JSON.parse(await readFile(locator, "utf8"));
+        if (
+          saved.schema !== "aiw.workstream-location/1" ||
+          typeof saved.directory !== "string" ||
+          !isAbsolute(saved.directory)
+        )
+          throw new Error("Invalid saved Workstream location");
+        result.push({ directory: saved.directory, worktreePath });
+      } catch (error) {
+        if (!(
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ))
+          throw error;
+        // Legacy builds stored history beside their registered worktrees.
+        if (basename(dirname(worktreePath)) === "worktrees")
+          result.push({
+            directory: join(dirname(worktreePath), "..", "workstreams"),
+            worktreePath,
+          });
+      }
+    }
+    return result;
+  }
+
+  pathFor(receipt: WorktreeReceipt): string {
+    this.#assertReceipt(receipt);
+    return (
+      this.#savedPaths.get(receipt.worktreeId)?.path ??
+      join(this.#allowedWorktreeParent, receipt.relativePath)
+    );
+  }
+
+  /** Private Git metadata follows the repository; never staged or published. */
+  async rememberStore(
+    receipt: WorktreeReceipt,
+    directory: string,
+  ): Promise<void> {
+    const target = await this.#locationPath(this.pathFor(receipt));
+    const temporary = `${target}.${process.pid}.tmp`;
+    await writeFile(
+      temporary,
+      JSON.stringify({
+        schema: "aiw.workstream-location/1",
+        directory: resolve(directory),
+      }),
+      { mode: 0o600 },
+    );
+    await rename(temporary, target);
+  }
+
+  async #registeredWorktrees(): Promise<string[]> {
+    const repository = this.#approvedRepositoryRoot;
+    const result = await this.#git([
+      "-C",
+      repository,
+      "worktree",
+      "list",
+      "--porcelain",
+      "-z",
+    ]);
+    if (result.exitCode !== 0)
+      throw new WorktreeAuthorityError(
+        "unavailable",
+        "Cannot discover saved repository worktrees",
+      );
+    return result.stdout
+      .split("\0")
+      .filter((line) => line.startsWith("worktree "))
+      .map((line) => line.slice(9))
+      .filter((path) => resolve(path) !== repository)
+      .slice(0, 256);
+  }
+
+  async #locationPath(worktreePath: string): Promise<string> {
+    const common = await this.#commonDirectory(this.#approvedRepositoryRoot);
+    if ((await this.#commonDirectory(worktreePath)) !== common)
+      throw new WorktreeAuthorityError(
+        "git-refused",
+        "Saved work belongs to another repository",
+      );
+    const result = await this.#git([
+      "-C",
+      worktreePath,
+      "rev-parse",
+      "--absolute-git-dir",
+    ]);
+    const directory = await realpath(result.stdout.trim());
+    if (
+      result.exitCode !== 0 ||
+      !contained(join(common, "worktrees"), directory)
+    )
+      throw new WorktreeAuthorityError(
+        "git-refused",
+        "Saved work is not a linked repository worktree",
+      );
+    return join(directory, "agentintersect-world-store.json");
+  }
+
   async restore(receipt: WorktreeReceipt): Promise<WorktreeReceipt> {
     this.#assertReceipt(receipt);
+    if ((await this.repositoryIdentity()) !== receipt.repositoryId)
+      throw new WorktreeAuthorityError(
+        "git-refused",
+        "Saved work belongs to another repository",
+      );
+    const expected = this.pathFor(receipt);
+    if (await missing(expected)) {
+      const matches = (await this.#registeredWorktrees()).filter(
+        (path) => basename(path) === basename(receipt.relativePath),
+      );
+      if (matches.length > 1)
+        throw new WorktreeAuthorityError(
+          "unavailable",
+          "Saved worktree is ambiguous",
+        );
+      if (matches[0]) {
+        const path = await this.#validatedDirectory(matches[0]);
+        this.#savedPaths.set(receipt.worktreeId, {
+          path,
+          relativePath: receipt.relativePath,
+        });
+      }
+    }
     const result = await this.attach({
       ownerId: receipt.ownerId,
       requestId: `restore/${receipt.worktreeId}/${receipt.attestation.slice(0, 12)}`,
       worktreeId: receipt.worktreeId,
       repositoryRoot: this.#approvedRepositoryRoot,
-      worktreePath: join(this.#allowedWorktreeParent, receipt.relativePath),
+      worktreePath: this.pathFor(receipt),
       branch: receipt.branch,
       startPoint: receipt.head,
     });
@@ -432,7 +580,7 @@ export class WorktreeAuthority {
       ownerId: receipt.ownerId,
       worktreeId: receipt.worktreeId,
       repositoryRoot: this.#approvedRepositoryRoot,
-      worktreePath: join(this.#allowedWorktreeParent, receipt.relativePath),
+      worktreePath: this.pathFor(receipt),
     });
   }
 
@@ -582,9 +730,11 @@ export class WorktreeAuthority {
   }> {
     const boundary = await this.#approvedBoundary(input.repositoryRoot);
     const worktreePath = await this.#validatedDirectory(input.worktreePath);
+    const saved = this.#savedPaths.get(input.worktreeId);
     if (
       worktreePath === boundary.repositoryRoot ||
-      !contained(boundary.allowedParent, worktreePath)
+      (!contained(boundary.allowedParent, worktreePath) &&
+        saved?.path !== worktreePath)
     )
       throw new WorktreeAuthorityError(
         "git-refused",
@@ -593,7 +743,10 @@ export class WorktreeAuthority {
     return {
       ...boundary,
       worktreePath,
-      relativePath: relative(boundary.allowedParent, worktreePath),
+      relativePath:
+        saved?.path === worktreePath
+          ? saved.relativePath
+          : relative(boundary.allowedParent, worktreePath),
     };
   }
 
