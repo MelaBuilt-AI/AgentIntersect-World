@@ -16,6 +16,10 @@ def changed_paths(event_name, event):
         base = event["pull_request"]["base"]["sha"]
         head = event["pull_request"]["head"]["sha"]
     else:
+        # Rebased-away tips need not exist in checkout's fetched history.
+        # Empty/unknown scope conservatively selects the code lane below.
+        if event.get("forced"):
+            return []
         base, head = event["before"], event["after"]
         if base == "0" * 40:
             default = event["repository"]["default_branch"]
