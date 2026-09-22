@@ -14,11 +14,13 @@ Local-first 3D workspace where your own coding agents (Claude Code, Codex, Herme
 
 In-development captures.
 
-| Demo | File |
-|------|------|
-| **Launch reel** (city + coding, ~100s) | [docs/launch/media/launch-reel.mp4](docs/launch/media/launch-reel.mp4) |
-| Repo city / `/repo load` | [docs/launch/media/repo-city.mp4](docs/launch/media/repo-city.mp4) |
-| Agent coding / embodiment | [docs/launch/media/agent-coding.mp4](docs/launch/media/agent-coding.mp4) |
+Inline GIF above shows the repo-city load. Full MP4s are on the private [launch-demos](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/launch-demos) release (GitHub’s file viewer often won’t play repo videos — use these download links while signed in):
+
+| Demo | Watch / download |
+|------|------------------|
+| **Launch reel** (city + coding, ~100s) | [launch-reel.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/launch-reel.mp4) |
+| Repo city / `/repo load` | [repo-city.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/repo-city.mp4) |
+| Agent coding / embodiment | [agent-coding.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/agent-coding.mp4) |
 
 ## What it is
 
