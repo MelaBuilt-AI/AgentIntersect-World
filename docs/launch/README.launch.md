@@ -4,9 +4,19 @@
 
 Local-first 3D workspace where your own coding agents (Claude Code, Codex, Hermes, OpenClaw, and friends) work on your repository as a world you can walk — not another hosted chat IDE, and not a replacement for those agents.
 
-> **Status:** Private pre-release. Public downloads and a GitHub Release are coming. Watch this repo (when it opens) or [agentintersect.com](https://agentintersect.com) for the flip.
->
-> Field Guide (pre-release): [guide.agentintersect.com](https://guide.agentintersect.com)
+> **Status:** Private pre-release. Packaged Windows/Linux downloads and a public GitHub Release are coming. Site: [agentintersect.com](https://agentintersect.com) · Field Guide: [guide.agentintersect.com](https://guide.agentintersect.com)
+
+![AgentIntersect World — repository city](docs/launch/media/repo-city.gif)
+
+## Demos
+
+In-development captures (NVIDIA recorder chrome trimmed; a failed Claude Code turn is left visible on purpose).
+
+| Demo | File |
+|------|------|
+| **Launch reel** (city + coding, ~100s) | [docs/launch/media/launch-reel.mp4](docs/launch/media/launch-reel.mp4) |
+| Repo city / `/repo load` | [docs/launch/media/repo-city.mp4](docs/launch/media/repo-city.mp4) |
+| Agent coding / embodiment | [docs/launch/media/agent-coding.mp4](docs/launch/media/agent-coding.mp4) |
 
 ## What it is
 
@@ -15,25 +25,22 @@ Local-first 3D workspace where your own coding agents (Claude Code, Codex, Herme
 - **Conversation → Workstream → World View** — talk, assign work, then see agents as presence in the world.
 - **Local loopback** — built for one operator on your machine, not a multi-user internet service.
 
-## Demo
+## What this is not
 
-<!-- Replace with GIF / MP4 once Aaron's two clips are cut -->
-**Coming soon:** short demos of (1) repo city load and (2) an agent coding task.
+- Not Cursor / Windsurf (editor replacement)
+- Not a hosted agent product (you bring local agents)
+- Not unrelated “Intersect AI” products — this is **AgentIntersect World** by [MelaBuilt AI](https://melabuilt.ai)
 
-Site: [agentintersect.com](https://agentintersect.com)
-
-## Requirements (developer / local)
+## Requirements (local / developer)
 
 - **Node.js 24+**, Corepack, Git
 - At least one supported harness installed and signed in (Claude Code, Codex, Hermes, OpenClaw, …)
-- **Desktop targets for packaged release:** Windows and Linux (macOS not a launch target unless stated later)
+- **Packaged release targets (when shipped):** Windows and Linux
 - Windows/WSL cross-environment process execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory
 
 ## Install (when Release ships)
 
-<!-- Fill real URLs on first public Release -->
-- **Windows:** download the installer from the [latest Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/latest) (link live after publish)
-- **Linux:** install script / artifact from the same Release page
+- **Windows / Linux:** artifacts will be attached to the [latest Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/latest) (not published yet)
 - Checksums will be listed in the Release notes
 
 Until then, local development:
@@ -56,26 +63,26 @@ Later launches skip completed setup. **Escape for Menu** reopens Agent Setup wit
 
 World does **not** collect harness login credentials in the browser. Finish auth in each harness’s own app.
 
-More detail: existing in-repo setup docs (`docs/AGENT_SETUP_MENU.md`) and the sections below in the full developer README.
-
-## What this is not
-
-- Not Cursor / Windsurf (editor replacement)
-- Not a hosted agent product (you bring local agents)
-- Not Intersect AI / unrelated “Intersect” products — this is **AgentIntersect World** by [MelaBuilt AI](https://melabuilt.ai)
+Deep dive: [docs/AGENT_SETUP_MENU.md](docs/AGENT_SETUP_MENU.md) · full developer README preserved at [docs/launch/README.developer.md](docs/launch/README.developer.md)
 
 ## Links
 
 - Product: https://agentintersect.com
 - Field Guide: https://guide.agentintersect.com
 - Melabuilt: https://melabuilt.ai
-- Discord: *invite when published*
 - X: [@melabuiltai](https://x.com/melabuiltai)
+- Launch drafts: [docs/launch/](docs/launch/)
 
 ## License
 
-<!-- Add LICENSE before public open. Currently unset on the repo. -->
+Not set yet — add before any public open.
 
 ## Development
 
-See the developer sections in this repository (tests, typecheck, lint, architecture checks). Packaged Release / public visibility are separate operator steps from day-to-day `pnpm` development.
+```sh
+corepack pnpm@11.15.0 test
+corepack pnpm@11.15.0 typecheck
+corepack pnpm@11.15.0 lint
+```
+
+See [docs/launch/README.developer.md](docs/launch/README.developer.md) for the longer agent-setup and acceptance notes.
