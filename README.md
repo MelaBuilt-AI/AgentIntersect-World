@@ -12,7 +12,7 @@ Local-first 3D workspace where your own coding agents (Claude Code, Codex, Herme
 
 ## Demos
 
-In-development captures (NVIDIA recorder chrome trimmed; a failed Claude Code turn is left visible on purpose).
+In-development captures.
 
 | Demo | File |
 |------|------|
