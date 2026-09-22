@@ -4,9 +4,7 @@
 
 Local-first 3D workspace where your own coding agents (Claude Code, Codex, Hermes, OpenClaw, and friends) work on your repository as a world you can walk — not another hosted chat IDE, and not a replacement for those agents.
 
-> **Status:** Private pre-release. Packaged Windows/Linux downloads are coming. Site: [agentintersect.com](https://agentintersect.com) · Field Guide: [guide.agentintersect.com](https://guide.agentintersect.com)
->
-> **Get notified (no email form):** when this repo is public, click **Watch → Custom → Releases** so GitHub emails you on new Releases. ([Releases](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases))
+> **Status:** Public pre-release. Packaged Windows/Linux downloads are coming. Until then, use **Watch → Custom → Releases** below for notify. Site: [agentintersect.com](https://agentintersect.com) · Field Guide: [guide.agentintersect.com](https://guide.agentintersect.com)
 
 ![AgentIntersect World — repository city load through ready](docs/launch/media/repo-city.gif)
 
@@ -16,7 +14,7 @@ Local-first 3D workspace where your own coding agents (Claude Code, Codex, Herme
 
 In-development captures.
 
-Inline GIF above shows the repo-city load. Full MP4s are on the private [launch-demos](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/launch-demos) release (GitHub’s file viewer often won’t play repo videos — use these download links while signed in):
+Inline GIF above shows the repo-city load. Full MP4s are on the [launch-demos](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/launch-demos) prerelease (GitHub’s file viewer often won’t play repo videos — use the download links):
 
 | Demo | Watch / download |
 |------|------------------|
@@ -31,9 +29,7 @@ No email capture. Use GitHub:
 1. Open [MelaBuilt-AI/AgentIntersect-World](https://github.com/MelaBuilt-AI/AgentIntersect-World)
 2. **Watch** → **Custom** → check **Releases** → Apply
 
-You only get notified when a new [Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases) is published (not on every commit). While the repo is private, only collaborators can Watch; once it’s public, anyone can.
-
-**Site CTA (for agentintersect.com when you flip):** “Watch on GitHub for release notifications →” linking here.
+You only get notified when a new [Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases) is published (not on every commit). The product site links here for the same path: [Watch on GitHub for release notifications](https://agentintersect.com).
 
 ## What it is
 
@@ -104,3 +100,5 @@ corepack pnpm@11.15.0 lint
 ```
 
 See [docs/launch/README.developer.md](docs/launch/README.developer.md) for the longer agent-setup and acceptance notes.
+
+Historical engineering phase notes and proof kits live under [docs/internal/](docs/internal/) (not required for using or building World).
