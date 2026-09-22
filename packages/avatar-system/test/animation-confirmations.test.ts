@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import * as replacement from "../src/imported-avatar.js";
 
 const approvedAnnotationUrl = new URL(
-  "../../../artifacts/avatar-replacement-evidence/world-animation-operator-review-v2/avatar-gesture-annotations.json",
+  "../../../docs/internal/artifacts/avatar-replacement-evidence/world-animation-operator-review-v2/avatar-gesture-annotations.json",
   import.meta.url,
 );
 

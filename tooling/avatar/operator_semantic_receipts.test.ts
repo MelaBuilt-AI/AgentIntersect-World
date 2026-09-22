@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const evidenceRoot = new URL(
-  "../../artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/",
+  "../../docs/internal/artifacts/avatar-replacement-evidence/world-animation-operator-review-v1/",
   import.meta.url,
 );
 const accepted = {

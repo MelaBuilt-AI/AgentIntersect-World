@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 export type Phase18_5CadenceAuthority = "hardware" | "software-emulation";
 
 export const PHASE18_5_HARDWARE_EVIDENCE_PATH =
-  "artifacts/phase18-5/phase18-5-hardware-measurement.json";
+  "docs/internal/artifacts/phase18-5/phase18-5-hardware-measurement.json";
 
 export const PHASE18_5_PRODUCTION_INPUTS = [
   "packages/renderer-r3f/src/avatar-kit-canvas.tsx",
@@ -199,7 +199,7 @@ function validatePhase18_5EvidenceIntegrity(
   const screenshotPath = evidence.screenshot?.path;
   const absoluteScreenshot =
     typeof screenshotPath === "string"
-      ? resolve(workspaceRoot, screenshotPath)
+      ? resolve(workspaceRoot, "docs/internal", screenshotPath)
       : "";
   if (
     !absoluteScreenshot ||

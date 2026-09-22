@@ -16,7 +16,7 @@ BLEND = ROOT / "assets/avatar/aiw-avatar-kit.blend"
 BLEND_INSPECTION = ROOT / "assets/avatar/aiw-avatar-kit.blend-inspection.json"
 GLB_INSPECTION = ROOT / "assets/avatar/aiw-avatar-kit.glb-inspection.json"
 HARDWARE_EVIDENCE = (
-    ROOT / "artifacts/phase18-5/phase18-5-hardware-measurement.json"
+    ROOT / "docs/internal/artifacts/phase18-5/phase18-5-hardware-measurement.json"
 )
 PRODUCTION_INPUTS = (
     "packages/renderer-r3f/src/avatar-kit-canvas.tsx",
@@ -157,7 +157,7 @@ def _validate_evidence_integrity(evidence: dict) -> list[str]:
     screenshot = evidence.get("screenshot", {})
     screenshot_path = screenshot.get("path")
     resolved_screenshot = (
-        ROOT / screenshot_path if isinstance(screenshot_path, str) else None
+        ROOT / "docs/internal" / screenshot_path if isinstance(screenshot_path, str) else None
     )
     if (
         resolved_screenshot is None
@@ -354,15 +354,15 @@ def main(compatibility_only: bool = False) -> int:
         for path in manifest.get("pbr", {}).get("sharedAtlases", {}).values()
     ]
     required_paths = [ROOT / path for path in contract["requiredGeneratedAssets"]]
-    evidence_paths = [ROOT / path for path in contract["requiredEvidence"]]
+    evidence_paths = [ROOT / "docs/internal" / path for path in contract["requiredEvidence"]]
     manifest_hashes = all(
         (ROOT / relative).is_file()
         and entry["bytes"] == (ROOT / relative).stat().st_size
         and entry["sha256"] == sha(ROOT / relative)
         for relative, entry in manifest.get("files", {}).items()
     )
-    measurement_path = ROOT / "artifacts/phase18-5/phase18-5-measurement.json"
-    browser_inspection_path = ROOT / "artifacts/phase18-5/browser-inspection.json"
+    measurement_path = ROOT / "docs/internal/artifacts/phase18-5/phase18-5-measurement.json"
+    browser_inspection_path = ROOT / "docs/internal/artifacts/phase18-5/browser-inspection.json"
     hardware_evidence = (
         json.loads(HARDWARE_EVIDENCE.read_text(encoding="utf-8"))
         if HARDWARE_EVIDENCE.is_file()
