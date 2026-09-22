@@ -31,7 +31,7 @@ No email capture. Use GitHub:
 1. Open [MelaBuilt-AI/AgentIntersect-World](https://github.com/MelaBuilt-AI/AgentIntersect-World)
 2. **Watch** → **Custom** → check **Releases** → Apply
 
-You only get notified when a new [Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases) is published (not on every commit). While the repo is private, only collaborators can Watch; once it’s public, anyone can.
+This subscribes you to new [Releases](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases), rather than every commit. A GitHub account is required; delivery follows your GitHub notification settings. Publishing a tag or pushing code is not the packaged-release announcement. While the repo is private, only collaborators can Watch; once it’s public, anyone can.
 
 **Site CTA (for agentintersect.com when you flip):** “Watch on GitHub for release notifications →” linking here.
 

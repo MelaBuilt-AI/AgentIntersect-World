@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security reporting
+    url: https://github.com/MelaBuilt-AI/AgentIntersect-World/blob/main/SECURITY.md
+    about: Follow the private reporting instructions; do not disclose vulnerabilities in public issues.
+  - name: Questions and early feedback
+    url: https://discord.gg/8GfKXaJsyY
+    about: Join the community. Never post credentials or private project data.
