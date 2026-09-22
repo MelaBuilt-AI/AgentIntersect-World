@@ -29,7 +29,7 @@ No email capture. Use GitHub:
 1. Open [MelaBuilt-AI/AgentIntersect-World](https://github.com/MelaBuilt-AI/AgentIntersect-World)
 2. **Watch** → **Custom** → check **Releases** → Apply
 
-You only get notified when a new [Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases) is published (not on every commit). The product site links here for the same path: [Watch on GitHub for release notifications](https://agentintersect.com).
+This subscribes you to new [Releases](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases), rather than every commit. A GitHub account is required; delivery follows your GitHub notification settings. Publishing a tag or pushing code is not the packaged-release announcement. The product site links here for the same path: [Watch on GitHub for release notifications](https://agentintersect.com).
 
 ## What it is
 
@@ -85,6 +85,9 @@ Deep dive: [docs/AGENT_SETUP_MENU.md](docs/AGENT_SETUP_MENU.md) · full develope
 - Field Guide: https://guide.agentintersect.com
 - Melabuilt: https://melabuilt.ai
 - X: [@melabuiltai](https://x.com/melabuiltai)
+- Community: [Discord](https://discord.gg/8GfKXaJsyY)
+- [Contributing](CONTRIBUTING.md) · [Private security reporting](SECURITY.md)
+- [Third-party and asset notices](THIRD_PARTY_NOTICES.md)
 - Launch drafts: [docs/launch/](docs/launch/)
 
 ## License
