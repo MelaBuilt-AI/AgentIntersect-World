@@ -1675,7 +1675,10 @@ export class AgentSessionGateway {
   #workstreamTurnObserver:
     ((sessionId: string, error?: string) => Promise<void>) | null = null;
   #workstreamDirectoryResolver:
-    | ((session: AgentSession) => Promise<{
+    | ((
+        session: AgentSession,
+        intent?: "discussion" | "work",
+      ) => Promise<{
         workingDirectory: string;
         evidenceDirectory: string;
       } | null>)
@@ -1715,7 +1718,10 @@ export class AgentSessionGateway {
   }
 
   setWorkstreamDirectoryResolver(
-    resolver: (session: AgentSession) => Promise<{
+    resolver: (
+      session: AgentSession,
+      intent?: "discussion" | "work",
+    ) => Promise<{
       workingDirectory: string;
       evidenceDirectory: string;
     } | null>,
@@ -2207,6 +2213,7 @@ export class AgentSessionGateway {
         "This exact session already has an active World turn",
       );
     this.#busy.add(sessionId);
+    let resolvingWorkstream = false;
     try {
       const adapter = this.#registry.require(
         persisted.adapterId,
@@ -2225,14 +2232,19 @@ export class AgentSessionGateway {
           "conflict",
           "Adapter capabilities changed; reconnect before sending",
         );
-      const workspace = await this.#workstreamDirectoryResolver?.(persisted);
-      if (workspace && isWorkTurn)
-        await this.#workstreamTurnStartObserver?.(sessionId, request.text);
+      resolvingWorkstream = true;
+      const workspace = await this.#workstreamDirectoryResolver?.(
+        persisted,
+        request.intent,
+      );
       const workstreamSystemMessage =
         request.context?.systemMessage ??
         (this.#workstreamContextResolver
           ? await this.#workstreamContextResolver(persisted, request.intent)
           : null);
+      resolvingWorkstream = false;
+      if (workspace && isWorkTurn)
+        await this.#workstreamTurnStartObserver?.(sessionId, request.text);
       const correlationId = randomUUID();
       const appendNormalizedEvent = async (
         type: AgentSessionEvent["type"],
@@ -2419,6 +2431,11 @@ export class AgentSessionGateway {
         await this.#workstreamTurnObserver?.(sessionId, result.blockedReason);
       return result;
     } catch (error) {
+      if (resolvingWorkstream)
+        throw new GatewayError(
+          "conflict",
+          "Saved Workstream context is unavailable. Open its project and review the saved work before retrying.",
+        );
       const latest = this.#store.requireSession(sessionId);
       this.#store.saveSession({
         ...latest,

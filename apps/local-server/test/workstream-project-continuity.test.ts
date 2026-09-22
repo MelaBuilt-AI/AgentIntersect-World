@@ -35,11 +35,12 @@ async function fixture() {
   await mkdir(repository);
   await git(repository, "init", "-q", "-b", "main");
   await git(repository, "commit", "--allow-empty", "-qm", "Initial checkpoint");
-  async function world(name: string) {
+  async function world(name: string, currentRepositoryRoot = () => repository) {
     const parent = join(root, name, "worktrees");
     await mkdir(parent, { recursive: true });
     const authority = new WorktreeAuthority({
       approvedRepositoryRoot: repository,
+      currentRepositoryRoot,
       allowedWorktreeParent: parent,
     });
     const service = new WorkstreamService({
@@ -191,4 +192,45 @@ it("refuses a foreign repository receipt and keeps arbitrary external attach for
     }),
   ).rejects.toThrow(/outside the allowed/);
   await foreign.dispose();
+});
+
+it("retains a continued older-root worktree for discussion after selecting another repository", async () => {
+  const f = await fixture();
+  const other = join(f.root, "other-repository");
+  await mkdir(other);
+  await git(other, "init", "-q", "-b", "main");
+  await git(other, "commit", "--allow-empty", "-qm", "Other checkpoint");
+  let selected = f.repository;
+  const next = await f.world("continued-world", () => selected);
+  const [saved] = await next.service.history(repoRef.repositoryId);
+  const continued = await next.service.continueSaved({
+    workstreamId: saved!.workstreamId,
+    expectedRevision: saved!.revision,
+    repository: repoRef,
+    agent,
+    confirm: true,
+  });
+  const recordBefore = await readFile(
+    next.service.pathsForTest().current,
+    "utf8",
+  );
+  selected = other;
+  const context = {
+    agentId: agent.agentId,
+    worktreeRef: continued.workstream.authority.worktreeId,
+    currentTaskRef: continued.workstream.workstreamId,
+  };
+  await expect(
+    next.service.directoryForAgent({ ...context, intent: "discussion" }),
+  ).resolves.toMatchObject({ workingDirectory: f.path });
+  await expect(
+    next.service.directoryForAgent({ ...context, intent: "work" }),
+  ).rejects.toThrow("another repository");
+  expect(await readFile(next.service.pathsForTest().current, "utf8")).toBe(
+    recordBefore,
+  );
+  expect(await readFile(join(f.path, "index.html"), "utf8")).toContain(
+    "Previous website, not a recreation",
+  );
+  expect(await git(other, "status", "--porcelain")).toBe("");
 });

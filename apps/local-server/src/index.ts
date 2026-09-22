@@ -528,8 +528,9 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     agentSessionGateway.setWorkstreamTurnObserver((agentId, error) =>
       workstreamService.recordAgentTurnOutcome(agentId, error),
     );
-    agentSessionGateway.setWorkstreamDirectoryResolver((session) =>
+    agentSessionGateway.setWorkstreamDirectoryResolver((session, intent) =>
       workstreamService.directoryForAgent({
+        ...(intent ? { intent } : {}),
         agentId: session.sessionId,
         worktreeRef: session.worktreeRef,
         currentTaskRef: session.currentTaskRef,

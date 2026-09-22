@@ -1160,6 +1160,7 @@ export class WorkstreamService {
   }
 
   async directoryForAgent(input: {
+    readonly intent?: "discussion" | "work";
     readonly agentId: string;
     readonly worktreeRef: string | null;
     readonly currentTaskRef: string | null;
@@ -1172,7 +1173,26 @@ export class WorkstreamService {
         "unavailable",
         "Owned Workstream binding is stale; reconnect before working",
       );
-    const receipt = await this.#worktreeAuthority.restore(workstream.authority);
+    // Discussion follows the previously attested owner, not the repository on
+    // the floor. First restoration and coding still require selected-repo authority.
+    let receipt: WorktreeReceipt;
+    if (input.intent === "discussion") {
+      try {
+        receipt = await this.#worktreeAuthority.measure({
+          ownerId: workstream.authority.ownerId,
+          worktreeId: workstream.authority.worktreeId,
+        });
+      } catch (error) {
+        if (
+          !(error instanceof WorktreeAuthorityError) ||
+          error.code !== "not-found"
+        )
+          throw error;
+        receipt = await this.#worktreeAuthority.restore(workstream.authority);
+      }
+    } else {
+      receipt = await this.#worktreeAuthority.restore(workstream.authority);
+    }
     if (receipt.state === "wrong-branch")
       throw new WorkstreamServiceError(
         "unavailable",
