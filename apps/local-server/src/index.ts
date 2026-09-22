@@ -536,13 +536,17 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
         currentTaskRef: session.currentTaskRef,
       }),
     );
-    agentSessionGateway.setWorkstreamContextResolver((session, intent) =>
-      workstreamService.contextForAgent({
-        ...(intent ? { intent } : {}),
-        agentId: session.sessionId,
-        worktreeRef: session.worktreeRef,
-        currentTaskRef: session.currentTaskRef,
-      }),
+    agentSessionGateway.setWorkstreamContextResolver(
+      (session, intent, mapPath) =>
+        workstreamService.contextForAgent(
+          {
+            ...(intent ? { intent } : {}),
+            agentId: session.sessionId,
+            worktreeRef: session.worktreeRef,
+            currentTaskRef: session.currentTaskRef,
+          },
+          mapPath,
+        ),
     );
     agentSessionGateway.setRepositoryWorkFocusRecoveryResolver(() =>
       workstreamService.current(),

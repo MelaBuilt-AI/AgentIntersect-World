@@ -461,6 +461,7 @@ describe("OpenClawSessionAdapter", () => {
       mode: "explore",
       rootSessionRef: created.rootId,
       workingDirectory: "/tmp/owned beans worktree",
+      nativeWorkingDirectory: "C:/Owned Beans/worktree",
       systemMessage:
         "Write only in the owned worktree. Save the exact Workstream receipt.",
     });
@@ -468,7 +469,8 @@ describe("OpenClawSessionAdapter", () => {
       (call) => call.method === "sessions.send",
     )!.params;
     expect(sent.key).toBe(created.rootId);
-    expect(sent.message).toContain("/tmp/owned beans worktree");
+    expect(sent.message).toContain("C:/Owned Beans/worktree");
+    expect(sent.message).not.toContain("/tmp/owned beans worktree");
     expect(sent.message).toContain("Save the exact Workstream receipt.");
     expect(sent.message).toContain("Build the home page");
     expect(sent.timeoutMs).toBe(600_000);

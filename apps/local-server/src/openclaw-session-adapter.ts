@@ -649,7 +649,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     const message = [
       context?.systemMessage,
       context?.workingDirectory
-        ? `Working directory for this turn: ${JSON.stringify(context.workingDirectory)}. Use this directory for repository commands and delegated workers, not the agent's default workspace.`
+        ? `Working directory for this turn: ${JSON.stringify(context.nativeWorkingDirectory ?? context.workingDirectory)}. Use this directory for repository commands and delegated workers, not the agent's default workspace.`
         : undefined,
       text,
     ]

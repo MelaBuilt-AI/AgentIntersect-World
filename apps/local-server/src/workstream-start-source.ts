@@ -12,6 +12,9 @@ import { workspaceCommand } from "./repository-git.js";
 
 type FileChange = { path: string; bytes: Buffer | null; mode: number };
 
+/** Expected copy refusals, safe to display without raw filesystem/Git details. */
+export class WorkstreamSourceError extends Error {}
+
 /** Read paused work only. Never stage, stash, commit, or follow external links. */
 export async function captureUncommittedWork(
   directory: string,
@@ -35,7 +38,7 @@ export async function captureUncommittedWork(
     ),
   ];
   if (names.length > 256)
-    throw Error(
+    throw new WorkstreamSourceError(
       "Too many uncommitted files to copy. Make a local commit first.",
     );
   const root = await realpath(directory);
@@ -46,7 +49,9 @@ export async function captureUncommittedWork(
       isAbsolute(path) ||
       path.split(/[\\/]/).some((part) => ["..", ".git"].includes(part))
     )
-      throw Error("Unsupported path in uncommitted work. Nothing was copied.");
+      throw new WorkstreamSourceError(
+        "Unsupported path in uncommitted work. Nothing was copied.",
+      );
     const file = join(root, path);
     let info;
     try {
@@ -65,12 +70,12 @@ export async function captureUncommittedWork(
       resolved.startsWith("..") ||
       isAbsolute(resolved)
     )
-      throw Error(
+      throw new WorkstreamSourceError(
         "Uncommitted links or special files cannot be copied. Make a local commit first.",
       );
     size += info.size;
     if (size > 64 * 1024 * 1024)
-      throw Error(
+      throw new WorkstreamSourceError(
         "Uncommitted changes exceed 64 MiB. Make a local commit first.",
       );
     changes.push({
@@ -94,7 +99,9 @@ export async function applyUncommittedWork(
     while (parent !== directory) {
       try {
         if ((await lstat(parent)).isSymbolicLink())
-          throw Error("Cannot copy changes through a linked directory.");
+          throw new WorkstreamSourceError(
+            "Cannot copy changes through a linked directory.",
+          );
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
       }
@@ -111,7 +118,9 @@ export async function applyUncommittedWork(
     await mkdir(dirname(file), { recursive: true });
     const resolved = relative(root, await realpath(dirname(file)));
     if (resolved.startsWith("..") || isAbsolute(resolved))
-      throw Error("Copy destination is outside the new worktree.");
+      throw new WorkstreamSourceError(
+        "Copy destination is outside the new worktree.",
+      );
     await writeFile(file, change.bytes);
     await chmod(file, change.mode);
   }

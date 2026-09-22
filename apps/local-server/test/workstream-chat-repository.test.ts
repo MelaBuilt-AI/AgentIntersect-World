@@ -38,7 +38,10 @@ afterEach(async () => {
   for (const root of roots.splice(0))
     await rm(root, { recursive: true, force: true });
 });
-async function fixture(adapterId: string) {
+async function fixture(
+  adapterId: string,
+  workspace?: AgentAdapter["workspace"],
+) {
   const root = await mkdtemp(join(tmpdir(), "aiw-chat-repository-"));
   roots.push(root);
   const a = join(root, "project-a");
@@ -64,6 +67,7 @@ async function fixture(adapterId: string) {
   // Native transports are doubles; the gateway, Workstream, store and Git authority are real.
   const adapter: AgentAdapter = {
     id: adapterId,
+    ...(workspace ? { workspace } : {}),
     attest: async () => ({
       schema: "aiw.agent-capabilities/0.12",
       adapterId,
@@ -170,13 +174,16 @@ async function fixture(adapterId: string) {
         intent,
       }),
     );
-    target.setWorkstreamContextResolver((session, intent) =>
-      service.contextForAgent({
-        agentId: session.sessionId,
-        worktreeRef: session.worktreeRef,
-        currentTaskRef: session.currentTaskRef,
-        intent,
-      }),
+    target.setWorkstreamContextResolver((session, intent, mapPath) =>
+      service.contextForAgent(
+        {
+          agentId: session.sessionId,
+          worktreeRef: session.worktreeRef,
+          currentTaskRef: session.currentTaskRef,
+          intent,
+        },
+        mapPath,
+      ),
     );
     target.setWorkstreamTurnStartObserver(started);
     target.setWorkstreamTurnObserver(finished);
@@ -358,5 +365,129 @@ it.each(harnesses)(
     expect((await chat.json()).data.finalText).toBe("Discussion reply");
     expect(f.send).toHaveBeenCalledTimes(1);
     expect(f.send.mock.calls[0]![2]?.workingDirectory).toBe(f.ownedPath);
+  },
+);
+
+it.each(harnesses)(
+  "%s maps owned work and report context before dispatch without rewriting task text",
+  async (id) => {
+    const mapPath = (p: string) => `C:\\Native Work${p.replaceAll("/", "\\")}`;
+    const verifyWorkspace = vi.fn(async () => {});
+    const nativeGit = {
+      GIT_DIR: "C:/native/.git/worktrees/owned",
+      GIT_COMMON_DIR: "C:/native/.git",
+      GIT_WORK_TREE: "C:/native/owned",
+    };
+    const f = await fixture(id, {
+      mapPath,
+      verifyWorkspace,
+      gitEnvironment: async () => nativeGit,
+    });
+    const binding = f.gateway.status(f.attached.sessionId);
+    const text = "Explain the literal /mnt/c/example token; do not rewrite it";
+    await f.gateway.sendText(binding.sessionId, {
+      binding,
+      text,
+      intent: "work",
+      context: { systemMessage: "stale host-only context" },
+    });
+    const context = f.send.mock.calls[0]![2]!;
+    expect(context.workingDirectory).toBe(f.ownedPath);
+    expect(context.nativeWorkingDirectory).toBe(mapPath(f.ownedPath));
+    expect(context.systemMessage).toContain(
+      JSON.stringify(mapPath(f.ownedPath)),
+    );
+    expect(context.systemMessage).toContain(
+      JSON.stringify(
+        mapPath(join(context.evidenceDirectory!, "saved-work.json")),
+      ),
+    );
+    expect(context.systemMessage).not.toContain("stale host-only context");
+    expect(context.systemMessage).toContain("native file-writing tool");
+    expect(context.systemMessage).toContain(JSON.stringify(nativeGit));
+    expect(f.send.mock.calls[0]![1]).toBe(text);
+    expect(verifyWorkspace).toHaveBeenCalledWith(f.ownedPath, true);
+    expect(verifyWorkspace).toHaveBeenCalledWith(
+      context.evidenceDirectory,
+      true,
+    );
+    await f.gateway.sendText(binding.sessionId, {
+      binding: f.gateway.status(binding.sessionId),
+      text: "discuss",
+      intent: "discussion",
+    });
+    expect(f.send.mock.calls[1]![2]?.systemMessage).toContain(
+      JSON.stringify(mapPath(f.ownedPath)),
+    );
+  },
+);
+it.each(harnesses)(
+  "%s refuses inaccessible native report storage before accepting or dispatching a turn",
+  async (id) => {
+    const { AgentEnvironmentError } =
+      await import("../src/agent-environment.js");
+    const verifyWorkspace = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(
+        new AgentEnvironmentError(
+          "Native report directory is unavailable; choose shared storage.",
+        ),
+      );
+    const f = await fixture(id, { mapPath: (p) => p, verifyWorkspace });
+    const binding = f.gateway.status(f.attached.sessionId);
+    await expect(
+      f.gateway.sendText(binding.sessionId, {
+        binding,
+        text: "work",
+        intent: "work",
+      }),
+    ).rejects.toThrow("Native report directory is unavailable");
+    expect(f.send).not.toHaveBeenCalled();
+    expect(f.started).not.toHaveBeenCalled();
+    expect(f.gateway.status(binding.sessionId)).toEqual(binding);
+    expect(f.gateway.isBusy(binding.sessionId)).toBe(false);
+  },
+);
+
+it.each(harnesses)(
+  "%s projects native Windows file activity relative to its owned worktree",
+  async (id) => {
+    const nativeRoot = "C:\\Native Work\\repo";
+    const f = await fixture(id, {
+      mapPath: () => nativeRoot,
+      verifyWorkspace: async () => {},
+    });
+    f.send.mockImplementation(async (_session, _text, context) => {
+      for (const file of [
+        "C:\\Native Work\\repo\\index.html",
+        "/c/Native Work/repo/index.html",
+        "C:\\Private\\outside.txt",
+      ]) {
+        await context?.onEvent?.({
+          type: "tool.started",
+          toolName: "Read",
+          activityId: "native-file",
+          repositoryLocator: { operation: "read", paths: [file] },
+          redaction: { applied: true, count: 1 },
+        });
+      }
+      return { finalText: "Done", deltas: [] };
+    });
+    const binding = f.gateway.status(f.attached.sessionId);
+    await f.gateway.sendText(binding.sessionId, {
+      binding,
+      text: "Inspect",
+      intent: "discussion",
+    });
+    const events = f.gateway
+      .events(binding.sessionId)
+      .filter((e) => e.type === "tool.started");
+    expect(events.map((e) => e.payload.repositoryPath)).toEqual([
+      "index.html",
+      "index.html",
+      undefined,
+    ]);
+    expect(JSON.stringify(events)).not.toContain("Private");
   },
 );

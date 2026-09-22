@@ -43,10 +43,29 @@ export function NewWorkstreamDialog({
   const [sourceMode, setSourceMode] = useState<
     "" | "uncommitted" | "last-commit" | "commit"
   >(sourceWorkstream && startPoint === "HEAD" ? "" : "commit");
-  const [sourceStatus, setSourceStatus] = useState<GitStatus | null>(null);
+  const [readVersion, setReadVersion] = useState(0);
+  const sourceId = sourceWorkstream?.workstreamId;
+  const statusKey = JSON.stringify([
+    repositoryId,
+    sourceId,
+    sourceWorkstream?.revision,
+    readVersion,
+  ]);
+  const [gitRead, setGitRead] = useState<{
+    key: string;
+    status?: GitStatus;
+    sourceStatus?: GitStatus | null;
+    error?: string;
+  } | null>(null);
+  const current = gitRead?.key === statusKey ? gitRead : null;
+  const status = current?.status;
+  const sourceStatus = current?.sourceStatus;
+  const canCopy = !!sourceStatus?.head && sourceStatus.changes.length > 0;
+  const sourceCommit = sourceStatus?.commits.find(
+    (commit) => commit.sha === sourceStatus.head,
+  );
   const [prIntent, setPrIntent] = useState<"local" | "draft-pr">("draft-pr");
   const [confirmed, setConfirmed] = useState(false);
-  const [status, setStatus] = useState<GitStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -57,24 +76,31 @@ export function NewWorkstreamDialog({
         if (!project)
           throw new Error("Open this repository through Load Repo first");
         const value = await repositoryGitStatus(project.id);
-        const workStatus = sourceWorkstream
-          ? await repositoryGitStatus(project.id, sourceWorkstream.workstreamId)
+        const workStatus = sourceId
+          ? await repositoryGitStatus(project.id, sourceId)
           : null;
-        if (active) {
-          setStatus(value);
-          setSourceStatus(workStatus);
-        }
+        if (active)
+          setGitRead({
+            key: statusKey,
+            status: value,
+            sourceStatus: workStatus,
+          });
       })
       .catch((reason: unknown) => {
         if (active)
-          setError(
-            reason instanceof Error ? reason.message : "Repository unavailable",
-          );
+          setGitRead({
+            key: statusKey,
+            error:
+              reason instanceof Error &&
+              reason.message !== "Internal server error"
+                ? reason.message
+                : "Could not read the selected source. Reopen the project or retry Git status.",
+          });
       });
     return () => {
       active = false;
     };
-  }, [repositoryId, sourceWorkstream]);
+  }, [repositoryId, sourceId, statusKey]);
   const canStart =
     !!repositoryId &&
     !!agentName &&
@@ -82,7 +108,9 @@ export function NewWorkstreamDialog({
     !!task.trim() &&
     (sourceMode === "commit"
       ? /^(HEAD|[a-f0-9]{40,64})$/.test(base.trim())
-      : !!sourceMode && !!sourceStatus?.head) &&
+      : sourceMode === "uncommitted"
+        ? canCopy
+        : sourceMode === "last-commit" && !!sourceStatus?.head) &&
     confirmed &&
     !busy;
   return (
@@ -111,8 +139,29 @@ export function NewWorkstreamDialog({
       </p>
       {!repositoryId ? (
         <p>Load a repository first.</p>
-      ) : !status && !error ? (
-        <p>Reading source repository…</p>
+      ) : !current ? (
+        <p role="status">
+          {sourceWorkstream
+            ? "Checking Workstream Git status…"
+            : "Reading source repository…"}
+        </p>
+      ) : null}
+      {current?.error ? (
+        <p role="alert">
+          Git status unavailable · {current.error} No commit state assumed.
+        </p>
+      ) : null}
+      {repositoryId ? (
+        <button
+          type="button"
+          disabled={busy || !current}
+          onClick={() => {
+            setError(null);
+            setReadVersion((value) => value + 1);
+          }}
+        >
+          {current?.error ? "Retry Git status" : "Refresh Git status"}
+        </button>
       ) : null}
       {error ? <p role="alert">{error}</p> : null}
       {status && !status.head ? (
@@ -147,9 +196,10 @@ export function NewWorkstreamDialog({
           })
             .catch((reason: unknown) =>
               setError(
-                reason instanceof Error
+                reason instanceof Error &&
+                  reason.message !== "Internal server error"
                   ? reason.message
-                  : "Workstream could not start",
+                  : "Could not start this Workstream. Refresh Git status and try again. If this repeats, reopen the project and check the local server log.",
               ),
             )
             .finally(() => setBusy(false));
@@ -179,11 +229,68 @@ export function NewWorkstreamDialog({
           {sourceWorkstream ? (
             <fieldset>
               <legend>Continue from: {sourceWorkstream.title}</legend>
+              {sourceStatus ? (
+                <div aria-label="Source Workstream Git status">
+                  <p role="status">
+                    <strong>
+                      {sourceStatus.changes.length
+                        ? `Uncommitted changes · ${sourceStatus.changes.length} file${sourceStatus.changes.length === 1 ? "" : "s"}`
+                        : sourceStatus.head
+                          ? "All changes committed · clean"
+                          : "No commits yet"}
+                    </strong>
+                  </p>
+                  <p>
+                    Workstream branch: <code>{sourceStatus.branch}</code>
+                    Last commit:
+                    <code>
+                      {sourceStatus.head
+                        ? `${sourceStatus.head.slice(0, 12)}${sourceCommit ? ` · ${sourceCommit.subject}` : ""}`
+                        : "None"}
+                    </code>
+                  </p>
+                  {sourceStatus.changes.length ? (
+                    <>
+                      <p>
+                        Choose copy to carry these edits forward. They are{" "}
+                        <strong>not included</strong> when starting from the
+                        last commit; newly created files may be missing from
+                        that saved version.
+                      </p>
+                      <details>
+                        <summary>
+                          Changed files ({sourceStatus.changes.length})
+                        </summary>
+                        <ul>
+                          {sourceStatus.changes.slice(0, 20).map((change) => (
+                            <li key={change.path}>
+                              <code>{change.path}</code>
+                              {change.status === "??"
+                                ? " · new, untracked"
+                                : ` · ${change.status}`}
+                            </li>
+                          ))}
+                        </ul>
+                        {sourceStatus.changes.length > 20 ? (
+                          <p>More files listed in Workbench.</p>
+                        ) : null}
+                      </details>
+                    </>
+                  ) : sourceStatus.head ? (
+                    <p>
+                      No uncommitted changes to copy. Choose this Workstream’s
+                      last commit to continue its saved version. Clean does not
+                      mean pushed or published.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               <label className="repository-workbench__file">
                 <input
                   type="radio"
                   name="workstream-source"
                   checked={sourceMode === "uncommitted"}
+                  disabled={!canCopy}
                   onChange={() => setSourceMode("uncommitted")}
                 />
                 Copy current uncommitted work
@@ -198,6 +305,7 @@ export function NewWorkstreamDialog({
                   type="radio"
                   name="workstream-source"
                   checked={sourceMode === "last-commit"}
+                  disabled={!sourceStatus?.head}
                   onChange={() => setSourceMode("last-commit")}
                 />
                 Start from this Workstream’s last commit
@@ -222,6 +330,17 @@ export function NewWorkstreamDialog({
           ) : null}
           {sourceMode === "commit" ? (
             <>
+              {status ? (
+                <p>
+                  Project checkout · <code>{status.branch}</code> ·{" "}
+                  {status.changes.length
+                    ? `${status.changes.length} uncommitted file(s), not copied`
+                    : status.head
+                      ? "clean committed state"
+                      : "no commits yet"}
+                  . This is separate from the source Workstream.
+                </p>
+              ) : null}
               <label>
                 Start from commit
                 <input

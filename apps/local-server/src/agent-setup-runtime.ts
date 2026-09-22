@@ -20,7 +20,12 @@ import {
   resolveOpenClawCredential,
 } from "./openclaw-session-adapter.js";
 
-import { createEnvironmentExecution } from "./agent-environment.js";
+import {
+  createEnvironmentExecution,
+  currentEnvironment,
+  mapEnvironmentPath,
+  assertNativeWorkspacePath,
+} from "./agent-environment.js";
 
 const exec = promisify(execFile);
 export function createAgentSetupRuntime(options: {
@@ -175,6 +180,20 @@ export function createAgentSetupRuntime(options: {
         nativeSessionRoot,
       });
     }
+    const host = execution?.host ?? (await currentEnvironment());
+    // Every registered harness (HTTP or CLI) uses the same native path contract.
+    Object.assign(adapter, {
+      workspace: execution ?? {
+        mapPath: (value: string) =>
+          mapEnvironmentPath(value, environment, host),
+        verifyWorkspace: async (directory: string) => {
+          assertNativeWorkspacePath(
+            registration,
+            mapEnvironmentPath(directory, environment, host),
+          );
+        },
+      },
+    });
     if (cache) adapters.set(registration.id, adapter);
     return adapter;
   }

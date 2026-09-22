@@ -314,6 +314,9 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
                 "--allowedTools",
                 "Read,Glob,Grep",
               ]),
+      ...(coding && context.evidenceDirectory
+        ? ["--add-dir", context.evidenceDirectory]
+        : []),
       "--permission-mode",
       "dontAsk",
       "--append-system-prompt",
@@ -413,13 +416,41 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
           fail(claudeFailure(options.failureMessage));
           return;
         }
+        let event: unknown;
         try {
-          const event: unknown = JSON.parse(line);
-          if (!isRecord(event) || typeof event.type !== "string")
-            throw new Error("invalid event");
-          options.onEvent?.(event);
+          event = JSON.parse(line);
         } catch {
-          fail(claudeFailure(options.failureMessage));
+          fail(
+            claudeFailure(`${options.failureMessage} (malformed stream JSON)`),
+          );
+          return;
+        }
+        if (!isRecord(event) || typeof event.type !== "string") {
+          fail(
+            claudeFailure(
+              `${options.failureMessage} (invalid native event envelope)`,
+            ),
+          );
+          return;
+        }
+        try {
+          options.onEvent?.(event);
+        } catch (error) {
+          const kind = [
+            "system",
+            "stream_event",
+            "assistant",
+            "user",
+            "result",
+            "rate_limit_event",
+          ].includes(event.type)
+            ? event.type
+            : "unknown";
+          fail(
+            claudeFailure(
+              `${error instanceof GatewayError ? error.message : options.failureMessage} (native ${kind} event rejected)`,
+            ),
+          );
         }
       };
 
@@ -474,11 +505,22 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
           stdout += tail;
         }
         if (!failure) {
-          try {
-            if (code !== 0) throw new Error("unexpected exit");
-            options.validate?.();
-          } catch {
-            fail(claudeFailure(options.failureMessage));
+          if (code !== 0)
+            fail(
+              claudeFailure(
+                `${options.failureMessage} (process exited with code ${code ?? "unknown"})`,
+              ),
+            );
+          else {
+            try {
+              options.validate?.();
+            } catch {
+              fail(
+                claudeFailure(
+                  `${options.failureMessage} (missing or invalid completion result)`,
+                ),
+              );
+            }
           }
         }
         closed = true;
@@ -588,6 +630,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       "--input-format",
       "--verbose",
       "--include-partial-messages",
+      "--add-dir <directories...>",
       "--tools <tools...>",
       "--disable-slash-commands",
       "--setting-sources <sources>",

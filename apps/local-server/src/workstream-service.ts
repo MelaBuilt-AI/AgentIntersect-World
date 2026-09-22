@@ -1133,12 +1133,15 @@ export class WorkstreamService {
     };
   }
 
-  async contextForAgent(input: {
-    readonly intent?: "discussion" | "work";
-    readonly agentId: string;
-    readonly worktreeRef: string | null;
-    readonly currentTaskRef: string | null;
-  }): Promise<string | null> {
+  async contextForAgent(
+    input: {
+      readonly intent?: "discussion" | "work";
+      readonly agentId: string;
+      readonly worktreeRef: string | null;
+      readonly currentTaskRef: string | null;
+    },
+    mapPath: (value: string) => string = (value) => value,
+  ): Promise<string | null> {
     await this.#ensureLoaded();
     const workstream = this.#record?.workstream;
     if (
@@ -1153,10 +1156,10 @@ export class WorkstreamService {
       return [
         "This turn is a conversation, not a coding task. Answer naturally as yourself, the connected agent, using the existing conversation and work context.",
         `The open Workstream is ${JSON.stringify(workstream.task)}; its status is ${workstream.status}.`,
-        `The owned worktree is ${JSON.stringify(this.#worktreePath(workstream))}. You may inspect it to answer questions, but do not edit files, run mutating commands, write work reports, or resume implementation in this discussion turn.`,
+        `The owned worktree is ${JSON.stringify(mapPath(this.#worktreePath(workstream)))}. You may inspect it to answer questions, but do not edit files, run mutating commands, write work reports, or resume implementation in this discussion turn.`,
         "Discuss options and help finalize the next task. The operator uses /work followed by the agreed task to resume coding. Existing reports remain visible; do not replace your conversational reply with a receipt.",
       ].join("\n");
-    return this.#systemContext(workstream);
+    return this.#systemContext(workstream, mapPath);
   }
 
   async directoryForAgent(input: {
@@ -1297,9 +1300,7 @@ export class WorkstreamService {
           );
         sourceHead = receipt.head;
         if (request.sourceWorkstream.mode === "uncommitted")
-          changes = await captureUncommittedWork(
-            join(this.#worktreeParent, receipt.relativePath),
-          );
+          changes = await captureUncommittedWork(this.#worktreePath(source));
       }
       if (previous) {
         // Retain the old record and its worktree; never rebind or retry its agent.
@@ -1953,16 +1954,19 @@ export class WorkstreamService {
     return this.#worktreeAuthority.pathFor(workstream.authority);
   }
 
-  #systemContext(workstream: Workstream): string {
-    const worktree = this.#worktreePath(workstream);
-    const report = this.#reportPath(workstream.workstreamId);
+  #systemContext(
+    workstream: Workstream,
+    mapPath: (value: string) => string = (value) => value,
+  ): string {
+    const worktree = mapPath(this.#worktreePath(workstream));
+    const report = mapPath(this.#reportPath(workstream.workstreamId));
     return [
       `You are implementing AgentIntersect World Workstream ${workstream.workstreamId}.`,
       `The exact task is ${JSON.stringify(workstream.task)}.`,
       `The absolute owned worktree is ${JSON.stringify(worktree)}; mutate only that owned worktree.`,
       "Use strict TDD: run one focused failing regression, make the smallest direct implementation, then run the focused and impacted green checks.",
       `The only permitted write outside that worktree is the Workstream evidence receipt at ${JSON.stringify(report)}. Write it atomically using schema aiw.workstream-report/1 with this Workstream identity, current activity, validation entries {command, exitCode, summary}, and bounded evidenceRefs.`,
-      `Use this exact JSON shape, replacing activity and adding only checks you actually ran: ${JSON.stringify({ schema: "aiw.workstream-report/1", workstreamId: workstream.workstreamId, activity: "Describe the actual outcome", validation: [], evidenceRefs: [] })}. Serialize with JSON.stringify or json.dumps, not hand-escaped JSON. Validation describes final current-state checks; put expected earlier RED failures in activity only. activity must be at most 512 characters. Each entry in evidenceRefs must match ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ and be at most 128 characters (for example index.html or validation-1); leave evidenceRefs empty rather than inserting prose. No schema discovery or example search is needed. If the sandbox refuses the receipt write, report that honestly in your final response; do not search other directories or request broader access.`,
+      `Use this exact JSON shape, replacing activity and adding only checks you actually ran: ${JSON.stringify({ schema: "aiw.workstream-report/1", workstreamId: workstream.workstreamId, activity: "Describe the actual outcome", validation: [], evidenceRefs: [] })}. Prefer the native file-writing tool to write valid JSON directly to the exact report path. Do not assume python3 or node is installed in this harness environment, and do not prepare the report in a global /tmp directory. If using a runtime, use one verified available in this environment. These are target-native paths; do not substitute a different Windows/WSL namespace. Validation describes final current-state checks; put expected earlier RED failures in activity only. activity must be at most 512 characters. Each entry in evidenceRefs must match ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ and be at most 128 characters (for example index.html or validation-1); leave evidenceRefs empty rather than inserting prose. No schema discovery or example search is needed. If the sandbox refuses the receipt write, report that honestly in your final response; do not search other directories or request broader access.`,
       "Report real commands and results. Stop before staging, committing, pushing, opening a PR, merging, tagging, releasing, publishing, or deploying.",
       "World View is served by the operator-approved World Preview Manager outside your sandbox. Do not start a preview server yourself, use Sites, create external projects, or deploy. For a static homepage write index.html inside the assigned worktree, then report what changed and the real validation results. If no preview exists, direct the operator to Open current work / World View and its explicit recipe approval. If World View is already showing, its approved preview refreshes after successful validation; its Refresh preview button retries it. Do not ask the operator to approve an already displayed preview.",
     ].join("\n");
