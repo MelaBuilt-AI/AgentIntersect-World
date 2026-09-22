@@ -93,7 +93,7 @@ Deep dive: [docs/AGENT_SETUP_MENU.md](docs/AGENT_SETUP_MENU.md) · full develope
 
 ## License
 
-Not set yet — add before any public open.
+[MIT](LICENSE) © MelaBuilt AI
 
 ## Development
 
