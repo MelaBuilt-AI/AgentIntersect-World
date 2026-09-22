@@ -39,6 +39,47 @@ except BrokenPipeError: pass
 code=child.wait()
 os._exit(code if code>=0 else 1)
 `;
+/** Bounded environment guidance; never raw command output or credentials. */
+export class AgentEnvironmentError extends Error {}
+
+/** Convert only locations inside the attested native root back to repository paths. */
+export function relativeNativeWorkspacePath(
+  value: string,
+  root: string,
+): string | null {
+  if (value.split(/[\\/]/).includes("..")) return null;
+  const windows = /^(?:[A-Za-z]:[\\/]|\\\\)/.test(root);
+  const candidate = windows ? value.replace(/^\/([a-z])\//i, "$1:/") : value;
+  if (!windows && /^(?:[A-Za-z]:|\\\\)/.test(candidate)) return null;
+  const paths = windows ? path.win32 : path.posix;
+  if (/^[A-Za-z]:[^\\/]/.test(candidate)) return null;
+  const result = paths.isAbsolute(candidate)
+    ? paths.relative(root, candidate)
+    : candidate;
+  if (
+    !result ||
+    result === ".." ||
+    result.startsWith(`..${paths.sep}`) ||
+    paths.isAbsolute(result)
+  )
+    return null;
+  return result.replaceAll("\\", "/").replace(/^\.\//, "");
+}
+
+export function assertNativeWorkspacePath(
+  registration: Pick<AgentRegistration, "adapterId" | "environment">,
+  nativePath: string,
+): void {
+  if (
+    registration.adapterId === "codex" &&
+    registration.environment.kind === "windows" &&
+    nativePath.startsWith("\\\\")
+  )
+    throw new AgentEnvironmentError(
+      "Windows Codex requires a drive-backed workspace and report directory. Choose a shared Windows drive or a WSL Codex connection; native sandbox permissions are not bypassed.",
+    );
+}
+
 const exec = promisify(execFile);
 export async function currentEnvironment(): Promise<HostEnvironment> {
   let distro = process.env.WSL_DISTRO_NAME;
@@ -93,37 +134,36 @@ export class AgentEnvironmentExecution {
       [filename],
     );
   }
-  async verifyWorkspace(directory: string): Promise<void> {
-    if (
-      this.registration.adapterId === "codex" &&
-      this.registration.environment.kind === "windows" &&
-      this.mapPath(directory).startsWith("\\\\")
-    )
-      throw new Error(
-        "Windows Codex requires a drive-backed workspace. Use a shared Windows drive for the repository and World data directory, then Recheck; native sandbox permissions are not bypassed.",
-      );
+  async verifyWorkspace(directory: string, writable = false): Promise<void> {
+    assertNativeWorkspacePath(this.registration, this.mapPath(directory));
     const filename = path.join(directory, `.aiw-access-${randomUUID()}`);
     const token = randomUUID();
     try {
       await writeFile(filename, token, { flag: "wx", mode: 0o600 });
-      if ((await this.readNativeFile(this.mapPath(filename))) !== token)
-        throw new Error("Workspace mapping does not resolve the same files");
+      const observed = writable
+        ? await this.pythonCommand(
+            "import sys; p=sys.argv[1]; f=open(p,'r+',encoding='utf-8'); v=f.read(); f.seek(0); f.write(v); f.flush(); f.close(); sys.stdout.write(v)",
+            [this.mapPath(filename)],
+          )
+        : await this.readNativeFile(this.mapPath(filename));
+      if (observed !== token)
+        throw new AgentEnvironmentError(
+          "Workspace mapping does not resolve the same files. Select a shared project and World data directory.",
+        );
+    } catch (error) {
+      if (error instanceof AgentEnvironmentError) throw error;
+      throw new AgentEnvironmentError(
+        `The selected harness cannot ${writable ? "read and write" : "read"} the owned workspace or report directory in its native environment. Choose accessible shared storage and Recheck the connection.`,
+      );
     } finally {
       await rm(filename, { force: true });
     }
   }
-  async spawn(
-    args: readonly string[],
+  async gitEnvironment(
     directory: string,
-  ): Promise<ChildProcessWithoutNullStreams> {
-    await this.verifyWorkspace(directory);
-    const r = this.registration;
-    const env: Record<string, string> =
-      r.adapterId === "codex"
-        ? { CODEX_HOME: r.identity.profilePath }
-        : r.adapterId === "claude-code"
-          ? { CLAUDE_CONFIG_DIR: r.identity.profilePath, HOME: r.homePath }
-          : {};
+    required = false,
+  ): Promise<Record<string, string>> {
+    const env: Record<string, string> = {};
     // Native Git must not follow a foreign absolute .git pointer in a World worktree.
     const gitdir = await exec(
       "git",
@@ -152,8 +192,32 @@ export class AgentEnvironmentExecution {
       await this.pythonCommand(
         "import os,sys; assert all(os.path.isdir(p) for p in sys.argv[1:])",
         [env.GIT_DIR, env.GIT_COMMON_DIR],
-      );
+      ).catch(() => {
+        throw new AgentEnvironmentError(
+          "The selected harness cannot access this Workstream's native Git metadata. Use shared storage or the matching WSL connection, then Recheck.",
+        );
+      });
     }
+    if (!gitdir && required)
+      throw new AgentEnvironmentError(
+        "Owned Git metadata is unavailable. Reopen the project and verify its saved Workstream before retrying.",
+      );
+    return env;
+  }
+
+  async spawn(
+    args: readonly string[],
+    directory: string,
+  ): Promise<ChildProcessWithoutNullStreams> {
+    await this.verifyWorkspace(directory);
+    const r = this.registration;
+    const env: Record<string, string> =
+      r.adapterId === "codex"
+        ? { CODEX_HOME: r.identity.profilePath }
+        : r.adapterId === "claude-code"
+          ? { CLAUDE_CONFIG_DIR: r.identity.profilePath, HOME: r.homePath }
+          : {};
+    Object.assign(env, await this.gitEnvironment(directory));
     const mappedArgs = args.map((arg, index) =>
       args[index - 1] === "--add-dir" ? this.mapPath(arg) : arg,
     );
@@ -262,6 +326,14 @@ export function mapEnvironmentPath(
   target: AgentEnvironment,
   host: HostEnvironment,
 ): string {
+  const absolute =
+    host.platform === "win32"
+      ? /^(?:[A-Za-z]:[\\/]|\\\\[^\\]+\\[^\\]+)/.test(value)
+      : path.posix.isAbsolute(value);
+  if (!absolute)
+    throw new AgentEnvironmentError(
+      "Workspace mapping requires an absolute path in the World server's environment.",
+    );
   if (target.kind === "windows") {
     if (host.platform === "win32") return value;
     const drive = /^\/mnt\/([a-z])(?:\/(.*))?$/i.exec(value);
@@ -280,10 +352,10 @@ export function mapEnvironmentPath(
       return `/mnt/${drive[1]!.toLowerCase()}/${drive[2]!.replaceAll("\\", "/")}`;
     const unc = /^\\\\wsl(?:\.localhost|\$)\\([^\\]+)(\\.*)$/i.exec(value);
     if (unc && unc[1] === target.distro) return unc[2]!.replaceAll("\\", "/");
-    if (/^\/mnt\/[a-z]\//i.test(value)) return value;
+    if (/^\/mnt\/[a-z](?:\/|$)/i.test(value)) return value;
   } else if (host.platform === (target.kind === "macos" ? "darwin" : "linux"))
     return value;
-  throw new Error(
-    "Workspace is not shared with the selected environment. Choose a repository on a shared Windows drive, then Recheck.",
+  throw new AgentEnvironmentError(
+    "Workspace is not shared with the selected environment. Choose a repository and World data directory on a shared Windows drive, or select the matching WSL distribution, then Recheck.",
   );
 }

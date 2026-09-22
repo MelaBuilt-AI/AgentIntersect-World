@@ -20,13 +20,13 @@ GENERATED_REGISTRY = (
 )
 SEMANTIC_REVIEW = (
     ROOT
-    / "artifacts/avatar-replacement-evidence"
+    / "docs/internal/artifacts/avatar-replacement-evidence"
     / "world-animation-semantic-review-v2"
     / "semantic-review.json"
 )
 APPROVED_GESTURE_ANNOTATION = (
     ROOT
-    / "artifacts/avatar-replacement-evidence"
+    / "docs/internal/artifacts/avatar-replacement-evidence"
     / "world-animation-operator-review-v2"
     / "avatar-gesture-annotations.json"
 )

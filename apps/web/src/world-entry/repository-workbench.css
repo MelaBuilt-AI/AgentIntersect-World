@@ -122,6 +122,10 @@
   margin-top: 0.35rem;
   accent-color: #459af0;
 }
+.repository-workbench--new .repository-workbench__file:has(input:disabled),
+.repository-workbench--new .repository-workbench__file:has(input:disabled) + p {
+  color: #89939e;
+}
 .repository-workbench__actions,
 .repository-workbench nav {
   display: flex;

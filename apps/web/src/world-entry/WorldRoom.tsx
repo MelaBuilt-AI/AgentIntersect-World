@@ -1869,7 +1869,9 @@ export function WorldRoom({
     reducedMotion,
   );
   const agentAction =
-    embodiment && !embodiment.request
+    embodiment &&
+    !embodiment.request &&
+    agentMovement.movementState !== "moving"
       ? "Idle"
       : agentWorkState.state === "coding"
         ? agentUsesImported

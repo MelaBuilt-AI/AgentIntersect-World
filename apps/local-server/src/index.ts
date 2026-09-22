@@ -528,20 +528,25 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
     agentSessionGateway.setWorkstreamTurnObserver((agentId, error) =>
       workstreamService.recordAgentTurnOutcome(agentId, error),
     );
-    agentSessionGateway.setWorkstreamDirectoryResolver((session) =>
+    agentSessionGateway.setWorkstreamDirectoryResolver((session, intent) =>
       workstreamService.directoryForAgent({
-        agentId: session.sessionId,
-        worktreeRef: session.worktreeRef,
-        currentTaskRef: session.currentTaskRef,
-      }),
-    );
-    agentSessionGateway.setWorkstreamContextResolver((session, intent) =>
-      workstreamService.contextForAgent({
         ...(intent ? { intent } : {}),
         agentId: session.sessionId,
         worktreeRef: session.worktreeRef,
         currentTaskRef: session.currentTaskRef,
       }),
+    );
+    agentSessionGateway.setWorkstreamContextResolver(
+      (session, intent, mapPath) =>
+        workstreamService.contextForAgent(
+          {
+            ...(intent ? { intent } : {}),
+            agentId: session.sessionId,
+            worktreeRef: session.worktreeRef,
+            currentTaskRef: session.currentTaskRef,
+          },
+          mapPath,
+        ),
     );
     agentSessionGateway.setRepositoryWorkFocusRecoveryResolver(() =>
       workstreamService.current(),

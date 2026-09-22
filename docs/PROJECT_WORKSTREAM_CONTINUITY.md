@@ -20,6 +20,39 @@ Aaron1551385127475748967: **PASS**. Loaded the saved projects, explicitly contin
 - `WorkstreamService` merges the highest saved revision for the selected repository, verifies the exact worktree association, reads archived source without activating current work, preserves report evidence on explicit Continue and publishes the new store location. Missing native sessions are not queried for nonexistent event history. Restored current-work projection resolves the original path after restart rather than returning stale empty file metadata.
 - Workbench exposes **Inspect saved files** independently from **Continue saved work**. File inspection is read-only and does not bind an agent, create a task or dispatch coding. Continue uses the existing explicit confirmation; it is the step that activates saved work in the current World.
 
+## New Workstream source clarity and older-root copy
+
+A later operator test exposed one remaining current-parent assumption in
+`captureUncommittedWork`: a discovered/continued Workstream could be read and
+previewed correctly, but copying its edits used the new server's worktree parent
+instead of the authority-resolved original location. Creation now uses that same
+attested location; the original Git/ownership checks remain in place.
+
+New Workstream reads live Git status for the exact source, not its historical
+report or the project checkout. It shows branch, last commit, clean/committed
+state or uncommitted file count with a bounded changed-file list. Clean means
+locally committed, not pushed or published. Copy is unavailable when there are no
+edits; last-commit mode explicitly excludes uncommitted edits and new files.
+Loading, unavailable and refreshed states do not reuse a prior source's status.
+Refresh/retry preserves the task and requires a current successful read.
+
+Expected copy refusals (limits, links and unsupported paths) use a typed bounded
+message through the API rather than becoming internal errors. An unexpected
+creation error gets contextual retry guidance in the dialog without exposing raw
+filesystem/command details or automatically replaying the task.
+
+Real-Git/API regressions cover older-root copying without changing source bytes,
+HEAD or status, and actionable copy-limit refusal before replacement allocation.
+Component regressions cover clean/dirty/loading/failure/retry, source identity
+changes, exact continuation payloads and retained task text after failure.
+
+In the reported Beans test, last-commit mode selected an empty checkpoint and
+intentionally excluded Claude's untracked homepage. Beans generated title-only
+HTML with an empty body. Preview cwd, HTTP bytes and iframe DOM matched that new
+file: preview health was not proof of a visible heading or inherited content.
+The original page and both Workstreams were left untouched; a fresh operator test
+is separate from these automated and read-only checks.
+
 ## Recovered originals
 
 Real application-service proof located and read all five retained Workstreams:

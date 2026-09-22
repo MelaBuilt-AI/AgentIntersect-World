@@ -11,7 +11,7 @@ import {
 } from "./phase18-5-performance-evidence.js";
 
 const hardwareEvidencePath = resolve(
-  "artifacts/phase18-5/phase18-5-hardware-measurement.json",
+  "docs/internal/artifacts/phase18-5/phase18-5-hardware-measurement.json",
 );
 
 const loadEvidence = (): Phase18_5HardwareEvidence =>

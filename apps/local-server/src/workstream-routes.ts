@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { PreviewManagerService } from "./preview-manager-service.js";
+import { WorkstreamSourceError } from "./workstream-start-source.js";
 
 import {
   WorkstreamService,
@@ -81,6 +82,8 @@ function fail(
   reply: FastifyReply,
   envelope: RouteEnvelope,
 ) {
+  if (error instanceof WorkstreamSourceError)
+    error = new WorkstreamServiceError("validation", error.message);
   if (!(error instanceof WorkstreamServiceError)) throw error;
   const status =
     error.code === "validation"

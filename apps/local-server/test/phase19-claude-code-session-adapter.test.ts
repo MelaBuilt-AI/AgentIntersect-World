@@ -151,10 +151,14 @@ it.each([false, true])(
       mode: "collaborate",
       rootSessionRef: session.id,
       workingDirectory: workspace,
+      evidenceDirectory: path.join(fixture.nativeSessionRoot, "report only"),
       systemMessage: "Only change this owned Workstream; do not publish.",
     });
     const call = (await fixture.invocations()).at(-1)!;
     expect(call.cwd).toBe(workspace);
+    expect(call.args[call.args.indexOf("--add-dir") + 1]).toBe(
+      path.join(fixture.nativeSessionRoot, "report only"),
+    );
     expect(call.args[call.args.indexOf("--allowedTools") + 1]).toBe(
       "Read,Glob,Grep,Edit,Write,Bash",
     );
@@ -342,7 +346,7 @@ if (args.length === 1 && args[0] === "--version") {
 if (args.length === 1 && args[0] === "--help") {
   process.stdout.write(control.invalidHelp
     ? "not claude help\\n"
-    : "Usage: claude [options] [command] [prompt]\\n-p, --print\\n-r, --resume [value]\\n--session-id <uuid>\\n--model <model>\\n--output-format <format>\\n--input-format <format>\\n--verbose\\n--include-partial-messages\\n--tools <tools...>\\n--disable-slash-commands\\n--setting-sources <sources>\\n--mcp-config <configs...>\\n--strict-mcp-config\\n");
+    : "Usage: claude [options] [command] [prompt]\\n-p, --print\\n-r, --resume [value]\\n--session-id <uuid>\\n--model <model>\\n--output-format <format>\\n--input-format <format>\\n--verbose\\n--include-partial-messages\\n--add-dir <directories...>\\n--tools <tools...>\\n--disable-slash-commands\\n--setting-sources <sources>\\n--mcp-config <configs...>\\n--strict-mcp-config\\n");
   process.exit(0);
 }
 
@@ -1090,7 +1094,9 @@ describe("ClaudeCodeSessionAdapter", () => {
       })
       .catch((reason: unknown) => reason as Error);
 
-    expect(error.message).toBe("Claude Code CLI turn failed");
+    expect(error.message).toBe(
+      "Claude Code CLI turn failed (process exited with code 9)",
+    );
     expect(error.message).not.toMatch(/TOKEN_CANARY|RAW_PROMPT|\/home\//);
     expect(await fixture.invocations()).toHaveLength(2);
   });
@@ -1144,3 +1150,16 @@ describe("ClaudeCodeSessionAdapter", () => {
     ).not.toContain("--delete");
   });
 });
+
+it.each([
+  ["malformed", "malformed stream JSON"],
+  ["unexpected-exit", "process exited with code 7"],
+] as const)(
+  "keeps a bounded diagnostic category for %s failures",
+  async (failure, reason) => {
+    const fixture = await fixtureExecutable({ failure });
+    const native = adapter(fixture);
+    const session = await native.createWorldSession("diagnostic-category");
+    await expect(native.sendText(session.id, "probe")).rejects.toThrow(reason);
+  },
+);

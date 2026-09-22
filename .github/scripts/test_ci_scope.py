@@ -45,6 +45,12 @@ class ScopeTests(unittest.TestCase):
                 head = commit()
                 event = {"before": base, "after": head, "repository": {"default_branch": "main"}}
                 self.assertEqual(changed_paths("push", event), ["README.md"])
+                forced = {**event, "before": "f" * 40, "forced": True,
+                          "ref": "refs/heads/feature"}
+                # A force-push's old tip may be absent from a fresh checkout.
+                # Unknown scope must select code checks, never docs-only.
+                self.assertEqual(changed_paths("push", forced), [])
+                self.assertEqual(mode_for("push", forced, []), "core")
                 event["before"] = "0" * 40
                 self.assertEqual(changed_paths("push", event), ["README.md"])
                 Path("docs").mkdir()

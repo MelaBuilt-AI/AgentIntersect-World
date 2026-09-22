@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 const root = new URL(
-  "../../artifacts/avatar-replacement-evidence/world-animation-completion-v1/",
+  "../../docs/internal/artifacts/avatar-replacement-evidence/world-animation-completion-v1/",
   import.meta.url,
 );
 

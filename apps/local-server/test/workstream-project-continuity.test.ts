@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, expect, it } from "vitest";
 import { WorktreeAuthority } from "../src/worktree-authority.js";
+import { createLocalServer } from "../src/server.js";
 import { WorkstreamService } from "../src/workstream-service.js";
 const exec = promisify(execFile);
 const roots: string[] = [];
@@ -13,6 +14,7 @@ const repoRef = { repositoryId: "repo-saved", revision: "generation-one" };
 const agent = {
   agentId: "beans",
   nativeSessionId: "beans-session",
+  rootNativeSessionId: "beans-session",
   revision: "1",
 };
 async function git(root: string, ...args: string[]) {
@@ -35,11 +37,16 @@ async function fixture() {
   await mkdir(repository);
   await git(repository, "init", "-q", "-b", "main");
   await git(repository, "commit", "--allow-empty", "-qm", "Initial checkpoint");
-  async function world(name: string) {
+  async function world(
+    name: string,
+    currentRepositoryRoot = () => repository,
+    workstreamId = "saved-work",
+  ) {
     const parent = join(root, name, "worktrees");
     await mkdir(parent, { recursive: true });
     const authority = new WorktreeAuthority({
       approvedRepositoryRoot: repository,
+      currentRepositoryRoot,
       allowedWorktreeParent: parent,
     });
     const service = new WorkstreamService({
@@ -49,7 +56,7 @@ async function fixture() {
       currentRepository: () => repoRef,
       connectedAgent: () => agent,
       evidenceReader: { read: async () => [] },
-      id: () => "saved-work",
+      id: () => workstreamId,
     });
     services.push(service);
     return { service, authority, parent };
@@ -191,4 +198,138 @@ it("refuses a foreign repository receipt and keeps arbitrary external attach for
     }),
   ).rejects.toThrow(/outside the allowed/);
   await foreign.dispose();
+});
+
+it("retains a continued older-root worktree for discussion after selecting another repository", async () => {
+  const f = await fixture();
+  const other = join(f.root, "other-repository");
+  await mkdir(other);
+  await git(other, "init", "-q", "-b", "main");
+  await git(other, "commit", "--allow-empty", "-qm", "Other checkpoint");
+  let selected = f.repository;
+  const next = await f.world("continued-world", () => selected);
+  const [saved] = await next.service.history(repoRef.repositoryId);
+  const continued = await next.service.continueSaved({
+    workstreamId: saved!.workstreamId,
+    expectedRevision: saved!.revision,
+    repository: repoRef,
+    agent,
+    confirm: true,
+  });
+  const recordBefore = await readFile(
+    next.service.pathsForTest().current,
+    "utf8",
+  );
+  selected = other;
+  const context = {
+    agentId: agent.agentId,
+    worktreeRef: continued.workstream.authority.worktreeId,
+    currentTaskRef: continued.workstream.workstreamId,
+  };
+  await expect(
+    next.service.directoryForAgent({ ...context, intent: "discussion" }),
+  ).resolves.toMatchObject({ workingDirectory: f.path });
+  await expect(
+    next.service.directoryForAgent({ ...context, intent: "work" }),
+  ).rejects.toThrow("another repository");
+  expect(await readFile(next.service.pathsForTest().current, "utf8")).toBe(
+    recordBefore,
+  );
+  expect(await readFile(join(f.path, "index.html"), "utf8")).toContain(
+    "Previous website, not a recreation",
+  );
+  expect(await git(other, "status", "--porcelain")).toBe("");
+});
+
+it("copies uncommitted work from an older World root through the create route", async () => {
+  const f = await fixture();
+  const before = {
+    bytes: await readFile(join(f.path, "index.html"), "utf8"),
+    status: await git(f.path, "status", "--porcelain"),
+    head: await git(f.path, "rev-parse", "HEAD"),
+  };
+  const b = await f.world("new-world", undefined, "replacement-work");
+  const [source] = await b.service.history(repoRef.repositoryId);
+  const server = createLocalServer({ workstreamService: b.service });
+  try {
+    const response = await server.inject({
+      method: "POST",
+      url: "/workstreams",
+      payload: {
+        requestId: "copy-old-work",
+        correlationId: "copy-old-work",
+        title: "Continue existing homepage",
+        task: "Update the existing homepage",
+        repository: repoRef,
+        agent: { ...agent, rootNativeSessionId: agent.nativeSessionId },
+        sourceWorkstream: {
+          workstreamId: source!.workstreamId,
+          expectedRevision: source!.revision,
+          expectedHead: before.head,
+          mode: "uncommitted",
+        },
+      },
+    });
+    expect(response.statusCode, response.body).toBe(201);
+    const target = response.json().data.workstream;
+    expect(target.workstreamId).not.toBe(source!.workstreamId);
+    expect(
+      await readFile(
+        join(b.parent, target.authority.relativePath, "index.html"),
+        "utf8",
+      ),
+    ).toBe(before.bytes);
+    expect(await readFile(join(f.path, "index.html"), "utf8")).toBe(
+      before.bytes,
+    );
+    expect(await git(f.path, "status", "--porcelain")).toBe(before.status);
+    expect(await git(f.path, "rev-parse", "HEAD")).toBe(before.head);
+    expect(await git(f.repository, "ls-tree", "--name-only", "HEAD")).toBe("");
+  } finally {
+    await server.close();
+  }
+});
+
+it("returns an actionable copy-limit error before allocating replacement work", async () => {
+  const f = await fixture();
+  await Promise.all(
+    Array.from({ length: 256 }, (_, i) =>
+      writeFile(join(f.path, `extra-${i}.txt`), "change"),
+    ),
+  );
+  const before = await git(f.path, "status", "--porcelain");
+  const b = await f.world("new-world", undefined, "replacement-work");
+  const [source] = await b.service.history(repoRef.repositoryId);
+  const server = createLocalServer({ workstreamService: b.service });
+  try {
+    const response = await server.inject({
+      method: "POST",
+      url: "/workstreams",
+      payload: {
+        requestId: "too-many-files",
+        correlationId: "too-many-files",
+        title: "Continue",
+        task: "Update homepage",
+        repository: repoRef,
+        agent,
+        sourceWorkstream: {
+          workstreamId: source!.workstreamId,
+          expectedRevision: source!.revision,
+          expectedHead: source!.authority.head,
+          mode: "uncommitted",
+        },
+      },
+    });
+    expect(response.statusCode, response.body).toBe(400);
+    expect(response.json().error.message).toBe(
+      "Too many uncommitted files to copy. Make a local commit first.",
+    );
+    expect(await b.service.current()).toBeNull();
+    expect(await git(f.path, "status", "--porcelain")).toBe(before);
+    expect(await readFile(join(f.path, "index.html"), "utf8")).toContain(
+      "Previous website",
+    );
+  } finally {
+    await server.close();
+  }
 });

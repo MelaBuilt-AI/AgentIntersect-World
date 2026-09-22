@@ -1,6 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  AgentEnvironmentError,
+  relativeNativeWorkspacePath,
+} from "./agent-environment.js";
 
 import {
   AgentCapabilityManifestSchema,
@@ -62,6 +66,8 @@ export type AdapterTurnContext = {
   readonly systemMessage?: string;
   /** Server-resolved owned workspace, never accepted from a browser request. */
   readonly workingDirectory?: string;
+  /** Target-native spelling for prompt-only transports; host cwd stays separate. */
+  readonly nativeWorkingDirectory?: string;
   /** Server-owned per-Workstream receipt directory, outside source Git. */
   readonly evidenceDirectory?: string;
   readonly worldActionActorId?: string;
@@ -76,6 +82,15 @@ export type WorldOwnedSessionContext = {
 
 export interface AgentAdapter {
   readonly id: string;
+  /** Server-configured environment, never browser-supplied path authority. */
+  readonly workspace?: {
+    mapPath(value: string): string;
+    verifyWorkspace(directory: string, writable?: boolean): Promise<void>;
+    gitEnvironment?(
+      directory: string,
+      required?: boolean,
+    ): Promise<Record<string, string>>;
+  };
   attest(): Promise<AgentCapabilityManifest>;
   listSessions(): Promise<readonly AdapterSessionSummary[]>;
   attach(
@@ -1667,6 +1682,7 @@ export class AgentSessionGateway {
     | ((
         session: AgentSession,
         intent?: "discussion" | "work",
+        mapPath?: (value: string) => string,
       ) => Promise<string | null> | string | null)
     | null = null;
 
@@ -1675,7 +1691,10 @@ export class AgentSessionGateway {
   #workstreamTurnObserver:
     ((sessionId: string, error?: string) => Promise<void>) | null = null;
   #workstreamDirectoryResolver:
-    | ((session: AgentSession) => Promise<{
+    | ((
+        session: AgentSession,
+        intent?: "discussion" | "work",
+      ) => Promise<{
         workingDirectory: string;
         evidenceDirectory: string;
       } | null>)
@@ -1697,6 +1716,7 @@ export class AgentSessionGateway {
     resolver: (
       session: AgentSession,
       intent?: "discussion" | "work",
+      mapPath?: (value: string) => string,
     ) => Promise<string | null> | string | null,
   ): void {
     this.#workstreamContextResolver = resolver;
@@ -1715,7 +1735,10 @@ export class AgentSessionGateway {
   }
 
   setWorkstreamDirectoryResolver(
-    resolver: (session: AgentSession) => Promise<{
+    resolver: (
+      session: AgentSession,
+      intent?: "discussion" | "work",
+    ) => Promise<{
       workingDirectory: string;
       evidenceDirectory: string;
     } | null>,
@@ -2207,6 +2230,7 @@ export class AgentSessionGateway {
         "This exact session already has an active World turn",
       );
     this.#busy.add(sessionId);
+    let resolvingWorkstream = false;
     try {
       const adapter = this.#registry.require(
         persisted.adapterId,
@@ -2225,14 +2249,51 @@ export class AgentSessionGateway {
           "conflict",
           "Adapter capabilities changed; reconnect before sending",
         );
-      const workspace = await this.#workstreamDirectoryResolver?.(persisted);
+      resolvingWorkstream = true;
+      const workspace = await this.#workstreamDirectoryResolver?.(
+        persisted,
+        request.intent,
+      );
+      const mapPath = adapter.workspace?.mapPath.bind(adapter.workspace);
+      if (workspace && adapter.workspace) {
+        await adapter.workspace.verifyWorkspace(
+          workspace.workingDirectory,
+          isWorkTurn,
+        );
+        if (isWorkTurn)
+          await adapter.workspace.verifyWorkspace(
+            workspace.evidenceDirectory,
+            true,
+          );
+      }
+      const nativeWorkingDirectory = workspace
+        ? (mapPath?.(workspace.workingDirectory) ?? workspace.workingDirectory)
+        : undefined;
+      // Re-render owned context at dispatch; an earlier host-only prompt must
+      // not override the current native paths. Never rewrite arbitrary task text.
+      const ownedSystemMessage =
+        (await this.#workstreamContextResolver?.(
+          persisted,
+          request.intent,
+          mapPath,
+        )) ?? request.context?.systemMessage;
+      const nativeGit = workspace
+        ? await adapter.workspace?.gitEnvironment?.(
+            workspace.workingDirectory,
+            true,
+          )
+        : undefined;
+      const workstreamSystemMessage = [
+        ownedSystemMessage,
+        nativeGit && Object.keys(nativeGit).length
+          ? `For Git commands in this owned worktree, use these target-native per-command environment variables: ${JSON.stringify(nativeGit)}. CLI launches already inherit them; HTTP-connected agents must pass them to repository commands and delegated workers. Do not rewrite the linked .git file or change global Git configuration.`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      resolvingWorkstream = false;
       if (workspace && isWorkTurn)
         await this.#workstreamTurnStartObserver?.(sessionId, request.text);
-      const workstreamSystemMessage =
-        request.context?.systemMessage ??
-        (this.#workstreamContextResolver
-          ? await this.#workstreamContextResolver(persisted, request.intent)
-          : null);
       const correlationId = randomUUID();
       const appendNormalizedEvent = async (
         type: AgentSessionEvent["type"],
@@ -2275,11 +2336,26 @@ export class AgentSessionGateway {
             ? { systemMessage: workstreamSystemMessage }
             : {}),
           ...(workspace ?? {}),
+          ...(nativeWorkingDirectory ? { nativeWorkingDirectory } : {}),
           ...(manifest.capabilities.worldActions
             ? { worldActionActorId: persisted.sessionId }
             : {}),
           ...(options.signal ? { signal: options.signal } : {}),
           onEvent: async (event) => {
+            if (nativeWorkingDirectory && event.repositoryLocator) {
+              const { repositoryLocator, ...rest } = event;
+              const paths = repositoryLocator.paths
+                .map((value) =>
+                  relativeNativeWorkspacePath(value, nativeWorkingDirectory),
+                )
+                .filter((value): value is string => value !== null);
+              event = paths.length
+                ? {
+                    ...rest,
+                    repositoryLocator: { ...repositoryLocator, paths },
+                  }
+                : rest;
+            }
             if (
               event.type === "tool.started" &&
               event.activityId &&
@@ -2419,6 +2495,13 @@ export class AgentSessionGateway {
         await this.#workstreamTurnObserver?.(sessionId, result.blockedReason);
       return result;
     } catch (error) {
+      if (resolvingWorkstream && error instanceof AgentEnvironmentError)
+        throw new GatewayError("conflict", error.message);
+      if (resolvingWorkstream)
+        throw new GatewayError(
+          "conflict",
+          "Saved Workstream context is unavailable. Open its project and review the saved work before retrying.",
+        );
       const latest = this.#store.requireSession(sessionId);
       this.#store.saveSession({
         ...latest,
