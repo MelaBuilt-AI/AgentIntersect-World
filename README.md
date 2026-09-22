@@ -6,7 +6,9 @@ Local-first 3D workspace where your own coding agents (Claude Code, Codex, Herme
 
 > **Status:** Private pre-release. Packaged Windows/Linux downloads and a public GitHub Release are coming. Site: [agentintersect.com](https://agentintersect.com) · Field Guide: [guide.agentintersect.com](https://guide.agentintersect.com)
 
-![AgentIntersect World — repository city](docs/launch/media/repo-city.gif)
+![AgentIntersect World — repository city load through ready](docs/launch/media/repo-city.gif)
+
+*GIF: world load → repository city ready (~26s). Full clips linked below.*
 
 ## Demos
 
