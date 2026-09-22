@@ -21,11 +21,11 @@ Node.js and any separately downloaded local speech provider/model retain their o
 
 Names and logos of GitHub, Discord, X, Claude, Codex, Hermes, OpenClaw and other third parties identify integrations or destinations. No endorsement or trademark license is implied.
 
-## Music and sound effects — confirmation still required
+## Music and sound effects — commercial use confirmed
 
 The Black Circuit soundtrack/effect pack has a [file/hash provenance inventory](apps/web/public/audio/black-circuit/provenance.json). The supplied source pack's production README identifies **ElevenLabs Music v2** for the music and **ElevenLabs Sound Effects v2** for the effects, with no third-party reference recording uploaded. That establishes generation provenance, not the generating account's subscription/license terms or permission to sublicense raw audio through a public source repository. Review the applicable [Music terms](https://elevenlabs.io/music-terms), model/API terms and [Sound Effects terms](https://elevenlabs.io/sound-effects-terms) against the actual account agreement. Additional materialization and repository-stream effects likewise need an explicit owner/source rights record.
 
-**Do not mark the public-source permission check complete merely because the audio works or was supplied for development.** The maintainer must confirm public repository redistribution and the intended license for the soundtrack/effects and remaining supplied artwork before visibility changes. No provider, subscription tier, copyright assignment or license has been guessed here.
+The maintainer confirms an ElevenLabs subscription that permits commercial use. That confirmation is recorded; commercial-use permission is not treated as missing. The [model-specific terms for v1/v2](https://elevenlabs.io/eleven-music-model-specific-terms) separately address Music Libraries & Repositories and distinguish those rights from commercial media use. Before exposing raw soundtrack files for unrestricted reuse, confirm the intended source-distribution arrangement against the applicable agreement or with ElevenLabs. This notice does not conclude that bundling audio in World is prohibited, and it does not blanket-relicense the audio under MIT. The exact plan name, any custom permissions, and separate grants for other supplied artwork/effects have not been independently verified.
 
 ## Screenshots and recordings
 

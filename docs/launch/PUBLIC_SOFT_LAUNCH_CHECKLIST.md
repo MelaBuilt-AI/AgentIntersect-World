@@ -9,7 +9,7 @@
 - [x] Root MIT license retained; [third-party/asset notices](../../THIRD_PARTY_NOTICES.md) distinguish software licenses, recorded model provenance and unresolved media rights.
 - [x] Production dependency license inventory contains 92 installed package entries with MIT, Apache-2.0, BSD-3-Clause or ISC declarations. No private installation paths are published in it.
 - [x] [Security reporting](../../SECURITY.md), [contribution guidance](../../CONTRIBUTING.md), and a sanitized bug-report form are present.
-- [x] Required `merge-gate`, read-only default workflow token, and disabled workflow PR approvals were verified. Existing CI gates remain intact.
+- [x] Required `merge-gate`, read-only default workflow token, and the setting preventing Actions from approving pull requests were verified. Existing CI gates remain intact.
 - [x] The three older CI packages were archived outside Git, checked against GitHub ZIP digests and inner checksums, then removed from hosted Actions artifacts. Portable packages identify the expected historical source commit. No installer was executed by this check; no distribution-readiness claim is implied.
 - [x] Existing demo release assets are videos only, not a packaged application release. Demo media may remain available after the separate publication/content approval.
 
@@ -30,7 +30,8 @@ The inventory also identified 57 text files containing personal local paths or c
 ## Decisions required before visibility changes
 
 - [ ] **Owner approves historical exposure**, including local usernames/paths, conversation references, displayed names, demo chats and repository metadata, or explicitly authorizes a separately planned sanitization/history rewrite or clean public export. No history was rewritten, branches/tags deleted, or immutable evidence altered by this prep.
-- [ ] **Owner confirms media rights** for ElevenLabs-generated music/effects and other supplied artwork/effects under the actual generating account agreement, including public source redistribution and the intended reuse license. Existing Tripo3D owner confirmation is retained separately.
+- [x] **ElevenLabs commercial-use permission confirmed by the owner:** a subscription permits commercial use. Existing Tripo3D public-use/redistribution confirmation is also retained.
+- [ ] **Resolve the narrower raw-media distribution/license question:** ElevenLabs v1/v2 terms separately restrict Music Libraries & Repositories. Confirm how the intended public soundtrack/source distribution fits the applicable agreement; do not infer unrestricted audio sublicensing from the software MIT license. Confirm remaining supplied artwork/effect grants. No conclusion that ordinary in-app playback is prohibited is asserted.
 - [ ] **Approve the exact visibility change.** Public MIT-licensed source can be cloned, forked and built even while installer buttons are disabled. Existing branches, tags, non-draft releases and Actions logs are also publication surfaces.
 
 ## Execute only at the authorized public cutover
