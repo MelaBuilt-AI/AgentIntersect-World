@@ -1,8 +1,16 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-21
+Updated: 2026-09-23
 
 ## Current milestone
+
+### September 23 — Hack your World feature checkpoint (manual verdict pending)
+
+New feature branch/PR authorized for cosmetic preset switching and custom-environment scaffolding; no merge or release. [Feature contract and continuation](../HACK_YOUR_WORLD.md) is the current scope. Original World's assets, lighting and sound remain the initial default. Supplied Sunlit/Mars textures and atmospheres are integrated through validated data-only recipes, asynchronous loading, glitch/fade transitions, environment lighting and the existing effects bus. Background sky drift is subtle, cloud/gas flow stronger, and sparse instanced grass/rocks are fixed-budget cosmetics with no navigation authority.
+
+Right-hold/Shift+F10 opens the 500-word draft panel. Recipe workshop preview/Keep/Revert and browser-local saved presets are implemented. Connected-agent generation is intentionally unavailable until an environment-only connector turn is integrated; no unrestricted coding dispatch was added. The next session starts with ingestion of the forthcoming extension library, independent ground material/mask blending and the bounded agent-authoring extension. Manual appearance/audio acceptance remains pending; see final PR/handoff for exact CI and retained test URL. Accepted TEST45419 and saved work remain protected.
+
+World public launch and live website SEO are already complete; old private/publication holds below are historical. Installer work follows this feature and concrete bug hunting. Phase20, releases/tags/download activation and provider/profile changes remain separate gates.
 
 ### September 21 — PR20 conventional CI/readiness override
 

@@ -67,6 +67,7 @@ declare module "three" {
   export const ZeroFactor: number;
   export const AdditiveBlending: number;
   export const RepeatWrapping: number;
+  export const ClampToEdgeWrapping: number;
   export const SRGBColorSpace: string;
   export class Material {
     onBeforeCompile(
@@ -98,6 +99,7 @@ declare module "three" {
     dispose(): void;
   }
   export class Texture {
+    image: HTMLImageElement;
     name: string;
     minFilter: unknown;
     magFilter: unknown;
@@ -113,7 +115,12 @@ declare module "three" {
     dispose(): void;
   }
   export class TextureLoader {
-    load(url: string, onLoad?: (texture: Texture) => void): Texture;
+    load(
+      url: string,
+      onLoad?: (texture: Texture) => void,
+      onProgress?: (event: ProgressEvent) => void,
+      onError?: (error: unknown) => void,
+    ): Texture;
   }
   export class CanvasTexture extends Texture {
     constructor(canvas: HTMLCanvasElement);
@@ -156,6 +163,8 @@ declare module "three" {
     constructor(color: ColorRepresentation, near?: number, far?: number);
   }
   export class BufferGeometry {
+    setAttribute(name: string, attribute: BufferAttribute): this;
+    computeVertexNormals(): void;
     dispose(): void;
     setFromPoints(points: readonly Vector3[]): this;
     rotateX(angle: number): this;
@@ -212,6 +221,10 @@ declare module "three" {
       radius?: number,
       widthSegments?: number,
       heightSegments?: number,
+      phiStart?: number,
+      phiLength?: number,
+      thetaStart?: number,
+      thetaLength?: number,
     );
   }
   export class MeshStandardMaterial extends Material {
@@ -328,6 +341,14 @@ declare module "three" {
   }
   export class AmbientLight extends Object3D {
     constructor(color?: ColorRepresentation, intensity?: number);
+    intensity: number;
+  }
+  export class HemisphereLight extends Object3D {
+    constructor(
+      skyColor?: ColorRepresentation,
+      groundColor?: ColorRepresentation,
+      intensity?: number,
+    );
     intensity: number;
   }
   export class DirectionalLight extends Object3D {

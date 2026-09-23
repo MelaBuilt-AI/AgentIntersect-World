@@ -131,6 +131,33 @@ it("loops the coding cue during connection outside World and stops on resolution
   expect(media.every((item) => item.paused)).toBe(true);
 });
 
+it("crossfades environment ambience, restores original sound, and honors effects mute and exit", async () => {
+  vi.useFakeTimers();
+  const { audio, media } = fixture();
+  await audio.play();
+  audio.setWorld(true);
+  expect(typeof audio.setEnvironment).toBe("function");
+  const original = media.find((m) => m.src.includes("code-canopy"))!;
+  audio.setEnvironment({ ambience: "blue-sky-sand-grass", gain: 0.38 });
+  const meadow = media.find((m) => m.src.includes("blue-sky-sand-grass"))!;
+  expect(meadow.loop).toBe(true);
+  await vi.advanceTimersByTimeAsync(800);
+  expect(original.paused).toBe(true);
+  expect(meadow.volume).toBeCloseTo(0.38);
+  audio.setMuted("effects", true);
+  expect(meadow.muted).toBe(true);
+  audio.setEnvironment(null);
+  await vi.advanceTimersByTimeAsync(800);
+  expect(meadow.paused).toBe(true);
+  const restored = media.filter((m) => m.src.includes("code-canopy")).at(-1)!;
+  expect(restored.muted).toBe(true);
+  audio.setWorld(false);
+  expect(restored.paused).toBe(true);
+  audio.dispose();
+  expect(vi.getTimerCount()).toBe(0);
+  vi.useRealTimers();
+});
+
 function fixture() {
   const media: HTMLAudioElement[] = [];
   const audio = new WorldAudio(() => {

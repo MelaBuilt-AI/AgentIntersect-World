@@ -260,6 +260,9 @@ importers:
 
   packages/renderer-r3f:
     dependencies:
+      "@agentintersect-world/world-schema":
+        specifier: workspace:*
+        version: link:../world-schema
       "@react-three/fiber":
         specifier: 9.6.1
         version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(three@0.185.1)

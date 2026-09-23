@@ -27,6 +27,10 @@ The Black Circuit soundtrack/effect pack has a [file/hash provenance inventory](
 
 This records the owner's use/publication decision, not an independent legal opinion about every subscription plan or a grant of unrestricted audio reuse. Applicable [Music terms](https://elevenlabs.io/music-terms), [v1/v2 model-specific terms](https://elevenlabs.io/eleven-music-model-specific-terms) and [Sound Effects terms](https://elevenlabs.io/sound-effects-terms) remain separate from the software MIT license. No blanket MIT relicensing of audio is asserted.
 
+## Hack your World environment pack
+
+The maintainer supplied eight terrain/sky PNGs and eleven atmosphere/transition WAV masters for this feature. The [environment asset manifest](apps/web/public/assets/environments/manifest.json) records source filenames/hashes, browser encodings and output hashes. The original masters are retained outside this repository; only derived WebP textures and Vorbis audio are shipped here. The supplied floor images are precomposed material artwork, not independent PBR layers. These records establish provenance, not a blanket MIT sublicense for media. The forthcoming custom-environment extension library is not included in this checkpoint.
+
 ## Screenshots and recordings
 
 Product demos and historical proof captures contain names, paths, identifiers, short development/testing excerpts and third-party interfaces. Following the bounded review described in the [source soft-launch checklist](docs/launch/PUBLIC_SOFT_LAUNCH_CHECKLIST.md), the maintainer approved retaining the reviewed history as-is. This is a publication decision, not exhaustive pixel/audio clearance or third-party relicensing. `docs/internal` is organizational rather than private; historical evidence bytes remain unchanged.

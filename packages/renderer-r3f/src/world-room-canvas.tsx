@@ -6,6 +6,8 @@ import {
 import type { WorldScreenBinding } from "./world-screen-types.js";
 import { useActivityBillboard } from "./world-activity-billboard.js";
 import { WorldEnvironment } from "./world-environment.js";
+import { ScenicEnvironment } from "./scenic-environment.js";
+import type { EnvironmentResources } from "./environment-resources.js";
 import { AvatarMaterialization } from "./avatar-materialization.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import {
@@ -952,6 +954,7 @@ function WorldRoomScene({
 }
 
 export function WorldRoomCanvas({
+  environment = null,
   graphics = DEFAULT_WORLD_GRAPHICS,
   screenEventSource,
   floorSize = 68,
@@ -985,6 +988,7 @@ export function WorldRoomCanvas({
   onMaterializationStart,
   onCityStream,
 }: {
+  readonly environment?: EnvironmentResources | null;
   readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
@@ -1124,13 +1128,22 @@ export function WorldRoomCanvas({
         <CooperativeWorldInvalidation />
       ) : null}
       <WorldGraphicsContext.Provider value={graphics}>
-        <WorldEnvironment
-          onReady={markEnvironmentReady}
-          floor={floor}
-          size={floorSize}
-          reducedMotion={reducedMotion}
-          userPosition={userPosition}
-        />
+        {environment ? (
+          <ScenicEnvironment
+            resources={environment}
+            size={floorSize}
+            reducedMotion={reducedMotion}
+            userPosition={userPosition}
+          />
+        ) : (
+          <WorldEnvironment
+            onReady={markEnvironmentReady}
+            floor={floor}
+            size={floorSize}
+            reducedMotion={reducedMotion}
+            userPosition={userPosition}
+          />
+        )}
         <WorldScreens
           floorSize={floorSize}
           reducedMotion={reducedMotion}

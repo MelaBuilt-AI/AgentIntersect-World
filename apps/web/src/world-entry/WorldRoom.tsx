@@ -1,4 +1,10 @@
-import { audioCue, randomAudioCue } from "../audio/world-audio.js";
+import {
+  audioCue,
+  randomAudioCue,
+  environmentAudioState,
+} from "../audio/world-audio.js";
+import { HackYourWorld } from "./HackYourWorld.js";
+import { EnvironmentSwitcher } from "./environment-switcher.js";
 import {
   createRepositoryCityState,
   REPOSITORY_CITY_FLOOR_SIZE,
@@ -31,6 +37,7 @@ import {
   useReducer,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -198,7 +205,7 @@ export function WorldRoom({
   objects,
   reducedMotion,
   forceNoWebGL,
-  inputOwner = "world",
+  inputOwner: incomingInputOwner = "world",
   userName,
   agentName,
   userAvatar,
@@ -315,6 +322,28 @@ export function WorldRoom({
   readonly onRepositoryError?: (() => void) | undefined;
 }) {
   const screenController = useWorldScreens();
+  const [environmentSwitcher] = useState(() => new EnvironmentSwitcher());
+  const environment = useSyncExternalStore(
+    environmentSwitcher.subscribe,
+    environmentSwitcher.snapshot,
+    environmentSwitcher.snapshot,
+  );
+  const [environmentDialogOpen, setEnvironmentDialogOpen] = useState(false);
+  const inputOwner = environmentDialogOpen ? "environment" : incomingInputOwner;
+  useEffect(() => {
+    environmentSwitcher.activate();
+    return () => {
+      environmentSwitcher.dispose();
+      environmentAudioState(null);
+    };
+  }, [environmentSwitcher]);
+  useEffect(() => {
+    environmentAudioState(environment.active.recipe?.audio ?? null);
+  }, [environment.active]);
+  useEffect(() => {
+    if (environment.phase === "out") audioCue("glitch-static-crackle");
+    if (environment.phase === "in") audioCue("screen-loading-warp-complete");
+  }, [environment.phase]);
   const [codeInspection, setCodeInspection] = useState(false);
   const [codeFullscreen, setCodeFullscreen] = useState(false);
   const [codeWheelDiscovered, setCodeWheelDiscovered] = useState(false);
@@ -2507,8 +2536,25 @@ export function WorldRoom({
           </p>
         ) : null}
       </section>
+      {sceneReady || noWebGL ? (
+        <HackYourWorld
+          active={environment.active}
+          phase={environment.phase}
+          error={environment.error}
+          reducedMotion={reducedMotion}
+          onSelect={(preset) => {
+            void environmentSwitcher.select(preset, reducedMotion);
+          }}
+          onDialogChange={setEnvironmentDialogOpen}
+        />
+      ) : null}
       {!noWebGL ? (
         <div className="world-room__canvas-host" aria-hidden="true">
+          <div
+            className="world-environment-transition"
+            data-phase={environment.phase}
+            data-reduced-motion={reducedMotion}
+          />
           <WorldCanvasErrorBoundary
             onError={() => {
               setRendererFailure("load-or-render-error");
@@ -2519,6 +2565,7 @@ export function WorldRoom({
             <Suspense fallback={null}>
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
+                  environment={environment.resources}
                   graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
@@ -2582,6 +2629,7 @@ export function WorldRoom({
                 />
               ) : (
                 <WorldRoomCanvas
+                  environment={environment.resources}
                   graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}

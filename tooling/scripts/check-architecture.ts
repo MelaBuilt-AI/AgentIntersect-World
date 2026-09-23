@@ -54,7 +54,7 @@ const allowedWorkspaceDependencies: Readonly<
   "@agentintersect-world/persistence": [
     "@agentintersect-world/world-event-protocol",
   ],
-  "@agentintersect-world/renderer-r3f": [],
+  "@agentintersect-world/renderer-r3f": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/repo-indexer": ["@agentintersect-world/world-schema"],
   "@agentintersect-world/spatial-code-graph": [
     "@agentintersect-world/world-schema",

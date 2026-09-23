@@ -1,4 +1,5 @@
 import { AUDIO_CATALOG, type AudioCue } from "./catalog.js";
+import type { EnvironmentRecipe } from "@agentintersect-world/world-schema/environment";
 
 export type AgentAudioState = "coding" | "complete" | "failed" | "idle";
 type Track = { title: string; src: string; gain: number };
@@ -35,6 +36,10 @@ export class WorldAudio {
   #held = false;
   #local: Track[] = [];
   #generation = 0;
+  #environment: EnvironmentRecipe["audio"] | null = null;
+  #ambientId: AudioCue | null = null;
+  #ambientFade: ReturnType<typeof setInterval> | null = null;
+  #fadingId: AudioCue | null = null;
   constructor(makeAudio: () => HTMLAudioElement = () => new Audio()) {
     this.#makeAudio = makeAudio;
     this.#music = makeAudio();
@@ -313,7 +318,7 @@ export class WorldAudio {
   }
   #syncLoops() {
     this.#loop("agent-coding-loop", this.#connecting, "agent-connection");
-    this.#loop("code-canopy", this.#world);
+    this.#syncAmbience();
     for (const [id, state] of this.#agents)
       this.#loop(
         "agent-coding-loop",
@@ -321,6 +326,59 @@ export class WorldAudio {
         `agent:${id}`,
       );
     this.#loop("object-hold-loop", this.#world && this.#held);
+  }
+  setEnvironment(environment: EnvironmentRecipe["audio"] | null) {
+    this.#environment = environment;
+    this.#syncAmbience();
+  }
+  #stopFade() {
+    if (this.#ambientFade) clearInterval(this.#ambientFade);
+    this.#ambientFade = null;
+    if (this.#fadingId) this.#loop(this.#fadingId, false);
+    this.#fadingId = null;
+  }
+  #syncAmbience() {
+    if (!this.#world || !this.#unlocked || this.#disposed) {
+      this.#stopFade();
+      if (this.#ambientId) this.#loop(this.#ambientId, false);
+      this.#ambientId = null;
+      return;
+    }
+    const id: AudioCue = this.#environment
+      ? `environment-${this.#environment.ambience}`
+      : "code-canopy";
+    const gain =
+      this.#environment?.gain ??
+      AUDIO_CATALOG.find((a) => a.id === "code-canopy")!.gain;
+    if (id === this.#ambientId) {
+      if (!this.#ambientFade) {
+        const current = this.#loops.get(id);
+        if (current) current.volume = gain;
+        this.#loop(id, true);
+      }
+      return;
+    }
+    this.#stopFade();
+    const previousId = this.#ambientId;
+    const previous = previousId ? this.#loops.get(previousId) : undefined;
+    const initialGain = previous?.volume ?? 0;
+    this.#ambientId = id;
+    this.#loop(id, true);
+    const next = this.#loops.get(id)!;
+    // Preserve the unchanged original entry sound; crossfade only on replacement.
+    if (!previous) {
+      next.volume = gain;
+      return;
+    }
+    next.volume = 0;
+    this.#fadingId = previousId;
+    let step = 0;
+    this.#ambientFade = setInterval(() => {
+      const mix = Math.min(1, ++step / 12);
+      previous.volume = initialGain * (1 - mix);
+      next.volume = gain * mix;
+      if (mix === 1) this.#stopFade();
+    }, 50);
   }
   setAgent(id: string, state: AgentAudioState) {
     if (!this.#world || this.#disposed) return;
@@ -344,6 +402,7 @@ export class WorldAudio {
   }
   dispose() {
     this.#disposed = true;
+    this.#stopFade();
     this.#generation++;
     for (const element of [this.#music, ...this.#effects]) {
       element.pause();
@@ -378,4 +437,9 @@ export function agentAudioState(id: string, state: AgentAudioState) {
 }
 export function heldAudioState(held: boolean) {
   activeAudio?.setHeld(held);
+}
+export function environmentAudioState(
+  environment: EnvironmentRecipe["audio"] | null,
+) {
+  activeAudio?.setEnvironment(environment);
 }

@@ -1,4 +1,5 @@
-// Browser encodings from Aaron’s Black Circuit pack v3.1.0; masters remain untouched.
+import { ENVIRONMENT_AMBIENCE } from "@agentintersect-world/world-schema/environment-assets";
+// Browser encodings from Aaron’s supplied packs; masters remain untouched.
 export const AUDIO_CATALOG = [
   {
     id: "00-black-circuit",
@@ -336,5 +337,27 @@ export const AUDIO_CATALOG = [
     loop: false,
     category: "sfx",
   },
+  ...ENVIRONMENT_AMBIENCE.map((id) => ({
+    id: `environment-${id}` as const,
+    title: id,
+    src: `/audio/environments/${id}.ogg`,
+    gain: 0.38,
+    loop: true,
+    category: "ambience" as const,
+  })),
+  ...(
+    [
+      "glitch-static-crackle",
+      "screen-flicker",
+      "screen-loading-warp-complete",
+    ] as const
+  ).map((id) => ({
+    id,
+    title: id,
+    src: `/audio/environments/${id}.ogg`,
+    gain: 0.32,
+    loop: false,
+    category: "sfx" as const,
+  })),
 ] as const;
 export type AudioCue = (typeof AUDIO_CATALOG)[number]["id"];
