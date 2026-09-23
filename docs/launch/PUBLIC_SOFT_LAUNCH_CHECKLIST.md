@@ -1,51 +1,41 @@
-# Public soft-launch checklist — downloads remain off
+# Source soft-launch checklist — downloads remain off
 
-**Status: preparation only; repository remains PRIVATE.** This checklist is not permission to change visibility, publish a packaged release, or enable downloads.
+**Scope:** public source and Watch → Custom → Releases, not a packaged product release. The maintainer authorized the World repository public cutover after website SEO, preparation updates and verification. The website source repository stays private. Live GitHub settings and deployment receipts are authoritative for completion.
 
-## Prepared
+## Preparation and owner decisions
 
-- [x] Public-facing README explains the pre-release status, source-development route, and Watch → Custom → Releases subscription.
-- [x] Subscription wording requires a GitHub account and respects the subscriber's notification settings; it does not promise email delivery.
-- [x] Root MIT license retained; [third-party/asset notices](../../THIRD_PARTY_NOTICES.md) distinguish software licenses, recorded model provenance and unresolved media rights.
-- [x] Production dependency license inventory contains 92 installed package entries with MIT, Apache-2.0, BSD-3-Clause or ISC declarations. No private installation paths are published in it.
-- [x] [Security reporting](../../SECURITY.md), [contribution guidance](../../CONTRIBUTING.md), and a sanitized bug-report form are present.
-- [x] Required `merge-gate`, read-only default workflow token, and the setting preventing Actions from approving pull requests were verified. Existing CI gates remain intact.
-- [x] The three older CI packages were archived outside Git, checked against GitHub ZIP digests and inner checksums, then removed from hosted Actions artifacts. Portable packages identify the expected historical source commit. No installer was executed by this check; no distribution-readiness claim is implied.
-- [x] Existing demo release assets are videos only, not a packaged application release. Demo media may remain available after the separate publication/content approval.
+- [x] README explains the public pre-release, source-development route and Watch → Custom → Releases subscription. A GitHub account is required; notification delivery follows personal settings.
+- [x] Root MIT software license, separate [third-party/asset notices](../../THIRD_PARTY_NOTICES.md), [production dependency inventory](../licenses/production-dependencies.json), [security reporting](../../SECURITY.md), [contribution guidance](../../CONTRIBUTING.md) and sanitized bug-report form are present.
+- [x] The maintainer accepts the reviewed historical exposure and explicitly chooses to leave history and existing evidence as-is. This includes the already-public business contact/name, local paths, conversation identifiers, short development/testing excerpts and demo workflow metadata. No sanitization or history rewrite is requested.
+- [x] ElevenLabs subscription commercial use and inclusion of the music/sounds in this source publication are owner-approved. Existing Tripo3D public-use/redistribution confirmation is retained. Software MIT licensing does not blanket-relicense supplied media; applicable provider terms and source records remain separate.
+- [x] Website search indexing and the exact World source visibility change are authorized after verification. This does not authorize a product release, installer activation, changes to native agent providers or publication of the website source repository.
+- [x] The three older hosted CI packages were privately archived and verified before their exact hosted artifact IDs were removed. This does not certify their installability or authorize their release.
+- [x] Existing `launch-demos` release assets are demonstration videos, not application installers.
 
-## Exposure check and its limits
+## Bounded exposure review
 
-A bounded read-only check at source baseline `73421fd` covered:
+The deeper read-only review at `4de04df` covered history reachable from remote heads/tags and all then-existing pull-request head/base tips: 248 commits and 3,591 unique blob versions inventoried. Text/commit/tag metadata, six distinct Git ZIP archives, all 33 retained Actions logs, 24 PR records and 19 comments were included in the corresponding text/secret checks. Available LFS-backed text and GLB JSON metadata were included in the parent secret corpus. The 57 previously identified metadata paths were checked across 343 text revisions.
 
-- 23 remote head/tag refs and 229 reachable commits using official checksum-verified Gitleaks 8.30.1;
-- 889 current tracked text/trace files, with no files omitted by that corpus's 20 MiB text/trace selection limit;
-- all 28 then-retained Actions log archives;
-- up to two nested archive levels, with redacted scanner output stored privately;
-- targeted visual inspection of eight historical UI screenshots and nine time samples across the three launch videos.
+The secret detector's final 114 matches were repeated documentation idempotency UUIDs, test idempotency headers, a browser storage key name and dependency-policy prose. **No publication-content credential was confirmed.** No corroborated personal phone, residential address, DOB, government identifier, payment/banking or medical record was identified in scanned text. This is not a guarantee that no secret or personal information exists.
 
-The five history matches and five corresponding current-corpus matches were reviewed at their actual source locations. They were non-secret test/documentation idempotency values, a browser storage key and prose. **No credential was confirmed by this bounded check. This is not a guarantee that no secret exists.** Binary/media history, unsampled frames/audio and every pixel of all retained media were not exhaustively reviewed.
+The additional identifying/content disclosures were ordinary project history: an organization-domain Git contact, first-name/display labels, actual short feedback/test quotations and internal operational narratives. The owner accepts their publication.
 
-The inventory also identified 57 text files containing personal local paths or conversation references, and 454 tracked image/video/archive files. Sampled media contains display names and demo chats/workstream details. This material is not hidden by the name `docs/internal`.
+Visual review covered 59 current UI captures, seven historical variants, 56 sampled video/GIF frames and 40 of 191 trace screenshot entries, with full-height slices for four tall captures. Unsampled frames, remaining historical/trace images, asset/render imagery, audio and small unreadable text are not exhaustively cleared. The owner's keep-as-is decision does not turn these limits into a complete media certification. `docs/internal` is organizational, not access control.
 
-## Decisions required before visibility changes
+Raw findings, scan/log archives and verified package backups remain private outside Git. They must not be attached to public documentation.
 
-- [ ] **Owner approves historical exposure**, including local usernames/paths, conversation references, displayed names, demo chats and repository metadata, or explicitly authorizes a separately planned sanitization/history rewrite or clean public export. No history was rewritten, branches/tags deleted, or immutable evidence altered by this prep.
-- [x] **ElevenLabs commercial-use permission confirmed by the owner:** a subscription permits commercial use. Existing Tripo3D public-use/redistribution confirmation is also retained.
-- [ ] **Resolve the narrower raw-media distribution/license question:** ElevenLabs v1/v2 terms separately restrict Music Libraries & Repositories. Confirm how the intended public soundtrack/source distribution fits the applicable agreement; do not infer unrestricted audio sublicensing from the software MIT license. Confirm remaining supplied artwork/effect grants. No conclusion that ordinary in-app playback is prohibited is asserted.
-- [ ] **Approve the exact visibility change.** Public MIT-licensed source can be cloned, forked and built even while installer buttons are disabled. Existing branches, tags, non-draft releases and Actions logs are also publication surfaces.
+## Required public-cutover operations
 
-## Execute only at the authorized public cutover
-
-- [ ] Require workflow approval for **all external contributors** in repository Actions settings. GitHub's fork-PR approval API rejected the setting's availability while this repository was private (HTTP 422); do not change visibility merely to bypass that constraint.
-- [ ] Enable and test GitHub private vulnerability reporting once available. Its current private-repository read returned HTTP 404, not proof that reporting is enabled. Until verified, use the private-maintainer-contact route in SECURITY.md.
-- [ ] Recheck public access while signed out: README, demo media, website/guide → GitHub links, Watch instructions and disabled installer buttons. Watching itself requires a signed-in GitHub user; never claim a visitor was automatically subscribed.
-- [ ] Keep the website's review `noindex` policy unless search-indexing cutover is separately approved.
-- [ ] Recheck artifacts and new commits since this audit before making public. New CI output can change the exposure surface.
+1. Verify the exact intended main commit and its successful CI, existing required `merge-gate`, read-only workflow token and disabled Actions PR-review approval. Check for unexpected new commits, package artifacts or releases since review.
+2. Verify deployed main/guide robots, sitemaps, route metadata, canonical URLs, no-JavaScript content, social image, 404 behavior and unchanged disabled installer controls. Search engines decide when to index; do not claim instant indexing or ranking.
+3. Change **only AgentIntersect World** to public, then read back visibility.
+4. Require Actions approval for **all external contributors** once that setting becomes available for the public repository. Preserve existing branch protections and token restrictions.
+5. Enable GitHub private vulnerability reporting and verify its enabled state and the public reporting entry. Do not create a fake vulnerability report as a test.
+6. Verify signed-out repository/README/demo access, reciprocal website/guide links and Watch instructions. Watching itself requires a signed-in GitHub user; no visitor is automatically subscribed.
+7. Read back artifacts/releases and both repositories' visibility. World source is public; website source remains private; installer downloads stay off. Record actual operation receipts outside this source commit to avoid recursive status-only commits.
 
 ## First packaged release — separate later gate
 
-- [ ] Verify the actual installers, supported platforms, checksums, applicable notices and signing status.
-- [ ] Publish the real product Release when ready; do not create an empty product release just to collect watchers.
-- [ ] Enable download controls only after the actual public artifact URLs and bytes have been verified.
-
-Raw scan output, log archives, private package backups and detailed findings remain outside this repository. They are not public documentation attachments.
+- Verify the actual installers, supported platforms, checksums, applicable notices and signing status.
+- Publish the real product Release when ready; no empty product release is needed to collect watchers.
+- Enable download controls only after the public artifact URLs and bytes have been verified.

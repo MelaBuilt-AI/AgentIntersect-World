@@ -10,10 +10,10 @@ World is designed for one operator and that operator's agents on a local machine
 
 Do **not** post credentials, native-agent transcripts, exploit details, private repository contents, or unredacted diagnostic archives in a public issue or Discord channel.
 
-- If GitHub's **Security → Report a vulnerability** control is available, use it for a private report.
+- Use **Security → Report a vulnerability**, or [open a private GitHub security report](https://github.com/MelaBuilt-AI/AgentIntersect-World/security/advisories/new). A GitHub account is required.
 - Otherwise, join the [MelaBuilt-AI community](https://discord.gg/8GfKXaJsyY) and request a **private conversation with a maintainer**, without including vulnerability details in the public channel. Share the report only after the maintainer establishes a private channel. Never send passwords or provider tokens.
 
-GitHub private vulnerability reporting has not yet been confirmed available for this private repository. Enabling and testing it is a public-cutover checklist item; the link above is not a claim that the GitHub control is already enabled.
+The GitHub reporting control is the preferred private channel. If it is unavailable, use the private-maintainer-contact fallback above rather than posting details publicly.
 
 Include the affected commit/version, operating system, harness type, minimal reproduction, expected and observed behavior, and a sanitized impact description. If a credential has been exposed, revoke or rotate it immediately; removing a file is not sufficient.
 
