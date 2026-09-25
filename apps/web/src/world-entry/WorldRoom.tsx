@@ -2,9 +2,20 @@ import {
   audioCue,
   randomAudioCue,
   environmentAudioState,
+  environmentWeatherAudioState,
+  environmentStrikeAudio,
 } from "../audio/world-audio.js";
 import { HackYourWorld } from "./HackYourWorld.js";
+import {
+  applyEnvironmentChoices,
+  environmentWeatherSummary,
+} from "./environment-choices.js";
 import { EnvironmentSwitcher } from "./environment-switcher.js";
+import {
+  generateEnvironment,
+  type EnvironmentAgent,
+} from "./environment-client.js";
+import { environmentHackingAudioState } from "../audio/world-audio.js";
 import {
   createRepositoryCityState,
   REPOSITORY_CITY_FLOOR_SIZE,
@@ -239,7 +250,12 @@ export function WorldRoom({
   onCodeWheelAction,
   onRepositoryReady,
   onRepositoryError,
+  environmentAgents = [],
+  onEnvironmentReport,
 }: {
+  readonly environmentAgents?: readonly EnvironmentAgent[];
+  readonly onEnvironmentReport?:
+    ((summary: string, name: string) => void) | undefined;
   readonly liveWorkstream?: Workstream | null;
   readonly projectName?: string | undefined;
   readonly onInspectWorkstream?: (() => void) | undefined;
@@ -335,15 +351,28 @@ export function WorldRoom({
     return () => {
       environmentSwitcher.dispose();
       environmentAudioState(null);
+      environmentWeatherAudioState(null);
+      environmentHackingAudioState(false);
     };
   }, [environmentSwitcher]);
   useEffect(() => {
     environmentAudioState(environment.active.recipe?.audio ?? null);
   }, [environment.active]);
   useEffect(() => {
-    if (environment.phase === "out") audioCue("glitch-static-crackle");
+    environmentWeatherAudioState(
+      reducedMotion ? null : (environment.active.recipe?.weather ?? null),
+    );
+    return () => environmentWeatherAudioState(null);
+  }, [environment.active, reducedMotion]);
+  useEffect(() => {
+    environmentHackingAudioState(environment.ceremony?.phase === "dance");
+    return () => environmentHackingAudioState(false);
+  }, [environment.ceremony?.phase]);
+  useEffect(() => {
+    if (environment.phase === "out" && !environment.ceremony)
+      audioCue("glitch-static-crackle");
     if (environment.phase === "in") audioCue("screen-loading-warp-complete");
-  }, [environment.phase]);
+  }, [environment.phase, environment.ceremony]);
   const [codeInspection, setCodeInspection] = useState(false);
   const [codeFullscreen, setCodeFullscreen] = useState(false);
   const [codeWheelDiscovered, setCodeWheelDiscovered] = useState(false);
@@ -458,42 +487,62 @@ export function WorldRoom({
         ]
   ).slice(0, 4);
   const activeRoster = new Set(activeAgentRosterIds);
+  const primaryEnvironmentActorId = renderedAgents[0]!.rosterId;
   const renderedAgentActivities = renderedAgents.map((agent, index) =>
-    sceneWorkstream?.status === "working" &&
-    sceneWorkstream.authority?.agent.agentId ===
-      (agentAvatars?.[index]?.worldSessionId ?? agentActorId)
+    environment.ceremony?.id === agent.rosterId
       ? {
-          state: "coding" as const,
-          icon: "</>" as const,
-          label: `${agent.name} · ${sceneWorkstream.currentActivity}`,
+          state:
+            environment.ceremony.phase === "dance"
+              ? ("thinking" as const)
+              : ("completed" as const),
+          icon:
+            environment.ceremony.phase === "dance"
+              ? ("…" as const)
+              : ("✓" as const),
+          label: agent.name,
           detail: "" as const,
-          progressText: sceneWorkstream.currentActivity,
+          progressText:
+            environment.ceremony.phase === "dance"
+              ? "Hacking your World!"
+              : "Enter World.",
         }
-      : activeRoster.has(agent.rosterId)
+      : sceneWorkstream?.status === "working" &&
+          sceneWorkstream.authority?.agent.agentId ===
+            (agentAvatars?.[index]?.worldSessionId ?? agentActorId)
         ? {
-            ...activity,
-            label:
-              activity.state === "thinking"
-                ? `${agent.name} is thinking`
-                : activity.state === "completed"
-                  ? `${agent.name} completed the request`
-                  : activity.state === "failed"
-                    ? `${agent.name} failed`
-                    : `${agent.name} is ${activity.detail || activity.state}`,
-          }
-        : {
-            state: "idle" as const,
-            icon: "",
-            label: `${agent.name} is idle`,
+            state: "coding" as const,
+            icon: "</>" as const,
+            label: `${agent.name} · ${sceneWorkstream.currentActivity}`,
             detail: "" as const,
-          },
+            progressText: sceneWorkstream.currentActivity,
+          }
+        : activeRoster.has(agent.rosterId)
+          ? {
+              ...activity,
+              label:
+                activity.state === "thinking"
+                  ? `${agent.name} is thinking`
+                  : activity.state === "completed"
+                    ? `${agent.name} completed the request`
+                    : activity.state === "failed"
+                      ? `${agent.name} failed`
+                      : `${agent.name} is ${activity.detail || activity.state}`,
+            }
+          : {
+              state: "idle" as const,
+              icon: "",
+              label: `${agent.name} is idle`,
+              detail: "" as const,
+            },
   );
   const chatActivity = agentAvatars?.length
     ? activity
     : nameWorldActivity(activity, agentName);
-  const presentedActivity = embodiment?.request
-    ? renderedAgentActivities[0]!
-    : chatActivity;
+  const presentedActivity =
+    environment.ceremony?.id === renderedAgents[0]?.rosterId ||
+    embodiment?.request
+      ? renderedAgentActivities[0]!
+      : chatActivity;
   const resolvedAgentActorId = agentActorId ?? "agent-local";
   const [agentMovement, setAgentMovement] = useState<AgentMovementState>(() =>
     createAgentMovementState(
@@ -1302,6 +1351,13 @@ export function WorldRoom({
       const elapsedSeconds =
         previousFrame === null ? 0 : (timestamp - previousFrame) / 1_000;
       previousFrame = timestamp;
+      if (
+        environmentSwitcher.snapshot().ceremony?.id ===
+        primaryEnvironmentActorId
+      ) {
+        frame = window.requestAnimationFrame(tick);
+        return;
+      }
       const result = settleReducedAgentMovement(
         advanceAgentMovement(
           agentMovementRef.current,
@@ -1340,7 +1396,13 @@ export function WorldRoom({
     };
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [agentMovement.generation, agentMovement.activeRequest, reducedMotion]);
+  }, [
+    agentMovement.generation,
+    agentMovement.activeRequest,
+    reducedMotion,
+    environmentSwitcher,
+    primaryEnvironmentActorId,
+  ]);
   useEffect(() => {
     if (!agentMovementBindings) return;
     const next = { ...secondaryMovementsRef.current };
@@ -1444,6 +1506,10 @@ export function WorldRoom({
       for (const binding of (agentMovementBindingsRef.current ?? []).slice(1)) {
         const current = next[binding.rosterId];
         if (!current?.activeRequest) continue;
+        if (environmentSwitcher.snapshot().ceremony?.id === binding.rosterId) {
+          moving = true;
+          continue;
+        }
         const activeRequest = current.activeRequest;
         const context = secondaryMovementContextRef.current(
           binding.rosterId,
@@ -1484,7 +1550,7 @@ export function WorldRoom({
     };
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [hasMovingSecondaryAgent, reducedMotion]);
+  }, [hasMovingSecondaryAgent, reducedMotion, environmentSwitcher]);
   useEffect(() => {
     // A live follower renews its bounded lease; closing the World still lets
     // authority expire rather than leaving an abandoned action running.
@@ -1898,19 +1964,30 @@ export function WorldRoom({
     reducedMotion,
   );
   const agentAction =
-    embodiment &&
-    !embodiment.request &&
-    agentMovement.movementState !== "moving"
-      ? "Idle"
-      : agentWorkState.state === "coding"
-        ? agentUsesImported
-          ? reducedMotion
-            ? "Idle"
-            : (agentWorkState.codingSemantic ?? "Idle")
-          : agentWorkState.action
+    environment.ceremony &&
+    environment.ceremony.id === renderedAgents[0]?.rosterId
+      ? reducedMotion
+        ? "Idle"
         : agentUsesImported
-          ? agentAnimation.semantic
-          : projectedAgentAction;
+          ? environment.ceremony.phase === "dance"
+            ? "Dance"
+            : "Bow"
+          : environment.ceremony.phase === "dance"
+            ? "Celebrate"
+            : "Nod"
+      : embodiment &&
+          !embodiment.request &&
+          agentMovement.movementState !== "moving"
+        ? "Idle"
+        : agentWorkState.state === "coding"
+          ? agentUsesImported
+            ? reducedMotion
+              ? "Idle"
+              : (agentWorkState.codingSemantic ?? "Idle")
+            : agentWorkState.action
+          : agentUsesImported
+            ? agentAnimation.semantic
+            : projectedAgentAction;
   const renderedAgentStates = renderedAgents.map((agent, index) => {
     const spawn = WORLD_AGENT_SPAWN_POSITIONS[index]!;
     const binding = agentMovementBindings?.find(
@@ -1948,13 +2025,23 @@ export function WorldRoom({
       position: movement.position,
       heading: movement.heading,
       action:
-        work.state === "coding"
-          ? usesImported && !work.mixerPaused
-            ? (work.codingSemantic ?? "Idle")
-            : work.action
-          : index === 0 && movement.movementState !== "moving"
-            ? agentAction
-            : movementAction,
+        environment.ceremony?.id === agent.rosterId
+          ? reducedMotion
+            ? "Idle"
+            : usesImported
+              ? environment.ceremony.phase === "dance"
+                ? "Dance"
+                : "Bow"
+              : environment.ceremony.phase === "dance"
+                ? "Celebrate"
+                : "Nod"
+          : work.state === "coding"
+            ? usesImported && !work.mixerPaused
+              ? (work.codingSemantic ?? "Idle")
+              : work.action
+            : index === 0 && movement.movementState !== "moving"
+              ? agentAction
+              : movementAction,
       workState: work.state,
       objectRef: work.objectRef,
     };
@@ -1964,18 +2051,39 @@ export function WorldRoom({
     userAction,
     "user",
   );
-  const agentImportedAvatar = worldImportedAvatarSelection(
+  const baseAgentImportedAvatar = worldImportedAvatarSelection(
     agentAvatar,
     agentAction,
     "agent",
   );
-  const renderedAgentImports = renderedAgents.map(({ avatar }, index) =>
-    worldImportedAvatarSelection(
-      avatar,
-      renderedAgentStates[index]?.action ??
-        (index === 0 ? agentAction : "Idle"),
-      "agent",
-    ),
+  const loopDance = (
+    selection: ReturnType<typeof worldImportedAvatarSelection>,
+    id: string,
+  ) =>
+    selection?.resolvedClip &&
+    environment.ceremony?.id === id &&
+    environment.ceremony.phase === "dance" &&
+    !reducedMotion
+      ? {
+          ...selection,
+          resolvedClip: { ...selection.resolvedClip, oneShot: false },
+        }
+      : selection;
+  const agentImportedAvatar = loopDance(
+    baseAgentImportedAvatar,
+    renderedAgents[0]!.rosterId,
+  );
+  const renderedAgentImports = renderedAgents.map(
+    ({ avatar, rosterId }, index) =>
+      loopDance(
+        worldImportedAvatarSelection(
+          avatar,
+          renderedAgentStates[index]?.action ??
+            (index === 0 ? agentAction : "Idle"),
+          "agent",
+        ),
+        rosterId,
+      ),
   );
   const useImportedRenderer =
     Boolean(userImportedAvatar) || renderedAgentImports.some(Boolean);
@@ -2546,6 +2654,40 @@ export function WorldRoom({
             void environmentSwitcher.select(preset, reducedMotion);
           }}
           onDialogChange={setEnvironmentDialogOpen}
+          agents={environmentAgents}
+          selectedAgentId={selectedRecipientId}
+          ceremony={environment.ceremony}
+          onCancel={() => environmentSwitcher.cancelCreation()}
+          onCreate={(agent, description, choices) => {
+            const avatar =
+              renderedAgents.find((item) => item.rosterId === agent.id)
+                ?.avatar ?? agentAvatar;
+            const bow =
+              worldImportedAvatarSelection(avatar, "Bow", "agent")?.resolvedClip
+                ?.durationSeconds ?? 2.4;
+            return environmentSwitcher.create(
+              { ...agent, bowMs: bow * 1000 },
+              description,
+              reducedMotion,
+              async (text, current, signal) => {
+                const generated = await generateEnvironment(
+                  agent.sessionId,
+                  text,
+                  current,
+                  signal,
+                );
+                const recipe = applyEnvironmentChoices(
+                  generated.recipe,
+                  choices,
+                );
+                return {
+                  recipe,
+                  summary: `${recipe.name}: ${recipe.ground.asset}; ${recipe.sky.background.asset}, ${recipe.sky.middle.asset} and ${recipe.sky.foreground.asset}; ${environmentWeatherSummary(recipe.weather)}; ambience ${recipe.audio.ambience}${recipe.props?.length ? `; decorative cutouts: ${recipe.props.map((prop) => prop.asset).join(", ")}` : ""}. Cosmetic preview only—avatars, repositories and navigation are unchanged. Save to Custom, use without saving, or Revert.`,
+                };
+              },
+              (summary, name) => onEnvironmentReport?.(summary, name),
+            );
+          }}
         />
       ) : null}
       {!noWebGL ? (
@@ -2553,6 +2695,7 @@ export function WorldRoom({
           <div
             className="world-environment-transition"
             data-phase={environment.phase}
+            data-hacking={environment.ceremony?.phase === "dance"}
             data-reduced-motion={reducedMotion}
           />
           <WorldCanvasErrorBoundary
@@ -2566,6 +2709,9 @@ export function WorldRoom({
               {useImportedRenderer ? (
                 <ImportedWorldRoomCanvas
                   environment={environment.resources}
+                  environmentPhase={environment.phase}
+                  onEnvironmentPrepare={environmentSwitcher.setPrepare}
+                  onWeatherStrike={environmentStrikeAudio}
                   graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}
@@ -2630,6 +2776,9 @@ export function WorldRoom({
               ) : (
                 <WorldRoomCanvas
                   environment={environment.resources}
+                  environmentPhase={environment.phase}
+                  onEnvironmentPrepare={environmentSwitcher.setPrepare}
+                  onWeatherStrike={environmentStrikeAudio}
                   graphics={graphics}
                   onSceneReady={revealScene}
                   onMaterializationStart={playMaterializationSound}

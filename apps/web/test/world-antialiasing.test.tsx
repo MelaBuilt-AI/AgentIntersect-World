@@ -1,17 +1,20 @@
 import { createElement, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorldBloom } from "../../../packages/renderer-r3f/src/world-atmosphere-effects.js";
 
 const captured = vi.hoisted(() => ({
-  targets: [] as { samples: number }[],
-  passes: [] as object[],
+  resources: [] as {
+    scenePass: { renderTarget: { samples: number } };
+    glow: object | null;
+    dispose: () => void;
+  }[],
 }));
 vi.mock(
   "../../../packages/renderer-r3f/node_modules/@react-three/fiber",
   () => ({
     useThree: () => ({
-      gl: { capabilities: { maxSamples: 4 } },
+      gl: {},
       scene: {},
       camera: {},
       size: { width: 800, height: 600 },
@@ -21,21 +24,25 @@ vi.mock(
   }),
 );
 vi.mock(
-  "../../../packages/renderer-r3f/node_modules/three/examples/jsm/postprocessing/EffectComposer.js",
-  () => ({
-    EffectComposer: class {
-      constructor(_gl: unknown, target: { samples: number }) {
-        captured.targets.push(target);
-      }
-      addPass(pass: object) {
-        captured.passes.push(pass);
-      }
-    },
-  }),
+  "../../../packages/renderer-r3f/src/world-postprocessing.js",
+  async () => {
+    const actual = await vi.importActual<
+      typeof import("../../../packages/renderer-r3f/src/world-postprocessing.js")
+    >("../../../packages/renderer-r3f/src/world-postprocessing.js");
+    return {
+      ...actual,
+      createWorldPipeline: (
+        ...args: Parameters<typeof actual.createWorldPipeline>
+      ) => {
+        const resource = actual.createWorldPipeline(...args);
+        captured.resources.push(resource);
+        return resource;
+      },
+    };
+  },
 );
-beforeEach(() => {
-  captured.targets.length = 0;
-  captured.passes.length = 0;
+afterEach(() => {
+  for (const resource of captured.resources.splice(0)) resource.dispose();
 });
 describe("World postprocessing anti-aliasing", () => {
   it.each([true, false])(
@@ -48,12 +55,13 @@ describe("World postprocessing anti-aliasing", () => {
       renderToStaticMarkup(
         createElement(component, { bloom, antialiasing: true }),
       );
-      expect(captured.targets[0]?.samples).toBe(4);
-      expect(captured.passes).toHaveLength(bloom ? 3 : 2);
+      expect(captured.resources[0]?.scenePass.renderTarget.samples).toBe(4);
+      expect(Boolean(captured.resources[0]?.glow)).toBe(bloom);
       renderToStaticMarkup(
         createElement(component, { bloom, antialiasing: false }),
       );
-      expect(captured.targets[1]?.samples).toBe(0);
+      expect(captured.resources[1]?.scenePass.renderTarget.samples).toBe(0);
+      expect(Boolean(captured.resources[1]?.glow)).toBe(bloom);
     },
   );
 });

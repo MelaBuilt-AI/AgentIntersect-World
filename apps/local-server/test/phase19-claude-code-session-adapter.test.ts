@@ -25,6 +25,7 @@ type FixtureControl = {
   readonly attestHang?: boolean;
   readonly realSystemEvents?: boolean;
   readonly rateLimitEvent?: boolean;
+  readonly commandsChanged?: boolean;
   readonly createHang?: boolean;
   readonly realToolResultEnvelope?: boolean;
   readonly invalidToolResultError?: boolean;
@@ -126,6 +127,17 @@ it("cancels initial native connection without a saved World binding", async () =
     clearTimeout(timer);
   }
   expect(await native.listSessions()).toEqual([]);
+});
+
+it("accepts selected-session commands_changed before native initialization", async () => {
+  const fixture = await fixtureExecutable({ commandsChanged: true });
+  const native = adapter(fixture);
+  const created = await native.createWorldSession(
+    "commands-change-probe",
+    "Claude",
+  );
+  expect(created.id).toBeTruthy();
+  await native.endWorldSession("commands-change-probe", created.id);
 });
 
 it("accepts native rate-limit telemetry without killing a successful connection", async () => {
@@ -363,6 +375,7 @@ const sessionId =
 if(control.createHang) await new Promise(() => setInterval(() => {},1000));
 const emit = (event) => process.stdout.write(JSON.stringify(event) + "\\n");
 
+if(control.commandsChanged) emit({type:"system",subtype:"commands_changed",commands:[],session_id:sessionId});
 emit({ type: "system", subtype: "init", session_id: sessionId, cwd, tools: [] });
 if (control.rateLimitEvent) emit({type: "rate_limit_event", rate_limit_info: {status: "allowed"}});
 if (control.realSystemEvents) {

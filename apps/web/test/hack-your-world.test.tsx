@@ -22,6 +22,15 @@ it("offers the globe beneath the menu hint and an accessible custom-description 
   expect(html).toContain("Original World");
   expect(html).toContain("Shift+F10");
   expect(html).toContain("hack-world__globe");
+  expect(html).toContain("hack-world__orbit");
+  expect(html).toContain("R Click + Hold: Custom Create");
+  expect(html).toContain("Custom slots on this PC");
+  expect(html).toContain("Weather and expanded scenery");
+  expect(html).toContain("Distant sky + local ground strikes");
+  expect(html).toContain("Preview these settings");
+  expect(html).toContain("Advanced: edit a World recipe (optional)");
+  expect(html).toContain("not executable code");
+  expect(html).toContain("does not contact an agent");
   expect(html).not.toContain('role="dialog"'); // Closed authoring must not block World input.
   expect(html).not.toContain('aria-modal="true"');
 });

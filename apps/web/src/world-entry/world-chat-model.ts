@@ -495,6 +495,10 @@ export type WorldChatAction =
       readonly reports: readonly WorldTranscriptItem[];
     }
   | {
+      readonly type: "PRESENTATION_REPORTS";
+      readonly reports: readonly WorldTranscriptItem[];
+    }
+  | {
       readonly type: "RESTORE_HISTORY";
       readonly messages: SessionHistory["messages"];
       readonly recipient?: string;
@@ -707,7 +711,10 @@ export function reduceWorldChat(
   action: WorldChatAction,
 ): WorldChatState {
   if (action.type === "RESET_PRESENTATION") return createWorldChatState();
-  if (action.type === "WORKSTREAM_REPORTS") {
+  if (
+    action.type === "WORKSTREAM_REPORTS" ||
+    action.type === "PRESENTATION_REPORTS"
+  ) {
     const ids = new Set(state.transcript.map((item) => item.id));
     const fresh = action.reports.filter((report) => !ids.has(report.id));
     return fresh.length

@@ -4,6 +4,7 @@
   left: max(1.25rem, env(safe-area-inset-left));
   z-index: 74;
   max-width: min(23rem, calc(100vw - 2.5rem));
+  min-height: 6.7rem;
   font:
     0.8rem Consolas,
     monospace;
@@ -11,6 +12,8 @@
   pointer-events: auto;
 }
 .hack-world__trigger {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -74,6 +77,7 @@
   flex-basis: 100%;
 }
 .hack-world__preview button,
+.hack-world__cancel,
 .hack-world-dialog button {
   background: #154b70;
   color: #e1f4ff;
@@ -137,6 +141,36 @@
   color: #edf8ff;
   font: inherit;
 }
+.hack-world-dialog select {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.55rem;
+  background: #071321;
+  color: #e7f4ff;
+  border: 1px solid #40769a;
+  border-radius: 0.35rem;
+  font: inherit;
+}
+.hack-world__settings label {
+  display: block;
+}
+.hack-world__settings input[type="range"] {
+  display: block;
+  width: 100%;
+}
+.hack-world__settings input[type="number"] {
+  width: 5rem;
+  margin-left: 0.5rem;
+  background: #102b40;
+  color: #e1f4ff;
+  border: 1px solid #4789b2;
+  font: inherit;
+}
+.hack-world__cancel {
+  margin: 0.5rem 0 0 1.95rem;
+  font-size: 0.7rem;
+}
 .hack-world-dialog details > * {
   margin-block: 0.6rem;
 }
@@ -150,22 +184,158 @@
   z-index: 3;
   pointer-events: none;
   opacity: 0;
-  background: #092039;
-}
-.world-environment-transition[data-phase="out"],
-.world-environment-transition[data-phase="in"] {
   background: repeating-linear-gradient(
     0deg,
-    #092039eb 0 3px,
-    #88cee55c 3px 4px,
-    #0a213ee8 4px 9px
+    transparent 0 7px,
+    #8fcde6 7px 8px
   );
 }
-.world-environment-transition[data-phase="out"] {
-  animation: world-hack-out 350ms ease-in forwards;
+.world-environment-transition[data-phase="out"],
+.world-environment-transition[data-phase="in"],
+.world-environment-transition[data-hacking="true"] {
+  opacity: 0.025;
 }
-.world-environment-transition[data-phase="in"] {
-  animation: world-hack-in 650ms ease-out forwards;
+.world-environment-transition[data-reduced-motion="true"] {
+  display: none;
+}
+@keyframes world-globe-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.hack-world__orbit {
+  transform-origin: 16px 16px;
+  animation: world-globe-orbit 3.6s linear infinite;
+}
+.hack-world__orbit--reverse {
+  animation-direction: reverse;
+  animation-duration: 5s;
+}
+.hack-world[data-busy="true"] .hack-world__orbit {
+  animation-duration: 0.65s;
+}
+.hack-world[data-busy="true"] .hack-world__orbit--reverse {
+  animation-duration: 0.9s;
+}
+.hack-world__trail {
+  stroke: #48c9ff;
+  stroke-width: 1;
+  opacity: 0.65;
+}
+.hack-world__gesture {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.58rem;
+  color: #b6d7ed;
+  text-shadow: 0 1px 3px #000;
+}
+.hack-world__trigger:active {
+  background: #176c98;
+  box-shadow: 0 0 16px #5aceffaa;
+}
+.hack-world__click {
+  position: absolute;
+  inset: -3px;
+  border: 1px solid #acffff;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: world-globe-click 0.5s ease-out both;
+}
+@keyframes world-globe-click {
+  from {
+    opacity: 1;
+    box-shadow: 0 0 12px #69dbff;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+.hack-world__hold {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border-radius: inherit;
+  background: #0b3049;
+  color: #ebfaff;
+  font-size: 0.62rem;
+}
+.hack-world__hold-track {
+  display: block;
+  height: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #04101b;
+}
+.hack-world__hold-track > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #68dfff;
+  transform-origin: left;
+  animation: world-hold-fill 550ms linear both;
+}
+@keyframes world-hold-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.hack-world__preview {
+  max-height: min(24rem, 38dvh);
+  overflow: auto;
+}
+.hack-world__preview strong,
+.hack-world__slot-label,
+.hack-world__replace {
+  flex-basis: 100%;
+}
+.hack-world__slot-label select {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.4rem;
+  background: #102b40;
+  color: #e1f4ff;
+  border: 1px solid #4789b2;
+  border-radius: 0.3rem;
+  font: inherit;
+}
+.hack-world__replace {
+  font-size: 0.75rem;
+}
+.hack-world__library ul {
+  padding: 0;
+  list-style: none;
+}
+.hack-world__library li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-block: 0.5rem;
+}
+.hack-world__library li > span {
+  flex-basis: 100%;
+}
+.hack-world__notice {
+  background: #071523ed;
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+}
+[data-reduced-motion="true"] .hack-world__orbit,
+[data-reduced-motion="true"] .hack-world__spark,
+[data-reduced-motion="true"] .hack-world__click,
+[data-reduced-motion="true"] .hack-world__hold-track > span {
+  animation: none;
+}
+[data-reduced-motion="true"] .hack-world__click {
+  display: none;
 }
 @keyframes world-globe-spark {
   0%,
@@ -179,64 +349,17 @@
     filter: drop-shadow(0 0 4px #5acfff);
   }
 }
-@keyframes world-hack-out {
-  from {
-    opacity: 0;
-    background-position: 0 0;
-  }
-  55% {
-    opacity: 0.35;
-    background-position: 15px 21px;
-  }
-  to {
-    opacity: 0.95;
-    background-position: -10px 70px;
-  }
-}
-@keyframes world-hack-in {
-  from {
-    opacity: 0.95;
-    background-position: -10px 70px;
-  }
-  45% {
-    opacity: 0.4;
-    background-position: 5px -30px;
-  }
-  to {
-    opacity: 0;
-    background-position: 0 0;
-  }
-}
 [data-reduced-motion="true"] .hack-world__spark {
   animation: none;
 }
-.world-environment-transition[data-reduced-motion="true"] {
-  background: #092039;
-}
-.world-environment-transition[data-reduced-motion="true"][data-phase="out"] {
-  animation: world-hack-fade-out 200ms ease-in forwards;
-}
-.world-environment-transition[data-reduced-motion="true"][data-phase="in"] {
-  animation: world-hack-fade-in 200ms ease-out forwards;
-}
-@keyframes world-hack-fade-out {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 0.8;
-  }
-}
-@keyframes world-hack-fade-in {
-  from {
-    opacity: 0.8;
-  }
-  to {
-    opacity: 0;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
+  .hack-world__orbit,
+  .hack-world__click,
+  .hack-world__hold-track > span,
   .hack-world__spark {
     animation: none;
+  }
+  .hack-world__click {
+    display: none;
   }
 }

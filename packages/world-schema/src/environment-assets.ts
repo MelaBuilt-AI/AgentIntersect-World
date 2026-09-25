@@ -1,5 +1,9 @@
+import { ENVIRONMENT_LIBRARY } from "./environment-library.js";
+import { ENVIRONMENT_EXPANSION } from "./environment-expansion.js";
 /** IDs are the authority; recipes never carry paths, URLs or executable code. */
 export const ENVIRONMENT_ASSETS = {
+  ...ENVIRONMENT_LIBRARY,
+  ...ENVIRONMENT_EXPANSION,
   "meadow-ground": {
     role: "ground",
     src: "/assets/environments/01_sandy_paths_and_grass.webp",
@@ -42,14 +46,7 @@ export const ENVIRONMENT_ASSETS = {
   },
 } as const;
 export type EnvironmentAssetId = keyof typeof ENVIRONMENT_ASSETS;
-export const ENVIRONMENT_AMBIENCE = [
-  "blue-sky-sand-grass",
-  "mars-swirling-gases",
-  "alien-planet-loop",
-  "birds-loop",
-  "coding-beeps-chirps-loop",
-  "rain-loop",
-  "thunder-lightning-loop",
-  "wind-loop",
-] as const;
-export type EnvironmentAmbience = (typeof ENVIRONMENT_AMBIENCE)[number];
+export {
+  ENVIRONMENT_AMBIENCE,
+  type EnvironmentAmbience,
+} from "./environment-audio.js";

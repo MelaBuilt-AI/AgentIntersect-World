@@ -124,7 +124,12 @@ export function useCodeTexture(
         if (!active) return;
         map.colorSpace = SRGBColorSpace;
         map.wrapS = map.wrapT = RepeatWrapping;
-        map.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+        map.anisotropy = Math.min(
+          8,
+          gl.isWebGPURenderer
+            ? gl.getMaxAnisotropy()
+            : gl.capabilities.getMaxAnisotropy(),
+        );
         map.needsUpdate = true;
         setTexture(map);
         invalidate();

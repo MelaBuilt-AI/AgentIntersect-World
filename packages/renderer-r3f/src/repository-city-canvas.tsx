@@ -12,8 +12,10 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
-import { Box3, Mesh, MeshStandardMaterial, type Texture } from "three";
+import { Box3, Group, Mesh, MeshStandardMaterial, type Texture } from "three";
+import { prepareWorldObject } from "./world-preparation.js";
 import {
   AvatarMaterialization,
   ArrivalRainContext,
@@ -167,6 +169,11 @@ function RepositoryCityModel({
   const [launchComplete, setLaunchComplete] = useState(reducedMotion);
   const [settledAt, setSettledAt] = useState<number | null>(null);
   const settled = settledAt !== null;
+  const [modelPrepared, setModelPrepared] = useState(false);
+  const [effectsPrepared, setEffectsPrepared] = useState(false);
+  useEffect(() => {
+    if (modelPrepared && effectsPrepared) onReady(instance.instanceId);
+  }, [modelPrepared, effectsPrepared, onReady, instance.instanceId]);
   const graphics = useContext(WorldGraphicsContext);
   const definition = REPOSITORY_ASSET_BY_ID.get(instance.assetId)!;
   const { model, materials, roof, radius } = useMemo(() => {
@@ -245,7 +252,7 @@ function RepositoryCityModel({
           arrivalId={instance.instanceId}
           telemetryPrefix="city"
           reducedMotion={reducedMotion}
-          onPrepared={() => onReady(instance.instanceId)}
+          onPrepared={() => setModelPrepared(true)}
           onMaterializationStart={() => onArrival(instance.instanceId)}
           onComplete={() => {
             setSettledAt(clock.value);
@@ -271,36 +278,82 @@ function RepositoryCityModel({
           />
         </mesh>
       ) : null}
-      {settled &&
-      (graphics.baseFog || graphics.lightShafts || graphics.arrivalSparks) ? (
-        <RepositoryLocalAtmosphere
-          x={instance.position.x}
-          z={instance.position.z}
-          radius={radius}
-          roof={roof}
-          clock={clock}
-          settledAt={settledAt ?? 0}
-          reducedMotion={reducedMotion}
-        />
-      ) : null}
-      {settled &&
-      rain &&
-      (graphics.terminalRain || (graphics.arrivalSparks && !launchComplete)) ? (
-        <RepositoryTerminalRain
-          texture={rain}
-          x={instance.position.x}
-          z={instance.position.z}
-          roof={roof}
-          index={index}
-          clock={clock}
-          highlight={highlight}
-          onLaunchComplete={() => setLaunchComplete(true)}
-          onStreamPhase={(phase) => onStreamPhase(instance.instanceId, phase)}
-          settledAt={settledAt ?? 0}
-          reducedMotion={reducedMotion}
-        />
-      ) : null}
+      <CityEffectsPreparation
+        ready={Boolean(rain)}
+        active={settled}
+        onPrepared={() => setEffectsPrepared(true)}
+      >
+        {graphics.baseFog || graphics.lightShafts || graphics.arrivalSparks ? (
+          <RepositoryLocalAtmosphere
+            active={settled}
+            x={instance.position.x}
+            z={instance.position.z}
+            radius={radius}
+            roof={roof}
+            clock={clock}
+            settledAt={settledAt ?? 0}
+            reducedMotion={reducedMotion}
+          />
+        ) : null}
+        {rain &&
+        (graphics.terminalRain ||
+          (graphics.arrivalSparks && !launchComplete)) ? (
+          <RepositoryTerminalRain
+            active={settled}
+            texture={rain}
+            x={instance.position.x}
+            z={instance.position.z}
+            roof={roof}
+            index={index}
+            clock={clock}
+            highlight={highlight}
+            onLaunchComplete={() => setLaunchComplete(true)}
+            onStreamPhase={(phase) => onStreamPhase(instance.instanceId, phase)}
+            settledAt={settledAt ?? 0}
+            reducedMotion={reducedMotion}
+          />
+        ) : null}
+      </CityEffectsPreparation>
     </>
+  );
+}
+
+/** Mount final effects before readiness, without consuming their launch clock. */
+function CityEffectsPreparation({
+  ready,
+  active,
+  onPrepared,
+  children,
+}: {
+  ready: boolean;
+  active: boolean;
+  onPrepared: () => void;
+  children: ReactNode;
+}) {
+  const group = useRef<Group>(null);
+  const started = useRef(false);
+  const disposed = useRef(false);
+  const { gl, scene, camera, invalidate } = useThree();
+  useEffect(
+    () => () => {
+      disposed.current = true;
+    },
+    [],
+  );
+  useFrame(() => {
+    if (!ready || !group.current || started.current) return;
+    started.current = true;
+    void prepareWorldObject(gl, group.current, camera, scene).then(() => {
+      if (!disposed.current) {
+        onPrepared();
+        invalidate();
+      }
+    });
+  });
+  return (
+    <group ref={group} name="repository-prepared-effects" visible={active}>
+      {children}
+    </group>
   );
 }
 

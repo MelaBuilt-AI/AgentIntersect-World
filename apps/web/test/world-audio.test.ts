@@ -1,6 +1,77 @@
 import { expect, it, vi } from "vitest";
 import { WorldAudio } from "../src/audio/world-audio.js";
 
+it("owns weather loops and synchronized one-shots, cancelling thunder/tails on mute, replacement and exit", async () => {
+  vi.useFakeTimers();
+  const { audio, media } = fixture();
+  try {
+    expect(typeof audio.setWeather).toBe("function");
+    const weather = {
+      particles: "heavy-rain" as const,
+      intensity: 0.7,
+      wind: 0.3,
+      lightning: "both" as const,
+      lightningInterval: 12,
+      flashes: true,
+    };
+    audio.setWorld(true);
+    await audio.setWeather(weather);
+    audio.weatherStrike({ local: true, variant: 0 });
+    expect(media.some((m) => m.src.includes("rain_heavy"))).toBe(false);
+    await audio.play();
+    expect(media.find((m) => m.src.includes("rain_heavy"))?.loop).toBe(true);
+    audio.weatherStrike({ local: true, variant: 0 });
+    expect(
+      media.find((m) => m.src.includes("lightning_strike_dry"))?.paused,
+    ).toBe(false);
+    await vi.advanceTimersByTimeAsync(300);
+    expect(media.some((m) => m.src.includes("lightning_impact"))).toBe(true);
+    audio.setMuted("effects", true);
+    const before = media.length;
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(media).toHaveLength(before);
+    audio.setMuted("effects", false);
+    audio.weatherStrike({ local: false, variant: 1 });
+    await audio.setWeather(null);
+    const stopped = media.length;
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(media).toHaveLength(stopped);
+    expect(
+      media
+        .filter((m) => /rain_heavy|lightning_|thunder_/.test(m.src))
+        .every((m) => m.paused),
+    ).toBe(true);
+    audio.setWorld(false);
+  } finally {
+    audio.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+    vi.useRealTimers();
+  }
+});
+
+it("keeps bounded static/flicker loops on the effects bus and stops them on completion, cancellation or exit", async () => {
+  const { audio, media } = fixture();
+  audio.setWorld(true);
+  audio.setEnvironmentHacking(true);
+  expect(
+    media.filter((m) => /glitch-static|screen-flicker/.test(m.src)),
+  ).toHaveLength(0);
+  await audio.play();
+  const effects = media.filter((m) =>
+    /glitch-static|screen-flicker/.test(m.src),
+  );
+  expect(effects).toHaveLength(2);
+  expect(effects.every((m) => m.loop && !m.paused)).toBe(true);
+  audio.setMuted("effects", true);
+  expect(effects.every((m) => m.muted)).toBe(true);
+  audio.setEnvironmentHacking(false);
+  expect(effects.every((m) => m.paused)).toBe(true);
+  audio.setEnvironmentHacking(true);
+  audio.setWorld(false);
+  expect(media.every((m) => m === media[0] || m.paused)).toBe(true);
+  audio.dispose();
+});
+
 it("plays the materialization WAV on the effects bus and respects mute and disposal", async () => {
   const { audio, media } = fixture();
   await audio.play();

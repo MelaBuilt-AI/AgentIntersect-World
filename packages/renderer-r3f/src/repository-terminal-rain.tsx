@@ -1,12 +1,7 @@
-import { useContext, useMemo, useRef } from "react";
+import { useContext, useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import {
-  AdditiveBlending,
-  DoubleSide,
-  Color,
-  type ShaderMaterial,
-  type Texture,
-} from "three";
+import { AdditiveBlending, DoubleSide, Color, type Texture } from "three";
+import { terminalRainMaterial } from "./world-node-materials.js";
 import { WorldGraphicsContext } from "./world-graphics-context.js";
 import { cityLaunchFrame } from "./city-arrival-timing.js";
 import { CODE_SKY_LAYERS } from "./code-world-texture.js";
@@ -94,6 +89,7 @@ export type CityRainHighlight = {
 const noRaycast = () => {};
 
 export function RepositoryTerminalRain({
+  active = true,
   texture,
   x,
   z,
@@ -106,6 +102,7 @@ export function RepositoryTerminalRain({
   onLaunchComplete,
   onStreamPhase,
 }: {
+  readonly active?: boolean;
   readonly texture: Texture;
   readonly x: number;
   readonly z: number;
@@ -125,7 +122,7 @@ export function RepositoryTerminalRain({
   const uniforms = useMemo(
     () => ({
       rainMap: { value: texture },
-      rainTime: clock,
+      rainTime: { value: clock.value },
       rainHeight: { value: 440 },
       rainReach: { value: 0 },
       rainSpark: { value: 0 },
@@ -133,7 +130,7 @@ export function RepositoryTerminalRain({
       rainVisible: { value: 1 },
       rainPulse: { value: -1 },
       rainStrength: { value: 0 },
-      rainColor: { value: [0, 0, 0] },
+      rainColor: { value: new Color("#000000") },
     }),
     [texture, clock],
   );
@@ -167,10 +164,22 @@ export function RepositoryTerminalRain({
       uvs: new Float32Array(uvs),
     };
   }, [index]);
-  const material = useRef<ShaderMaterial>(null);
+  const material = useMemo(
+    () =>
+      terminalRainMaterial(uniforms, {
+        transparent: true,
+        depthWrite: false,
+        side: DoubleSide,
+        blending: AdditiveBlending,
+        toneMapped: false,
+      }),
+    [uniforms],
+  );
+  useEffect(() => () => material.dispose(), [material]);
   useFrame(({ camera }) => {
+    if (!active) return;
     // R3F copies uniform descriptors: update the mounted material, not props.
-    const live = material.current?.uniforms;
+    const live = uniforms;
     if (!live) return;
     if (reducedMotion) skipLaunch.current = true;
     const age = Math.max(0, clock.value - settledAt);
@@ -229,58 +238,7 @@ export function RepositoryTerminalRain({
         />
         <bufferAttribute attach="attributes-uv" args={[geometry.uvs, 2]} />
       </bufferGeometry>
-      <shaderMaterial
-        ref={material}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        side={DoubleSide}
-        blending={AdditiveBlending}
-        toneMapped={false}
-        vertexShader={`
-        uniform float rainHeight;
-        varying vec2 rainUv;
-        void main() {
-          rainUv = uv;
-          vec3 p = position;
-          p.y *= rainHeight;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-        }
-      `}
-        fragmentShader={`
-        uniform sampler2D rainMap;
-        uniform float rainTime;
-        uniform float rainHeight;
-        uniform float rainReach;
-        uniform float rainSpark;
-        uniform float rainDown;
-        uniform float rainVisible;
-        uniform float rainPulse;
-        uniform float rainStrength;
-        uniform vec3 rainColor;
-        varying vec2 rainUv;
-        void main() {
-          if (rainUv.y > rainReach || rainVisible < 0.001) discard;
-          // Positive V sample motion makes the visible glyphs travel DOWN.
-          vec3 code = texture2D(rainMap, vec2(rainUv.x, rainUv.y * rainHeight / 18.0 + rainTime)).rgb;
-          float ink = max(code.r, max(code.g, code.b));
-          float glyph = smoothstep(0.008, 0.055, ink);
-          // Broad packets move at four world units/second, not hundreds of
-          // units/second across the entire sky height. Six-second eased envelope.
-          float pulse = 0.0;
-          if (rainStrength > 0.0) {
-            float packet = mod(rainUv.y * rainHeight + rainPulse * 24.0, 36.0);
-            pulse = exp(-pow((packet - 18.0) / 5.0, 2.0)) * rainStrength;
-          }
-          vec3 tint = mix(vec3(0.12, 0.55, 0.76), rainColor, pulse);
-          float root = smoothstep(0.0, 0.003, rainUv.y);
-          float spark = exp(-pow((rainUv.y - rainReach) * rainHeight / 3.0, 2.0)) * rainSpark;
-          gl_FragColor = vec4(tint * (1.0 + pulse * 0.35) + vec3(0.35, 0.7, 1.0) * spark,
-            max(glyph * root * (0.65 + pulse * 0.15), spark * 0.6) * rainVisible);
-          #include <colorspace_fragment>
-        }
-      `}
-      />
+      <primitive object={material} attach="material" dispose={null} />
     </mesh>
   );
 }

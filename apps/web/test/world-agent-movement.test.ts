@@ -208,6 +208,43 @@ describe("authoritative World-owned agent movement", () => {
     expect(short.events).toEqual([]);
   });
 
+  it("speeds up actual follow displacement with Run, slows to Walk, and rests without overshoot", () => {
+    const follow = request("speed-follow", "user-directed", {
+      kind: "follow-user",
+      stoppingRadius: 1.5,
+    });
+    const initial = createAgentMovementState("agent-session-1", { x: 0, z: 0 });
+    const farContext = { ...context, userPosition: { x: 12, z: 0 } };
+    let result = requestAgentMovement(initial, follow, farContext);
+    result = advanceAgentMovement(result.state, 0.1, farContext);
+    expect(result.state.animationSemantic).toBe("Run");
+    expect(result.state.position.x).toBeCloseTo(0.8);
+    expect(result.state.velocity.x).toBeCloseTo(8);
+    const nearContext = { ...context, userPosition: { x: 4, z: 0 } };
+    result = advanceAgentMovement(result.state, 0.1, nearContext);
+    expect(result.state.animationSemantic).toBe("Walk");
+    expect(result.state.position.x).toBeCloseTo(1.2);
+    expect(result.state.velocity.x).toBeCloseTo(4);
+    for (let i = 0; i < 10; i++)
+      result = advanceAgentMovement(result.state, 0.1, nearContext);
+    expect(result.state.position.x).toBeCloseTo(2.5);
+    expect(result.state.animationSemantic).toBe("Idle");
+    expect(result.state.activeRequest?.requestId).toBe("speed-follow");
+    // Explicit speed on non-follow targets remains authoritative.
+    const directed = requestAgentMovement(
+      initial,
+      request("exact-speed", "user-directed", {
+        kind: "coordinate",
+        x: 12,
+        z: 0,
+      }),
+      context,
+    );
+    expect(
+      advanceAgentMovement(directed.state, 0.1, context).state.position.x,
+    ).toBeCloseTo(0.4);
+  });
+
   it("emits arrival on the step that reaches the quantized stopping boundary", () => {
     let result = requestAgentMovement(
       createAgentMovementState("agent-session-1", { x: 0, z: 0 }),

@@ -60,5 +60,10 @@ it("renders separate floor, background, middle and foreground with a sunlit ligh
   ])
     expect(nodes.some((n) => n.props.name === name)).toBe(true);
   expect(nodes.some((n) => n.type === "hemisphereLight")).toBe(true);
+  expect(nodes.find((n) => n.type === "hemisphereLight")!.props.args).toEqual([
+    recipe.lighting.sky,
+    recipe.lighting.ground,
+    recipe.lighting.ambient * 1.5,
+  ]);
   expect(textures[recipe.ground.asset]!.repeat.x).toBeCloseTo(68 / 24);
 });

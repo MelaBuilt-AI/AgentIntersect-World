@@ -18,7 +18,7 @@ export const NATIVE_PROCESS_BRIDGE = String.raw`
 import os,sys,json,base64,subprocess,threading,signal
 spec=json.loads(base64.b64decode(sys.argv[1]))
 first=json.loads(sys.stdin.readline())
-env=os.environ.copy(); env.update(spec['env'])
+env=({k:v for k,v in os.environ.items() if k.upper() in ('PATH','SYSTEMROOT','COMSPEC','LANG','TEMP','TMP')} if spec.get('isolated') else os.environ.copy()); env.update(spec['env'])
 child=subprocess.Popen([spec['executable']]+spec['args'],cwd=spec['cwd'],env=env,stdin=subprocess.PIPE,start_new_session=os.name!='nt')
 def cancel():
     if child.poll() is not None: return
@@ -130,9 +130,15 @@ export class AgentEnvironmentExecution {
   }
   async readNativeFile(filename: string): Promise<string> {
     return this.pythonCommand(
-      "import sys,pathlib; p=pathlib.Path(sys.argv[1]); assert p.stat().st_size<=262144; sys.stdout.buffer.write(p.read_bytes())",
+      "import sys,pathlib; p=pathlib.Path(sys.argv[1]); sys.exit(44) if not p.exists() else None; assert p.stat().st_size<=262144; sys.stdout.buffer.write(p.read_bytes())",
       [filename],
-    );
+    ).catch((error: NodeJS.ErrnoException) => {
+      if (Number(error.code) === 44)
+        throw Object.assign(new Error("Native file not found"), {
+          code: "ENOENT",
+        });
+      throw error;
+    });
   }
   async verifyWorkspace(directory: string, writable = false): Promise<void> {
     assertNativeWorkspacePath(this.registration, this.mapPath(directory));
@@ -208,6 +214,7 @@ export class AgentEnvironmentExecution {
   async spawn(
     args: readonly string[],
     directory: string,
+    isolatedEnvironment?: Readonly<Record<string, string>>,
   ): Promise<ChildProcessWithoutNullStreams> {
     await this.verifyWorkspace(directory);
     const r = this.registration;
@@ -217,7 +224,8 @@ export class AgentEnvironmentExecution {
         : r.adapterId === "claude-code"
           ? { CLAUDE_CONFIG_DIR: r.identity.profilePath, HOME: r.homePath }
           : {};
-    Object.assign(env, await this.gitEnvironment(directory));
+    if (!isolatedEnvironment)
+      Object.assign(env, await this.gitEnvironment(directory));
     const mappedArgs = args.map((arg, index) =>
       args[index - 1] === "--add-dir" ? this.mapPath(arg) : arg,
     );
@@ -225,7 +233,8 @@ export class AgentEnvironmentExecution {
       executable: r.executablePath,
       args: mappedArgs,
       cwd: this.mapPath(directory),
-      env,
+      env: isolatedEnvironment ?? env,
+      isolated: !!isolatedEnvironment,
     };
     return spawn(
       this.python,

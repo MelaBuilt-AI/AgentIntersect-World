@@ -1,4 +1,7 @@
-import { ENVIRONMENT_AMBIENCE } from "@agentintersect-world/world-schema/environment-assets";
+import type {
+  EnvironmentAmbience,
+  ENVIRONMENT_EVENT_AUDIO,
+} from "@agentintersect-world/world-schema/environment-audio";
 // Browser encodings from Aaron’s supplied packs; masters remain untouched.
 export const AUDIO_CATALOG = [
   {
@@ -337,14 +340,6 @@ export const AUDIO_CATALOG = [
     loop: false,
     category: "sfx",
   },
-  ...ENVIRONMENT_AMBIENCE.map((id) => ({
-    id: `environment-${id}` as const,
-    title: id,
-    src: `/audio/environments/${id}.ogg`,
-    gain: 0.38,
-    loop: true,
-    category: "ambience" as const,
-  })),
   ...(
     [
       "glitch-static-crackle",
@@ -360,4 +355,16 @@ export const AUDIO_CATALOG = [
     category: "sfx" as const,
   })),
 ] as const;
-export type AudioCue = (typeof AUDIO_CATALOG)[number]["id"];
+export type AudioCue =
+  | (typeof AUDIO_CATALOG)[number]["id"]
+  | `environment-${EnvironmentAmbience}`
+  | (typeof ENVIRONMENT_EVENT_AUDIO)[number];
+/** Environment IDs are already schema-validated. Resolve their uniform local layout on demand. */
+export function audioAsset(id: AudioCue): { src: string; gain: number } {
+  return (
+    AUDIO_CATALOG.find((asset) => asset.id === id) ?? {
+      src: `/audio/environments/${id.replace(/^environment-/, "")}.ogg`,
+      gain: id.startsWith("environment-") ? 0.38 : 0.25,
+    }
+  );
+}

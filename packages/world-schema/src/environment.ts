@@ -11,6 +11,41 @@ export {
   type EnvironmentAssetId,
   type EnvironmentAmbience,
 } from "./environment-assets.js";
+function roleIds(role: string): [EnvironmentAssetId, ...EnvironmentAssetId[]] {
+  return Object.entries(ENVIRONMENT_ASSETS)
+    .filter(([, asset]) => asset.role === role)
+    .map(([id]) => id) as [EnvironmentAssetId, ...EnvironmentAssetId[]];
+}
+const groundIds = roleIds("ground");
+export { ENVIRONMENT_FX } from "./environment-expansion.js";
+export const WEATHER_PARTICLES = [
+  "none",
+  "light-rain",
+  "heavy-rain",
+  "snow",
+  "ash",
+  "sparkles",
+  "wind",
+  "leaves",
+  "sand",
+  "embers",
+] as const;
+export const EnvironmentWeatherSchema = z.strictObject({
+  particles: z.enum(WEATHER_PARTICLES),
+  intensity: z.number().min(0).max(1),
+  wind: z.number().min(0).max(1),
+  lightning: z.enum(["off", "distant", "local", "both"]),
+  lightningInterval: z.number().min(8).max(60),
+  flashes: z.boolean(),
+  horizonLightning: z
+    .strictObject({
+      density: z.number().min(0).max(1),
+      interval: z.number().min(2).max(12),
+      elevation: z.number().min(0).max(20),
+    })
+    .optional(),
+});
+export type EnvironmentWeather = z.infer<typeof EnvironmentWeatherSchema>;
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const layer = <T extends string>(assets: readonly [T, ...T[]]) =>
   z.strictObject({
@@ -23,16 +58,39 @@ export const EnvironmentRecipeSchema = z.strictObject({
   schema: z.literal("aiw.environment/1"),
   name: z.string().trim().min(1).max(60),
   ground: z.strictObject({
-    asset: z.enum(["meadow-ground", "mars-ground"]),
+    asset: z.enum(groundIds),
+    blend: z
+      .strictObject({
+        asset: z.enum(groundIds),
+        mask: z.enum(roleIds("mask")),
+        tint: color,
+        tileSize: z.number().min(4).max(60),
+        maskSize: z.number().min(8).max(120),
+        amount: z.number().min(0).max(1),
+      })
+      .optional(),
     tint: color,
     tileSize: z.number().min(4).max(60),
     roughness: z.number().min(0.5).max(1),
   }),
   sky: z.strictObject({
-    background: layer(["day-sky", "space-sky"]),
-    middle: layer(["mountain-horizon", "space-planets"]),
-    foreground: layer(["day-clouds", "space-gas"]),
+    background: layer(roleIds("background")),
+    middle: layer(roleIds("middle")),
+    foreground: layer(roleIds("foreground")),
   }),
+  celestial: z
+    .array(
+      z.strictObject({
+        asset: z.enum(roleIds("celestial")),
+        tint: color,
+        opacity: z.number().min(0).max(1),
+        azimuth: z.number().min(-180).max(180),
+        elevation: z.number().min(5).max(85),
+        size: z.number().min(5).max(90),
+      }),
+    )
+    .max(3)
+    .optional(),
   lighting: z.strictObject({
     sky: color,
     ground: color,
@@ -43,6 +101,17 @@ export const EnvironmentRecipeSchema = z.strictObject({
     fog: color,
     fogFar: z.number().min(100).max(600),
   }),
+  props: z
+    .array(
+      z.strictObject({
+        asset: z.enum(roleIds("prop")),
+        count: z.number().int().min(1).max(12),
+        size: z.number().min(0.3).max(6),
+      }),
+    )
+    .max(3)
+    .optional(),
+  weather: EnvironmentWeatherSchema.optional(),
   audio: z.strictObject({
     ambience: z.enum(ENVIRONMENT_AMBIENCE),
     gain: z.number().min(0).max(0.6),
@@ -154,17 +223,34 @@ export function environmentAssetIds(
   recipe: EnvironmentRecipe,
 ): EnvironmentAssetId[] {
   return [
-    recipe.ground.asset,
-    recipe.sky.background.asset,
-    recipe.sky.middle.asset,
-    recipe.sky.foreground.asset,
+    ...new Set([
+      recipe.ground.asset,
+      ...(recipe.ground.blend
+        ? [recipe.ground.blend.asset, recipe.ground.blend.mask]
+        : []),
+      recipe.sky.background.asset,
+      recipe.sky.middle.asset,
+      recipe.sky.foreground.asset,
+      ...(recipe.celestial ?? []).map((sprite) => sprite.asset),
+      ...(recipe.props ?? []).map((prop) => prop.asset),
+      ...(recipe.weather?.horizonLightning?.density
+        ? ["fx_lightning_strike" as const]
+        : []),
+      ...(recipe.weather && recipe.weather.lightning !== "off"
+        ? roleIds("fx").filter(
+            (id) =>
+              recipe.weather!.lightning !== "distant" ||
+              id.startsWith("fx_lightning"),
+          )
+        : []),
+    ]),
   ];
 }
 export const ENVIRONMENT_CAPABILITIES = {
   schema: "aiw.environment-capabilities/1",
   recipeSchema: "aiw.environment/1",
   maxDescriptionWords: 500,
-  agentGeneration: "unavailable-until-restricted-connector",
+  agentGeneration: "capability-negotiated-restricted-turn",
   editable: [
     "ground",
     "sky.background",
@@ -172,6 +258,8 @@ export const ENVIRONMENT_CAPABILITIES = {
     "sky.foreground",
     "lighting",
     "audio",
+    "props",
+    "weather",
   ],
   forbidden: [
     "code",
@@ -184,6 +272,10 @@ export const ENVIRONMENT_CAPABILITIES = {
   ],
   assets: ENVIRONMENT_ASSETS,
   ambience: ENVIRONMENT_AMBIENCE,
+  lightning:
+    'For sky or skybox lightning: use lightning="distant" for animated bolts/arcs spread across the sky, with no nearby impacts. Use lightning="both" only when sky AND nearby ground strikes are requested; lightning="local" is nearby only. Weather intensity controls 3–8 sky bolts per burst as well as particle density. For many sky bolts choose intensity 0.8–1 and lightningInterval 8–12; for occasional lightning use longer intervals. flashes=true adds soft sky glows/local illumination. Static storm_clouds artwork or thunder ambience alone does not produce lightning. Honor explicit exclusions such as no ground strikes; do not inherit conflicting lightning from the current recipe. FX assets are automatically used by weather; do not put their IDs in sky layers.',
+  horizonLightning:
+    'For many smaller, quick distant bolts and surrounding glows just above mountains/horizon, add optional weather.horizonLightning:{density:0–1,interval:2–12,elevation:0–20}. Density controls 4–24 distributed regions; interval is seconds between flashes per region, independently staggered, not one synchronized sky burst. Elevation is degrees above the horizon; start near2 to sit just above the visible mountain silhouettes, adjust to the scene/prompt. For a busy storm use density0.8–1 and interval2–3; each small flash lasts about0.42seconds. This is ADDITIONAL to upper-sky lightning and local impacts: preserve weather.lightning and lightningInterval when asked to add this lower layer. For horizon-only lightning, set lightning="off" and include horizonLightning. Omit it or use density0 to disable only the new band. weather.flashes controls the surrounding glows. No local impact or extra thunder event is emitted for these distant flashes.',
   limitation:
-    "Ground images are precomposed. Independent materials/masks await the extension library.",
+    "Library ground materials blend with linear masks. Expanded props are decorative PNG cutouts, not meshes. Weather and lightning are cosmetic; no damage/collision/shelter simulation. Reduced Motion suppresses animated weather/strikes. Generated base art is upscaled, has supplier seam caveats; no PBR/displacement or arbitrary assets.",
 } as const;

@@ -1,16 +1,14 @@
+import { DetailMaterial } from "./environment-node-materials.js";
 import { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
-import {
-  BufferAttribute,
-  BufferGeometry,
-  DoubleSide,
-  InstancedMesh,
-  Matrix4,
-  Quaternion,
-  Vector3,
-} from "three";
+import { InstancedMesh, Matrix4, Quaternion, Vector3 } from "three";
 import type { EnvironmentResources } from "./environment-resources.js";
 import { environmentScatter } from "./environment-scatter.js";
+import {
+  createGrassGeometry,
+  createRockGeometry,
+  environmentDetailKind,
+} from "./environment-detail-geometry.js";
 
 /** One instanced draw, no shadows, animation, asset downloads or collision bodies. */
 export function EnvironmentDetails({
@@ -20,8 +18,7 @@ export function EnvironmentDetails({
   readonly resources: EnvironmentResources;
   readonly size: number;
 }) {
-  const kind =
-    resources.recipe.ground.asset === "meadow-ground" ? "grass" : "rocks";
+  const kind = environmentDetailKind(resources.recipe.ground.asset);
   const mesh = useRef<InstancedMesh>(null);
   const { invalidate } = useThree();
   const points = useMemo(
@@ -34,23 +31,11 @@ export function EnvironmentDetails({
       ),
     [resources, size, kind],
   );
-  const grass = useMemo(() => {
-    const geometry = new BufferGeometry();
-    const vertices: number[] = [];
-    for (let blade = 0; blade < 3; blade++) {
-      const angle = (blade * Math.PI) / 3;
-      const x = Math.cos(angle) * 0.075,
-        z = Math.sin(angle) * 0.075;
-      vertices.push(-x, 0, -z, x, 0, z, x * 0.6, 0.24 + blade * 0.045, z * 0.6);
-    }
-    geometry.setAttribute(
-      "position",
-      new BufferAttribute(new Float32Array(vertices), 3),
-    );
-    geometry.computeVertexNormals();
-    return geometry;
-  }, []);
-  useEffect(() => () => grass.dispose(), [grass]);
+  const geometry = useMemo(
+    () => (kind === "grass" ? createGrassGeometry() : createRockGeometry()),
+    [kind],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => {
     if (!mesh.current) return;
     const matrix = new Matrix4();
@@ -60,7 +45,7 @@ export function EnvironmentDetails({
       matrix.compose(
         new Vector3(
           point.x,
-          kind === "rocks" ? 0.12 * point.scale : 0.012,
+          kind === "rocks" ? 0.09 * point.scale : -0.008,
           point.z,
         ),
         rotation,
@@ -83,17 +68,8 @@ export function EnvironmentDetails({
       args={[undefined, undefined, points.length]}
       frustumCulled={false}
     >
-      {kind === "grass" ? (
-        <primitive object={grass} attach="geometry" />
-      ) : (
-        <icosahedronGeometry args={[0.27, 0]} />
-      )}
-      <meshStandardMaterial
-        color={kind === "grass" ? "#71854b" : "#743f2c"}
-        roughness={1}
-        metalness={0}
-        side={DoubleSide}
-      />
+      <primitive object={geometry} attach="geometry" />
+      <DetailMaterial resources={resources} size={size} />
     </instancedMesh>
   );
 }

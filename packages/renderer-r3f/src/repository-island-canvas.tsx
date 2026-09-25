@@ -1,3 +1,4 @@
+import { createWorldRenderer } from "./world-renderer.js";
 import {
   Canvas,
   type ThreeEvent,
@@ -363,7 +364,7 @@ function SceneBridge({
       if (!Number.isInteger(requestId)) return;
       const started = performance.now();
       gl.render(scene, camera);
-      gl.getContext().finish();
+      if (!gl.isWebGPURenderer) gl.getContext().finish();
       const durationMs = performance.now() - started;
       canvas.dispatchEvent(
         new CustomEvent("aiw:render-sample", {
@@ -466,10 +467,9 @@ export function RepositoryIslandCanvas({
       camera={{ position: [18, 22, 24], fov: 45, near: 0.1, far: 10_000 }}
       dpr={quality.dpr}
       frameloop="demand"
-      gl={{
-        antialias: quality.antialias,
-        powerPreference: "high-performance",
-      }}
+      gl={(defaults: { canvas: HTMLCanvasElement }) =>
+        createWorldRenderer(defaults, quality.antialias)
+      }
       onPointerMissed={() => onSelect(repositoryPointerMissSelection())}
     >
       <SceneBridge

@@ -20,6 +20,7 @@ import {
   type NativeOwnedBinding as OwnedBinding,
 } from "./native-session-store.js";
 import { extractAdapterRepositoryLocator } from "./repository-work-focus.js";
+import { runEnvironmentModel } from "./environment-model.js";
 
 export const CLAUDE_CODE_VERSION = "2.1.228";
 
@@ -767,6 +768,11 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
             acceptSession(envelope.session_id);
 
           if (envelope.type === "system") {
+            if (envelope.subtype === "commands_changed") {
+              if (completed || !Array.isArray(envelope.commands))
+                throw claudeFailure();
+              return;
+            }
             if (envelope.subtype === "init") {
               if (initialized) throw claudeFailure();
               initialized = true;
@@ -1038,6 +1044,41 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
       source: "claude-code",
       title: binding.title,
     };
+  }
+
+  environmentUnavailableReason(): string | null {
+    return null;
+  }
+
+  async generateEnvironment(
+    sessionRef: string,
+    prompt: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    if (this.environmentUnavailableReason())
+      throw claudeFailure(this.environmentUnavailableReason()!, "conflict");
+    await this.#sessions.load();
+    const binding = this.#binding(sessionRef);
+    if (binding.quarantined || this.#busy.has(sessionRef))
+      throw claudeFailure("Claude Code is busy or unavailable", "conflict");
+    this.#busy.add(sessionRef);
+    try {
+      return await runEnvironmentModel({
+        kind: "claude-code",
+        executable: this.#options.executablePath,
+        root: this.#options.nativeSessionRoot,
+        ...(this.#options.environmentExecution
+          ? { execution: this.#options.environmentExecution }
+          : {}),
+        profile: this.#options.nativeProfilePath ?? binding.runtimeHome,
+        ...(!this.#options.nativeProfilePath ? { model: CLAUDE_MODEL } : {}),
+        prompt,
+        environment: processEnvironment(binding.runtimeHome, this.#options),
+        ...(signal ? { signal } : {}),
+      });
+    } finally {
+      this.#busy.delete(sessionRef);
+    }
   }
 
   async sendText(

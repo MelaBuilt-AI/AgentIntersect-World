@@ -1,5 +1,8 @@
-import { AUDIO_CATALOG, type AudioCue } from "./catalog.js";
-import type { EnvironmentRecipe } from "@agentintersect-world/world-schema/environment";
+import { AUDIO_CATALOG, audioAsset, type AudioCue } from "./catalog.js";
+import type {
+  EnvironmentRecipe,
+  EnvironmentWeather,
+} from "@agentintersect-world/world-schema/environment";
 
 export type AgentAudioState = "coding" | "complete" | "failed" | "idle";
 type Track = { title: string; src: string; gain: number };
@@ -30,6 +33,7 @@ export class WorldAudio {
   #state = { ...AUDIO_INITIAL_STATE };
   #world = false;
   #connecting = false;
+  #hacking = false;
   #wanted = true;
   #unlocked = false;
   #disposed = false;
@@ -37,6 +41,13 @@ export class WorldAudio {
   #local: Track[] = [];
   #generation = 0;
   #environment: EnvironmentRecipe["audio"] | null = null;
+  #weatherGeneration = 0;
+  #weatherOwner:
+    import("./environment-weather-audio.js").EnvironmentWeatherAudio | null =
+    null;
+  #weatherLoading: Promise<
+    typeof import("./environment-weather-audio.js")
+  > | null = null;
   #ambientId: AudioCue | null = null;
   #ambientFade: ReturnType<typeof setInterval> | null = null;
   #fadingId: AudioCue | null = null;
@@ -133,6 +144,7 @@ export class WorldAudio {
       this.#music.muted = muted;
       this.#update({ musicMuted: muted });
     } else {
+      if (muted) this.#weatherOwner?.stopEvents();
       this.#effects.forEach((effect) => {
         effect.muted = muted;
       });
@@ -143,10 +155,12 @@ export class WorldAudio {
     if (world === this.#world) return;
     this.#world = world;
     if (!world) {
+      this.#weatherOwner?.stopEvents();
       for (const id of this.#agents.keys())
         this.#loop("agent-coding-loop", false, `agent:${id}`);
       this.#agents.clear();
       this.#held = false;
+      this.#hacking = false;
       this.#effects.forEach((effect) => effect.pause());
     }
     if (this.#state.source === "album") this.#select(0);
@@ -239,7 +253,7 @@ export class WorldAudio {
   }
   cue(id: AudioCue) {
     if (!this.#unlocked || this.#disposed || this.#state.effectsMuted) return;
-    const asset = AUDIO_CATALOG.find((asset) => asset.id === id)!;
+    const asset = audioAsset(id);
     const effect = this.#makeAudio();
     effect.src = asset.src;
     effect.load();
@@ -268,6 +282,7 @@ export class WorldAudio {
       }
     }
     void effect.play().catch(release);
+    return effect;
   }
   randomCue(group: "ui-click" | "repo-select") {
     this.cue(`${group}-0${1 + Math.floor(Math.random() * 3)}` as AudioCue);
@@ -285,7 +300,7 @@ export class WorldAudio {
       return;
     }
     if (!element) {
-      const asset = AUDIO_CATALOG.find((asset) => asset.id === id)!;
+      const asset = audioAsset(id);
       element = this.#makeAudio();
       element.src = asset.src;
       element.load();
@@ -317,8 +332,19 @@ export class WorldAudio {
     this.#syncLoops();
   }
   #syncLoops() {
+    this.#loop(
+      "glitch-static-crackle",
+      this.#world && this.#hacking,
+      "environment-static",
+    );
+    this.#loop(
+      "screen-flicker",
+      this.#world && this.#hacking,
+      "environment-flicker",
+    );
     this.#loop("agent-coding-loop", this.#connecting, "agent-connection");
     this.#syncAmbience();
+    this.#weatherOwner?.sync();
     for (const [id, state] of this.#agents)
       this.#loop(
         "agent-coding-loop",
@@ -330,6 +356,47 @@ export class WorldAudio {
   setEnvironment(environment: EnvironmentRecipe["audio"] | null) {
     this.#environment = environment;
     this.#syncAmbience();
+  }
+  setEnvironmentHacking(active: boolean) {
+    this.#hacking = active;
+    this.#syncLoops();
+  }
+  async setWeather(weather: EnvironmentWeather | null) {
+    const generation = ++this.#weatherGeneration;
+    this.#weatherOwner?.setWeather(null);
+    if (!weather || this.#disposed) return;
+    try {
+      const { EnvironmentWeatherAudio } = await (this.#weatherLoading ??=
+        import("./environment-weather-audio.js"));
+      if (this.#disposed || generation !== this.#weatherGeneration) return;
+      this.#weatherOwner ??= new EnvironmentWeatherAudio({
+        active: () => this.#world && this.#unlocked && !this.#disposed,
+        canCue: () => !this.#state.effectsMuted,
+        loop: (id, active, gain) => {
+          this.#loop(id, active, "weather");
+          const element = this.#loops.get("weather");
+          if (element) element.volume = gain;
+        },
+        cue: (id) => this.cue(id),
+        release: (effect) => {
+          effect.pause();
+          effect.removeAttribute("src");
+          effect.load();
+          this.#effects.delete(effect);
+        },
+      });
+      this.#weatherOwner.setWeather(weather);
+    } catch {
+      if (!this.#disposed && generation === this.#weatherGeneration)
+        this.#update({
+          notice:
+            "Weather audio could not load. Visual weather is still available.",
+        });
+      this.#weatherLoading = null;
+    }
+  }
+  weatherStrike(strike: { local: boolean; variant: number }) {
+    this.#weatherOwner?.strike(strike);
   }
   #stopFade() {
     if (this.#ambientFade) clearInterval(this.#ambientFade);
@@ -401,6 +468,8 @@ export class WorldAudio {
     this.#syncLoops();
   }
   dispose() {
+    this.#weatherGeneration++;
+    this.#weatherOwner?.setWeather(null);
     this.#disposed = true;
     this.#stopFade();
     this.#generation++;
@@ -442,4 +511,18 @@ export function environmentAudioState(
   environment: EnvironmentRecipe["audio"] | null,
 ) {
   activeAudio?.setEnvironment(environment);
+}
+export function environmentHackingAudioState(active: boolean) {
+  activeAudio?.setEnvironmentHacking(active);
+}
+export function environmentWeatherAudioState(
+  weather: EnvironmentWeather | null,
+) {
+  activeAudio?.setWeather(weather);
+}
+export function environmentStrikeAudio(strike: {
+  local: boolean;
+  variant: number;
+}) {
+  activeAudio?.weatherStrike(strike);
 }

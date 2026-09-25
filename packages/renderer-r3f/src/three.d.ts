@@ -40,6 +40,7 @@ declare module "three" {
     w: number;
   }
   export class Object3D {
+    children: Object3D[];
     uuid: string;
     parent: Object3D | null;
     position: Vector3;
@@ -52,6 +53,7 @@ declare module "three" {
     receiveShadow: boolean;
     userData: Record<string, unknown>;
     clone(recursive?: boolean): this;
+    copy(source: Object3D, recursive?: boolean): this;
     add(...objects: Object3D[]): this;
     remove(...objects: Object3D[]): this;
     traverse(callback: (object: Object3D) => void): void;
@@ -66,6 +68,7 @@ declare module "three" {
   export const OneFactor: number;
   export const ZeroFactor: number;
   export const AdditiveBlending: number;
+  export const NormalBlending: number;
   export const RepeatWrapping: number;
   export const ClampToEdgeWrapping: number;
   export const SRGBColorSpace: string;
@@ -86,6 +89,7 @@ declare module "three" {
     blendSrcAlpha: number;
     blendDstAlpha: number;
     side: number;
+    shadowSide: number | null;
     depthWrite: boolean;
     depthTest: boolean;
     alphaTest: number;
@@ -99,7 +103,9 @@ declare module "three" {
     dispose(): void;
   }
   export class Texture {
-    image: HTMLImageElement;
+    uuid: string;
+    image: HTMLImageElement | ImageBitmap;
+    addEventListener(type: "dispose", listener: () => void): void;
     name: string;
     minFilter: unknown;
     magFilter: unknown;
@@ -111,6 +117,7 @@ declare module "three" {
     offset: Vector2;
     source: unknown;
     anisotropy: number;
+    updateMatrix(): void;
     needsUpdate: boolean;
     dispose(): void;
   }
@@ -132,6 +139,8 @@ declare module "three" {
     constructor(width: number, height: number);
   }
   export class SpriteMaterial extends Material {
+    color: Color;
+    fog: boolean;
     constructor(parameters?: {
       map?: Texture;
       transparent?: boolean;
@@ -153,6 +162,12 @@ declare module "three" {
   }
   export class BufferAttribute {
     constructor(array: Float32Array, itemSize: number);
+    count: number;
+    needsUpdate: boolean;
+    getX(index: number): number;
+    getY(index: number): number;
+    getZ(index: number): number;
+    setXYZ(index: number, x: number, y: number, z: number): this;
   }
   export class ShaderMaterial extends Material {
     uniforms: Record<string, { value: unknown }>;
@@ -163,6 +178,7 @@ declare module "three" {
     constructor(color: ColorRepresentation, near?: number, far?: number);
   }
   export class BufferGeometry {
+    getAttribute(name: string): BufferAttribute;
     setAttribute(name: string, attribute: BufferAttribute): this;
     computeVertexNormals(): void;
     dispose(): void;
@@ -312,6 +328,9 @@ declare module "three" {
     dispose(): void;
   }
   export class WebGLRenderer {
+    isWebGPURenderer?: boolean;
+    getMaxAnisotropy(): number;
+    library: { fromMaterial(material: Material): Material };
     autoClear: boolean;
     shadowMap: { autoUpdate: boolean };
     info: { render: { frame: number } };
@@ -338,6 +357,12 @@ declare module "three" {
       camera: Object3D,
       targetScene?: Object3D,
     ): Promise<Object3D>;
+  }
+  export class PointLight extends Object3D {
+    color: ColorRepresentation;
+    intensity: number;
+    distance: number;
+    decay: number;
   }
   export class AmbientLight extends Object3D {
     constructor(color?: ColorRepresentation, intensity?: number);

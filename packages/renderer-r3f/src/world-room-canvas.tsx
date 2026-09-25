@@ -1,3 +1,4 @@
+import { createWorldRenderer } from "./world-renderer.js";
 import { WorldGraphicsContext } from "./world-graphics-context.js";
 import {
   DEFAULT_WORLD_GRAPHICS,
@@ -5,9 +6,13 @@ import {
 } from "./world-graphics.js";
 import type { WorldScreenBinding } from "./world-screen-types.js";
 import { useActivityBillboard } from "./world-activity-billboard.js";
-import { WorldEnvironment } from "./world-environment.js";
-import { ScenicEnvironment } from "./scenic-environment.js";
-import type { EnvironmentResources } from "./environment-resources.js";
+import { EnvironmentLayer } from "./environment-layer.js";
+import type { WeatherStrikeHandler } from "./environment-weather-model.js";
+import type { EnvironmentTransitionPhase } from "./environment-transition.js";
+import type {
+  EnvironmentResources,
+  EnvironmentPreparer,
+} from "./environment-resources.js";
 import { AvatarMaterialization } from "./avatar-materialization.js";
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import {
@@ -786,12 +791,15 @@ function WorldRoomScene({
       if (!Number.isInteger(requestId)) return;
       const started = performance.now();
       gl.render(scene, camera);
-      gl.getContext().finish();
+      if (!gl.isWebGPURenderer) gl.getContext().finish();
       canvas.dispatchEvent(
         new CustomEvent("aiw:render-sample", {
           detail: {
             requestId,
             durationMs: performance.now() - started,
+            measurement: gl.isWebGPURenderer
+              ? "cpu-submission"
+              : "gpu-synchronized",
           },
         }),
       );
@@ -955,6 +963,9 @@ function WorldRoomScene({
 
 export function WorldRoomCanvas({
   environment = null,
+  environmentPhase = "idle",
+  onEnvironmentPrepare,
+  onWeatherStrike,
   graphics = DEFAULT_WORLD_GRAPHICS,
   screenEventSource,
   floorSize = 68,
@@ -989,6 +1000,10 @@ export function WorldRoomCanvas({
   onCityStream,
 }: {
   readonly environment?: EnvironmentResources | null;
+  readonly onWeatherStrike?: WeatherStrikeHandler | undefined;
+  readonly environmentPhase?: EnvironmentTransitionPhase;
+  readonly onEnvironmentPrepare?:
+    ((prepare: EnvironmentPreparer | null) => void) | undefined;
   readonly graphics?: WorldGraphics | undefined;
   readonly floor: WorldRoomFloor;
   readonly objects: readonly RepositoryRenderObject[];
@@ -1113,37 +1128,28 @@ export function WorldRoomCanvas({
       data-avatar-render-ready={
         avatarReady.user && avatarReady.agent ? "true" : "false"
       }
-      shadows
+      shadows="percentage"
       camera={{ position: THIRD_PERSON_CAMERA.position, fov: 46, far: 1000 }}
       dpr={renderQuality.dpr}
       frameloop={renderLoop.frameloop}
-      gl={{
-        // MSAA belongs to the switchable postprocess target, not immutable context attributes.
-        antialias: false,
-        powerPreference: "high-performance",
-      }}
+      gl={createWorldRenderer}
       onPointerMissed={() => undefined}
     >
       {renderLoop.mode === "continuous-constrained" ? (
         <CooperativeWorldInvalidation />
       ) : null}
       <WorldGraphicsContext.Provider value={graphics}>
-        {environment ? (
-          <ScenicEnvironment
-            resources={environment}
-            size={floorSize}
-            reducedMotion={reducedMotion}
-            userPosition={userPosition}
-          />
-        ) : (
-          <WorldEnvironment
-            onReady={markEnvironmentReady}
-            floor={floor}
-            size={floorSize}
-            reducedMotion={reducedMotion}
-            userPosition={userPosition}
-          />
-        )}
+        <EnvironmentLayer
+          phase={environmentPhase}
+          resources={environment}
+          onPrepare={onEnvironmentPrepare}
+          onStrike={onWeatherStrike}
+          onReady={markEnvironmentReady}
+          floor={floor}
+          size={floorSize}
+          reducedMotion={reducedMotion}
+          userPosition={userPosition}
+        />
         <WorldScreens
           floorSize={floorSize}
           reducedMotion={reducedMotion}

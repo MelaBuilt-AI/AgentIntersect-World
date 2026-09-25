@@ -91,6 +91,7 @@ import {
   type AgentSessionGateway,
 } from "./agent-sessions.js";
 import { registerAgentSessionRoutes } from "./agent-session-routes.js";
+import { registerEnvironmentLibraryRoutes } from "./environment-library.js";
 import { RepositoryWorkFocusCoordinator } from "./repository-work-focus.js";
 import { registerWorldActionRoutes } from "./world-action-routes.js";
 import {
@@ -571,6 +572,10 @@ export function createLocalServer(
           repositoryIntakeService.recordMilestone(projectId, milestone),
       ),
       { success, failure },
+    );
+    registerEnvironmentLibraryRoutes(
+      server,
+      resolve(config.presentationSync.dataDir, "..", "environment-library"),
     );
     if (options.agentSessionGateway)
       registerAgentSessionRoutes(

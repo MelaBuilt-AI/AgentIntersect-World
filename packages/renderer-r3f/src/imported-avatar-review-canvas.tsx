@@ -1,3 +1,4 @@
+import { createPreviewRenderer } from "./world-renderer.js";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimationMixer, type AnimationAction, type Group } from "three";
@@ -250,6 +251,7 @@ export function ImportedAvatarReviewCanvas({
             : "Loading repository-owned model…"}
       </span>
       <Canvas
+        gl={createPreviewRenderer}
         frameloop="demand"
         camera={{ position: [0, 0.2, 3.8], fov: 36 }}
         dpr={[1, 1.5]}

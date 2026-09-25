@@ -1275,9 +1275,12 @@
 }
 
 .world-screen--hud .project-overview {
-  top: max(2.75rem, calc(env(safe-area-inset-top) + 2.75rem));
-  /* Reserve the bottom-left transcript's 34vh plus the HUD offsets and gap. */
-  max-height: min(38rem, calc(66vh - 4.75rem));
+  top: max(10rem, var(--hack-world-bottom, 10rem));
+  /* The measured control/message region owns this clearance, including wrapped notices. */
+  max-height: max(
+    6rem,
+    min(38rem, calc(66dvh - max(10rem, var(--hack-world-bottom, 10rem)) - 2rem))
+  );
 }
 
 .project-overview {

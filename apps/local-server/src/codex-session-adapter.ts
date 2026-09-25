@@ -2,6 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdir, mkdtemp, rm, stat, symlink } from "node:fs/promises";
 import path from "node:path";
 import { StringDecoder } from "node:string_decoder";
+import { runEnvironmentModel } from "./environment-model.js";
 
 import { AgentCapabilityManifestSchema } from "@agentintersect-world/agent-session-protocol";
 
@@ -734,6 +735,46 @@ export class CodexSessionAdapter implements AgentAdapter {
       source: "codex",
       title: binding.title,
     };
+  }
+
+  environmentUnavailableReason(): string | null {
+    return null;
+  }
+
+  async generateEnvironment(
+    sessionRef: string,
+    prompt: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    if (this.environmentUnavailableReason())
+      throw codexFailure(this.environmentUnavailableReason()!, "conflict");
+    await this.#sessions.load();
+    const binding = this.#binding(sessionRef);
+    if (binding.quarantined || this.#busy.has(sessionRef))
+      throw codexFailure("Codex is busy or unavailable", "conflict");
+    const profile =
+      this.#options.nativeProfilePath ??
+      path.dirname(
+        this.#options.authPath ??
+          path.join(process.env.HOME ?? "", ".codex", "auth.json"),
+      );
+    this.#busy.add(sessionRef);
+    try {
+      return await runEnvironmentModel({
+        kind: "codex",
+        executable: this.#options.executablePath,
+        root: this.#options.nativeSessionRoot,
+        ...(this.#options.environmentExecution
+          ? { execution: this.#options.environmentExecution }
+          : {}),
+        profile,
+        prompt,
+        ...(this.#options.authPath ? { authPath: this.#options.authPath } : {}),
+        ...(signal ? { signal } : {}),
+      });
+    } finally {
+      this.#busy.delete(sessionRef);
+    }
   }
 
   async sendText(

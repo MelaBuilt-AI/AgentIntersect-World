@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./environment-audio": {
+      "types": "./dist/environment-audio.d.ts",
+      "import": "./dist/environment-audio.js"
+    },
     "./environment-assets": {
       "types": "./dist/environment-assets.d.ts",
       "import": "./dist/environment-assets.js"

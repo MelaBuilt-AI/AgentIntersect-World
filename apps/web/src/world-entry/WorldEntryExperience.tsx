@@ -2834,6 +2834,24 @@ export function WorldEntryExperience({
               }
               userName={profile.agentName}
               agentName={activeProposal.displayName}
+              environmentAgents={worldAgentAvatars.map((agent) => ({
+                id: agent.rosterId,
+                name: agent.name,
+                sessionId: agent.worldSessionId,
+              }))}
+              onEnvironmentReport={(summary, name) =>
+                updateChat({
+                  type: "PRESENTATION_REPORTS",
+                  reports: [
+                    {
+                      id: `environment-${crypto.randomUUID()}`,
+                      kind: "assistant",
+                      recipient: `${name} · World preview`,
+                      text: `### World creation complete\n\n${summary}`,
+                    },
+                  ],
+                })
+              }
               userAvatar={profile}
               agentAvatar={activeAgentAvatar}
               {...(state.sessionMode === "multi"
