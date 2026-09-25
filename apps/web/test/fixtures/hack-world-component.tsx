@@ -13,6 +13,7 @@ export function Fixture() {
     ENVIRONMENT_PRESETS[0]!,
   );
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const [reduced, setReduced] = useState(false);
   return (
     <div className="world-room" style={{ position: "fixed", inset: 0 }}>
@@ -26,17 +27,18 @@ export function Fixture() {
       <HackYourWorld
         active={active}
         phase={busy ? "generating" : "idle"}
-        error=""
+        error={error}
         reducedMotion={reduced}
         onSelect={setActive}
         onDialogChange={() => {}}
         agents={[
           { id: "fixture", name: "Fixture agent", sessionId: "fixture" },
         ]}
-        onCreate={async () => {
+        onCreate={async (_agent, description) => {
           const candidate = {
             id: "preview",
             name: "Fixture Glacier",
+            originalDescription: description,
             recipe: {
               ...ENVIRONMENT_PRESETS[2]!.recipe!,
               name: "Fixture Glacier",
@@ -47,6 +49,11 @@ export function Fixture() {
         }}
       />
       <div style={{ position: "fixed", bottom: 10 }}>
+        <button
+          onClick={() => setError(error ? "" : "Fixture environment failed")}
+        >
+          Fixture error
+        </button>
         <button onClick={() => setBusy(!busy)}>Fixture transition</button>
         <button onClick={() => setReduced(!reduced)}>
           Fixture reduced motion

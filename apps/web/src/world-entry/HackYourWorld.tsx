@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useHackMessage } from "./use-hack-message.js";
 import {
   ENVIRONMENT_PRESETS,
   EnvironmentRecipeSchema,
@@ -20,6 +21,7 @@ import {
 import { EnvironmentSettings } from "./EnvironmentSettings.js";
 import {
   customSlotPresets,
+  customSlotPreset,
   loadEnvironmentSlots,
   saveEnvironmentSlot,
   removeEnvironmentSlot,
@@ -34,6 +36,62 @@ import type {
   EnvironmentPhase,
   EnvironmentCeremony,
 } from "./environment-switcher.js";
+
+function WorldDescription({
+  label,
+  description,
+  onNotice,
+}: {
+  label: string;
+  description: string | undefined;
+  onNotice: (text: string) => void;
+}) {
+  const id = useId();
+  return (
+    <details className="hack-world__description">
+      <summary>View description — {label}</summary>
+      {description === undefined ? (
+        <p>No original description was saved for this World.</p>
+      ) : (
+        <>
+          <label htmlFor={id}>Original description — {label}</label>
+          <textarea id={id} value={description} readOnly rows={4} />
+          <button
+            type="button"
+            aria-label={`Copy description — ${label}`}
+            onClick={() => {
+              void navigator.clipboard.writeText(description).then(
+                () =>
+                  onNotice(
+                    "Original description copied. No agent was contacted.",
+                  ),
+                () =>
+                  onNotice(
+                    "Clipboard unavailable. Select and copy the original description above.",
+                  ),
+              );
+            }}
+          >
+            Copy description
+          </button>
+        </>
+      )}
+    </details>
+  );
+}
+
+function HackFailureMessage({ text }: { text: string }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+  return visible ? (
+    <p className="hack-world__error" role="alert">
+      {text}
+    </p>
+  ) : null;
+}
 
 export function HackYourWorld({
   active,
@@ -105,7 +163,7 @@ export function HackYourWorld({
   });
   const [slots, setSlots] = useState<EnvironmentSlots>(Array(8).fill(null));
   const [slotsReady, setSlotsReady] = useState(false);
-  const [slotError, setSlotError] = useState("");
+  const [slotError, setSlotError] = useHackMessage();
   const [slot, setSlot] = useState(1);
   const [replaceConfirmed, setReplaceConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -129,19 +187,10 @@ export function HackYourWorld({
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [setSlotError]);
   const [json, setJson] = useState("");
   const [choices, setChoices] = useState(DEFAULT_ENVIRONMENT_CHOICES);
-  const [notice, setNotice] = useState("");
-  const [confirmation, setConfirmation] = useState<{ text: string } | null>(
-    null,
-  );
-  useEffect(() => {
-    if (!confirmation) return;
-    const timer = setTimeout(() => setConfirmation(null), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmation]);
-  const visibleNotice = confirmation?.text ?? notice;
+  const [visibleNotice, setNotice] = useHackMessage();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [preview, setPreview] = useState<{
     before: EnvironmentPreset;
@@ -218,6 +267,16 @@ export function HackYourWorld({
     onDialogChange(false);
     button.current?.focus();
   };
+  const retrySlots = () => {
+    void loadEnvironmentSlots().then(
+      (loaded) => {
+        setSlots(loaded);
+        setSlotsReady(true);
+        setSlotError("");
+      },
+      (error: Error) => setSlotError(error.message),
+    );
+  };
   const savePreview = async () => {
     if (!preview?.candidate.recipe || saving || !slotsReady) return;
     setSaving(true);
@@ -227,15 +286,15 @@ export function HackYourWorld({
         slot,
         preview.candidate.recipe,
         replaceConfirmed,
+        preview.candidate.originalDescription,
       );
       setSlots(loaded);
       onSelect({ ...preview.candidate, id: `slot-${slot}` });
       setPreview(null);
       setReplaceConfirmed(false);
-      setNotice("");
-      setConfirmation({
-        text: `Saved to Custom slot ${slot} on this PC — included in left-click cycling.`,
-      });
+      setNotice(
+        `Saved to Custom slot ${slot} on this PC — included in left-click cycling.`,
+      );
     } catch (error) {
       setSlotError(
         error instanceof Error
@@ -357,11 +416,7 @@ export function HackYourWorld({
             Cancel creation
           </button>
         ) : null}
-        {error ? (
-          <p className="hack-world__error" role="alert">
-            {error}
-          </p>
-        ) : null}
+        {error ? <HackFailureMessage key={error} text={error} /> : null}
         {preview ? (
           <div className="hack-world__preview" aria-label="Environment preview">
             <span>
@@ -419,10 +474,9 @@ export function HackYourWorld({
               disabled={busy || saving || active !== preview.candidate}
               onClick={() => {
                 setPreview(null);
-                setNotice("");
-                setConfirmation({
-                  text: "Using this World for now — not saved to a custom slot.",
-                });
+                setNotice(
+                  "Using this World for now — not saved to a custom slot.",
+                );
               }}
             >
               Use without saving
@@ -438,24 +492,11 @@ export function HackYourWorld({
             </button>
           </div>
         ) : null}
-        {slotError ? (
-          <p className="hack-world__error" role="alert">
-            {slotError}{" "}
-            <button
-              onClick={() => {
-                void loadEnvironmentSlots().then(
-                  (loaded) => {
-                    setSlots(loaded);
-                    setSlotsReady(true);
-                    setSlotError("");
-                  },
-                  (error: Error) => setSlotError(error.message),
-                );
-              }}
-            >
-              Retry slots
-            </button>
-          </p>
+        {slotError || !slotsReady ? (
+          <div className="hack-world__error">
+            {slotError ? <p role="alert">{slotError}</p> : null}
+            <button onClick={retrySlots}>Retry slots</button>
+          </div>
         ) : null}
         {visibleNotice && !dialogOpen ? (
           <p className="hack-world__notice" role="status">
@@ -514,7 +555,7 @@ export function HackYourWorld({
               close();
               setNotice("");
               setReplaceConfirmed(false);
-              setConfirmation(null);
+
               void onCreate(target, draft, choices).then((candidate) => {
                 if (candidate) setPreview({ before, candidate });
               });
@@ -549,6 +590,14 @@ export function HackYourWorld({
                   ? "Checking environment-only connection…"
                   : "Connect an agent to create your World."}
           </p>
+          {active.recipe ? (
+            <WorldDescription
+              key={active.id}
+              label="Current World"
+              description={active.originalDescription}
+              onNotice={setNotice}
+            />
+          ) : null}
           <EnvironmentSettings value={choices} onChange={setChoices} />
           <button
             type="button"
@@ -558,11 +607,18 @@ export function HackYourWorld({
                 active.recipe ?? ENVIRONMENT_PRESETS[1]!.recipe!,
                 choices,
               );
-              const candidate = { id: "preview", name: recipe.name, recipe };
+              const candidate = {
+                id: "preview",
+                name: recipe.name,
+                recipe,
+                ...(active.originalDescription !== undefined
+                  ? { originalDescription: active.originalDescription }
+                  : {}),
+              };
               setPreview({ before: active, candidate });
               setReplaceConfirmed(false);
               setNotice("");
-              setConfirmation(null);
+
               close();
               onSelect(candidate);
             }}
@@ -686,8 +742,10 @@ export function HackYourWorld({
             </p>
             {!slotsReady ? (
               <p>
-                Slots unavailable or still loading. Use Retry slots to
-                reconnect.
+                Slots unavailable or still loading.
+                <button type="button" onClick={retrySlots}>
+                  Retry slots
+                </button>
               </p>
             ) : (
               <ul>
@@ -703,15 +761,12 @@ export function HackYourWorld({
                           disabled={busy || saving || preview !== null}
                           onClick={() => {
                             close();
-                            onSelect({
-                              id: `slot-${index + 1}`,
-                              name: recipe.name,
-                              recipe,
-                            });
+                            onSelect(customSlotPreset(recipe, index + 1));
                           }}
                         >
                           Load
                         </button>
+
                         {removing === index + 1 ? (
                           <>
                             <button
@@ -751,6 +806,11 @@ export function HackYourWorld({
                             Remove
                           </button>
                         )}
+                        <WorldDescription
+                          label={`Custom ${index + 1}`}
+                          description={recipe.originalDescription}
+                          onNotice={setNotice}
+                        />
                       </>
                     ) : null}
                   </li>

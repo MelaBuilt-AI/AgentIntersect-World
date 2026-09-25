@@ -2,7 +2,13 @@
 
 Updated: 2026-09-25
 
-## Current milestone — Hack your World closeout
+## Current milestone — saved original prompts and expiring Hack notifications
+
+Aaron (`1553092183744057415`) requests a separate PR after merged PR26/main160508b. Store the exact original description with newly generated/saved custom Worlds, expose View/copy description for the current World and saved slots, preserve old recipe-only slots with an explicit unavailable description, and expire all transient Hack notices/errors after five seconds. Keep active progress/World labels, unresolved save decisions, failure authority and retry controls intact. A new draft must not overwrite a saved original prompt. Copy/view performs no agent dispatch or scene change.
+
+Direct implementation and normal code/isolated-component/API verification only; new PR stays unmerged pending user review/authorization. TEST45447’s accepted build/browser/state stay untouched. The prior feature and README merged with exact-head/main green; the three-page Field Guide is live. This follow-up does not authorize another website deployment, provider calls, releases/installers or Phase20. Evidence `~/.hermes/runs/aiw-prompt-notices-20260925/`.
+
+## Previous milestone — Hack your World closeout
 
 **Requested feature appearance, everyday use and audio checks are user-accepted.** Aaron's full PASS in Discord `1553072689655054407` covers saved custom World settings after refresh/reselection, cancellation/revert continuity, environment cycling without lingering effects/audio, and ambience/thunder balance/stopping/effects mute. Prior transition/FPS/rock-shadow/upper-lightning acceptance and the distant-lightning approval (`1553070041526829118`) remain preserved. Do not reopen these checks from older pending lists.
 

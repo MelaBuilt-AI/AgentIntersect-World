@@ -320,6 +320,10 @@
   gap: 0.4rem;
   padding-block: 0.5rem;
 }
+.hack-world__library .hack-world__description {
+  flex-basis: 100%;
+  min-width: 0;
+}
 .hack-world__library li > span {
   flex-basis: 100%;
 }

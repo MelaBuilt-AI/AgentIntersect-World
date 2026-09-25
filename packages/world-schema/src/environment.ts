@@ -118,10 +118,24 @@ export const EnvironmentRecipeSchema = z.strictObject({
   }),
 });
 export type EnvironmentRecipe = z.infer<typeof EnvironmentRecipeSchema>;
+// Slot metadata belongs to the operator, never to a model-authored render recipe.
+export const EnvironmentOriginalDescriptionSchema = z
+  .string()
+  .max(12000)
+  .refine(
+    (text) =>
+      environmentWordCount(text) > 0 && environmentWordCount(text) <= 500,
+    "Describe your World in 1–500 words.",
+  );
+export const EnvironmentSlotSchema = EnvironmentRecipeSchema.extend({
+  originalDescription: EnvironmentOriginalDescriptionSchema.optional(),
+});
+export type EnvironmentSlot = z.infer<typeof EnvironmentSlotSchema>;
 export type EnvironmentPreset = {
   readonly id: string;
   readonly name: string;
   readonly recipe: EnvironmentRecipe | null;
+  readonly originalDescription?: string;
 };
 export const ENVIRONMENT_PRESETS: readonly EnvironmentPreset[] = [
   { id: "original", name: "Original World", recipe: null },
