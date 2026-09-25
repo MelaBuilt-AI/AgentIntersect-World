@@ -89,6 +89,64 @@ function focusAdapter(events: readonly AdapterTurnEvent[]): AgentAdapter {
   };
 }
 
+it("restricts recipe turns to the exact selected connection and never falls back to chat", async () => {
+  const base = focusAdapter([]);
+  const chat = vi.fn(base.sendText);
+  let finish!: (value: string) => void;
+  const generate = vi.fn(
+    (sessionRef: string, prompt: string) =>
+      new Promise<string>((resolve) => {
+        expect(sessionRef).toBe("recipe-root");
+        expect(prompt).toContain("A snowy moon");
+        finish = resolve;
+      }),
+  );
+  const selected = { ...base, sendText: chat, generateEnvironment: generate };
+  const registry = new AdapterRegistry(
+    [base],
+    ["fixture"],
+    [
+      {
+        connectionId: "11111111-1111-4111-8111-111111111111",
+        adapter: selected,
+      },
+    ],
+  );
+  const gateway = new AgentSessionGateway({
+    registry,
+    store: new AgentSessionStore(newRoot()),
+  });
+  const session = await gateway.attach({
+    adapterId: "fixture",
+    connectionId: "11111111-1111-4111-8111-111111111111",
+    adapterSessionRef: "recipe-root",
+    mode: "explore",
+    profile: "default",
+    workspaceId: "ws_fixture",
+    repositoryRef: "repo_fixture",
+  });
+  expect(typeof gateway.generateEnvironment).toBe("function");
+  const pending = gateway.generateEnvironment(session.sessionId, {
+    description: "A snowy moon",
+    current: null,
+  });
+  await vi.waitFor(() => expect(generate).toHaveBeenCalledOnce());
+  expect(gateway.isBusy(session.sessionId)).toBe(true);
+  await expect(
+    gateway.generateEnvironment(session.sessionId, {
+      description: "Again",
+      current: null,
+    }),
+  ).rejects.toThrow(/busy/i);
+  const { ENVIRONMENT_PRESETS } =
+    await import("@agentintersect-world/world-schema/environment");
+  finish(JSON.stringify(ENVIRONMENT_PRESETS[1]!.recipe));
+  await expect(pending).resolves.toHaveProperty("recipe");
+  expect(gateway.isBusy(session.sessionId)).toBe(false);
+  expect(chat).not.toHaveBeenCalled();
+  expect(generate.mock.calls[0]?.[0]).toBe("recipe-root");
+});
+
 it("binds saved connections to the selected profile through attachment and gateway recreation", async () => {
   const first = focusAdapter([]);
   const second: AgentAdapter = {

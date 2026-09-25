@@ -1,17 +1,14 @@
+import { WorldSun } from "./world-sun.js";
+import {
+  CodeSkyMaterial,
+  CodeFloorMaterial,
+} from "./environment-node-materials.js";
 import { useContext, useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import {
-  AdditiveBlending,
-  BackSide,
-  Fog,
-  GridHelper,
-  Group,
-  Object3D,
-} from "three";
+import { Fog, GridHelper, Group } from "three";
 import {
   CODE_SKY_LAYERS,
   animateCodeSky,
-  configureCodeSky,
   useCodeTexture,
 } from "./code-world-texture.js";
 
@@ -22,9 +19,14 @@ export function WorldEnvironment({
   floor,
   size,
   reducedMotion,
-  userPosition,
   onReady,
+  active = true,
+  postprocessing = true,
+  lighting = true,
 }: {
+  readonly lighting?: boolean;
+  readonly active?: boolean;
+  readonly postprocessing?: boolean;
   readonly floor: "blank" | "repository";
   readonly size: number;
   readonly onReady?: (() => void) | undefined;
@@ -34,16 +36,17 @@ export function WorldEnvironment({
   const graphics = useContext(WorldGraphicsContext);
   const { camera, gl, invalidate, scene } = useThree();
   useEffect(() => {
+    if (!active || !lighting) return;
     const previous = scene.fog;
     if (floor === "repository") scene.fog = new Fog("#061321", 24, 130);
     return () => {
       scene.fog = previous;
     };
-  }, [floor, scene]);
+  }, [active, lighting, floor, scene]);
   const floorTexture = useCodeTexture(
     "12_repository_map_floor",
     "floor",
-    reducedMotion,
+    reducedMotion || !active,
   );
   const rainTexture = useCodeTexture("02_terminal_rain");
   const auroraTexture = useCodeTexture("17_aurora_code_sky");
@@ -56,28 +59,16 @@ export function WorldEnvironment({
   const sky = useRef<Group>(null);
   const readyFrames = useRef(0);
   const skyTime = useMemo(() => ({ value: 0 }), []);
-  const skyShaders = useMemo(
-    () =>
-      CODE_SKY_LAYERS.map(
-        (layer) =>
-          (shader: {
-            uniforms: Record<string, unknown>;
-            fragmentShader: string;
-          }) =>
-            configureCodeSky(shader, skyTime, layer.kind),
-      ),
-    [skyTime],
-  );
-  const lightTarget = useMemo(() => new Object3D(), []);
+
   const grid = useMemo(() => {
     const object = new GridHelper(size, size / 4, "#277099", "#122c48");
+    object.name = "world-floor-grid";
     object.position.y = 0.008;
     return object;
   }, [size]);
   useEffect(() => {
     floorTexture?.repeat.set(size / 12, size / 12);
-    for (const texture of [rainTexture, auroraTexture, nebulaTexture])
-      texture?.repeat.set(6, 3);
+    // Original sky density is owned solely by codeSkyMaterial's sampling UVs.
     gl.domElement.dataset.worldFloorSize = String(size);
     gl.domElement.dataset.worldTexturesReady = String(
       Boolean(floorTexture && rainTexture && auroraTexture && nebulaTexture),
@@ -92,11 +83,7 @@ export function WorldEnvironment({
     auroraTexture,
     nebulaTexture,
   ]);
-  useEffect(() => {
-    lightTarget.position.set(userPosition.x, 0, userPosition.z);
-    lightTarget.updateMatrixWorld();
-    invalidate();
-  }, [invalidate, lightTarget, userPosition.x, userPosition.z]);
+
   useEffect(
     () => () => {
       grid.geometry.dispose();
@@ -108,6 +95,7 @@ export function WorldEnvironment({
     [grid],
   );
   useFrame((_, delta) => {
+    if (!active) return;
     // Reveal the decoded environment first; avatars assemble separately.
     if (floorTexture && rainTexture && auroraTexture && nebulaTexture) {
       if (readyFrames.current < 3) {
@@ -124,8 +112,8 @@ export function WorldEnvironment({
     gl.domElement.dataset.skyLayers = "rain,aurora,nebula";
   });
   return (
-    <group name="world-code-environment">
-      {graphics.bloom || graphics.antialiasing ? (
+    <group name="world-code-environment" visible={active}>
+      {postprocessing && (graphics.bloom || graphics.antialiasing) ? (
         <WorldBloom
           bloom={graphics.bloom}
           antialiasing={graphics.antialiasing}
@@ -134,32 +122,15 @@ export function WorldEnvironment({
       {floor === "repository" && graphics.wetFloorReflections ? (
         <WorldWetFloor size={size} />
       ) : null}
-      <ambientLight
-        color="#bbd3eb"
-        intensity={floor === "repository" ? 0.65 : 0.85}
-      />
-      <directionalLight
-        color="#e2f5ff"
-        intensity={2.1}
-        position={[userPosition.x + 12, 18, userPosition.z + 8]}
-        target={lightTarget}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-24}
-        shadow-camera-right={24}
-        shadow-camera-top={24}
-        shadow-camera-bottom={-24}
-        shadow-camera-near={1}
-        shadow-camera-far={65}
-        shadow-bias={-0.0004}
-        shadow-normalBias={0.035}
-      />
-      <primitive object={lightTarget} />
-      <directionalLight
-        color={floor === "repository" ? "#43bfff" : "#9284e8"}
-        intensity={floor === "repository" ? 0.8 : 0.55}
-        position={[-12, 8, -14]}
-      />
+      {lighting ? <ambientLight color="#bbd3eb" intensity={1.8} /> : null}
+      {lighting ? <WorldSun color="#e2f5ff" intensity={2.1} /> : null}
+      {lighting ? (
+        <directionalLight
+          color={floor === "repository" ? "#43bfff" : "#9284e8"}
+          intensity={floor === "repository" ? 0.8 : 0.55}
+          position={[-12, 8, -14]}
+        />
+      ) : null}
       <mesh
         name={`world-room-${floor}-floor`}
         rotation={[-Math.PI / 2, 0, 0]}
@@ -167,18 +138,7 @@ export function WorldEnvironment({
         receiveShadow
       >
         <planeGeometry args={[1, 1]} />
-        <meshStandardMaterial
-          onUpdate={(material) => {
-            material.needsUpdate = true;
-          }}
-          map={floorTexture}
-          emissiveMap={floorTexture}
-          color="#9bb4d0"
-          emissive="#477ea9"
-          emissiveIntensity={0.12}
-          roughness={0.82}
-          metalness={0.12}
-        />
+        <CodeFloorMaterial map={floorTexture} />
       </mesh>
       <primitive object={grid} />
       <group ref={sky} name="world-code-sky">
@@ -189,21 +149,11 @@ export function WorldEnvironment({
             renderOrder={layer.renderOrder}
           >
             <sphereGeometry args={[layer.radius, 48, 24]} />
-            <meshBasicMaterial
-              onUpdate={(material) => {
-                material.needsUpdate = true;
-              }}
-              onBeforeCompile={skyShaders[index]!}
-              customProgramCacheKey={() => `aiw-streaming-sky-${layer.kind}-1`}
+            <CodeSkyMaterial
               map={skyTextures[layer.kind]}
-              color="#ffffff"
-              transparent
+              clock={skyTime}
+              layer={index}
               opacity={layer.opacity}
-              blending={AdditiveBlending}
-              side={BackSide}
-              depthWrite={false}
-              fog={false}
-              toneMapped={false}
             />
           </mesh>
         ))}

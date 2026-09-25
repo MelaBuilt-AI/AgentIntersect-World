@@ -1,13 +1,15 @@
 import { expect, it, vi } from "vitest";
-import { ShaderMaterial, Texture } from "three";
+import { Texture } from "three";
 import { cityLaunchFrame } from "../src/city-arrival-timing.js";
 const state = vi.hoisted(() => ({
   frame: (() => {}) as (frame: unknown) => void,
+  uniforms: {} as Record<string, { value: unknown }>,
 }));
 vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
   useContext: (context: { _currentValue: unknown }) => context._currentValue,
   useMemo: (factory: () => unknown) => factory(),
+  useEffect: () => {},
   useRef: (current: unknown) => ({ current }),
 }));
 vi.mock("@react-three/fiber", async () => ({
@@ -16,12 +18,27 @@ vi.mock("@react-three/fiber", async () => ({
     state.frame = callback;
   },
 }));
+vi.mock("../src/world-node-materials.js", async () => {
+  const actual = await vi.importActual<
+    typeof import("../src/world-node-materials.js")
+  >("../src/world-node-materials.js");
+  return {
+    ...actual,
+    terminalRainMaterial: (
+      uniforms: Record<string, { value: unknown }>,
+      props: object,
+    ) => {
+      state.uniforms = uniforms;
+      return actual.terminalRainMaterial(uniforms, props);
+    },
+  };
+});
 import {
   RepositoryTerminalRain,
   cityRainTop,
 } from "../src/repository-terminal-rain.js";
 
-it("updates the actual R3F-owned uniforms for motion, sky reach and highlights", () => {
+it("updates the node-bound uniforms for motion, sky reach and highlights", () => {
   const clock = { value: 0 };
   const highlight = {
     current: [{ index: 0, color: 1, progress: 0.5, strength: 1 }],
@@ -41,17 +58,8 @@ it("updates the actual R3F-owned uniforms for motion, sky reach and highlights",
     clock,
     highlight,
   });
-  const shader = element.props.children[1];
-  const material = new ShaderMaterial();
-  // Match the browser R3F 9.6 descriptor-copy boundary. Node ESM/CJS Three
-  // constructors differ under Vitest, so applyProps' instanceof is not faithful here.
-  material.uniforms = Object.fromEntries(
-    Object.entries(
-      shader.props.uniforms as Record<string, { value: unknown }>,
-    ).map(([name, uniform]) => [name, { ...uniform }]),
-  );
-  shader.props.ref.current = material;
-  expect(material.uniforms.rainTime).not.toBe(shader.props.uniforms.rainTime);
+  const material = { uniforms: state.uniforms };
+  expect(element.props.children[1].props.object.isNodeMaterial).toBe(true);
   const camera = { position: { x: 7, y: 8, z: 18 } };
   state.frame({ camera });
   expect(phases).toEqual([]);
@@ -85,6 +93,32 @@ it("updates the actual R3F-owned uniforms for motion, sky reach and highlights",
   expect(element.props.raycast()).toBeUndefined();
 });
 
+it("prepares hidden rain without consuming launch timing or playing premature cues", () => {
+  const cue = vi.fn();
+  const done = vi.fn();
+  const clock = { value: 10 };
+  RepositoryTerminalRain({
+    active: false,
+    texture: new Texture(),
+    x: 0,
+    z: 0,
+    roof: 2,
+    index: 0,
+    clock,
+    highlight: { current: [] },
+    onStreamPhase: cue,
+    onLaunchComplete: done,
+  });
+  const initial = state.uniforms.rainTime!.value;
+  for (let i = 0; i < 5; i++) {
+    clock.value++;
+    state.frame({ camera: { position: { x: 0, y: 3, z: 10 } } });
+  }
+  expect(cue).not.toHaveBeenCalled();
+  expect(done).not.toHaveBeenCalled();
+  expect(state.uniforms.rainTime!.value).toBe(initial);
+});
+
 it("does not announce a launch skipped by Reduced Motion", () => {
   const phases: string[] = [];
   const clock = { value: 0 };
@@ -99,9 +133,7 @@ it("does not announce a launch skipped by Reduced Motion", () => {
     reducedMotion: true,
     onStreamPhase: (phase) => phases.push(phase),
   });
-  const shader = element.props.children[1];
-  const material = new ShaderMaterial({ uniforms: shader.props.uniforms });
-  shader.props.ref.current = material;
+  expect(element.props.children[1].props.object.isNodeMaterial).toBe(true);
   state.frame({ camera: { position: { x: 0, y: 3, z: 10 } } });
   clock.value = 5;
   state.frame({ camera: { position: { x: 0, y: 3, z: 10 } } });

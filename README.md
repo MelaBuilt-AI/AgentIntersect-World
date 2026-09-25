@@ -38,6 +38,21 @@ This subscribes you to new [Releases](https://github.com/MelaBuilt-AI/AgentInter
 - **Conversation → Workstream → World View** — talk, assign work, then see agents as presence in the world.
 - **Local loopback** — built for one operator on your machine, not a multi-user internet service.
 
+## Hack your World
+
+**Describe the place you want to work in.** Hack your World changes the cosmetic environment around your agents and repository: ground, layered skies, distant scenery, weather, lightning and ambience. Your code, repository authority and movement rules stay unchanged.
+
+1. **Try a preset:** left-click the sparking globe beneath **Escape for Menu** to cycle Original World → Sunlit Trails → Martian Expanse → saved custom Worlds. Original is the initial default.
+2. **Describe your own:** hold right-click on the globe, or focus it and press **Shift+F10**. Enter 1–500 words; in a multi-agent World, choose the **World designer**. Only **Create with connected agent** sends the request, in a separate restricted recipe turn—not your coding conversation. Your harness's existing model/usage plan still applies.
+3. **Tune the atmosphere:** expand **Weather and expanded scenery** to choose weather particles, ground, horizon, decorative cutouts, ambience and upper/local lightning. **Distant horizon lightning** adds a separate band of small flashes near the mountain ridges. Leave controls **From description** for the agent to choose, or pin your choices. **Preview these settings** needs no agent call.
+4. **Keep or revert:** after preview, choose **Save to Custom**, **Use without saving**, or **Revert**. Eight numbered custom slots belong to this World install, survive refresh, and join globe cycling. Replacing or removing an occupied slot requires confirmation; temporary previews are not saved slots.
+
+Try: “A rocky storm world with large branching lightning overhead and small, frequent distant bolts just above the mountain ridges, with soft surrounding flashes.”
+
+Cancellation or failed generation/loading keeps the previous usable World. Effects mute controls weather audio separately from music; Reduced Motion skips animated weather and interference. The optional advanced recipe editor accepts validated visual JSON, not executable code or arbitrary asset URLs. Supplied scenery is bounded; decorative cutouts are 2D artwork, not physical terrain or weather simulation.
+
+**Walkthrough:** [Hack your World Field Guide](https://guide.agentintersect.com/hack-your-world/) · [Feature details and supported generation limits](docs/HACK_YOUR_WORLD.md) · [Asset notices](THIRD_PARTY_NOTICES.md)
+
 ## What this is not
 
 - Not Cursor / Windsurf (editor replacement)

@@ -13,6 +13,7 @@ const state = vi.hoisted(() => ({
   dataset: {} as Record<string, string>,
   cleanups: [] as (() => void)[],
   complete: false,
+  webgpu: false,
   initTexture: vi.fn(),
   compile: vi.fn(),
   compileAsync: vi.fn().mockResolvedValue(undefined),
@@ -37,6 +38,10 @@ vi.mock("react", async () => ({
 vi.mock("@react-three/fiber", () => ({
   useThree: () => ({
     gl: {
+      isWebGPURenderer: state.webgpu,
+      getRenderTarget: () => null,
+      setRenderTarget: vi.fn(),
+      render: vi.fn(),
       domElement: { dataset: state.dataset },
       initTexture: state.initTexture,
       compile: state.compile,
@@ -56,9 +61,32 @@ afterEach(() => {
   state.cleanups.splice(0).forEach((cleanup) => cleanup());
   vi.useRealTimers();
   state.complete = false;
+  state.webgpu = false;
   state.compileAsync.mockReset().mockResolvedValue(undefined);
   state.compile.mockReset();
   state.initTexture.mockClear();
+});
+
+it("includes hidden actors in WebGPU preparation without exposing them between frames", async () => {
+  state.webgpu = true;
+  const element = AvatarMaterialization({
+    ready: true,
+    reducedMotion: true,
+    children: null,
+  });
+  const actors = new Group();
+  actors.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+  element.props.ref.current = actors;
+  state.compileAsync.mockImplementation((group: Group) => {
+    expect(
+      group.visible,
+      "WebGPU skips invisible roots instead of precompiling them",
+    ).toBe(true);
+    return Promise.resolve();
+  });
+  state.frame({}, 0);
+  await Promise.resolve();
+  expect(actors.visible).toBe(false);
 });
 
 it("prepares actor and rain GPU resources before starting the visible arrival delay", async () => {

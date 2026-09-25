@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Box3, Group, Mesh, Sprite, Texture, type Material } from "three";
+import { arrivalMaterial } from "./world-node-materials.js";
+import { prepareWorldObject } from "./world-preparation.js";
 import { cityAssemblyFrame } from "./city-arrival-timing.js";
 import { useCodeTexture } from "./code-world-texture.js";
 
@@ -150,29 +152,46 @@ export function AvatarMaterialization({
         }
       });
       for (const texture of textures) gl.initTexture(texture);
-      // The original materials can belong to a replaceable impostor snapshot.
-      // Submit their precompile without an async poll over externally owned
-      // materials; that snapshot may dispose them when its semantic changes.
-      gl.compile(actors, camera, scene);
-      if (!reducedMotion) {
-        actors.updateMatrixWorld(true);
-        const bounds = new Box3().setFromObject(actors);
-        uniforms.aiwArrivalFloor.value = bounds.min.y;
-        uniforms.aiwArrivalHeight.value = Math.max(
-          0.1,
-          bounds.max.y - bounds.min.y,
-        );
-        const originals: {
-          mesh: Mesh | Sprite;
-          material: Material | Material[];
-          shadow: boolean;
-          clones: Material[];
-        }[] = [];
-        actors.traverse((object) => {
-          if (!(object instanceof Mesh) && !(object instanceof Sprite)) return;
-          const original = object.material;
-          const clones = (Array.isArray(original) ? original : [original]).map(
-            (material) => {
+      // r186 projects only visible objects, unlike the old WebGL compiler.
+      // Submission is synchronous on our initialized renderer; hide again before
+      // yielding so no incomplete body can escape into a presented frame.
+      const compile = () => {
+        if (gl.isWebGPURenderer)
+          return prepareWorldObject(gl, actors, camera, scene);
+        const visible = actors.visible;
+        actors.visible = true;
+        try {
+          return gl.compileAsync(actors, camera, scene);
+        } finally {
+          actors.visible = visible;
+        }
+      };
+      const prepareOriginals = gl.isWebGPURenderer ? compile() : null;
+      if (!prepareOriginals) gl.compile(actors, camera, scene);
+      const installArrival = () => {
+        if (!reducedMotion && !disposed.current) {
+          actors.updateMatrixWorld(true);
+          const bounds = new Box3().setFromObject(actors);
+          uniforms.aiwArrivalFloor.value = bounds.min.y;
+          uniforms.aiwArrivalHeight.value = Math.max(
+            0.1,
+            bounds.max.y - bounds.min.y,
+          );
+          const originals: {
+            mesh: Mesh | Sprite;
+            material: Material | Material[];
+            shadow: boolean;
+            clones: Material[];
+          }[] = [];
+          actors.traverse((object) => {
+            if (!(object instanceof Mesh) && !(object instanceof Sprite))
+              return;
+            const original = object.material;
+            const clones = (
+              Array.isArray(original) ? original : [original]
+            ).map((material) => {
+              if (gl.isWebGPURenderer)
+                return arrivalMaterial(material, uniforms, gl);
               const clone = material.clone();
               clone.onBeforeCompile = (shader) => {
                 Object.assign(shader.uniforms, uniforms);
@@ -214,36 +233,41 @@ uniform sampler2D aiwArrivalRain;
               };
               clone.customProgramCacheKey = () => "aiw-code-materialization-1";
               return clone;
-            },
-          );
-          originals.push({
-            mesh: object,
-            material: original,
-            shadow: object.castShadow,
-            clones,
+            });
+            originals.push({
+              mesh: object,
+              material: original,
+              shadow: object.castShadow,
+              clones,
+            });
+            object.material = Array.isArray(original) ? clones : clones[0]!;
+            // Do not expose full-body shadows before the bodies exist.
+            object.castShadow = false;
           });
-          object.material = Array.isArray(original) ? clones : clones[0]!;
-          // Do not expose full-body shadows before the bodies exist.
-          object.castShadow = false;
-        });
-        restore.current = () => {
-          for (const { mesh, material, shadow, clones } of originals) {
-            mesh.material = material;
-            mesh.castShadow = shadow;
-            // Three's compileAsync polls these materials' programs. A rapid
-            // replacement must not dispose them out from under that poll.
-            const dispose = () => clones.forEach((clone) => clone.dispose());
-            if (compiling.current)
-              void compiling.current.then(dispose, dispose);
-            else dispose();
-          }
-          restore.current = null;
-        };
-      }
-      // Only our arrival clones have a lifetime we can hold through the poll.
-      compiling.current = reducedMotion
-        ? Promise.resolve()
-        : gl.compileAsync(actors, camera, scene);
+          restore.current = () => {
+            for (const { mesh, material, shadow, clones } of originals) {
+              mesh.material = material;
+              mesh.castShadow = shadow;
+              // Three's compileAsync polls these materials' programs. A rapid
+              // replacement must not dispose them out from under that poll.
+              const dispose = () => clones.forEach((clone) => clone.dispose());
+              if (compiling.current)
+                void compiling.current.then(dispose, dispose);
+              else dispose();
+            }
+            restore.current = null;
+          };
+        }
+      };
+      // Keep originals attached until their offscreen shadow pass is prepared.
+      const prepareClones = (): Promise<unknown> =>
+        reducedMotion || disposed.current ? Promise.resolve() : compile();
+      compiling.current = prepareOriginals
+        ? prepareOriginals.then(() => {
+            installArrival();
+            return prepareClones();
+          })
+        : (installArrival(), prepareClones());
       void compiling.current.then(() => {
         compiling.current = null;
         if (disposed.current) return;

@@ -1,8 +1,24 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-21
+Updated: 2026-09-25
 
-## Current milestone
+## Current milestone — Hack your World closeout
+
+**Requested feature appearance, everyday use and audio checks are user-accepted.** Aaron's full PASS in Discord `1553072689655054407` covers saved custom World settings after refresh/reselection, cancellation/revert continuity, environment cycling without lingering effects/audio, and ambience/thunder balance/stopping/effects mute. Prior transition/FPS/rock-shadow/upper-lightning acceptance and the distant-lightning approval (`1553070041526829118`) remain preserved. Do not reopen these checks from older pending lists.
+
+Current authority is [Hack your World](../HACK_YOUR_WORLD.md), with [renderer evidence](../THREE_WEBGPU_UPGRADE.md) and [asset provenance](../../THIRD_PARTY_NOTICES.md). The feature summary describes supported controls, saved slots, restricted generation, known limits and remaining delivery gates. Aaron confirms visuals generated through his ChatGPT/Codex subscription workflow and audio through his ElevenLabs subscription using Codex; the prior unknown supplier-origin note is resolved. Applicable generated-media terms remain distinct from the software MIT license; no blanket media sublicense or publication action is inferred.
+
+Latest technical proof: 60 files / 236 affected tests plus 11 architecture checks, scoped types/lint/builds, real compiled-backend save/read after restart, isolated component persistence and native upper/horizon-lightning pixels/temporal/Reduced Motion proof. This is not a new whole-project or hosted-CI run. The separate follow/Run correction has no additional first-hand verdict here.
+
+**Retain TEST45447 at http://127.0.0.1:45447/.** Current service `aiw-horizon-review-20260925.service`; backend44047/CDP49447; kit `~/.hermes/runs/aiw-horizon-lightning-20260925/review/`. The tested normal frontend and matching compiled backend are active. Do not replace/rebuild served artifacts, navigate/reset the browser, or stop/delete state during this documentation-only closeout. TEST45443 is closed with profile/state/work retained. Optional local voice was unavailable at launch and remains a separate user-controlled setup; listening acceptance does not imply microphone installation.
+
+**PR delivery authorized and in progress.** Aaron (`1553079897830985900`) requests commit/push, exact-head GitHub CI and readiness success, then merge; while checks run, update the Field Guide website and public README with feature usage. Reconcile the complete candidate and PR26, run normal final code gates without rebuilding the retained test, and merge only after the final head passes. Final SHA/run/merge and live-site receipts stay external to avoid recursive status commits. No new feature/effect work or repetition of accepted manual checks is planned. Releases, installers, provider changes, standalone asset distribution and Phase20 remain separate gates.
+
+The superseded feature-status entries have moved intact to [Hack your World status history](HACK_YOUR_WORLD_STATUS_HISTORY.md). Earlier development/failure records are preserved through the feature and renderer history links. Their old runtime, acceptance and permission statements are not current authority.
+
+## Earlier project history
+
+The entries below retain previous milestone evidence and decisions. Current Hack your World status and CI policy supersede contradictory historical instructions; unrelated accepted milestones are not reopened.
 
 ### September 21 — PR20 conventional CI/readiness override
 

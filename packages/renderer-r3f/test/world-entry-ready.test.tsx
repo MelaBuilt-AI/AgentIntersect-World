@@ -29,6 +29,40 @@ vi.mock("../src/code-world-texture.js", async () => ({
   useCodeTexture: () => state.textures[state.index++],
 }));
 import { WorldEnvironment } from "../src/world-environment.js";
+import { WorldWetFloor } from "../src/world-atmosphere-effects.js";
+
+it("retains the inactive Original reflector behind its hidden environment", () => {
+  state.index = 0;
+  state.textures = [null, null, null, null];
+  const world = WorldEnvironment({
+    floor: "repository",
+    size: 68,
+    reducedMotion: false,
+    userPosition: { x: 0, z: 0 },
+    active: false,
+  });
+  expect(world.props.visible).toBe(false);
+  expect(
+    world.props.children.some(
+      (node: { type?: unknown }) => node?.type === WorldWetFloor,
+    ),
+  ).toBe(true);
+});
+
+it("keeps imported dark materials readable with the preview-strength indirect fill", () => {
+  state.index = 0;
+  state.textures = [null, null, null, null];
+  const world = WorldEnvironment({
+    floor: "repository",
+    size: 68,
+    reducedMotion: false,
+    userPosition: { x: 0, z: 0 },
+  });
+  const ambient = world.props.children.find(
+    (node: { type?: string }) => node?.type === "ambientLight",
+  );
+  expect(ambient.props.intensity).toBe(1.8);
+});
 
 it("reveals the environment after all textures and rendered warmup frames", () => {
   const ready = vi.fn();

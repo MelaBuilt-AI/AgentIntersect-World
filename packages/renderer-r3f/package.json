@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./environment": {
+      "types": "./dist/environment-resources.d.ts",
+      "import": "./dist/environment-resources.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
@@ -38,8 +42,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@agentintersect-world/world-schema": "workspace:*",
     "@react-three/fiber": "9.6.1",
     "react": "19.2.7",
-    "three": "0.185.1"
+    "three": "0.186.0"
   }
 }

@@ -1,0 +1,4091 @@
+{
+  "schema": "aiw.environment-expansion/1",
+  "assets": [
+    {
+      "id": "horizon_alpine_snow",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_alpine_snow.png",
+        "sha256": "760894ff2a92ff675d94f9e2278670feab995b9c15d374ec046bf4b3b0c636d1"
+      },
+      "path": "assets/environments/expansion-v2/horizon_alpine_snow.png",
+      "bytes": 1366781,
+      "sha256": "760894ff2a92ff675d94f9e2278670feab995b9c15d374ec046bf4b3b0c636d1",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_glacial_ridges",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_glacial_ridges.png",
+        "sha256": "a41567b5c7c78d390fc54d5f0424ae661f4b658c5a905191b68f2476a74b9702"
+      },
+      "path": "assets/environments/expansion-v2/horizon_glacial_ridges.png",
+      "bytes": 1513695,
+      "sha256": "a41567b5c7c78d390fc54d5f0424ae661f4b658c5a905191b68f2476a74b9702",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_desert_mesas",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_desert_mesas.png",
+        "sha256": "d9be46fd8ea19aee8afd3473dda52063129f0683b1b1939df94ab04a5ca16ac0"
+      },
+      "path": "assets/environments/expansion-v2/horizon_desert_mesas.png",
+      "bytes": 1263539,
+      "sha256": "d9be46fd8ea19aee8afd3473dda52063129f0683b1b1939df94ab04a5ca16ac0",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_basalt_volcanic",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_basalt_volcanic.png",
+        "sha256": "c771f9aa9cb115e0f874df7ab185777750f76857ebf72d80ee903347b24e0df3"
+      },
+      "path": "assets/environments/expansion-v2/horizon_basalt_volcanic.png",
+      "bytes": 1225160,
+      "sha256": "c771f9aa9cb115e0f874df7ab185777750f76857ebf72d80ee903347b24e0df3",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_temperate_forest",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_temperate_forest.png",
+        "sha256": "78b67297ff48775822c97e5e4c10c3ad6985674ae7367e2d0381a28f46551dcb"
+      },
+      "path": "assets/environments/expansion-v2/horizon_temperate_forest.png",
+      "bytes": 1494222,
+      "sha256": "78b67297ff48775822c97e5e4c10c3ad6985674ae7367e2d0381a28f46551dcb",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_boreal_forest",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_boreal_forest.png",
+        "sha256": "14b17b576b5dfca79ad1c8713337bc2505bcd42f50a3a0d5c083b7a86a342b53"
+      },
+      "path": "assets/environments/expansion-v2/horizon_boreal_forest.png",
+      "bytes": 1441164,
+      "sha256": "14b17b576b5dfca79ad1c8713337bc2505bcd42f50a3a0d5c083b7a86a342b53",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_coastal_cliffs",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_coastal_cliffs.png",
+        "sha256": "8be4204a5746d5c0ae87bb3c46d761d75126a8f1ba077ec3285157d736a93859"
+      },
+      "path": "assets/environments/expansion-v2/horizon_coastal_cliffs.png",
+      "bytes": 1578099,
+      "sha256": "8be4204a5746d5c0ae87bb3c46d761d75126a8f1ba077ec3285157d736a93859",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "horizon_alien_crystal_ridges",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/horizons/horizon_alien_crystal_ridges.png",
+        "sha256": "9d87d2ac5acc129626ee7ef01e69cd119b4d06bead0ac92406e8e24ee4cf45b2"
+      },
+      "path": "assets/environments/expansion-v2/horizon_alien_crystal_ridges.png",
+      "bytes": 1096673,
+      "sha256": "9d87d2ac5acc129626ee7ef01e69cd119b4d06bead0ac92406e8e24ee4cf45b2",
+      "operation": "Byte-identical runtime RGBA; supplier wrap seams retained.",
+      "dimensions": [2048, 512],
+      "mode": "RGBA"
+    },
+    {
+      "id": "ground_forest_leaf_litter",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/ground/ground_forest_leaf_litter.png",
+        "sha256": "ec44b514a35b1c533df2b5c43eb5b03331af99f6e1eaa9d5d84522afd50ebb99"
+      },
+      "path": "assets/environments/expansion-v2/ground_forest_leaf_litter.webp",
+      "bytes": 1660560,
+      "sha256": "8bce2e4d2bf51ea0f804b3c3242a818feb1aefb6c11fd94ec6c0e1f9c44d4862",
+      "operation": "2048px runtime base-color to quality92 WebP; no PBR synthesis.",
+      "dimensions": [2048, 2048],
+      "mode": "RGB"
+    },
+    {
+      "id": "ground_tundra_lichen",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/ground/ground_tundra_lichen.png",
+        "sha256": "13cddc69aae4f1f43c81bd2c5fc8b610053a5f21fa9e257c329e324f9c701239"
+      },
+      "path": "assets/environments/expansion-v2/ground_tundra_lichen.webp",
+      "bytes": 1641540,
+      "sha256": "98c0f5179d9156eed9cf1848172f7548593b8b7ec94f2b5c8d541c043e90a5ee",
+      "operation": "2048px runtime base-color to quality92 WebP; no PBR synthesis.",
+      "dimensions": [2048, 2048],
+      "mode": "RGB"
+    },
+    {
+      "id": "ground_coastal_pebbles",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/ground/ground_coastal_pebbles.png",
+        "sha256": "d8da638cf37b4b424bf2102112d087fdb0081ed7e4f32292b3523a3ba0cd09bc"
+      },
+      "path": "assets/environments/expansion-v2/ground_coastal_pebbles.webp",
+      "bytes": 1363792,
+      "sha256": "6a1adb91421f7bc9f4828309ad29c9f5385fb6bb1eadd4e74fad6fb32566facf",
+      "operation": "2048px runtime base-color to quality92 WebP; no PBR synthesis.",
+      "dimensions": [2048, 2048],
+      "mode": "RGB"
+    },
+    {
+      "id": "ground_weathered_sandstone",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/ground/ground_weathered_sandstone.png",
+        "sha256": "30b572483b2cdaca59d3e1f0b1963b1a134af6f604c57f1183c800438f6a8eaf"
+      },
+      "path": "assets/environments/expansion-v2/ground_weathered_sandstone.webp",
+      "bytes": 1148052,
+      "sha256": "cde76c9b32d46da90c66d98da651b0811ea11e6b5d08d316d1f08aac8eb2224a",
+      "operation": "2048px runtime base-color to quality92 WebP; no PBR synthesis.",
+      "dimensions": [2048, 2048],
+      "mode": "RGB"
+    },
+    {
+      "id": "ground_salt_flat",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/ground/ground_salt_flat.png",
+        "sha256": "2e2614750d98cedf2acfdbccb3a271b3e7a41ea3cf4babef685ab9428b01a60e"
+      },
+      "path": "assets/environments/expansion-v2/ground_salt_flat.webp",
+      "bytes": 1041560,
+      "sha256": "537e259089ab68d9f9bc06d3931ddcafd1ec5f6bb135d54f0a0c130a067e6b03",
+      "operation": "2048px runtime base-color to quality92 WebP; no PBR synthesis.",
+      "dimensions": [2048, 2048],
+      "mode": "RGB"
+    },
+    {
+      "id": "ground_wet_marsh_soil",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "runtime/ground/ground_wet_marsh_soil.png",
+        "sha256": "31a1256e182905a44ccca3e3f21b4563dbb1b5658a0dd13d7771b87d5942aaea"
+      },
+      "path": "assets/environments/expansion-v2/ground_wet_marsh_soil.webp",
+      "bytes": 1336442,
+      "sha256": "e5dd1609c47ac25ea10d4cf3adff51ea80ed6315c44e2cc4a72fdf60d1fc95eb",
+      "operation": "2048px runtime base-color to quality92 WebP; no PBR synthesis.",
+      "dimensions": [2048, 2048],
+      "mode": "RGB"
+    },
+    {
+      "id": "prop_ice_slab",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_ice_slab.png",
+        "sha256": "df2bfdeec80489d03f94209a722298a5409b8976d57ec8b5745c854b5ba4257e"
+      },
+      "path": "assets/environments/expansion-v2/prop_ice_slab.webp",
+      "bytes": 667922,
+      "sha256": "19eb86010f58639b99b81e8b28eb63dd2f8d9c348bdf26f3504144c57bba2eb2",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_ice_shard_cluster",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_ice_shard_cluster.png",
+        "sha256": "38e37dd54b751485af924bf351b7007ca0295a3f6fbfaed5d8550e029031f329"
+      },
+      "path": "assets/environments/expansion-v2/prop_ice_shard_cluster.webp",
+      "bytes": 816816,
+      "sha256": "861538a17be62e35ebad0fc952b3840e99687516e88d30370a3dc6a34003c6e1",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_frosted_stone",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_frosted_stone.png",
+        "sha256": "1d5af8834613fd84ef9628762a3e5ce29ef92fef9552b513952c327f2f57c5eb"
+      },
+      "path": "assets/environments/expansion-v2/prop_frosted_stone.webp",
+      "bytes": 877296,
+      "sha256": "09b1f72a32cd3b087613877cecce6e93b0a69d0b9f6b4bbfb7018888c71ba04e",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_basalt_boulder",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_basalt_boulder.png",
+        "sha256": "2e97ed492fc18815939f9d791b01451ea8de684ba8a91e75c465fb97a886673d"
+      },
+      "path": "assets/environments/expansion-v2/prop_basalt_boulder.webp",
+      "bytes": 1062992,
+      "sha256": "300cab4e21b55522a99516be1134baf6aa093ef73ac5f2dde869d9ee69894452",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_sandstone_boulder",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_sandstone_boulder.png",
+        "sha256": "1f34eeb3902c84f4f62ab0e4f0fe88bf9eda979b76efcf4d256b5987eb4d68d4"
+      },
+      "path": "assets/environments/expansion-v2/prop_sandstone_boulder.webp",
+      "bytes": 1090284,
+      "sha256": "deb4e983c44c74578cb139b537b0cc758a9c2a990b17c7efe69f144d02392fbf",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_crystal_cluster",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_crystal_cluster.png",
+        "sha256": "bb7db346aacb4b9f0de0d342c652c2305bbdd46461b99ba6bfebc0f8bcb37e15"
+      },
+      "path": "assets/environments/expansion-v2/prop_crystal_cluster.webp",
+      "bytes": 841674,
+      "sha256": "3df38b7b5faf9abe400bb2700943419b58ba15531e33de046d4707f4b26a21ef",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_fern_clump",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_fern_clump.png",
+        "sha256": "6192496cd6f98c2f1812e7f4a5bd4224da0dd79477947f6434224b08db0d90c1"
+      },
+      "path": "assets/environments/expansion-v2/prop_fern_clump.webp",
+      "bytes": 955062,
+      "sha256": "881e85f7c1c04333f29b0c8fe2a042f8d6da4a1b04761d67d75f1243214e084c",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_low_shrub",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_low_shrub.png",
+        "sha256": "5e55bc249bed8b0e19280382ffdb023b1050bb2eaee1adf13e69dd1ed0981ec9"
+      },
+      "path": "assets/environments/expansion-v2/prop_low_shrub.webp",
+      "bytes": 761148,
+      "sha256": "9ed42d291e381e490eb45abc01217bb80b35ff4ece1a567a0606f17ba5dc36e2",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_reed_clump",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_reed_clump.png",
+        "sha256": "3f7875f362b63c08443030212dbc0a4b273858996131e96e35ea799821602cfd"
+      },
+      "path": "assets/environments/expansion-v2/prop_reed_clump.webp",
+      "bytes": 570562,
+      "sha256": "09305e95f6f8b585e39ee81027b098365a6540459b9bd238c87f8dfd9e92cf93",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "prop_driftwood",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "concepts/prop_driftwood.png",
+        "sha256": "aa6182314c244e87e3dd88a58f92b31d5e43cd7cdfa0bdaa5a1c690299cd5ee5"
+      },
+      "path": "assets/environments/expansion-v2/prop_driftwood.webp",
+      "bytes": 198608,
+      "sha256": "29905ff155cfabe893e71ad1df665f792f531eac6d0ea27cb9681c25b3cdb78b",
+      "operation": "1024px lossless-WebP decorative concept cutout, NOT a mesh.",
+      "dimensions": [1024, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_lightning_strike",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_lightning_strike.png",
+        "sha256": "f3e7d8718271f1a5bbc076da586d3b4f5066a8dc07c50366b3b69d7ea92db723"
+      },
+      "path": "assets/environments/expansion-v2/fx_lightning_strike.png",
+      "bytes": 2291412,
+      "sha256": "f3e7d8718271f1a5bbc076da586d3b4f5066a8dc07c50366b3b69d7ea92db723",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [1024, 3072],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_lightning_arc",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_lightning_arc.png",
+        "sha256": "a2f123e698fbbad9f1bdc6f4e11e6bc867564e2c6de23f8a989ab5f7bb03e15e"
+      },
+      "path": "assets/environments/expansion-v2/fx_lightning_arc.png",
+      "bytes": 1044129,
+      "sha256": "a2f123e698fbbad9f1bdc6f4e11e6bc867564e2c6de23f8a989ab5f7bb03e15e",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [3072, 1024],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_impact_dust",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_impact_dust.png",
+        "sha256": "f034591ed39c0ef979d6ad425e11ff04eb95802d6443310e2e6b417b841eae37"
+      },
+      "path": "assets/environments/expansion-v2/fx_impact_dust.png",
+      "bytes": 2069128,
+      "sha256": "f034591ed39c0ef979d6ad425e11ff04eb95802d6443310e2e6b417b841eae37",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [2048, 2048],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_impact_flash",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_impact_flash.png",
+        "sha256": "dc95590b56b736447bb4447ffd2419e22298aeecc186d8aad4847ba699f3fc98"
+      },
+      "path": "assets/environments/expansion-v2/fx_impact_flash.png",
+      "bytes": 1276914,
+      "sha256": "dc95590b56b736447bb4447ffd2419e22298aeecc186d8aad4847ba699f3fc98",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [2048, 2048],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_impact_ground_arcs",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_impact_ground_arcs.png",
+        "sha256": "9ec75f728481c68f12d20fe22dd4c7b8e66ce4ceece03da4642f165e279fc168"
+      },
+      "path": "assets/environments/expansion-v2/fx_impact_ground_arcs.png",
+      "bytes": 1844760,
+      "sha256": "9ec75f728481c68f12d20fe22dd4c7b8e66ce4ceece03da4642f165e279fc168",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [2048, 2048],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_impact_scorch",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_impact_scorch.png",
+        "sha256": "828384984563f6c9d9162345929604865d44db9e4400d8160d44bf443e910b66"
+      },
+      "path": "assets/environments/expansion-v2/fx_impact_scorch.png",
+      "bytes": 2034066,
+      "sha256": "828384984563f6c9d9162345929604865d44db9e4400d8160d44bf443e910b66",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [2048, 2048],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_impact_shockwave",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_impact_shockwave.png",
+        "sha256": "5ca2972999b2300d5939c2a3ff76eb86acb23420069bca655a308238665738e9"
+      },
+      "path": "assets/environments/expansion-v2/fx_impact_shockwave.png",
+      "bytes": 1038118,
+      "sha256": "5ca2972999b2300d5939c2a3ff76eb86acb23420069bca655a308238665738e9",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [2048, 2048],
+      "mode": "RGBA"
+    },
+    {
+      "id": "fx_impact_sparks",
+      "source": {
+        "pack": "aiw-environment-expansion-v2",
+        "path": "fx/atlases/fx_impact_sparks.png",
+        "sha256": "3bd3472135295370b3585f825c5e58a2ec63e9f9dbd641120f6b3cb14b458826"
+      },
+      "path": "assets/environments/expansion-v2/fx_impact_sparks.png",
+      "bytes": 800528,
+      "sha256": "3bd3472135295370b3585f825c5e58a2ec63e9f9dbd641120f6b3cb14b458826",
+      "operation": "Byte-identical RGBA atlas. No duplicate alpha mask. Half-texel UVs; mipmaps disabled.",
+      "dimensions": [2048, 2048],
+      "mode": "RGBA"
+    },
+    {
+      "id": "crystal_cavern_drips_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/crystal_cavern_drips_loop.ogg",
+        "sha256": "9e73423bca56773d1b513ac4f5f451082c8afd0eda3f5e8e2ba79648c56a44fb"
+      },
+      "path": "audio/environments/crystal_cavern_drips_loop.ogg",
+      "bytes": 1005291,
+      "sha256": "9e73423bca56773d1b513ac4f5f451082c8afd0eda3f5e8e2ba79648c56a44fb",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "desert_soft_sand_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/desert_soft_sand_loop.ogg",
+        "sha256": "ea09014b93bf69266f6d5faa38cbbbaadf4d46ff53658c56d06f4fd475b9b5ac"
+      },
+      "path": "audio/environments/desert_soft_sand_loop.ogg",
+      "bytes": 997792,
+      "sha256": "ea09014b93bf69266f6d5faa38cbbbaadf4d46ff53658c56d06f4fd475b9b5ac",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "forest_canopy_day_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/forest_canopy_day_loop.ogg",
+        "sha256": "bf90f095cb2e7bb07d76ec6060cea3f11568449d60ca43eb40c927c6b3f3cdc6"
+      },
+      "path": "audio/environments/forest_canopy_day_loop.ogg",
+      "bytes": 1221698,
+      "sha256": "bf90f095cb2e7bb07d76ec6060cea3f11568449d60ca43eb40c927c6b3f3cdc6",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "forest_floor_damp_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/forest_floor_damp_loop.ogg",
+        "sha256": "07be81173c412c1f5660b50507034828ec30300d96264b06bfe140a2d4348ac2"
+      },
+      "path": "audio/environments/forest_floor_damp_loop.ogg",
+      "bytes": 1193225,
+      "sha256": "07be81173c412c1f5660b50507034828ec30300d96264b06bfe140a2d4348ac2",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "marsh_evening_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/marsh_evening_loop.ogg",
+        "sha256": "b629c775d2e41e700b3e8da98657a970309ab04038ac8228ebf6974417032183"
+      },
+      "path": "audio/environments/marsh_evening_loop.ogg",
+      "bytes": 1202834,
+      "sha256": "b629c775d2e41e700b3e8da98657a970309ab04038ac8228ebf6974417032183",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "night_meadow_insects_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/night_meadow_insects_loop.ogg",
+        "sha256": "97e070a045ff6c2ecc02687c94a4bb4d2b38fd07c483d10332dd5574ecbda782"
+      },
+      "path": "audio/environments/night_meadow_insects_loop.ogg",
+      "bytes": 1055997,
+      "sha256": "97e070a045ff6c2ecc02687c94a4bb4d2b38fd07c483d10332dd5574ecbda782",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "ocean_gentle_shore_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/ocean_gentle_shore_loop.ogg",
+        "sha256": "794205c47a295dd8802fa67c334cc5e5d48ce817b3927f5515e8a2fc3547c03c"
+      },
+      "path": "audio/environments/ocean_gentle_shore_loop.ogg",
+      "bytes": 1137103,
+      "sha256": "794205c47a295dd8802fa67c334cc5e5d48ce817b3927f5515e8a2fc3547c03c",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "ocean_rocky_cove_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/ocean_rocky_cove_loop.ogg",
+        "sha256": "79b6e60815a7dc1386ac00d2c3a64982b93496a28fb4a2f15e038cdb79063d4a"
+      },
+      "path": "audio/environments/ocean_rocky_cove_loop.ogg",
+      "bytes": 1168692,
+      "sha256": "79b6e60815a7dc1386ac00d2c3a64982b93496a28fb4a2f15e038cdb79063d4a",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "polar_ice_creaks_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/polar_ice_creaks_loop.ogg",
+        "sha256": "3c72de45c2827aba3d06f17515300b20e42b585bbd8c7b8a6fabadac95ce16a1"
+      },
+      "path": "audio/environments/polar_ice_creaks_loop.ogg",
+      "bytes": 955472,
+      "sha256": "3c72de45c2827aba3d06f17515300b20e42b585bbd8c7b8a6fabadac95ce16a1",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "rain_heavy_environment_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/rain_heavy_environment_loop.ogg",
+        "sha256": "bad4702d7d9abea2bf72c5e5c46d8f4827a3f534014bac10513d75fe80cbcacf"
+      },
+      "path": "audio/environments/rain_heavy_environment_loop.ogg",
+      "bytes": 1206577,
+      "sha256": "bad4702d7d9abea2bf72c5e5c46d8f4827a3f534014bac10513d75fe80cbcacf",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "rain_light_environment_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/rain_light_environment_loop.ogg",
+        "sha256": "9385659445c5311dc71065c36a57eb26a4fae4f1ec759ed9826480a00e582289"
+      },
+      "path": "audio/environments/rain_light_environment_loop.ogg",
+      "bytes": 1316974,
+      "sha256": "9385659445c5311dc71065c36a57eb26a4fae4f1ec759ed9826480a00e582289",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "snowfield_sheltered_wind_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/snowfield_sheltered_wind_loop.ogg",
+        "sha256": "bdfbd673b11ebafafb147e6e0d9bb462c7dc4f37b940b32f28fec6d73c004f06"
+      },
+      "path": "audio/environments/snowfield_sheltered_wind_loop.ogg",
+      "bytes": 1230989,
+      "sha256": "bdfbd673b11ebafafb147e6e0d9bb462c7dc4f37b940b32f28fec6d73c004f06",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "stream_shallow_stones_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/stream_shallow_stones_loop.ogg",
+        "sha256": "7b3495b059552ebcf9d522b69a8cfdd42dbdd30681cb26c1ce79704a6e646055"
+      },
+      "path": "audio/environments/stream_shallow_stones_loop.ogg",
+      "bytes": 1288353,
+      "sha256": "7b3495b059552ebcf9d522b69a8cfdd42dbdd30681cb26c1ce79704a6e646055",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "thunder_distant_environment_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/thunder_distant_environment_loop.ogg",
+        "sha256": "910c90af90a2f24356ffedf02adc6a4a1aeebf948f51cd48dc1f3dffecd733a5"
+      },
+      "path": "audio/environments/thunder_distant_environment_loop.ogg",
+      "bytes": 961461,
+      "sha256": "910c90af90a2f24356ffedf02adc6a4a1aeebf948f51cd48dc1f3dffecd733a5",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "waterfall_distant_soft_loop",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "loops/ogg/waterfall_distant_soft_loop.ogg",
+        "sha256": "8d13cff911166f50fb034f7a7fc920f94c21aeeec0f24b0c07abb3c02ff945c5"
+      },
+      "path": "audio/environments/waterfall_distant_soft_loop.ogg",
+      "bytes": 1138940,
+      "sha256": "8d13cff911166f50fb034f7a7fc920f94c21aeeec0f24b0c07abb3c02ff945c5",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_impact_sand_scorch",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_impact_sand_scorch.ogg",
+        "sha256": "e2e0a16ffdebbc9edcaa93f7485dde14bf8468e30c35c23df9c7c57a7a90ed3d"
+      },
+      "path": "audio/environments/lightning_impact_sand_scorch.ogg",
+      "bytes": 119863,
+      "sha256": "e2e0a16ffdebbc9edcaa93f7485dde14bf8468e30c35c23df9c7c57a7a90ed3d",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_impact_stone_sizzle",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_impact_stone_sizzle.ogg",
+        "sha256": "5eaa841fdae1a0db4c9a07c908a99f5da4034b8abfafac52aae36aad476dba92"
+      },
+      "path": "audio/environments/lightning_impact_stone_sizzle.ogg",
+      "bytes": 180787,
+      "sha256": "5eaa841fdae1a0db4c9a07c908a99f5da4034b8abfafac52aae36aad476dba92",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_impact_wet_earth",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_impact_wet_earth.ogg",
+        "sha256": "4e8f4ba6327c5030a090517dd0de2bc311beace4ed2edbde1c0f11ad1b3c5a05"
+      },
+      "path": "audio/environments/lightning_impact_wet_earth.ogg",
+      "bytes": 145027,
+      "sha256": "4e8f4ba6327c5030a090517dd0de2bc311beace4ed2edbde1c0f11ad1b3c5a05",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_scorch_dry_sizzle",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_scorch_dry_sizzle.ogg",
+        "sha256": "7e3bbc80d0b63292c2c3a47e7667cd748592440d08d6ba427d12e8b4cbaafa6d"
+      },
+      "path": "audio/environments/lightning_scorch_dry_sizzle.ogg",
+      "bytes": 163381,
+      "sha256": "7e3bbc80d0b63292c2c3a47e7667cd748592440d08d6ba427d12e8b4cbaafa6d",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_scorch_steam_hiss",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_scorch_steam_hiss.ogg",
+        "sha256": "f064b7e01ab454e3778515228394eae25524e1edd5ed8fae9cada00ec5c29e0a"
+      },
+      "path": "audio/environments/lightning_scorch_steam_hiss.ogg",
+      "bytes": 123479,
+      "sha256": "f064b7e01ab454e3778515228394eae25524e1edd5ed8fae9cada00ec5c29e0a",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_strike_air_tearing",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_strike_air_tearing.ogg",
+        "sha256": "8b1885ff754a998a6fc97b3f2c466bd33c554a9a7c5cb3600285e0644fadfb35"
+      },
+      "path": "audio/environments/lightning_strike_air_tearing.ogg",
+      "bytes": 94159,
+      "sha256": "8b1885ff754a998a6fc97b3f2c466bd33c554a9a7c5cb3600285e0644fadfb35",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_strike_branching_snap",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_strike_branching_snap.ogg",
+        "sha256": "77d8b4292cd75e49115e308cf288960dfac74b3e4686af877c2553c5fc996691"
+      },
+      "path": "audio/environments/lightning_strike_branching_snap.ogg",
+      "bytes": 118557,
+      "sha256": "77d8b4292cd75e49115e308cf288960dfac74b3e4686af877c2553c5fc996691",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "lightning_strike_dry_crack",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/lightning_strike_dry_crack.ogg",
+        "sha256": "2b28799691f78a4b9d7af156e8620ed17bc7e7678b174789a1a438a518c47ab6"
+      },
+      "path": "audio/environments/lightning_strike_dry_crack.ogg",
+      "bytes": 91689,
+      "sha256": "2b28799691f78a4b9d7af156e8620ed17bc7e7678b174789a1a438a518c47ab6",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "thunder_far_horizon_rumble",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/thunder_far_horizon_rumble.ogg",
+        "sha256": "fce70fc4c6333953dd6a3aa1d0be093b10e5e3df687188678a9545daa72697e9"
+      },
+      "path": "audio/environments/thunder_far_horizon_rumble.ogg",
+      "bytes": 299588,
+      "sha256": "fce70fc4c6333953dd6a3aa1d0be093b10e5e3df687188678a9545daa72697e9",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "thunder_mid_distance_rolling",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/thunder_mid_distance_rolling.ogg",
+        "sha256": "f2ccdbce22f9d88367759340aceb3bfe62e182e3fe0b2d5ba3951cc586c6fe29"
+      },
+      "path": "audio/environments/thunder_mid_distance_rolling.ogg",
+      "bytes": 234394,
+      "sha256": "f2ccdbce22f9d88367759340aceb3bfe62e182e3fe0b2d5ba3951cc586c6fe29",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    },
+    {
+      "id": "thunder_near_crack_roll",
+      "source": {
+        "pack": "aiw-environment-audio-expansion-v2",
+        "path": "sfx/ogg/thunder_near_crack_roll.ogg",
+        "sha256": "cc170a1bc9feae3c5e3dffa17fc5ff7cad272393e88c5d08f5583da8ae0c786b"
+      },
+      "path": "audio/environments/thunder_near_crack_roll.ogg",
+      "bytes": 192437,
+      "sha256": "cc170a1bc9feae3c5e3dffa17fc5ff7cad272393e88c5d08f5583da8ae0c786b",
+      "operation": "Byte-identical supplied OGG Vorbis runtime; listening acceptance pending."
+    }
+  ],
+  "sourceInventory": [
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "QA_REPORT.md",
+      "bytes": 6767,
+      "sha256": "6e031c0afca500fefe6258c941081c3d095b8482a3967fd4f107d9f71830de29"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "README.md",
+      "bytes": 7181,
+      "sha256": "19bba1036d012aebc9329416c1ef89bdbd5b27db7a0b484fc535eeba1d5e0a5e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "SHA256SUMS.txt",
+      "bytes": 45125,
+      "sha256": "b4690e1fa4037236a38665544bd86d4863a5caef3b0db0eaa456abe169d0d329"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_basalt_boulder.png",
+      "bytes": 2378174,
+      "sha256": "2e97ed492fc18815939f9d791b01451ea8de684ba8a91e75c465fb97a886673d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_crystal_cluster.png",
+      "bytes": 1851525,
+      "sha256": "bb7db346aacb4b9f0de0d342c652c2305bbdd46461b99ba6bfebc0f8bcb37e15"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_driftwood.png",
+      "bytes": 456481,
+      "sha256": "aa6182314c244e87e3dd88a58f92b31d5e43cd7cdfa0bdaa5a1c690299cd5ee5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_fern_clump.png",
+      "bytes": 1736483,
+      "sha256": "6192496cd6f98c2f1812e7f4a5bd4224da0dd79477947f6434224b08db0d90c1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_frosted_stone.png",
+      "bytes": 1937052,
+      "sha256": "1d5af8834613fd84ef9628762a3e5ce29ef92fef9552b513952c327f2f57c5eb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_ice_shard_cluster.png",
+      "bytes": 1854546,
+      "sha256": "38e37dd54b751485af924bf351b7007ca0295a3f6fbfaed5d8550e029031f329"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_ice_slab.png",
+      "bytes": 1493123,
+      "sha256": "df2bfdeec80489d03f94209a722298a5409b8976d57ec8b5745c854b5ba4257e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_low_shrub.png",
+      "bytes": 1399197,
+      "sha256": "5e55bc249bed8b0e19280382ffdb023b1050bb2eaee1adf13e69dd1ed0981ec9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_reed_clump.png",
+      "bytes": 1073755,
+      "sha256": "3f7875f362b63c08443030212dbc0a4b273858996131e96e35ea799821602cfd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "concepts/prop_sandstone_boulder.png",
+      "bytes": 2282753,
+      "sha256": "1f34eeb3902c84f4f62ab0e4f0fe88bf9eda979b76efcf4d256b5987eb4d68d4"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "export_images.cjs",
+      "bytes": 3028,
+      "sha256": "62cc7b502afef1f7d1a87fa521912b647e0efd017323aef2bacfe88777b2bebe"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/QA.json",
+      "bytes": 85457,
+      "sha256": "6005c12570ed772112b192f0606aca9a0ae76c94be00656e803c168ae1bd1ff9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/README.md",
+      "bytes": 3486,
+      "sha256": "7571196f432dd73372fa472cf415818ece6a4d9b9acf4f158314305bdd2105dc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/SHA256SUMS.txt",
+      "bytes": 25287,
+      "sha256": "59f1b0508ea9474a5df2c21c06c7709bbf779e5b90c3713a826aa442e9bfabe7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/THREEJS_USAGE.md",
+      "bytes": 9866,
+      "sha256": "34e8ae85c5235b5097440bf238462d2ad2d37aecd8fce2bb64e89ec7c7deb15b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_impact_dust.png",
+      "bytes": 2069128,
+      "sha256": "f034591ed39c0ef979d6ad425e11ff04eb95802d6443310e2e6b417b841eae37"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_impact_flash.png",
+      "bytes": 1276914,
+      "sha256": "dc95590b56b736447bb4447ffd2419e22298aeecc186d8aad4847ba699f3fc98"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_impact_ground_arcs.png",
+      "bytes": 1844760,
+      "sha256": "9ec75f728481c68f12d20fe22dd4c7b8e66ce4ceece03da4642f165e279fc168"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_impact_scorch.png",
+      "bytes": 2034066,
+      "sha256": "828384984563f6c9d9162345929604865d44db9e4400d8160d44bf443e910b66"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_impact_shockwave.png",
+      "bytes": 1038118,
+      "sha256": "5ca2972999b2300d5939c2a3ff76eb86acb23420069bca655a308238665738e9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_impact_sparks.png",
+      "bytes": 800528,
+      "sha256": "3bd3472135295370b3585f825c5e58a2ec63e9f9dbd641120f6b3cb14b458826"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_lightning_arc.png",
+      "bytes": 1044129,
+      "sha256": "a2f123e698fbbad9f1bdc6f4e11e6bc867564e2c6de23f8a989ab5f7bb03e15e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/atlases/fx_lightning_strike.png",
+      "bytes": 2291412,
+      "sha256": "f3e7d8718271f1a5bbc076da586d3b4f5066a8dc07c50366b3b69d7ea92db723"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/build_fx.cjs",
+      "bytes": 8143,
+      "sha256": "db04e42a529ce50a3c4e4a6ba6760fb7fdbf5664583a32a1ca2a409455d8024c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/check_fx.py",
+      "bytes": 4793,
+      "sha256": "119e7df519c86624e518583be18025d18fb5ea27c51e95c9e197e479e058eb2f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/file-index.json",
+      "bytes": 79852,
+      "sha256": "7a7bee1323bf0c1f1da6eb4576a6edb1384f3086ad0314383102084985a2c5c7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/00.png",
+      "bytes": 31427,
+      "sha256": "21eabeec9e88720d20d93b17922095d1d16c2a67053e3a023ee7ca55f6472790"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/01.png",
+      "bytes": 45156,
+      "sha256": "9b834e06622b9c9797a220c18842e1a3e1068381e09d072f70459138d407a76a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/02.png",
+      "bytes": 55803,
+      "sha256": "c9373d87ed961eea9fa5d6327da7e4b6b5bd10b19d063e5052d4f8d46a655917"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/03.png",
+      "bytes": 67030,
+      "sha256": "416555c19a492047dd1a2dfa7d4e3b455a783c5daf31c71d215ab0acf65671e0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/04.png",
+      "bytes": 77689,
+      "sha256": "ef00c5c1e4a7f31ee92b12ac47d0ca7cea415a8d139e1b51a30dbe3d49556e14"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/05.png",
+      "bytes": 90201,
+      "sha256": "7385cc3bb884dd48174bc619829a4720ddea0e4bd20e467963f7979bd178f1f6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/06.png",
+      "bytes": 103172,
+      "sha256": "c93952c18dfad97f0645919a5e53d8dafd1d18642d4155fe760df861f8134559"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/07.png",
+      "bytes": 117005,
+      "sha256": "ab64fa5781c3cfe8792872d92515fd0e8695e5772b6cb3f0528cef7dbb6a7039"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/08.png",
+      "bytes": 131394,
+      "sha256": "d148a1259798912a4dae771d0cd353aaa506db66a7d4868e6e0869d03c506e37"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/09.png",
+      "bytes": 147536,
+      "sha256": "332546cb20658a4189aad06af91719e9d0156584a688d57ce1103b9e6faf0cd2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/10.png",
+      "bytes": 162637,
+      "sha256": "8de3421332dbc42fb762d1d76afed81540e6b99d95332a4230171afbddb30adf"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/11.png",
+      "bytes": 180049,
+      "sha256": "98e483e4a23d125caaa6081508eb25b4cd725a872531732b296c0cfca68cc702"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/12.png",
+      "bytes": 196157,
+      "sha256": "e3804f10ed807cb754d692a2de01fa540609937d1f65acd1882d0c6621738e7f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/13.png",
+      "bytes": 211564,
+      "sha256": "2f0d154c78fb25da5b33b61f996a48c587e5daf87e5a7592651d48da3f0f5f24"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/14.png",
+      "bytes": 221422,
+      "sha256": "d276da94bd61ad768f40639ca279329d8984fe9808dfde692d311c40ca5553c9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_dust/15.png",
+      "bytes": 199143,
+      "sha256": "170faf27a46f8cf18526eb4de2830e3161cacdef7d41a6a15973420da763169b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/00.png",
+      "bytes": 20071,
+      "sha256": "6efb4a3b4e21d1b64a814de69ddd4cca4914b89efdcdb64589c81f06f0620fe3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/01.png",
+      "bytes": 39416,
+      "sha256": "59f82695a675d2e50c7214efb02b2b144d00a7e8cb3fae68bdd3f83010ec8b51"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/02.png",
+      "bytes": 58004,
+      "sha256": "ed6886b7aa8d72d1514d2fddba4c8752e106c6e19aa743bc727856fe0a56d51e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/03.png",
+      "bytes": 81324,
+      "sha256": "b459145453877db41795cf066b7da27b93f109e2f0e684a0d282e044c4d1a3fb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/04.png",
+      "bytes": 108313,
+      "sha256": "1602f921b99987560abfb0c974c26f598fb06bfdfc28a4b30c24c07492112798"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/05.png",
+      "bytes": 138472,
+      "sha256": "dea7fa2421e3ad7a504ece98ddc8c09caa76468d17e4aeef6d4dccf0c3a75281"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/06.png",
+      "bytes": 137167,
+      "sha256": "e7fcf09468a4bedc0321a48f59fe72c50cff7f3df008b3ea798eef11d91c92db"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/07.png",
+      "bytes": 136074,
+      "sha256": "58449ca1443cd19c3f547db7015a0f4888cf39b9d7cb6c21a089f75e42874323"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/08.png",
+      "bytes": 133899,
+      "sha256": "b12aaf84fb2817e2a3dccec68a6adb32150d1968cab10975495af87e547dc9eb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/09.png",
+      "bytes": 132037,
+      "sha256": "75e307d7b97e97503e46666f45e7b30ae35c5e38802531bc5bc34b0ed8823321"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/10.png",
+      "bytes": 129026,
+      "sha256": "b2131408119d410fb3d38c141670e43fa3d50fa90d25ee4b91e1c54581b75c4a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/11.png",
+      "bytes": 126230,
+      "sha256": "ff03400729b5b35339c5180f5e5d6abdbb730c962aa318c72f1d546864153a8d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/12.png",
+      "bytes": 122532,
+      "sha256": "646a128547a089abc96b1cb130859bc6f538fa0fc984af3238dc8d41a59c2a53"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/13.png",
+      "bytes": 120359,
+      "sha256": "cdc094222995d8d7d2f4e6952e0eb7cb9a0dfd08178276fee5fc05a449e54cfa"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/14.png",
+      "bytes": 117923,
+      "sha256": "336ed5e8d1c14099e713f705bd35a15e5eaa7cb78ca9295acb5727897c263b71"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_flash/15.png",
+      "bytes": 117923,
+      "sha256": "336ed5e8d1c14099e713f705bd35a15e5eaa7cb78ca9295acb5727897c263b71"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/00.png",
+      "bytes": 33215,
+      "sha256": "ffe51c65aa797e56df1370ef2992138abc77487305e09a717646a12cc0cc4729"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/01.png",
+      "bytes": 55543,
+      "sha256": "64ae0213e0700bd3b27879db4550d9cf505a12abee3733663922b49048bb8dd5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/02.png",
+      "bytes": 81233,
+      "sha256": "eb176e78227d65c11ef53e0c8a4921a485e0db13a85a003685c8283d2fcbce85"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/03.png",
+      "bytes": 102789,
+      "sha256": "aacba35e56fd95bbfcf5a376aed849a834d76c5de6ef9278db515845b8ec7cbc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/04.png",
+      "bytes": 140219,
+      "sha256": "52cb2b5741b5d5712d70ade9e8d9afa7e7f143bf4d5d8ef382ea609b2d3359a3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/05.png",
+      "bytes": 159531,
+      "sha256": "9cfb5fd920bb440e7a334cec8752f26d8eff2c934ba1907b7c6a37f8ac380072"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/06.png",
+      "bytes": 174107,
+      "sha256": "e6cdb433007ff8df3c5a99d88c82e34828071399302fb87fc1b13715cf3589c7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/07.png",
+      "bytes": 164622,
+      "sha256": "6a5fccac083be75ee6a5bd5ba6e7a5648648cd8919841772b232eef50d4a354a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/08.png",
+      "bytes": 172191,
+      "sha256": "fc62a5b6d6373ea753b9195ef6f4836595a61843b25e8838a1f359e79fb5a8e9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/09.png",
+      "bytes": 162452,
+      "sha256": "bc9059f3967cc15123ef9087679ba8610cb3b77f7f3c5f54d0f0dff9ca4c3ed0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/10.png",
+      "bytes": 170652,
+      "sha256": "08074038cde602d3981abdda066e18b224d10b713a42836bfac1c787e83a36c5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/11.png",
+      "bytes": 158231,
+      "sha256": "e5df34092cab3d11347ea54baa6b379f8942635eec7111690c6d424d0224f1df"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/12.png",
+      "bytes": 164998,
+      "sha256": "6646bb264eb653836c4561bcacc6fdb7ceb6e49cecd3db9c95e31262d8fca1d2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/13.png",
+      "bytes": 156856,
+      "sha256": "eb333955d55e2fc0227e4667117427f4500f3bc0c2a72f2cf6c63da51f70d477"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/14.png",
+      "bytes": 147635,
+      "sha256": "bad54258499d32e689d051eb5daf540c53299d3b45b06f48ec3003327b64a7d5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_ground_arcs/15.png",
+      "bytes": 147635,
+      "sha256": "bad54258499d32e689d051eb5daf540c53299d3b45b06f48ec3003327b64a7d5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/00.png",
+      "bytes": 184454,
+      "sha256": "8fefa6ffebf7a569eab8c96bce47cfe789597951e107fab61128501cc37f44ff"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/01.png",
+      "bytes": 219570,
+      "sha256": "17ff15090789499c7760383f5fa207c352a4e6bdef574c54f3d9adf6e555fe94"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/02.png",
+      "bytes": 220676,
+      "sha256": "fe1cbc199c2540db21ac9baf6e5d7c44b9a8178f9b45d6a2c7718c65257a21d8"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/03.png",
+      "bytes": 227304,
+      "sha256": "f2f9497e419e0ae778fb8c6fd5d3038fca5f6df45a9cd311a146c3a3e7f358a1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/04.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/05.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/06.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/07.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/08.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/09.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/10.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/11.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/12.png",
+      "bytes": 232653,
+      "sha256": "f77ffbddac8de404a3e1ac331dee32e17743809eb892fb9fc032fd50559a89a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/13.png",
+      "bytes": 225167,
+      "sha256": "488f7ad1fa1589087f2b8c69a0ffa02ad2bbdfa5d4abdc380b53a3855c65adff"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/14.png",
+      "bytes": 221219,
+      "sha256": "99bd1669ee0677ee45c8d7c125f01453251150d28c8be38d1fc0ddefc8bae575"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_scorch/15.png",
+      "bytes": 184454,
+      "sha256": "8fefa6ffebf7a569eab8c96bce47cfe789597951e107fab61128501cc37f44ff"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/00.png",
+      "bytes": 5038,
+      "sha256": "7e02c00bd7cfd7b62187b5f935618ed2eb258a9e38683e32bd4195a3a2b9ae89"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/01.png",
+      "bytes": 9587,
+      "sha256": "684ba780a960256e6aabef660ba28eb761884cad74883846d31ccea01192f5fe"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/02.png",
+      "bytes": 14189,
+      "sha256": "a95ed3e286c4a9db4945783af37b20348bb8138b17ab6badb80152a6d15e1001"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/03.png",
+      "bytes": 19574,
+      "sha256": "97d26088e1657076bd8681cf536860088772a10caf712a7cd5ab5b34aeddcf4e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/04.png",
+      "bytes": 26975,
+      "sha256": "1bb53df67a2fa85cebdbee7cdf670f9ddc6b46908999c223ea8f3704ea1f3da8"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/05.png",
+      "bytes": 34680,
+      "sha256": "c00c5325af0b6a4a45e5d864a32dde98b0113e1c1cb3d7cb28b624af39832c13"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/06.png",
+      "bytes": 43340,
+      "sha256": "d184210fbd3b0b3370e848c8e5d0bafa88154acf12958d6e77811b0b4c2c6557"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/07.png",
+      "bytes": 51055,
+      "sha256": "3a1b940b4af71c26df430453b9a0668629ef26b7bfad13be2e5626245991d8b6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/08.png",
+      "bytes": 61043,
+      "sha256": "78553c2ec8393ee865ea9657722ee06c05165065549b3f2b19295af23808810f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/09.png",
+      "bytes": 72974,
+      "sha256": "0043b4c8490dbf93e0b4afe2d04ddcee8c7534225bbb9d7fffd849803e9cd07a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/10.png",
+      "bytes": 83731,
+      "sha256": "9a122ae42248a6b3f032e6109f81fad25488623eef853d62643e3558be627c91"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/11.png",
+      "bytes": 95968,
+      "sha256": "5959124a0ba8644cf014910b90fc7e8d7d5cf763d09ce35a2f163b053800d925"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/12.png",
+      "bytes": 107969,
+      "sha256": "55ec3146274a29e545b4981817b09812cf01e52a6db33f304d9eefeb94e13fcb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/13.png",
+      "bytes": 119309,
+      "sha256": "cfa7907f02a81b328bbce6db79675d9d6e8b4f6679cc9827ef4df62e0682b735"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/14.png",
+      "bytes": 129586,
+      "sha256": "cf29c3c13612fa36e07042fc6b2813052b47a1031a75a269ea3f46ca5e2e9aa7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_shockwave/15.png",
+      "bytes": 134401,
+      "sha256": "f232474bd9b910b3649bb1398e33a2678e862657858a07b1366712f7f2e39219"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/00.png",
+      "bytes": 15006,
+      "sha256": "892171e0db2263c13beaa639e3c419e6f56e2bffdee6d2345e27e7fdaeb3f63a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/01.png",
+      "bytes": 22094,
+      "sha256": "77fb6ed306d501b69fd40127a06c11b89fcdcc9c7dbd5275e36d7f3438a8c5dc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/02.png",
+      "bytes": 25935,
+      "sha256": "cfe69eea4c27991b1760cb892406ca2b471e458cc8e4c04044dbef811ef87125"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/03.png",
+      "bytes": 29499,
+      "sha256": "23425860cf794b5b8a70ba8d1fdab110a210504366af4d44bb1299f3abbc128a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/04.png",
+      "bytes": 32834,
+      "sha256": "6263a260968b94143a737732e75ddf301299b44059c5a26f093c61dcc14b29cb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/05.png",
+      "bytes": 37073,
+      "sha256": "052a555302c7ea653d1bea113cb5238dcf624b3d8e65a6d350c72b9b833ac95e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/06.png",
+      "bytes": 41300,
+      "sha256": "d9d09453740f380de29f0b3ebad3d7293f4e5559129383fad352c8f3f3144609"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/07.png",
+      "bytes": 45913,
+      "sha256": "ad3eef220ff4bed29f8b921e28ba866b37fc9380c45006d72aa5b19589f4d872"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/08.png",
+      "bytes": 51002,
+      "sha256": "6b5cd1e0f80ca9f25a32c2416534125f96ea002961a39b61352d09e23cbad8bb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/09.png",
+      "bytes": 56062,
+      "sha256": "595e7a9670fd529bde53f09dc746f29fcc8bd60a0711954fff5e38476bd99d55"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/10.png",
+      "bytes": 60135,
+      "sha256": "4e1033c0c53eca5b4ecc13b96a87f679cb679e5ef7825715741bc1048b4722fb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/11.png",
+      "bytes": 64792,
+      "sha256": "e9122aea4c7e3e625553001239c627004dc8442e67edc9930b3669bc4a81a9e1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/12.png",
+      "bytes": 69747,
+      "sha256": "32ff342b94672da0cfb1a8d523921d2d0dc452ed581246f1dddedb8f0d2da045"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/13.png",
+      "bytes": 74273,
+      "sha256": "b579251885ec8861b3803323dfbe4ccf81c1a73e37a59b5d8db01406ae93a092"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/14.png",
+      "bytes": 78003,
+      "sha256": "c94901d7f42c28d2740a67488ee019aadf72a017f93106756eebd8952121a8be"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_impact_sparks/15.png",
+      "bytes": 81654,
+      "sha256": "4cc37ca75fabac7c706e5124f442f839c8b9e78eb87be103d7481a43c418bd00"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/00.png",
+      "bytes": 69575,
+      "sha256": "d97c07187424ea8ec37aed327775d980c16e76d266309c1959d71e3776bfeb3c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/01.png",
+      "bytes": 78241,
+      "sha256": "90c66bf067bc6ff01d8d23017be9e87f27d23f05a5aa8f44a662cdbf411ee3c9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/02.png",
+      "bytes": 85866,
+      "sha256": "b1183bd79fe1f01007e36494cc2b7bed60f7e350148e383e843ea30e3d38a5f4"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/03.png",
+      "bytes": 80654,
+      "sha256": "4c45e8028c6827f3abff7011507de76cd94f9cf89d29828bf4bfdb3ed9cd769d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/04.png",
+      "bytes": 85942,
+      "sha256": "f04fe4fd82c9bc1cf32f729b4d9460448a947e72324ebe450c79cb44f542a7d6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/05.png",
+      "bytes": 76823,
+      "sha256": "1df1c545e97b994f6212608dd646c894ca82ad705b800ac4be507ec100442199"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/06.png",
+      "bytes": 85771,
+      "sha256": "d125bba78e86869ac9afadf61c18a787806067248ed496c0c64d2d5c7412d16f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/07.png",
+      "bytes": 79952,
+      "sha256": "ebd71df368768171f7b21e49cd99a8ed32f35ddab78463346925ce7ae49677d3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/08.png",
+      "bytes": 84722,
+      "sha256": "ee8b84830cbfa3373e7c35363619a7adfa53348b61ec25dd92c43eaf56983d55"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/09.png",
+      "bytes": 78504,
+      "sha256": "2212ab67ea359ea51e222298098950ea2f2c552b1147e003f49bcde229d7908f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/10.png",
+      "bytes": 83665,
+      "sha256": "31ffde4aeb4e9fb7090df49202680804741e8fa178bfb7d5164a461adc793d61"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/11.png",
+      "bytes": 75862,
+      "sha256": "212a2ed47665b022fd6d21519fee4ec6c51a59ee1e4b68d59eaea348b3d1db11"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/12.png",
+      "bytes": 80393,
+      "sha256": "d1a93cc5b3e82f67353b98ab2feae738e0d2f8e716f56b95e9758d9443bfb45d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/13.png",
+      "bytes": 74969,
+      "sha256": "e9326f52c6cc5942f3d61b306fb9d33e645586a6f06ef9c6706cc9f190bca348"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/14.png",
+      "bytes": 69575,
+      "sha256": "d97c07187424ea8ec37aed327775d980c16e76d266309c1959d71e3776bfeb3c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_arc/15.png",
+      "bytes": 69575,
+      "sha256": "d97c07187424ea8ec37aed327775d980c16e76d266309c1959d71e3776bfeb3c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/00.png",
+      "bytes": 122208,
+      "sha256": "d3a41f6ba52b6a1084cfca502b04ca661b037f73994d75bfb27d4c22938e2e25"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/01.png",
+      "bytes": 189219,
+      "sha256": "9be7924706eee2ef61c762b9ea30f2ad0eea35c96d66700f8a8f729aab176785"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/02.png",
+      "bytes": 90274,
+      "sha256": "5f3677f22825abd30fabb85ae2b099702d93d71afba57411164936e089a47161"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/03.png",
+      "bytes": 138746,
+      "sha256": "8c7b57ff6692ec1f1b2410fe5dd767dc0441327d120225ca3a362477f8255087"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/04.png",
+      "bytes": 209100,
+      "sha256": "7d89e7794db52375eb5af4f086bcb86b30808231a93a598a14b06accb5edc5ff"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/05.png",
+      "bytes": 81413,
+      "sha256": "bd508789c6eaf1f44d438fc638f1d40c4a2f7478b8ba882700d33d726663f55a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/06.png",
+      "bytes": 145506,
+      "sha256": "c4f3fa5770682f28f7fb5e2e2936ec8365a5f5542e3799efa29942ad51e1a904"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/07.png",
+      "bytes": 197179,
+      "sha256": "004a047263cc6f5d78a9f3c8f4ecf57b18b79062bc4fa74d64dd68cb9132ddbb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/08.png",
+      "bytes": 88362,
+      "sha256": "5fb856b392020539a2dd17b6c1898937fe64e1f13839182e38acc9fac3196349"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/09.png",
+      "bytes": 135667,
+      "sha256": "6c749c8652ccab5a815e51ac007df727b8f4f60e842134bf39f669f2da35e0f2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/10.png",
+      "bytes": 204378,
+      "sha256": "550878ca7701f50c70ee75602df0858025e2d89dfaf5bf433e6bd14cad3fbf7b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/11.png",
+      "bytes": 80570,
+      "sha256": "bb3c22cdf2c8560e77ff09aedcb9899d0ed1eed94e494a685b701ae277b5e48f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/12.png",
+      "bytes": 138237,
+      "sha256": "5bad9550d3ef4d81ee73645bc815b0dbca0357703032ce054a7ed53305df34bc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/13.png",
+      "bytes": 184766,
+      "sha256": "16cb4e2c8b1cb1e49bf83cde7f24d0d9d6865a6d36a98e30c8ee8440f2e0febc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/14.png",
+      "bytes": 74732,
+      "sha256": "457b0f37e4037c8b02d7ddb4cad2417ff9b755235a4e776ba3570830b92faed3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/frames/fx_lightning_strike/15.png",
+      "bytes": 122208,
+      "sha256": "d3a41f6ba52b6a1084cfca502b04ca661b037f73994d75bfb27d4c22938e2e25"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/manifest.json",
+      "bytes": 128943,
+      "sha256": "b82f0fdf0529807b1e178d707de74830cad6b7f96078951bfc8f1b3650784846"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_dust.png",
+      "bytes": 302754,
+      "sha256": "7b5dafd546a3d343c7b41a2080da92640870e7070d45a54e4894a3e4e872a704"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_dust_atlas.png",
+      "bytes": 445273,
+      "sha256": "29e7ec7eb5bb0c7683a64eb22d0d41f5784b6fc77c405ef53395a03cf1f5a05b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_flash.png",
+      "bytes": 188271,
+      "sha256": "ea688ade5a6815963249779fb67ee13999a1938f7d57a998521dcde7c37f7fd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_flash_atlas.png",
+      "bytes": 216591,
+      "sha256": "c3ba109c64ec53f42cc3f727d77f4317635012955698262987f460d9710fca8e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_ground_arcs.png",
+      "bytes": 283343,
+      "sha256": "0cb6002a26269a5b6c85acc5814150e27cb087a5d2c43702e22d5310b35238b6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_ground_arcs_atlas.png",
+      "bytes": 428451,
+      "sha256": "493da2f15f1ea5669871593d8bffa40ad31c29b9901113b39ba58a04e5c3898b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_scorch.png",
+      "bytes": 277900,
+      "sha256": "dee5681acf18f9bcbfe578db2f6692d25e1aaa3486428ce9b6639471e5210bac"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_scorch_atlas.png",
+      "bytes": 503900,
+      "sha256": "801afb7785783cba9a0c8a810ba9cf1071537126dd152e84e3205fd792444ee1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_shockwave.png",
+      "bytes": 249875,
+      "sha256": "68a89a0801ebc74352089e88c8020f4b9b28853507130ae7270e3e60067a3474"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_shockwave_atlas.png",
+      "bytes": 227897,
+      "sha256": "4b1985a22e1947d29bcba3b441218e7e7fe83636c994bb3e10533b0095f49442"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_sparks.png",
+      "bytes": 175283,
+      "sha256": "f41fc622f875e3b51cfad9cbe1a013367304fdf28cefe35745ce644d683654d6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_impact_sparks_atlas.png",
+      "bytes": 203891,
+      "sha256": "cccbd72a7bb48cb7f4bd1c5f5333b6d8453589f514f1e257bff511d6149106c1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_lightning_arc.png",
+      "bytes": 119481,
+      "sha256": "4f14429f04f318dc141c1def68bfb562ed5de9c20c7b12e5e96d5bf4eba51a8b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_lightning_arc_atlas.png",
+      "bytes": 246663,
+      "sha256": "a3672e596cf5127211d8d1f131b7f4582c08e48048a5512212180e1faaf7c815"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_lightning_bolt_a.png",
+      "bytes": 201842,
+      "sha256": "d866f56fdf7b6ffa7886284b57d10afef62c3a32948c1dbd5d5c0145d1a2d90c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_lightning_bolt_b.png",
+      "bytes": 282222,
+      "sha256": "c56807286f49f2516fd90a99b760c7c25bd9c869d893a6fbae311e376d400097"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_lightning_bolt_c.png",
+      "bytes": 149408,
+      "sha256": "899200e9358bd35541a9bead5df086469701f221fcc9e68a75d2c6d0866c3635"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/opacity/fx_lightning_strike_atlas.png",
+      "bytes": 456221,
+      "sha256": "806de5bc5af6299d22da17cbf92a61ba024b0b0e4ed23f173384a0bca3486573"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_impact_dust.png",
+      "bytes": 87386,
+      "sha256": "9abaff518413a8051a7ae15398da0fcdd77745cea468f81c76f09d689d4adcd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_impact_flash.png",
+      "bytes": 87386,
+      "sha256": "9abaff518413a8051a7ae15398da0fcdd77745cea468f81c76f09d689d4adcd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_impact_ground_arcs.png",
+      "bytes": 87386,
+      "sha256": "9abaff518413a8051a7ae15398da0fcdd77745cea468f81c76f09d689d4adcd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_impact_scorch.png",
+      "bytes": 87386,
+      "sha256": "9abaff518413a8051a7ae15398da0fcdd77745cea468f81c76f09d689d4adcd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_impact_shockwave.png",
+      "bytes": 87386,
+      "sha256": "9abaff518413a8051a7ae15398da0fcdd77745cea468f81c76f09d689d4adcd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_impact_sparks.png",
+      "bytes": 87386,
+      "sha256": "9abaff518413a8051a7ae15398da0fcdd77745cea468f81c76f09d689d4adcd3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_lightning_arc.png",
+      "bytes": 15437,
+      "sha256": "95c970cfec8837b05a9390552939d938302826771649abfc39e8da962a20d958"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_lightning_bolt_a.png",
+      "bytes": 4921,
+      "sha256": "72f9b6a7a9d031ffc6fbac722cd2b8f3f1af2a208da87108076bbdd31c98c63a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_lightning_bolt_b.png",
+      "bytes": 4921,
+      "sha256": "72f9b6a7a9d031ffc6fbac722cd2b8f3f1af2a208da87108076bbdd31c98c63a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masks/progress/fx_lightning_bolt_c.png",
+      "bytes": 4921,
+      "sha256": "72f9b6a7a9d031ffc6fbac722cd2b8f3f1af2a208da87108076bbdd31c98c63a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_impact_dust.png",
+      "bytes": 1525461,
+      "sha256": "c874189c23e7ef686bfac49dd87e549440d8341b68874482ebfb8aebdac119ff"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_impact_flash.png",
+      "bytes": 810886,
+      "sha256": "d9b0a22ddd5139f36a1db69f415c45f969bc33bfbd4abf7a1f3b6a1b8cd1a5d5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_impact_ground_arcs.png",
+      "bytes": 984731,
+      "sha256": "5f6c3ca75e3c09841e5fcd569212d1143bb2d8eb271b3bf2467969f4410eff27"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_impact_scorch.png",
+      "bytes": 1614764,
+      "sha256": "dbf13f8116916ce066121d1b9cfedcb12fac95090592cc6edf37f95836080498"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_impact_shockwave.png",
+      "bytes": 885316,
+      "sha256": "354924f49acf15f099e888af483b94db9af046a5982c699867bc9482857e10cf"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_impact_sparks.png",
+      "bytes": 500880,
+      "sha256": "63ed8575a1422c1140b6cee157872ff1bd06185a97b75da530e455fd51ddd77b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_lightning_arc.png",
+      "bytes": 585627,
+      "sha256": "05853702f02763a48177aeac628fa86abfcee224476adb829b5ba8c436553480"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_lightning_bolt_a.png",
+      "bytes": 910819,
+      "sha256": "47ba8f404d58f8972fed012cdc8fcf445db47512f93dd6250249d917431a42d8"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_lightning_bolt_b.png",
+      "bytes": 1406598,
+      "sha256": "d95f39e287b6dc8066844b1a70ef377dbee33bc1acc065f35683452f11f2afbd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/masters/fx_lightning_bolt_c.png",
+      "bytes": 588061,
+      "sha256": "a37895f3eead77c650ff7e685007668ccb650c11d4a993d3a7839d5500fb0cdb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_impact_dust.png",
+      "bytes": 1350909,
+      "sha256": "525bc440b1b1dab5345ec2253c20e27e3c4e538e30ebe5c9a33e167fb7ea8980"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_impact_flash.png",
+      "bytes": 825673,
+      "sha256": "e43037e9d6b3c0537b600deeabc4f5b2bf637c648a65e33da327fe750e5b6122"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_impact_ground_arcs.png",
+      "bytes": 1252077,
+      "sha256": "e678db222899fdf8b0c416e962f77427565c037dd10759865b626b0a7a5f616c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_impact_scorch.png",
+      "bytes": 1638863,
+      "sha256": "b8d0d20ea80c99ea9a1dfa6c842bc89fab135f7aa6467b5812b6b0f9075de3a0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_impact_shockwave.png",
+      "bytes": 986902,
+      "sha256": "3238cbc0c11664cac85f627813f8f7ab395e1c2fd19a045711708d8f275475c5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_impact_sparks.png",
+      "bytes": 700160,
+      "sha256": "031f076056468e7db9a8d582b4f453faa073472a52caff522fb71311e0bb4e35"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_lightning_arc.png",
+      "bytes": 660522,
+      "sha256": "dbbd5fa84ab54fb200e07ee987709304786859e8551bcac56c6d38aa749a3dba"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_lightning_bolt_a.png",
+      "bytes": 936897,
+      "sha256": "7556db930c4fd938309a0fe162b24a695abafd845ee661d2adb20e7860bcc5fd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_lightning_bolt_b.png",
+      "bytes": 1373323,
+      "sha256": "969fc0bcde7f966c2a044efca8d1cd41a9655bd7ff6a5c60b8ee3beffba3882f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/fx_lightning_bolt_c.png",
+      "bytes": 687509,
+      "sha256": "d1afb245790c0d010b8238a62c910e0fcb30e4b37f74179131d042c9335b4edc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/native/iterations/fx_impact_scorch_rejected_glow.png",
+      "bytes": 1016246,
+      "sha256": "f74c34c83802ca78983ac8caf1c26d8897ed312af1198e9181bedfe39ad7f248"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/package_addition.py",
+      "bytes": 10061,
+      "sha256": "0429b79879799d06825988a4065cb75f9a903989b4e7925d22531aed677c42a7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/alpha_overview_1.jpg",
+      "bytes": 257693,
+      "sha256": "42eead5c29ff9d1e31a1d87066e081554b457ec03c8137c4725f44754888ba7b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/alpha_overview_2.jpg",
+      "bytes": 196811,
+      "sha256": "43c3234268d125336c2e8a890652ed610a9bb1d62ac9e7a832189edc95f6e1bc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/contact_fx.jpg",
+      "bytes": 131405,
+      "sha256": "54ab2a3d31115f0fd7c3f5ef5392db6b34df093c1ad5b666d706fd3afb42831a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_dust_alpha.jpg",
+      "bytes": 51964,
+      "sha256": "9cbefadd5afadd56edf31e7fbb6414ab0a2255b7c3b4de9d6cf41d6ccfc81ad2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_dust_frames.jpg",
+      "bytes": 73259,
+      "sha256": "617ecc905e99b6c88f435a7f6aa168657c2179ed4582a4099c7ad4b68cd29eca"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_dust_motion.gif",
+      "bytes": 321724,
+      "sha256": "aaadf7871860040ea183ed26a0c0cdeb8a1191e793a2eef4f6673dceed9384c1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_flash_alpha.jpg",
+      "bytes": 41419,
+      "sha256": "518e25d5c07bf5c4f26ef773f235fde19aaa74caa6960401447accac4f374282"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_flash_frames.jpg",
+      "bytes": 58083,
+      "sha256": "29f6ec80a067febdbe83371d2e67afc78d517025865201dab2625a5ae19b9b42"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_flash_motion.gif",
+      "bytes": 181202,
+      "sha256": "3f8aa607ca1470abbf18f5036ab71567b84658d29b4c4826113bff8a6fe7de03"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_ground_arcs_alpha.jpg",
+      "bytes": 51276,
+      "sha256": "efb312872c957a3f4368672aa9b33babfa52c2180b2ccc8afda979cf8c5c6881"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_ground_arcs_frames.jpg",
+      "bytes": 72101,
+      "sha256": "35bed8fd49cdd663f709e0e17c599a09d651d23a5282779923cfe46876aa5561"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_ground_arcs_motion.gif",
+      "bytes": 287257,
+      "sha256": "87c19584b8df1afb9b6b5148ad47d4737a922e7fc121fc083a21b4a1d6b2739c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_scorch_alpha.jpg",
+      "bytes": 64493,
+      "sha256": "5e035c5e7d3bd5bfdd6d574620192217800fd567a0ebb31a99b7c8c0237ca6c7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_scorch_frames.jpg",
+      "bytes": 134297,
+      "sha256": "3ea71bb0d9b4af925a158a074678d753b772d16e0a106f85384546a888fda002"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_scorch_motion.gif",
+      "bytes": 291103,
+      "sha256": "2541304189918fff3a2051ec1414c30672a0de2ed52956c79e0d8828fe22e0ff"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_shockwave_alpha.jpg",
+      "bytes": 47602,
+      "sha256": "3d7126c6f22f03827759b3916774be719b54bc18ba0a9af6be584e95191f95d9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_shockwave_frames.jpg",
+      "bytes": 62101,
+      "sha256": "7697279d6e6298811c8b60d2f12c635eb5fbf053cb46bcca6bd5d5a1357d5749"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_shockwave_motion.gif",
+      "bytes": 148828,
+      "sha256": "e3d0d0afbd1f509a0da0e9d2d7a77aedada5115bf30b58e5ff60755d91e890a7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_sparks_alpha.jpg",
+      "bytes": 38693,
+      "sha256": "becf7c4265870111c445f9f6c3735b1f0da429622c30c63d9e68d4d3e87c1909"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_sparks_frames.jpg",
+      "bytes": 58808,
+      "sha256": "c3f34785dcc49ead2ab2226912fb8560cff3a8c5ddb5cfadaa6c798b9908d008"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_impact_sparks_motion.gif",
+      "bytes": 120557,
+      "sha256": "f41e8331e6ccaaf39c1076ff76dc21fc70ef0f4752d680b7f2d8bed0ac0ba798"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_arc_alpha.jpg",
+      "bytes": 27072,
+      "sha256": "9a937c0d7c240af958307d393fb1e9072218ad75d8865862cbc837907e633864"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_arc_frames.jpg",
+      "bytes": 54613,
+      "sha256": "531a96ec661fb2a8ae416af848d8565df4a7fa932426a5bdd0034546a9ac6a69"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_arc_motion.gif",
+      "bytes": 88305,
+      "sha256": "4677323520992826b3df42f44f3632d33f7e37a1c9c7bb94d35f846bcdb091e1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_bolt_a_alpha.jpg",
+      "bytes": 41740,
+      "sha256": "a24db46e59d17eda5cadf2a8b741034d071615b2a54e9c596376998e1f0f209e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_bolt_b_alpha.jpg",
+      "bytes": 52623,
+      "sha256": "be4c97c314af2d3bc7dec5dadea4a13438021deb1e94b50dbec04bae2f74a879"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_bolt_c_alpha.jpg",
+      "bytes": 36082,
+      "sha256": "5c6d3711aefb61ff4848776cafe87adbd17b960ef47767a6d18416a48704f17e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_strike_frames.jpg",
+      "bytes": 62027,
+      "sha256": "c5f2ab318416975443962274390b22897d332ff7d797a0303b856a3bdd92e8ce"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/fx_lightning_strike_motion.gif",
+      "bytes": 151088,
+      "sha256": "20fe1f57a0c51a8201684c42d390946b089fa8b2d2c896ecf2290c395a4e1d2f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/test_preview.cjs",
+      "bytes": 2435,
+      "sha256": "9b7d24c2a1fd2b59f91052ce45054adbb69e524455b912dc46c9b86d522249c5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/threejs-frame-2.png",
+      "bytes": 123303,
+      "sha256": "0da17235d3adf785cdae8b68a95afa730f65de55a15da8e9d2d07297bc5f0e7a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/threejs-frame-6.png",
+      "bytes": 164793,
+      "sha256": "491a98900c79dfeb30da59aed1be450e978b817879ac7fee64ab36c70a446674"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/threejs-light-background.png",
+      "bytes": 105824,
+      "sha256": "6f32250b012204fe7fab9c53aec7cd1c3479dcaf5a38d7a230c5e2c55c3e7496"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/threejs-preview.html",
+      "bytes": 3982,
+      "sha256": "c8a34dad8d5c834e00c92b044d5162614203ccf91344c7e175cbc2a4a16154c3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/threejs-test.json",
+      "bytes": 340,
+      "sha256": "078ccea1906fcd66e612cea7e33161948b83e3fbc076de11ffee71f51d6bb317"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/vendor/THREE-LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/vendor/three.core.js",
+      "bytes": 1403455,
+      "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/previews/vendor/three.module.js",
+      "bytes": 603113,
+      "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_impact_dust.json",
+      "bytes": 1837,
+      "sha256": "44528a96a9b535cb4bb574d3a5be5a7123614a42043da80b6983a229b6c8ba72"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_impact_flash.json",
+      "bytes": 1726,
+      "sha256": "f25190aefaa9f1ff8a5a57489696c2e627da1245b38f34afbc311669ad9f6bfe"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_impact_ground_arcs.json",
+      "bytes": 1754,
+      "sha256": "eec773806335d49fb17a487a228539f5d73feefc32dbf07f4ceb11314ed8d4dd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_impact_scorch.json",
+      "bytes": 1793,
+      "sha256": "5237e098b6b00bc50c166490110cc738fa46c7ed12752ee4893b1a5b8c2c442a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_impact_shockwave.json",
+      "bytes": 1764,
+      "sha256": "8da181865aea3087ccafc0d9b7f66f7b0a1532d781a67eb3fcea2ddd6975722a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_impact_sparks.json",
+      "bytes": 1735,
+      "sha256": "7b088a8b9b5a27e42226c7a41e0f92e03c7a6eea835ae5a8413164bef0f81506"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_lightning_arc.json",
+      "bytes": 1585,
+      "sha256": "439de3ab2adabb858f1b12d3bc80fbe88869ff5b45749dd45dda53a97389d6d7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_lightning_bolt_a.json",
+      "bytes": 1600,
+      "sha256": "8fff4ebc3b03e54a632ea52c8ac00640a40104d83d25ba22002e542147aef896"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_lightning_bolt_b.json",
+      "bytes": 1635,
+      "sha256": "acde6e4324285bb7c10184eb40ef542477a70bd0a3a821537fb4145c9b51d98d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/fx_lightning_bolt_c.json",
+      "bytes": 1643,
+      "sha256": "d88e1f752a666c66e097866909549dc9b821e75bea9be5df0435bfdbebc03b8c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/original-inventory-report.json",
+      "bytes": 1402,
+      "sha256": "efa145b3ae85023ca89cdc995eb38a0555ac82110ded16b36c94303602b8fed3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/original-pack-manifest.json",
+      "bytes": 183443,
+      "sha256": "d5d5a35222f1c7f9f7580f12b2016a99f8139af7eec0c710a4abe4613c75a9e0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/provenance/scorch-edit.json",
+      "bytes": 1137,
+      "sha256": "8e3f1e0fbf8658d0dd55fbaad043c0709e25dac3f933680c5f67f84c9d622375"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_impact_dust.png",
+      "bytes": 1016031,
+      "sha256": "778dfaabfece16209d3c69eb02b526f16cdb35362f9b67eed4fc666ea6b359cd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_impact_flash.png",
+      "bytes": 566408,
+      "sha256": "a36c0333ffd62c641c22f7fd622a9928672c0ae00e18ea5cdfccacd8da0f0d8c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_impact_ground_arcs.png",
+      "bytes": 710005,
+      "sha256": "9866eb29ebea91d24d1bbcc302fec17d95c9ea5ecc59b0d9d5aa1ce4da55c073"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_impact_scorch.png",
+      "bytes": 1051283,
+      "sha256": "6c5bf2a35115ae166300af5bd08ef7551912ba5a3780d2377897275fd485529d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_impact_shockwave.png",
+      "bytes": 629199,
+      "sha256": "914e8da1e567e8223c0179daac4f28df2d16bf925ab92c4ce2523da60cb37527"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_impact_sparks.png",
+      "bytes": 369902,
+      "sha256": "c8e72c2f367cf6709385b2e5e8f5cf3019d5519e9cc473ef19cdd20541f1d65d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_lightning_arc.png",
+      "bytes": 309287,
+      "sha256": "0b254473899d6a96d61a86817974c110465b48189fb72c8b5c2a1b10c657e660"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_lightning_bolt_a.png",
+      "bytes": 511652,
+      "sha256": "3e73d642acd11daff129f68db1c3b3da2bc8241941d7829aca76f002738a667a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_lightning_bolt_b.png",
+      "bytes": 755574,
+      "sha256": "0767767430721cf6c8edd255a059d1cb806037c05165f39fd26602e13c3f632a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "fx/runtime/fx_lightning_bolt_c.png",
+      "bytes": 325944,
+      "sha256": "83a62fc919e35833adcaef3a4dc3eed261d2382d205c2ce03a84b6bfd615c7c1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "generation-log.json",
+      "bytes": 43704,
+      "sha256": "0af4e273fcc2c5930a8b7c71fb8783c876cb12bc9d8cd5eec4e3a1f41acf1846"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "inventory-report.json",
+      "bytes": 1745,
+      "sha256": "abf7bd9d329ea5205d14559d5156182ac0fe255049e9c7354926bd4c85fa17d2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "manifest.json",
+      "bytes": 281695,
+      "sha256": "55fd0be1ba95640b4c21a43def89d9415e061b15b26be3e268c1cf9751238b0e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/ground/ground_coastal_pebbles.png",
+      "bytes": 42417507,
+      "sha256": "85600cb1008316d7574cef037c3fc79cf47d81fd1017c87904951ef2abbe498f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/ground/ground_forest_leaf_litter.png",
+      "bytes": 42756948,
+      "sha256": "849d938b13d51be5d15d8c1d0f43ca0deb6222a3e87af3cbbc18d28a1d383b22"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/ground/ground_salt_flat.png",
+      "bytes": 32719219,
+      "sha256": "b4a960fc89e2381b9c1d6b6c1d626d18aa51832225138e3d55de537d1879726e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/ground/ground_tundra_lichen.png",
+      "bytes": 43243008,
+      "sha256": "fdfe7aa4e729b1dca56755ac6741ab77da3f551e5e870728c18f5fddab80e50b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/ground/ground_weathered_sandstone.png",
+      "bytes": 38407411,
+      "sha256": "196ce4e8e27ec366b9e39abfe213336656d983f5f15680d6f8a856d2aeb12ea9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/ground/ground_wet_marsh_soil.png",
+      "bytes": 36280766,
+      "sha256": "daf2681c89d0205fad7014e680611dfb87ceec2b1dcce8324d3e7485054ae540"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_alien_crystal_ridges.png",
+      "bytes": 4231043,
+      "sha256": "50f170be549d03e603c2e8caeb580f3e6eb76c951e9283c4e6184072c5dccc10"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_alpine_snow.png",
+      "bytes": 5223207,
+      "sha256": "76b5f8f3dae05ad6c4d733a19317ac18df7c149493ffd869af6e07abcee581a9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_basalt_volcanic.png",
+      "bytes": 4713531,
+      "sha256": "d3fa37f5318c895a3202adbf5c565a5953eb60edd655ab7e984de9417073e2ad"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_boreal_forest.png",
+      "bytes": 5565950,
+      "sha256": "506e01421561b4224806f407bdcb2d8f9bbfb278740c43373af009fc49c997ab"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_coastal_cliffs.png",
+      "bytes": 6155129,
+      "sha256": "263bfa5b72d70e2e7eeb22c56512a5f5af5b5eced6843cc9ec553c83c0aee88e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_desert_mesas.png",
+      "bytes": 4867063,
+      "sha256": "7b6741a9480486e22131909c3b5b947b9e248150743b5ed1b802c3d110112948"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_glacial_ridges.png",
+      "bytes": 5781644,
+      "sha256": "3f39a1cf22fc1b6b29d6accae8ea795a4f7ffb3727d036ee6fb876c822877024"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "masters/horizons/horizon_temperate_forest.png",
+      "bytes": 5805800,
+      "sha256": "b3e90e8417ff2b0c49eebe73e96de82ce2a7f3ec9450cc2a71632be8a51da14f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/ground_coastal_pebbles.png",
+      "bytes": 3552831,
+      "sha256": "55194ec80284e16520459f38779f484223ca9b44c3e1bda822c2e0929dc853b3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/ground_forest_leaf_litter.png",
+      "bytes": 3732413,
+      "sha256": "e5d062046771f164f126e7b87df325cbce9795fe79564f19bb66cbbfa2e7c5c7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/ground_salt_flat.png",
+      "bytes": 3217399,
+      "sha256": "674129d597d9bff86779fbae9e95dcb75dc6d9eae33e76e9dd045e1a1b6a2b08"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/ground_tundra_lichen.png",
+      "bytes": 3801279,
+      "sha256": "8772fc0ada88ade4d93d869417452e9b5e3d6c007d4d180d9e23a0fe176739cc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/ground_weathered_sandstone.png",
+      "bytes": 3179805,
+      "sha256": "4d00515af91e3e1de2c94535f774db1b8ae20d7750dcb988eae0c78039626a7b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/ground_wet_marsh_soil.png",
+      "bytes": 3476409,
+      "sha256": "e037d028f4ebc3807a7a2a999a0036eb9520dc367530093644419ccf4d054df9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_alien_crystal_ridges.png",
+      "bytes": 1688770,
+      "sha256": "f1debcc18478b72404f53517c31b921a8b8029f1342077ae99e5b72dfe04f19b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_alpine_snow.png",
+      "bytes": 2050444,
+      "sha256": "ca04fe605193a38c956135647cd8e01f9697987a3e4a2a6cdaf26c6a0ec32a1d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_basalt_volcanic.png",
+      "bytes": 1717190,
+      "sha256": "f4f8079fb914675f4bb2498742118acf501c40702073c910de61ab4c17ac1f9a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_boreal_forest.png",
+      "bytes": 2391918,
+      "sha256": "31da135d1ddb5cad1d822e39c8c7b66da25a55cc334702ff014fe068b6a677a0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_coastal_cliffs.png",
+      "bytes": 2131311,
+      "sha256": "9475e58eb52dfb94aae6b9c39e9a2b97a375431662585b6e6ef425cedae37379"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_desert_mesas.png",
+      "bytes": 1805852,
+      "sha256": "4ef405a8d68ebdacd00a3a0ba6bfac43dc7e7ef99557faeb71aa716cbaf9f1ac"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_glacial_ridges.png",
+      "bytes": 1672661,
+      "sha256": "5a3cd13c3f03ed8f88faad153dac9fb9d0fba96050f9c6de284d36338083f658"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/horizon_temperate_forest.png",
+      "bytes": 2277234,
+      "sha256": "a889adef8331a9d4b19da82a7fd03b9f0f5bca52d0e7260d7750141a4bec12e9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_basalt_boulder.png",
+      "bytes": 2378174,
+      "sha256": "2e97ed492fc18815939f9d791b01451ea8de684ba8a91e75c465fb97a886673d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_crystal_cluster.png",
+      "bytes": 1851525,
+      "sha256": "bb7db346aacb4b9f0de0d342c652c2305bbdd46461b99ba6bfebc0f8bcb37e15"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_driftwood.png",
+      "bytes": 456481,
+      "sha256": "aa6182314c244e87e3dd88a58f92b31d5e43cd7cdfa0bdaa5a1c690299cd5ee5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_fern_clump.png",
+      "bytes": 1736483,
+      "sha256": "6192496cd6f98c2f1812e7f4a5bd4224da0dd79477947f6434224b08db0d90c1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_frosted_stone.png",
+      "bytes": 1937052,
+      "sha256": "1d5af8834613fd84ef9628762a3e5ce29ef92fef9552b513952c327f2f57c5eb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_ice_shard_cluster.png",
+      "bytes": 1854546,
+      "sha256": "38e37dd54b751485af924bf351b7007ca0295a3f6fbfaed5d8550e029031f329"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_ice_slab.png",
+      "bytes": 1493123,
+      "sha256": "df2bfdeec80489d03f94209a722298a5409b8976d57ec8b5745c854b5ba4257e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_low_shrub.png",
+      "bytes": 1399197,
+      "sha256": "5e55bc249bed8b0e19280382ffdb023b1050bb2eaee1adf13e69dd1ed0981ec9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_reed_clump.png",
+      "bytes": 1073755,
+      "sha256": "3f7875f362b63c08443030212dbc0a4b273858996131e96e35ea799821602cfd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "native/prop_sandstone_boulder.png",
+      "bytes": 2282753,
+      "sha256": "1f34eeb3902c84f4f62ab0e4f0fe88bf9eda979b76efcf4d256b5987eb4d68d4"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "package_pack.py",
+      "bytes": 21824,
+      "sha256": "c77a56717bed753e6719080e1b33ec7f53f01de9502002030bf330924efa16d5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/all-image-decode.json",
+      "bytes": 49842,
+      "sha256": "55fa4a33155042b97a928c01e24f010b42da70a6421b466aa55b2590a09c12a0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/concept_alpha_overview_1.jpg",
+      "bytes": 607236,
+      "sha256": "fd7df93c51290b5fbb87fb752f6e23b91373d600032ff976ab5e02c70a8c4f88"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/concept_alpha_overview_2.jpg",
+      "bytes": 622289,
+      "sha256": "1eb17db95f68f82fe0594e7298764d1f8d927b3ec1ab612c69c86e086b0f6a15"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/contact_ground.jpg",
+      "bytes": 1108964,
+      "sha256": "7e4b5ed02fa8ced437250f16904fc849401ef1a3cc4faeaa76a1617d47c8fc30"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/contact_horizon_joins.jpg",
+      "bytes": 729716,
+      "sha256": "3b1fe5044fddd8a83b9c67568fc804c5dd872cf2411e6c2d685ca9b18334e271"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/contact_horizons.jpg",
+      "bytes": 684028,
+      "sha256": "60836f9b28d618ee82102935adcc54bbee83ee9a6ee9a10ff876bf8ef1758916"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/contact_prop_concepts.jpg",
+      "bytes": 580430,
+      "sha256": "0ce82b28ba4baf4675309303483a630fdb7f91e0005e7c38472570ae4f0d5930"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_coastal_pebbles_native_repeat.jpg",
+      "bytes": 1612893,
+      "sha256": "6f40cff76e0ec3f7a8cbe1f19fd023ac8a6d20afc87e68e9fe16ae577f67f5e9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_coastal_pebbles_repeat.jpg",
+      "bytes": 1748383,
+      "sha256": "42b4f18a1bed70c1524a42f88ea301c5147a0a681ee1bdc4b785f157782144c6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_forest_leaf_litter_native_repeat.jpg",
+      "bytes": 1688199,
+      "sha256": "499e4f87fc05e1e385d81f91ef911a9236470d2827cb6a47143649dee6d070c3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_forest_leaf_litter_repeat.jpg",
+      "bytes": 1832399,
+      "sha256": "2f7cdd268f6358b295c2aef423d34baf2b90f7475df287f7ddd035f52db4919a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_salt_flat_native_repeat.jpg",
+      "bytes": 1217113,
+      "sha256": "6170cf079836261665fa8956a45b1ae7c8193f03e2652138d49b6f4484c82a84"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_salt_flat_repeat.jpg",
+      "bytes": 1318267,
+      "sha256": "191b08ccdf00fc16eec3e945b1e9745498e2f2ea239a754005182ea2875d3162"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_tundra_lichen_native_repeat.jpg",
+      "bytes": 1596837,
+      "sha256": "b12021a33d4babad093dfe44d8d721746842b996bb2fcef0fa4d99f090230b62"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_tundra_lichen_repeat.jpg",
+      "bytes": 1715332,
+      "sha256": "b81f2095fa3357092bd7217b02a8a44a75482dacf74db2b5510febdce1955354"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_weathered_sandstone_native_repeat.jpg",
+      "bytes": 1167901,
+      "sha256": "a07a7c07da1fbab45239b72a29fa23588538aef272890ec74868cc5df48c0678"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_weathered_sandstone_repeat.jpg",
+      "bytes": 1279498,
+      "sha256": "6725923c6617fddc10b0feea9bac745695e99493d11417e0bb393989b6148244"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_wet_marsh_soil_native_repeat.jpg",
+      "bytes": 1348306,
+      "sha256": "48f1f624c64f478e234fc785b4c41c3912314b3b230076fcb17a6fa7d5e0ffc5"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/ground_wet_marsh_soil_repeat.jpg",
+      "bytes": 1465471,
+      "sha256": "08ac6b8d8b718e77cc5141521a77a8ae836f73814afbcbacd8508764a0311a21"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alien_crystal_ridges_alpha.jpg",
+      "bytes": 194038,
+      "sha256": "26b9c94f84597902a4e162394872f845ac89a3e7f6de21f8c2db92e605fc8116"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alien_crystal_ridges_join_detail.jpg",
+      "bytes": 78842,
+      "sha256": "34093e1e8106b5e6566e772117169f942735999e01e7cd7b7bf4a4627d7b75ca"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alien_crystal_ridges_native_alpha.jpg",
+      "bytes": 275754,
+      "sha256": "f4f82705d87c2da2778cd1ae4c2a61ed41c99db3a4820bfb3d9905f5aeec2d29"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alien_crystal_ridges_native_wrap.jpg",
+      "bytes": 187796,
+      "sha256": "fc4c2f19c9ec050e55e6d38ff9019feacf9283e1545c93a9d6d368a65241277f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alien_crystal_ridges_wrap.jpg",
+      "bytes": 472485,
+      "sha256": "55a63d07c87b850af5f8f4e7689cd51bd548dc1b73d22f12641cf753ae7ece71"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alpha_overview.jpg",
+      "bytes": 540444,
+      "sha256": "604db97a46fa9dc5297e615ecb11c7f8eade2ab1db7af922c7e845e63a6625e1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alpine_snow_alpha.jpg",
+      "bytes": 255712,
+      "sha256": "0238d321f99330140ff6f7c70d53b6205b44b4632fa9564c84ebd8f30f87c15e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alpine_snow_join_detail.jpg",
+      "bytes": 78633,
+      "sha256": "e129ab89624b027024ab201d2fd04ab97d2c4fae2b34233dff437d85adb6f244"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alpine_snow_native_alpha.jpg",
+      "bytes": 388614,
+      "sha256": "15cbb9ff222867c4ce36e3686720d93fd6dcb30fe4487a2a4fa5e00c13d3d1d3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alpine_snow_native_wrap.jpg",
+      "bytes": 262465,
+      "sha256": "3f4c5241775f483a1eabcd526c75603ee2b170806a0af527b6228e323d6f033a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_alpine_snow_wrap.jpg",
+      "bytes": 567689,
+      "sha256": "c17f16f91bf8f9302bf905c985a40f811bd27b4ba8254410df06642b9a16bb1d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_basalt_volcanic_alpha.jpg",
+      "bytes": 209331,
+      "sha256": "e223b29abaada282f0549dc314f0588a1897eb0bed03dabee7a1a559438989f6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_basalt_volcanic_join_detail.jpg",
+      "bytes": 101983,
+      "sha256": "e26c675309f4fa1493e283b205cc3b2f71dd545862633ffc8de2f82b4b3221fb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_basalt_volcanic_native_alpha.jpg",
+      "bytes": 288751,
+      "sha256": "11f9a929d518daeb7cf32a61581893204f0c3111b95a0dff1b35389946026f06"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_basalt_volcanic_native_wrap.jpg",
+      "bytes": 197402,
+      "sha256": "b461388792e438a71fdf2c87bd8020878808f51b5949562fa04f5c1851d7a17e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_basalt_volcanic_wrap.jpg",
+      "bytes": 501679,
+      "sha256": "7a2c311b064a0943ec3c33d91265e06baed9ada6aa7824bfe925c58092124802"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_boreal_forest_alpha.jpg",
+      "bytes": 220441,
+      "sha256": "42e1c78056b0870b4ca65b165c04929ba1105645e947a89c084372e27bd053cd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_boreal_forest_join_detail.jpg",
+      "bytes": 77524,
+      "sha256": "0aa024b3e2c79a484c845c7c5543dae645bb7b60fba91a673a14ed0c2d8851f2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_boreal_forest_native_alpha.jpg",
+      "bytes": 390258,
+      "sha256": "aa439bca845b11c45d41bea236ecf6503e9f2855f503b3ad01dc5ac1cbe5776d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_boreal_forest_native_wrap.jpg",
+      "bytes": 260388,
+      "sha256": "667680664f5ba6c8c4b36bed7af0f3a1bfa880c9d21cc86289eea4bf38fc6752"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_boreal_forest_wrap.jpg",
+      "bytes": 491650,
+      "sha256": "81861220957573f5eac6b6b64a8f2f8fcc9d7a47fee969032a413691c85585ee"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_coastal_cliffs_alpha.jpg",
+      "bytes": 289519,
+      "sha256": "916c1e76d2b969f9042dab72f29e89be14d55492b8dfb21488809ea1b7af0298"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_coastal_cliffs_join_detail.jpg",
+      "bytes": 116594,
+      "sha256": "67a159b8549c0ee2ce14507995f4bfa897f9ed56cb4d43aac26cf711592a3a4e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_coastal_cliffs_native_alpha.jpg",
+      "bytes": 408675,
+      "sha256": "bd55c987652e39ccb9bcf09a118d8d8ada4ef29e27c8f1b2c6e352ec0ac9f453"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_coastal_cliffs_native_wrap.jpg",
+      "bytes": 277391,
+      "sha256": "54ea1f0c20c6edcb92f39078e78ea499b46d3d66f0259c1c8b7f5dd03f1e66cd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_coastal_cliffs_wrap.jpg",
+      "bytes": 665083,
+      "sha256": "54854241e9c85718d1a07509a9295e402628f19779fd822d91d1880aa73459a6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_desert_mesas_alpha.jpg",
+      "bytes": 227739,
+      "sha256": "f09303984cc023eded059aa45f4f9e5583e5350f5c721b818f61d83b4061849b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_desert_mesas_join_detail.jpg",
+      "bytes": 84472,
+      "sha256": "9a89f98c16a2f09fcded7b207fd043b3ee17935a64e68206866a9feb665a61b3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_desert_mesas_native_alpha.jpg",
+      "bytes": 354494,
+      "sha256": "0dea855ee38f9ab7ab10089bb96853d13dd9156c5a79067eba579644b69db38a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_desert_mesas_native_wrap.jpg",
+      "bytes": 239974,
+      "sha256": "a56eb587937644daab250db91a3a4422b92b6283a843c696498e09e82c33f03a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_desert_mesas_wrap.jpg",
+      "bytes": 506753,
+      "sha256": "fb4e6865fcf33d48830dac18ac49351eb6cac09ca3bffc5cf363116bdc40a1f3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_glacial_ridges_alpha.jpg",
+      "bytes": 258608,
+      "sha256": "09cb33abe02851852f01b3c5c9dd1864fb8edb5715758dfb21a01f99dd940546"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_glacial_ridges_join_detail.jpg",
+      "bytes": 92821,
+      "sha256": "24a327e39191e77d24112d6db1ce6d4e2f8911e9049694c78e91a7e66482109a"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_glacial_ridges_native_alpha.jpg",
+      "bytes": 303719,
+      "sha256": "1dc6175b14ed78a8c0581d25a71607e05baec5299047e1971c8c8eae561cfc8b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_glacial_ridges_native_wrap.jpg",
+      "bytes": 202203,
+      "sha256": "87c7b4bafcbe6f65ec15831c950d93048f3f8b172525c3a2b75e5efcc7b09f20"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_glacial_ridges_wrap.jpg",
+      "bytes": 591266,
+      "sha256": "930cb9e246751abd7d9ca0db76f4248af6012f6f156a7999408a612b766d9888"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_temperate_forest_alpha.jpg",
+      "bytes": 237901,
+      "sha256": "8c5151b0a83da369031c5c085189c9e577b111997f5cc7482a3ea18bb7201a15"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_temperate_forest_join_detail.jpg",
+      "bytes": 89864,
+      "sha256": "ad33ab021c8983561cae69b364005df07a48fb560c218ad4b92dd0ef554bbcb3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_temperate_forest_native_alpha.jpg",
+      "bytes": 372504,
+      "sha256": "150504de76b1f7cd1425f7c6671581d2f0f69c0134ce6f91da2c73a13a84875e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_temperate_forest_native_wrap.jpg",
+      "bytes": 251236,
+      "sha256": "5c77b451338720367aa68d88823ded713bf360a52a3c56c8d44696a14f29d8fd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_temperate_forest_wrap.jpg",
+      "bytes": 576281,
+      "sha256": "45fc318fcc49325ad6505224cf4d61d472859847b011bd3810c39ca0e3b3333c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/horizon_wrap_overview.jpg",
+      "bytes": 1301464,
+      "sha256": "ba3cc204fa54c18821c014c115de12b28dc9f27b2b59794da993f8f4d6bd86c0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/image-validation.json",
+      "bytes": 49087,
+      "sha256": "7d08d81244ec35f3896049f861dca6009f597d26d33c22558de3d92b1c8d9414"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/native-measurements.json",
+      "bytes": 11734,
+      "sha256": "dbd87d56cb41d04d6ca598440325a6f6905ea225e1de2059f07ce6d11893b011"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_basalt_boulder_alpha.jpg",
+      "bytes": 1129504,
+      "sha256": "28d7e53da3c14e0d408874f3791368aff3a4a7afff17d26b0aaf5f3b631e6a13"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_basalt_boulder_native_alpha.jpg",
+      "bytes": 1128792,
+      "sha256": "b11adaf50230958d65877711c308f6cc888f0183c240f05413b37e576170d6e1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_crystal_cluster_alpha.jpg",
+      "bytes": 880382,
+      "sha256": "4d7b41974ef29d23bf2428e9818ed697246a3295fcf376b446b74ef604a2aade"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_crystal_cluster_native_alpha.jpg",
+      "bytes": 879785,
+      "sha256": "20bfd9a3197b8528307aa694febbea156716591b707bca580a3b1d98843cfc0b"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_driftwood_alpha.jpg",
+      "bytes": 265216,
+      "sha256": "f234fb558914cf99ecbc71f2fe0da98ecef9c3454d8b3d934b35b6323c00147d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_driftwood_native_alpha.jpg",
+      "bytes": 264702,
+      "sha256": "0d5bba4f1a47150fc16d942294df144076b45ff829592d756fa65b3ad2769125"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_fern_clump_alpha.jpg",
+      "bytes": 856639,
+      "sha256": "b0036363a2eeac2db93262bf93a0b06a87df17c483d213d21d1d37af2d84b4f8"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_fern_clump_native_alpha.jpg",
+      "bytes": 856707,
+      "sha256": "ba2c06e5a0aae76271e4b6458221c1c9184e1a82aedd3c94b5846e06fdcd95e9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_frosted_stone_alpha.jpg",
+      "bytes": 934268,
+      "sha256": "d117d819157b45072860de045feac53b2986c1ced38e67addbaf5ac1ba8d8b09"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_frosted_stone_native_alpha.jpg",
+      "bytes": 933513,
+      "sha256": "ff23cc3dbfe742293b10fb74979603581608d6e847c66b438b385d36fdd01987"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_ice_shard_cluster_alpha.jpg",
+      "bytes": 865590,
+      "sha256": "b3471c5f1910f380a8dd0eb1e82d6fd42a8cb62367dc93f9990ccac677d90fdd"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_ice_shard_cluster_native_alpha.jpg",
+      "bytes": 864909,
+      "sha256": "8ad9a8ee88d4ccb1751c499c597ab413fa77aad33c33b19db5197d5c13cee654"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_ice_slab_alpha.jpg",
+      "bytes": 706518,
+      "sha256": "c2a2b69852d246bb5d0c54b541addbebd278afa7710161a393c68b1019a0a98f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_ice_slab_native_alpha.jpg",
+      "bytes": 706327,
+      "sha256": "7e2d4fec9c4d35bcfcab4bd98465906e6b300ccedb17b060867b92b60d16b4eb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_low_shrub_alpha.jpg",
+      "bytes": 692303,
+      "sha256": "1918cb74bfdb04d7d9ea6e3f1ee1af8698839c121e4846a369270026d31e220c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_low_shrub_native_alpha.jpg",
+      "bytes": 691715,
+      "sha256": "2cbfd6c42dfa5a928f23f7cbf7d4fd5eb9eb2a2f099120dfd18b78e70839985f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_reed_clump_alpha.jpg",
+      "bytes": 523646,
+      "sha256": "acfd816c985330d9b06e451b193912ca5dea20838b75523dd8d78b196743eaa9"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_reed_clump_native_alpha.jpg",
+      "bytes": 522649,
+      "sha256": "a4bdf5e2d1f601c8f96950ea88cc3ebce45f521bdb511985705f96dbd95d8e2e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_sandstone_boulder_alpha.jpg",
+      "bytes": 1142702,
+      "sha256": "7ed1d592bc00f8ecf8445ad5420b9c6c809297aa4e56986b1ab9b45cb4254aed"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "previews/prop_sandstone_boulder_native_alpha.jpg",
+      "bytes": 1141262,
+      "sha256": "b0956b94cc2611d865e3e5760c6040f4bdf57d9f45b16d731f205ac5e4b8bfac"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "processing-log.json",
+      "bytes": 18280,
+      "sha256": "7b3740be078c1b0115da19eb0592c36afaee4182d5b371e48b1cd749b420f82f"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/ground_coastal_pebbles.json",
+      "bytes": 1673,
+      "sha256": "4caca8306481ad5af4f251855e4992cdb25eeffe9e1c2c1b63bab8c0619eafd6"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/ground_forest_leaf_litter.json",
+      "bytes": 1287,
+      "sha256": "dc65e064cb96ddda42763ac3da2cca72c034a3b08f4e80b3851d027fbdcb8ba7"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/ground_salt_flat.json",
+      "bytes": 1745,
+      "sha256": "ee00106980acf657d25e8df7b9abd1715eac114470b61a87ad3203d7f1aa6e58"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/ground_tundra_lichen.json",
+      "bytes": 1621,
+      "sha256": "c95bf283332e9c305c86b899bebf2262b2a05430a8bd1c7276e3eef394374560"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/ground_weathered_sandstone.json",
+      "bytes": 1825,
+      "sha256": "bd258d19be1af739e7997b1b2e3dfe9fa270679449c7b429515ff99f7cac1503"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/ground_wet_marsh_soil.json",
+      "bytes": 1804,
+      "sha256": "a6b1f2ac4738f9f413844c8d118733d7d3e22ea17af7ed004eddfdf196b70ef4"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_alien_crystal_ridges.json",
+      "bytes": 2162,
+      "sha256": "089973121808da84105e76028efa1351793709c072465e7e87638655216b9a7d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_alpine_snow.json",
+      "bytes": 1321,
+      "sha256": "25918f82030c4169450c7abf719d49b1d4237718aeda45c89af3fccbfb110896"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_basalt_volcanic.json",
+      "bytes": 1895,
+      "sha256": "ab7f4653ae58447acbd92032c925b1a20602c461993d76a6c0cc4c209a307296"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_boreal_forest.json",
+      "bytes": 2053,
+      "sha256": "f788601526cce05c7fa24b5787a86c15459d7f5e1845e371c54d3c20a6312628"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_coastal_cliffs.json",
+      "bytes": 2062,
+      "sha256": "aae969225750fdedcc42f4b9ac090278c8dcff22e6d8bf4a14f04e4f7f03e33e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_desert_mesas.json",
+      "bytes": 1818,
+      "sha256": "29a6c290963e20d99348670253df771243494ed3f7ff3baf162a7a1ce0d3de42"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_glacial_ridges.json",
+      "bytes": 1844,
+      "sha256": "3a141ec65851e4e3e0861b7652cc6acf6fb95311a2f85b2a048c3d492a9b5741"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/horizon_temperate_forest.json",
+      "bytes": 2104,
+      "sha256": "fff8d77c0d765900f33fdaca45c4cda2e96fb0cb7466a464b78f36af73b2ea83"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_basalt_boulder.json",
+      "bytes": 1316,
+      "sha256": "fe3475920e2a7ba02ca1c6cd1c91f3bcbd81bb6be6385bbae2012f9137dff110"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_crystal_cluster.json",
+      "bytes": 1931,
+      "sha256": "22332687487ce1546aba51bc4a26ddb2435005fd52227d029d13ed63364f1bde"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_driftwood.json",
+      "bytes": 1912,
+      "sha256": "316328ce6baf2e15b4cb052896a80c79d843b79afdb44da21b12a054f14e2f53"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_fern_clump.json",
+      "bytes": 1966,
+      "sha256": "bf6e83bd8e23d2a3295c2d01b673cb7208b1cae82e82d3a7e312ad286eaf5871"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_frosted_stone.json",
+      "bytes": 1753,
+      "sha256": "bc72f91ec16e9d4b232b20c70232229c5e82ea65dda560cdbd7ed340a9ec7f44"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_ice_shard_cluster.json",
+      "bytes": 1760,
+      "sha256": "62ca3c9734ef3390946fa67fa4a02e75f083df3827701bba4edefa7a9b58ff76"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_ice_slab.json",
+      "bytes": 1757,
+      "sha256": "023df3f03d794b25a2b76fcd1addc62044cf83b4602b130b06bd7acc4ec9ac73"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_low_shrub.json",
+      "bytes": 1793,
+      "sha256": "ebc51439c77104244e0fa67f5a0d564ed14fea0ab92bdfac037167569f55c46c"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_reed_clump.json",
+      "bytes": 1901,
+      "sha256": "7cf4fe14faf93b57494e3804021813ec2be524b792c533aa70b6ba3ee9757fb8"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "provenance/prop_sandstone_boulder.json",
+      "bytes": 1694,
+      "sha256": "456495344f971570c3484ce90084c8e89e69e628c9153f479efabfd20501386d"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "qa_images.py",
+      "bytes": 2693,
+      "sha256": "f72541c7e0b5dc7ebddb9beb10c16ae82982afedece475873002b439f7d53020"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "request.txt",
+      "bytes": 12593,
+      "sha256": "a7ea0c443ad16536f1553ec3f68536f304c1cdf39b6bb687b88a722cffad7002"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/ground/ground_coastal_pebbles.png",
+      "bytes": 10940009,
+      "sha256": "d8da638cf37b4b424bf2102112d087fdb0081ed7e4f32292b3523a3ba0cd09bc"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/ground/ground_forest_leaf_litter.png",
+      "bytes": 10905273,
+      "sha256": "ec44b514a35b1c533df2b5c43eb5b03331af99f6e1eaa9d5d84522afd50ebb99"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/ground/ground_salt_flat.png",
+      "bytes": 8796252,
+      "sha256": "2e2614750d98cedf2acfdbccb3a271b3e7a41ea3cf4babef685ab9428b01a60e"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/ground/ground_tundra_lichen.png",
+      "bytes": 11019896,
+      "sha256": "13cddc69aae4f1f43c81bd2c5fc8b610053a5f21fa9e257c329e324f9c701239"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/ground/ground_weathered_sandstone.png",
+      "bytes": 10158869,
+      "sha256": "30b572483b2cdaca59d3e1f0b1963b1a134af6f604c57f1183c800438f6a8eaf"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/ground/ground_wet_marsh_soil.png",
+      "bytes": 9466562,
+      "sha256": "31a1256e182905a44ccca3e3f21b4563dbb1b5658a0dd13d7771b87d5942aaea"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_alien_crystal_ridges.png",
+      "bytes": 1096673,
+      "sha256": "9d87d2ac5acc129626ee7ef01e69cd119b4d06bead0ac92406e8e24ee4cf45b2"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_alpine_snow.png",
+      "bytes": 1366781,
+      "sha256": "760894ff2a92ff675d94f9e2278670feab995b9c15d374ec046bf4b3b0c636d1"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_basalt_volcanic.png",
+      "bytes": 1225160,
+      "sha256": "c771f9aa9cb115e0f874df7ab185777750f76857ebf72d80ee903347b24e0df3"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_boreal_forest.png",
+      "bytes": 1441164,
+      "sha256": "14b17b576b5dfca79ad1c8713337bc2505bcd42f50a3a0d5c083b7a86a342b53"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_coastal_cliffs.png",
+      "bytes": 1578099,
+      "sha256": "8be4204a5746d5c0ae87bb3c46d761d75126a8f1ba077ec3285157d736a93859"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_desert_mesas.png",
+      "bytes": 1263539,
+      "sha256": "d9be46fd8ea19aee8afd3473dda52063129f0683b1b1939df94ab04a5ca16ac0"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_glacial_ridges.png",
+      "bytes": 1513695,
+      "sha256": "a41567b5c7c78d390fc54d5f0424ae661f4b658c5a905191b68f2476a74b9702"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "runtime/horizons/horizon_temperate_forest.png",
+      "bytes": 1494222,
+      "sha256": "78b67297ff48775822c97e5e4c10c3ad6985674ae7367e2d0381a28f46551dcb"
+    },
+    {
+      "pack": "aiw-environment-expansion-v2",
+      "path": "verify_pack.py",
+      "bytes": 5976,
+      "sha256": "e55fd98815d899878e81aa2d69b297e91f52aea8bade15f0de37ab1bab46148b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "README.md",
+      "bytes": 9203,
+      "sha256": "851f0e26fa17fcd47ddcee51bfc943ddc16e873c48a15438f86a39bf92497c51"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "checksums.json",
+      "bytes": 17434,
+      "sha256": "35d76acbc4836c3ad202dd361b41b5d3948f82a0a810f73a9dc6ed0981d805d1"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/crystal_cavern_drips_loop.ogg",
+      "bytes": 1005291,
+      "sha256": "9e73423bca56773d1b513ac4f5f451082c8afd0eda3f5e8e2ba79648c56a44fb"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/desert_soft_sand_loop.ogg",
+      "bytes": 997792,
+      "sha256": "ea09014b93bf69266f6d5faa38cbbbaadf4d46ff53658c56d06f4fd475b9b5ac"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/forest_canopy_day_loop.ogg",
+      "bytes": 1221698,
+      "sha256": "bf90f095cb2e7bb07d76ec6060cea3f11568449d60ca43eb40c927c6b3f3cdc6"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/forest_floor_damp_loop.ogg",
+      "bytes": 1193225,
+      "sha256": "07be81173c412c1f5660b50507034828ec30300d96264b06bfe140a2d4348ac2"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/marsh_evening_loop.ogg",
+      "bytes": 1202834,
+      "sha256": "b629c775d2e41e700b3e8da98657a970309ab04038ac8228ebf6974417032183"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/night_meadow_insects_loop.ogg",
+      "bytes": 1055997,
+      "sha256": "97e070a045ff6c2ecc02687c94a4bb4d2b38fd07c483d10332dd5574ecbda782"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/ocean_gentle_shore_loop.ogg",
+      "bytes": 1137103,
+      "sha256": "794205c47a295dd8802fa67c334cc5e5d48ce817b3927f5515e8a2fc3547c03c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/ocean_rocky_cove_loop.ogg",
+      "bytes": 1168692,
+      "sha256": "79b6e60815a7dc1386ac00d2c3a64982b93496a28fb4a2f15e038cdb79063d4a"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/polar_ice_creaks_loop.ogg",
+      "bytes": 955472,
+      "sha256": "3c72de45c2827aba3d06f17515300b20e42b585bbd8c7b8a6fabadac95ce16a1"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/rain_heavy_environment_loop.ogg",
+      "bytes": 1206577,
+      "sha256": "bad4702d7d9abea2bf72c5e5c46d8f4827a3f534014bac10513d75fe80cbcacf"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/rain_light_environment_loop.ogg",
+      "bytes": 1316974,
+      "sha256": "9385659445c5311dc71065c36a57eb26a4fae4f1ec759ed9826480a00e582289"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/snowfield_sheltered_wind_loop.ogg",
+      "bytes": 1230989,
+      "sha256": "bdfbd673b11ebafafb147e6e0d9bb462c7dc4f37b940b32f28fec6d73c004f06"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/stream_shallow_stones_loop.ogg",
+      "bytes": 1288353,
+      "sha256": "7b3495b059552ebcf9d522b69a8cfdd42dbdd30681cb26c1ce79704a6e646055"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/thunder_distant_environment_loop.ogg",
+      "bytes": 961461,
+      "sha256": "910c90af90a2f24356ffedf02adc6a4a1aeebf948f51cd48dc1f3dffecd733a5"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/ogg/waterfall_distant_soft_loop.ogg",
+      "bytes": 1138940,
+      "sha256": "8d13cff911166f50fb034f7a7fc920f94c21aeeec0f24b0c07abb3c02ff945c5"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/crystal_cavern_drips_loop.wav",
+      "bytes": 16128044,
+      "sha256": "6d968dec030d239822041bdd792baa21a84bb9b1691570a7e1de27b114ebbaf7"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/desert_soft_sand_loop.wav",
+      "bytes": 16128044,
+      "sha256": "9f1695e3f0ec932089a3804d6a5a9ead99a6ec3dbf7476b90afcbdb5aa593e83"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/forest_canopy_day_loop.wav",
+      "bytes": 16128044,
+      "sha256": "640c5a0cd64fb9a838743f03773088dd2e9d26f7761f4695f7544b18e00776c8"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/forest_floor_damp_loop.wav",
+      "bytes": 16128044,
+      "sha256": "0bf182283eef824a6d0f0ac458604a9f7e154d87adb45221a48201ffdf03407b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/marsh_evening_loop.wav",
+      "bytes": 16128044,
+      "sha256": "641a7c78e3901ae40e9884d8be52d155049ca301050d69a1365e00c5ca2a9110"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/night_meadow_insects_loop.wav",
+      "bytes": 16128044,
+      "sha256": "58f240147fec8e7330ebec066a2384ab02d8f1ee8269083bf156dd535bfb0b69"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/ocean_gentle_shore_loop.wav",
+      "bytes": 16128044,
+      "sha256": "6ae8efa6cea0a8086a3de93714b5065bccc24d24089069563f588876ddc6cee2"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/ocean_rocky_cove_loop.wav",
+      "bytes": 16128044,
+      "sha256": "d5bdec126d8f51ec282ff7171cee009133fae8daf1cf352b32f8c519f84e3264"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/polar_ice_creaks_loop.wav",
+      "bytes": 16128044,
+      "sha256": "ca6f76edb4410ab5f5a6e6e28f88f8029be8cb0559efc124e876bc7859bf7eff"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/rain_heavy_environment_loop.wav",
+      "bytes": 16128044,
+      "sha256": "2d61ff9872a0433861082d3d13303d61b3364ebff6e00ef06d3c0df62a454b5f"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/rain_light_environment_loop.wav",
+      "bytes": 16128044,
+      "sha256": "d92731a504c408d06d61b9e3968214e5f35a4625f913c3e311490e83fc32ad5d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/snowfield_sheltered_wind_loop.wav",
+      "bytes": 16128044,
+      "sha256": "bddb17b61a6be4560df6c4b669e34d9168762913ba6a508ad4f78afdd5df668e"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/stream_shallow_stones_loop.wav",
+      "bytes": 16128044,
+      "sha256": "afd6b42d9979b8befc08158e73b3ae7e3036d19e516aa86e592dcb00a7bdf11c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/thunder_distant_environment_loop.wav",
+      "bytes": 16128044,
+      "sha256": "c061c75765951727aaf26e89087648221a02cf93e81ad1e2d1d0599d1fe54a8c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "loops/wav/waterfall_distant_soft_loop.wav",
+      "bytes": 16128044,
+      "sha256": "d502ee2689dd0925cec213f5d862ace892312fb18ed08d47040783c95530d245"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "manifest.json",
+      "bytes": 275378,
+      "sha256": "a0a903106bda024a218c6c6c4cce173196131c3c38fde0632a6cd7f19b930f86"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/crystal_cavern_drips_loop.mp3",
+      "bytes": 481115,
+      "sha256": "8dd8dc2b7238b6d51bc68ffe09d9f5bc6bf6bdeb7d32ebc7a791c1a1894105f4"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/desert_soft_sand_loop.mp3",
+      "bytes": 481115,
+      "sha256": "b7933ff37312d86f90a95507705b68aa531262412b54ee4efa43c2276c392e5e"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/forest_canopy_day_loop.mp3",
+      "bytes": 481115,
+      "sha256": "855e2774b6bebdf80e210a71c14da22d6bbcafbdd04cf7dc513a4d19576ec889"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/forest_floor_damp_loop.mp3",
+      "bytes": 481115,
+      "sha256": "9b52a94b4565da1b8422d33ac88751d9b3774efe7fc7dd372a42f982307ef8db"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_impact_sand_scorch.mp3",
+      "bytes": 129193,
+      "sha256": "c7d1eefcc43ac0728fbb9f410cbb3ed68d662eb8ca75fa7d20d01e9e2a0d73bd"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_impact_stone_sizzle.mp3",
+      "bytes": 145075,
+      "sha256": "657c2ba2a4c2bf53803344810eefdd43d1663fac634abfa18c26cbf7bb51698c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_impact_wet_earth.mp3",
+      "bytes": 129193,
+      "sha256": "1b565c25f42abf124d273022a1b242408cbeeba2d1703c1ebdf5622b6fc6c61b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_scorch_dry_sizzle.mp3",
+      "bytes": 112893,
+      "sha256": "6767bd6f65848da160ecca4cead71f6cd169d500ed5203ed91f0c96209c18aaf"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_scorch_steam_hiss.mp3",
+      "bytes": 97010,
+      "sha256": "c8c19394f93c26410a9ba317ae5080fa5de5ae661b6a43b22d023406bf51015d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_strike_air_tearing.mp3",
+      "bytes": 97010,
+      "sha256": "32657f40d75df6a63a92a34de0708ba4fc399625c5bb62ee9e7a7790a6febddd"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_strike_branching_snap.mp3",
+      "bytes": 112893,
+      "sha256": "a9e27d2c158c5a6af8464c11547df4954fd93039d39ae120850876831b70ed7b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/lightning_strike_dry_crack.mp3",
+      "bytes": 81128,
+      "sha256": "4f123da00fcbe391100ca71260c0b7828ee452b23c0098bfa08e2a9a57102b71"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/marsh_evening_loop.mp3",
+      "bytes": 481115,
+      "sha256": "12285935d3c3683e6e03d3319c4e4769f8dd659b922e1142d4b02f9847e5d4b6"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/night_meadow_insects_loop.mp3",
+      "bytes": 481115,
+      "sha256": "78230b9d3fc036adedbeaa7bbc86c6a433014386ff9a7263208086c8199128a6"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/ocean_gentle_shore_loop.mp3",
+      "bytes": 481115,
+      "sha256": "ff8e884e2eef09120b8b038ff5039f6a363db9beb7576ed06ce0845b3042e1cc"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/ocean_rocky_cove_loop.mp3",
+      "bytes": 481115,
+      "sha256": "c01c382d0c2c1bdeff770096c641f988966e0dbb3509bcd4860cfc27da2921d0"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/polar_ice_creaks_loop.mp3",
+      "bytes": 481115,
+      "sha256": "fa4a9e475343bf92c92af6c8c4722474d597992d5fe87f9412ebb067f0f44c72"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/rain_heavy_environment_loop.mp3",
+      "bytes": 481115,
+      "sha256": "65fabfc02ccf847917d22165fa7e0150be72a242fcadc589fa10192263cd0af8"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/rain_light_environment_loop.mp3",
+      "bytes": 481115,
+      "sha256": "dcfdcf7fce40237dc4eb4d66260dd321c6768ebabb75641ed4c7b6980b4fd5fc"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/snowfield_sheltered_wind_loop.mp3",
+      "bytes": 481115,
+      "sha256": "7cff410340a3c8f0ab81a95d5f5f52c2fd832303ecbc7eb9c31c5c464e32542d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/stream_shallow_stones_loop.mp3",
+      "bytes": 481115,
+      "sha256": "a2e83ea7c637bd898f5202c4f3fff2db4b7c9ba5bd900fe9ff7aa6f593d93906"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/thunder_distant_environment_loop.mp3",
+      "bytes": 481115,
+      "sha256": "1215ae03285a4a8c484988883228e1915317b8745123139f10d1ab8bb887541a"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/thunder_far_horizon_rumble.mp3",
+      "bytes": 353219,
+      "sha256": "8acf3d2ddec627d18da0d3ac27029a20d5c9eb2f04e635fb7273377d3ce4dd22"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/thunder_mid_distance_rolling.mp3",
+      "bytes": 257088,
+      "sha256": "1907702f4483748851df805a5cadd9fccfb94fb2c2b1f5b522c0f79faed1d92e"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/thunder_near_crack_roll.mp3",
+      "bytes": 193141,
+      "sha256": "66a100469647307ed770c4f99cb6c93fe41402c547b61d1f2456be61c32e31bd"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/crystal_cavern_drips_loop.mp3",
+      "bytes": 481115,
+      "sha256": "fbc87d214de9e19cdfc52b5b7e0019f2a20081f9765d98404a3ad5daa5b2e8bf"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/desert_soft_sand_loop.mp3",
+      "bytes": 481115,
+      "sha256": "67780cb9ce88af860285586e1105e3f3eb52df3c6f22f9dd2913a519ad915c1f"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/forest_canopy_day_loop.mp3",
+      "bytes": 481115,
+      "sha256": "5982e1e43ddf97a76c41ef05a6247c4d4b9c7f224714fde2b474bbb9e65ab241"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/forest_floor_damp_loop.mp3",
+      "bytes": 481115,
+      "sha256": "41cb55eff808109897f92ce162bdf5023d4fc2f3700728d8606b433614e11074"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/marsh_evening_loop.mp3",
+      "bytes": 481115,
+      "sha256": "d7398ea90dd8692789b21ee222355b2b4ac4b5161ab3c25a083b34957cfc096f"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/night_meadow_insects_loop.mp3",
+      "bytes": 481115,
+      "sha256": "abf047b9f4b396ebe0425dda39caf3cae04cf164c9ec568fe075ba784e094126"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/ocean_gentle_shore_loop.mp3",
+      "bytes": 481115,
+      "sha256": "c64f8f1bdcdfd4dca0ab35b251d259561ec761882336d4276a3f7eceeaf0ff94"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/ocean_rocky_cove_loop.mp3",
+      "bytes": 481115,
+      "sha256": "c91bfd1baf10cf46bec61f923be7a056e80b7a7833e0978cbfaa8bc33e7ac9f1"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/polar_ice_creaks_loop.mp3",
+      "bytes": 481115,
+      "sha256": "d536fa907457b7e3810816632924737f1ce18a3794f4f5044ef763a6c00a945d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/rain_heavy_environment_loop.mp3",
+      "bytes": 481115,
+      "sha256": "731e46c0f5cd73b0a11f28f79db4bc0bfcb76ca8a7a51db8e469cd126328c3dd"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/rain_light_environment_loop.mp3",
+      "bytes": 481115,
+      "sha256": "a9b6ecfe4de597c604154d3b2b52cfb90b03f954d55fe7cea7d061839bdef674"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/snowfield_sheltered_wind_loop.mp3",
+      "bytes": 481115,
+      "sha256": "c74fd1ffd80c50955c4ded5062b8f8205ff51515fd72190b16b37f8e376be9fe"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/stream_shallow_stones_loop.mp3",
+      "bytes": 481115,
+      "sha256": "0ec25be0e288f34bcfce404d852141af51d2df92a2d167b99ec2a508cd6e862c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/thunder_distant_environment_loop.mp3",
+      "bytes": 481115,
+      "sha256": "9b12f292b619fe5c39dbbd5a54a9662594580a5f0823c91a5f09b6e39095430c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/variation_b/waterfall_distant_soft_loop.mp3",
+      "bytes": 481115,
+      "sha256": "d4723a92e8ee14f55cdfae0e50edd92298b6d9f5f058dcce30d2476f6c75c7d0"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "native/waterfall_distant_soft_loop.mp3",
+      "bytes": 481115,
+      "sha256": "55fd4dc0c70d1e6a8b55627f10798ed96f6dc32f520e80d63a8b654934180e2a"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "previews/index.html",
+      "bytes": 5786,
+      "sha256": "6e5d3c057f967cf92a151a1a7c13049b7750a85c1f5ed2c3183b8a184b01236b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/__pycache__/audio_worker.cpython-312.pyc",
+      "bytes": 1089,
+      "sha256": "2408c820d94291dfa90de044e867e89bf611a6c931aeb9c33eb017442ca81a91"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/__pycache__/finish.cpython-312.pyc",
+      "bytes": 35069,
+      "sha256": "ccb1c00ded4f9251bfdb01d54302c79719de0fcbb17f1a61c122af636cff9cd4"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/__pycache__/generate.cpython-312.pyc",
+      "bytes": 16079,
+      "sha256": "d51a1a6c2ef543e16670979964936126adc2891f27fb1161df39011a8ef57cf0"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/__pycache__/package.cpython-312.pyc",
+      "bytes": 5960,
+      "sha256": "b281b09dcf184fb1727dc2425f342fc25a0a82d24ca73621af695dac2ad8108b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/audio_worker.py",
+      "bytes": 490,
+      "sha256": "35faef3fc834701900cbce49c3d455ad1a33e27626c2bddfdb3458ab1d06d05e"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/file-inventory.json",
+      "bytes": 152887,
+      "sha256": "341f853ef068bd77abb5a6e105e259b85b2801347aaa6b6c7cdcde5bfbccbbe6"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/finish.py",
+      "bytes": 22393,
+      "sha256": "f94c92dd7396629c7f46512ade3b7dd786b588c13b8bc297d88337c25afaed1d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/finished-assets.json",
+      "bytes": 23253,
+      "sha256": "1e97209380204a7aa2136fbcec2720f8299b9978a6a1a3aac3d1c796be86b468"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/finished-paired-assets.json",
+      "bytes": 179505,
+      "sha256": "33781ae242cd55ddef7dcfec8490c24dd254c69b88bb33110f71c562ff5c8a98"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/finished-storm-assets.json",
+      "bytes": 79212,
+      "sha256": "74898a19afc4c65fa7f615156b96d4228b8da09fce56cd58632cab7864f586fa"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/generate.py",
+      "bytes": 11327,
+      "sha256": "a13bb10a4acc8f692369c9392425eacbfb0258203d80d245fd031b7550323714"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/generation-attempts.json",
+      "bytes": 4082,
+      "sha256": "f87096a26149b5a1ca9e39d86c9616c7e6ce254091a36e044e701ccce6814b81"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/generation-receipts-b.json",
+      "bytes": 14209,
+      "sha256": "556cb4bc260e0d07858552b5e74da43513b390f219381ab48c6a80f6a22706e1"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/generation-receipts.json",
+      "bytes": 14041,
+      "sha256": "cfcf602fa83623707962ede55880fed8aaabb6b04d55b45d26ff871aa295065b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/generation-requests.json",
+      "bytes": 10247,
+      "sha256": "c9ee9c0cd54ef334f084eb07363067fb6cdd2434663089160530a20cdda1efe3"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/package.py",
+      "bytes": 3510,
+      "sha256": "f3af35b4e9467b7af5480bc701f73ddf14cc657424d6576df16dd229fd432822"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/storm-generation-attempts.json",
+      "bytes": 1969,
+      "sha256": "5685706bc160ed84c8cb4d93a8ad5b2804e809392d135229780ebeb04d1d82b3"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/storm-generation-receipts.json",
+      "bytes": 13081,
+      "sha256": "73a0211babd4f35e1de42e582017f11e9a6e5cf0ec1ff9d192502a0ecceb0f56"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/storm-generation-requests.json",
+      "bytes": 8764,
+      "sha256": "b38a96ceb88687e8e8bfd5012607040a6b2c149c3e537e94d2c0a0f5ed8ae1ae"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "production/storm.py",
+      "bytes": 13343,
+      "sha256": "984817d20487bbd889371bd2462eee06a5b094acbd051e01d2d498818f592a51"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_impact_sand_scorch.ogg",
+      "bytes": 119863,
+      "sha256": "e2e0a16ffdebbc9edcaa93f7485dde14bf8468e30c35c23df9c7c57a7a90ed3d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_impact_stone_sizzle.ogg",
+      "bytes": 180787,
+      "sha256": "5eaa841fdae1a0db4c9a07c908a99f5da4034b8abfafac52aae36aad476dba92"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_impact_wet_earth.ogg",
+      "bytes": 145027,
+      "sha256": "4e8f4ba6327c5030a090517dd0de2bc311beace4ed2edbde1c0f11ad1b3c5a05"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_scorch_dry_sizzle.ogg",
+      "bytes": 163381,
+      "sha256": "7e3bbc80d0b63292c2c3a47e7667cd748592440d08d6ba427d12e8b4cbaafa6d"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_scorch_steam_hiss.ogg",
+      "bytes": 123479,
+      "sha256": "f064b7e01ab454e3778515228394eae25524e1edd5ed8fae9cada00ec5c29e0a"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_strike_air_tearing.ogg",
+      "bytes": 94159,
+      "sha256": "8b1885ff754a998a6fc97b3f2c466bd33c554a9a7c5cb3600285e0644fadfb35"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_strike_branching_snap.ogg",
+      "bytes": 118557,
+      "sha256": "77d8b4292cd75e49115e308cf288960dfac74b3e4686af877c2553c5fc996691"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/lightning_strike_dry_crack.ogg",
+      "bytes": 91689,
+      "sha256": "2b28799691f78a4b9d7af156e8620ed17bc7e7678b174789a1a438a518c47ab6"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/thunder_far_horizon_rumble.ogg",
+      "bytes": 299588,
+      "sha256": "fce70fc4c6333953dd6a3aa1d0be093b10e5e3df687188678a9545daa72697e9"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/thunder_mid_distance_rolling.ogg",
+      "bytes": 234394,
+      "sha256": "f2ccdbce22f9d88367759340aceb3bfe62e182e3fe0b2d5ba3951cc586c6fe29"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/ogg/thunder_near_crack_roll.ogg",
+      "bytes": 192437,
+      "sha256": "cc170a1bc9feae3c5e3dffa17fc5ff7cad272393e88c5d08f5583da8ae0c786b"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_impact_sand_scorch.wav",
+      "bytes": 2304044,
+      "sha256": "b58ba700be28248f2e728c110b90306e5cb10bfb49838f4b74a128a4e1ee59f7"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_impact_stone_sizzle.wav",
+      "bytes": 2592044,
+      "sha256": "e92ee8b4b8a9f172b2942617610990fa8af1fac2cd0da7f3ef1e0d83a5a1410e"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_impact_wet_earth.wav",
+      "bytes": 2304044,
+      "sha256": "ca6fe62267e208f65e246163adfdc6cbe1cab29372efd7989969346cd6870f40"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_scorch_dry_sizzle.wav",
+      "bytes": 2016044,
+      "sha256": "7932d27912cc8440601bf71161f707b06089c2c574ec6c03f52007ba5fd73ebe"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_scorch_steam_hiss.wav",
+      "bytes": 1728044,
+      "sha256": "bc0b3adb3ab2843ea66f8f17b8ca38c7012ef7ef3d617ee1743c01fe6bb8ba20"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_strike_air_tearing.wav",
+      "bytes": 1728044,
+      "sha256": "cb647f6fd1e507dc5bd8ebbbc51a2fbeac86c94c1279d21feb1df5ccfa0c2ed4"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_strike_branching_snap.wav",
+      "bytes": 2016044,
+      "sha256": "88ac35d742d407c8fbb6e202e518763c456452cd56e15ee077a1fbc7a33a786e"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/lightning_strike_dry_crack.wav",
+      "bytes": 1440044,
+      "sha256": "1186e257ae25ca0a4fc0763b580855984273319e0e5f57b3ac88713aca17205c"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/thunder_far_horizon_rumble.wav",
+      "bytes": 6336044,
+      "sha256": "f615c0c7458f81fede074a8037162fd442c89e5dd81a7ff0b028477e817091e6"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/thunder_mid_distance_rolling.wav",
+      "bytes": 4608044,
+      "sha256": "f0ab7522073fb2c71e83ac2d9a43efff628555024f95fa659f160c448d188096"
+    },
+    {
+      "pack": "aiw-environment-audio-expansion-v2",
+      "path": "sfx/wav/thunder_near_crack_roll.wav",
+      "bytes": 3456044,
+      "sha256": "b37c22c8b3524b53a5a32357f03fd5fca1c887b4f5c616bcf4f97bcf5fa016f0"
+    }
+  ],
+  "limitations": [
+    "Ten props are transparent concept cutouts, not GLB meshes.",
+    "Supplier horizon/ground seams retained; no native 4K claim.",
+    "Image model/license metadata not exposed; audio ElevenLabs plan rights and listening acceptance unverified. No public distribution authorized.",
+    "RGBA atlases include all ten FX sources. Separate masks, individual frames, masters, native variations and preview vendor scripts are accounted for but not duplicated in runtime."
+  ]
+}

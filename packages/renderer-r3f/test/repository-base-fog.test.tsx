@@ -13,6 +13,7 @@ vi.mock("react", async () => ({
   ...(await vi.importActual("react")),
   useContext: (context: { _currentValue: unknown }) => context._currentValue,
   useMemo: (factory: () => unknown) => factory(),
+  useEffect: () => {},
   useRef: (current: unknown) => ({ current }),
 }));
 vi.mock("@react-three/fiber", () => ({
@@ -36,19 +37,16 @@ it("uses a continuous depth-clipped volume rather than intersecting horizontal f
   const fog = element.props.children[0];
   const volume = typeof fog.type === "function" ? fog.type(fog.props) : fog;
   expect(volume.props.children[0].type).toBe("boxGeometry");
-  const shader = volume.props.children[1].props;
-  expect(shader.fragmentShader).toContain("sceneDepth");
-  expect(shader.fragmentShader).toContain("exp(-opticalDepth)");
-  expect(shader.depthWrite).toBe(false);
+  const material = volume.props.children[1].props.object;
+  expect(material.isNodeMaterial).toBe(true);
+  expect(material.depthWrite).toBe(false);
+  expect(material.depthTest).toBe(false);
   expect(volume.props.raycast()).toBeUndefined();
-  // Exercise the same descriptor-copy boundary as mounted R3F uniforms.
-  const live = { uniforms: { time: { value: 0 } } };
-  shader.ref.current = live;
+  // The real TSL graph binds the same clock directly, without descriptor copying.
+  const clockNode = material.fragmentNode.node.rawInputs[5];
   clock.value = 7;
-  frames.at(-1)!();
-  expect(live.uniforms.time.value).toBe(7);
-  frames.at(-1)!();
-  expect(live.uniforms.time.value).toBe(7);
+  clockNode.update({});
+  expect(clockNode.value).toBe(7);
 });
 
 it("shares one lazy capture per render, preserves scene state and releases the target", () => {
@@ -67,6 +65,9 @@ it("shares one lazy capture per render, preserves scene state and releases the t
   initiallyHidden.visible = false;
   scene.add(atmosphere, floor, reflection, mask, initiallyHidden);
   let bound: unknown = null;
+  const sun = new Group();
+  Object.assign(sun, { isLight: true, castShadow: true });
+  scene.add(sun);
   const renderer = {
     autoClear: false,
     shadowMap: { autoUpdate: true },
@@ -78,6 +79,10 @@ it("shares one lazy capture per render, preserves scene state and releases the t
       bound = target;
     },
     render: vi.fn(() => {
+      expect(
+        sun.visible,
+        "depth/coverage capture must not rebuild light shadow atlases",
+      ).toBe(false);
       expect(atmosphere.visible).toBe(false);
       expect(reflection.visible).toBe(false);
       expect(floor.visible).toBe(true);
@@ -121,6 +126,7 @@ it("shares one lazy capture per render, preserves scene state and releases the t
     new PerspectiveCamera(),
   );
   expect(renderer.render).toHaveBeenCalledTimes(2);
+  expect(sun.visible).toBe(true);
   expect(atmosphere.visible).toBe(true);
   expect(floor.material).toBe(originalFloor);
   expect(mask.material).toBe(originalMask);

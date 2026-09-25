@@ -454,7 +454,13 @@ export function advanceAgentMovement(
       MAX_ELAPSED_SECONDS,
     ),
   );
-  const step = Math.min(request.speed * elapsed, distance - stoppingRadius);
+  // Follow catches up at a real run, not just a faster clip on a walking body.
+  // Explicit speeds on coordinate/repository commands remain authoritative.
+  const speed =
+    following && distance - stoppingRadius > RUN_REMAINING_DISTANCE
+      ? Math.max(request.speed, 8)
+      : request.speed;
+  const step = Math.min(speed * elapsed, distance - stoppingRadius);
   const ux = dx / distance;
   const uz = dz / distance;
   const position = {
@@ -490,15 +496,15 @@ export function advanceAgentMovement(
       heading,
       movementState: "moving",
       animationSemantic: movementAnimation(
-        request.speed,
-        Math.hypot(destination.x - position.x, destination.z - position.z),
+        speed,
+        following ? distance : remainingDistance,
         stoppingRadius,
       ),
       velocity:
         elapsed > 0 && movementDistance > 0
           ? {
-              x: movementUx * request.speed,
-              z: movementUz * request.speed,
+              x: movementUx * speed,
+              z: movementUz * speed,
             }
           : { x: 0, z: 0 },
     },

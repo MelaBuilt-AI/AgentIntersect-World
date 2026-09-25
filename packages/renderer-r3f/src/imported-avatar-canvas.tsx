@@ -1,3 +1,4 @@
+import { createPreviewRenderer } from "./world-renderer.js";
 import {
   Canvas,
   events as createPointerEvents,
@@ -661,6 +662,7 @@ export function ImportedAvatarCanvas({
           : "Rendering 3D preview…"}
       </span>
       <Canvas
+        gl={createPreviewRenderer}
         events={createAvatarPreviewPointerEvents}
         style={{
           visibility: readySelection === selectionKey ? "visible" : "hidden",

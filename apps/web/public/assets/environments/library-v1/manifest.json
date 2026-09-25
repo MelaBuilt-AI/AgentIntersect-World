@@ -1,0 +1,2367 @@
+{
+  "schema": "aiw.environment-library/1",
+  "assetCount": 48,
+  "assets": [
+    {
+      "id": "pale_sand",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/pale_sand.png",
+          "sha256": "20cbc79a505f18f5c3b23b67490ef17ead5f8e7af70f3179232b07c4ba61078c",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/pale_sand.png",
+          "sha256": "788059c2e178c3e7487977fbcc0abf5190c1ee130cb5b25cf62d7f395f06fe30",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/pale_sand.png",
+          "sha256": "5f56b1651a86ac4ab8783baaba1420dce6b0cad050a32f144aa79d67acefcaf5",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "pale_sand.webp",
+        "bytes": 4619480,
+        "sha256": "82f85f0245b02f5a986f615a449bbf7c447d54e79f537914e4d01024af3f8108"
+      }
+    },
+    {
+      "id": "rust_red_sand",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/rust_red_sand.png",
+          "sha256": "9362f280b22e26e7a7b9f9cea0daa2ce396c95f1abef8e16dcf04641423b6f23",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/rust_red_sand.png",
+          "sha256": "ae98d289d734a456bde628d119791894faabd65dde83f3cf5084b596ecc6ab96",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/rust_red_sand.png",
+          "sha256": "170ffe67f3299a15c271504a3aa5c199dc758aa5f781ba51dbf1325ce29d73c3",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "rust_red_sand.webp",
+        "bytes": 4805992,
+        "sha256": "c05d2436596d900ceffd33391e8b33b904d3e3a3316b73d9c4fd315f6578964c"
+      }
+    },
+    {
+      "id": "black_volcanic_sand",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/black_volcanic_sand.png",
+          "sha256": "24aca3776cf0b081fbf4ce0fd4d2fbfb54f73dfe5488e37cc9f536052e94295c",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/black_volcanic_sand.png",
+          "sha256": "015e4529a285ed2201bea55f214cff58b910195960d96c7cd93cee8180b3305c",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/black_volcanic_sand.png",
+          "sha256": "4af49b290cf030e67da33d8a8531b1553d0e58e026fca230bba030bf6cce57fa",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "black_volcanic_sand.webp",
+        "bytes": 5753700,
+        "sha256": "d21b58b557d27bdb6caf47cad28aa8f7a959832370fd8f542bf13ac8f1294308"
+      }
+    },
+    {
+      "id": "earth_soil",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/earth_soil.png",
+          "sha256": "089499effd2ba92c9fae678ae9a75f1f8ea05486d5d8a28319d6a4e597842d2b",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/earth_soil.png",
+          "sha256": "fdf2b90ed9d6b6b9feace2e993374a52b290b2e3711abe4c3fc0c0948555b258",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/earth_soil.png",
+          "sha256": "5178d21228ecee865df155688f62b4cde5dfb531529484afdfa98dc94cdc5a6b",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "earth_soil.webp",
+        "bytes": 5129622,
+        "sha256": "a8295e4a4745ff7b02b8a64a37e59add03344c06a0f10ff1b14d3b4b3a4edb15"
+      }
+    },
+    {
+      "id": "meadow_grass",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/meadow_grass.png",
+          "sha256": "bb43806eeea105debceb0f3b3057571ddd96d5734cc61dff4089ad04b9f74c88",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/meadow_grass.png",
+          "sha256": "0c8fb6a0d088f36a2a519aeb72c61cad4c4be54eccbda0cd64cb768f17658bd4",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/meadow_grass.png",
+          "sha256": "d9577875320924d852df14b01cec5c9c31e4d845b0f219b1075e5146249153d3",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "meadow_grass.webp",
+        "bytes": 5609142,
+        "sha256": "ce537598d5ac530f27baa8c226e06a627a42e66cf074e02edd1d079f1f22f6e5"
+      }
+    },
+    {
+      "id": "dry_grass",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/dry_grass.png",
+          "sha256": "8f83aab17172dbce4ac356a096b7d8dfca53b4ffaa1852cf496bbec993662c00",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/dry_grass.png",
+          "sha256": "882de918f4e6e7642c4fd798eb69d29d37a2b934747c4f8f866376b600089308",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/dry_grass.png",
+          "sha256": "bbf02df6a0a914053f76c83f7bbd78bdfbd2254d7b79709b15b5e8b198037e18",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "dry_grass.webp",
+        "bytes": 5997336,
+        "sha256": "bbba477a7b64005f742aaa92f7f0ee0d758b0aed8a6f08806381b3af5482b7e0"
+      }
+    },
+    {
+      "id": "forest_moss",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/forest_moss.png",
+          "sha256": "2c1563b3ee164faefb5b13e70fcb5f2bb7ff6b0b1be231dfbd325d618d4a2e72",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/forest_moss.png",
+          "sha256": "882db97cd2719aa2c12759241c38fb9bd99ede4d95276328daeec0d3f6bf6d31",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/forest_moss.png",
+          "sha256": "a19e672e6a2090e0afc5427fd1626e21bae664a29f1df7dc2f9020241a2e0a98",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "forest_moss.webp",
+        "bytes": 5750314,
+        "sha256": "c254c56107c216b42775dae1133a12da912cfb53b21a3a6b93b0dce34259f39d"
+      }
+    },
+    {
+      "id": "basalt_rock",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/basalt_rock.png",
+          "sha256": "4bd52e56881adc562ccf508ff32ecc96e92230c5d20b2b1b117fec4903d84208",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/basalt_rock.png",
+          "sha256": "49057c3ce8af638c394bdeca31e40998cd7773dd73351d74c7bf1bd7a1f68bd5",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/basalt_rock.png",
+          "sha256": "df81f56ec8da4da7ac725d8856b80195914ed9fa15ee55b1d300ba58b5ec5f3f",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "basalt_rock.webp",
+        "bytes": 5426958,
+        "sha256": "c3b9e2d30fcd26fb8902b0927dd921c2713dbc964e482eb2a187de065d47408a"
+      }
+    },
+    {
+      "id": "granite_rock",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/granite_rock.png",
+          "sha256": "38a7609d5a96c73fa65c2a6f462001a47e6b5529281b76c43e7e0a9dedc2a33c",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/granite_rock.png",
+          "sha256": "64f8bfc3ba93b750110202be0e0930a451e7bab1475c5646626f5d106d07925e",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/granite_rock.png",
+          "sha256": "36e1bd736f6fe36a68b279cba867caf9409587f28ecde1b4c8f7b1fab1fe46ea",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "granite_rock.webp",
+        "bytes": 5894238,
+        "sha256": "c3c9936e21fb75588b015af33ad59fcd0236a0a6ba463c834ba760f577d5a4f4"
+      }
+    },
+    {
+      "id": "fresh_snow",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/fresh_snow.png",
+          "sha256": "3284f84268c77705b987d6ca46657277d2256c6c7d7682a1229e83de0e97e859",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/fresh_snow.png",
+          "sha256": "e9a75eb203acc747a69bfacf34801d9d1dee4c631c0cee2ac6ebb6f788629f52",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/fresh_snow.png",
+          "sha256": "bd181d45bb6d372e0b76b69bdd57b29655df60c95e033397f1374947712af0e3",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "fresh_snow.webp",
+        "bytes": 3775800,
+        "sha256": "ff179188ab4ff5b93e130d798abe35c62f6202ad2eb52ab203c78bcec90b59fd"
+      }
+    },
+    {
+      "id": "glacial_ice",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/glacial_ice.png",
+          "sha256": "db23c621d2cc06af5e49d810933cb80be64fc66bb253b1ba4eb3baede2201bee",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/glacial_ice.png",
+          "sha256": "8c62267d9a2b2d31ae0cf628db981e060e5ca52c0dc72e4f05c12fd2f8b27378",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/glacial_ice.png",
+          "sha256": "47d2a397c3f51f76eaa8f879ac5b3a44b7295b1f27710be6ba6b7c42c0d8ed30",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "glacial_ice.webp",
+        "bytes": 3974670,
+        "sha256": "ada33a8aab421460abe737a86c0c8796966eb13b4833dd960bcf29245060e3e0"
+      }
+    },
+    {
+      "id": "cracked_lava_crust",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/cracked_lava_crust.png",
+          "sha256": "548b6c7c5d131c0930c5c3f28c259f6af7ed9b03d654c4dcc961f6290854cb02",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/cracked_lava_crust.png",
+          "sha256": "d579274a570b4dc6ea49af3980b84249b101c9f80ebb013179848060719ff40b",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/cracked_lava_crust.png",
+          "sha256": "df2666b845cdacfa6b6c8c9afb68483df72d266bce5691a9525586a42e8742a4",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "cracked_lava_crust.webp",
+        "bytes": 5522134,
+        "sha256": "b65ceb8b39183302b0e278700822af3bb070d5a7b0a0c270b6192a721bc4767b"
+      }
+    },
+    {
+      "id": "brushed_metal_panels",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/brushed_metal_panels.png",
+          "sha256": "48dad70b63d6b15ff3f99436503ce1133d0f987af1e8e8eee058346852226d62",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/brushed_metal_panels.png",
+          "sha256": "726a8b755ece65ef957f64b90e3bbeccf7f074c015783578ae99bb33eb7a3de4",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/brushed_metal_panels.png",
+          "sha256": "048f3a799e1b33cf11bfe397825d5a8fdd7ffb0b3e38b9d2d1ac122953aea94c",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "Panel joint aligned crop at native coordinates (49,174)-(1203,1089); avoids doubled overlap joints",
+        "Lanczos resampling 1154x915 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "brushed_metal_panels.webp",
+        "bytes": 4151916,
+        "sha256": "960fd54908aa71990c50132cff657ffefd7493dd739fafce98fbaad768bb458a"
+      }
+    },
+    {
+      "id": "alien_crystal_ground",
+      "category": "ground",
+      "variants": {
+        "native": {
+          "path": "native/ground/alien_crystal_ground.png",
+          "sha256": "6619fe07dd5b7b8cba1acb8106b1b46d3b293148ef094558575e3f137698cae7",
+          "dimensions": [1254, 1254],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "ground/alien_crystal_ground.png",
+          "sha256": "679d0c40546472e79a1a9a3bef63b1b204575a6a4fc36e9fe82adbe961fd01db",
+          "dimensions": [4096, 4096],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/ground/alien_crystal_ground.png",
+          "sha256": "3ccb3d533728dd0be3c66647cc83e72ce42d623db204b32923dde57a60240bfd",
+          "dimensions": [2048, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 4096x4096; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "alien_crystal_ground.webp",
+        "bytes": 5430142,
+        "sha256": "49c4c8a07b4e11bad75939af1c81ad07dcc67b4106ed739b27de9465712c160e"
+      }
+    },
+    {
+      "id": "broad_organic_patches",
+      "category": "masks",
+      "variants": {
+        "native": {
+          "path": "native/masks/broad_organic_patches.png",
+          "sha256": "35341d596d7a69f8c69e6df39d26fed1f45d980c4757e5c01a5b8df10fb2414e",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "masks/broad_organic_patches.png",
+          "sha256": "35341d596d7a69f8c69e6df39d26fed1f45d980c4757e5c01a5b8df10fb2414e",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/masks/broad_organic_patches.png",
+          "sha256": "35341d596d7a69f8c69e6df39d26fed1f45d980c4757e5c01a5b8df10fb2414e",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "periodic procedural grayscale blend field",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "broad_organic_patches.webp",
+        "bytes": 73266,
+        "sha256": "02782ca182193e81fc27b58fb40d90d3956af8fc379ff2538f74510fe8cd06e2"
+      }
+    },
+    {
+      "id": "fine_organic_patches",
+      "category": "masks",
+      "variants": {
+        "native": {
+          "path": "native/masks/fine_organic_patches.png",
+          "sha256": "229a8c55bb40285b577899553099898f777dcb1034fd77a901bb59560698bbb0",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "masks/fine_organic_patches.png",
+          "sha256": "229a8c55bb40285b577899553099898f777dcb1034fd77a901bb59560698bbb0",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/masks/fine_organic_patches.png",
+          "sha256": "229a8c55bb40285b577899553099898f777dcb1034fd77a901bb59560698bbb0",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "periodic procedural grayscale blend field",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "fine_organic_patches.webp",
+        "bytes": 157648,
+        "sha256": "2a208b8cfe40c83d127923603f7fc099d3e7ea4621ac91045e1c270b186fccf2"
+      }
+    },
+    {
+      "id": "winding_paths",
+      "category": "masks",
+      "variants": {
+        "native": {
+          "path": "native/masks/winding_paths.png",
+          "sha256": "6b24c809c83fe25254468719ca0b0002a87164f2754cd38979e16a8e705b08c4",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "masks/winding_paths.png",
+          "sha256": "6b24c809c83fe25254468719ca0b0002a87164f2754cd38979e16a8e705b08c4",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/masks/winding_paths.png",
+          "sha256": "6b24c809c83fe25254468719ca0b0002a87164f2754cd38979e16a8e705b08c4",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "periodic procedural grayscale blend field",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "winding_paths.webp",
+        "bytes": 106916,
+        "sha256": "dcbbbd08a2c0b1b778a084cc74afef6d6ef0271fb72cb731582b473b196ab494"
+      }
+    },
+    {
+      "id": "branching_channels",
+      "category": "masks",
+      "variants": {
+        "native": {
+          "path": "native/masks/branching_channels.png",
+          "sha256": "8adcb3cf243f49ea5eebd8d894daf3390857b8fa816eeaca9aab891dc9ec7e76",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "masks/branching_channels.png",
+          "sha256": "8adcb3cf243f49ea5eebd8d894daf3390857b8fa816eeaca9aab891dc9ec7e76",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/masks/branching_channels.png",
+          "sha256": "8adcb3cf243f49ea5eebd8d894daf3390857b8fa816eeaca9aab891dc9ec7e76",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "Periodic branching curve network with tributaries and wrapped Gaussian boundary softening",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Two principal trunk directions remain recognizable; illustrative drainage-like blend pattern, not physical hydrology."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "branching_channels.webp",
+        "bytes": 61850,
+        "sha256": "bf4a541d0ccde972f8c10f398ca2a373add198f3863bec5f1ebaebdbc81e669d"
+      }
+    },
+    {
+      "id": "scattered_islands",
+      "category": "masks",
+      "variants": {
+        "native": {
+          "path": "native/masks/scattered_islands.png",
+          "sha256": "e60e3b72d1a866c472f31d6e25d2809fd83cd908338ef9bc45abab862a79fe81",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "masks/scattered_islands.png",
+          "sha256": "e60e3b72d1a866c472f31d6e25d2809fd83cd908338ef9bc45abab862a79fe81",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/masks/scattered_islands.png",
+          "sha256": "e60e3b72d1a866c472f31d6e25d2809fd83cd908338ef9bc45abab862a79fe81",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "periodic procedural grayscale blend field",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "scattered_islands.webp",
+        "bytes": 65162,
+        "sha256": "5320597f92164a65d90a140ec59dfdebbc46488414f467b1b9ef9543ca3d459a"
+      }
+    },
+    {
+      "id": "fracture_network",
+      "category": "masks",
+      "variants": {
+        "native": {
+          "path": "native/masks/fracture_network.png",
+          "sha256": "be1d15817be2542a0f5cb4b307900d3e9375f9521d612a20df84556b332f2649",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "masks/fracture_network.png",
+          "sha256": "be1d15817be2542a0f5cb4b307900d3e9375f9521d612a20df84556b332f2649",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/masks/fracture_network.png",
+          "sha256": "be1d15817be2542a0f5cb4b307900d3e9375f9521d612a20df84556b332f2649",
+          "dimensions": [1024, 1024],
+          "mode": "L",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "periodic procedural grayscale blend field",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "fracture_network.webp",
+        "bytes": 142312,
+        "sha256": "ea48a1994eaf808abb6a7acf5fe01f6e664fef269e0cb4a95306cf15bc0bb7f7"
+      }
+    },
+    {
+      "id": "clear_day",
+      "category": "sky",
+      "variants": {
+        "native": {
+          "path": "native/sky/clear_day.png",
+          "sha256": "1941f7375c184a6f66844d950a31d593d62e91934ff53a90916d876c04770672",
+          "dimensions": [1774, 887],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "sky/clear_day.png",
+          "sha256": "6895a4ad0b4a42294b586c04b83665a1a3f43fa39966e0a675931500dbff323e",
+          "dimensions": [4096, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/sky/clear_day.png",
+          "sha256": "7082a453478fb9a5be46621cd7f66b707a629541910a4b52cb7235652c4bd30f",
+          "dimensions": [2048, 1024],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Pole caps gradually homogenized over outer 5.5% latitude",
+        "Lanczos resampling 1597x887 to 4096x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "2:1 layout plus disposable sphere views do not constitute calibrated projection certification or in-app verification.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "clear_day.webp",
+        "bytes": 777968,
+        "sha256": "72c8d85c36cf332b1b860e7843fd2fecec83a0e1b45814aac7dc452a9bde77d8"
+      }
+    },
+    {
+      "id": "golden_dusk",
+      "category": "sky",
+      "variants": {
+        "native": {
+          "path": "native/sky/golden_dusk.png",
+          "sha256": "e1f58af36c7a85d390d25b20c94e261532fea1c5ad122581757e26725ca8de35",
+          "dimensions": [1774, 887],
+          "mode": "RGBA",
+          "alphaRange": [51, 250]
+        },
+        "master": {
+          "path": "sky/golden_dusk.png",
+          "sha256": "c4ee0f20ebc3c05415442b8e10f5bce14c0fa53a4890dc7d5ab86197c4ac00a3",
+          "dimensions": [4096, 2048],
+          "mode": "RGBA",
+          "alphaRange": [84, 250]
+        },
+        "runtime": {
+          "path": "runtime/sky/golden_dusk.png",
+          "sha256": "0126d04ca351c60a5271eb197148744832a1ed8f54783786b8c058918ac8bcff",
+          "dimensions": [2048, 1024],
+          "mode": "RGBA",
+          "alphaRange": [84, 250]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Pole caps gradually homogenized over outer 5.5% latitude",
+        "Lanczos resampling 1597x887 to 4096x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "2:1 layout plus disposable sphere views do not constitute calibrated projection certification or in-app verification.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "golden_dusk.webp",
+        "bytes": 2046548,
+        "sha256": "2a474be2ae858460d0252ed6210272e87b0c9aeac553aafc5dbf4624612b4e74"
+      }
+    },
+    {
+      "id": "violet_twilight",
+      "category": "sky",
+      "variants": {
+        "native": {
+          "path": "native/sky/violet_twilight.png",
+          "sha256": "b8ed371d7b168dceab700ec3208a50bae237c4aa797590c4984bd36064975694",
+          "dimensions": [1774, 887],
+          "mode": "RGBA",
+          "alphaRange": [9, 252]
+        },
+        "master": {
+          "path": "sky/violet_twilight.png",
+          "sha256": "35423b1058e6809114b02af1c28079fc419f0fd6b32f2cd4ff2db6ad40da0baf",
+          "dimensions": [4096, 2048],
+          "mode": "RGBA",
+          "alphaRange": [17, 252]
+        },
+        "runtime": {
+          "path": "runtime/sky/violet_twilight.png",
+          "sha256": "ef0c9c8dac58341c7ead7a9b5b41a731b0f46d62c35958c7b6b0f86e74eba562",
+          "dimensions": [2048, 1024],
+          "mode": "RGBA",
+          "alphaRange": [17, 252]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Pole caps gradually homogenized over outer 5.5% latitude",
+        "Lanczos resampling 1597x887 to 4096x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "2:1 layout plus disposable sphere views do not constitute calibrated projection certification or in-app verification.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Mild dark tonal concentration near south pole remains in the disposable sphere view."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "violet_twilight.webp",
+        "bytes": 2086044,
+        "sha256": "3f2773860f2bb367b7998b0c472220c8c4ff352da4a2a2b0f786883ab3c1394e"
+      }
+    },
+    {
+      "id": "overcast",
+      "category": "sky",
+      "variants": {
+        "native": {
+          "path": "native/sky/overcast.png",
+          "sha256": "f083fa7020651f781f1b1dcb7c3a540830180f5475c00468011b3ebaeab13670",
+          "dimensions": [1774, 887],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "sky/overcast.png",
+          "sha256": "a9e39d869a52d347f7ede93cd99af8f93066509b9613051fb0e81b1e61dd622a",
+          "dimensions": [4096, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/sky/overcast.png",
+          "sha256": "9c0929a358dd57149c7b80285f98d0d725346d791d4d16bbd244d32e914bf0ef",
+          "dimensions": [2048, 1024],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Pole caps gradually homogenized over outer 5.5% latitude",
+        "Lanczos resampling 1597x887 to 4096x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "2:1 layout plus disposable sphere views do not constitute calibrated projection certification or in-app verification.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "overcast.webp",
+        "bytes": 954120,
+        "sha256": "de9620d00024589d453cb882b089424464be11e7a0e87691b5392d0bb7240fd3"
+      }
+    },
+    {
+      "id": "sparse_starfield",
+      "category": "sky",
+      "variants": {
+        "native": {
+          "path": "native/sky/sparse_starfield.png",
+          "sha256": "843501d821ce013bffce5dff5e74463806a9b696761902b8529f1922c71ae420",
+          "dimensions": [4096, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "sky/sparse_starfield.png",
+          "sha256": "17848b37d3a57bd226a465e05d3a6fa32ff454eea68e5a6dd074bd7b55074f30",
+          "dimensions": [4096, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/sky/sparse_starfield.png",
+          "sha256": "138df3cac751abf6010d0778785cae3b78f756135b666882feedd547fdf54d02",
+          "dimensions": [2048, 1024],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "procedural uniform-sphere star sampling with latitude-aware point footprints",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "2:1 layout plus disposable sphere views do not constitute calibrated projection certification or in-app verification.",
+        "Tiny stars may disappear in low-resolution mip levels; final points were enlarged after runtime visibility review."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "sparse_starfield.webp",
+        "bytes": 155962,
+        "sha256": "03ba9d9c24bae729fd19dc8267f7d591e3bc76df3e2bb526709a864ef397e9f3"
+      }
+    },
+    {
+      "id": "dense_starfield",
+      "category": "sky",
+      "variants": {
+        "native": {
+          "path": "native/sky/dense_starfield.png",
+          "sha256": "d89d408ed2bc1b030ca30b5023d2218bc1407735612f077b0f00d8588f651072",
+          "dimensions": [4096, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "master": {
+          "path": "sky/dense_starfield.png",
+          "sha256": "6aa4ed9f2024d13275f162f408c87bffa9fe345d50f0daae83b7440ec381938d",
+          "dimensions": [4096, 2048],
+          "mode": "RGB",
+          "alphaRange": null
+        },
+        "runtime": {
+          "path": "runtime/sky/dense_starfield.png",
+          "sha256": "a351cb42a562b90a0ae52dc6f727640b89c3947939f2095d341b19e4a8671bfc",
+          "dimensions": [2048, 1024],
+          "mode": "RGB",
+          "alphaRange": null
+        }
+      },
+      "generation": {
+        "method": "procedural uniform-sphere star sampling with latitude-aware point footprints",
+        "tool": "Python NumPy/Pillow",
+        "model": null
+      },
+      "transformations": [
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "2:1 layout plus disposable sphere views do not constitute calibrated projection certification or in-app verification.",
+        "Tiny stars may disappear in low-resolution mip levels; final points were enlarged after runtime visibility review."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "dense_starfield.webp",
+        "bytes": 450004,
+        "sha256": "91f5b4fbb0852a372935dc9bf4cc920d422f1095fac07ac9de133bf3a8346496"
+      }
+    },
+    {
+      "id": "alpine_mountains",
+      "category": "horizons",
+      "variants": {
+        "native": {
+          "path": "native/horizons/alpine_mountains.png",
+          "sha256": "3658d20cdb1c0ffc02294103c33efe01e79b797c9df39b440bfad3c93181d89f",
+          "dimensions": [2172, 724],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "horizons/alpine_mountains.png",
+          "sha256": "63f2730d92c9c18616b7f7219171045281402f656fa2bca8ce5e35d90afbca6d",
+          "dimensions": [4096, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/horizons/alpine_mountains.png",
+          "sha256": "7a93699eac1a8af2ceb3860180f8db5ba4382f864aad75182550ad36b88446b1",
+          "dimensions": [2048, 512],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "4:1 crop preserves clear space above tallest silhouette",
+        "Lanczos resampling 1955x489 to 4096x1024; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Native terrain alpha is near-opaque rather than exactly 255 everywhere; lower strip should overlap ground."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "alpine_mountains.webp",
+        "bytes": 559526,
+        "sha256": "e42f4d858e4f3973fcffae63e8f461e02bbea39bd845ea664b88a4a433dd4414"
+      }
+    },
+    {
+      "id": "desert_mesas",
+      "category": "horizons",
+      "variants": {
+        "native": {
+          "path": "native/horizons/desert_mesas.png",
+          "sha256": "b32c44ba66bc0258ec42420f3de878046fdb520e9430e7dea82c1d81b7f7a3fe",
+          "dimensions": [2172, 724],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "horizons/desert_mesas.png",
+          "sha256": "bf5338dbf1f82199a2a84173b3331f74920fda82949c085d93603eb8ca1a199b",
+          "dimensions": [4096, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/horizons/desert_mesas.png",
+          "sha256": "02f8cf0b6f98ad317d07a667b8bfc03ac15ed1ab6475a9198558ee3738acdf1c",
+          "dimensions": [2048, 512],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Resampled horizon aspect to 4:1; vertical proportions compressed",
+        "Lanczos resampling 1955x724 to 4096x1024; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Native panorama aspect differs from requested 4:1.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Native terrain alpha is near-opaque rather than exactly 255 everywhere; lower strip should overlap ground."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "desert_mesas.webp",
+        "bytes": 996964,
+        "sha256": "27b3f2e679b3ed7eb733afb022c30d6545a7861c3cd53748963ccb05e96df328"
+      }
+    },
+    {
+      "id": "volcanic_ridges",
+      "category": "horizons",
+      "variants": {
+        "native": {
+          "path": "native/horizons/volcanic_ridges.png",
+          "sha256": "d1d396e08ccd8a9dbb9af4ba754376ba542d9fcc2f994c5404741c7b36ad43f8",
+          "dimensions": [2172, 724],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "horizons/volcanic_ridges.png",
+          "sha256": "027f31f7f86e68351bd8b49ec17028918485efcb063b446cd2e63931b5c1c9de",
+          "dimensions": [4096, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/horizons/volcanic_ridges.png",
+          "sha256": "125a77792f0ec5221a97ccf65a70279cdb6c85515927156f444c37f5c1938626",
+          "dimensions": [2048, 512],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Resampled horizon aspect to 4:1; vertical proportions compressed",
+        "Lanczos resampling 1955x724 to 4096x1024; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Native panorama aspect differs from requested 4:1.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Native terrain alpha is near-opaque rather than exactly 255 everywhere; lower strip should overlap ground."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "volcanic_ridges.webp",
+        "bytes": 772796,
+        "sha256": "ce76a0da9ff76ef321d1c87da7852a7f367ba1fb1d496ba1bdb9e993c9de6106"
+      }
+    },
+    {
+      "id": "alien_spires",
+      "category": "horizons",
+      "variants": {
+        "native": {
+          "path": "native/horizons/alien_spires.png",
+          "sha256": "4ca4a148fb635b5060b94b773256f68c18a30c6e6f155f659404ddc4345b1c6f",
+          "dimensions": [2172, 724],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "horizons/alien_spires.png",
+          "sha256": "b0d64057676191e1824e3729fbdab69c937248dfd6347cbc0cd5a1985d0244e6",
+          "dimensions": [4096, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/horizons/alien_spires.png",
+          "sha256": "b249254508a9374b564f35a302a7c9613d0850698215a8459f93f3aae5d34bc1",
+          "dimensions": [2048, 512],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Resampled horizon aspect to 4:1; vertical proportions compressed",
+        "Lanczos resampling 1955x724 to 4096x1024; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Native panorama aspect differs from requested 4:1.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Native terrain alpha is near-opaque rather than exactly 255 everywhere; lower strip should overlap ground."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "alien_spires.webp",
+        "bytes": 824566,
+        "sha256": "7706c3c06751ccf50546551ba791abbe770e4a127c81a10686099d89d0801e05"
+      }
+    },
+    {
+      "id": "rolling_hills",
+      "category": "horizons",
+      "variants": {
+        "native": {
+          "path": "native/horizons/rolling_hills.png",
+          "sha256": "7cb4c7861a113f96b02c3c60ef266dd6de10c89c674735107af4fc066848e23a",
+          "dimensions": [2172, 724],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "horizons/rolling_hills.png",
+          "sha256": "4c31c19151e23c3f0364fa5ef47a72f152b5204e7004b6f2396179f4ba7f63ef",
+          "dimensions": [4096, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/horizons/rolling_hills.png",
+          "sha256": "92ecf38ac0da3d1415943b6eae2a47656628db7746f395a0d0a11819f6e4d5d7",
+          "dimensions": [2048, 512],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Resampled horizon aspect to 4:1; vertical proportions compressed",
+        "Lanczos resampling 1955x724 to 4096x1024; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Native panorama aspect differs from requested 4:1.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Native terrain alpha is near-opaque rather than exactly 255 everywhere; lower strip should overlap ground."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "rolling_hills.webp",
+        "bytes": 811210,
+        "sha256": "a0af3d47fc51bb2ad8f90ed0f890982ed01418625b658a8e0df1d7b2fadb54ba"
+      }
+    },
+    {
+      "id": "icy_peaks",
+      "category": "horizons",
+      "variants": {
+        "native": {
+          "path": "native/horizons/icy_peaks.png",
+          "sha256": "121a4feccdfd4ac59842616ab2566a9dd5c62c8be4e219309ac5a450f23ae64a",
+          "dimensions": [2172, 724],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "horizons/icy_peaks.png",
+          "sha256": "e7fc309118c78ec1387c0a5258f34710a63fd218ee04d0db2adfa2735c0b8f33",
+          "dimensions": [4096, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/horizons/icy_peaks.png",
+          "sha256": "4d060e136e94521d38c78f0020c9c44ab2391c12e360c8ba2deccd6379690a95",
+          "dimensions": [2048, 512],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Resampled horizon aspect to 4:1; vertical proportions compressed",
+        "Lanczos resampling 1955x724 to 4096x1024; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Native panorama aspect differs from requested 4:1.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Native terrain alpha is near-opaque rather than exactly 255 everywhere; lower strip should overlap ground."
+      ],
+      "wrapEdgeMax": {
+        "x": 0
+      },
+      "output": {
+        "file": "icy_peaks.webp",
+        "bytes": 907748,
+        "sha256": "36679692cf4bca79024c887d7b95a1b0d75bb4c4041494f9ebfec61ca940c69e"
+      }
+    },
+    {
+      "id": "warm_sun",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/warm_sun.png",
+          "sha256": "edc27e717dd24dec161864283a2a7ba97931df5991ffe586f4c8022a14da7eba",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        },
+        "master": {
+          "path": "celestial/warm_sun.png",
+          "sha256": "ab793ab6cc78b43acc1c6ac56763ff3976d8f420695288e9774f13ed63e0fa9a",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        },
+        "runtime": {
+          "path": "runtime/celestial/warm_sun.png",
+          "sha256": "9748824ee41b408276116dc70ebcef36c080832cfabebd962317f06d0e064f5b",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "warm_sun.webp",
+        "bytes": 810112,
+        "sha256": "209c759e37f45fae19bc57484545d775367ab4bfa02cbc648f08e376f52c8eab"
+      }
+    },
+    {
+      "id": "cool_sun",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/cool_sun.png",
+          "sha256": "5391e2fa74b5c57caffddb8daee1952b914aaba9544824c776e773ac39d833ec",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "master": {
+          "path": "celestial/cool_sun.png",
+          "sha256": "96b949aedc7ce42cbe9e907096070f5da0b8153123281b209a5d1d9f3d4e098f",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "runtime": {
+          "path": "runtime/celestial/cool_sun.png",
+          "sha256": "40a29d414e9bfbfa52f84acb69c89452bf930bd719ee749234c65e5eebbddbf5",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "cool_sun.webp",
+        "bytes": 736010,
+        "sha256": "1a19865b80765227dc11e7ba94fe40c1d4176429e1c37c8ef9610b581f89b136"
+      }
+    },
+    {
+      "id": "cratered_moon",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/cratered_moon.png",
+          "sha256": "f0fd7e18ed53be10121156c64f20346cc5fdcda4ba599e275ea671cb2fda5d6d",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "celestial/cratered_moon.png",
+          "sha256": "045dc44222e386b78e142341e76b577160dcf40e9d9daba512183d35874cdf1d",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/celestial/cratered_moon.png",
+          "sha256": "76b498a2e45f643ee49ae14c93027cde81f5ea5f0559df84b15ae890fb61b2f5",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Upper-left lighting is baked into this 2D sprite; not dynamically relightable.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "cratered_moon.webp",
+        "bytes": 668118,
+        "sha256": "f29ff808a9f9cf705f0100ba39cf3b4c1c794c641905bce1d192da906d5806b9"
+      }
+    },
+    {
+      "id": "rust_moon",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/rust_moon.png",
+          "sha256": "9b508502f0cca61cb3be2bae622d3224d15576bcebbe87c242e2d58a64676119",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "celestial/rust_moon.png",
+          "sha256": "47d5f1a4ff43606d7540ab69fd5b3500af7cd13496745f425602ab6314620127",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/celestial/rust_moon.png",
+          "sha256": "4064ebdf0f67d84169a7010bd3ef367b0b101a26950ab4a603a68f5dbbe938d1",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Upper-left lighting is baked into this 2D sprite; not dynamically relightable.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "rust_moon.webp",
+        "bytes": 875048,
+        "sha256": "f9f64eca5a6f27f8e80f5faddeaff8ab8adf9d6d850343e3289ee7e3ac516956"
+      }
+    },
+    {
+      "id": "blue_planet",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/blue_planet.png",
+          "sha256": "136f745a033d22a7dfbe6906a7fe3d61efc0927286a841260eb2cf17f51d42c7",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        },
+        "master": {
+          "path": "celestial/blue_planet.png",
+          "sha256": "d7b51cbab876737c89265319d34d11ecfb7177f067ed776979d05daad2e5df65",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/celestial/blue_planet.png",
+          "sha256": "c96f6f8b0ce432bf8dd4c63f56c7a447f53d294ee27b7149fe9e5cb0b9f42ff9",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Upper-left lighting is baked into this 2D sprite; not dynamically relightable.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "blue_planet.webp",
+        "bytes": 660880,
+        "sha256": "acea52c8c28f8db26a20b926abd18be4632045d883a49a9706b3294b19cf872b"
+      }
+    },
+    {
+      "id": "banded_gas_giant",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/banded_gas_giant.png",
+          "sha256": "e5c3d7c4ea97fca9eb151cb9644ba29e8dbaa3d9282e518a2e1292dce0048ae9",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "celestial/banded_gas_giant.png",
+          "sha256": "a3020661e33891514a2be994be5e9405532962bb64d45c70ef8b287a0d9b39dc",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/celestial/banded_gas_giant.png",
+          "sha256": "cdccadaa6e9b04c831a3e3987807b7ceadfa570ce7a2c077233ca40fcbdd47ff",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Upper-left lighting is baked into this 2D sprite; not dynamically relightable.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "banded_gas_giant.webp",
+        "bytes": 516788,
+        "sha256": "b152b7b7adbc9057e5b7172485f47401ae576e238d526ea01bc9eddd8604b2d2"
+      }
+    },
+    {
+      "id": "ringed_planet",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/ringed_planet.png",
+          "sha256": "060237e430c88bf558fd0f2bd65edc98b8d0689cdb32dc458049c9b92befeac2",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "celestial/ringed_planet.png",
+          "sha256": "f19a8feae19ed20f9669c378904e6b4694e57810c87c98bf89b22ad913fc7929",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/celestial/ringed_planet.png",
+          "sha256": "b1c40c4c82d4653f4d1baea5427185bfd7faf62b88ce83669299864f0e581a61",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Upper-left lighting is baked into this 2D sprite; not dynamically relightable.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "ringed_planet.webp",
+        "bytes": 282710,
+        "sha256": "915a4a1e049878ed04e210494106f655b7d21c5b29d04629a119695ed1e9228c"
+      }
+    },
+    {
+      "id": "eclipsed_planet",
+      "category": "celestial",
+      "variants": {
+        "native": {
+          "path": "native/celestial/eclipsed_planet.png",
+          "sha256": "bec1e7dabea99b24a61d5eb01346f5070041b47e6c4bb81e4d79a3dc5a640bbb",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "master": {
+          "path": "celestial/eclipsed_planet.png",
+          "sha256": "827401835bfcd67f72049cc9120b46e771ec22716602bc1d0e5c782bd016f69d",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        },
+        "runtime": {
+          "path": "runtime/celestial/eclipsed_planet.png",
+          "sha256": "7ca1e548d244ba69786574fbac3a6b2857a348ec1bc25cdf04909dbaa5af282e",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 255]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Upper-left lighting is baked into this 2D sprite; not dynamically relightable.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "eclipsed_planet.webp",
+        "bytes": 497826,
+        "sha256": "18117c8b7b6446b29d2ab4da37e3ebe3e73f842a72f3dae3ef15c7b5625817ab"
+      }
+    },
+    {
+      "id": "puffy_clouds",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/puffy_clouds.png",
+          "sha256": "3e8eeb30d58580c0f94a24e03847002a1184bcaa4bf96c877d3b4cfca94e2b99",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "master": {
+          "path": "atmosphere/puffy_clouds.png",
+          "sha256": "1a33fdcbd4bacc1ac9120e5096a1306177b7cab5e2514eada16b499990c5fa82",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/puffy_clouds.png",
+          "sha256": "68cbcfad510c3c8131b9e881c0790c8a5e4197408ce486ebd8c80be2c5917215",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "puffy_clouds.webp",
+        "bytes": 864166,
+        "sha256": "b88b17e51fcd45d11f89a0d5b1c37e8299636e81b1a45b56c9f2b493e73fad1d"
+      }
+    },
+    {
+      "id": "wispy_cirrus",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/wispy_cirrus.png",
+          "sha256": "5cd42c7afe39b44de3cbca9b02b31c2779ed4d389477c5650f6037362f77d589",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        },
+        "master": {
+          "path": "atmosphere/wispy_cirrus.png",
+          "sha256": "99a05b21e11c5eafb8d4365f43668cb5ae5f8e6f94f8b07aef7251c0cecb912f",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/wispy_cirrus.png",
+          "sha256": "cae38d4ffda55a64d55b25d550f9ed7930be8e434f16e58f71e2c0ae9a3ac0ac",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 254]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "wispy_cirrus.webp",
+        "bytes": 1177202,
+        "sha256": "b8b9a35e623bc3a3f9a1456e5229f1ad5670df554f62db6d7c8f6d8015592b3d"
+      }
+    },
+    {
+      "id": "storm_clouds",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/storm_clouds.png",
+          "sha256": "93707be3a11bc4d21904d025c7cc65a1dd8b328fa30860b13d0e8d646b959504",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "master": {
+          "path": "atmosphere/storm_clouds.png",
+          "sha256": "93cebf2f128df31852c345061c6ae27887465eb96bd7323fa2b5f88399deb260",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/storm_clouds.png",
+          "sha256": "241ed93e6edd6fbe5c62f09359823e6eab6585d1d08c4f661c33f2999c9533d3",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "storm_clouds.webp",
+        "bytes": 1222354,
+        "sha256": "52f39e63cc6c1ed60667c3d3c9c07dd3c42af8445d95d46b2839414a5e95c6d8"
+      }
+    },
+    {
+      "id": "low_mist",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/low_mist.png",
+          "sha256": "7e04dba17e34af0704bc6a2091c67b8bd29139f203cc098d1d51c6e8cae9e100",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [232, 249]
+        },
+        "master": {
+          "path": "atmosphere/low_mist.png",
+          "sha256": "8763969d85338a366b9bf3a10b740d05dff593348c1d84e9f6a2a15e381ae603",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 158]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/low_mist.png",
+          "sha256": "07c475fc5dcf81fac7c3f4223bbadc980ca52ea915c2da2048f7a0a66296c2a9",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 158]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "Generated fog was nearly opaque (alpha 232-249); extracted smooth density alpha from generated luminance, 20th-98th percentile, max opacity 62%; neutral RGB 235",
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "low_mist.webp",
+        "bytes": 576534,
+        "sha256": "e8906561467a768288aaae007fc44688a358a44938407369b9695faec55af000"
+      }
+    },
+    {
+      "id": "cyan_nebula",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/cyan_nebula.png",
+          "sha256": "ec36324c930c4b85497edf4349f6a44a0c2ffd4c040d7cba23447cbd1a312aaf",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "master": {
+          "path": "atmosphere/cyan_nebula.png",
+          "sha256": "db0ca4b1b8dcd24bb9a2ef300e08b79e8a0eaa2342c9434489e44187048bcc2b",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/cyan_nebula.png",
+          "sha256": "c07aa3dfdd9ff3d2047fde5941ef811de4661fd2c61ed781a0027e12f78fc4bb",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "cyan_nebula.webp",
+        "bytes": 1638720,
+        "sha256": "42959bc64e80879bf2224a10ff94fa771656d7ebcc1e951210e2c6019f0d98ca"
+      }
+    },
+    {
+      "id": "violet_nebula",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/violet_nebula.png",
+          "sha256": "7030c64f8b1075b71a120ba29d7063ff27a7120300d7f1c1e15cd7237af25989",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "master": {
+          "path": "atmosphere/violet_nebula.png",
+          "sha256": "e9151fed7df24606cb31f9b26e3006df43ccd5952bd0174d456fb91fe85c9b34",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 209]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/violet_nebula.png",
+          "sha256": "af3b26d6c97ea5a0ae861ba1831f54e29ce2260eb895c9bd91ff2fbe7487ef23",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 209]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "Soft alpha remap reduces dense gas opacity and opens transparent negative space; peak alpha capped at 210",
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "violet_nebula.webp",
+        "bytes": 1545754,
+        "sha256": "a7f4049a66834dac9d480f8f6c206a33751a84860d0dd2763de756f8fcacf92e"
+      }
+    },
+    {
+      "id": "amber_dust",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/amber_dust.png",
+          "sha256": "ac6ea3e07eced7cc1640ac677389a7b844c5f9cc9d60878104250059d7e51c13",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 251]
+        },
+        "master": {
+          "path": "atmosphere/amber_dust.png",
+          "sha256": "3735925a122948aa92b7c8d4ddbf1cf61320f64dbe8055b8b383e60376d72a57",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 251]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/amber_dust.png",
+          "sha256": "311eb4360c05e78f6763aba76e882e4312a2ee9f543424945f5c3964d8b1cc44",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 251]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "10% translated overlap crossfade per wrapping axis, in premultiplied space for RGBA; exported straight alpha",
+        "Lanczos resampling 1129x1129 to 2048x2048; no new native detail",
+        "Explicit opposite-edge equality on wrap axes after each resize"
+      ],
+      "limitations": [
+        "Overlap blends can soften detail locally; edge equality alone does not establish imperceptible repetition.",
+        "Still image; motion requires runtime UV scrolling/blending.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail.",
+        "Recognizable repeated gas/cloud forms, especially at small UV repeat scale; overlapping layers and restrained opacity may be useful."
+      ],
+      "wrapEdgeMax": {
+        "x": 0,
+        "y": 0
+      },
+      "output": {
+        "file": "amber_dust.webp",
+        "bytes": 1353292,
+        "sha256": "d046a2f81b48eb5b64cfe5c7cf30693c7702f5e61d52f15d3f5ace430b2a53f2"
+      }
+    },
+    {
+      "id": "aurora_ribbons",
+      "category": "atmosphere",
+      "variants": {
+        "native": {
+          "path": "native/atmosphere/aurora_ribbons.png",
+          "sha256": "a4b18e46f8c45372709eef412c2077fb23af272e9bd2e3956d20aa2e19f004d5",
+          "dimensions": [1254, 1254],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "master": {
+          "path": "atmosphere/aurora_ribbons.png",
+          "sha256": "38456bbb927fcbda9f24f461b1b64194d28d7d2dba54f71da02551ee58954467",
+          "dimensions": [2048, 2048],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        },
+        "runtime": {
+          "path": "runtime/atmosphere/aurora_ribbons.png",
+          "sha256": "5e14fe4ef428eb8d642a7c620bd3ee98d49f1e02e74d4f639342ef2a9f389912",
+          "dimensions": [1024, 1024],
+          "mode": "RGBA",
+          "alphaRange": [0, 253]
+        }
+      },
+      "generation": {
+        "method": "built-in image generation",
+        "tool": "image_gen.imagegen",
+        "model": "not exposed by built-in tool"
+      },
+      "transformations": [
+        "18% transparent canvas margin added, original subject preserved",
+        "Outer 7% alpha feather to zero for bounded sprite",
+        "Lanczos resampling 1480x1480 to 2048x2048; no new native detail"
+      ],
+      "limitations": [
+        "Bounded sprite; do not repeat without spacing or a separate crossfade.",
+        "Master is upscaled from preserved native generation; not native 4K/2K detail."
+      ],
+      "wrapEdgeMax": {},
+      "output": {
+        "file": "aurora_ribbons.webp",
+        "bytes": 480914,
+        "sha256": "8bb7183dc3db3f3ecb9b9f3368dd4d7fc02e512383e0456b420b5e01eb7a60a2"
+      }
+    }
+  ],
+  "limitations": "Generated masters are upscaled; alpha/edge measurements and contact-sheet review do not certify in-World visuals or seamless projection."
+}

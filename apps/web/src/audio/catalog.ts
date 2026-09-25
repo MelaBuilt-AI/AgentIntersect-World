@@ -1,4 +1,8 @@
-// Browser encodings from Aaron’s Black Circuit pack v3.1.0; masters remain untouched.
+import type {
+  EnvironmentAmbience,
+  ENVIRONMENT_EVENT_AUDIO,
+} from "@agentintersect-world/world-schema/environment-audio";
+// Browser encodings from Aaron’s supplied packs; masters remain untouched.
 export const AUDIO_CATALOG = [
   {
     id: "00-black-circuit",
@@ -336,5 +340,31 @@ export const AUDIO_CATALOG = [
     loop: false,
     category: "sfx",
   },
+  ...(
+    [
+      "glitch-static-crackle",
+      "screen-flicker",
+      "screen-loading-warp-complete",
+    ] as const
+  ).map((id) => ({
+    id,
+    title: id,
+    src: `/audio/environments/${id}.ogg`,
+    gain: 0.32,
+    loop: false,
+    category: "sfx" as const,
+  })),
 ] as const;
-export type AudioCue = (typeof AUDIO_CATALOG)[number]["id"];
+export type AudioCue =
+  | (typeof AUDIO_CATALOG)[number]["id"]
+  | `environment-${EnvironmentAmbience}`
+  | (typeof ENVIRONMENT_EVENT_AUDIO)[number];
+/** Environment IDs are already schema-validated. Resolve their uniform local layout on demand. */
+export function audioAsset(id: AudioCue): { src: string; gain: number } {
+  return (
+    AUDIO_CATALOG.find((asset) => asset.id === id) ?? {
+      src: `/audio/environments/${id.replace(/^environment-/, "")}.ogg`,
+      gain: id.startsWith("environment-") ? 0.38 : 0.25,
+    }
+  );
+}

@@ -1,3 +1,4 @@
+import { createPreviewRenderer } from "./world-renderer.js";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -691,6 +692,7 @@ export function AvatarKitRosterCanvas({
       data-avatar-count={Math.min(avatars.length, 12)}
     >
       <Canvas
+        gl={createPreviewRenderer}
         frameloop={
           avatars.some((avatar) => avatar.animate) ? "always" : "demand"
         }
@@ -743,6 +745,7 @@ export function AvatarKitCanvas({
       }
     >
       <Canvas
+        gl={createPreviewRenderer}
         frameloop={animate ? "always" : "demand"}
         camera={{ position: [0, 0.2, 6.8], fov: 36 }}
         dpr={[1, 1.5]}

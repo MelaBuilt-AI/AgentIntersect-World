@@ -1,5 +1,6 @@
 import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
 import { once } from "node:events";
+import { registerEnvironmentRoutes } from "./environment-routes.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 import {
@@ -82,6 +83,11 @@ export function registerAgentSessionRoutes(
   envelope: RouteEnvelope,
 ): void {
   const tags = ["phase12-agent-sessions"];
+  registerEnvironmentRoutes(server, gateway, {
+    success: envelope.success,
+    error: (error, request, reply) =>
+      routeFailure(error, request, reply, envelope),
+  });
   const strictBody = (allowed: readonly string[]) =>
     async function rejectUnexpectedBody(
       request: FastifyRequest,

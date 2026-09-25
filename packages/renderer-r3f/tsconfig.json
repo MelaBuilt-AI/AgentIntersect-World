@@ -6,8 +6,9 @@
     "jsx": "react-jsx",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "declaration": true,
+    "allowJs": true,
     "rootDir": "src",
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js"]
 }

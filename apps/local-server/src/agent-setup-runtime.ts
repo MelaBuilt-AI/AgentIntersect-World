@@ -27,6 +27,7 @@ import {
   assertNativeWorkspacePath,
 } from "./agent-environment.js";
 
+import { runEnvironmentModel } from "./environment-model.js";
 const exec = promisify(execFile);
 export function createAgentSetupRuntime(options: {
   readonly registry: AdapterRegistry;
@@ -179,6 +180,19 @@ export function createAgentSetupRuntime(options: {
         agentId: identity.id,
         nativeSessionRoot,
       });
+    }
+    if (!execution && (adapterId === "hermes" || adapterId === "openclaw")) {
+      const kind = adapterId;
+      adapter.generateEnvironment = (_sessionRef, prompt, signal) =>
+        runEnvironmentModel({
+          kind,
+          executable: executablePath,
+          root: nativeSessionRoot,
+          profile: identity.profilePath,
+          agentId: identity.id,
+          prompt,
+          ...(signal ? { signal } : {}),
+        });
     }
     const host = execution?.host ?? (await currentEnvironment());
     // Every registered harness (HTTP or CLI) uses the same native path contract.

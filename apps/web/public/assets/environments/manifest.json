@@ -1,0 +1,174 @@
+{
+  "schema": "aiw.environment-assets/1",
+  "provenance": "Owner-supplied environment textures and atmosphere/SFX masters; supplied for World integration. Originals retained outside repository. No new blanket asset sublicense asserted.",
+  "assets": [
+    {
+      "source": "01_sandy_paths_and_grass.png",
+      "sourceSha256": "fe820f82cc6f1d08a493ee5bf0787d1634966b91a5b7c5bfb8d3959c94faa07a",
+      "path": "assets/environments/01_sandy_paths_and_grass.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "38f2fc982583157e71b01b8246cdf4fc7a00b337c7277640dd3bef224527a838",
+      "bytes": 1448824
+    },
+    {
+      "source": "02_mars_red_sand_and_rocks.png",
+      "sourceSha256": "ce9219750f98008a228a92e6efc5531382ae1d0cec8bc2626bd876fa0084fc80",
+      "path": "assets/environments/02_mars_red_sand_and_rocks.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "16e4657b91bec4c115eed5fd91183ab85670cf470d99b577614da3ee30bddb8e",
+      "bytes": 1174800
+    },
+    {
+      "source": "03_day_sky_blue_base.png",
+      "sourceSha256": "874c37e4659a49ab9bba4ec96ce04a9fca191e7f4aa02e140955b5a7fc180b17",
+      "path": "assets/environments/03_day_sky_blue_base.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "af335a824db4593402e759f33fcf5455eaf790f51ae7fa5ed360a3c348176763",
+      "bytes": 26242
+    },
+    {
+      "source": "04_day_distant_mountain_horizon.png",
+      "sourceSha256": "3742c249cd79d83f7fcb2e5970e0846667f375b12e3d903e7a49c48a04796b51",
+      "path": "assets/environments/04_day_distant_mountain_horizon.webp",
+      "nativeDimensions": [4096, 2048],
+      "dimensions": [2048, 1024],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "651fc99412f5274cdda3092a63f84fbe2510e46684cbdd8b42e17538703e6cd0",
+      "bytes": 232134
+    },
+    {
+      "source": "05_day_puffy_clouds.png",
+      "sourceSha256": "e3efcf419320172f2123d3c4bb1b8938725b05f2752693299cd52cd03052523a",
+      "path": "assets/environments/05_day_puffy_clouds.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "1fc594049bba3e634a02c9ae9902ce83b4fe3c32c2e977a24cd2db4b271c8e88",
+      "bytes": 1124078
+    },
+    {
+      "source": "06_space_starfield_base.png",
+      "sourceSha256": "e71d6d7b462668b386fb126517ce2ebf0fff06e96ba0bf1302c1d92772445da0",
+      "path": "assets/environments/06_space_starfield_base.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "4e1bf59ad6fb459797780eb361e0ef1e1e777f790587bee5d6b4932c307f7012",
+      "bytes": 270524
+    },
+    {
+      "source": "07_space_moons_and_planets.png",
+      "sourceSha256": "c93ea2a96ad0b20078994fb059b335280633b73896e3a12218f06c4d9c4e35e2",
+      "path": "assets/environments/07_space_moons_and_planets.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "d98a9c683d679e847682dcb8c7a13aea0d6b7a999ce13f30f92b1c0f4ebdf48d",
+      "bytes": 114280
+    },
+    {
+      "source": "08_space_nebula_gas_swirls.png",
+      "sourceSha256": "bba55773f4675a990c0200a74b3fca4e053d54d4ec42bcb544ffd64f54cba790",
+      "path": "assets/environments/08_space_nebula_gas_swirls.webp",
+      "nativeDimensions": [4096, 4096],
+      "dimensions": [2048, 2048],
+      "processing": "Lanczos max 2048; WebP quality 90, original alpha retained",
+      "sha256": "cef249641a0bcf2cfecfb2dc99a8a42b9a54dc0a1cf4c86a9954f83f59dac7c9",
+      "bytes": 1718908
+    },
+    {
+      "source": "ambience/alien-planet-loop.wav",
+      "sourceSha256": "2326edebb31d215b40837214806e56dd2b733b978c04f71be72a7068c3e80b17",
+      "path": "audio/environments/alien-planet-loop.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "ce75bca8e6a6e7e39dca47fdeb52609dacddba214ae99d1f524fc9d80353ca87",
+      "bytes": 349244
+    },
+    {
+      "source": "ambience/birds-loop.wav",
+      "sourceSha256": "8952d35ff164459a440c359f6b0f5c65b48ce7591c389b94314ed39651ba46eb",
+      "path": "audio/environments/birds-loop.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "8c5eeb3e28f306a3cdd85fb05132c78650afa028dbbe2ccec37573ace3e8fc81",
+      "bytes": 479697
+    },
+    {
+      "source": "ambience/blue-sky-sand-grass.wav",
+      "sourceSha256": "2fadc2dce4c7b2fcffe6acebe0eab45184d8995f612e19bf37a203d90a1355d8",
+      "path": "audio/environments/blue-sky-sand-grass.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "cbcb9d78671d3061e610ab3c3b09a5500d3f0365aa6aa54c38daf9f8862ea21b",
+      "bytes": 573590
+    },
+    {
+      "source": "ambience/coding-beeps-chirps-loop.wav",
+      "sourceSha256": "0c75b318646fa8ff32c0a23ebf61c98eee3278c01c167570ac28fe1ce5f9d544",
+      "path": "audio/environments/coding-beeps-chirps-loop.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "3174c8820ee8f0841c013c0881dc181f95379c7283a7c1ff81441726aceaace6",
+      "bytes": 343639
+    },
+    {
+      "source": "ambience/mars-swirling-gases.wav",
+      "sourceSha256": "f2570d5ee162a2b88f0af2ef09c75a81096f58dfd9aa5bcc926a885393f40bc1",
+      "path": "audio/environments/mars-swirling-gases.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "603a900d2e2839197ce4e468d5646ec758b0316d56fe1eeb7c4ac847486dcbbc",
+      "bytes": 363485
+    },
+    {
+      "source": "ambience/rain-loop.wav",
+      "sourceSha256": "b48615e6e218d555a39a53b83245219d7c154054f4482283b35576223ba817ae",
+      "path": "audio/environments/rain-loop.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "a8ea9c83018a41c78e0250289f0280cdfce9eb6cd19f1a77e0de4b59264ae0f8",
+      "bytes": 525679
+    },
+    {
+      "source": "ambience/thunder-lightning-loop.wav",
+      "sourceSha256": "1f3fb97ac8a14cd9109edb124e9cc88335805a8d17e1e4dab9e598c866b0c63c",
+      "path": "audio/environments/thunder-lightning-loop.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "91f7c6ca5c1cb4c9b331937de462fc7b0b6fd02708e32ec06f94589919a7faa4",
+      "bytes": 342259
+    },
+    {
+      "source": "ambience/wind-loop.wav",
+      "sourceSha256": "cddb34372b9af37a1e5796da05145010105bf4abe00c4f3ba6c785cf9501f529",
+      "path": "audio/environments/wind-loop.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "a4a429139afd0f03647e5b59e1e4fe968688536eaa37f57e80d300a4df04a95f",
+      "bytes": 562316
+    },
+    {
+      "source": "sfx/glitch-static-crackle.wav",
+      "sourceSha256": "355baa8b5e99e268152ba01e2d8b4cda9a2dd457801a5b36d07b54adb90450d7",
+      "path": "audio/environments/glitch-static-crackle.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "05e2ba22e8e427fed955c0308147e9f45d2cef6e4972d56db13a3011e71c77a2",
+      "bytes": 71551
+    },
+    {
+      "source": "sfx/screen-flicker.wav",
+      "sourceSha256": "42b97681a7154ec50ee5d0d036bd0a484f0f382def913e891d71c564c62e1e22",
+      "path": "audio/environments/screen-flicker.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "1864fa2db2bb52f9221bb0d8e1cc55fb2350857c5d67deec1c0e8ecd600faf9e",
+      "bytes": 50395
+    },
+    {
+      "source": "sfx/screen-loading-warp-complete.wav",
+      "sourceSha256": "02239a5de999e60980e83dc85599d543d7edebcf117c7f4cf58d8b1e5a8e66b0",
+      "path": "audio/environments/screen-loading-warp-complete.ogg",
+      "processing": "Vorbis quality 5; no trim, loop edit or normalization",
+      "sha256": "2382abdf19621a6fd1a2350b9dc902f415637627e5af1c5eef9fa51fb75f752f",
+      "bytes": 127357
+    }
+  ]
+}

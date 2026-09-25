@@ -19,6 +19,7 @@ export function createRepositoryFogDepth() {
   let target: WebGLRenderTarget | null = null;
   let captured = false;
   const size = new Vector2();
+  let captureCamera: Camera | null = null;
   const opaque = new MeshBasicMaterial({ color: "#ffffff" });
   opaque.fog = false;
   opaque.toneMapped = false;
@@ -47,7 +48,11 @@ export function createRepositoryFogDepth() {
         const materials = Array.isArray(material) ? material : [material];
         if (
           object.visible &&
-          (object.name === "repository-local-atmosphere" ||
+          // This pass consumes depth and alpha only. WebGPU SunLight ignores
+          // the legacy renderer.shadowMap.autoUpdate flag; exclude lighting
+          // here so it does not render two unused cascade maps per frame.
+          (("isLight" in object && object.isLight) ||
+            object.name === "repository-local-atmosphere" ||
             object.name === "world-wet-floor-reflection" ||
             object.name.startsWith("repository-terminal-rain:") ||
             (material && materials.every((item) => !item.depthWrite)))
@@ -84,7 +89,11 @@ export function createRepositoryFogDepth() {
         gl.setRenderTarget(target);
         // Keep real opaque/alpha-tested geometry and the transparent-black
         // spatial-screen masks. Their color alpha lets mist preserve DOM holes.
-        gl.render(scene, camera);
+        // Modern render lists are keyed by scene/camera. A nested capture must
+        // not truncate the main pass's active list. Retain one distinct camera.
+        captureCamera ??= camera.clone(false);
+        captureCamera.copy(camera, false);
+        gl.render(scene, captureCamera);
       } finally {
         gl.setRenderTarget(previous);
         gl.autoClear = autoClear;

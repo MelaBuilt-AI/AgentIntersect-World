@@ -260,15 +260,18 @@ importers:
 
   packages/renderer-r3f:
     dependencies:
+      "@agentintersect-world/world-schema":
+        specifier: workspace:*
+        version: link:../world-schema
       "@react-three/fiber":
         specifier: 9.6.1
-        version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(three@0.185.1)
+        version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(three@0.186.0)
       react:
         specifier: 19.2.7
         version: 19.2.7
       three:
-        specifier: 0.185.1
-        version: 0.185.1
+        specifier: 0.186.0
+        version: 0.186.0
 
   packages/repo-indexer:
     dependencies:
@@ -3718,10 +3721,10 @@ packages:
       }
     engines: { node: ">=20" }
 
-  three@0.185.1:
+  three@0.186.0:
     resolution:
       {
-        integrity: sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==,
+        integrity: sha512-cr/fIM2ddMSVbYVgkfD4jLJv7Fh/8ZTjvo+7gQeSVGUZHxpx9FDwoL5iC7hUz/LiRA8wMbqfnb90xKfm1/HHkQ==,
       }
 
   tiny-invariant@1.3.3:
@@ -4647,7 +4650,7 @@ snapshots:
     dependencies:
       playwright: 1.61.1
 
-  "@react-three/fiber@9.6.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(three@0.185.1)":
+  "@react-three/fiber@9.6.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(three@0.186.0)":
     dependencies:
       "@babel/runtime": 7.29.7
       "@types/webxr": 0.5.24
@@ -4658,7 +4661,7 @@ snapshots:
       react-use-measure: 2.1.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       scheduler: 0.27.0
       suspend-react: 0.1.3(react@19.2.7)
-      three: 0.185.1
+      three: 0.186.0
       use-sync-external-store: 1.6.0(react@19.2.7)
       zustand: 5.0.14(@types/react@19.2.17)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
     optionalDependencies:
@@ -6044,7 +6047,7 @@ snapshots:
     dependencies:
       real-require: 1.0.0
 
-  three@0.185.1: {}
+  three@0.186.0: {}
 
   tiny-invariant@1.3.3: {}
 

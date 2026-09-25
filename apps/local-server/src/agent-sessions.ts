@@ -2,6 +2,11 @@ import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {
+  EnvironmentGenerationRequestSchema,
+  environmentPrompt,
+  parseEnvironmentProposal,
+} from "./environment-generation.js";
+import {
   AgentEnvironmentError,
   relativeNativeWorkspacePath,
 } from "./agent-environment.js";
@@ -82,6 +87,13 @@ export type WorldOwnedSessionContext = {
 
 export interface AgentAdapter {
   readonly id: string;
+  /** Isolated, tool-restricted recipe turn; never an alias for sendText. */
+  generateEnvironment?(
+    sessionRef: string,
+    prompt: string,
+    signal?: AbortSignal,
+  ): Promise<string>;
+  environmentUnavailableReason?(): string | null;
   /** Server-configured environment, never browser-supplied path authority. */
   readonly workspace?: {
     mapPath(value: string): string;
@@ -1812,6 +1824,83 @@ export class AgentSessionGateway {
 
   isBusy(sessionId: string): boolean {
     return this.#busy.has(sessionId);
+  }
+
+  environmentCapability(sessionId: string) {
+    const session = this.#store.requireSession(sessionId);
+    const adapter = this.#registry.require(
+      session.adapterId,
+      session.connectionId,
+    );
+    const reason =
+      session.status !== "ready" || session.continuity !== "current"
+        ? "Reconnect this agent before creating a World."
+        : (adapter.environmentUnavailableReason?.() ??
+          (!adapter.generateEnvironment
+            ? "This connection does not expose a restricted recipe turn. Select a local Codex, Claude Code or Hermes agent, or use the advanced recipe editor. Ordinary chat will never be used as an unsafe fallback."
+            : null));
+    return {
+      available: reason === null,
+      reason,
+      adapterId: session.adapterId,
+      sessionId,
+      isolation: "separate-recipe-turn" as const,
+    };
+  }
+
+  async generateEnvironment(
+    sessionId: string,
+    raw: unknown,
+    signal?: AbortSignal,
+  ) {
+    const parsed = EnvironmentGenerationRequestSchema.safeParse(raw);
+    if (!parsed.success)
+      throw new GatewayError(
+        "validation",
+        "Describe your World in 1–500 words with a valid current recipe.",
+      );
+    const capability = this.environmentCapability(sessionId);
+    if (!capability.available)
+      throw new GatewayError("unsupported", capability.reason!);
+    if (this.#busy.has(sessionId))
+      throw new GatewayError(
+        "conflict",
+        "The selected agent is busy. Wait for its current turn.",
+      );
+    const session = this.#store.requireSession(sessionId);
+    const adapter = this.#registry.require(
+      session.adapterId,
+      session.connectionId,
+    );
+    this.#busy.add(sessionId);
+    try {
+      signal?.throwIfAborted();
+      const text = await adapter.generateEnvironment!(
+        session.adapterSessionRef,
+        environmentPrompt(parsed.data.description, parsed.data.current),
+        signal,
+      );
+      signal?.throwIfAborted();
+      const latest = this.#store.requireSession(sessionId);
+      assertTurnBinding(latest, session);
+      if (latest.status !== "ready")
+        throw new GatewayError(
+          "conflict",
+          "Agent disconnected before the recipe completed.",
+        );
+      return parseEnvironmentProposal(text);
+    } catch (error) {
+      if (error instanceof GatewayError) throw error;
+      throw new GatewayError(
+        "upstream",
+        error instanceof Error && !("code" in error)
+          ? error.message
+          : "Environment generation could not access its local runtime or authentication. Recheck the selected connection. Your World is unchanged.",
+      );
+    } finally {
+      this.#busy.delete(sessionId);
+      for (const done of [...(this.#turnWaiters.get(sessionId) ?? [])]) done();
+    }
   }
 
   bindWorkstream(

@@ -1,26 +1,16 @@
-import { useContext, useMemo, useRef } from "react";
+import { useContext, useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import {
-  AdditiveBlending,
-  DoubleSide,
-  type Points,
-  type ShaderMaterial,
-} from "three";
+import { type InstancedMesh } from "three";
+import { shaftMaterial, sparkMaterial } from "./repository-node-materials.js";
 import { WorldGraphicsContext } from "./world-graphics-context.js";
 import { RepositoryBaseFog } from "./repository-base-fog.js";
 import type { CityRainClock } from "./repository-terminal-rain.js";
 
 const noRaycast = () => {};
-const vertex = `varying vec2 vUv; void main(){vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
-const shaftFragment = `varying vec2 vUv; void main(){
- float edge=pow(max(0.0,1.0-abs(vUv.x*2.0-1.0)),3.0);
- float height=smoothstep(0.0,0.12,vUv.y)*(1.0-smoothstep(0.3,1.0,vUv.y));
- gl_FragColor=vec4(0.10,0.36,0.52,edge*height*0.075);
- #include <colorspace_fragment>
-}`;
 
 /** Low volume mist and the accepted crossed shafts / arrival sparks. */
 export function RepositoryLocalAtmosphere({
+  active = true,
   x,
   z,
   radius,
@@ -29,6 +19,7 @@ export function RepositoryLocalAtmosphere({
   settledAt,
   reducedMotion,
 }: {
+  readonly active?: boolean;
   readonly x: number;
   readonly z: number;
   readonly radius: number;
@@ -38,8 +29,8 @@ export function RepositoryLocalAtmosphere({
   readonly reducedMotion: boolean;
 }) {
   const graphics = useContext(WorldGraphicsContext);
-  const sparks = useRef<ShaderMaterial>(null);
-  const sparkMesh = useRef<Points>(null);
+
+  const sparkMesh = useRef<InstancedMesh>(null);
   const skipSparks = useRef(reducedMotion);
   const sparkUniforms = useMemo(() => ({ age: { value: 0 } }), []);
   const shapes = useMemo(() => {
@@ -74,10 +65,23 @@ export function RepositoryLocalAtmosphere({
       points: new Float32Array(points),
     };
   }, [radius, roof]);
+  const shaft = useMemo(() => shaftMaterial(), []);
+  const sparks = useMemo(
+    () => sparkMaterial(shapes.points, sparkUniforms.age),
+    [shapes, sparkUniforms],
+  );
+  useEffect(
+    () => () => {
+      shaft.dispose();
+      sparks.dispose();
+    },
+    [shaft, sparks],
+  );
   useFrame(() => {
+    if (!active) return;
     if (reducedMotion) skipSparks.current = true;
     const age = Math.max(0, clock.value - settledAt);
-    if (sparks.current) sparks.current.uniforms.age!.value = age;
+    sparkUniforms.age.value = age;
     if (sparkMesh.current)
       sparkMesh.current.visible = !skipSparks.current && age < 3.5;
   });
@@ -98,44 +102,19 @@ export function RepositoryLocalAtmosphere({
               args={[shapes.shaftUv, 2]}
             />
           </bufferGeometry>
-          <shaderMaterial
-            vertexShader={vertex}
-            fragmentShader={shaftFragment}
-            side={DoubleSide}
-            transparent
-            depthWrite={false}
-            blending={AdditiveBlending}
-            toneMapped={false}
-          />
+          <primitive object={shaft} attach="material" dispose={null} />
         </mesh>
       ) : null}
       {graphics.arrivalSparks && !reducedMotion ? (
-        <points
+        <instancedMesh
           ref={sparkMesh}
+          args={[undefined, sparks, 36]}
           name="repository-arrival-sparks"
           raycast={noRaycast}
           frustumCulled={false}
         >
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              args={[shapes.points, 3]}
-            />
-          </bufferGeometry>
-          <shaderMaterial
-            ref={sparks}
-            uniforms={sparkUniforms}
-            transparent
-            depthWrite={false}
-            blending={AdditiveBlending}
-            toneMapped={false}
-            vertexShader={`uniform float age; varying float fade; void main(){float seed=fract(sin(dot(position,vec3(12.1,8.3,4.9)))*43758.5);float t=max(0.0,age-seed*0.45);vec3 p=position;p.xz*=1.0+t*0.18;p.y+=t*(2.2+seed*2.5);vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;gl_PointSize=clamp(65.0/max(1.0,-mv.z),1.0,9.0);fade=(1.0-smoothstep(1.4,3.2,t))*smoothstep(0.0,0.2,t);}`}
-            fragmentShader={`varying float fade; void main(){float d=length(gl_PointCoord-0.5)*2.0;gl_FragColor=vec4(0.4,0.8,1.0,(1.0-smoothstep(0.0,1.0,d))*fade); #include <colorspace_fragment>\n}`.replace(
-              "; #include",
-              ";\n#include",
-            )}
-          />
-        </points>
+          <planeGeometry args={[1, 1]} />
+        </instancedMesh>
       ) : null}
     </group>
   );
