@@ -23,6 +23,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -825,7 +826,9 @@ function WorldRoomScene({
     () => calculateRepositoryTransform(objects),
     [objects],
   );
-  useEffect(() => {
+  // R3F commits avatar transforms before drawing. Keep its follow-camera in
+  // that same commit: a passive effect can leave one frame at the old position.
+  useLayoutEffect(() => {
     const pose = calculateWorldCameraPose({
       userPosition: cityFocusPosition ?? userPosition,
       camera: cameraLook,
@@ -836,6 +839,18 @@ function WorldRoomScene({
     camera.lookAt(new Vector3().fromArray(pose.target));
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
+    invalidate();
+  }, [
+    camera,
+    cameraLook,
+    cityFocusPosition,
+    invalidate,
+    renderedAgentAvatars.length,
+    size.height,
+    size.width,
+    userPosition,
+  ]);
+  useEffect(() => {
     gl.domElement.dataset.cameraMode = "third-person";
     gl.domElement.dataset.cameraFocus = cityFocusPosition
       ? "repository-city"

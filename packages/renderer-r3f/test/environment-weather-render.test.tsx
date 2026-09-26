@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { Group, Mesh, Texture } from "three";
+import { Group, Mesh, Texture, PointLight, Object3D } from "three";
 import {
   ENVIRONMENT_FX,
   ENVIRONMENT_PRESETS,
@@ -93,4 +93,81 @@ it("advances the actual atlas sampling matrix even when the local strike mesh is
   expect(
     EnvironmentWeatherEffects({ ...props, reducedMotion: true }),
   ).toBeNull();
+});
+
+it("keeps the same visible light through alternating distant/local strikes without changing illumination", () => {
+  runtime.frames.length = 0;
+  const strikes: { local: boolean; x: number; z: number }[] = [];
+  const outer = EnvironmentWeatherEffects({
+    resources: {
+      recipe: {
+        ...ENVIRONMENT_PRESETS[1]!.recipe!,
+        weather: {
+          particles: "none",
+          intensity: 1,
+          wind: 0,
+          lightning: "both",
+          lightningInterval: 8,
+          flashes: true,
+        },
+      },
+      textures: {},
+      dispose: vi.fn(),
+    },
+    size: 68,
+    userPosition: { x: 0, z: 0 },
+    reducedMotion: false,
+    onStrike: (strike) => strikes.push(strike),
+  })!;
+  const element = (outer.type as (props: unknown) => unknown)(outer.props);
+  const root = new Group();
+  let light: PointLight | undefined;
+  const mount = (node: unknown, parent: Object3D) => {
+    if (Array.isArray(node)) {
+      node.forEach((child) => mount(child, parent));
+      return;
+    }
+    if (!node || typeof node !== "object" || !("props" in node)) return;
+    const el = node as {
+      type: string;
+      props: {
+        ref?: ((v: unknown) => void) | { current: unknown };
+        visible?: boolean;
+        position?: [number, number, number];
+        children?: unknown;
+      };
+    };
+    const object =
+      el.type === "pointLight" ? (light = new PointLight()) : new Group();
+    object.visible = el.props.visible ?? true;
+    if (el.props.position) object.position.fromArray(el.props.position);
+    parent.add(object);
+    if (typeof el.props.ref === "function") el.props.ref(object);
+    else if (el.props.ref) el.props.ref.current = object;
+    mount(el.props.children, object);
+  };
+  mount(element, root);
+  const state = {
+    camera: new Group(),
+    size: { height: 900 },
+    gl: { getPixelRatio: () => 1 },
+  };
+  for (let i = 0; i < 115; i++) {
+    runtime.frames.forEach((frame) => frame(state, 0.1));
+    const visible: Object3D[] = [];
+    root.traverseVisible((object) => {
+      if (object instanceof PointLight) visible.push(object);
+    });
+    expect(
+      visible,
+      "light membership must not rebuild every scene material at each strike",
+    ).toEqual([light]);
+    if (strikes.length === 1) expect(light!.intensity).toBe(0);
+  }
+  expect(strikes.map((strike) => strike.local)).toEqual([false, true]);
+  expect(light!.intensity).toBeGreaterThan(0);
+  const position = light!.getWorldPosition(new Group().position);
+  expect(position.x).toBe(strikes[1]!.x);
+  expect(position.y).toBe(2);
+  expect(position.z).toBe(strikes[1]!.z);
 });

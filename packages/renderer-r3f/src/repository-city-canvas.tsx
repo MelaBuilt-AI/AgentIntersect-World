@@ -14,8 +14,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Box3, Group, Mesh, MeshStandardMaterial, type Texture } from "three";
-import { prepareWorldObject } from "./world-preparation.js";
+import {
+  Box3,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  type Texture,
+  type Object3D,
+} from "three";
+import {
+  prepareWorldObject,
+  registerWorldDepthPreparation,
+} from "./world-preparation.js";
 import {
   AvatarMaterialization,
   ArrivalRainContext,
@@ -406,12 +416,29 @@ export function RepositoryCityModels({
   readonly onMaterializationStart?: (() => void) | undefined;
   readonly onCityStream?: CityStreamSound | undefined;
 }) {
-  const { gl } = useThree();
+  const { gl, scene, camera } = useThree();
   const graphics = useContext(WorldGraphicsContext);
   const fogDepth = useMemo(
     () => (graphics.baseFog ? createRepositoryFogDepth() : null),
     [graphics.baseFog],
   );
+  useEffect(() => {
+    if (!fogDepth) return;
+    return registerWorldDepthPreparation(gl, {
+      compile: (objects: readonly Object3D[]) =>
+        fogDepth.compile(gl, scene, camera, objects),
+      render: () => {
+        // The normal prepass ran while these parts were hidden. Its cached
+        // capture cannot satisfy warmup, nor may the private capture persist.
+        fogDepth.beginFrame();
+        try {
+          fogDepth.capture(gl, scene, camera);
+        } finally {
+          fogDepth.beginFrame();
+        }
+      },
+    });
+  }, [gl, scene, camera, fogDepth]);
   useEffect(() => () => fogDepth?.dispose(), [fogDepth]);
   const startDrag = useRepositoryPropDrag(interaction);
   const rain = useCodeTexture("02_terminal_rain");

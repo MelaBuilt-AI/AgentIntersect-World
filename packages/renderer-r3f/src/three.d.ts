@@ -121,6 +121,10 @@ declare module "three" {
     needsUpdate: boolean;
     dispose(): void;
   }
+  export class ImageBitmapLoader {
+    setOptions(options: ImageBitmapOptions): this;
+    load(url: string, onLoad: (bitmap: ImageBitmap) => void): this;
+  }
   export class TextureLoader {
     load(
       url: string,
@@ -329,6 +333,7 @@ declare module "three" {
   }
   export class WebGLRenderer {
     isWebGPURenderer?: boolean;
+    backend?: { isWebGPUBackend?: boolean };
     getMaxAnisotropy(): number;
     library: { fromMaterial(material: Material): Material };
     autoClear: boolean;

@@ -14,6 +14,7 @@ it("precompiles staged scenery into the compositor context without leaking tempo
   });
   const get = vi.fn();
   const renderer = {
+    info: { calls: 0 },
     _renderContexts: { get },
     getRenderTarget: () => target,
     setRenderTarget: (value: unknown) => {

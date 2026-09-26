@@ -1,4 +1,5 @@
 import { createPreviewRenderer } from "./world-renderer.js";
+import { prepareAvatarBounds } from "./world-preparation.js";
 import {
   Canvas,
   events as createPointerEvents,
@@ -305,6 +306,8 @@ function ImportedAvatarModel({
     [gltf.scene, selection.hiddenPartIds, selection.parts, selectionKey],
   );
   const mixer = useMemo(() => new AnimationMixer(scene), [scene]);
+  const [preparedScene, setPreparedScene] = useState<Group | null>(null);
+  const prepared = preparedScene === scene;
   const resolvedWorldClip =
     semanticAction && "resolvedClip" in selection
       ? selection.resolvedClip
@@ -411,6 +414,23 @@ function ImportedAvatarModel({
     resolvedSemantic,
   ]);
   useEffect(() => {
+    let active = true;
+    const bounds =
+      representation === "live-model"
+        ? prepareAvatarBounds(scene, () => active)
+        : Promise.resolve(true);
+    void bounds.then((complete) => {
+      if (active && complete) {
+        setPreparedScene(scene);
+        invalidate();
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [scene, representation, invalidate]);
+  useEffect(() => {
+    if (!prepared) return;
     if (representation === "live-model") {
       setImpostor(null);
       onRepresentationReadyRef.current?.();
@@ -439,6 +459,7 @@ function ImportedAvatarModel({
     mixer,
     renderer,
     representation,
+    prepared,
     scene,
     semanticAction,
   ]);
@@ -454,7 +475,7 @@ function ImportedAvatarModel({
     [mixer, scene],
   );
   useFrame((_, delta) => {
-    if (!animate) return;
+    if (!animate || !prepared) return;
     advanceImportedAvatarMixer(mixer, delta);
     const action = activeAction.current;
     if (
@@ -490,6 +511,7 @@ function ImportedAvatarModel({
   });
   return (
     <group
+      visible={prepared}
       position={position}
       rotation={rotation}
       scale={scale}
@@ -512,15 +534,17 @@ function ImportedAvatarModel({
 function ImportedAvatarRenderReady({
   selectionKey,
   onReady,
+  ready = true,
 }: {
   readonly selectionKey: string;
   readonly onReady: (selectionKey: string) => void;
+  readonly ready?: boolean;
 }) {
   const announcedSelection = useRef<string | null>(null);
   const warmedSelection = useRef<string | null>(null);
   const invalidate = useThree((state) => state.invalidate);
   useFrame(() => {
-    if (announcedSelection.current === selectionKey) return;
+    if (!ready || announcedSelection.current === selectionKey) return;
     if (warmedSelection.current !== selectionKey) {
       warmedSelection.current = selectionKey;
       invalidate();
@@ -573,7 +597,6 @@ export function ImportedAvatarWorldModel({
     selection.rotation[1] + rotation[1],
     selection.rotation[2] + rotation[2],
   ];
-  const selectionKey = `${role}:${selection.assetId}`;
   const representationReady = useCallback(() => onReady(role), [onReady, role]);
   useEffect(() => onLodChange?.(role, "LOD0"), [onLodChange, role]);
   return (
@@ -598,12 +621,6 @@ export function ImportedAvatarWorldModel({
           onOneShotComplete?.(role, semantic, completedGeneration)
         }
       />
-      {representation === "live-model" ? (
-        <ImportedAvatarRenderReady
-          selectionKey={selectionKey}
-          onReady={() => onReady(role)}
-        />
-      ) : null}
     </group>
   );
 }
@@ -640,6 +657,9 @@ export function ImportedAvatarCanvas({
     ...(selection.hiddenPartIds ?? []),
   ].join(":");
   const [readySelection, setReadySelection] = useState<string | null>(null);
+  const [preparedSelection, setPreparedSelection] = useState<string | null>(
+    null,
+  );
   return (
     <div
       className="avatar-kit-canvas imported-avatar-canvas"
@@ -676,12 +696,14 @@ export function ImportedAvatarCanvas({
         <ImportedAvatarModel
           gltf={gltf}
           selection={selection}
+          onRepresentationReady={() => setPreparedSelection(selectionKey)}
           animate={animate}
           position={position}
           rotation={rotation}
           scale={scale}
         />
         <ImportedAvatarRenderReady
+          ready={preparedSelection === selectionKey}
           selectionKey={selectionKey}
           onReady={setReadySelection}
         />

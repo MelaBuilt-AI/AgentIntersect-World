@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import { compileWorldPass } from "./world-preparation.js";
 import {
   DepthTexture,
   Material,
@@ -23,86 +24,97 @@ export function createRepositoryFogDepth() {
   const opaque = new MeshBasicMaterial({ color: "#ffffff" });
   opaque.fog = false;
   opaque.toneMapped = false;
+
+  // Compilation must see exactly the same target, camera, lighting and
+  // arrival/discard materials as the later depth draw, not the main compositor.
+  const withDepthPass = <T>(
+    gl: WebGLRenderer,
+    scene: Scene,
+    camera: Camera,
+    action: (camera: Camera) => T,
+  ): T => {
+    gl.getDrawingBufferSize(size);
+    target ??= new WebGLRenderTarget(size.x, size.y, {
+      minFilter: NearestFilter,
+      magFilter: NearestFilter,
+      depthTexture: new DepthTexture(size.x, size.y),
+    });
+    target.texture.name = "repository-fog-scene";
+    target.setSize(size.x, size.y);
+    const hidden: Object3D[] = [];
+    const replaced: [Mesh, Material | Material[]][] = [];
+    scene.traverse((object) => {
+      const material = (object as Mesh).material;
+      const materials = Array.isArray(material) ? material : [material];
+      if (
+        object.visible &&
+        (("isLight" in object && object.isLight) ||
+          object.name === "repository-local-atmosphere" ||
+          object.name === "world-wet-floor-reflection" ||
+          object.name.startsWith("repository-terminal-rain:") ||
+          (material && materials.every((item) => !item.depthWrite)))
+      ) {
+        hidden.push(object);
+        object.visible = false;
+      } else if (
+        object instanceof Mesh &&
+        material &&
+        materials.every(
+          (item) =>
+            (item instanceof MeshStandardMaterial ||
+              item instanceof MeshBasicMaterial) &&
+            !item.transparent &&
+            item.opacity === 1 &&
+            item.alphaTest === 0 &&
+            item.depthTest &&
+            item.side === opaque.side &&
+            item.onBeforeCompile === Material.prototype.onBeforeCompile,
+        )
+      ) {
+        // Keep custom arrival/discard shaders and alpha masks exactly as-is.
+        replaced.push([object, material]);
+        object.material = opaque;
+      }
+    });
+    const previous = gl.getRenderTarget();
+    const autoClear = gl.autoClear;
+    const shadowAutoUpdate = gl.shadowMap.autoUpdate;
+    try {
+      gl.autoClear = true;
+      gl.shadowMap.autoUpdate = false;
+      gl.setRenderTarget(target);
+      captureCamera ??= camera.clone(false);
+      captureCamera.copy(camera, false);
+      return action(captureCamera);
+    } finally {
+      gl.setRenderTarget(previous);
+      gl.autoClear = autoClear;
+      gl.shadowMap.autoUpdate = shadowAutoUpdate;
+      for (const object of hidden) object.visible = true;
+      for (const [object, material] of replaced) object.material = material;
+    }
+  };
   return {
-    // Three advances its counter for nested reflections and postprocessing too.
-    // Invalidate once from the owning R3F frame, not on each gl.render call.
     beginFrame() {
       captured = false;
     },
+    compile(
+      gl: WebGLRenderer,
+      scene: Scene,
+      camera: Camera,
+      objects: readonly Object3D[],
+    ) {
+      return withDepthPass(gl, scene, camera, (view) =>
+        Promise.all(
+          objects.map((object) => compileWorldPass(gl, object, view, scene)),
+        ),
+      );
+    },
     capture(gl: WebGLRenderer, scene: Scene, camera: Camera) {
       if (target && captured) return target;
-      gl.getDrawingBufferSize(size);
-      if (!target) {
-        target = new WebGLRenderTarget(size.x, size.y, {
-          minFilter: NearestFilter,
-          magFilter: NearestFilter,
-          depthTexture: new DepthTexture(size.x, size.y),
-        });
-        target.texture.name = "repository-fog-scene";
-      }
-      target.setSize(size.x, size.y);
-      const hidden: Object3D[] = [];
-      const replaced: [Mesh, Material | Material[]][] = [];
-      scene.traverse((object) => {
-        const material = (object as Mesh).material;
-        const materials = Array.isArray(material) ? material : [material];
-        if (
-          object.visible &&
-          // This pass consumes depth and alpha only. WebGPU SunLight ignores
-          // the legacy renderer.shadowMap.autoUpdate flag; exclude lighting
-          // here so it does not render two unused cascade maps per frame.
-          (("isLight" in object && object.isLight) ||
-            object.name === "repository-local-atmosphere" ||
-            object.name === "world-wet-floor-reflection" ||
-            object.name.startsWith("repository-terminal-rain:") ||
-            (material && materials.every((item) => !item.depthWrite)))
-        ) {
-          hidden.push(object);
-          object.visible = false;
-        } else if (
-          object instanceof Mesh &&
-          material &&
-          materials.every(
-            (item) =>
-              (item instanceof MeshStandardMaterial ||
-                item instanceof MeshBasicMaterial) &&
-              !item.transparent &&
-              item.opacity === 1 &&
-              item.alphaTest === 0 &&
-              item.depthTest &&
-              item.side === opaque.side &&
-              item.onBeforeCompile === Material.prototype.onBeforeCompile,
-          )
-        ) {
-          // Capture depth/coverage, not lighting or the high-resolution artwork.
-          // Keep custom arrival/discard shaders and alpha masks exactly as-is.
-          replaced.push([object as Mesh, material]);
-          (object as Mesh).material = opaque;
-        }
-      });
-      const previous = gl.getRenderTarget();
-      const autoClear = gl.autoClear;
-      const shadowAutoUpdate = gl.shadowMap.autoUpdate;
-      try {
-        gl.autoClear = true;
-        gl.shadowMap.autoUpdate = false;
-        gl.setRenderTarget(target);
-        // Keep real opaque/alpha-tested geometry and the transparent-black
-        // spatial-screen masks. Their color alpha lets mist preserve DOM holes.
-        // Modern render lists are keyed by scene/camera. A nested capture must
-        // not truncate the main pass's active list. Retain one distinct camera.
-        captureCamera ??= camera.clone(false);
-        captureCamera.copy(camera, false);
-        gl.render(scene, captureCamera);
-      } finally {
-        gl.setRenderTarget(previous);
-        gl.autoClear = autoClear;
-        gl.shadowMap.autoUpdate = shadowAutoUpdate;
-        for (const object of hidden) object.visible = true;
-        for (const [object, material] of replaced) object.material = material;
-      }
+      withDepthPass(gl, scene, camera, (view) => gl.render(scene, view));
       captured = true;
-      return target;
+      return target!;
     },
     dispose() {
       target?.dispose();
