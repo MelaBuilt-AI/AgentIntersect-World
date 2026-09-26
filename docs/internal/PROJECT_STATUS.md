@@ -2,7 +2,13 @@
 
 Updated: 2026-09-26
 
-**TEST45469 manual movement review PASS.** Aaron1553388623104184353 tested the corrected left/right movement and reports it fixed; he authorizes commit/push, exact-head GitHub CI/readiness, then merge when green. TEST45469 remains live at http://127.0.0.1:45469/ with its saved state/build, unless separately closed; TEST45457 remains live/untouched. Current kit: `~/.hermes/runs/aiw-user-movement-stutter-20260925/review/`; service `aiw-user-movement-review-20260926.service`, backend44069/CDP49469. TEST45465 browser/services CLOSED with data/profile retained. No previous connections, roster, Worlds or conversations were imported; optional voice remains normal operator setup. PR27 is separate and remains open.
+## Current milestone — saved original prompts and expiring Hack notifications
+
+Aaron (`1553092183744057415`) requests a separate PR after merged PR26/main160508b. Store the exact original description with newly generated/saved custom Worlds, expose View/copy description for the current World and saved slots, preserve old recipe-only slots with an explicit unavailable description, and expire all transient Hack notices/errors after five seconds. Keep active progress/World labels, unresolved save decisions, failure authority and retry controls intact. A new draft must not overwrite a saved original prompt. Copy/view performs no agent dispatch or scene change.
+
+Aaron1553393602325913802 approves PR27 delivery after the separately merged PR28: refresh exact-head GitHub CI/readiness on the combined main/PR27 tree, then merge when green. The original preapproval local proof covers generation/persistence, view/copy, notification expiry, and compatibility. The prior feature and README merged with exact-head/main green; the three-page Field Guide is live. This follow-up does not authorize another website deployment, provider calls, releases/installers or Phase20. Evidence `~/.hermes/runs/aiw-prompt-notices-20260925/`.
+
+**TEST45469 manual movement review PASS.** Aaron1553388623104184353 tested the corrected left/right movement and reports it fixed; PR28 merged after exact-head GitHub CI/readiness and separate main CI. TEST45469 remains live at http://127.0.0.1:45469/ with its saved state/build, unless separately closed; TEST45457 remains live/untouched. Current kit: `~/.hermes/runs/aiw-user-movement-stutter-20260925/review/`; service `aiw-user-movement-review-20260926.service`, backend44069/CDP49469. TEST45465 browser/services CLOSED with data/profile retained. No previous connections, roster, Worlds or conversations were imported; optional voice remains normal operator setup.
 
 ## Current task — longstanding user lateral movement stutter
 

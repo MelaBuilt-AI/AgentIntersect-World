@@ -79,7 +79,7 @@ it("holds Dance through generation and asset load, bows on the actual swap, then
   expect(switcher.snapshot().ceremony?.phase).toBe("dance");
   expect(switcher.snapshot().phase).toBe("generating");
   finish({ recipe: ENVIRONMENT_PRESETS[2]!.recipe!, summary: "Created Mars" });
-  await result;
+  expect((await result)?.originalDescription).toBe("Snow");
   expect(completed).not.toHaveBeenCalled();
   await vi.advanceTimersByTimeAsync(350);
   expect(switcher.snapshot().ceremony?.phase).toBe("bow");

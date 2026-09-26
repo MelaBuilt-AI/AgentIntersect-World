@@ -100,6 +100,7 @@ export class EnvironmentSwitcher {
         id: `generated-${generation}`,
         name: recipe.name,
         recipe,
+        originalDescription: description,
       };
       const loaded = await this.#loadAndSwitch(
         preset,

@@ -1,6 +1,14 @@
 # Hack your World — custom authoring
 
-## Current status
+## Follow-up PR — original descriptions and five-second notices
+
+Aaron requested this separate follow-up in Discord `1553092183744057415`. Newly agent-created Worlds retain the exact description submitted at creation as optional slot metadata, separate from the validated rendering recipe. Open the custom dialog and expand **View description — Current World**, or **Custom slots on this PC → View description — Custom N**, then **Copy description**. Viewing/copying a slot does not load it or call an agent. The saved prompt survives refresh/backend restart; editing a later draft cannot overwrite it. Weather-only changes retain the original creation prompt; manually authored JSON and older slots without metadata say that no original description was saved. Old prompts cannot be reconstructed from recipes.
+
+All transient Hack notifications now expire after five seconds: copied brief/description, clipboard or draft-storage errors, invalid recipes, saved/temporary-use/removal notices, slot errors, and generation/load failure alerts. Repeating the same notification restarts its timer; moving between dialog and World does not revive expired text. Expiry changes presentation only: failed preview state stays failed, retry controls remain available, active progress/current World labels and unresolved save/replace/remove decisions remain until resolved.
+
+This follow-up is not new visual acceptance or merge permission. Preserve TEST45447 and its already-accepted build/state; no provider reruns, releases or Phase20. Normal code CI and isolated component/API proof are required for the new PR; human review of the changed UI remains separate.
+
+## Previously accepted feature status
 
 **Requested feature visuals, everyday-use checks and audio checks are user-accepted.** Aaron approved the distant lightning in Discord `1553070041526829118`, then confirmed the complete everyday-use and listening checklist in `1553072689655054407`. This document is the current feature summary; the [development history](HACK_YOUR_WORLD_HISTORY.md) preserves earlier attempts, failures and superseded runtime notes.
 
@@ -46,7 +54,7 @@ Example description:
 
 There are eight explicit install-local numbered slots. Saves use the configured backend data root's `environment-library/`, not browser-origin localStorage, and are read back before being reported as saved. Occupied-slot replacement and removal require confirmation. There is no oldest-item eviction or name-based overwrite; empty slots are skipped when cycling.
 
-Legacy browser-saved recipes remain explicitly importable without deleting their originals. Successful save and use-without-saving notices expire after five seconds; actionable errors remain. Project / Current Work clears the measured Hack controls and notices rather than overlapping them.
+Legacy browser-saved recipes remain explicitly importable without deleting their originals. Transient notices and error alerts expire after five seconds; underlying failure state and retry/decision controls remain. Project / Current Work clears the measured Hack controls and notices rather than overlapping them.
 
 ## Library and rendering
 

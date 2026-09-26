@@ -3,7 +3,11 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { EnvironmentRecipeSchema } from "@agentintersect-world/world-schema/environment";
+import {
+  EnvironmentRecipeSchema,
+  EnvironmentSlotSchema,
+  EnvironmentOriginalDescriptionSchema,
+} from "@agentintersect-world/world-schema/environment";
 
 /** The configured World data root owns these slots, independently of browser origins. */
 export function registerEnvironmentLibraryRoutes(
@@ -13,7 +17,7 @@ export function registerEnvironmentLibraryRoutes(
   const filename = (slot: number) => join(directory, `slot-${slot}.json`);
   const read = async (slot: number) => {
     try {
-      return EnvironmentRecipeSchema.parse(
+      return EnvironmentSlotSchema.parse(
         JSON.parse(await readFile(filename(slot), "utf8")),
       );
     } catch (error) {
@@ -25,6 +29,7 @@ export function registerEnvironmentLibraryRoutes(
   const params = z.object({ slot: z.coerce.number().int().min(1).max(8) });
   const body = z.strictObject({
     recipe: EnvironmentRecipeSchema,
+    originalDescription: EnvironmentOriginalDescriptionSchema.optional(),
     replace: z.boolean().default(false),
   });
   server.get("/environment-library", async (_request, reply) => {
@@ -45,7 +50,7 @@ export function registerEnvironmentLibraryRoutes(
   server.route({
     method: ["PUT", "DELETE"],
     url: "/environment-library/:slot",
-    bodyLimit: 32768,
+    bodyLimit: 65536, // Recipe plus the bounded original Unicode description.
     handler: async (request, reply) => {
       const target = params.safeParse(request.params);
       const input =
@@ -66,7 +71,12 @@ export function registerEnvironmentLibraryRoutes(
           try {
             await writeFile(
               temporary,
-              JSON.stringify(input.data.recipe) + "\n",
+              JSON.stringify({
+                ...input.data.recipe,
+                ...(input.data.originalDescription !== undefined
+                  ? { originalDescription: input.data.originalDescription }
+                  : {}),
+              }) + "\n",
               { mode: 0o600 },
             );
             await rename(temporary, file);

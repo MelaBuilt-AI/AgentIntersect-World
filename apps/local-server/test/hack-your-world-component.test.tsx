@@ -63,6 +63,7 @@ it("shows hold/click/orbit feedback and saves previews into durable numbered cyc
     const url = await server.listen({ port: 0, host: "127.0.0.1" });
     const page = await browser.newPage({
       viewport: { width: 1100, height: 800 },
+      permissions: ["clipboard-read", "clipboard-write"],
     });
     const errors: string[] = [];
     page.on("pageerror", (error) => {
@@ -135,6 +136,10 @@ it("shows hold/click/orbit feedback and saves previews into durable numbered cyc
     expect(
       JSON.parse(await readFile(join(root, "slots/slot-3.json"), "utf8")).name,
     ).toBe("Fixture Glacier");
+    expect(
+      JSON.parse(await readFile(join(root, "slots/slot-3.json"), "utf8"))
+        .originalDescription,
+    ).toBe("Icy blue mountains");
     const savedToast = page
       .getByRole("status")
       .filter({ hasText: /Saved to Custom slot 3 on this PC/ });
@@ -259,6 +264,190 @@ it("shows hold/click/orbit feedback and saves previews into durable numbered cyc
         expected,
       );
     }
+    await trigger.focus();
+    await page.keyboard.press("Shift+F10");
+    await page
+      .getByText("Advanced: edit a World recipe (optional)", { exact: true })
+      .click();
+    await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+    await page
+      .getByRole("button", { name: "Copy environment brief", exact: true })
+      .click();
+    const briefNotice = page
+      .getByRole("status")
+      .filter({ hasText: "Environment brief copied. No agent was contacted." });
+    await browserExpect(briefNotice).toBeVisible();
+    await page
+      .getByRole("button", { name: "Back to World", exact: true })
+      .click();
+    await page.clock.runFor(4999);
+    await browserExpect(briefNotice).toBeVisible();
+    await page.clock.runFor(1);
+    await browserExpect(briefNotice).toHaveCount(0);
+    await trigger.focus();
+    await page.keyboard.press("Shift+F10");
+    await page
+      .getByText("View description — Current World", { exact: true })
+      .click();
+    const original = page.getByRole("textbox", {
+      name: "Original description — Current World",
+      exact: true,
+    });
+    await browserExpect(original).toHaveValue("Icy blue mountains");
+    await page
+      .getByLabel("Your World description", { exact: true })
+      .fill("A different draft, not this World's prompt");
+    await page
+      .getByRole("button", {
+        name: "Copy description — Current World",
+        exact: true,
+      })
+      .click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      "Icy blue mountains",
+    );
+    await page.getByText("Custom slots on this PC", { exact: true }).click();
+    await page
+      .getByText("View description — Custom 3", { exact: true })
+      .click();
+    await browserExpect(
+      page.getByRole("textbox", {
+        name: "Original description — Custom 3",
+        exact: true,
+      }),
+    ).toHaveValue("Icy blue mountains");
+    await browserExpect(page.getByLabel("Active fixture")).toHaveText("slot-2");
+    await page.screenshot({ path: join(out, "saved-description.png") });
+    const copiedDescription = page.getByRole("status").filter({
+      hasText: "Original description copied. No agent was contacted.",
+    });
+    await page.clock.runFor(4000);
+    await page
+      .getByRole("button", { name: "Copy description — Custom 3", exact: true })
+      .click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      "Icy blue mountains",
+    );
+    await page.clock.runFor(4999);
+    await browserExpect(copiedDescription).toBeVisible();
+    await page.clock.runFor(1);
+    await browserExpect(copiedDescription).toHaveCount(0);
+
+    // Expected clipboard refusal uses the same bounded notification lifecycle.
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = async () => {
+        throw new Error("fixture permission refusal");
+      };
+    });
+    await page
+      .getByRole("button", {
+        name: "Copy description — Current World",
+        exact: true,
+      })
+      .click();
+    const clipboardError = page
+      .getByRole("status")
+      .filter({ hasText: /Clipboard unavailable/ });
+    await browserExpect(clipboardError).toBeVisible();
+    await page.clock.runFor(5000);
+    await browserExpect(clipboardError).toHaveCount(0);
+    const advanced = page.getByText(
+      "Advanced: edit a World recipe (optional)",
+      { exact: true },
+    );
+    if (
+      !(await advanced.evaluate((el) => el.parentElement!.hasAttribute("open")))
+    )
+      await advanced.click();
+    await page
+      .getByLabel("Data-only environment recipe", { exact: true })
+      .fill("not json");
+    await page
+      .getByRole("button", { name: "Preview recipe", exact: true })
+      .click();
+    const invalidRecipe = page
+      .getByRole("status")
+      .filter({ hasText: /Recipe refused/ });
+    await browserExpect(invalidRecipe).toBeVisible();
+    await page.clock.runFor(5000);
+    await browserExpect(invalidRecipe).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "Back to World", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Fixture error", exact: true })
+      .click();
+    const environmentError = page
+      .getByRole("alert")
+      .filter({ hasText: "Fixture environment failed" });
+    await browserExpect(environmentError).toBeVisible();
+    await page.clock.runFor(4999);
+    await browserExpect(environmentError).toBeVisible();
+    await page.clock.runFor(1);
+    await browserExpect(environmentError).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "Fixture error", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Fixture error", exact: true })
+      .click();
+    await browserExpect(environmentError).toBeVisible();
+    await page.clock.runFor(5000);
+    await browserExpect(environmentError).toHaveCount(0);
+
+    // Old recipe-only slots are readable without fabricating their prompt.
+    const olderRecipe = JSON.parse(
+      await readFile(join(root, "slots/slot-3.json"), "utf8"),
+    );
+    delete olderRecipe.originalDescription;
+    await server.inject({
+      method: "PUT",
+      url: "/api/environment-library/1",
+      payload: { recipe: olderRecipe },
+    });
+    await page.clock.resume();
+    await page.reload();
+    await trigger.focus();
+    await page.keyboard.press("Shift+F10");
+    await page.getByText("Custom slots on this PC", { exact: true }).click();
+    await page
+      .getByText("View description — Custom 1", { exact: true })
+      .click();
+    await browserExpect(
+      page.getByText("No original description was saved for this World.", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await browserExpect(
+      page.getByRole("button", {
+        name: "Copy description — Custom 1",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+
+    // Fading a load error must leave a real retry control available.
+    await page.route("**/api/environment-library", (route) =>
+      route.fulfill({
+        status: 503,
+        json: { error: "Fixture slots unavailable" },
+      }),
+    );
+    await page.reload();
+    await browserExpect(
+      page.getByRole("alert").filter({ hasText: "Fixture slots unavailable" }),
+    ).toBeVisible();
+    await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+    await page.clock.runFor(5000);
+    await browserExpect(
+      page.getByRole("alert").filter({ hasText: "Fixture slots unavailable" }),
+    ).toHaveCount(0);
+    await page.unroute("**/api/environment-library");
+    await page
+      .getByRole("button", { name: "Retry slots", exact: true })
+      .click();
+    await browserExpect(
+      page.getByRole("button", { name: "Retry slots", exact: true }),
+    ).toHaveCount(0);
     expect(errors).toEqual([]);
   } finally {
     await browser.close();
