@@ -4,7 +4,8 @@ import {
   RepeatWrapping,
   SRGBColorSpace,
   TextureLoader,
-  type Texture,
+  ImageBitmapLoader,
+  Texture,
 } from "three";
 
 export function animateCodeTexture(
@@ -118,23 +119,43 @@ export function useCodeTexture(
   useEffect(() => {
     if (!name) return;
     let active = true;
-    const loaded = new TextureLoader().load(
-      `/assets/code-world/${name}.webp`,
-      (map) => {
-        if (!active) return;
-        map.colorSpace = SRGBColorSpace;
-        map.wrapS = map.wrapT = RepeatWrapping;
-        map.anisotropy = Math.min(
-          8,
-          gl.isWebGPURenderer
-            ? gl.getMaxAnisotropy()
-            : gl.capabilities.getMaxAnisotropy(),
-        );
-        map.needsUpdate = true;
-        setTexture(map);
-        invalidate();
-      },
-    );
+    const publish = (map: Texture) => {
+      if (!active) return;
+      map.colorSpace = SRGBColorSpace;
+      map.wrapS = map.wrapT = RepeatWrapping;
+      map.anisotropy = Math.min(
+        8,
+        gl.isWebGPURenderer
+          ? gl.getMaxAnisotropy()
+          : gl.capabilities.getMaxAnisotropy(),
+      );
+      map.needsUpdate = true;
+      setTexture(map);
+      invalidate();
+    };
+    const url = `/assets/code-world/${name}.webp`;
+    let loaded: Texture;
+    if (
+      gl.backend?.isWebGPUBackend &&
+      typeof createImageBitmap === "function"
+    ) {
+      // Blob-backed ImageBitmapLoader decodes off the render turn. Passing an
+      // HTML image to copyExternalImageToTexture stalls first-use 4K uploads.
+      loaded = new Texture();
+      new ImageBitmapLoader()
+        .setOptions({ premultiplyAlpha: "none", colorSpaceConversion: "none" })
+        .load(url, (bitmap) => {
+          if (!active) {
+            bitmap.close();
+            return;
+          }
+          loaded.image = bitmap;
+          loaded.addEventListener("dispose", () => bitmap.close());
+          publish(loaded);
+        });
+    } else {
+      loaded = new TextureLoader().load(url, publish);
+    }
     return () => {
       active = false;
       loaded.dispose();

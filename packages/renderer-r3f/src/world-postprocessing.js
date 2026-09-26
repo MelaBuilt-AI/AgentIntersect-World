@@ -6,7 +6,10 @@ import {
 } from "three/webgpu";
 import { pass, vec2, vec4, reflector, viewportSize } from "three/tsl";
 import { bloom } from "three/addons/tsl/display/BloomNode.js";
-import { createWorldPreparation } from "./world-preparation.js";
+import {
+  createWorldPreparation,
+  compileWorldEnvironment,
+} from "./world-preparation.js";
 
 export function createWorldPipeline(
   renderer,
@@ -28,6 +31,14 @@ export function createWorldPipeline(
     renderer,
     () => pipeline.render(),
     scenePass.renderTarget,
+    {
+      compile: (objects) =>
+        Promise.all(
+          objects.map((object) =>
+            compileWorldEnvironment(renderer, object, camera, scene),
+          ),
+        ),
+    },
   );
   return {
     render: preparation.render,
