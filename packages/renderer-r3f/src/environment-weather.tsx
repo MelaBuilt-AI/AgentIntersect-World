@@ -86,7 +86,9 @@ function Weather({
   const bolts = useRef<Group>(null);
   const sky = useRef<Group>(null);
   const meshes = useRef(new Map<string, Mesh>());
-  const light = useRef<{ intensity: number }>(null);
+  const light = useRef<{ intensity: number; position: Group["position"] }>(
+    null,
+  );
   const runtime = useRef({
     time: 0,
     next: 3,
@@ -204,11 +206,13 @@ function Weather({
       });
     }
     // Local strike illumination stays unchanged; sky bursts use distant glows.
-    if (light.current)
+    if (light.current) {
+      light.current.position.set(strike.x, 2, strike.z);
       light.current.intensity =
         weather.flashes && age < 0.9
           ? Math.sin((Math.PI * age) / 0.9) * (strike.local ? 12 : 0)
           : 0;
+    }
   });
   return (
     <group name="environment-weather">
@@ -230,16 +234,20 @@ function Weather({
           />
         </group>
       ) : null}
+      {/* Keep light membership stable: hiding its bolt group rebuilds even
+          unrelated scene shaders in Three. Only intensity/position vary. */}
+      {weather.lightning !== "off" ? (
+        <pointLight
+          ref={light}
+          color="#bddbff"
+          intensity={0}
+          position={[0, 2, 0]}
+          distance={24}
+          decay={2}
+        />
+      ) : null}
       {weather.lightning !== "off" ? (
         <group ref={bolts} name="weather-strike">
-          <pointLight
-            ref={light}
-            color="#bddbff"
-            intensity={0}
-            position={[0, 2, 0]}
-            distance={24}
-            decay={2}
-          />
           {ids
             .filter((id) => resources.textures[id])
             .map((id, index) => {
