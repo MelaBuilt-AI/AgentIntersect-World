@@ -20,5 +20,11 @@
   "dependencies": {
     "@agentintersect-world/world-schema": "workspace:*",
     "@vscode/tree-sitter-wasm": "0.3.1"
-  }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT"
 }

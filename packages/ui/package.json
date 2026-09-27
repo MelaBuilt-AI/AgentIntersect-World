@@ -19,5 +19,11 @@
   },
   "devDependencies": {
     "react-dom": "19.2.7"
-  }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT"
 }
