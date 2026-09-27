@@ -15,7 +15,6 @@ import urllib.request
 import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-RELEASE_VERSION = "0.15.0-rc.2"
 PINS = {
     "linux-x64": (
         "node-v24.18.0-linux-x64.tar.xz",
@@ -132,7 +131,7 @@ def main():
     )
     if dirty and not a.allow_dirty:
         raise RuntimeError("Release build requires a committed clean source tree")
-    version = RELEASE_VERSION
+    version = json.loads((ROOT / "package.json").read_text())["version"]
     sha = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
     ).strip()
@@ -204,9 +203,6 @@ def main():
                 {
                     "product": "AgentIntersect World",
                     "version": version,
-                    "applicationMetadataVersion": json.loads(
-                        (ROOT / "package.json").read_text()
-                    )["version"],
                     "sourceCommit": sha,
                     "sourceDirty": dirty,
                     "platform": platform,
