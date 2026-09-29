@@ -4,6 +4,7 @@ This is an **unreleased candidate** of the local-first browser-based application
 
 ## Linux x64 (glibc)
 
+- **Terminal one-liner (after separate npm and release approval):** `npx @agentintersect-world/installer@0.15.0-rc.2 install` or `pnpm dlx @agentintersect-world/installer@0.15.0-rc.2 install`. This small bootstrapper downloads the exact portable archive, verifies its pinned SHA-256, and creates a per-user `~/.local/bin/agentintersect-world` launcher. See `tooling/release/npm-installer/README.md`. **Not usable yet:** neither the npm package nor hosted app artifact is published.
 - Debian/Ubuntu: `sudo apt install ./AgentIntersect-World-0.15.0-rc.2-linux-x64.deb`, then launch `agentintersect-world` from a terminal or the application menu. Remove program files with `sudo apt remove agentintersect-world`.
 - Other glibc distributions: extract `AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz`, enter its folder and run `./agentintersect-world`. Remove the extracted folder to uninstall.
 

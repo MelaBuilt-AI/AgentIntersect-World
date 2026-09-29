@@ -31,6 +31,7 @@ export default tseslint.config(
       "examples/phase14-magic-slice/**/*.mjs",
       "apps/local-server/launch.mjs",
       "tooling/release/*.mjs",
+      "tooling/release/npm-installer/**/*.mjs",
     ],
     languageOptions: {
       ecmaVersion: 2024,
