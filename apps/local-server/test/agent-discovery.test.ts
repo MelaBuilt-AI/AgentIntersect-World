@@ -264,3 +264,54 @@ it("saves the stable launcher path rather than pinning a symlink's versioned tar
   expect(after?.id).toBe(before?.id);
   expect(after?.executablePath).toBe(launcher);
 });
+
+it.runIf(
+  process.platform === "win32" ||
+    (process.platform === "linux" &&
+      (await import("node:fs")).existsSync(
+        "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+      )),
+)(
+  "runs the real Windows discovery script, including desktop-app bundled CLIs",
+  async () => {
+    const { execFile } = await import("node:child_process");
+    const { WINDOWS_DISCOVERY_SCRIPT } =
+      await import("../src/agent-discovery-scripts.js");
+    const powershell =
+      process.platform === "win32"
+        ? "powershell.exe"
+        : "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe";
+    const output = await new Promise<string>((resolve, reject) =>
+      execFile(
+        powershell,
+        [
+          "-NoLogo",
+          "-NoProfile",
+          "-NonInteractive",
+          "-EncodedCommand",
+          Buffer.from(WINDOWS_DISCOVERY_SCRIPT, "utf16le").toString("base64"),
+        ],
+        { encoding: "utf8", timeout: 60_000 },
+        (error, stdout) => (error ? reject(error) : resolve(stdout)),
+      ),
+    );
+    const parsed = JSON.parse(output.replace(/^\uFEFF/, "").trim()) as {
+      installations: { adapterId: string; executablePath: string }[];
+    };
+    expect(Array.isArray(parsed.installations)).toBe(true);
+  },
+  90_000,
+);
+
+it("looks inside the Codex and Claude desktop app packages on Windows", async () => {
+  const { WINDOWS_DISCOVERY_SCRIPT } =
+    await import("../src/agent-discovery-scripts.js");
+  expect(WINDOWS_DISCOVERY_SCRIPT).toContain(
+    "Get-AppxPackage -Name 'OpenAI.Codex'",
+  );
+  expect(WINDOWS_DISCOVERY_SCRIPT).toContain("app\\resources\\codex.exe");
+  expect(WINDOWS_DISCOVERY_SCRIPT).toContain(
+    "LocalCache\\Roaming\\Claude\\claude-code",
+  );
+  expect(WINDOWS_DISCOVERY_SCRIPT).toContain("Claude\\claude-code");
+});

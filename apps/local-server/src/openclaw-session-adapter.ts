@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 
-import { AgentCapabilityManifestSchema } from "@agentintersect-world/agent-session-protocol";
+import {
+  AgentCapabilityManifestSchema,
+  MAX_PROMPT_BYTES,
+} from "@agentintersect-world/agent-session-protocol";
 import WebSocket from "ws";
 
 import {
@@ -18,7 +21,7 @@ import { extractAdapterRepositoryLocator } from "./repository-work-focus.js";
 export const OPENCLAW_GATEWAY_PROTOCOL_VERSION = 4;
 export const OPENCLAW_SERVER_VERSION = "2026.7.1";
 
-const MAX_INPUT_BYTES = 16_384;
+const MAX_INPUT_BYTES = MAX_PROMPT_BYTES;
 const MAX_FRAME_BYTES = 1_048_576;
 const MAX_STREAM_BYTES = 16 * MAX_FRAME_BYTES;
 const MAX_EVENT_BYTES = 32_768;

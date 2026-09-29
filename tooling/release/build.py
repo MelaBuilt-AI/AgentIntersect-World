@@ -193,6 +193,13 @@ def main():
         for file in ["LICENSE", "THIRD_PARTY_NOTICES.md"]:
             shutil.copy2(ROOT / file, stage / file)
         shutil.copy2(ROOT / "tooling/release/README.md", stage / "README.md")
+        for icon in ["agentintersect.ico", "agentintersect-appicon-512.png"]:
+            shutil.copy2(ROOT / "assets/brand" / icon, stage / icon)
+        if platform.startswith("win"):
+            shutil.copy2(
+                ROOT / "tooling/release/Install-AgentCLI.ps1",
+                stage / "Install-AgentCLI.ps1",
+            )
         (stage / "runtime").mkdir()
         provenance = runtime(platform, stage / "runtime", cache)
         (stage / "DEPENDENCIES.json").write_text(
@@ -270,8 +277,11 @@ def main():
             desktop.write_text(
                 "[Desktop Entry]\nType=Application\nName=AgentIntersect World\n"
                 "Comment=Your code becomes a place\nExec=agentintersect-world\n"
-                "Terminal=true\nCategories=Development;\n"
+                "Icon=agentintersect-world\nTerminal=true\nCategories=Development;\n"
             )
+            icon = deb_root / "usr/share/icons/hicolor/512x512/apps/agentintersect-world.png"
+            icon.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / "assets/brand/agentintersect-appicon-512.png", icon)
             deb = out / f"AgentIntersect-World-{version}-linux-x64.deb"
             subprocess.run(
                 ["dpkg-deb", "--build", "--root-owner-group", str(deb_root), str(deb)],

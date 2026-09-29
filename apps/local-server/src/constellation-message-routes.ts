@@ -1,3 +1,4 @@
+import { MAX_PROMPT_BYTES } from "@agentintersect-world/agent-session-protocol";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 import {
@@ -65,6 +66,7 @@ export function registerConstellationMessageRoutes(
   server.post(
     "/constellation/messages",
     {
+      bodyLimit: MAX_PROMPT_BYTES + 64 * 1024,
       preValidation: async (request, reply) => {
         const body = request.body as Record<string, unknown> | null;
         if (body && Object.keys(body).some((key) => !allowedBody.has(key)))
@@ -93,7 +95,7 @@ export function registerConstellationMessageRoutes(
               maxLength: 128,
               pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
             },
-            text: { type: "string", minLength: 1, maxLength: 16_384 },
+            text: { type: "string", minLength: 1 },
             intent: { type: "string", enum: ["discussion", "work"] },
             targetRosterId: {
               type: "string",

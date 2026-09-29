@@ -284,7 +284,6 @@ export function WorldHud({
               id="world-chat-message"
               aria-label={`Message ${recipient}`}
               value={message}
-              maxLength={4_000}
               placeholder={
                 workstreamOpen
                   ? `Chat with ${recipient} · /work <task> to code`

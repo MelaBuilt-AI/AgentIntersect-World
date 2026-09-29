@@ -212,7 +212,6 @@ export function NewWorkstreamDialog({
               aria-label="New Workstream task"
               value={task}
               onChange={(event) => setTask(event.target.value)}
-              maxLength={2000}
               required
             />
           </label>

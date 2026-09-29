@@ -152,7 +152,7 @@ const WorkstreamSchema = z.strictObject({
   workstreamId: identifier,
   revision: z.number().int().nonnegative(),
   title: z.string().trim().min(1).max(160),
-  task: z.string().trim().min(1).max(2_000).default("Repository Workstream"),
+  task: z.string().trim().min(1).default("Repository Workstream"),
   prIntent: z.enum(["local", "draft"]).optional(),
   repository: WorkstreamRepositoryReferenceSchema,
   agent: WorkstreamAgentReferenceSchema,
@@ -182,7 +182,7 @@ const CommandRecordSchema = z.strictObject({
   kind: z.enum(["create", "iterate", "cancel"]),
   requestId: identifier,
   correlationId: identifier,
-  canonical: z.string().min(1).max(8_192),
+  canonical: z.string().min(1),
 });
 const WorkstreamRecordSchema = z.strictObject({
   workstream: WorkstreamSchema,
@@ -206,7 +206,7 @@ const WorkstreamCreateRequestSchema = z.strictObject({
   requestId: identifier,
   correlationId: identifier,
   title: z.string().trim().min(1).max(160),
-  task: z.string().trim().min(1).max(2_000).optional(),
+  task: z.string().trim().min(1).optional(),
   branch: z.string().trim().min(1).max(128).optional(),
   startPoint: z
     .string()
@@ -229,7 +229,7 @@ const WorkstreamIterationRequestSchema = z.strictObject({
   correlationId: identifier,
   workstreamId: identifier,
   expectedRevision: z.number().int().nonnegative(),
-  feedback: z.string().trim().min(1).max(2_000),
+  feedback: z.string().trim().min(1),
   repository: WorkstreamRepositoryReferenceSchema,
   agent: WorkstreamAgentReferenceSchema,
 });
@@ -1155,7 +1155,7 @@ export class WorkstreamService {
     if (input.intent === "discussion")
       return [
         "This turn is a conversation, not a coding task. Answer naturally as yourself, the connected agent, using the existing conversation and work context.",
-        `The open Workstream is ${JSON.stringify(workstream.task)}; its status is ${workstream.status}.`,
+        `The open Workstream is ${JSON.stringify(workstream.task.length > 1_000 ? `${workstream.task.slice(0, 1_000)}…` : workstream.task)}; its status is ${workstream.status}.`,
         `The owned worktree is ${JSON.stringify(mapPath(this.#worktreePath(workstream)))}. You may inspect it to answer questions, but do not edit files, run mutating commands, write work reports, or resume implementation in this discussion turn.`,
         "Discuss options and help finalize the next task. The operator uses /work followed by the agreed task to resume coding. Existing reports remain visible; do not replace your conversational reply with a receipt.",
       ].join("\n");
@@ -1962,7 +1962,7 @@ export class WorkstreamService {
     const report = mapPath(this.#reportPath(workstream.workstreamId));
     return [
       `You are implementing AgentIntersect World Workstream ${workstream.workstreamId}.`,
-      `The exact task is ${JSON.stringify(workstream.task)}.`,
+      "The exact task is the user message of this turn.",
       `The absolute owned worktree is ${JSON.stringify(worktree)}; mutate only that owned worktree.`,
       "Use strict TDD: run one focused failing regression, make the smallest direct implementation, then run the focused and impacted green checks.",
       `The only permitted write outside that worktree is the Workstream evidence receipt at ${JSON.stringify(report)}. Write it atomically using schema aiw.workstream-report/1 with this Workstream identity, current activity, validation entries {command, exitCode, summary}, and bounded evidenceRefs.`,
@@ -2284,11 +2284,6 @@ export class WorkstreamService {
       null,
       2,
     )}\n`;
-    if (Buffer.byteLength(encoded) > 256 * 1024)
-      throw new WorkstreamServiceError(
-        "unavailable",
-        "Workstream store exceeds its byte ceiling",
-      );
     const handle = await open(temporary, "wx", 0o600);
     try {
       await handle.writeFile(encoded, "utf8");

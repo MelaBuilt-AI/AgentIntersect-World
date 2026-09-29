@@ -589,7 +589,7 @@ export function createWorldEntryClient(
       readonly finalText: string;
       readonly deltas: readonly string[];
     }> {
-      const bounded = text.trim().slice(0, 4_000);
+      const bounded = text.trim();
       if (!bounded) throw new Error("chat unavailable_");
       const userContext =
         options.userDisplayName === undefined

@@ -767,6 +767,21 @@ describe("ClaudeCodeSessionAdapter", () => {
     await waitForProcessExit(pid);
   });
 
+  it("delivers a huge prompt to the CLI over stdin, never argv", async () => {
+    const fixture = await fixtureExecutable();
+    const claude = adapter(fixture);
+    const created = await claude.createWorldSession("world-one", "Claude One");
+    const prompt = "Implement this spec. ".repeat(25_000);
+    await claude.sendText(created.id, prompt, {
+      mode: "explore",
+      rootSessionRef: created.rootId,
+      systemMessage: "Workstream context",
+    });
+    const turn = (await fixture.invocations()).at(-1)!;
+    expect(turn.stdinBytes).toBeGreaterThanOrEqual(Buffer.byteLength(prompt));
+    expect(turn.args.join(" ").length).toBeLessThan(16_384);
+  });
+
   it("creates a World-owned session, resumes its exact ID, and emits only sanitized Claude events", async () => {
     const fixture = await fixtureExecutable();
     const claude = adapter(fixture);
@@ -1114,17 +1129,16 @@ describe("ClaudeCodeSessionAdapter", () => {
     expect(await fixture.invocations()).toHaveLength(2);
   });
 
-  it("bounds input before spawn without poisoning a healthy binding", async () => {
+  it("accepts prompts far beyond the old 16 KiB input bound", async () => {
     const fixture = await fixtureExecutable();
     const claude = adapter(fixture);
     const created = await claude.createWorldSession("world-input");
     await expect(
-      claude.sendText(created.id, "x".repeat(16_385), {
+      claude.sendText(created.id, "x".repeat(200_000), {
         mode: "explore",
         rootSessionRef: created.rootId,
       }),
-    ).rejects.toThrow(/input/i);
-    expect(await fixture.invocations()).toHaveLength(1);
+    ).resolves.toMatchObject({ finalText: "fixture complete" });
     await expect(
       claude.sendText(created.id, "valid", {
         mode: "explore",

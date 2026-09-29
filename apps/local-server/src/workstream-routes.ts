@@ -1,3 +1,4 @@
+import { MAX_PROMPT_BYTES } from "@agentintersect-world/agent-session-protocol";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { PreviewManagerService } from "./preview-manager-service.js";
 import { WorkstreamSourceError } from "./workstream-start-source.js";
@@ -21,6 +22,8 @@ type RouteEnvelope = {
     message: string,
   ) => unknown;
 };
+
+const PROMPT_BODY_LIMIT = MAX_PROMPT_BYTES + 64 * 1024;
 
 const identifier = {
   type: "string",
@@ -172,7 +175,7 @@ export function registerWorkstreamRoutes(
     Body: Record<string, unknown>;
   }>(
     "/workstreams/:workstreamId/continue",
-    { bodyLimit: 8192 },
+    { bodyLimit: PROMPT_BODY_LIMIT },
     async (request, reply) => {
       try {
         const result = await service.continueSaved({
@@ -195,7 +198,7 @@ export function registerWorkstreamRoutes(
   server.post(
     "/workstreams",
     {
-      bodyLimit: 8 * 1024,
+      bodyLimit: PROMPT_BODY_LIMIT,
       preValidation: async (request) => {
         rejectUnknownKeys(request.body, [
           "requestId",
@@ -229,7 +232,7 @@ export function registerWorkstreamRoutes(
             requestId: identifier,
             correlationId: identifier,
             title: { type: "string", minLength: 1, maxLength: 160 },
-            task: { type: "string", minLength: 1, maxLength: 2000 },
+            task: { type: "string", minLength: 1 },
             branch: { type: "string", minLength: 1, maxLength: 128 },
             startPoint: { type: "string", pattern: "^(HEAD|[a-f0-9]{40,64})$" },
             sourceWorkstream: {
@@ -306,7 +309,7 @@ export function registerWorkstreamRoutes(
   }>(
     "/workstreams/:workstreamId/iterations",
     {
-      bodyLimit: 8 * 1024,
+      bodyLimit: PROMPT_BODY_LIMIT,
       preValidation: async (request) => {
         rejectUnknownKeys(request.body, [
           "requestId",
@@ -337,7 +340,7 @@ export function registerWorkstreamRoutes(
             requestId: identifier,
             correlationId: identifier,
             expectedRevision: { type: "integer", minimum: 0 },
-            feedback: { type: "string", minLength: 1, maxLength: 2000 },
+            feedback: { type: "string", minLength: 1 },
             repository: repositoryReference,
             agent: agentReference,
           },
@@ -365,7 +368,7 @@ export function registerWorkstreamRoutes(
   }>(
     "/workstreams/:workstreamId/cancel",
     {
-      bodyLimit: 8 * 1024,
+      bodyLimit: PROMPT_BODY_LIMIT,
       preValidation: async (request) => {
         rejectUnknownKeys(request.body, [
           "requestId",

@@ -27,6 +27,9 @@ const WorldRef = z
   .regex(
     /^(?:[A-Za-z0-9][A-Za-z0-9._:-]*|aiw:\/\/(?:object|path)\/[A-Za-z0-9][A-Za-z0-9._:-]*)$/,
   );
+/** User prompts are unbounded by product policy; this only stops runaway uploads. */
+export const MAX_PROMPT_BYTES = 64 * 1024 * 1024;
+
 const SessionModeSchema = z.enum([
   "explore",
   "collaborate",
@@ -215,7 +218,7 @@ export const AgentCapabilityManifestSchema = z
     ordering: z.literal("per-session-strict"),
     resume: z.enum(["session-api", "unavailable"]),
     shutdownOwner: z.enum(["hermes", "world", "external"]),
-    maxInputBytes: z.number().int().min(1).max(65_536),
+    maxInputBytes: z.number().int().min(1).max(MAX_PROMPT_BYTES),
     maxEventBytes: z.number().int().min(1).max(65_536),
     capabilities: CapabilityValuesSchema,
     unavailable: z.partialRecord(
@@ -768,7 +771,7 @@ export const ConstellationMessageGroupSchema = z
     groupId: z.string().uuid(),
     requestId: z.string().uuid(),
     correlationId: z.string().uuid(),
-    text: Utf8Bounded(1, 16_384),
+    text: Utf8Bounded(1, MAX_PROMPT_BYTES),
     target: MessageTargetSchema,
     recipientRosterIds: z.array(LocalOpaqueRef).min(1).max(4),
     recipients: z.array(MessageRecipientSchema).min(1).max(4),

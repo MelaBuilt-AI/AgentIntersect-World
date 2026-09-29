@@ -621,14 +621,10 @@ describe("authoritative Workstream client", () => {
     });
     expect(
       resolveWorkstreamTask(
-        [{ id: "u", kind: "user", text: "x".repeat(2_001) }],
+        [{ id: "u", kind: "user", text: "x".repeat(500_000) }],
         false,
       ),
-    ).toEqual({
-      task: null,
-      unavailableReason:
-        "The latest feature request is too long for a Workstream.",
-    });
+    ).toEqual({ task: "x".repeat(500_000), unavailableReason: null });
   });
 
   it("projects authoritative Git, validation, and evidence facts", () => {

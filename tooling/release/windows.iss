@@ -34,13 +34,17 @@ Compression=lzma2/normal
 SolidCompression=yes
 LZMANumBlockThreads=2
 WizardStyle=modern
+SetupIconFile=..\..\assets\brand\agentintersect.ico
+UninstallDisplayIcon={app}\agentintersect.ico
 SetupLogging=yes
 CloseApplications=yes
 RestartApplications=no
 [Files]
 Source: "{#PackageRoot}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
-Name: "{group}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"
+Name: "{group}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect.ico"
+Name: "{group}\Install Codex or Claude Code CLI"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\Install-AgentCLI.ps1"""; WorkingDir: "{app}"
+Name: "{autodesktop}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect.ico"
 Name: "{group}\Uninstall AgentIntersect World"; Filename: "{uninstallexe}"
 [Run]
 Filename: "{app}\AgentIntersect-World.cmd"; Description: "Open AgentIntersect World"; Flags: postinstall shellexec skipifsilent nowait

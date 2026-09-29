@@ -842,17 +842,16 @@ describe("CodexSessionAdapter", () => {
     expect(await fixture.invocations()).toHaveLength(2);
   });
 
-  it("bounds input before spawn without poisoning an otherwise healthy binding", async () => {
+  it("accepts prompts far beyond the old 16 KiB input bound", async () => {
     const fixture = await fixtureExecutable();
     const codex = adapter(fixture);
     const created = await codex.createWorldSession("world-input");
     await expect(
-      codex.sendText(created.id, "x".repeat(16_385), {
+      codex.sendText(created.id, "x".repeat(200_000), {
         mode: "explore",
         rootSessionRef: created.rootId,
       }),
-    ).rejects.toThrow(/input/i);
-    expect(await fixture.invocations()).toHaveLength(1);
+    ).resolves.toMatchObject({ finalText: "fixture complete" });
     await expect(
       codex.sendText(created.id, "valid", {
         mode: "explore",

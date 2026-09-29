@@ -4,7 +4,10 @@ import path from "node:path";
 import { StringDecoder } from "node:string_decoder";
 import { runEnvironmentModel } from "./environment-model.js";
 
-import { AgentCapabilityManifestSchema } from "@agentintersect-world/agent-session-protocol";
+import {
+  AgentCapabilityManifestSchema,
+  MAX_PROMPT_BYTES,
+} from "@agentintersect-world/agent-session-protocol";
 
 import {
   GatewayError,
@@ -25,7 +28,7 @@ export const CODEX_CLI_VERSION = "0.149.1";
 
 const CODEX_MODEL = "gpt-5.6-sol";
 const CODEX_REASONING = 'model_reasoning_effort="high"';
-const MAX_INPUT_BYTES = 16_384;
+const MAX_INPUT_BYTES = MAX_PROMPT_BYTES;
 const MAX_EVENT_BYTES = 32_768;
 const MAX_TOOL_EVENTS = 1_024;
 const MAX_STDOUT_BYTES = 262_144;

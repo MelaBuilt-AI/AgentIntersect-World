@@ -469,9 +469,17 @@ export function AgentSetupMenu({
                   ))
                 ) : (
                   <p className="agent-setup-note">
-                    {discovery
-                      ? "No installation found in the searched locations. Install or sign in through the native harness, then Discover Agents again."
-                      : "Discover Agents to find installations and available native identities."}
+                    {!discovery
+                      ? "Discover Agents to find installations and available native identities."
+                      : discovery.environments.some(
+                            (environment) =>
+                              environment.id === "windows" &&
+                              environment.status === "scanned",
+                          ) &&
+                          (harness.id === "codex" ||
+                            harness.id === "claude-code")
+                        ? `Not found. The ${harness.id === "codex" ? "Codex" : "Claude"} desktop app includes this CLI — install or update it, or use Start menu → AgentIntersect World → “Install Codex or Claude Code CLI”. Then sign in once and Discover Agents again.`
+                        : "No installation found in the searched locations. Install or sign in through the native harness, then Discover Agents again."}
                   </p>
                 )}
               </details>

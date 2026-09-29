@@ -135,6 +135,17 @@ async function install(archive) {
       await rm(temporary, { force: true });
     }
   }
+  const icon = join(target, "agentintersect-appicon-512.png");
+  const desktop = join(
+    process.env.XDG_DATA_HOME || join(home, ".local", "share"),
+    "applications",
+    "agentintersect-world.desktop",
+  );
+  await mkdir(dirname(desktop), { recursive: true });
+  await writeFile(
+    desktop,
+    `[Desktop Entry]\nType=Application\nName=AgentIntersect World\nComment=Your code becomes a place\nExec="${launcher}"\n${(await exists(icon)) ? `Icon=${icon}\n` : ""}Terminal=true\nCategories=Development;\n`,
+  );
   console.log(`Installed: ${target}\nLaunch: ${bin}`);
   if (!process.env.PATH?.split(":").includes(dirname(bin)))
     console.log(`Add ${dirname(bin)} to PATH to use: agentintersect-world`);

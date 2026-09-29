@@ -117,11 +117,7 @@ function validateRequest(input: ConstellationMessageRequest): void {
       "requestId is invalid",
     );
   validateOpaque(input.idempotencyKey, "idempotencyKey", 128);
-  if (
-    typeof input.text !== "string" ||
-    input.text.trim().length === 0 ||
-    Buffer.byteLength(input.text, "utf8") > 16_384
-  )
+  if (typeof input.text !== "string" || input.text.trim().length === 0)
     throw new ConstellationMessageServiceError(
       "validation",
       "Message text is invalid",

@@ -3,6 +3,8 @@ export const WINDOWS_DISCOVERY_SCRIPT = String.raw`
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $homePath = [Environment]::GetFolderPath('UserProfile')
+$localAppData = [Environment]::GetFolderPath('LocalApplicationData')
+$appData = [Environment]::GetFolderPath('ApplicationData')
 $results = @()
 $commands = @{ 'hermes'='hermes'; 'openclaw'='openclaw'; 'codex'='codex'; 'claude-code'='claude' }
 foreach ($harness in @('hermes','openclaw','codex','claude-code')) {
@@ -12,6 +14,23 @@ foreach ($harness in @('hermes','openclaw','codex','claude-code')) {
     foreach ($extension in @('.exe','.cmd','.bat')) {
       $candidate = Join-Path $directory ($name + $extension)
       if (Test-Path -LiteralPath $candidate -PathType Leaf) { $paths += $candidate }
+    }
+  }
+  # Desktop apps bundle their CLIs: Codex app (MSIX) and Claude app (MSIX or classic install).
+  if ($harness -eq 'codex') {
+    $paths += @(Join-Path $localAppData 'Programs\OpenAI\Codex\bin\codex.exe') | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf }
+    foreach ($package in @(Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction SilentlyContinue)) {
+      $candidate = Join-Path $package.InstallLocation 'app\resources\codex.exe'
+      if (Test-Path -LiteralPath $candidate -PathType Leaf) { $paths += $candidate }
+    }
+  }
+  if ($harness -eq 'claude-code') {
+    $roots = @(Join-Path $appData 'Claude\claude-code')
+    $roots += @(Get-ChildItem -LiteralPath (Join-Path $localAppData 'Packages') -Directory -Filter 'Claude_*' -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.FullName 'LocalCache\Roaming\Claude\claude-code' })
+    foreach ($root in $roots) {
+      if (-not (Test-Path -LiteralPath $root -PathType Container)) { continue }
+      $latest = Get-ChildItem -LiteralPath $root -Directory | Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'claude.exe') -PathType Leaf } | Sort-Object { $v = $null; if ([version]::TryParse($_.Name, [ref]$v)) { $v } else { [version]'0.0' } } -Descending | Select-Object -First 1
+      if ($latest) { $paths += Join-Path $latest.FullName 'claude.exe' }
     }
   }
   $folder = if ($harness -eq 'claude-code') { '.claude' } else { '.' + $harness }
