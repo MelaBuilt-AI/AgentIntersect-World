@@ -1,4 +1,5 @@
-export type WorldScreenId = "director" | "workbench" | "preview" | "code";
+export type WorldScreenId =
+  "director" | "workbench" | "preview" | "code" | "terminal" | "powershell";
 export type WorldScreenPose = {
   readonly x: number;
   readonly z: number;

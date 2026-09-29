@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { MAX_PROMPT_BYTES } from "@agentintersect-world/agent-session-protocol";
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket, { WebSocketServer } from "ws";
 
@@ -711,7 +712,7 @@ describe("OpenClawSessionAdapter", () => {
       "sessions.abort",
     );
     await expect(
-      openclaw.sendText(created.id, "x".repeat(16_385), {
+      openclaw.sendText(created.id, "x".repeat(MAX_PROMPT_BYTES + 1), {
         mode: "explore",
         rootSessionRef: created.rootId,
       }),

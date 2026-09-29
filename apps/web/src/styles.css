@@ -5144,3 +5144,82 @@ p {
     grid-template-columns: 1fr;
   }
 }
+
+.world-view-launcher {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 24;
+  min-height: 36px;
+  padding: 0.4rem 0.9rem;
+  transform: translateX(-50%);
+  border: 1px solid rgba(65, 233, 255, 0.6);
+  border-radius: 999px;
+  color: #e6fbff;
+  background: rgba(3, 9, 20, 0.9);
+  cursor: pointer;
+}
+
+.world-view__shells {
+  display: flex;
+  gap: 0.4rem;
+}
+.world-view__shells button,
+.world-admin-shell__header button {
+  min-height: 32px;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.world-view__empty {
+  margin: 0;
+  color: #9fb8c9;
+  font-size: 0.85rem;
+}
+
+.world-admin-shell {
+  position: fixed;
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: 9rem;
+  z-index: 32;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.5rem;
+  width: min(44rem, calc(100vw - 1.5rem));
+  height: min(26rem, calc(100dvh - 12rem));
+  padding: 0.6rem;
+  border: 1px solid rgba(65, 233, 255, 0.6);
+  border-radius: 0.75rem;
+  color: #e6fbff;
+  background: rgba(3, 9, 20, 0.96);
+}
+.world-admin-shell--powershell {
+  right: auto;
+  left: max(0.75rem, env(safe-area-inset-left));
+}
+.world-admin-shell__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.world-admin-shell__header [role="status"] {
+  flex: 1;
+  color: #8be9fd;
+  font-size: 0.8rem;
+}
+.world-admin-shell__terminal {
+  min-height: 0;
+  overflow: hidden;
+}
+.world-screen--spatial .world-screen__object > .world-admin-shell {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  border: none;
+}
