@@ -34,7 +34,10 @@ export type ConstellationMessageRequest = {
   readonly userDisplayName?: string;
 };
 
-type MessageGateway = Pick<AgentSessionGateway, "status" | "sendText">;
+type MessageGateway = Pick<
+  AgentSessionGateway,
+  "status" | "sendText" | "isBusy"
+>;
 
 type MessageRecord = {
   readonly idempotencyKey: string;
@@ -703,9 +706,13 @@ export class ConstellationMessageService {
     return result.finalText;
   }
 
+  /** Only a running Workstream turn blocks relays; a restored checkpoint does not. */
   #inWorkstream(worldSessionId: string): boolean {
     try {
-      return Boolean(this.#gateway.status(worldSessionId).currentTaskRef);
+      return (
+        Boolean(this.#gateway.status(worldSessionId).currentTaskRef) &&
+        this.#gateway.isBusy(worldSessionId)
+      );
     } catch {
       return false;
     }

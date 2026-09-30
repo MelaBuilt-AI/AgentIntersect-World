@@ -326,7 +326,10 @@ describe("user-directed @agent relay", () => {
 
   async function relayService(
     reply: (sessionId: string, turn: Turn, count: number) => string,
-    options: { readonly workstreamSession?: string } = {},
+    options: {
+      readonly workstreamSession?: string;
+      readonly workstreamTurnRunning?: boolean;
+    } = {},
   ) {
     const stateRoot = root();
     const constellation = await readyConstellation(stateRoot, [
@@ -348,6 +351,9 @@ describe("user-directed @agent relay", () => {
           currentTaskRef:
             sessionId === options.workstreamSession ? "workstream-1" : null,
         }),
+        isBusy: (sessionId: string) =>
+          sessionId === options.workstreamSession &&
+          options.workstreamTurnRunning !== false,
         sendText,
       },
     });
@@ -434,6 +440,26 @@ describe("user-directed @agent relay", () => {
       ],
     });
     expect(calls).toHaveLength(1);
+  });
+
+  it("relays to an agent holding a Workstream that is not running a turn", async () => {
+    const { service, calls } = await relayService(
+      (sessionId, _turn, count) =>
+        count === 1
+          ? "@Claude say hi"
+          : sessionId === "session-2"
+            ? "Hi!"
+            : "Claude said hi.",
+      { workstreamSession: "session-2", workstreamTurnRunning: false },
+    );
+
+    const group = await service.send(request(45, "@Fluff ask @Claude"));
+
+    expect(group.relay?.hops.map((hop) => hop.state)).toEqual([
+      "completed",
+      "completed",
+    ]);
+    expect(calls).toHaveLength(3);
   });
 
   it("does not relay broadcasts, work turns, or replies without mentions", async () => {

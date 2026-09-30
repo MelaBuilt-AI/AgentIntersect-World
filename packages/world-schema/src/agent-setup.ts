@@ -25,6 +25,8 @@ export type AgentInstallation = {
   readonly environment: AgentEnvironment;
   readonly executablePath: string;
   readonly canonicalExecutablePath?: string;
+  /** Read from install metadata (package.json or a versioned path), never by running the CLI. */
+  readonly version?: string;
   readonly homePath: string;
   readonly identities: readonly NativeIdentity[];
   /** Finding an executable is not authentication or execution proof. */

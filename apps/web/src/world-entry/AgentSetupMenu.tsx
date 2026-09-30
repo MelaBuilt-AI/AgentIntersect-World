@@ -98,7 +98,10 @@ function InstallationForm({
             ? (check?.message ?? "Saved — Recheck to verify connection")
             : "Found — not attached"}
         </span>
-        <code className="agent-setup-path">{installation.executablePath}</code>
+        <code className="agent-setup-path">
+          {installation.executablePath}
+          {installation.version ? ` · v${installation.version}` : ""}
+        </code>
         <label>
           Native identity
           <select
@@ -246,7 +249,8 @@ function EnvironmentInstallations({
             >
               {candidates.map((i) => (
                 <option key={i.id} value={i.id}>
-                  {i.executablePath} · {i.homePath}
+                  {i.executablePath}
+                  {i.version ? ` · v${i.version}` : ""} · {i.homePath}
                 </option>
               ))}
             </select>

@@ -91,6 +91,17 @@ paths += sorted(glob.glob(os.path.join(home, '.nvm/versions/node/*/bin')))[:64]
 paths = list(dict.fromkeys(p for p in paths if os.path.isabs(p)))[:160]
 results = []
 def safe(value): return isinstance(value, str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,63}', value)
+def version_of(resolved):
+    pattern = r'\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?'
+    if re.fullmatch(pattern, os.path.basename(resolved)): return os.path.basename(resolved)
+    directory = os.path.dirname(resolved)
+    for _ in range(3):
+        try:
+            value = json.loads(text(os.path.join(directory, 'package.json')) or '{}').get('version')
+            if isinstance(value, str) and re.fullmatch(pattern, value): return value
+        except (ValueError, AttributeError): pass
+        directory = os.path.dirname(directory)
+    return None
 def text(filename):
     try:
         if os.path.getsize(filename) <= 262144:
@@ -126,6 +137,9 @@ for harness, command in [('hermes','hermes'),('openclaw','openclaw'),('codex','c
             resolved = os.path.realpath(candidate)
             if resolved not in seen and len(seen) < 32:
                 seen.add(resolved)
-                results.append(dict(adapterId=harness, executablePath=candidate, canonicalExecutablePath=resolved, identities=identities))
+                item = dict(adapterId=harness, executablePath=candidate, canonicalExecutablePath=resolved, identities=identities)
+                version = version_of(resolved)
+                if version: item['version'] = version
+                results.append(item)
 print(json.dumps(dict(home=home, installations=results)))
 `;
