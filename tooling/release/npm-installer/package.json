@@ -1,0 +1,36 @@
+{
+  "name": "@agentintersect-world/installer",
+  "version": "0.15.0-rc.2",
+  "description": "Verified terminal installer for AgentIntersect World on Linux x64",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "agentintersect-world-install": "./install.mjs"
+  },
+  "files": [
+    "install.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MelaBuilt-AI/AgentIntersect-World.git",
+    "directory": "tooling/release/npm-installer"
+  },
+  "homepage": "https://github.com/MelaBuilt-AI/AgentIntersect-World",
+  "bugs": {
+    "url": "https://github.com/MelaBuilt-AI/AgentIntersect-World/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "rc"
+  }
+}

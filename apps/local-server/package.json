@@ -40,6 +40,15 @@
     "yaml": "2.9.0",
     "y-protocols": "1.0.7",
     "yjs": "13.6.31",
-    "zod": "4.4.3"
-  }
+    "zod": "4.4.3",
+    "@fastify/static": "10.1.4",
+    "@fastify/http-proxy": "11.6.2"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "launch.mjs"
+  ],
+  "license": "MIT"
 }

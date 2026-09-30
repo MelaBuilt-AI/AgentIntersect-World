@@ -1,6 +1,6 @@
 {
   "name": "agentintersect-world",
-  "version": "0.14.0-phase14",
+  "version": "0.15.0-rc.2",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.15.0",

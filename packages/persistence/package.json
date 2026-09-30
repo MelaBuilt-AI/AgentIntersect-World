@@ -15,5 +15,11 @@
   },
   "dependencies": {
     "@agentintersect-world/world-event-protocol": "workspace:*"
-  }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT"
 }

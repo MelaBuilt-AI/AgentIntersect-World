@@ -31,5 +31,11 @@
   },
   "dependencies": {
     "zod": "4.4.3"
-  }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT"
 }
