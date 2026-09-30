@@ -19,6 +19,7 @@ import {
   assertTurnBinding,
   capabilitySnapshotHash,
   sanitizeDisplayText,
+  MAX_PROMPT_BYTES,
   type AgentCapabilityManifest,
   type AgentAvatarProposal,
   type AgentSession,
@@ -1030,7 +1031,7 @@ export class HermesSessionAdapter implements AgentAdapter {
       ordering: "per-session-strict",
       resume: attach ? "session-api" : "unavailable",
       shutdownOwner: this.#ownedSessions ? "world" : "hermes",
-      maxInputBytes: 16_384,
+      maxInputBytes: MAX_PROMPT_BYTES,
       maxEventBytes: 32_768,
       capabilities: {
         attach,
@@ -1347,11 +1348,8 @@ export class HermesSessionAdapter implements AgentAdapter {
         "unsupported",
         "Hermes same-session arbiter is not attested; dispatch fails closed",
       );
-    if (Buffer.byteLength(text, "utf8") > 16_384 || text.trim().length === 0)
-      throw new GatewayError(
-        "validation",
-        "Message must be 1-16384 UTF-8 bytes",
-      );
+    if (text.trim().length === 0)
+      throw new GatewayError("validation", "Message must not be empty");
     const rootSessionRef = context?.rootSessionRef ?? sessionRef;
     if (!isAdapterSessionRef(rootSessionRef))
       throw new GatewayError(
@@ -2048,7 +2046,7 @@ export class AgentSessionGateway {
           : {}),
         worldInstanceId: request.worldInstanceId,
       });
-    } catch {
+    } catch (error) {
       if (rootSessionRef) {
         try {
           await adapter.endWorldSession(
@@ -2059,6 +2057,9 @@ export class AgentSessionGateway {
           // The exact newly created identity was the only cleanup target.
         }
       }
+      // Offline reasons are fixed adapter strings the user can act on.
+      if (error instanceof GatewayError && error.code === "offline")
+        throw error;
       throw new GatewayError("upstream", "World session creation failed");
     }
   }
@@ -2404,7 +2405,8 @@ export class AgentSessionGateway {
         this.#store.appendEvent(event);
         await options.onEvent?.(event);
       };
-      const userText = sanitizeDisplayText(request.text, 16_384);
+      // Transcript/event copy is display-bounded; the adapter receives the full prompt.
+      const userText = sanitizeDisplayText(request.text, 12_288);
       this.#store.appendMessage(sessionId, "user", userText.text);
       await appendNormalizedEvent(
         "message.user-accepted",

@@ -108,6 +108,13 @@ import {
   type PreviewRecipe,
 } from "./preview-manager-client.js";
 import { WorldView } from "./WorldView.js";
+import type { AdminShellKind } from "./WorldAdminShell.js";
+
+const WorldAdminShell = lazy(() =>
+  import("./WorldAdminShell.js").then((module) => ({
+    default: module.WorldAdminShell,
+  })),
+);
 import { WorldScreenProvider } from "./WorldScreenProvider.js";
 import {
   resolveWorldViewLauncher,
@@ -453,6 +460,8 @@ export function WorldEntryExperience({
   const [normalWorkstreamOpen, setNormalWorkstreamOpen] = useState(false);
   const [wheelTaskOpen, setWheelTaskOpen] = useState(false);
   const [workbenchOpen, setWorkbenchOpen] = useState(false);
+  const [worldViewOpen, setWorldViewOpen] = useState(false);
+  const [adminShells, setAdminShells] = useState<readonly AdminShellKind[]>([]);
   const [newWorkstreamBase, setNewWorkstreamBase] = useState("HEAD");
   const [changeAgentWork, setChangeAgentWork] =
     useState<WorkstreamApiRecord | null>(null);
@@ -927,7 +936,11 @@ export function WorldEntryExperience({
     }
     if (result.status === "unavailable" || result.status === "stale") {
       setStatus(connectionLabel(result));
-      setError(result.message);
+      setError(
+        "detail" in result && result.detail
+          ? `${result.message} · ${result.detail}`
+          : result.message,
+      );
       if (selectedConnection)
         window.dispatchEvent(
           new CustomEvent("aiw:agent-connection-unavailable", {
@@ -2398,6 +2411,11 @@ export function WorldEntryExperience({
     workstreamClient,
     setNormalWorkstream,
   ]);
+  const openAdminShell = useCallback((kind: AdminShellKind) => {
+    setAdminShells((current) =>
+      current.includes(kind) ? current : [...current, kind],
+    );
+  }, []);
   const startWorldView = useCallback(async () => {
     const recipe = previewRecipes?.length === 1 ? previewRecipes[0] : null;
     if (
@@ -3057,7 +3075,40 @@ export function WorldEntryExperience({
               onInputOwnerChange={setWorldInputOwner}
               onRefresh={() => void startWorldView()}
               refreshPending={previewActionPending}
+              onOpenShell={openAdminShell}
             />
+          ) : state.step !== "world_entering" && worldViewOpen ? (
+            <WorldView
+              key="world-view-empty"
+              workstream={normalWorkstream}
+              projection={null}
+              onInputOwnerChange={setWorldInputOwner}
+              onOpenShell={openAdminShell}
+              onHide={() => setWorldViewOpen(false)}
+            />
+          ) : state.step !== "world_entering" ? (
+            <button
+              type="button"
+              className="world-view-launcher world-action--enabled"
+              onClick={() => setWorldViewOpen(true)}
+            >
+              World View
+            </button>
+          ) : null}
+          {state.step !== "world_entering" && adminShells.length > 0 ? (
+            <Suspense fallback={null}>
+              {adminShells.map((kind) => (
+                <WorldAdminShell
+                  key={kind}
+                  kind={kind}
+                  onClose={() =>
+                    setAdminShells((current) =>
+                      current.filter((item) => item !== kind),
+                    )
+                  }
+                />
+              ))}
+            </Suspense>
           ) : null}
           {workbenchOpen || wheelTaskOpen ? (
             <Suspense

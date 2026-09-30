@@ -84,6 +84,7 @@ import {
 } from "./evidence-service.js";
 import { PresentationSyncService } from "./presentation-sync.js";
 import { PresentationWebSocketTransport } from "./presentation-websocket.js";
+import { AdminShellService, isLoopbackAddress } from "./admin-shells.js";
 import { CodeGraphService } from "./code-graph-service.js";
 import { registerCodeGraphRoutes } from "./code-graph-routes.js";
 import {
@@ -361,6 +362,7 @@ export function createLocalServer(
       : {}),
   });
   let presentationTransport: PresentationWebSocketTransport | undefined;
+  let adminShells: AdminShellService | undefined;
   server.decorate("operationService", operationService);
   server.decorate("repositoryIndexService", repositoryIndexService);
   server.decorate("integrationService", integrationService);
@@ -388,6 +390,7 @@ export function createLocalServer(
   });
   server.addHook("preClose", () => {
     presentationTransport?.close();
+    adminShells?.close();
   });
   server.addHook("onClose", async () => {
     operationService.close();
@@ -840,6 +843,12 @@ export function createLocalServer(
       isAllowedAddress: isAllowedCommandAddress,
     });
 
+    adminShells ??= new AdminShellService({
+      server: server.server,
+      allowedOrigin: config.presentationSync.allowedOrigin,
+      allowedHost: config.presentationSync.allowedHost,
+    });
+
     const sameCommandToken = (supplied: string, expected: string): boolean => {
       const digest = (value: string) =>
         createHash("sha256").update(value).digest();
@@ -972,6 +981,42 @@ export function createLocalServer(
           unencryptedLanWarning:
             safeConfig.presentationSync.unencryptedLanWarning,
         }),
+    );
+
+    server.post(
+      "/admin-shells",
+      {
+        schema: {
+          tags: ["world-admin-shells"],
+          summary: "Open an in-World admin Terminal or PowerShell",
+          body: {
+            type: "object",
+            additionalProperties: false,
+            required: ["kind"],
+            properties: { kind: { enum: ["terminal", "powershell"] } },
+          },
+        },
+      },
+      async (request, reply) => {
+        if (
+          !isLoopbackAddress(request.ip) ||
+          request.headers.origin !== config.presentationSync.allowedOrigin ||
+          request.headers.host !== config.presentationSync.allowedHost
+        )
+          return reply
+            .code(403)
+            .send(
+              failure(
+                request,
+                "forbidden",
+                "Admin shells are only available from the local World",
+              ),
+            );
+        const { kind } = request.body as { kind: "terminal" | "powershell" };
+        return reply
+          .code(201)
+          .send(success(request, adminShells!.create(kind)));
+      },
     );
 
     server.post(

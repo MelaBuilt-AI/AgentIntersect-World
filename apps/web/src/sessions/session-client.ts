@@ -165,6 +165,22 @@ export type ConstellationMessageRecipient = {
   readonly errorLabel: string | null;
 };
 
+export type ConstellationRelayHop = {
+  readonly fromRosterId: string;
+  readonly toRosterId: string;
+  readonly state:
+    | "queued"
+    | "streaming"
+    | "completed"
+    | "unavailable"
+    | "failed"
+    | "interrupted"
+    | "skipped"
+    | "limited";
+  readonly finalText: string | null;
+  readonly errorLabel: string | null;
+};
+
 export type ConstellationMessageGroup = {
   readonly schema: "aiw.constellation-message/0.19";
   readonly groupId: string;
@@ -176,6 +192,10 @@ export type ConstellationMessageGroup = {
     | { readonly kind: "agent"; readonly rosterId: string };
   readonly recipientRosterIds: readonly string[];
   readonly recipients: readonly ConstellationMessageRecipient[];
+  readonly relay?: {
+    readonly status: "running" | "done";
+    readonly hops: readonly ConstellationRelayHop[];
+  };
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -473,6 +493,22 @@ function constellationMessageGroup(value: unknown): ConstellationMessageGroup {
     )
       throw new Error("Constellation message recipient is invalid.");
   }
+  if (
+    value.relay !== undefined &&
+    (!record(value.relay) ||
+      (value.relay.status !== "running" && value.relay.status !== "done") ||
+      !Array.isArray(value.relay.hops) ||
+      !value.relay.hops.every(
+        (hop) =>
+          record(hop) &&
+          typeof hop.fromRosterId === "string" &&
+          typeof hop.toRosterId === "string" &&
+          typeof hop.state === "string" &&
+          (hop.finalText === null || typeof hop.finalText === "string") &&
+          (hop.errorLabel === null || typeof hop.errorLabel === "string"),
+      ))
+  )
+    throw new Error("Constellation message relay is invalid.");
   return value as ConstellationMessageGroup;
 }
 

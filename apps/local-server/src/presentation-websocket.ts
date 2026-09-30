@@ -73,6 +73,8 @@ export class PresentationWebSocketTransport {
   ): Promise<void> {
     try {
       const url = new URL(request.url ?? "/", "http://local");
+      // Admin shells own their own upgrade path.
+      if (url.pathname.startsWith("/admin-shell")) return;
       const match = /^\/presentation-sync\/(doc_[a-f0-9]{32})$/.exec(
         url.pathname,
       );

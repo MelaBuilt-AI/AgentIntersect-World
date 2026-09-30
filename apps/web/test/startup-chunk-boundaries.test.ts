@@ -95,7 +95,8 @@ describe("production startup chunk boundaries", () => {
     const avatarBytes = (
       await stat(join(outputRoot, manifest["src/avatar/AvatarScene.tsx"]!.file))
     ).size;
-    expect(entryBytes).toBeLessThanOrEqual(400 * 1024);
+    // +2 KiB for the in-World admin shell screen ids (xterm itself is lazy).
+    expect(entryBytes).toBeLessThanOrEqual(402 * 1024);
     expect(avatarBytes).toBeLessThanOrEqual(500 * 1024);
 
     const avatarRenderer = await readFile(

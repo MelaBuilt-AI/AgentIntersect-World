@@ -222,7 +222,6 @@ export function AgentSessionExperience({
               Message
               <textarea
                 value={draft}
-                maxLength={16_384}
                 onChange={(event) => setDraft(event.target.value)}
                 disabled={!sendEnabled}
               />

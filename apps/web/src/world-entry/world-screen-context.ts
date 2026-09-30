@@ -11,18 +11,24 @@ export const SCREEN_LABELS = {
   workbench: "Workbench",
   preview: "World View",
   code: "Repository code",
+  terminal: "Admin Terminal",
+  powershell: "Admin PowerShell",
 } as const;
 export const SCREEN_KEYS = {
   director: "1",
   workbench: "2",
   preview: "3",
   code: "4",
+  terminal: "5",
+  powershell: "6",
 } as const;
 export const SCREEN_DIMENSIONS = {
   director: [540, 500],
   workbench: [720, 680],
   preview: [1100, 720],
   code: [880, 480],
+  terminal: [860, 520],
+  powershell: [860, 520],
 } as const;
 export const DEFAULT_SCREEN_POSE: WorldScreenPose = { x: 0, z: -6, yaw: 0 };
 

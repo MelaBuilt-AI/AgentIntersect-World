@@ -4,7 +4,10 @@ import path from "node:path";
 import { StringDecoder } from "node:string_decoder";
 import { runEnvironmentModel } from "./environment-model.js";
 
-import { AgentCapabilityManifestSchema } from "@agentintersect-world/agent-session-protocol";
+import {
+  AgentCapabilityManifestSchema,
+  MAX_PROMPT_BYTES,
+} from "@agentintersect-world/agent-session-protocol";
 
 import {
   GatewayError,
@@ -25,7 +28,7 @@ export const CODEX_CLI_VERSION = "0.149.1";
 
 const CODEX_MODEL = "gpt-5.6-sol";
 const CODEX_REASONING = 'model_reasoning_effort="high"';
-const MAX_INPUT_BYTES = 16_384;
+const MAX_INPUT_BYTES = MAX_PROMPT_BYTES;
 const MAX_EVENT_BYTES = 32_768;
 const MAX_TOOL_EVENTS = 1_024;
 const MAX_STDOUT_BYTES = 262_144;
@@ -96,6 +99,17 @@ function codexFailure(
   code: "validation" | "conflict" | "offline" | "upstream" = "upstream",
 ): GatewayError {
   return new GatewayError(code, message);
+}
+
+export const CODEX_MODEL_REJECTED =
+  "Codex rejected its configured model. Update the Codex CLI or choose a supported model in its config.";
+
+/** Only the fixed classification leaves the adapter; raw upstream text does not. */
+function rejectedModel(event: Record<string, unknown>): boolean {
+  const message = JSON.stringify(event.error ?? event.message ?? "");
+  return /model\b[^"]{0,120}\bnot supported|unsupported model|model_not_found/iu.test(
+    message,
+  );
 }
 
 function boundedWorldRef(value: string): string {
@@ -336,8 +350,12 @@ export class CodexSessionAdapter implements AgentAdapter {
           if (!isRecord(event) || typeof event.type !== "string")
             throw new Error("invalid event");
           options.onEvent?.(event);
-        } catch {
-          fail(codexFailure(options.failureMessage));
+        } catch (error) {
+          fail(
+            error instanceof GatewayError && error.code === "offline"
+              ? error
+              : codexFailure(options.failureMessage),
+          );
         }
       };
 
@@ -569,7 +587,9 @@ export class CodexSessionAdapter implements AgentAdapter {
             return;
           }
           if (event.type === "turn.failed" || event.type === "error")
-            throw codexFailure();
+            throw rejectedModel(event)
+              ? codexFailure(CODEX_MODEL_REJECTED, "offline")
+              : codexFailure();
           if (event.type === "turn.completed") {
             turnCompleted = true;
             return;

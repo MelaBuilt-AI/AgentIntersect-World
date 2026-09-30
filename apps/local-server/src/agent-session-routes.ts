@@ -1,4 +1,7 @@
-import type { AgentAvatarProposal } from "@agentintersect-world/agent-session-protocol";
+import {
+  MAX_PROMPT_BYTES,
+  type AgentAvatarProposal,
+} from "@agentintersect-world/agent-session-protocol";
 import { once } from "node:events";
 import { registerEnvironmentRoutes } from "./environment-routes.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -404,6 +407,7 @@ export function registerAgentSessionRoutes(
   server.post(
     "/agent-sessions/:sessionId/messages",
     {
+      bodyLimit: MAX_PROMPT_BYTES + 64 * 1024,
       schema: {
         tags,
         params: sessionParams,
@@ -413,7 +417,7 @@ export function registerAgentSessionRoutes(
           additionalProperties: false,
           required: ["text", "binding"],
           properties: {
-            text: { type: "string", minLength: 1, maxLength: 16_384 },
+            text: { type: "string", minLength: 1 },
             binding: { type: "object", additionalProperties: true },
             intent: { type: "string", enum: ["discussion", "work"] },
             context: {
@@ -447,6 +451,7 @@ export function registerAgentSessionRoutes(
   server.post(
     "/agent-sessions/:sessionId/stream",
     {
+      bodyLimit: MAX_PROMPT_BYTES + 64 * 1024,
       schema: {
         tags,
         params: sessionParams,
@@ -457,7 +462,7 @@ export function registerAgentSessionRoutes(
           additionalProperties: false,
           required: ["text", "binding"],
           properties: {
-            text: { type: "string", minLength: 1, maxLength: 16_384 },
+            text: { type: "string", minLength: 1 },
             binding: { type: "object", additionalProperties: true },
             intent: { type: "string", enum: ["discussion", "work"] },
             context: {

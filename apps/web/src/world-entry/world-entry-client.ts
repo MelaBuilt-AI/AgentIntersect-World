@@ -52,6 +52,8 @@ export type HermesConnectionResult =
   | {
       readonly status: "unavailable" | "stale";
       readonly message: "agent unavailable_";
+      /** Server-sanitized reason the user can act on, when one exists. */
+      readonly detail?: string;
     };
 
 export type WorldEntryAvatarSetup =
@@ -503,8 +505,18 @@ export function createWorldEntryClient(
           avatarSetup: "required",
           history,
         };
-      } catch {
-        return { status: "unavailable", message: "agent unavailable_" };
+      } catch (error) {
+        const detail =
+          error instanceof Error &&
+          error.message !== "World session creation failed" &&
+          error.name !== "AbortError"
+            ? error.message.slice(0, 240)
+            : "";
+        return {
+          status: "unavailable",
+          message: "agent unavailable_",
+          ...(detail ? { detail } : {}),
+        };
       }
     },
 
@@ -589,7 +601,7 @@ export function createWorldEntryClient(
       readonly finalText: string;
       readonly deltas: readonly string[];
     }> {
-      const bounded = text.trim().slice(0, 4_000);
+      const bounded = text.trim();
       if (!bounded) throw new Error("chat unavailable_");
       const userContext =
         options.userDisplayName === undefined

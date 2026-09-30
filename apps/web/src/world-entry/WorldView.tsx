@@ -4,6 +4,7 @@ import { audioCue } from "../audio/world-audio.js";
 import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
 import { useSpatialScreen } from "./world-screen-context.js";
 
+import type { AdminShellKind } from "./WorldAdminShell.js";
 import type { PreviewProjection } from "./preview-manager-client.js";
 import type { Workstream } from "./workstream-tracer.js";
 import type { WorldInputOwner } from "./world-view-model.js";
@@ -16,16 +17,20 @@ export function WorldView({
   onInputOwnerChange,
   onRefresh,
   refreshPending = false,
+  onOpenShell,
+  onHide,
 }: {
-  readonly workstream: Workstream;
-  readonly projection: PreviewProjection;
+  readonly workstream: Workstream | null;
+  readonly projection: PreviewProjection | null;
+  readonly onOpenShell: (kind: AdminShellKind) => void;
+  readonly onHide?: () => void;
   readonly iterationStatus?: IterationStatus | null;
   readonly onRefresh?: () => void;
   readonly refreshPending?: boolean;
   readonly onInputOwnerChange: (owner: WorldInputOwner) => void;
 }) {
   const spatial = useSpatialScreen("preview");
-  const display = projection.display;
+  const display = projection?.display;
   const [expanded, setExpanded] = useState(false);
   const [inputOwner, setInputOwner] = useState<WorldInputOwner>("world");
   const opener = useRef<HTMLButtonElement>(null);
@@ -71,8 +76,55 @@ export function WorldView({
     [onInputOwnerChange],
   );
 
+  const shellButtons = (
+    <div className="world-view__shells" role="group" aria-label="Admin shells">
+      {(["terminal", "powershell"] as const).map((kind) => (
+        <button
+          key={kind}
+          type="button"
+          className="world-action--enabled"
+          title="Opens an elevated (administrator) shell inside World"
+          onClick={() => onOpenShell(kind)}
+        >
+          {kind === "terminal" ? "Terminal" : "PowerShell"}
+        </button>
+      ))}
+    </div>
+  );
   const previewUrl = display?.preview.url;
-  if (!display || !previewUrl) return null;
+  if (!workstream || !display || !previewUrl)
+    return (
+      <WorldScreen id="preview">
+        <section
+          className="world-view world-view--empty"
+          aria-label="World View"
+          data-preview-state="none"
+          role="region"
+        >
+          <header className="world-view__header">
+            <WorldScreenToggle id="preview" />
+            <div>
+              <span className="world-view__eyebrow">World View</span>
+              <strong>{workstream?.title ?? "No coding display yet"}</strong>
+            </div>
+            {shellButtons}
+            {onHide ? (
+              <button
+                type="button"
+                className="world-action--enabled"
+                onClick={onHide}
+              >
+                Hide World View
+              </button>
+            ) : null}
+          </header>
+          <p className="world-view__empty" role="status">
+            The coding display appears here after you choose Approve static view
+            on a Workstream.
+          </p>
+        </section>
+      </WorldScreen>
+    );
   const preview = display.preview;
   const branch = workstream.authority?.authority.branch ?? "Unavailable";
   const truthLabel =
@@ -108,6 +160,7 @@ export function WorldView({
           >
             {truthLabel}
           </span>
+          {shellButtons}
           {onRefresh ? (
             <div className="world-view__refresh">
               <button

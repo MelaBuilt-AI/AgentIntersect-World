@@ -264,9 +264,9 @@ describe("Phase 19 constellation protocol", () => {
   it("bounds accepted text, final text, and error labels by UTF-8 bytes", () => {
     expect(
       ConstellationMessageGroupSchema.safeParse(
-        messageGroup({ text: "😀".repeat(4_097) }),
+        messageGroup({ text: "😀".repeat(100_000) }),
       ).success,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       ConstellationMessageGroupSchema.safeParse(
         messageGroup({

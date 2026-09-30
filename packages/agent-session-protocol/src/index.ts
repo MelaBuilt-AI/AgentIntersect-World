@@ -27,6 +27,9 @@ const WorldRef = z
   .regex(
     /^(?:[A-Za-z0-9][A-Za-z0-9._:-]*|aiw:\/\/(?:object|path)\/[A-Za-z0-9][A-Za-z0-9._:-]*)$/,
   );
+/** User prompts are unbounded by product policy; this only stops runaway uploads. */
+export const MAX_PROMPT_BYTES = 64 * 1024 * 1024;
+
 const SessionModeSchema = z.enum([
   "explore",
   "collaborate",
@@ -215,7 +218,7 @@ export const AgentCapabilityManifestSchema = z
     ordering: z.literal("per-session-strict"),
     resume: z.enum(["session-api", "unavailable"]),
     shutdownOwner: z.enum(["hermes", "world", "external"]),
-    maxInputBytes: z.number().int().min(1).max(65_536),
+    maxInputBytes: z.number().int().min(1).max(MAX_PROMPT_BYTES),
     maxEventBytes: z.number().int().min(1).max(65_536),
     capabilities: CapabilityValuesSchema,
     unavailable: z.partialRecord(
@@ -762,16 +765,47 @@ const MessageRecipientSchema = z
   })
   .strict();
 
+/** Agent-to-agent relays started by an `@agentname` in a user message. */
+export const MAX_RELAY_HOPS = 6;
+
+const RelayHopSchema = z
+  .object({
+    fromRosterId: LocalOpaqueRef,
+    toRosterId: LocalOpaqueRef,
+    state: z.enum([
+      "queued",
+      "streaming",
+      "completed",
+      "unavailable",
+      "failed",
+      "interrupted",
+      "skipped",
+      "limited",
+    ]),
+    finalText: Utf8Bounded(1, 32_768).nullable(),
+    errorLabel: Utf8Bounded(1, 240).nullable(),
+  })
+  .strict();
+
+export type ConstellationRelayHop = z.infer<typeof RelayHopSchema>;
+
 export const ConstellationMessageGroupSchema = z
   .object({
     schema: z.literal("aiw.constellation-message/0.19"),
     groupId: z.string().uuid(),
     requestId: z.string().uuid(),
     correlationId: z.string().uuid(),
-    text: Utf8Bounded(1, 16_384),
+    text: Utf8Bounded(1, MAX_PROMPT_BYTES),
     target: MessageTargetSchema,
     recipientRosterIds: z.array(LocalOpaqueRef).min(1).max(4),
     recipients: z.array(MessageRecipientSchema).min(1).max(4),
+    relay: z
+      .object({
+        status: z.enum(["running", "done"]),
+        hops: z.array(RelayHopSchema).max(MAX_RELAY_HOPS * 2),
+      })
+      .strict()
+      .optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
@@ -833,8 +867,11 @@ export function isConstellationMessageGroupComplete(
   group: ConstellationMessageGroup,
 ): boolean {
   const parsed = ConstellationMessageGroupSchema.parse(group);
-  return parsed.recipients.every((recipient) =>
-    TERMINAL_RECIPIENT_STATES.has(recipient.state),
+  return (
+    parsed.relay?.status !== "running" &&
+    parsed.recipients.every((recipient) =>
+      TERMINAL_RECIPIENT_STATES.has(recipient.state),
+    )
   );
 }
 

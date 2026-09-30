@@ -53,5 +53,35 @@ class DeploymentPrivacyTest(unittest.TestCase):
             )
 
 
+
+
+class NativeFilesTest(unittest.TestCase):
+    def make(self, root, *files):
+        for directory in BUILD.PTY_PACKAGES.values():
+            (root / directory).mkdir(parents=True, exist_ok=True)
+            (root / directory / "package.json").write_text("{}")
+        for f in files:
+            (root / f).parent.mkdir(parents=True, exist_ok=True)
+            (root / f).write_bytes(b"x")
+
+    def test_only_pinned_pty_prebuilds_may_ship_and_each_platform_keeps_its_own(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = pathlib.Path(temporary)
+            linux = BUILD.PTY_PACKAGES["linux-x64"]
+            windows = BUILD.PTY_PACKAGES["windows-x64"]
+            self.make(root, f"{linux}/prebuilds/pty.node", f"{windows}/prebuilds/conpty.node", f"{windows}/prebuilds/conpty.pdb")
+            BUILD.check_native_files(root)
+            BUILD.keep_platform_natives(root, "windows-x64")
+            self.assertFalse((root / linux).exists())
+            self.assertTrue((root / windows / "prebuilds/conpty.node").exists())
+            self.assertFalse((root / windows / "prebuilds/conpty.pdb").exists())
+
+    def test_unexpected_native_dependency_is_refused(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = pathlib.Path(temporary)
+            self.make(root, "node_modules/other/build/other.node")
+            with self.assertRaisesRegex(RuntimeError, "Unexpected native"):
+                BUILD.check_native_files(root)
+
 if __name__ == "__main__":
     unittest.main()

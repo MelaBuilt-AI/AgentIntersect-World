@@ -4,7 +4,10 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { StringDecoder } from "node:string_decoder";
 
-import { AgentCapabilityManifestSchema } from "@agentintersect-world/agent-session-protocol";
+import {
+  AgentCapabilityManifestSchema,
+  MAX_PROMPT_BYTES,
+} from "@agentintersect-world/agent-session-protocol";
 
 import {
   GatewayError,
@@ -26,7 +29,7 @@ export const CLAUDE_CODE_VERSION = "2.1.228";
 
 const CLAUDE_MODEL = "qwythos:claude-q6-64k";
 const OLLAMA_BASE_URL = "http://localhost:11434";
-const MAX_INPUT_BYTES = 16_384;
+const MAX_INPUT_BYTES = MAX_PROMPT_BYTES;
 const MAX_EVENT_BYTES = 32_768;
 const MAX_TOOL_EVENTS = 1_024;
 const MAX_STDOUT_BYTES = 262_144;

@@ -200,6 +200,45 @@ describe("Workstream API", () => {
     await server.close();
   });
 
+  it("accepts huge pasted task and feedback prompts without a character limit", async () => {
+    const server = await fixture();
+    const hugeTask = `Build this spec:\n${"- requirement with detail ✓\n".repeat(20_000)}`;
+    const created = await server.inject({
+      method: "POST",
+      url: "/workstreams",
+      payload: {
+        requestId: "request-create-huge",
+        correlationId: "correlation-create-huge",
+        title: "Huge spec",
+        task: hugeTask,
+        repository,
+        agent,
+      },
+    });
+    expect(created.statusCode).toBe(201);
+    expect(created.json().data.workstream.task).toBe(hugeTask.trim());
+
+    const iterated = await server.inject({
+      method: "POST",
+      url: "/workstreams/workstream-api-one/iterations",
+      payload: {
+        requestId: "request-iterate-huge",
+        correlationId: "correlation-iterate-huge",
+        expectedRevision: 1,
+        feedback: "Also: ".concat("tweak ".repeat(60_000)).trim(),
+        repository,
+        agent,
+      },
+    });
+    expect(iterated.statusCode).toBe(200);
+    const reread = await server.inject({
+      method: "GET",
+      url: "/workstreams/workstream-api-one",
+    });
+    expect(reread.statusCode).toBe(200);
+    await server.close();
+  });
+
   it("rejects unknown and executor-shaped fields at the HTTP boundary", async () => {
     const server = await fixture();
     for (const field of ["repositoryRoot", "worktreePath", "command", "argv"]) {

@@ -116,6 +116,32 @@ def sanitize_deployment(root):
         temporary.replace(p)
 
 
+PTY_PACKAGES = {
+    "linux-x64": "node_modules/@lydell/node-pty-linux-x64",
+    "windows-x64": "node_modules/@lydell/node-pty-win32-x64",
+}
+
+
+def check_native_files(root):
+    """Only the pinned node-pty prebuilds may ship native code."""
+    allowed = [root / d for d in PTY_PACKAGES.values()]
+    for platform, directory in PTY_PACKAGES.items():
+        if not (root / directory / "package.json").is_file():
+            raise RuntimeError(f"Missing {platform} terminal prebuild: {directory}")
+    for p in root.rglob("*.node"):
+        if not any(p.is_relative_to(d) for d in allowed):
+            raise RuntimeError(f"Unexpected native dependency: {p.relative_to(root)}")
+
+
+def keep_platform_natives(backend, platform):
+    """Drop other platforms' node-pty prebuilds and debug symbols."""
+    for other, directory in PTY_PACKAGES.items():
+        if other != platform:
+            shutil.rmtree(backend / directory)
+    for p in backend.rglob("*.pdb"):
+        p.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=pathlib.Path, required=True)
@@ -164,8 +190,7 @@ def main():
         raise RuntimeError(
             "Deployment changed source manifests or lockfile; refusing artifacts"
         )
-    if list(deployed.rglob("*.node")):
-        raise RuntimeError("Native dependencies require a platform-specific build")
+    check_native_files(deployed)
     dependencies = []
     for p in sorted((deployed / "node_modules").glob("*/package.json")) + sorted(
         (deployed / "node_modules").glob("@*/*/package.json")
@@ -185,6 +210,7 @@ def main():
         backend = stage / "apps/local-server"
         backend.parent.mkdir(parents=True)
         shutil.copytree(deployed, backend, symlinks=False)
+        keep_platform_natives(backend, platform)
         shutil.copytree(ROOT / "apps/web/dist", stage / "apps/web/dist")
         shutil.copytree(
             ROOT / "examples/phase14-magic-slice",
@@ -193,6 +219,13 @@ def main():
         for file in ["LICENSE", "THIRD_PARTY_NOTICES.md"]:
             shutil.copy2(ROOT / file, stage / file)
         shutil.copy2(ROOT / "tooling/release/README.md", stage / "README.md")
+        for icon in ["agentintersect.ico", "agentintersect-appicon-512.png"]:
+            shutil.copy2(ROOT / "assets/brand" / icon, stage / icon)
+        if platform.startswith("win"):
+            shutil.copy2(
+                ROOT / "tooling/release/Install-AgentCLI.ps1",
+                stage / "Install-AgentCLI.ps1",
+            )
         (stage / "runtime").mkdir()
         provenance = runtime(platform, stage / "runtime", cache)
         (stage / "DEPENDENCIES.json").write_text(
@@ -270,8 +303,11 @@ def main():
             desktop.write_text(
                 "[Desktop Entry]\nType=Application\nName=AgentIntersect World\n"
                 "Comment=Your code becomes a place\nExec=agentintersect-world\n"
-                "Terminal=true\nCategories=Development;\n"
+                "Icon=agentintersect-world\nTerminal=true\nCategories=Development;\n"
             )
+            icon = deb_root / "usr/share/icons/hicolor/512x512/apps/agentintersect-world.png"
+            icon.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / "assets/brand/agentintersect-appicon-512.png", icon)
             deb = out / f"AgentIntersect-World-{version}-linux-x64.deb"
             subprocess.run(
                 ["dpkg-deb", "--build", "--root-owner-group", str(deb_root), str(deb)],

@@ -186,12 +186,6 @@ export function resolveWorkstreamTask(
       task: null,
       unavailableReason: "Send a feature request in World chat first.",
     };
-  if (new TextEncoder().encode(task).byteLength > 2_000)
-    return {
-      task: null,
-      unavailableReason:
-        "The latest feature request is too long for a Workstream.",
-    };
   return { task, unavailableReason: null };
 }
 

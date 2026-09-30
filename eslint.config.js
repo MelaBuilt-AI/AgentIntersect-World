@@ -30,6 +30,7 @@ export default tseslint.config(
     files: [
       "examples/phase14-magic-slice/**/*.mjs",
       "apps/local-server/launch.mjs",
+      "apps/local-server/admin-shell-helper.mjs",
       "tooling/release/*.mjs",
       "tooling/release/npm-installer/**/*.mjs",
     ],

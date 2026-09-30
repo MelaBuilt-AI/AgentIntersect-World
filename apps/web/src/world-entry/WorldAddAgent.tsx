@@ -230,7 +230,12 @@ export default function WorldAddAgent({
               registration?.id,
               abort.signal,
             );
-      if (!("session" in result)) throw new Error(result.message);
+      if (!("session" in result))
+        throw new Error(
+          "detail" in result && result.detail
+            ? `${result.message} · ${result.detail}`
+            : result.message,
+        );
       if (abort.signal.aborted || !live.current) {
         if (result.session.adapterId !== "hermes")
           await api.endWorldSession(result.session.sessionId, worldInstanceId);
