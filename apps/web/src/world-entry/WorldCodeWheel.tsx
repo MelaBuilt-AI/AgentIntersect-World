@@ -5,7 +5,13 @@ import { SCREEN_LABELS, useWorldScreens } from "./world-screen-context.js";
 import "./world-code-wheel.css";
 
 export type CodeWheelAction =
-  "load-repo" | "workbench" | "new-workstream" | "follow" | "stop";
+  | "load-repo"
+  | "workbench"
+  | "new-workstream"
+  | "follow"
+  | "stop"
+  | "terminal"
+  | "powershell";
 export type CodeWheelAgent = {
   readonly rosterId: string;
   readonly name: string;
@@ -106,23 +112,44 @@ export function WorldCodeWheel({
     run: () => setExpanded(!expanded),
   });
   const screens: Item[] = (
-    ["director", "workbench", "preview", "code"] as WorldScreenId[]
+    [
+      "director",
+      "workbench",
+      "preview",
+      "code",
+      "terminal",
+      "powershell",
+    ] as WorldScreenId[]
   ).map((id) => {
     const binding = controller?.screens.find((screen) => screen.id === id);
+    const shell = id === "terminal" || id === "powershell";
     const available = Boolean(
-      controller?.enabled && binding && !controller.dragging,
+      controller?.enabled && (binding || shell) && !controller.dragging,
     );
     return {
       id,
-      label: SCREEN_LABELS[id],
+      label:
+        id === "terminal"
+          ? "Terminal"
+          : id === "powershell"
+            ? "PowerShell"
+            : SCREEN_LABELS[id],
       selected: Boolean(binding?.spatial),
       disabled: !available,
       detail: !binding
-        ? `Open ${SCREEN_LABELS[id]} first`
+        ? shell
+          ? `Open ${SCREEN_LABELS[id]}`
+          : `Open ${SCREEN_LABELS[id]} first`
         : binding.spatial
           ? `Return ${SCREEN_LABELS[id]} to HUD`
           : `Place ${SCREEN_LABELS[id]} in nearest clear space`,
-      run: () => (id === "code" ? onCodeScreen() : controller?.toggle(id)),
+      run: () => {
+        if (shell && !binding) {
+          onClose();
+          onAction(id);
+        } else if (id === "code") onCodeScreen();
+        else controller?.toggle(id);
+      },
     };
   });
   const renderItem = (

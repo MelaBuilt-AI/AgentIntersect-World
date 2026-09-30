@@ -2938,6 +2938,10 @@ export function WorldEntryExperience({
               onRepositoryReady={repositoryRendered}
               onRepositoryError={repositoryRenderFailed}
               onCodeWheelAction={(action) => {
+                if (action === "terminal" || action === "powershell") {
+                  openAdminShell(action);
+                  return;
+                }
                 if (action === "follow" || action === "stop") {
                   void sendText(
                     action === "follow" ? "/agent follow" : "/agent stop",

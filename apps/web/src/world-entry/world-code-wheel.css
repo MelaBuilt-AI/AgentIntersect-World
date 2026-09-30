@@ -1,7 +1,7 @@
 .code-wheel {
   position: fixed;
-  /* World-level control: above the scene, below every HUD panel. */
-  z-index: 12;
+  /* Keep all expanded segments reachable above the HUD, below dialogs. */
+  z-index: 40;
   width: 584px;
   height: 584px;
   pointer-events: none;

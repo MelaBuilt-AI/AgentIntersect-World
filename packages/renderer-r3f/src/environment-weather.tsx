@@ -3,7 +3,14 @@ import {
   weatherAtlasMaterial,
   weatherMaterial,
 } from "./world-node-materials.js";
-import { useEffect, useMemo, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   AdditiveBlending,
@@ -11,6 +18,7 @@ import {
   PlaneGeometry,
   Group,
   Mesh,
+  PointLight,
 } from "three";
 import {
   ENVIRONMENT_FX,
@@ -26,6 +34,22 @@ import {
   type WeatherStrike,
   type WeatherStrikeHandler,
 } from "./environment-weather-model.js";
+
+const WeatherLightContext = createContext<PointLight | null>(null);
+
+/** One stable light outside staged scenery prevents whole-city shader churn. */
+export function WorldWeatherLight({ children }: { children: ReactNode }) {
+  const light = useMemo(() => new PointLight("#bddbff", 0, 24, 2), []);
+  useFrame(() => {
+    light.intensity = 0;
+  }, -1);
+  return (
+    <WeatherLightContext.Provider value={light}>
+      <primitive object={light} />
+      {children}
+    </WeatherLightContext.Provider>
+  );
+}
 
 const kinds = {
   none: 0,
@@ -81,6 +105,8 @@ function Weather({
   userPosition: { x: number; z: number };
   onStrike?: WeatherStrikeHandler | undefined;
 }) {
+  const root = useRef<Group>(null);
+  const sharedLight = useContext(WeatherLightContext);
   const particles = useRef<Group>(null);
 
   const bolts = useRef<Group>(null);
@@ -147,6 +173,13 @@ function Weather({
   );
   useEffect(() => () => material.dispose(), [material]);
   useFrame(({ camera, size: viewport, gl }, delta) => {
+    // Pending/retained scenery must not advance weather or drive the live light.
+    for (
+      let parent = root.current;
+      parent;
+      parent = parent.parent as Group | null
+    )
+      if (!parent.visible) return;
     const state = runtime.current;
     state.time += Math.min(delta, 0.1);
     particles.current?.position.set(userPosition.x, 0, userPosition.z);
@@ -206,16 +239,17 @@ function Weather({
       });
     }
     // Local strike illumination stays unchanged; sky bursts use distant glows.
-    if (light.current) {
-      light.current.position.set(strike.x, 2, strike.z);
-      light.current.intensity =
+    const emitter = sharedLight ?? light.current;
+    if (emitter) {
+      emitter.position.set(strike.x, 2, strike.z);
+      emitter.intensity =
         weather.flashes && age < 0.9
           ? Math.sin((Math.PI * age) / 0.9) * (strike.local ? 12 : 0)
           : 0;
     }
   });
   return (
-    <group name="environment-weather">
+    <group ref={root} name="environment-weather">
       {weather.horizonLightning && weather.horizonLightning.density > 0 ? (
         <HorizonLightning
           resources={resources}
@@ -236,7 +270,7 @@ function Weather({
       ) : null}
       {/* Keep light membership stable: hiding its bolt group rebuilds even
           unrelated scene shaders in Three. Only intensity/position vary. */}
-      {weather.lightning !== "off" ? (
+      {!sharedLight && weather.lightning !== "off" ? (
         <pointLight
           ref={light}
           color="#bddbff"

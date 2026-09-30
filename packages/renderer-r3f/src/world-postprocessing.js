@@ -11,6 +11,18 @@ import {
   compileWorldEnvironment,
 } from "./world-preparation.js";
 
+const reflectionCompilers = new WeakMap();
+
+/** Prepare only mounted, enabled mirrors with their own lighting/context. */
+export function compileWorldReflections(renderer, scene, camera, objects) {
+  const pending = [];
+  scene.traverseVisible((object) => {
+    const compile = reflectionCompilers.get(object);
+    if (compile) pending.push(compile(renderer, scene, camera, objects));
+  });
+  return Promise.all(pending);
+}
+
 export function createWorldPipeline(
   renderer,
   scene,
@@ -33,11 +45,12 @@ export function createWorldPipeline(
     scenePass.renderTarget,
     {
       compile: (objects) =>
-        Promise.all(
-          objects.map((object) =>
+        Promise.all([
+          ...objects.map((object) =>
             compileWorldEnvironment(renderer, object, camera, scene),
           ),
-        ),
+          compileWorldReflections(renderer, scene, camera, objects),
+        ]),
     },
   );
   return {
@@ -83,7 +96,7 @@ export function createWetFloor(size, resolutionScale) {
   mesh.add(reflection.target);
   const update = reflection.reflector.updateBefore;
   const reflectedSuns = new Map();
-  reflection.reflector.updateBefore = function (frame) {
+  const withReflectionScene = (frame, action) => {
     const hidden = [];
     const activeSuns = [];
     frame.scene.traverseVisible((object) => {
@@ -121,15 +134,30 @@ export function createWetFloor(size, resolutionScale) {
       }
     });
     try {
-      return update.call(this, frame);
+      return action();
     } finally {
       for (const sun of activeSuns) reflectedSuns.get(sun).visible = false;
       for (const object of hidden) object.visible = true;
     }
   };
+  reflection.reflector.updateBefore = function (frame) {
+    return withReflectionScene(frame, () => update.call(this, frame));
+  };
+  reflectionCompilers.set(mesh, (renderer, scene, camera, objects) =>
+    withReflectionScene({ scene }, () => {
+      const view = reflection.reflector.getVirtualCamera(camera);
+      const target = reflection.reflector.getRenderTarget(view);
+      return Promise.all(
+        objects.map((object) =>
+          compileWorldEnvironment(renderer, object, view, scene, target, 2),
+        ),
+      );
+    }),
+  );
   return {
     mesh,
     dispose() {
+      reflectionCompilers.delete(mesh);
       for (const sun of reflectedSuns.values()) {
         sun.removeFromParent();
         sun.dispose();

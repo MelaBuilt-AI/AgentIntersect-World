@@ -1,8 +1,12 @@
 # AgentIntersect World — Project Status
 
-Updated: 2026-09-26
+Updated: 2026-09-30
 
-## Current milestone — saved original prompts and expiring Hack notifications
+## Current delivery — full-quality performance and Code Wheel shell shortcuts
+
+Aaron1554876840613773367 authorizes completion, commit/push, exact-head PR green, a fresh review left running, then handoff. See [Performance continuation and delivery](PERFORMANCE_CONTINUATION.md) for corrections, native evidence and residual limits. Reflection/weather/Codex installation-switch fixes are joined by Terminal/PowerShell in Code Wheel → Screens, reusing existing shells. Two full45second native Clone captures show zero gaps>50ms after preparation; initial preparation still has measured pauses (historical650.1ms; resumed309.2ms; warmed repeat85.2ms overall). No quality reduction or claim of GPU-presented FPS/stutter-free acceptance. New wheel regression checks are RED→GREEN; combined full gate and exact-head hosted receipts are recorded externally at delivery. Next acceptance: Aaron's fresh green-commit review, with no merge/publication. DIAG45482 is diagnostic only and must close before opening that fresh lane. Runtime URLs/ownership in latest handoff supersede historical claims below; preserve old state and worktrees.
+
+## Historical milestone — saved original prompts and expiring Hack notifications
 
 Aaron (`1553092183744057415`) requests a separate PR after merged PR26/main160508b. Store the exact original description with newly generated/saved custom Worlds, expose View/copy description for the current World and saved slots, preserve old recipe-only slots with an explicit unavailable description, and expire all transient Hack notices/errors after five seconds. Keep active progress/World labels, unresolved save decisions, failure authority and retry controls intact. A new draft must not overwrite a saved original prompt. Copy/view performs no agent dispatch or scene change.
 
