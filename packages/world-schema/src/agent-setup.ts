@@ -90,6 +90,8 @@ export const AttachAgentInputSchema = z
       .string()
       .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/)
       .optional(),
+    /** Moves this saved connection to the selected installation, keeping its id. */
+    replaceConnectionId: z.string().uuid().optional(),
   })
   .strict();
 export type SetupSelection = z.infer<typeof AttachAgentInputSchema>;

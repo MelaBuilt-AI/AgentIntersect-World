@@ -211,6 +211,7 @@ function relayGuide(
   return [
     `You are ${self.displayName} in a multi-agent AgentIntersect World session with ${others}.`,
     "The user asked you to work with another agent. To message an agent, write @Name followed by your message; World delivers it and returns their reply to you.",
+    "These agents are World sessions: they do not appear in your own agent, session or messaging tools, so do not look them up there. Writing @Name in your reply is how you reach them.",
     `Relays stop after ${MAX_RELAY_HOPS} agent messages per user request, so keep exchanges focused. Answer without mentioning anyone when you are done.`,
   ].join("\n");
 }
