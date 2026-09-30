@@ -936,7 +936,11 @@ export function WorldEntryExperience({
     }
     if (result.status === "unavailable" || result.status === "stale") {
       setStatus(connectionLabel(result));
-      setError(result.message);
+      setError(
+        "detail" in result && result.detail
+          ? `${result.message} · ${result.detail}`
+          : result.message,
+      );
       if (selectedConnection)
         window.dispatchEvent(
           new CustomEvent("aiw:agent-connection-unavailable", {

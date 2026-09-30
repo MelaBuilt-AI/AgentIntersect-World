@@ -404,4 +404,27 @@ describe("Phase 19 four-adapter conformance", () => {
     expect(adapter.endedSessionRefs).toEqual(["codex-native-1"]);
     expect(state.gateway.store.load().sessions).toEqual([]);
   });
+
+  it("passes an actionable offline reason through World session creation", async () => {
+    const adapter = new ConformanceAdapter("codex", "world");
+    adapter.createWorldSession = async () => {
+      throw new GatewayError("offline", "Codex rejected its configured model.");
+    };
+    const state = gateway([adapter]);
+
+    await expect(
+      state.gateway.createWorldSession({
+        adapterId: "codex",
+        worldInstanceId: "world-one",
+        displayName: "Codex",
+        profile: "default",
+        workspaceId: "world-workspace",
+        repositoryRef: "world-repository",
+        mode: "explore",
+      }),
+    ).rejects.toMatchObject({
+      code: "offline",
+      message: "Codex rejected its configured model.",
+    });
+  });
 });

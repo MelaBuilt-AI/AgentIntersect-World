@@ -765,6 +765,30 @@ const MessageRecipientSchema = z
   })
   .strict();
 
+/** Agent-to-agent relays started by an `@agentname` in a user message. */
+export const MAX_RELAY_HOPS = 6;
+
+const RelayHopSchema = z
+  .object({
+    fromRosterId: LocalOpaqueRef,
+    toRosterId: LocalOpaqueRef,
+    state: z.enum([
+      "queued",
+      "streaming",
+      "completed",
+      "unavailable",
+      "failed",
+      "interrupted",
+      "skipped",
+      "limited",
+    ]),
+    finalText: Utf8Bounded(1, 32_768).nullable(),
+    errorLabel: Utf8Bounded(1, 240).nullable(),
+  })
+  .strict();
+
+export type ConstellationRelayHop = z.infer<typeof RelayHopSchema>;
+
 export const ConstellationMessageGroupSchema = z
   .object({
     schema: z.literal("aiw.constellation-message/0.19"),
@@ -775,6 +799,13 @@ export const ConstellationMessageGroupSchema = z
     target: MessageTargetSchema,
     recipientRosterIds: z.array(LocalOpaqueRef).min(1).max(4),
     recipients: z.array(MessageRecipientSchema).min(1).max(4),
+    relay: z
+      .object({
+        status: z.enum(["running", "done"]),
+        hops: z.array(RelayHopSchema).max(MAX_RELAY_HOPS * 2),
+      })
+      .strict()
+      .optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
@@ -836,8 +867,11 @@ export function isConstellationMessageGroupComplete(
   group: ConstellationMessageGroup,
 ): boolean {
   const parsed = ConstellationMessageGroupSchema.parse(group);
-  return parsed.recipients.every((recipient) =>
-    TERMINAL_RECIPIENT_STATES.has(recipient.state),
+  return (
+    parsed.relay?.status !== "running" &&
+    parsed.recipients.every((recipient) =>
+      TERMINAL_RECIPIENT_STATES.has(recipient.state),
+    )
   );
 }
 

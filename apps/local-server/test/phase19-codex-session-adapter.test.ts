@@ -14,6 +14,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   CODEX_CLI_VERSION,
+  CODEX_MODEL_REJECTED,
   CodexSessionAdapter,
 } from "../src/codex-session-adapter.js";
 
@@ -33,7 +34,8 @@ type FixtureControl = {
     | "hang"
     | "delay"
     | "thread-mismatch"
-    | "leader-exit-descendant";
+    | "leader-exit-descendant"
+    | "model-rejected";
 };
 
 type Fixture = {
@@ -179,6 +181,11 @@ emit({
 });
 emit({ type: "turn.started" });
 
+if (control.failure === "model-rejected") {
+  emit({ type: "error", message: JSON.stringify({ status: 400, error: { message: "The 'gpt-6.1-sol' model is not supported when using Codex with a ChatGPT account. SECRET_CANARY" } }) });
+  emit({ type: "turn.failed", error: { message: "The 'gpt-6.1-sol' model is not supported" } });
+  process.exit(1);
+}
 if (isResume && control.failure === "malformed") {
   process.stdout.write("{not-json\\n");
   process.exit(0);
@@ -840,6 +847,19 @@ describe("CodexSessionAdapter", () => {
     expect(error.message).toBe("Codex CLI turn failed");
     expect(error.message).not.toMatch(/TOKEN_CANARY|RAW_PROMPT|\/home\//);
     expect(await fixture.invocations()).toHaveLength(2);
+  });
+
+  it("names a rejected Codex model instead of a generic failure", async () => {
+    const fixture = await fixtureExecutable({ failure: "model-rejected" });
+    const error = await adapter(fixture)
+      .createWorldSession("world-model")
+      .catch((reason: unknown) => reason as Error & { code: string });
+
+    expect(error).toMatchObject({
+      code: "offline",
+      message: CODEX_MODEL_REJECTED,
+    });
+    expect(error.message).not.toContain("SECRET_CANARY");
   });
 
   it("accepts prompts far beyond the old 16 KiB input bound", async () => {

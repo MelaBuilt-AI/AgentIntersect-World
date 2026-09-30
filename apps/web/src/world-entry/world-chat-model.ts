@@ -626,20 +626,38 @@ const groupRows = (
   group: ConstellationMessageGroup,
   displayNames: Readonly<Record<string, string>>,
 ): WorldTranscriptItem[] =>
-  group.recipients.map((recipient) => ({
-    id: `group-${group.groupId}-${recipient.rosterId}`,
-    kind:
-      recipient.state === "completed"
-        ? ("assistant" as const)
-        : recipient.state === "queued" || recipient.state === "streaming"
-          ? ("tool" as const)
-          : ("error" as const),
-    text:
-      recipient.finalText ??
-      recipient.errorLabel ??
-      `Agent turn ${recipient.state}`,
-    recipient: displayNames[recipient.rosterId] ?? recipient.rosterId,
-  }));
+  group.recipients
+    .map((recipient) => ({
+      id: `group-${group.groupId}-${recipient.rosterId}`,
+      kind:
+        recipient.state === "completed"
+          ? ("assistant" as const)
+          : recipient.state === "queued" || recipient.state === "streaming"
+            ? ("tool" as const)
+            : ("error" as const),
+      text:
+        recipient.finalText ??
+        recipient.errorLabel ??
+        `Agent turn ${recipient.state}`,
+      recipient: displayNames[recipient.rosterId] ?? recipient.rosterId,
+    }))
+    .concat(
+      (group.relay?.hops ?? []).map((hop, index) => {
+        const from = displayNames[hop.fromRosterId] ?? hop.fromRosterId;
+        const to = displayNames[hop.toRosterId] ?? hop.toRosterId;
+        return {
+          id: `group-${group.groupId}-relay-${index}`,
+          kind:
+            hop.state === "completed"
+              ? ("assistant" as const)
+              : hop.state === "queued" || hop.state === "streaming"
+                ? ("tool" as const)
+                : ("error" as const),
+          text: hop.finalText ?? hop.errorLabel ?? `${from} is asking ${to}…`,
+          recipient: `${to} · relayed from ${from}`,
+        };
+      }),
+    );
 
 const terminalGroupStates = new Set([
   "completed",
@@ -811,13 +829,18 @@ export function reduceWorldChat(
         (recipient) => `group-${action.group.groupId}-${recipient.rosterId}`,
       ),
     );
+    const relayPrefix = `group-${action.group.groupId}-relay-`;
     const transcript = [
-      ...state.transcript.filter(({ id }) => !rowIds.has(id)),
+      ...state.transcript.filter(
+        ({ id }) => !rowIds.has(id) && !id.startsWith(relayPrefix),
+      ),
       ...groupRows(action.group, action.displayNames),
     ].slice(-200);
-    const terminal = action.group.recipients.every((recipient) =>
-      terminalGroupStates.has(recipient.state),
-    );
+    const terminal =
+      action.group.relay?.status !== "running" &&
+      action.group.recipients.every((recipient) =>
+        terminalGroupStates.has(recipient.state),
+      );
     if (!terminal)
       return {
         ...state,

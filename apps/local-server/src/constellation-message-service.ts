@@ -13,8 +13,10 @@ import path from "node:path";
 import {
   ConstellationMessageGroupSchema,
   isConstellationMessageGroupComplete,
+  MAX_RELAY_HOPS,
   type ConstellationAgent,
   type ConstellationMessageGroup,
+  type ConstellationRelayHop,
 } from "@agentintersect-world/agent-session-protocol";
 
 import { GatewayError, type AgentSessionGateway } from "./agent-sessions.js";
@@ -52,6 +54,11 @@ type StoreEnvelope = {
 type DispatchRecipient = {
   readonly rosterId: string;
   readonly worldSessionId: string;
+};
+
+type RelayPlan = {
+  readonly agents: readonly ConstellationAgent[];
+  readonly userDisplayName: string | undefined;
 };
 
 export class ConstellationMessageServiceError extends Error {
@@ -159,6 +166,50 @@ function readyAgents(
         agent.avatar.status === "accepted",
     )
     .sort((left, right) => left.addedOrder - right.addedOrder);
+}
+
+/** Earliest `@name` mention of another agent; longer names win ties. */
+export function findAgentMention<
+  T extends { readonly rosterId: string; readonly displayName: string },
+>(text: string, agents: readonly T[], excludeRosterId?: string): T | null {
+  const normalized = text.normalize("NFKC");
+  let best: { readonly agent: T; readonly index: number } | null = null;
+  for (const agent of agents) {
+    if (agent.rosterId === excludeRosterId) continue;
+    const name = agent.displayName
+      .normalize("NFKC")
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    if (!name) continue;
+    const match = new RegExp(
+      `(?:^|[\\s(\\[{"'])@${name}(?=$|[\\s.,:;!?)\\]}"'])`,
+      "iu",
+    ).exec(normalized);
+    if (!match) continue;
+    if (
+      !best ||
+      match.index < best.index ||
+      (match.index === best.index &&
+        agent.displayName.length > best.agent.displayName.length)
+    )
+      best = { agent, index: match.index };
+  }
+  return best?.agent ?? null;
+}
+
+function relayGuide(
+  agents: readonly ConstellationAgent[],
+  self: ConstellationAgent,
+): string {
+  const others = agents
+    .filter((agent) => agent.rosterId !== self.rosterId)
+    .map((agent) => `@${agent.displayName}`)
+    .join(", ");
+  return [
+    `You are ${self.displayName} in a multi-agent AgentIntersect World session with ${others}.`,
+    "The user asked you to work with another agent. To message an agent, write @Name followed by your message; World delivers it and returns their reply to you.",
+    `Relays stop after ${MAX_RELAY_HOPS} agent messages per user request, so keep exchanges focused. Answer without mentioning anyone when you are done.`,
+  ].join("\n");
 }
 
 function resolveRecipients(
@@ -318,14 +369,28 @@ async function syncDirectory(directory: string): Promise<void> {
   }
 }
 
+function failure(error: unknown) {
+  const unavailable =
+    error instanceof GatewayError &&
+    (error.code === "not_found" ||
+      error.code === "offline" ||
+      error.code === "store_corrupt");
+  return {
+    state: unavailable ? ("unavailable" as const) : ("failed" as const),
+    finalText: null,
+    errorLabel: unavailable ? "Agent unavailable" : "Agent turn failed",
+  };
+}
+
 function interrupted(
   group: ConstellationMessageGroup,
 ): ConstellationMessageGroup {
   if (isConstellationMessageGroupComplete(group)) return group;
+  const active = (state: string) => state === "queued" || state === "streaming";
   return ConstellationMessageGroupSchema.parse({
     ...group,
     recipients: group.recipients.map((recipient) =>
-      recipient.state === "queued" || recipient.state === "streaming"
+      active(recipient.state)
         ? {
             ...recipient,
             state: "interrupted",
@@ -334,6 +399,23 @@ function interrupted(
           }
         : recipient,
     ),
+    ...(group.relay
+      ? {
+          relay: {
+            status: "done",
+            hops: group.relay.hops.map((hop) =>
+              active(hop.state)
+                ? {
+                    ...hop,
+                    state: "interrupted",
+                    finalText: null,
+                    errorLabel: "Agent relay interrupted",
+                  }
+                : hop,
+            ),
+          },
+        }
+      : {}),
     updatedAt: new Date().toISOString(),
   });
 }
@@ -448,7 +530,11 @@ export class ConstellationMessageService {
             "conflict",
             "Idempotency key was reused with different input",
           );
-        return { group: structuredClone(replay.group), dispatch: null };
+        return {
+          group: structuredClone(replay.group),
+          dispatch: null,
+          relay: null,
+        };
       }
       if (
         this.#payload.records.some(
@@ -459,10 +545,15 @@ export class ConstellationMessageService {
           "conflict",
           "Request ID was reused",
         );
-      const resolved = resolveRecipients(
-        readyAgents(this.#constellation),
-        request,
-      );
+      const agents = readyAgents(this.#constellation);
+      const resolved = resolveRecipients(agents, request);
+      // A user-directed relay: one addressed agent asked to involve another.
+      const relay: RelayPlan | null =
+        request.intent !== "work" &&
+        resolved.target.kind === "agent" &&
+        findAgentMention(resolved.text, agents, resolved.target.rosterId)
+          ? { agents, userDisplayName: request.userDisplayName }
+          : null;
       const now = new Date().toISOString();
       const group = ConstellationMessageGroupSchema.parse({
         schema: "aiw.constellation-message/0.19",
@@ -479,6 +570,7 @@ export class ConstellationMessageService {
           finalText: null,
           errorLabel: null,
         })),
+        ...(relay ? { relay: { status: "running", hops: [] } } : {}),
         createdAt: now,
         updatedAt: now,
       });
@@ -507,20 +599,33 @@ export class ConstellationMessageService {
           rosterId,
           worldSessionId,
         })),
+        relay,
       };
     });
 
-    if (created.dispatch)
-      for (const recipient of created.dispatch)
-        void this.#enqueueSession(recipient.worldSessionId, () =>
+    if (created.dispatch) {
+      const { groupId, text } = created.group;
+      const relay = created.relay;
+      for (const recipient of created.dispatch) {
+        const self = relay?.agents.find(
+          (agent) => agent.rosterId === recipient.rosterId,
+        );
+        const turn = this.#enqueueSession(recipient.worldSessionId, () =>
           this.#dispatch(
-            created.group.groupId,
+            groupId,
             recipient,
-            created.group.text,
+            text,
             request.userDisplayName,
             request.intent,
+            relay && self ? relayGuide(relay.agents, self) : undefined,
           ),
         );
+        if (relay)
+          void turn.then((reply) =>
+            this.#relay(groupId, relay, recipient.rosterId, reply),
+          );
+      }
+    }
     if (isConstellationMessageGroupComplete(created.group))
       return created.group;
     return this.#waitForTerminal(created.group.groupId);
@@ -550,39 +655,177 @@ export class ConstellationMessageService {
     text: string,
     userDisplayName: string | undefined,
     intent: "discussion" | "work" | undefined,
-  ): Promise<void> {
+    systemMessage?: string,
+  ): Promise<string | null> {
     await this.#updateRecipient(groupId, recipient.rosterId, {
       state: "streaming",
       finalText: null,
       errorLabel: null,
     });
     try {
-      const binding = this.#gateway.status(recipient.worldSessionId);
-      const result = await this.#gateway.sendText(recipient.worldSessionId, {
+      const finalText = await this.#turn(
+        recipient.worldSessionId,
         text,
-        binding,
-        ...(intent ? { intent } : {}),
-        ...(userDisplayName
-          ? { context: { userDisplayName: userDisplayName.trim() } }
-          : {}),
-      });
+        userDisplayName,
+        intent,
+        systemMessage,
+      );
       await this.#updateRecipient(groupId, recipient.rosterId, {
         state: "completed",
-        finalText: result.finalText,
+        finalText,
         errorLabel: null,
       });
+      return finalText;
     } catch (error) {
-      const unavailable =
-        error instanceof GatewayError &&
-        (error.code === "not_found" ||
-          error.code === "offline" ||
-          error.code === "store_corrupt");
-      await this.#updateRecipient(groupId, recipient.rosterId, {
-        state: unavailable ? "unavailable" : "failed",
-        finalText: null,
-        errorLabel: unavailable ? "Agent unavailable" : "Agent turn failed",
-      });
+      await this.#updateRecipient(groupId, recipient.rosterId, failure(error));
+      return null;
     }
+  }
+
+  async #turn(
+    worldSessionId: string,
+    text: string,
+    userDisplayName: string | undefined,
+    intent: "discussion" | "work" | undefined,
+    systemMessage?: string,
+  ): Promise<string> {
+    const binding = this.#gateway.status(worldSessionId);
+    const context = {
+      ...(userDisplayName ? { userDisplayName: userDisplayName.trim() } : {}),
+      ...(systemMessage ? { systemMessage } : {}),
+    };
+    const result = await this.#gateway.sendText(worldSessionId, {
+      text,
+      binding,
+      ...(intent ? { intent } : {}),
+      ...(Object.keys(context).length ? { context } : {}),
+    });
+    return result.finalText;
+  }
+
+  #inWorkstream(worldSessionId: string): boolean {
+    try {
+      return Boolean(this.#gateway.status(worldSessionId).currentTaskRef);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Relays agent replies that @mention another agent. An asked agent's
+   * answer returns to the asker; a returned answer ends the relay unless it
+   * mentions someone. Workstream-bound agents are skipped with a notice.
+   */
+  async #relay(
+    groupId: string,
+    plan: RelayPlan,
+    startRosterId: string,
+    startText: string | null,
+  ): Promise<void> {
+    const byId = new Map(plan.agents.map((agent) => [agent.rosterId, agent]));
+    let speaker = byId.get(startRosterId);
+    let text = startText;
+    let replyTo: ConstellationAgent | null = null;
+    let delivered = 0;
+    try {
+      while (speaker && text !== null) {
+        const mentioned = findAgentMention(text, plan.agents, speaker.rosterId);
+        const target = mentioned ?? replyTo;
+        if (!target) break;
+        const hop = {
+          fromRosterId: speaker.rosterId,
+          toRosterId: target.rosterId,
+        };
+        if (delivered >= MAX_RELAY_HOPS) {
+          await this.#addHop(groupId, {
+            ...hop,
+            state: "limited",
+            finalText: null,
+            errorLabel: `Relay stopped after ${MAX_RELAY_HOPS} agent messages`,
+          });
+          break;
+        }
+        const busy = [speaker, target].find((agent) =>
+          this.#inWorkstream(agent.worldSessionId),
+        );
+        if (busy) {
+          await this.#addHop(groupId, {
+            ...hop,
+            state: "skipped",
+            finalText: null,
+            errorLabel: `${busy.displayName} is busy in a Workstream; relay skipped`,
+          });
+          break;
+        }
+        delivered += 1;
+        const index = await this.#addHop(groupId, {
+          ...hop,
+          state: "streaming",
+          finalText: null,
+          errorLabel: null,
+        });
+        const from = speaker;
+        const message = text;
+        try {
+          const reply = await this.#enqueueSession(target.worldSessionId, () =>
+            this.#turn(
+              target.worldSessionId,
+              `${from.displayName} sent you this message in AgentIntersect World, relayed at ${plan.userDisplayName?.trim() || "the user"}'s request:\n\n${message}`,
+              plan.userDisplayName,
+              "discussion",
+              relayGuide(plan.agents, target),
+            ),
+          );
+          await this.#setHop(groupId, index, {
+            state: "completed",
+            finalText: reply,
+            errorLabel: null,
+          });
+          replyTo = mentioned ? from : null;
+          speaker = target;
+          text = reply;
+        } catch (error) {
+          await this.#setHop(groupId, index, failure(error));
+          break;
+        }
+      }
+    } finally {
+      await this.#updateGroup(groupId, (group) =>
+        group.relay
+          ? { ...group, relay: { ...group.relay, status: "done" } }
+          : group,
+      );
+    }
+  }
+
+  async #addHop(groupId: string, hop: ConstellationRelayHop): Promise<number> {
+    let index = -1;
+    await this.#updateGroup(groupId, (group) => {
+      const hops = [...(group.relay?.hops ?? []), hop];
+      index = hops.length - 1;
+      return { ...group, relay: { status: "running", hops } };
+    });
+    return index;
+  }
+
+  async #setHop(
+    groupId: string,
+    index: number,
+    update: Pick<ConstellationRelayHop, "state" | "finalText" | "errorLabel">,
+  ): Promise<void> {
+    await this.#updateGroup(groupId, (group) =>
+      group.relay
+        ? {
+            ...group,
+            relay: {
+              ...group.relay,
+              hops: group.relay.hops.map((hop, hopIndex) =>
+                hopIndex === index ? { ...hop, ...update } : hop,
+              ),
+            },
+          }
+        : group,
+    );
   }
 
   async #updateRecipient(
@@ -593,6 +836,20 @@ export class ConstellationMessageService {
       "state" | "finalText" | "errorLabel"
     >,
   ): Promise<void> {
+    await this.#updateGroup(groupId, (group) => ({
+      ...group,
+      recipients: group.recipients.map((recipient) =>
+        recipient.rosterId === rosterId
+          ? { ...recipient, ...update }
+          : recipient,
+      ),
+    }));
+  }
+
+  async #updateGroup(
+    groupId: string,
+    change: (group: ConstellationMessageGroup) => ConstellationMessageGroup,
+  ): Promise<void> {
     await this.#enqueueMutation(async () => {
       const index = this.#payload.records.findIndex(
         ({ group }) => group.groupId === groupId,
@@ -600,12 +857,7 @@ export class ConstellationMessageService {
       const record = this.#payload.records[index];
       if (!record) return;
       const group = ConstellationMessageGroupSchema.parse({
-        ...record.group,
-        recipients: record.group.recipients.map((recipient) =>
-          recipient.rosterId === rosterId
-            ? { ...recipient, ...update }
-            : recipient,
-        ),
+        ...change(record.group),
         updatedAt: new Date().toISOString(),
       });
       const records = [...this.#payload.records];

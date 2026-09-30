@@ -101,6 +101,17 @@ function codexFailure(
   return new GatewayError(code, message);
 }
 
+export const CODEX_MODEL_REJECTED =
+  "Codex rejected its configured model. Update the Codex CLI or choose a supported model in its config.";
+
+/** Only the fixed classification leaves the adapter; raw upstream text does not. */
+function rejectedModel(event: Record<string, unknown>): boolean {
+  const message = JSON.stringify(event.error ?? event.message ?? "");
+  return /model\b[^"]{0,120}\bnot supported|unsupported model|model_not_found/iu.test(
+    message,
+  );
+}
+
 function boundedWorldRef(value: string): string {
   if (
     !value ||
@@ -339,8 +350,12 @@ export class CodexSessionAdapter implements AgentAdapter {
           if (!isRecord(event) || typeof event.type !== "string")
             throw new Error("invalid event");
           options.onEvent?.(event);
-        } catch {
-          fail(codexFailure(options.failureMessage));
+        } catch (error) {
+          fail(
+            error instanceof GatewayError && error.code === "offline"
+              ? error
+              : codexFailure(options.failureMessage),
+          );
         }
       };
 
@@ -572,7 +587,9 @@ export class CodexSessionAdapter implements AgentAdapter {
             return;
           }
           if (event.type === "turn.failed" || event.type === "error")
-            throw codexFailure();
+            throw rejectedModel(event)
+              ? codexFailure(CODEX_MODEL_REJECTED, "offline")
+              : codexFailure();
           if (event.type === "turn.completed") {
             turnCompleted = true;
             return;

@@ -251,4 +251,71 @@ describe("Phase 19 multi-agent chat", () => {
       ["Codex", "Agent turn failed"],
     ]);
   });
+
+  it("shows relay hops as the agents talk and stays busy while relaying", () => {
+    const displayNames = { "roster-hermes": "Hermes", "roster-codex": "Codex" };
+    const relaying = {
+      ...group,
+      recipients: [
+        group.recipients[0]!,
+        {
+          ...group.recipients[1]!,
+          state: "completed" as const,
+          finalText: "@Hermes check",
+          errorLabel: null,
+        },
+      ],
+      relay: {
+        status: "running" as const,
+        hops: [
+          {
+            fromRosterId: "roster-codex",
+            toRosterId: "roster-hermes",
+            state: "streaming" as const,
+            finalText: null,
+            errorLabel: null,
+          },
+        ],
+      },
+    };
+    const running = reduceWorldChat(createWorldChatState(), {
+      type: "GROUP_COMPLETED",
+      group: relaying,
+      displayNames,
+    });
+    expect(running.activity.state).toBe("thinking");
+    expect(running.transcript.at(-1)).toMatchObject({
+      kind: "tool",
+      recipient: "Hermes · relayed from Codex",
+      text: "Codex is asking Hermes…",
+    });
+
+    const done = reduceWorldChat(running, {
+      type: "GROUP_COMPLETED",
+      group: {
+        ...relaying,
+        relay: {
+          status: "done" as const,
+          hops: [
+            {
+              ...relaying.relay.hops[0]!,
+              state: "completed" as const,
+              finalText: "Checked.",
+            },
+          ],
+        },
+      },
+      displayNames,
+    });
+    expect(
+      done.transcript.filter((item) => item.id.includes("-relay-")),
+    ).toEqual([
+      expect.objectContaining({
+        kind: "assistant",
+        text: "Checked.",
+        recipient: "Hermes · relayed from Codex",
+      }),
+    ]);
+    expect(done.activity.state).not.toBe("thinking");
+  });
 });

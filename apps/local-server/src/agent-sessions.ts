@@ -2046,7 +2046,7 @@ export class AgentSessionGateway {
           : {}),
         worldInstanceId: request.worldInstanceId,
       });
-    } catch {
+    } catch (error) {
       if (rootSessionRef) {
         try {
           await adapter.endWorldSession(
@@ -2057,6 +2057,9 @@ export class AgentSessionGateway {
           // The exact newly created identity was the only cleanup target.
         }
       }
+      // Offline reasons are fixed adapter strings the user can act on.
+      if (error instanceof GatewayError && error.code === "offline")
+        throw error;
       throw new GatewayError("upstream", "World session creation failed");
     }
   }

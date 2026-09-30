@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.15.0",
   "engines": {
-    "node": ">=24"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "corepack pnpm@11.15.0 build:packages && concurrently --kill-others --success first --names server,web --prefix-colors blue,green \"corepack pnpm@11.15.0 --filter @agentintersect-world/local-server dev\" \"corepack pnpm@11.15.0 --filter @agentintersect-world/web dev\"",

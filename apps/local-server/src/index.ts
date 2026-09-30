@@ -63,8 +63,16 @@ import { ConstellationMessageService } from "./constellation-message-service.js"
 import { PreviewManagerService } from "./preview-manager-service.js";
 import { AgentSetupService } from "./agent-setup-service.js";
 import { createAgentSetupRuntime } from "./agent-setup-runtime.js";
+import { unsupportedNodeMessage } from "./node-version.js";
+
+const nodeVersionError = unsupportedNodeMessage(process.version);
+if (nodeVersionError) {
+  process.stderr.write(`${nodeVersionError}\n`);
+  process.exitCode = 1;
+}
 
 const config = (() => {
+  if (nodeVersionError) return undefined;
   try {
     return loadLocalServerConfig();
   } catch (error) {

@@ -316,3 +316,137 @@ describe("Phase 19 durable constellation message service", () => {
     expect(fs.statSync(directory).mode & 0o777).toBe(0o700);
   });
 });
+
+describe("user-directed @agent relay", () => {
+  type Turn = {
+    readonly text: string;
+    readonly intent?: string;
+    readonly context?: { readonly systemMessage?: string };
+  };
+
+  async function relayService(
+    reply: (sessionId: string, turn: Turn, count: number) => string,
+    options: { readonly workstreamSession?: string } = {},
+  ) {
+    const stateRoot = root();
+    const constellation = await readyConstellation(stateRoot, [
+      "Fluff",
+      "Claude",
+      "Codex",
+    ]);
+    const calls: { sessionId: string; turn: Turn }[] = [];
+    const sendText = vi.fn(async (sessionId: string, turn: Turn) => {
+      calls.push({ sessionId, turn });
+      return { finalText: reply(sessionId, turn, calls.length) };
+    });
+    const service = await ConstellationMessageService.open({
+      directory: path.join(stateRoot, "messages"),
+      constellation,
+      gateway: {
+        status: (sessionId: string) => ({
+          sessionId,
+          currentTaskRef:
+            sessionId === options.workstreamSession ? "workstream-1" : null,
+        }),
+        sendText,
+      },
+    });
+    return { service, calls };
+  }
+
+  it("relays a mention and returns the answer to the asking agent", async () => {
+    const { service, calls } = await relayService((sessionId, _turn, count) =>
+      count === 1
+        ? "@Claude please review the plan."
+        : sessionId === "session-2"
+          ? "Looks good to me."
+          : "Claude approved the plan.",
+    );
+
+    const group = await service.send(
+      request(40, "@Fluff ask @Claude to review this"),
+    );
+
+    expect(group.recipients[0]).toMatchObject({
+      rosterId: "roster-1",
+      state: "completed",
+      finalText: "@Claude please review the plan.",
+    });
+    expect(group.relay).toEqual({
+      status: "done",
+      hops: [
+        expect.objectContaining({
+          fromRosterId: "roster-1",
+          toRosterId: "roster-2",
+          state: "completed",
+          finalText: "Looks good to me.",
+        }),
+        expect.objectContaining({
+          fromRosterId: "roster-2",
+          toRosterId: "roster-1",
+          state: "completed",
+          finalText: "Claude approved the plan.",
+        }),
+      ],
+    });
+    expect(calls.map(({ sessionId }) => sessionId)).toEqual([
+      "session-1",
+      "session-2",
+      "session-1",
+    ]);
+    expect(calls[0]!.turn.context?.systemMessage).toContain("@Claude");
+    expect(calls[1]!.turn.text).toContain("Fluff sent you this message");
+    expect(calls[1]!.turn.intent).toBe("discussion");
+  });
+
+  it("stops after six agent messages with a visible notice", async () => {
+    const { service, calls } = await relayService((sessionId) =>
+      sessionId === "session-1" ? "@Claude again?" : "@Fluff again!",
+    );
+
+    const group = await service.send(request(41, "@Fluff ping @Claude"));
+
+    const hops = group.relay!.hops;
+    expect(hops.filter((hop) => hop.state === "completed")).toHaveLength(6);
+    expect(hops.at(-1)).toMatchObject({
+      state: "limited",
+      errorLabel: "Relay stopped after 6 agent messages",
+    });
+    expect(calls).toHaveLength(7);
+  });
+
+  it("skips agents busy in a Workstream with a notice", async () => {
+    const { service, calls } = await relayService(
+      () => "@Claude can you help?",
+      { workstreamSession: "session-2" },
+    );
+
+    const group = await service.send(request(42, "@Fluff ask @Claude"));
+
+    expect(group.relay).toEqual({
+      status: "done",
+      hops: [
+        expect.objectContaining({
+          toRosterId: "roster-2",
+          state: "skipped",
+          errorLabel: "Claude is busy in a Workstream; relay skipped",
+        }),
+      ],
+    });
+    expect(calls).toHaveLength(1);
+  });
+
+  it("does not relay broadcasts, work turns, or replies without mentions", async () => {
+    const { service, calls } = await relayService(() => "@Claude hello");
+
+    const broadcast = await service.send(request(43, "everyone meet @Claude"));
+    const work = await service.send({
+      ...request(44, "@Fluff tell @Claude"),
+      intent: "work" as const,
+    });
+
+    expect(broadcast.relay).toBeUndefined();
+    expect(work.relay).toBeUndefined();
+    expect(calls).toHaveLength(4);
+  });
+});
