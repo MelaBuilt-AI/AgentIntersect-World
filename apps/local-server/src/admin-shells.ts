@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 
 import WebSocket, { WebSocketServer } from "ws";
 
+import {
+  ensureWindowsHelper,
+  isWslHost,
+  WINDOWS_POWERSHELL,
+} from "./windows-shell-helper.js";
+
 export type AdminShellKind = "terminal" | "powershell";
 
 type ShellSession = {
@@ -24,6 +30,8 @@ export type AdminShellOptions = {
   readonly allowedOrigin: string;
   readonly allowedHost: string;
   readonly platform?: NodeJS.Platform;
+  /** True when World runs inside WSL: PowerShell then opens elevated on Windows. */
+  readonly wsl?: boolean;
   /** Seconds to wait for the helper (and the UAC prompt) before giving up. */
   readonly helperTimeoutSeconds?: number;
 };
@@ -46,6 +54,7 @@ export const isLoopbackAddress = (address: string): boolean => {
 export class AdminShellService {
   readonly #options: AdminShellOptions;
   readonly #platform: NodeJS.Platform;
+  readonly #wsl: boolean;
   readonly #sessions = new Map<string, ShellSession>();
   readonly #websockets = new WebSocketServer({
     noServer: true,
@@ -55,6 +64,7 @@ export class AdminShellService {
   constructor(options: AdminShellOptions) {
     this.#options = options;
     this.#platform = options.platform ?? process.platform;
+    this.#wsl = options.wsl ?? isWslHost();
     options.server.on("upgrade", this.#upgrade);
   }
 
@@ -71,8 +81,12 @@ export class AdminShellService {
       sessionId,
       ticket,
       websocketPath: `/admin-shell/${sessionId}`,
-      elevation: this.#platform === "win32" ? "uac" : "sudo",
+      elevation: this.#usesUac(kind) ? "uac" : "sudo",
     } as const;
+  }
+
+  #usesUac(kind: AdminShellKind): boolean {
+    return this.#platform === "win32" || (this.#wsl && kind === "powershell");
   }
 
   close(): void {
@@ -131,9 +145,10 @@ export class AdminShellService {
     });
     browser.on("close", () => this.#end(id));
     const windows = this.#platform === "win32";
+    const viaWsl = !windows && this.#usesUac(session.kind);
     this.#status(
       session,
-      windows
+      windows || viaWsl
         ? "Waiting for administrator permission (UAC)…"
         : "Starting shell…",
     );
@@ -143,28 +158,71 @@ export class AdminShellService {
     );
     const port = (this.#options.server.address() as AddressInfo).port;
     const url = `ws://127.0.0.1:${port}/admin-shell-helper/${id}?token=${session.helperToken}`;
-    const child = windows
-      ? spawn(
-          "powershell.exe",
-          [
-            "-NoProfile",
-            "-NonInteractive",
-            "-Command",
-            `Start-Process -FilePath '${quote(process.execPath)}' -ArgumentList '${quote(
-              `"${HELPER}" "${url}" ${session.kind}`,
-            )}' -Verb RunAs -WindowStyle Hidden`,
-          ],
-          { stdio: "ignore", windowsHide: true },
-        )
-      : spawn(process.execPath, [HELPER, url, session.kind], {
-          stdio: "ignore",
-        });
+    if (viaWsl) {
+      clearTimeout(session.timer);
+      this.#status(
+        session,
+        "Preparing Windows PowerShell (first use downloads Node.js)…",
+      );
+      ensureWindowsHelper(HELPER).then(
+        ({ node, helper }) => {
+          if (!this.#sessions.has(id)) return;
+          // The first-use download must not eat into the UAC wait.
+          clearTimeout(session.timer);
+          session.timer = setTimeout(
+            () => this.#end(id, "The admin shell did not start in time."),
+            (this.#options.helperTimeoutSeconds ?? 120) * 1000,
+          );
+          this.#status(session, "Waiting for administrator permission (UAC)…");
+          this.#elevate(
+            id,
+            WINDOWS_POWERSHELL,
+            node,
+            `"${helper}" "${url}" powershell`,
+          );
+        },
+        (error: unknown) =>
+          this.#end(
+            id,
+            error instanceof Error
+              ? `Windows PowerShell is unavailable: ${error.message}`
+              : "Windows PowerShell is unavailable.",
+          ),
+      );
+      return;
+    }
+    if (windows) {
+      this.#elevate(
+        id,
+        "powershell.exe",
+        process.execPath,
+        `"${HELPER}" "${url}" ${session.kind}`,
+      );
+      return;
+    }
+    const child = spawn(process.execPath, [HELPER, url, session.kind], {
+      stdio: "ignore",
+    });
     child.on("error", () => this.#end(id, "The admin shell could not start."));
-    if (windows)
-      child.on("exit", (code) => {
-        if (code !== 0)
-          this.#end(id, "Administrator permission was not granted.");
-      });
+  }
+
+  /** Starts the helper through a UAC prompt; declining ends the session. */
+  #elevate(id: string, powershell: string, node: string, args: string) {
+    const child = spawn(
+      powershell,
+      [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        `Start-Process -FilePath '${quote(node)}' -ArgumentList '${quote(args)}' -Verb RunAs -WindowStyle Hidden`,
+      ],
+      { stdio: "ignore", windowsHide: true },
+    );
+    child.on("error", () => this.#end(id, "The admin shell could not start."));
+    child.on("exit", (code) => {
+      if (code !== 0)
+        this.#end(id, "Administrator permission was not granted.");
+    });
   }
 
   #connectHelper(id: string, session: ShellSession, helper: WebSocket) {

@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { expect, it } from "vitest";
@@ -46,6 +46,40 @@ it("registers the selected native Codex connection in an otherwise unconfigured 
     expect(await runtime.check(registration)).toMatchObject({
       status: "ready",
     });
+    const selectedAdapter = registry.require("codex", registration.id);
+    const newerExecutable = path.join(root, "codex-new");
+    await writeFile(
+      newerExecutable,
+      (await readFile(executablePath, "utf8")).replace("9.0.0", "9.1.0"),
+      { mode: 0o700 },
+    );
+    const updated = {
+      ...registration,
+      installationId: "fixture-new",
+      executablePath: newerExecutable,
+    };
+    expect(await runtime.check(updated)).toMatchObject({ status: "ready" });
+    expect(
+      (await registry.require("codex", registration.id).attest())
+        .adapterVersion,
+    ).toContain("9.1.0");
+    expect(registry.require("codex", registration.id)).toBe(selectedAdapter);
+    expect(
+      await runtime.check({
+        ...updated,
+        executablePath: path.join(root, "missing-codex"),
+      }),
+    ).toMatchObject({ status: "needs-attention" });
+    expect((await selectedAdapter.attest()).adapterVersion).toContain("9.1.0");
+    const otherProfile = path.join(root, "other-profile");
+    await mkdir(otherProfile);
+    expect(
+      await runtime.check({
+        ...updated,
+        identity: { ...updated.identity, profilePath: otherProfile },
+      }),
+    ).toMatchObject({ status: "needs-attention" });
+    expect(registry.require("codex", registration.id)).toBe(selectedAdapter);
     const { AgentEnvironmentExecution } =
       await import("../src/agent-environment.js");
     const { CodexSessionAdapter } =

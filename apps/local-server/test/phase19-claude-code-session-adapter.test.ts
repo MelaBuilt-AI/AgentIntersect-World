@@ -22,6 +22,7 @@ type FixtureControl = {
   readonly toolFlood?: boolean;
   readonly version?: string;
   readonly invalidHelp?: boolean;
+  readonly promptSnapshots?: boolean;
   readonly attestHang?: boolean;
   readonly realSystemEvents?: boolean;
   readonly rateLimitEvent?: boolean;
@@ -74,6 +75,44 @@ type Fixture = {
 };
 
 const temporaryRoots: string[] = [];
+
+it("disables supported prompt snapshots on create and every resumed World turn", async () => {
+  const fixture = await fixtureExecutable({ promptSnapshots: true });
+  const native = adapter(fixture, {
+    nativeProfilePath: fixture.nativeSessionRoot,
+  });
+  await native.attest();
+  const session = await native.createWorldSession("relay-prompt-proof");
+  for (const systemMessage of [
+    "World relay enabled: @Codex",
+    "World relay disabled",
+  ]) {
+    await native.sendText(session.id, "hello", {
+      mode: "explore",
+      rootSessionRef: session.id,
+      systemMessage,
+    });
+  }
+  const calls = (await fixture.invocations()).filter(({ args }) =>
+    args.includes("-p"),
+  );
+  expect(calls).toHaveLength(3);
+  for (const call of calls) {
+    expect(call.args[call.args.indexOf("--system-prompt-snapshot") + 1]).toBe(
+      "off",
+    );
+  }
+  for (const [index, guidance] of [
+    "World relay enabled: @Codex",
+    "World relay disabled",
+  ].entries()) {
+    const args = calls[index + 1]!.args;
+    expect(args[args.indexOf("--resume") + 1]).toBe(session.id);
+    expect(args[args.indexOf("--append-system-prompt") + 1]).toContain(
+      guidance,
+    );
+  }
+});
 
 it("still bounds normalized tool activity independently of text fragments", async () => {
   const fixture = await fixtureExecutable({ toolFlood: true });
@@ -356,6 +395,7 @@ if (args.length === 1 && args[0] === "--version") {
 }
 
 if (args.length === 1 && args[0] === "--help") {
+  if (control.promptSnapshots) process.stdout.write("--system-prompt-snapshot <on|off>\\n");
   process.stdout.write(control.invalidHelp
     ? "not claude help\\n"
     : "Usage: claude [options] [command] [prompt]\\n-p, --print\\n-r, --resume [value]\\n--session-id <uuid>\\n--model <model>\\n--output-format <format>\\n--input-format <format>\\n--verbose\\n--include-partial-messages\\n--add-dir <directories...>\\n--tools <tools...>\\n--disable-slash-commands\\n--setting-sources <sources>\\n--mcp-config <configs...>\\n--strict-mcp-config\\n");

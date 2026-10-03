@@ -81,12 +81,26 @@ export class AgentSetupService {
         "Discover Agents again and select an installation and native identity from the results.",
       );
     const state = await this.state();
-    const existing = state.registrations.find(
-      (entry) =>
-        entry.installationId === installation.id &&
-        entry.identity.id === identity.id &&
-        entry.conversationRef === request.conversationRef,
-    );
+    const replaced = request.replaceConnectionId
+      ? state.registrations.find(
+          (entry) => entry.id === request.replaceConnectionId,
+        )
+      : undefined;
+    if (
+      request.replaceConnectionId &&
+      replaced?.adapterId !== installation.adapterId
+    )
+      throw new Error(
+        "Saved agent connection was not found for this harness. Discover Agents again.",
+      );
+    const existing =
+      replaced ??
+      state.registrations.find(
+        (entry) =>
+          entry.installationId === installation.id &&
+          entry.identity.id === identity.id &&
+          entry.conversationRef === request.conversationRef,
+      );
     if (request.conversationRef && installation.adapterId !== "hermes")
       throw new Error(
         "Existing conversation selection is supported for Hermes only.",

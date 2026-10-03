@@ -37,6 +37,8 @@ export type ConstellationBindingValidation = ConstellationBinding & {
 
 export interface ConstellationLifecyclePort {
   isBindingAvailable?(binding: ConstellationBinding): boolean;
+  /** The saved agent connection behind a World session, when it has one. */
+  connectionOf?(worldSessionId: string): string | null;
   validateBinding(
     binding: ConstellationBinding,
   ): Promise<ConstellationBindingValidation>;
@@ -491,6 +493,20 @@ export class ConstellationService {
         throw new ConstellationServiceError(
           "conflict",
           "Native binding already belongs to this constellation",
+        );
+      const connection = this.#lifecycle.connectionOf?.(
+        request.agent.worldSessionId,
+      );
+      if (
+        connection &&
+        payload.projection.agents.some(
+          (row) =>
+            this.#lifecycle.connectionOf?.(row.worldSessionId) === connection,
+        )
+      )
+        throw new ConstellationServiceError(
+          "conflict",
+          "This saved agent is already in this World",
         );
       const addedOrder =
         (payload.projection.agents.at(-1)?.addedOrder ?? -1) + 1;

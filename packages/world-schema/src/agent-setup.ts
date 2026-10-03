@@ -25,6 +25,8 @@ export type AgentInstallation = {
   readonly environment: AgentEnvironment;
   readonly executablePath: string;
   readonly canonicalExecutablePath?: string;
+  /** Read from install metadata (package.json or a versioned path), never by running the CLI. */
+  readonly version?: string;
   readonly homePath: string;
   readonly identities: readonly NativeIdentity[];
   /** Finding an executable is not authentication or execution proof. */
@@ -88,6 +90,8 @@ export const AttachAgentInputSchema = z
       .string()
       .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/)
       .optional(),
+    /** Moves this saved connection to the selected installation, keeping its id. */
+    replaceConnectionId: z.string().uuid().optional(),
   })
   .strict();
 export type SetupSelection = z.infer<typeof AttachAgentInputSchema>;

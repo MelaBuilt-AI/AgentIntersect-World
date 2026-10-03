@@ -220,6 +220,15 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
         directory: path.join(sessionDataDirectory, "constellation"),
         worldInstanceId: randomUUID(),
         lifecycle: {
+          connectionOf: (worldSessionId) => {
+            try {
+              return (
+                agentSessionGateway.status(worldSessionId).connectionId ?? null
+              );
+            } catch {
+              return null;
+            }
+          },
           isBindingAvailable: (binding) => {
             try {
               const session = agentSessionGateway.status(

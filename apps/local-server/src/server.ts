@@ -253,6 +253,11 @@ export function createLocalServer(
       cachedWorldSnapshot = snapshot;
       cachedProjectionError = undefined;
       void codeGraphService.indexGeneration(generation, snapshot);
+      void options.workstreamService
+        ?.releaseForRepository(snapshot.repositoryRef)
+        .catch(() => {
+          // Release is best effort; the binding is re-checked before any work.
+        });
     } catch (error) {
       cachedProjectionError = error;
     }

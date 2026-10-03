@@ -247,7 +247,7 @@ function codexRepositoryLocator(
 
 export class CodexSessionAdapter implements AgentAdapter {
   readonly id = "codex";
-  readonly #options: CodexOptions;
+  #options: CodexOptions;
   readonly #sessions: NativeSessionStore;
   readonly #busy = new Set<string>();
 
@@ -267,6 +267,25 @@ export class CodexSessionAdapter implements AgentAdapter {
       );
     this.#options = options;
     this.#sessions = new NativeSessionStore(options.nativeSessionRoot, "codex");
+  }
+
+  /** Keep session ownership and busy guards while switching the validated CLI. */
+  useInstallation(candidate: CodexSessionAdapter): void {
+    const next = candidate.#options;
+    if (
+      next.nativeSessionRoot !== this.#options.nativeSessionRoot ||
+      next.nativeProfilePath !== this.#options.nativeProfilePath ||
+      next.profileName !== this.#options.profileName ||
+      JSON.stringify(next.environmentExecution?.registration.environment) !==
+        JSON.stringify(
+          this.#options.environmentExecution?.registration.environment,
+        )
+    )
+      throw codexFailure(
+        "Select a newer Codex CLI in the same environment and profile. Save a separate connection for a different native identity.",
+        "conflict",
+      );
+    this.#options = next;
   }
 
   #args(sessionId?: string, evidenceDirectory?: string): string[] {
@@ -303,17 +322,18 @@ export class CodexSessionAdapter implements AgentAdapter {
       readonly validate?: () => void;
     },
   ): Promise<ProcessResult> {
-    const bridged = await this.#options.environmentExecution?.spawn(
+    const installation = this.#options;
+    const bridged = await installation.environmentExecution?.spawn(
       args,
-      options.workingDirectory ?? this.#options.nativeSessionRoot,
+      options.workingDirectory ?? installation.nativeSessionRoot,
     );
     return new Promise<ProcessResult>((resolve, reject) => {
       let child: ChildProcessWithoutNullStreams;
       try {
         child =
           bridged ??
-          spawn(this.#options.executablePath, args, {
-            cwd: options.workingDirectory ?? this.#options.nativeSessionRoot,
+          spawn(installation.executablePath, args, {
+            cwd: options.workingDirectory ?? installation.nativeSessionRoot,
             env: processEnvironment(options.runtimeHome),
             detached: true,
             stdio: ["pipe", "pipe", "pipe"],
@@ -335,9 +355,9 @@ export class CodexSessionAdapter implements AgentAdapter {
       const fail = (error: GatewayError) => {
         if (failure || closed) return;
         failure = error;
-        termination = this.#options.environmentExecution
-          ? this.#options.environmentExecution.terminate(child)
-          : terminateProcessGroup(child, this.#options.terminateGraceMs ?? 250);
+        termination = installation.environmentExecution
+          ? installation.environmentExecution.terminate(child)
+          : terminateProcessGroup(child, installation.terminateGraceMs ?? 250);
       };
       const parseLine = (line: string) => {
         if (!line) return;
@@ -427,8 +447,8 @@ export class CodexSessionAdapter implements AgentAdapter {
 
       if (options.signal?.aborted) onAbort();
       child.stdin.on("error", () => fail(codexFailure(options.failureMessage)));
-      if (this.#options.environmentExecution)
-        this.#options.environmentExecution.writeInput(child, input);
+      if (installation.environmentExecution)
+        installation.environmentExecution.writeInput(child, input);
       else child.stdin.end(input);
     });
   }

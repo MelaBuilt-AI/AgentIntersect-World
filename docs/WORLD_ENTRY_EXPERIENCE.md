@@ -23,6 +23,13 @@ Diagnostics, evidence, recovery, readiness, connectors, lifecycle, and control-p
 5. A Hermes/OpenClaw name miss types `agent not found_` and permits immediate retry without technical detail.
 6. The only required persistent World HUD is a minimal bottom-center chat field and adjacent push-to-talk control.
 7. Unaddressed Multi Agent messages go to all connected agents. Avatar click or `@name` targets one.
+   - To ask one World agent to contact another in discussion chat, mention both: `@Codex ask @Claude to reply with bravo`. If Codex is already selected by avatar, use `ask @Claude to reply with bravo`.
+   - Plain `codex you there?` is a broadcast; use `@Codex you there?` for a direct check. Plain names inside a request do not enable relay.
+   - World agents are not entries in another harness's session tools. All grouped turns carry World identity and messaging guidance; non-relay turns explain the explicit syntax instead of instructing the agent to discover sessions or launch another CLI.
+   - If an explicitly targeted or requested relay agent is unavailable, the request records a named failure in chat without calling either agent. Reconnect that agent before sending a new request; replaying the old request retains its original result.
+   - Only an agent reply beginning with the exact `@Name` address sends a new relay message. Incidental mentions in refusal/completion prose do not dispatch. Ordinary answers automatically return to the asker, which can report the result to the user without another exchange.
+   - World relay guidance is independent of Workstream path context. Claude launches disable system-prompt snapshots when the installed CLI advertises that option, so resumed turns receive current World guidance without altering the native profile.
+   - Broadcast and coding/work turns do not enable relay. Active relays retain the six-message cap and Workstream busy guard.
 8. Repository load transforms the entire existing floor. It never opens a portal or separate repository space.
 9. The default camera is third-person behind the user avatar. A first-person toggle is optional later.
 10. The inherited admin/developer dashboard exists only behind an explicit local developer flag/internal route and has no link from the normal experience.

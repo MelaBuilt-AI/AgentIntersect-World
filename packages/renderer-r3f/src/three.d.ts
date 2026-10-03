@@ -364,6 +364,12 @@ declare module "three" {
     ): Promise<Object3D>;
   }
   export class PointLight extends Object3D {
+    constructor(
+      color?: ColorRepresentation,
+      intensity?: number,
+      distance?: number,
+      decay?: number,
+    );
     color: ColorRepresentation;
     intensity: number;
     distance: number;

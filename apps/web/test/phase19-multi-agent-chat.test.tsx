@@ -196,6 +196,39 @@ describe("Phase 19 multi-agent chat", () => {
     expect(html).toContain("Codex");
   });
 
+  it("renders the named unavailable-agent result in chat", () => {
+    const errorLabel =
+      "Codex is unavailable in World; reconnect that agent before messaging it";
+    const state = reduceWorldChat(createWorldChatState(), {
+      type: "GROUP_COMPLETED",
+      group: {
+        ...group,
+        recipients: group.recipients.map((recipient) => ({
+          ...recipient,
+          state: "failed" as const,
+          finalText: null,
+          errorLabel,
+        })),
+      },
+      displayNames: { "roster-hermes": "Hermes", "roster-codex": "Codex" },
+    });
+    const html = renderToStaticMarkup(
+      createElement(WorldHud, {
+        recipient: "Hermes",
+        status: "Multi Agent ready",
+        busy: false,
+        queuedCount: 0,
+        message: "",
+        transcript: state.transcript,
+        pushToTalkAvailable: false,
+        onMessage: () => undefined,
+        onSend: () => undefined,
+      }),
+    );
+    expect(html).toContain(errorLabel);
+    expect(html).not.toContain("chat unavailable_");
+  });
+
   it("restores durable groups instead of a single primary-session transcript", () => {
     const state = reduceWorldChat(createWorldChatState(), {
       type: "RESTORE_HISTORY",

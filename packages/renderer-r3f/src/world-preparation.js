@@ -71,8 +71,14 @@ export function compileWorldPass(renderer, object, camera, scene) {
 /** r186 compileAsync omits render call depth when selecting its context.
  * Match the actual nested scene pass, restoring the shim synchronously before
  * compilation yields. Otherwise warmup builds unused depth-zero programs. */
-export async function compileWorldEnvironment(renderer, object, camera, scene) {
-  const target = worldPassByRenderer.get(renderer);
+export async function compileWorldEnvironment(
+  renderer,
+  object,
+  camera,
+  scene,
+  target = worldPassByRenderer.get(renderer),
+  callDepth = 1,
+) {
   const previous = renderer.getRenderTarget();
   const visible = object.visible;
   const contexts = renderer._renderContexts;
@@ -82,7 +88,7 @@ export async function compileWorldEnvironment(renderer, object, camera, scene) {
     object.visible = true;
     if (target) {
       renderer.setRenderTarget(target);
-      contexts.get = function (renderTarget, mrt, depth = 1) {
+      contexts.get = function (renderTarget, mrt, depth = callDepth) {
         return get.call(this, renderTarget, mrt, depth);
       };
     }

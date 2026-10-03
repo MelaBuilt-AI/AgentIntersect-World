@@ -959,6 +959,38 @@ export class WorkstreamService {
     });
   }
 
+  /**
+   * Loading another repository releases the current Workstream's idle agent
+   * binding. The saved worktree and record stay intact for Continue saved work.
+   */
+  async releaseForRepository(repositoryId: string): Promise<boolean> {
+    return this.#serialize(async () => {
+      await this.#ensureLoaded();
+      const work = this.#record?.workstream;
+      const port = this.#agentPort;
+      if (
+        !work ||
+        !port ||
+        work.repository.repositoryId === repositoryId ||
+        this.#runs.has(work.workstreamId) ||
+        port.busy(work.agent.agentId)
+      )
+        return false;
+      const bound = port.current(work.agent.agentId);
+      if (
+        bound?.worktreeRef !== work.authority.worktreeId ||
+        bound.currentTaskRef !== work.workstreamId
+      )
+        return false;
+      await port.unbind({
+        agentId: work.agent.agentId,
+        worktreeRef: work.authority.worktreeId,
+        taskRef: work.workstreamId,
+      });
+      return true;
+    });
+  }
+
   async gitDirectory(
     workstreamId: string,
     repositoryId: string,

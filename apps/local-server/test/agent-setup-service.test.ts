@@ -102,6 +102,49 @@ it("persists only an explicitly checked registration and keeps setup completion 
   expect((await restarted.state()).completed).toBe(true);
   expect(await readFile(service.filename, "utf8")).not.toContain("apiKey");
 });
+it("moves a saved connection to a newer installation without changing its id", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "aiw-agent-setup-move-"));
+  roots.push(root);
+  const service = new AgentSetupService({
+    dataDirectory: root,
+    checkConnection: async () => ({ status: "ready", message: "ready" }),
+  });
+  const newer = {
+    ...installation,
+    id: "fixture-newer",
+    executablePath: "/fixture/newer/codex",
+    version: "0.159.2",
+  };
+  service.lastDiscovery = {
+    installations: [newer, installation],
+    environments: [],
+  };
+  const saved = await service.attach({
+    installationId: installation.id,
+    identityId: "work",
+    displayName: "Codex",
+  });
+  const moved = await service.attach({
+    installationId: newer.id,
+    identityId: "work",
+    displayName: "Codex",
+    replaceConnectionId: saved.registration!.id,
+  });
+  expect(moved.registration).toMatchObject({
+    id: saved.registration!.id,
+    installationId: newer.id,
+    executablePath: newer.executablePath,
+  });
+  expect((await service.state()).registrations).toHaveLength(1);
+  await expect(
+    service.attach({
+      installationId: newer.id,
+      identityId: "work",
+      displayName: "Codex",
+      replaceConnectionId: "4b7f7c1e-2d7a-4e0c-9d0b-2b9a4f6b1c11",
+    }),
+  ).rejects.toThrow(/not found/i);
+});
 it("does not save an unavailable connection or trust browser-supplied installation identities", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "aiw-agent-setup-missing-"));
   roots.push(root);
