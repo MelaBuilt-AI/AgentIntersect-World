@@ -2,6 +2,35 @@
 
 ## Current boundary
 
+**October 3 relay correction delivered for code verification and fresh manual review.** Aaron (`1555950995064754277`) authorized completing the relay fixes, commit/push, exact-head CI/readiness corrections, a fresh test and end-session preparation. **Do not merge.** Release, npm, installer, provider/profile changes and PR31 remain outside this authorization. Exact commit/CI and fresh-lane ownership are recorded in the external kit and latest handoff, not recursively embedded here.
+
+- Claude's installed 2.1.286 help documents creation-time system-prompt snapshots reused on resume, ignoring later append text. TEST45484's initialization snapshot contained no World guidance. The adapter now detects the supported `--system-prompt-snapshot` option and passes `off` on create/resume/recovery, leaving older compatible CLIs and native profiles unchanged.
+- The gateway keeps server-owned relay guidance separate from freshly rendered Workstream context, preserving both without reintroducing stale host-only paths.
+- Outgoing agent relay requires an exact leading `@Name`; incidental mentions in refusal/completion prose no longer dispatch. User two-mention activation, NFKC/exact names, automatic answer return, six-hop cap, busy guards and no broadcast/work relay remain.
+- Focused RED→GREEN covers native prompt flags, Workstream guidance coexistence and incidental/prefix mentions. The affected adapter/gateway/service/API/chat run passed **121 tests across 5 files**.
+- Real fresh native Claude and Codex sessions through the production gateway and relay service passed **bravo and Alpha in both directions**, exactly two deliveries each, zero native tool calls and no extra acknowledgements. Those isolated sessions were ended; evidence remains in `~/.hermes/runs/aiw-relay-fix-20261003/live/`. This is model-backed service proof, not Aaron's browser acceptance or an all-provider guarantee.
+- TEST45484's owned browser/service are CLOSED before shared build outputs change; native profile processes and ports45484/44084 were verified absent. Its populated state/history remain at `/home/mela_ai/aiw-test-lanes/TEST45484-relay`; no native history deletion or replay. Fresh review starts with new state/profile after CI passes.
+- Final pinned-Node24.18.0 conventional readiness PASS: **1,587 tests / 277 files**, separate 11 architecture checks, format/lint/types/build/startup/API smoke, imported-avatar current inputs and compatibility. Executed under 6GiB/no swap; no automated product-navigation journeys. Exact-head hosted CI is a subsequent delivery gate recorded externally.
+- Performance and both Terminal/PowerShell screens remain Aaron-PASS. Relay browser acceptance is PENDING the fresh review; the earlier mixed verdict remains below as history.
+
+### Historical October 3 first correction and failed retest
+
+**NEXT SESSION APPROVED, not started:** Aaron (`1555947502929453292`) approved fixing Claude's native prompt/resume guidance and incidental-mention relay routing, but explicitly deferred implementation to a new session. TEST45484 is LIVE at http://127.0.0.1:45484/; preserve its current conversation, do not reset/rebuild/restart without a new operational decision. Kit: `~/.hermes/runs/aiw-relay-20261003/review/README.md`. TEST45483 is CLOSED; its old browser was already absent and its exact service/listeners were stopped after replacement authorization1555941667360473180.
+
+October3 live retest1555944524499648543: actual bidirectional delivery of `bravo` and `Alpha` PASS; initial Claude World-method comprehension FAIL; incidental mentions triggering messages and extra acknowledgements FAIL. Saved relay records and native Claude tool calls prove it used ToolSearch/ListAgents, falsely denied reaching Codex, and its denial's `@codex` was forwarded. Codex corrected it, after which Claude used the relay. Completion prose containing `@Codex` triggered another exchange. No second correction implemented yet.
+
+Next bounded work: trace guidance through the real Claude native prompt/resume path (do not assume stronger wording fixes it); add a RED for incidental mentions in refusal/completion prose; recognize explicit outgoing addresses instead while preserving automatic answer return and the existing cap/busy guard; focused adapter/service regressions, then authorized real-provider retest. Guidance drop versus model disregard is unresolved. Native prompt snapshots inspected at initialization lacked World strings, but this is a diagnostic lead, not proof of later effective prompt loss. No provider/model/profile mutation, auto-merge, PR31 change or publication authority.
+
+**October 3 update:** Aaron accepted performance and both Terminal/PowerShell screens (`1555933116760330301`), then authorized the focused agent-to-agent routing correction (`1555934285519917239`). This supersedes the pending performance/shell verdict below, not the unrelated acceptance/release gates. TEST45483 and its conversation state remain preserved; do not rebuild its served files or restart it merely to activate this correction.
+
+The reported sequence was traced to two boundaries: plain `claude` did not enable relay, and after Codex failed, ready-only roster filtering silently disabled a valid `@codex` relay request. Codex's retained native transcript shows a separate `claude -p` launch, not communication with World's existing Claude; the precise native process-exit cause is still unproven.
+
+The local correction resolves targets against the full World roster, records named unavailable-agent failures before dispatch, and gives every grouped turn identity/relay-mode guidance. Explicit two-mention syntax remains required; no natural-language name inference, provider change, automatic reconnect, or native-session reset. Failed requests retain their original results on replay. The UI's existing grouped-result path renders the notice rather than its generic request-error fallback.
+
+Local verification: both behavioral regressions observed RED then GREEN; **50 tests across 5 affected service/API/chat files PASS**, scoped format/lint, local-server typecheck, architecture check and isolated local-server build PASS on Node24.18.0 under a 4GiB/no-swap scope. The isolated build writes outside the served worktree. Real Codex/Claude re-test, new exact-head CI, activation and commit/push remain pending; no merge/publication performed. Prompt guidance is not proof that a live model follows it.
+
+### September 30 delivery record
+
 Aaron (`1554876840613773367`) authorized finishing the performance work and Code Wheel Screens shortcuts, commit/push, exact-head PR CI, then a fresh test left running and an end-session handoff. Merge, releases, npm publication and installer/website distribution remain unauthorized. This replaces the earlier session-pause instruction.
 
 Worktree: `/home/mela_ai/AgentIntersect-World-menu`, branch `fix/relay-codex-shells` (PR32). Final SHA, hosted CI and live review ownership belong in the external runtime receipt and latest handoff, avoiding recursive status commits. The next acceptance gate is Aaron's review, not another implementation pass.

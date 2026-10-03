@@ -321,7 +321,7 @@ describe("user-directed @agent relay", () => {
   type Turn = {
     readonly text: string;
     readonly intent?: string;
-    readonly context?: { readonly systemMessage?: string };
+    readonly context?: { readonly relayMessage?: string };
   };
 
   async function relayService(
@@ -357,8 +357,96 @@ describe("user-directed @agent relay", () => {
         sendText,
       },
     });
-    return { service, calls };
+    return { service, calls, constellation };
   }
+
+  it("rejects a relay to an unavailable World agent before dispatch", async () => {
+    const { service, calls, constellation } = await relayService(
+      () => "wrong directory",
+    );
+    const state = constellation.current();
+    if (!state.projection) throw new Error("Expected a ready constellation");
+    vi.spyOn(constellation, "current").mockReturnValue({
+      ...state,
+      projection: {
+        ...state.projection,
+        agents: state.projection.agents.map((agent) =>
+          agent.displayName === "Codex"
+            ? { ...agent, connection: "unavailable", continuity: "unavailable" }
+            : agent,
+        ),
+      },
+    });
+    const group = await service.send(
+      request(46, '@Claude can you tell @codex to reply "bravo"'),
+    );
+    expect(group.recipients).toEqual([
+      expect.objectContaining({
+        rosterId: "roster-2",
+        state: "failed",
+        finalText: null,
+        errorLabel:
+          "Codex is unavailable in World; reconnect that agent before messaging it",
+      }),
+    ]);
+    expect(group.relay).toBeUndefined();
+    expect(service.list()).toContainEqual(group);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("gives ordinary chat World identity and explicit relay syntax without enabling relay", async () => {
+    const { service, calls } = await relayService(
+      () => "Please use the World relay syntax.",
+    );
+    const group = await service.send(
+      request(47, "@Codex ask claude to reply with bravo"),
+    );
+    expect(group.relay).toBeUndefined();
+    expect(calls).toHaveLength(1);
+    const guidance = calls[0]!.turn.context?.relayMessage;
+    expect(guidance).toContain("You are Codex");
+    expect(guidance).toContain("@Claude");
+    expect(guidance).toContain("do not look them up");
+    expect(guidance).toContain("Do not launch another agent CLI");
+    expect(guidance).toContain("Relay is not enabled for this turn");
+    expect(guidance).toContain("@Codex ask @Name to reply with bravo");
+  });
+
+  it.each([
+    "I can't reach @Claude from here.",
+    'Done; @Claude replied "bravo".',
+    'Example: "@Claude please reply"',
+    "@ClaudeExtra mentioned @Claude later",
+  ])(
+    "does not dispatch incidental mentions in agent prose: %s",
+    async (text) => {
+      const { service, calls } = await relayService(() => text);
+      const group = await service.send(
+        request(48, "@Fluff ask @Claude to reply"),
+      );
+      expect(group.relay).toEqual({ status: "done", hops: [] });
+      expect(calls).toHaveLength(1);
+    },
+  );
+
+  it("returns an ordinary answer but does not forward the final mention summary", async () => {
+    const { service, calls } = await relayService((_session, _turn, count) =>
+      count === 1
+        ? "  @Ｃｌａｕｄｅ, please reply bravo"
+        : count === 2
+          ? "bravo"
+          : 'Done; @Claude replied "bravo".',
+    );
+    const group = await service.send(
+      request(49, "@Fluff ask @Claude to reply"),
+    );
+    expect(group.relay?.hops).toHaveLength(2);
+    expect(calls.map(({ sessionId }) => sessionId)).toEqual([
+      "session-1",
+      "session-2",
+      "session-1",
+    ]);
+  });
 
   it("relays a mention and returns the answer to the asking agent", async () => {
     const { service, calls } = await relayService((sessionId, _turn, count) =>
@@ -400,7 +488,7 @@ describe("user-directed @agent relay", () => {
       "session-2",
       "session-1",
     ]);
-    expect(calls[0]!.turn.context?.systemMessage).toContain("@Claude");
+    expect(calls[0]!.turn.context?.relayMessage).toContain("@Claude");
     expect(calls[1]!.turn.text).toContain("Fluff sent you this message");
     expect(calls[1]!.turn.intent).toBe("discussion");
   });

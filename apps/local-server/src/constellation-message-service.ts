@@ -174,7 +174,12 @@ function readyAgents(
 /** Earliest `@name` mention of another agent; longer names win ties. */
 export function findAgentMention<
   T extends { readonly rosterId: string; readonly displayName: string },
->(text: string, agents: readonly T[], excludeRosterId?: string): T | null {
+>(
+  text: string,
+  agents: readonly T[],
+  excludeRosterId?: string,
+  leadingOnly = false,
+): T | null {
   const normalized = text.normalize("NFKC");
   let best: { readonly agent: T; readonly index: number } | null = null;
   for (const agent of agents) {
@@ -188,7 +193,7 @@ export function findAgentMention<
       `(?:^|[\\s(\\[{"'])@${name}(?=$|[\\s.,:;!?)\\]}"'])`,
       "iu",
     ).exec(normalized);
-    if (!match) continue;
+    if (!match || (leadingOnly && match.index !== 0)) continue;
     if (
       !best ||
       match.index < best.index ||
@@ -200,18 +205,32 @@ export function findAgentMention<
   return best?.agent ?? null;
 }
 
+function findAgentAddress(
+  text: string,
+  agents: readonly ConstellationAgent[],
+  excludeRosterId: string,
+): ConstellationAgent | null {
+  const address = text.normalize("NFKC").trimStart();
+  return address.startsWith("@")
+    ? findAgentMention(address, agents, excludeRosterId, true)
+    : null;
+}
+
 function relayGuide(
   agents: readonly ConstellationAgent[],
   self: ConstellationAgent,
+  relayEnabled = true,
 ): string {
   const others = agents
     .filter((agent) => agent.rosterId !== self.rosterId)
-    .map((agent) => `@${agent.displayName}`)
+    .map((agent) => `@${agent.displayName} (${agent.connection})`)
     .join(", ");
   return [
-    `You are ${self.displayName} in a multi-agent AgentIntersect World session with ${others}.`,
-    "The user asked you to work with another agent. To message an agent, write @Name followed by your message; World delivers it and returns their reply to you.",
-    "These agents are World sessions: they do not appear in your own agent, session or messaging tools, so do not look them up there. Writing @Name in your reply is how you reach them.",
+    `You are ${self.displayName} in AgentIntersect World. Other World agents: ${others || "none"}.`,
+    "These agents are World sessions: they do not appear in your own agent, session or messaging tools, so do not look them up there. Do not launch another agent CLI to contact a World agent or send the request to unrelated sessions.",
+    relayEnabled
+      ? "The user enabled World relay for this turn. To message an agent, begin your entire reply with @Name followed by your message, without a preamble, quote or code fence; World delivers it and returns their reply to you. Mentions elsewhere in prose do not send messages. When answering a relayed question, answer normally without an @address; World returns that answer automatically. When the answer returns, report the result to the user without addressing another agent unless another question is needed."
+      : `Relay is not enabled for this turn. If asked to contact another World agent, explain that the user must address you and @mention the other agent, for example: @${self.displayName} ask @Name to reply with bravo (replace @Name with the other agent's exact World name). Do not claim you sent a message.`,
     `Relays stop after ${MAX_RELAY_HOPS} agent messages per user request, so keep exchanges focused. Answer without mentioning anyone when you are done.`,
   ].join("\n");
 }
@@ -550,9 +569,32 @@ export class ConstellationMessageService {
           "Request ID was reused",
         );
       const agents = readyAgents(this.#constellation);
-      const resolved = resolveRecipients(agents, request);
+      const roster = this.#constellation.current().projection!.agents;
+      let resolved = resolveRecipients(roster, request);
+      let unavailable: ConstellationAgent | undefined;
+      if (resolved.target.kind === "broadcast") {
+        resolved = { ...resolved, recipients: agents };
+        if (agents.length === 0)
+          throw new ConstellationMessageServiceError(
+            "unavailable",
+            "No ready constellation recipients are available",
+          );
+      } else {
+        const mentioned =
+          request.intent !== "work"
+            ? findAgentMention(resolved.text, roster, resolved.target.rosterId)
+            : null;
+        unavailable = [
+          ...resolved.recipients,
+          ...(mentioned ? [mentioned] : []),
+        ].find(
+          (agent) =>
+            !agents.some(({ rosterId }) => rosterId === agent.rosterId),
+        );
+      }
       // A user-directed relay: one addressed agent asked to involve another.
       const relay: RelayPlan | null =
+        !unavailable &&
         request.intent !== "work" &&
         resolved.target.kind === "agent" &&
         findAgentMention(resolved.text, agents, resolved.target.rosterId)
@@ -570,9 +612,11 @@ export class ConstellationMessageService {
         recipients: resolved.recipients.map(({ rosterId, worldSessionId }) => ({
           rosterId,
           worldSessionId,
-          state: "queued",
+          state: unavailable ? "failed" : "queued",
           finalText: null,
-          errorLabel: null,
+          errorLabel: unavailable
+            ? `${unavailable.displayName} is unavailable in World; reconnect that agent before messaging it`
+            : null,
         })),
         ...(relay ? { relay: { status: "running", hops: [] } } : {}),
         createdAt: now,
@@ -599,10 +643,13 @@ export class ConstellationMessageService {
       await this.#persist();
       return {
         group: structuredClone(group),
-        dispatch: resolved.recipients.map(({ rosterId, worldSessionId }) => ({
-          rosterId,
-          worldSessionId,
-        })),
+        dispatch: unavailable
+          ? null
+          : resolved.recipients.map((agent) => ({
+              rosterId: agent.rosterId,
+              worldSessionId: agent.worldSessionId,
+              systemMessage: relayGuide(roster, agent, relay !== null),
+            })),
         relay,
       };
     });
@@ -611,9 +658,6 @@ export class ConstellationMessageService {
       const { groupId, text } = created.group;
       const relay = created.relay;
       for (const recipient of created.dispatch) {
-        const self = relay?.agents.find(
-          (agent) => agent.rosterId === recipient.rosterId,
-        );
         const turn = this.#enqueueSession(recipient.worldSessionId, () =>
           this.#dispatch(
             groupId,
@@ -621,7 +665,7 @@ export class ConstellationMessageService {
             text,
             request.userDisplayName,
             request.intent,
-            relay && self ? relayGuide(relay.agents, self) : undefined,
+            recipient.systemMessage,
           ),
         );
         if (relay)
@@ -696,7 +740,7 @@ export class ConstellationMessageService {
     const binding = this.#gateway.status(worldSessionId);
     const context = {
       ...(userDisplayName ? { userDisplayName: userDisplayName.trim() } : {}),
-      ...(systemMessage ? { systemMessage } : {}),
+      ...(systemMessage ? { relayMessage: systemMessage } : {}),
     };
     const result = await this.#gateway.sendText(worldSessionId, {
       text,
@@ -737,7 +781,7 @@ export class ConstellationMessageService {
     let delivered = 0;
     try {
       while (speaker && text !== null) {
-        const mentioned = findAgentMention(text, plan.agents, speaker.rosterId);
+        const mentioned = findAgentAddress(text, plan.agents, speaker.rosterId);
         const target = mentioned ?? replyTo;
         if (!target) break;
         const hop = {

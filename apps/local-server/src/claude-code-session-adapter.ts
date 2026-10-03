@@ -258,6 +258,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
   readonly #fetch: typeof globalThis.fetch;
   readonly #sessions: NativeSessionStore;
   readonly #busy = new Set<string>();
+  #supportsPromptSnapshots = false;
 
   constructor(options: ClaudeCodeOptions) {
     if (
@@ -323,6 +324,11 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         : []),
       "--permission-mode",
       "dontAsk",
+      // World context changes per turn; a creation-time snapshot loses relay
+      // guidance on resume. Older CLIs without this option render it afresh.
+      ...(this.#supportsPromptSnapshots
+        ? ["--system-prompt-snapshot", "off"]
+        : []),
       "--append-system-prompt",
       [WORLD_COMPLETION_PROMPT, context?.systemMessage]
         .filter(Boolean)
@@ -643,6 +649,7 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
     ];
     if (!requiredHelp.every((item) => help.includes(item)))
       throw claudeFailure("Claude Code CLI contract mismatch", "offline");
+    this.#supportsPromptSnapshots = help.includes("--system-prompt-snapshot");
     if (!this.#options.nativeProfilePath) await this.#attestLocalModel();
 
     return AgentCapabilityManifestSchema.parse({

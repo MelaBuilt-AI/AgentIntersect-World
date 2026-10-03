@@ -555,6 +555,9 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
     text: "hi codex",
     binding: before,
     intent: "discussion",
+    context: {
+      relayMessage: "World relay: address @Claude at the start of your reply.",
+    },
   });
   const abort = new AbortController();
   const cancelled = gateway.sendText(
@@ -572,6 +575,7 @@ it("keeps the same Workstream context on later turns after explicit collaborate 
   await held;
   expect((await queued).finalText).toContain("Hi Aaron");
   expect(contexts.at(-1)).toContain("Discuss as yourself");
+  expect(contexts.at(-1)).toContain("World relay: address @Claude");
   expect(lifecycle.slice(6)).toEqual([
     "start:held work",
     "dispatch",
