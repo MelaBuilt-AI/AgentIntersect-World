@@ -56,6 +56,43 @@ type Fixture = {
 
 const temporaryRoots: string[] = [];
 
+it.each([false, true])(
+  "enables live web research on direct, relay and coding resumes without opening shell networking (native profile: %s)",
+  async (nativeProfile) => {
+    const fixture = await fixtureExecutable();
+    const native = adapter(
+      fixture,
+      nativeProfile ? { nativeProfilePath: fixture.nativeSessionRoot } : {},
+    );
+    const session = await native.createWorldSession("web-research");
+    for (const context of [
+      { mode: "explore" as const },
+      { mode: "explore" as const, systemMessage: "World relay from @Claude" },
+      {
+        mode: "collaborate" as const,
+        workingDirectory: fixture.nativeSessionRoot,
+      },
+    ]) {
+      await native.sendText(
+        session.id,
+        "search and open public documentation",
+        {
+          ...context,
+          rootSessionRef: session.id,
+        },
+      );
+      const { args } = (await fixture.invocations()).at(-1)!;
+      expect(args).toContain('web_search="live"');
+      expect(args[args.indexOf('web_search="live"') - 1]).toBe("-c");
+      expect(args[args.indexOf("--sandbox") + 1]).toBe("workspace-write");
+      expect(args[args.indexOf("resume") + 1]).toBe(session.id);
+      expect(args.join(" ")).not.toMatch(
+        /network_access|danger-full-access|bypass-approvals/,
+      );
+    }
+  },
+);
+
 it("still bounds normalized tool activity independently of text fragments", async () => {
   const fixture = await fixtureExecutable({ toolFlood: true });
   const native = adapter(fixture);
@@ -709,6 +746,8 @@ describe("CodexSessionAdapter", () => {
       'model_reasoning_effort="high"',
       "--sandbox",
       "workspace-write",
+      "-c",
+      'web_search="live"',
       "--json",
       "--skip-git-repo-check",
       "--ignore-user-config",
@@ -722,6 +761,8 @@ describe("CodexSessionAdapter", () => {
       'model_reasoning_effort="high"',
       "--sandbox",
       "workspace-write",
+      "-c",
+      'web_search="live"',
       "--json",
       "--skip-git-repo-check",
       "--ignore-user-config",

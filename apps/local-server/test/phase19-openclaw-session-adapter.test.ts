@@ -451,6 +451,37 @@ describe("OpenClawSessionAdapter", () => {
       gateway.calls.filter((call) => call.method === "sessions.abort"),
     ).toHaveLength(1);
   });
+  it.each(["explore", "collaborate"] as const)(
+    "forwards web research without replacing native tool policy (%s)",
+    async (mode) => {
+      const gateway = await fixtureGateway();
+      const native = adapter(gateway.url);
+      const created = await native.createWorldSession("web-research");
+      await native.sendText(
+        created.id,
+        "Search the web and fetch public documentation",
+        {
+          mode,
+          rootSessionRef: created.rootId,
+          systemMessage: "World relay from @Claude",
+        },
+      );
+      const sent = gateway.calls.find(
+        ({ method }) => method === "sessions.send",
+      )!.params;
+      expect(sent.message).toContain(
+        "Search the web and fetch public documentation",
+      );
+      expect(sent.message).toContain("World relay from @Claude");
+      expect(Object.keys(sent).sort()).toEqual([
+        "idempotencyKey",
+        "key",
+        "message",
+        "timeoutMs",
+      ]);
+    },
+  );
+
   it("carries owned Workstream context to the same native session with a coding deadline", async () => {
     const gateway = await fixtureGateway();
     const native = new OpenClawSessionAdapter({

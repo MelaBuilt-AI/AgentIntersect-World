@@ -881,6 +881,32 @@ async function fakeHermes(options: FakeHermesOptions = {}) {
   };
 }
 
+it.each(["explore", "collaborate"] as const)(
+  "Hermes forwards web research without replacing native tool policy (%s)",
+  async (mode) => {
+    const fixture = await fakeHermes();
+    const adapter = new HermesSessionAdapter({
+      baseUrl: fixture.baseUrl,
+      apiKey: "fixture-key",
+      profile: "default",
+      pluginCapabilityPath: fixture.pluginCapabilityPath,
+    });
+    await adapter.sendText(
+      "20260721_011618_330489c8",
+      "Search the web and fetch public documentation",
+      {
+        mode,
+        systemMessage: "World relay from @Codex",
+      },
+    );
+    const call = fixture.calls.find(({ url }) => url.endsWith("/chat/stream"))!;
+    const body = JSON.parse(call.body);
+    expect(body.message).toBe("Search the web and fetch public documentation");
+    expect(body.system_message).toContain("World relay from @Codex");
+    expect(Object.keys(body).sort()).toEqual(["message", "system_message"]);
+  },
+);
+
 it("Hermes accepts bounded token fragmentation beyond the old raw event count", async () => {
   const fixture = await fakeHermes({ fragmented: true });
   const adapter = new HermesSessionAdapter({
