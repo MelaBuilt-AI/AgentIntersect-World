@@ -72,6 +72,7 @@ import {
 import type { RepositoryCityInstance } from "./repository-city-state.js";
 import { createWorldPointerEvents } from "./world-room-canvas.js";
 
+import { writeAvatarAnimationSample } from "./avatar-animation-observation.js";
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 const WORLD_AGENT_SPAWN_POSITIONS = [
   [-4.2, 0, 0.8],
@@ -1335,8 +1336,9 @@ export function WorldRoomCanvas({
     user: AvatarLod;
     agent: AvatarLod;
   }>({ user: "LOD0", agent: "LOD0" });
-  const [animationSamples, setAnimationSamples] = useState<
-    Readonly<Partial<Record<"user" | "agent", ImportedAvatarAnimationSample>>>
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationSamples = useRef<
+    Partial<Record<"user" | "agent", ImportedAvatarAnimationSample>>
   >({});
   const onAvatarReady = useCallback((role: "user" | "agent", index = 0) => {
     const id = `${role}:${index}`;
@@ -1361,19 +1363,25 @@ export function WorldRoomCanvas({
   );
   const onImportedAnimationSample = useCallback(
     (role: "user" | "agent", sample: ImportedAvatarAnimationSample) => {
-      setAnimationSamples((current) =>
-        current[role]?.mixerRootUuid === sample.mixerRootUuid &&
-        current[role]?.sequence === sample.sequence
-          ? current
-          : { ...current, [role]: sample },
+      const current = animationSamples.current[role];
+      if (
+        current?.mixerRootUuid === sample.mixerRootUuid &&
+        current?.sequence === sample.sequence
+      )
+        return;
+      animationSamples.current[role] = sample;
+      const owner = canvasRef.current?.closest<HTMLElement>(
+        '[data-testid="world-room-canvas"]',
       );
+      if (owner) writeAvatarAnimationSample(owner.dataset, role, sample);
     },
     [],
   );
-  const userAnimationSample = animationSamples.user;
-  const agentAnimationSample = animationSamples.agent;
+  const userAnimationSample = animationSamples.current.user;
+  const agentAnimationSample = animationSamples.current.agent;
   return (
     <Canvas
+      ref={canvasRef}
       events={createWorldPointerEvents}
       {...(screenEventSource ? { eventSource: screenEventSource } : {})}
       eventPrefix="client"

@@ -302,7 +302,11 @@ export function weatherMaterial(positions, uniforms) {
   return material;
 }
 export function terminalRainMaterial(uniforms, props) {
-  const material = new MeshBasicNodeMaterial(props);
+  // These crossed, unlit additive ribbons have no back-to-front surface order.
+  const material = new MeshBasicNodeMaterial({
+    ...props,
+    forceSinglePass: true,
+  });
   const n = {};
   for (const key of Object.keys(uniforms))
     n[key] =
