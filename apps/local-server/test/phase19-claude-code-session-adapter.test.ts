@@ -76,6 +76,53 @@ type Fixture = {
 
 const temporaryRoots: string[] = [];
 
+it.each([false, true])(
+  "permits native web research on every normal resumed turn (native profile: %s)",
+  async (nativeProfile) => {
+    const fixture = await fixtureExecutable();
+    const native = adapter(
+      fixture,
+      nativeProfile ? { nativeProfilePath: fixture.nativeSessionRoot } : {},
+    );
+    const session = await native.createWorldSession("web-research");
+    for (const context of [
+      { mode: "explore" as const },
+      { mode: "explore" as const, systemMessage: "World relay from @Codex" },
+      {
+        mode: "collaborate" as const,
+        workingDirectory: fixture.nativeSessionRoot,
+      },
+    ]) {
+      await native.sendText(
+        session.id,
+        "search and fetch public documentation",
+        {
+          ...context,
+          rootSessionRef: session.id,
+        },
+      );
+      const { args } = (await fixture.invocations()).at(-1)!;
+      expect(args).toContain("--allowedTools");
+      expect(args[args.indexOf("--append-system-prompt") + 1]).toContain(
+        "WebSearch or WebFetch",
+      );
+      const allowed = args[args.indexOf("--allowedTools") + 1]!.split(",");
+      expect(allowed).toEqual(
+        expect.arrayContaining(["WebSearch", "WebFetch"]),
+      );
+      if (args.includes("--tools")) {
+        expect(args[args.indexOf("--tools") + 1]!.split(",")).toEqual(
+          expect.arrayContaining(["WebSearch", "WebFetch"]),
+        );
+      }
+      expect(args[args.indexOf("--permission-mode") + 1]).toBe("dontAsk");
+      expect(args[args.indexOf("--resume") + 1]).toBe(session.id);
+      expect(args).not.toContain("--dangerously-skip-permissions");
+      if (context.mode === "explore") expect(allowed).not.toContain("Write");
+    }
+  },
+);
+
 it("disables supported prompt snapshots on create and every resumed World turn", async () => {
   const fixture = await fixtureExecutable({ promptSnapshots: true });
   const native = adapter(fixture, {
@@ -211,7 +258,7 @@ it.each([false, true])(
       path.join(fixture.nativeSessionRoot, "report only"),
     );
     expect(call.args[call.args.indexOf("--allowedTools") + 1]).toBe(
-      "Read,Glob,Grep,Edit,Write,Bash",
+      "Read,Glob,Grep,Edit,Write,Bash,WebSearch,WebFetch",
     );
     expect(
       call.args[call.args.indexOf("--append-system-prompt") + 1],
@@ -927,13 +974,13 @@ describe("ClaudeCodeSessionAdapter", () => {
       "--verbose",
       "--include-partial-messages",
       "--tools",
-      "Read,Glob,Grep",
+      "Read,Glob,Grep,WebSearch,WebFetch",
       "--allowedTools",
-      "Read,Glob,Grep",
+      "Read,Glob,Grep,WebSearch,WebFetch",
       "--permission-mode",
       "dontAsk",
       "--append-system-prompt",
-      "Complete the user's full request before ending the turn. When read-only inspection is requested, use only Read, Glob, or Grep and continue through the final answer. Do not stop after narrating an intended next step.",
+      "Complete the user's full request before ending the turn. For read-only inspection use Read, Glob, or Grep; for web research use WebSearch or WebFetch. Do not edit files for a read-only request. Report unavailable or denied tools honestly and continue through the final answer. Do not stop after narrating an intended next step.",
       "--disable-slash-commands",
       "--setting-sources",
       "",

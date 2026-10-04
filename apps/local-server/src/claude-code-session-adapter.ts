@@ -39,7 +39,7 @@ const MAX_ATTESTATION_BYTES = 65_536;
 const CREATE_PROMPT =
   "Establish this World-owned session. Reply only with the word ready.";
 const WORLD_COMPLETION_PROMPT =
-  "Complete the user's full request before ending the turn. When read-only inspection is requested, use only Read, Glob, or Grep and continue through the final answer. Do not stop after narrating an intended next step.";
+  "Complete the user's full request before ending the turn. For read-only inspection use Read, Glob, or Grep; for web research use WebSearch or WebFetch. Do not edit files for a read-only request. Report unavailable or denied tools honestly and continue through the final answer. Do not stop after narrating an intended next step.";
 
 function repositoryRelativeLocator(
   locator: AdapterTurnEvent["repositoryLocator"],
@@ -307,17 +307,17 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         : coding
           ? [
               "--tools",
-              "Read,Glob,Grep,Edit,Write,Bash",
+              "Read,Glob,Grep,Edit,Write,Bash,WebSearch,WebFetch",
               "--allowedTools",
-              "Read,Glob,Grep,Edit,Write,Bash",
+              "Read,Glob,Grep,Edit,Write,Bash,WebSearch,WebFetch",
             ]
           : this.#options.nativeProfilePath
-            ? []
+            ? ["--allowedTools", "WebSearch,WebFetch"]
             : [
                 "--tools",
-                "Read,Glob,Grep",
+                "Read,Glob,Grep,WebSearch,WebFetch",
                 "--allowedTools",
-                "Read,Glob,Grep",
+                "Read,Glob,Grep,WebSearch,WebFetch",
               ]),
       ...(coding && context.evidenceDirectory
         ? ["--add-dir", context.evidenceDirectory]
@@ -677,7 +677,8 @@ export class ClaudeCodeSessionAdapter implements AgentAdapter {
         worldActions: false,
       },
       unavailable: {
-        approvals: "Claude Code tools and approvals are disabled in World.",
+        approvals:
+          "Claude Code interactive approval prompts are unavailable in World; explicitly allowed tools can run.",
         interrupt:
           "Cancellation is bound to the active turn; no completed run remains interruptible.",
         avatarProposal: "Claude Code does not provide World avatar proposals.",

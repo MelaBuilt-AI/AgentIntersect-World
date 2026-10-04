@@ -299,6 +299,8 @@ export class CodexSessionAdapter implements AgentAdapter {
         : ["--model", CODEX_MODEL, "-c", CODEX_REASONING]),
       "--sandbox",
       "workspace-write",
+      "-c",
+      'web_search="live"',
       "--json",
       "--skip-git-repo-check",
       ...(this.#options.nativeProfilePath ? [] : ["--ignore-user-config"]),

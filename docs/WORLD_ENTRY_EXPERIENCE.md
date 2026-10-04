@@ -118,6 +118,16 @@ Hermes and OpenClaw resolve an existing local harness identity. They must not cr
 
 Codex and Claude use the entered name as the World agent identity. Capability truth still determines whether connection is available.
 
+### Web research in normal turns
+
+World enables Claude Code's native `WebSearch` and `WebFetch` for direct discussion, resumed/relayed discussion and authorized coding turns. Native-profile discussion preserves the profile's other tool definitions; isolated discussion remains read-only apart from web research. Noninteractive permission handling remains `dontAsk`, and explicit native denies are not bypassed. Tool-free recovery checkpoints remain tool-free.
+
+Codex normal turns explicitly request `web_search="live"` while retaining `workspace-write`. Its native web tool handles search and page opening; World does not enable arbitrary shell networking or change the selected model/profile.
+
+Hermes and OpenClaw continue using their connected runtime's tools and provider configuration. World forwards research requests without replacing those policies. An enabled tool is not proof of an available search provider: missing credentials/provider support, native denies, and individual site failures must be reported honestly. World does not silently install providers, change global native settings or work around a denied tool.
+
+For this slice's implementation and separately classified native/manual verification, see [Web research continuation](internal/WEB_RESEARCH_CONTINUATION.md).
+
 A Hermes/OpenClaw miss:
 
 - types exactly `agent not found_`;
