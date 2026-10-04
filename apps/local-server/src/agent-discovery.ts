@@ -168,6 +168,50 @@ export function installationId(
     .slice(0, 32);
 }
 
+const VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+
+/** Version from the nearest package.json (npm installs) or a versioned file name (Claude). */
+async function installedVersion(resolved: string): Promise<string | undefined> {
+  if (VERSION.test(path.basename(resolved))) return path.basename(resolved);
+  let directory = path.dirname(resolved);
+  for (let depth = 0; depth < 3; depth += 1) {
+    try {
+      const { version } = JSON.parse(
+        await readFile(path.join(directory, "package.json"), "utf8"),
+      ) as { version?: unknown };
+      if (typeof version === "string" && VERSION.test(version)) return version;
+    } catch {
+      /* No readable package.json here: keep walking up. */
+    }
+    directory = path.dirname(directory);
+  }
+  return undefined;
+}
+
+function compareVersions(a?: string, b?: string): number {
+  if (!a || !b) return a ? 1 : b ? -1 : 0;
+  const parts = (value: string) =>
+    value.split(/[-+]/)[0]!.split(".").map(Number);
+  const [left, right] = [parts(a), parts(b)];
+  for (let i = 0; i < 3; i += 1)
+    if (left[i] !== right[i]) return left[i]! - right[i]!;
+  return 0;
+}
+
+/** Newest version first within each harness/environment; group order is kept. */
+export function newestFirst(
+  installations: readonly AgentInstallation[],
+): AgentInstallation[] {
+  const groups = new Map<string, AgentInstallation[]>();
+  for (const item of installations) {
+    const key = `${item.environment.id}\u0000${item.adapterId}`;
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  }
+  return [...groups.values()].flatMap((group) =>
+    group.sort((a, b) => compareVersions(b.version, a.version)),
+  );
+}
+
 /** Bounded metadata inspection only: never invoke a harness or source a shell profile. */
 export async function discoverLocalAgents(options: {
   readonly home: string;
@@ -205,6 +249,7 @@ export async function discoverLocalAgents(options: {
           if (seen.has(resolvedTarget) || seen.size >= 32) continue;
           seen.add(resolvedTarget);
           const executablePath = filename;
+          const version = await installedVersion(resolvedTarget);
           result.push({
             id: installationId(
               options.environment.id,
@@ -215,6 +260,7 @@ export async function discoverLocalAgents(options: {
             environment: options.environment,
             executablePath,
             canonicalExecutablePath: resolvedTarget,
+            ...(version ? { version } : {}),
             homePath: options.home,
             identities: await nativeIdentities(adapterId, options.home),
             status: "found",
@@ -256,6 +302,7 @@ function foreignInstallations(
       adapterId: SetupHarness;
       executablePath: string;
       canonicalExecutablePath?: string;
+      version?: string;
       identities: NativeIdentity[];
     }[];
   };
@@ -293,6 +340,9 @@ function foreignInstallations(
       executablePath: item.executablePath,
       ...(typeof item.canonicalExecutablePath === "string"
         ? { canonicalExecutablePath: item.canonicalExecutablePath }
+        : {}),
+      ...(typeof item.version === "string" && VERSION.test(item.version)
+        ? { version: item.version }
         : {}),
       homePath: value.home,
       identities: item.identities,
@@ -481,7 +531,7 @@ export async function discoverAgents(
     return true;
   });
   return {
-    installations: unique,
+    installations: newestFirst(unique),
     environments: [...new Map(environments.map((e) => [e.id, e])).values()],
     ...(defaultWslDistro ? { defaultWslDistro } : {}),
     ...(host.distro ? { currentWslDistro: host.distro } : {}),

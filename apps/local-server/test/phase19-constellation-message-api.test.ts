@@ -22,7 +22,9 @@ afterEach(async () => {
 async function fixture() {
   const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), "aiw-message-api-"));
   roots.push(stateRoot);
+  let available = true;
   const lifecycle: ConstellationLifecyclePort = {
+    isBindingAvailable: () => available,
     validateBinding: async (binding) => ({ ...binding, continuity: "current" }),
     endWorldSession: async () => undefined,
   };
@@ -69,10 +71,53 @@ async function fixture() {
     constellationMessageService: messages,
   });
   servers.push(server);
-  return { server, sendText };
+  return {
+    server,
+    sendText,
+    setAvailable: (value: boolean) => {
+      available = value;
+    },
+  };
 }
 
 describe("Phase 19 constellation message API", () => {
+  it("retains a named unavailable-agent result without invoking a native agent", async () => {
+    const { server, sendText, setAvailable } = await fixture();
+    setAvailable(false);
+    const requestId = "20000000-0000-4000-8000-000000000008";
+    const payload = {
+      requestId,
+      idempotencyKey: "unavailable-proof",
+      text: "@Hermes you there?",
+    };
+    const created = await server.inject({
+      method: "POST",
+      url: "/constellation/messages",
+      payload,
+    });
+    expect(created.statusCode).toBe(201);
+    expect(created.json().data.recipients).toEqual([
+      expect.objectContaining({
+        state: "failed",
+        finalText: null,
+        errorLabel:
+          "Hermes is unavailable in World; reconnect that agent before messaging it",
+      }),
+    ]);
+    const restored = await server.inject({
+      method: "GET",
+      url: `/constellation/messages/${requestId}`,
+    });
+    expect(restored.json().data).toEqual(created.json().data);
+    setAvailable(true);
+    const replay = await server.inject({
+      method: "POST",
+      url: "/constellation/messages",
+      payload,
+    });
+    expect(replay.json().data).toEqual(created.json().data);
+    expect(sendText).not.toHaveBeenCalled();
+  });
   it.each(["discussion", "work"] as const)(
     "accepts the browser's explicit %s intent and dispatches it",
     async (intent) => {

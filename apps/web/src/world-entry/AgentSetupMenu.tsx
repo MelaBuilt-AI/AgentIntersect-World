@@ -20,7 +20,28 @@ type AttachInput = {
   identityId: string;
   displayName: string;
   conversationRef?: string | undefined;
+  replaceConnectionId?: string | undefined;
 };
+
+/** A newer discovered install of the same harness and environment, if the saved one is older. */
+function newerInstallation(
+  registration: AgentRegistration,
+  discovery: DiscoveryResult | null,
+): AgentInstallation | undefined {
+  const same = (discovery?.installations ?? []).filter(
+    (i) =>
+      i.adapterId === registration.adapterId &&
+      i.environment.id === registration.environment.id &&
+      i.identities.some((identity) => identity.id === registration.identity.id),
+  );
+  const newest = same[0];
+  const saved = same.find((i) => i.id === registration.installationId);
+  return newest?.version &&
+    newest.id !== registration.installationId &&
+    newest.version !== saved?.version
+    ? newest
+    : undefined;
+}
 const harnesses: readonly { id: SetupHarness; label: string }[] = [
   { id: "hermes", label: "Hermes" },
   { id: "openclaw", label: "OpenClaw" },
@@ -98,7 +119,10 @@ function InstallationForm({
             ? (check?.message ?? "Saved — Recheck to verify connection")
             : "Found — not attached"}
         </span>
-        <code className="agent-setup-path">{installation.executablePath}</code>
+        <code className="agent-setup-path">
+          {installation.executablePath}
+          {installation.version ? ` · v${installation.version}` : ""}
+        </code>
         <label>
           Native identity
           <select
@@ -246,7 +270,8 @@ function EnvironmentInstallations({
             >
               {candidates.map((i) => (
                 <option key={i.id} value={i.id}>
-                  {i.executablePath} · {i.homePath}
+                  {i.executablePath}
+                  {i.version ? ` · v${i.version}` : ""} · {i.homePath}
                 </option>
               ))}
             </select>
@@ -517,6 +542,28 @@ export function AgentSetupMenu({
                           "Saved — connection readiness is checked before use")}
                     </small>
                   </div>
+                  {(() => {
+                    const newer = newerInstallation(registration, discovery);
+                    return newer ? (
+                      <button
+                        type="button"
+                        className="agent-setup-secondary"
+                        disabled={busy}
+                        title={newer.executablePath}
+                        onClick={() =>
+                          onAttach({
+                            installationId: newer.id,
+                            identityId: registration.identity.id,
+                            displayName: registration.displayName,
+                            conversationRef: registration.conversationRef,
+                            replaceConnectionId: registration.id,
+                          })
+                        }
+                      >
+                        Use v{newer.version}
+                      </button>
+                    ) : null;
+                  })()}
                   <button
                     type="button"
                     className="agent-setup-secondary"

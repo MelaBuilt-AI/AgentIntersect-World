@@ -4,6 +4,7 @@ import type { Group, Texture } from "three";
 import { useCodeTexture } from "./code-world-texture.js";
 import type { WeatherStrikeHandler } from "./environment-weather-model.js";
 import { WorldLighting } from "./world-sun.js";
+import { WorldWeatherLight } from "./environment-weather.js";
 import { WorldEnvironment } from "./world-environment.js";
 import { ScenicEnvironment } from "./scenic-environment.js";
 import {
@@ -154,7 +155,7 @@ export function EnvironmentLayer({
       !!item && items.indexOf(item) === index,
   );
   return (
-    <>
+    <WorldWeatherLight>
       {graphics.bloom || graphics.antialiasing ? (
         <WorldBloom
           bloom={graphics.bloom}
@@ -195,6 +196,6 @@ export function EnvironmentLayer({
         reducedMotion={reducedMotion}
       />
       <WorldLighting recipe={resources?.recipe ?? null} floor={floor} />
-    </>
+    </WorldWeatherLight>
   );
 }

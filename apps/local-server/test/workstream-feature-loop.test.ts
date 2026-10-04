@@ -629,6 +629,51 @@ describe("Workstream feature loop", () => {
     }
   });
 
+  it("releases an idle agent binding, but keeps the worktree, when another repository loads", async () => {
+    const value = await fixture();
+    const created = (await value.service.create(createRequest())).workstream;
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+
+    expect(
+      await value.service.releaseForRepository(repository.repositoryId),
+    ).toBe(false);
+    expect(value.port.unbind).not.toHaveBeenCalled();
+
+    expect(await value.service.releaseForRepository("other-repository")).toBe(
+      true,
+    );
+    expect(value.port.unbind).toHaveBeenCalledWith({
+      agentId: selectedAgent.agentId,
+      worktreeRef: created.authority.worktreeId,
+      taskRef: created.workstreamId,
+    });
+    expect(value.port.current(selectedAgent.agentId)?.currentTaskRef).toBe(
+      null,
+    );
+    expect(
+      await readdir(join(value.worktrees, created.authority.relativePath)),
+    ).toContain("src");
+    expect((await value.service.current())?.workstreamId).toBe(
+      created.workstreamId,
+    );
+  });
+
+  it("keeps the binding of an agent that is still running a turn", async () => {
+    const options = { busy: false };
+    const value = await fixture(options);
+    await value.service.create(createRequest());
+    await vi.waitFor(async () =>
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
+    );
+    options.busy = true;
+    expect(await value.service.releaseForRepository("other-repository")).toBe(
+      false,
+    );
+    expect(value.port.unbind).not.toHaveBeenCalled();
+  });
+
   it("rejects an empty task or busy Explore turn before allocating a worktree", async () => {
     const value = await fixture({ busy: true });
     await expect(value.service.create(createRequest())).rejects.toMatchObject({

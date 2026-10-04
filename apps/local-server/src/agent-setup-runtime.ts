@@ -232,7 +232,10 @@ export function createAgentSetupRuntime(options: {
     },
     async check(registration: AgentRegistration): Promise<SetupCheck> {
       try {
-        const adapter = await adapterFor(registration);
+        let adapter = await adapterFor(
+          registration,
+          registration.adapterId !== "codex",
+        );
         const capability = await adapter.attest();
         if (
           !capability.capabilities.attach ||
@@ -269,7 +272,16 @@ export function createAgentSetupRuntime(options: {
             );
           }
         }
+        const cached = adapters.get(registration.id);
+        if (
+          adapter instanceof CodexSessionAdapter &&
+          cached instanceof CodexSessionAdapter
+        ) {
+          cached.useInstallation(adapter);
+          adapter = cached;
+        }
         options.registry.registerConnection(registration.id, adapter);
+        adapters.set(registration.id, adapter);
         return {
           status: "ready",
           message:

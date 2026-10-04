@@ -237,6 +237,50 @@ it("scans Windows and running WSL separately, labels stopped distributions, and 
   );
 });
 
+it("reads CLI versions from install metadata and lists the newest install first", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "aiw-discovery-versions-"));
+  roots.push(root);
+  const install = async (name: string, version: string) => {
+    const pkg = path.join(
+      root,
+      name,
+      "lib",
+      "node_modules",
+      "@openai",
+      "codex",
+    );
+    await mkdir(path.join(pkg, "bin"), { recursive: true });
+    await writeFile(
+      path.join(pkg, "package.json"),
+      JSON.stringify({ name: "@openai/codex", version }),
+    );
+    const script = path.join(pkg, "bin", "codex.js");
+    await writeFile(script, "#!/bin/sh\nexit 0\n");
+    await chmod(script, 0o700);
+    const bin = path.join(root, name, "bin");
+    await mkdir(bin);
+    await symlink(script, path.join(bin, "codex"));
+    return bin;
+  };
+  const old = await install("system", "0.157.0");
+  const current = await install("user", "0.159.2");
+  const { discoverLocalAgents, newestFirst } =
+    await import("../src/agent-discovery.js");
+
+  const found = newestFirst(
+    await discoverLocalAgents({
+      home: root,
+      searchPath: [old, current].join(path.delimiter),
+      environment: { id: "local", kind: "linux" as const, label: "Linux" },
+    }),
+  ).filter((item) => item.adapterId === "codex");
+
+  expect(found.map((item) => [item.executablePath, item.version])).toEqual([
+    [path.join(current, "codex"), "0.159.2"],
+    [path.join(old, "codex"), "0.157.0"],
+  ]);
+});
+
 it("saves the stable launcher path rather than pinning a symlink's versioned target", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "aiw-discovery-update-"));
   roots.push(root);

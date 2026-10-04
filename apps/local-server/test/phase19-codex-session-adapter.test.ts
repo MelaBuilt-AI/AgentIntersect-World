@@ -417,6 +417,42 @@ async function waitForProcessExit(pid: number): Promise<void> {
 }
 
 describe("CodexSessionAdapter", () => {
+  it("switches the CLI for the next turn without replacing sessions or an in-flight turn", async () => {
+    const fixture = await fixtureExecutable({ failure: "delay" });
+    const codex = adapter(fixture);
+    const created = await codex.createWorldSession("installation-switch");
+    const newerExecutable = path.join(
+      fixture.nativeSessionRoot,
+      "new-codex.mjs",
+    );
+    await writeFile(
+      newerExecutable,
+      (await readFile(fixture.executablePath, "utf8")).replaceAll(
+        "fixture complete",
+        "new CLI complete",
+      ),
+      { mode: 0o700 },
+    );
+    const first = codex.sendText(created.id, "before switch", {
+      mode: "explore",
+    });
+    await waitForInvocationCount(fixture, 2);
+    codex.useInstallation(
+      adapter(fixture, { executablePath: newerExecutable }),
+    );
+    await expect(
+      codex.sendText(created.id, "overlap", { mode: "explore" }),
+    ).rejects.toThrow(/active turn/i);
+    expect((await first).finalText).toBe("fixture complete");
+    expect(await codex.listSessions()).toEqual([created]);
+    expect(
+      (await codex.sendText(created.id, "after switch", { mode: "explore" }))
+        .finalText,
+    ).toBe("new CLI complete");
+    await codex.endWorldSession("installation-switch", created.id);
+    expect(await codex.listSessions()).toEqual([]);
+  });
+
   it.each(["0.146.0", "0.153.4", "99.0.0-next.1"])(
     "accepts compatible Codex version %s without a release allowlist",
     async (version) => {

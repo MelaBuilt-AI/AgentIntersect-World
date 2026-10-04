@@ -200,6 +200,23 @@ describe("Phase 19 durable constellation service", () => {
     ).rejects.toMatchObject({ code: "conflict" });
   });
 
+  it("seats a saved agent connection only once", async () => {
+    const service = await ConstellationService.open({
+      directory: directory(),
+      lifecycle: lifecyclePort({
+        connectionOf: (worldSessionId) =>
+          worldSessionId === "world-session-3" ? null : "saved-fluff",
+      }),
+      worldInstanceId: "world-one",
+    });
+    await add(service, 1, "hermes");
+    await expect(add(service, 2, "hermes")).rejects.toMatchObject({
+      code: "conflict",
+      message: "This saved agent is already in this World",
+    });
+    await expect(add(service, 3, "hermes", 1)).resolves.toBeTruthy();
+  });
+
   it("enforces expected revision and byte-equivalent idempotency replay", async () => {
     const service = await ConstellationService.open({
       directory: directory(),

@@ -2271,6 +2271,8 @@ export class AgentSessionGateway {
       readonly context?: {
         readonly userDisplayName?: string;
         readonly systemMessage?: string;
+        /** Server-owned constellation guidance, independent of Workstream paths. */
+        readonly relayMessage?: string;
       };
     },
     options: {
@@ -2375,6 +2377,7 @@ export class AgentSessionGateway {
         : undefined;
       const workstreamSystemMessage = [
         ownedSystemMessage,
+        request.context?.relayMessage,
         nativeGit && Object.keys(nativeGit).length
           ? `For Git commands in this owned worktree, use these target-native per-command environment variables: ${JSON.stringify(nativeGit)}. CLI launches already inherit them; HTTP-connected agents must pass them to repository commands and delegated workers. Do not rewrite the linked .git file or change global Git configuration.`
           : undefined,
