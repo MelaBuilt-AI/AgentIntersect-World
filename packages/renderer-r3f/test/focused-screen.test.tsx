@@ -26,6 +26,64 @@ vi.mock("@react-three/fiber", () => ({
 vi.mock("../src/code-world-texture.js", () => ({ useCodeTexture: () => null }));
 import { WorldScreens } from "../src/world-screens.js";
 
+it("reads canvas bounds once before screen writes on identical frames", () => {
+  frames.length = 0;
+  const camera = new PerspectiveCamera(50, 1.6, 0.1, 1000);
+  camera.updateMatrixWorld();
+  const events: string[] = [];
+  const element = () => ({
+    style: new Proxy({} as Record<string, string>, {
+      set(target, key, value) {
+        events.push("write");
+        Reflect.set(target, key, value);
+        return true;
+      },
+    }),
+    dataset: new Proxy({} as Record<string, string>, {
+      set(target, key, value) {
+        events.push("write");
+        Reflect.set(target, key, value);
+        return true;
+      },
+    }),
+    inert: false,
+  });
+  const screens = ["code", "workbench"].map(
+    (id) =>
+      ({
+        id,
+        spatial: true,
+        width: 880,
+        height: 480,
+        pose: { x: 0, y: 2.6, z: id === "code" ? -18 : -22, yaw: 0 },
+        viewport: element(),
+        cameraElement: element(),
+        element: element(),
+      }) as unknown as WorldScreenBinding,
+  );
+  const getBoundingClientRect = vi.fn(() => {
+    events.push("read");
+    return { left: 0, top: 0, width: 1440, height: 900 };
+  });
+  state.value = {
+    camera,
+    size: { width: 1440, height: 900 },
+    invalidate: vi.fn(),
+    gl: { domElement: { getBoundingClientRect } },
+  };
+  WorldScreens({ screens });
+  const frame = frames.find(
+    (entry: { priority: number }) => entry.priority === -1,
+  )!.callback;
+  for (let index = 0; index < 2; index++) {
+    events.length = 0;
+    frame();
+    expect(getBoundingClientRect).toHaveBeenCalledTimes(index + 1);
+    expect(events[0]).toBe("read");
+    expect(events.slice(1)).toContain("write");
+  }
+});
+
 it("shows intermediate reveal frames even when the first render is delayed", () => {
   frames.length = 0;
   const camera = new PerspectiveCamera(50, 1.6, 0.1, 1000);

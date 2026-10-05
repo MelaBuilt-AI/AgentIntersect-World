@@ -23,15 +23,18 @@ import {
   type RootStore,
 } from "@react-three/fiber";
 import {
+  useWorldUserMotion,
+  type LiveWorldUserPosition,
+} from "./world-user-motion.js";
+import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { Group, InstancedMesh, Matrix4, Vector3 } from "three";
+import { Group, InstancedMesh, Matrix4 } from "three";
 
 import {
   AvatarKitWorldModel,
@@ -611,6 +614,7 @@ function WorldRoomScene({
   selectedCityInstanceId,
   cityFocusPosition,
   userPosition,
+  liveUserPosition,
   camera: cameraLook,
   activity,
   agentActivities,
@@ -646,6 +650,7 @@ function WorldRoomScene({
   readonly selectedCityInstanceId: string | null;
   readonly cityFocusPosition: Readonly<{ x: number; z: number }> | null;
   readonly userPosition: Readonly<{ x: number; z: number }>;
+  readonly liveUserPosition?: LiveWorldUserPosition | undefined;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
   readonly agentActivities?: readonly WorldRoomActivity[];
@@ -707,30 +712,29 @@ function WorldRoomScene({
     () => calculateRepositoryTransform(objects),
     [objects],
   );
-  // R3F commits avatar transforms before drawing. Keep its follow-camera in
-  // that same commit: a passive effect can leave one frame at the old position.
-  useLayoutEffect(() => {
-    const pose = calculateWorldCameraPose({
-      userPosition: cityFocusPosition ?? userPosition,
-      camera: cameraLook,
-      agentCount: renderedAgentAvatars.length,
-      viewportAspect: size.width / Math.max(size.height, 1),
-    });
-    camera.position.set(...pose.position);
-    camera.lookAt(new Vector3().fromArray(pose.target));
-    camera.updateProjectionMatrix();
-    camera.updateMatrixWorld();
-    invalidate();
-  }, [
-    camera,
-    cameraLook,
-    cityFocusPosition,
-    invalidate,
-    renderedAgentAvatars.length,
-    size.height,
-    size.width,
+  const cameraPose = useMemo(
+    () =>
+      calculateWorldCameraPose({
+        userPosition: cityFocusPosition ?? userPosition,
+        camera: cameraLook,
+        agentCount: renderedAgentAvatars.length,
+        viewportAspect: size.width / Math.max(size.height, 1),
+      }),
+    [
+      cameraLook,
+      cityFocusPosition,
+      renderedAgentAvatars.length,
+      size.height,
+      size.width,
+      userPosition,
+    ],
+  );
+  const userMotion = useWorldUserMotion({
     userPosition,
-  ]);
+    liveUserPosition,
+    pose: cameraPose,
+    followUser: cityFocusPosition === null,
+  });
   useEffect(() => {
     gl.domElement.dataset.cameraMode = "third-person";
     gl.domElement.dataset.cameraFocus = cityFocusPosition
@@ -865,8 +869,24 @@ function WorldRoomScene({
         onMaterializationStart={onMaterializationStart}
         reducedMotion={reducedMotion}
       >
-        {avatarMotion.lightweight ? (
-          <LightweightAvatarMotion phase={0}>
+        <group name="world-user-motion" ref={userMotion}>
+          {avatarMotion.lightweight ? (
+            <LightweightAvatarMotion phase={0}>
+              <AvatarKitWorldModel
+                asset="/assets/avatar/aiw-avatar-kit.glb"
+                role="user"
+                selection={userAvatar}
+                action={userAction}
+                layerState={userLayerState}
+                animate={avatarMotion.skeletal}
+                position={[userPosition.x, 0, userPosition.z]}
+                rotation={[0, controlledAvatarYaw, 0]}
+                scale={AVATARS[0].scale}
+                onReady={onAvatarReady}
+                onLodChange={onAvatarLodChange}
+              />
+            </LightweightAvatarMotion>
+          ) : (
             <AvatarKitWorldModel
               asset="/assets/avatar/aiw-avatar-kit.glb"
               role="user"
@@ -880,22 +900,8 @@ function WorldRoomScene({
               onReady={onAvatarReady}
               onLodChange={onAvatarLodChange}
             />
-          </LightweightAvatarMotion>
-        ) : (
-          <AvatarKitWorldModel
-            asset="/assets/avatar/aiw-avatar-kit.glb"
-            role="user"
-            selection={userAvatar}
-            action={userAction}
-            layerState={userLayerState}
-            animate={avatarMotion.skeletal}
-            position={[userPosition.x, 0, userPosition.z]}
-            rotation={[0, controlledAvatarYaw, 0]}
-            scale={AVATARS[0].scale}
-            onReady={onAvatarReady}
-            onLodChange={onAvatarLodChange}
-          />
-        )}
+          )}
+        </group>
         {renderedAgentAvatars.map((_, index) => {
           const state = agentStates?.[index];
           const position = state
@@ -993,6 +999,7 @@ export function WorldRoomCanvas({
   selectedCityInstanceId,
   cityFocusPosition,
   userPosition,
+  liveUserPosition,
   camera,
   activity,
   agentActivities,
@@ -1026,6 +1033,7 @@ export function WorldRoomCanvas({
   readonly selectedCityInstanceId: string | null;
   readonly cityFocusPosition: Readonly<{ x: number; z: number }> | null;
   readonly userPosition: Readonly<{ x: number; z: number }>;
+  readonly liveUserPosition?: LiveWorldUserPosition | undefined;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
   readonly agentActivities?: readonly WorldRoomActivity[];
@@ -1187,6 +1195,7 @@ export function WorldRoomCanvas({
           selectedCityInstanceId={selectedCityInstanceId}
           cityFocusPosition={cityFocusPosition}
           userPosition={userPosition}
+          liveUserPosition={liveUserPosition}
           camera={camera}
           activity={activity}
           {...(agentActivities ? { agentActivities } : {})}

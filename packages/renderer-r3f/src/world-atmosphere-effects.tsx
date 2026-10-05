@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { createWorldPipeline, createWetFloor } from "./world-postprocessing.js";
 
@@ -56,12 +56,18 @@ export function WorldWetFloor({ size }: { readonly size: number }) {
   const reflection = useMemo(
     () =>
       createWetFloor(
-        size,
+        1,
         resolution /
           (Math.max(viewport.width, viewport.height) * gl.getPixelRatio()),
       ),
-    [size, resolution, viewport.width, viewport.height, gl],
+    [resolution, viewport.width, viewport.height, gl],
   );
+  useLayoutEffect(() => {
+    // Walking expands the floor frequently. Resize its plane, not the warmed
+    // reflector, render target, node material and reflected SunLight atlas.
+    reflection.mesh.scale.set(size, size, 1);
+    invalidate();
+  }, [reflection, size, invalidate]);
   useEffect(() => {
     gl.domElement.dataset.worldReflections = "on";
     invalidate();

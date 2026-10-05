@@ -24,6 +24,49 @@ export function createRepositoryFogDepth() {
   const opaque = new MeshBasicMaterial({ color: "#ffffff" });
   opaque.fog = false;
   opaque.toneMapped = false;
+  const hidden: Object3D[] = [];
+  const replacedMeshes: Mesh[] = [];
+  const replacedMaterials: (Material | Material[])[] = [];
+  const skipsDepth = (material: Material) => !material.depthWrite;
+  const usesPlainDepth = (material: Material) =>
+    (material instanceof MeshStandardMaterial ||
+      material instanceof MeshBasicMaterial) &&
+    !material.transparent &&
+    material.opacity === 1 &&
+    material.alphaTest === 0 &&
+    material.depthTest &&
+    material.side === opaque.side &&
+    material.onBeforeCompile === Material.prototype.onBeforeCompile;
+  // This traversal runs every frame, including on bones/groups with no
+  // material. Avoid temporary material arrays and replacement tuples per node.
+  const prepareDepthObject = (object: Object3D) => {
+    const material = (object as Mesh).material;
+    if (
+      object.visible &&
+      (("isLight" in object && object.isLight) ||
+        object.name === "repository-local-atmosphere" ||
+        object.name === "world-wet-floor-reflection" ||
+        object.name.startsWith("repository-terminal-rain:") ||
+        (material &&
+          (Array.isArray(material)
+            ? material.every(skipsDepth)
+            : skipsDepth(material))))
+    ) {
+      hidden.push(object);
+      object.visible = false;
+    } else if (
+      object instanceof Mesh &&
+      material &&
+      (Array.isArray(material)
+        ? material.every(usesPlainDepth)
+        : usesPlainDepth(material))
+    ) {
+      // Keep custom arrival/discard shaders and alpha masks exactly as-is.
+      replacedMeshes.push(object);
+      replacedMaterials.push(material);
+      object.material = opaque;
+    }
+  };
 
   // Compilation must see exactly the same target, camera, lighting and
   // arrival/discard materials as the later depth draw, not the main compositor.
@@ -41,41 +84,7 @@ export function createRepositoryFogDepth() {
     });
     target.texture.name = "repository-fog-scene";
     target.setSize(size.x, size.y);
-    const hidden: Object3D[] = [];
-    const replaced: [Mesh, Material | Material[]][] = [];
-    scene.traverse((object) => {
-      const material = (object as Mesh).material;
-      const materials = Array.isArray(material) ? material : [material];
-      if (
-        object.visible &&
-        (("isLight" in object && object.isLight) ||
-          object.name === "repository-local-atmosphere" ||
-          object.name === "world-wet-floor-reflection" ||
-          object.name.startsWith("repository-terminal-rain:") ||
-          (material && materials.every((item) => !item.depthWrite)))
-      ) {
-        hidden.push(object);
-        object.visible = false;
-      } else if (
-        object instanceof Mesh &&
-        material &&
-        materials.every(
-          (item) =>
-            (item instanceof MeshStandardMaterial ||
-              item instanceof MeshBasicMaterial) &&
-            !item.transparent &&
-            item.opacity === 1 &&
-            item.alphaTest === 0 &&
-            item.depthTest &&
-            item.side === opaque.side &&
-            item.onBeforeCompile === Material.prototype.onBeforeCompile,
-        )
-      ) {
-        // Keep custom arrival/discard shaders and alpha masks exactly as-is.
-        replaced.push([object, material]);
-        object.material = opaque;
-      }
-    });
+    scene.traverse(prepareDepthObject);
     const previous = gl.getRenderTarget();
     const autoClear = gl.autoClear;
     const shadowAutoUpdate = gl.shadowMap.autoUpdate;
@@ -91,7 +100,12 @@ export function createRepositoryFogDepth() {
       gl.autoClear = autoClear;
       gl.shadowMap.autoUpdate = shadowAutoUpdate;
       for (const object of hidden) object.visible = true;
-      for (const [object, material] of replaced) object.material = material;
+      for (let i = 0; i < replacedMeshes.length; i++) {
+        replacedMeshes[i]!.material = replacedMaterials[i]!;
+      }
+      hidden.length = 0;
+      replacedMeshes.length = 0;
+      replacedMaterials.length = 0;
     }
   };
   return {

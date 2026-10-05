@@ -475,6 +475,7 @@ export function WorldRoom({
     "context-lost" | "load-or-render-error" | "loading-deferred" | null
   >(null);
   const [userPosition, setUserPosition] = useState({ x: 0, z: 0 });
+  const liveUserPosition = useRef({ x: 0, z: 0 });
   const renderedAgents = (
     agentAvatars?.length
       ? agentAvatars
@@ -1603,6 +1604,7 @@ export function WorldRoom({
     )
       return;
     let frame = 0;
+    let lastPublishedAt = -Infinity;
     const tick = (timestamp: number) => {
       const previous = lastFrame.current ?? timestamp;
       lastFrame.current = timestamp;
@@ -1612,23 +1614,32 @@ export function WorldRoom({
       if (
         pressedKeys.current.size > 0 &&
         !isEditableWorldTarget(document.activeElement)
-      )
-        setUserPosition((position) =>
-          moveWorldPosition({
-            position,
-            keys: [...pressedKeys.current],
-            yaw: cameraRef.current.yaw,
-            elapsedSeconds,
-            sprint: pressedKeys.current.has("shift"),
-            floorSize: floorSizeRef.current,
-          }),
-        );
+      ) {
+        const position = moveWorldPosition({
+          position: liveUserPosition.current,
+          keys: [...pressedKeys.current],
+          yaw: cameraRef.current.yaw,
+          elapsedSeconds,
+          sprint: pressedKeys.current.has("shift"),
+          floorSize: floorSizeRef.current,
+        });
+        // The render loop can consume this sample immediately, independently
+        // of when React commits the matching UI/controller snapshot.
+        liveUserPosition.current = position;
+        // Diagnostic candidate: isolate broad React publication from the
+        // full-rate live camera/avatar path without reducing render quality.
+        if (timestamp - lastPublishedAt >= 100) {
+          lastPublishedAt = timestamp;
+          setUserPosition(position);
+        }
+      }
       frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
     return () => {
       window.cancelAnimationFrame(frame);
       lastFrame.current = null;
+      setUserPosition(liveUserPosition.current);
     };
   }, [movementPhase]);
 
@@ -2727,6 +2738,7 @@ export function WorldRoom({
                   selectedCityInstanceId={selectedCityInstanceId}
                   cityFocusPosition={cityFocusPosition}
                   userPosition={userPosition}
+                  liveUserPosition={liveUserPosition}
                   camera={camera}
                   activity={activity}
                   agentActivities={renderedAgentActivities}
@@ -2794,6 +2806,7 @@ export function WorldRoom({
                   selectedCityInstanceId={selectedCityInstanceId}
                   cityFocusPosition={cityFocusPosition}
                   userPosition={userPosition}
+                  liveUserPosition={liveUserPosition}
                   camera={camera}
                   activity={activity}
                   agentActivities={renderedAgentActivities}

@@ -306,6 +306,10 @@ export function WorldScreens({
     const ranks = new Map(
       depthOrder.map(({ screen }, index) => [screen.id, index + 1]),
     );
+    const hasSpatialScreens = screens.some((screen) => screen.spatial);
+    const bounds = hasSpatialScreens
+      ? gl.domElement.getBoundingClientRect()
+      : { left: 0, top: 0 };
     for (const screen of screens) {
       let reveal = 1;
       if (screen.revealStartedAt !== undefined) {
@@ -371,7 +375,6 @@ export function WorldScreens({
         .set(screen.pose.x, 0.16, screen.pose.z)
         .applyMatrix4(camera.matrixWorldInverse)
         .applyMatrix4(camera.projectionMatrix);
-      const bounds = gl.domElement.getBoundingClientRect();
       screen.viewport.dataset.baseClientX = String(
         bounds.left + ((tools.position.x + 1) * size.width) / 2,
       );
