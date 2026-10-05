@@ -38,6 +38,7 @@ import {
   type GLTF,
 } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
+import { batchImportedAvatarParts } from "./imported-avatar-batching.js";
 
 import {
   advanceImportedAvatarMixer,
@@ -305,6 +306,13 @@ function ImportedAvatarModel({
       ),
     [gltf.scene, selection.hiddenPartIds, selection.parts, selectionKey],
   );
+  const worldBatching =
+    Boolean(semanticAction) && representation === "live-model";
+  useLayoutEffect(() => {
+    if (!worldBatching) return;
+    const batch = batchImportedAvatarParts(scene, gltf.animations);
+    return () => batch.dispose();
+  }, [scene, gltf.animations, worldBatching]);
   const mixer = useMemo(() => new AnimationMixer(scene), [scene]);
   const [preparedScene, setPreparedScene] = useState<Group | null>(null);
   const prepared = preparedScene === scene;

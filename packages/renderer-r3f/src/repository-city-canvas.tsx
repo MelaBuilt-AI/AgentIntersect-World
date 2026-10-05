@@ -224,7 +224,7 @@ function RepositoryCityModel({
     },
     [materials],
   );
-  useFrame(() => {
+  useEffect(() => {
     const tint = repositoryMaterialTint(instance.status, selected);
     for (const material of materials) {
       material.emissive.set(
@@ -234,7 +234,7 @@ function RepositoryCityModel({
         ? 0.25
         : Number(material.userData.baseEmissiveIntensity ?? 0);
     }
-  });
+  }, [instance.status, selected, materials]);
   return (
     <>
       <group

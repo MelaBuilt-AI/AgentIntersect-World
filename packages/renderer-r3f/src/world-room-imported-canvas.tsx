@@ -20,6 +20,10 @@ import {
 import { WorldScreens, type WorldScreensProps } from "./world-screens.js";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
+  useWorldUserMotion,
+  type LiveWorldUserPosition,
+} from "./world-user-motion.js";
+import {
   Suspense,
   useCallback,
   useEffect,
@@ -72,6 +76,7 @@ import {
 import type { RepositoryCityInstance } from "./repository-city-state.js";
 import { createWorldPointerEvents } from "./world-room-canvas.js";
 
+import { writeAvatarAnimationSample } from "./avatar-animation-observation.js";
 export const WORLD_ROOM_CANVAS_VERSION = "phase18";
 const WORLD_AGENT_SPAWN_POSITIONS = [
   [-4.2, 0, 0.8],
@@ -470,7 +475,7 @@ function ImportedAvatarGroundingMarker({
   readonly role: "user" | "agent";
   readonly position: readonly [number, number, number];
 }) {
-  const marker = useMemo(() => {
+  const { marker, geometry, material } = useMemo(() => {
     const points: Vector3[] = [];
     const segments = 64;
     const radius = 0.34;
@@ -483,16 +488,26 @@ function ImportedAvatarGroundingMarker({
       endPoint.set(Math.cos(end) * radius, 0, Math.sin(end) * radius);
       points.push(startPoint, endPoint);
     }
-    const marker = new LineSegments(
-      new BufferGeometry().setFromPoints(points),
-      new LineBasicMaterial({
-        color: role === "user" ? "#38bdf8" : "#f59e0b",
-      }),
-    );
+    const geometry = new BufferGeometry().setFromPoints(points);
+    const material = new LineBasicMaterial({
+      color: role === "user" ? "#38bdf8" : "#f59e0b",
+    });
+    const marker = new LineSegments(geometry, material);
     marker.name = `${role}-imported-avatar-grounding`;
-    marker.position.set(position[0], 0.0125, position[2]);
-    return marker;
-  }, [position, role]);
+    return { marker, geometry, material };
+  }, [role]);
+  const [x, , z] = position;
+  useLayoutEffect(() => {
+    marker.position.set(x, 0.0125, z);
+  }, [marker, x, z]);
+  useEffect(
+    () => () => {
+      // R3F does not dispose resources owned by a primitive.
+      geometry.dispose();
+      material.dispose();
+    },
+    [geometry, material],
+  );
   return <primitive object={marker} />;
 }
 
@@ -690,6 +705,7 @@ function WorldRoomScene({
   selectedCityInstanceId,
   cityFocusPosition,
   userPosition,
+  liveUserPosition,
   camera: cameraLook,
   activity,
   agentActivities,
@@ -734,6 +750,7 @@ function WorldRoomScene({
   readonly selectedCityInstanceId: string | null;
   readonly cityFocusPosition: Readonly<{ x: number; z: number }> | null;
   readonly userPosition: Readonly<{ x: number; z: number }>;
+  readonly liveUserPosition?: LiveWorldUserPosition | undefined;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
   readonly agentActivities?: readonly WorldRoomActivity[];
@@ -826,30 +843,29 @@ function WorldRoomScene({
     () => calculateRepositoryTransform(objects),
     [objects],
   );
-  // R3F commits avatar transforms before drawing. Keep its follow-camera in
-  // that same commit: a passive effect can leave one frame at the old position.
-  useLayoutEffect(() => {
-    const pose = calculateWorldCameraPose({
-      userPosition: cityFocusPosition ?? userPosition,
-      camera: cameraLook,
-      agentCount: renderedAgentAvatars.length,
-      viewportAspect: size.width / Math.max(size.height, 1),
-    });
-    camera.position.set(...pose.position);
-    camera.lookAt(new Vector3().fromArray(pose.target));
-    camera.updateProjectionMatrix();
-    camera.updateMatrixWorld();
-    invalidate();
-  }, [
-    camera,
-    cameraLook,
-    cityFocusPosition,
-    invalidate,
-    renderedAgentAvatars.length,
-    size.height,
-    size.width,
+  const cameraPose = useMemo(
+    () =>
+      calculateWorldCameraPose({
+        userPosition: cityFocusPosition ?? userPosition,
+        camera: cameraLook,
+        agentCount: renderedAgentAvatars.length,
+        viewportAspect: size.width / Math.max(size.height, 1),
+      }),
+    [
+      cameraLook,
+      cityFocusPosition,
+      renderedAgentAvatars.length,
+      size.height,
+      size.width,
+      userPosition,
+    ],
+  );
+  const userMotion = useWorldUserMotion({
     userPosition,
-  ]);
+    liveUserPosition,
+    pose: cameraPose,
+    followUser: cityFocusPosition === null,
+  });
   useEffect(() => {
     gl.domElement.dataset.cameraMode = "third-person";
     gl.domElement.dataset.cameraFocus = cityFocusPosition
@@ -1031,27 +1047,54 @@ function WorldRoomScene({
         onMaterializationStart={onMaterializationStart}
         reducedMotion={reducedMotion}
       >
-        <AvatarAppearanceArrival
-          appearanceKey={JSON.stringify([
-            userAvatar,
-            userImportedAvatar?.assetId,
-            userImportedAvatar?.hiddenPartIds,
-          ])}
-          initialArrival
-          arrivalId="user"
-          onMaterializationStart={onMaterializationStart}
-          reducedMotion={reducedMotion}
-        >
-          {(ready) => (
-            <Suspense fallback={null}>
-              {userImportedAvatar ? (
-                <ImportedAvatarGroundingMarker
-                  role="user"
-                  position={[userPosition.x, 0, userPosition.z]}
-                />
-              ) : null}
-              {avatarMotion.lightweight ? (
-                <LightweightAvatarMotion phase={0}>
+        <group name="world-user-motion" ref={userMotion}>
+          <AvatarAppearanceArrival
+            appearanceKey={JSON.stringify([
+              userAvatar,
+              userImportedAvatar?.assetId,
+              userImportedAvatar?.hiddenPartIds,
+            ])}
+            initialArrival
+            arrivalId="user"
+            onMaterializationStart={onMaterializationStart}
+            reducedMotion={reducedMotion}
+          >
+            {(ready) => (
+              <Suspense fallback={null}>
+                {userImportedAvatar ? (
+                  <ImportedAvatarGroundingMarker
+                    role="user"
+                    position={[userPosition.x, 0, userPosition.z]}
+                  />
+                ) : null}
+                {avatarMotion.lightweight ? (
+                  <LightweightAvatarMotion phase={0}>
+                    <WorldAvatarModel
+                      role="user"
+                      selection={userAvatar}
+                      imported={userImportedAvatar}
+                      action={userAction}
+                      layerState={userLayerState}
+                      animate={userAnimationEnabled}
+                      position={[userPosition.x, 0, userPosition.z]}
+                      rotation={[0, controlledAvatarYaw, 0]}
+                      scale={
+                        userImportedAvatar
+                          ? IMPORTED_WORLD_AVATAR_SCALE
+                          : AVATARS[0].scale
+                      }
+                      onReady={(role) => {
+                        onAvatarReady(role);
+                        ready();
+                      }}
+                      onLodChange={onAvatarLodChange}
+                      onAnimationSample={onImportedAnimationSample}
+                      onOneShotComplete={onImportedOneShotComplete}
+                      animationGeneration={userAnimationGeneration}
+                      importedRepresentation={importedAvatarRepresentation}
+                    />
+                  </LightweightAvatarMotion>
+                ) : (
                   <WorldAvatarModel
                     role="user"
                     selection={userAvatar}
@@ -1076,36 +1119,11 @@ function WorldRoomScene({
                     animationGeneration={userAnimationGeneration}
                     importedRepresentation={importedAvatarRepresentation}
                   />
-                </LightweightAvatarMotion>
-              ) : (
-                <WorldAvatarModel
-                  role="user"
-                  selection={userAvatar}
-                  imported={userImportedAvatar}
-                  action={userAction}
-                  layerState={userLayerState}
-                  animate={userAnimationEnabled}
-                  position={[userPosition.x, 0, userPosition.z]}
-                  rotation={[0, controlledAvatarYaw, 0]}
-                  scale={
-                    userImportedAvatar
-                      ? IMPORTED_WORLD_AVATAR_SCALE
-                      : AVATARS[0].scale
-                  }
-                  onReady={(role) => {
-                    onAvatarReady(role);
-                    ready();
-                  }}
-                  onLodChange={onAvatarLodChange}
-                  onAnimationSample={onImportedAnimationSample}
-                  onOneShotComplete={onImportedOneShotComplete}
-                  animationGeneration={userAnimationGeneration}
-                  importedRepresentation={importedAvatarRepresentation}
-                />
-              )}
-            </Suspense>
-          )}
-        </AvatarAppearanceArrival>
+                )}
+              </Suspense>
+            )}
+          </AvatarAppearanceArrival>
+        </group>
         {renderedAgentAvatars.map((_, index) => {
           const state = agentStates?.[index];
           const position = state
@@ -1237,6 +1255,7 @@ export function WorldRoomCanvas({
   selectedCityInstanceId,
   cityFocusPosition,
   userPosition,
+  liveUserPosition,
   camera,
   activity,
   agentActivities,
@@ -1278,6 +1297,7 @@ export function WorldRoomCanvas({
   readonly selectedCityInstanceId: string | null;
   readonly cityFocusPosition: Readonly<{ x: number; z: number }> | null;
   readonly userPosition: Readonly<{ x: number; z: number }>;
+  readonly liveUserPosition?: LiveWorldUserPosition | undefined;
   readonly camera: WorldRoomCamera;
   readonly activity: WorldRoomActivity;
   readonly agentActivities?: readonly WorldRoomActivity[];
@@ -1335,8 +1355,9 @@ export function WorldRoomCanvas({
     user: AvatarLod;
     agent: AvatarLod;
   }>({ user: "LOD0", agent: "LOD0" });
-  const [animationSamples, setAnimationSamples] = useState<
-    Readonly<Partial<Record<"user" | "agent", ImportedAvatarAnimationSample>>>
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationSamples = useRef<
+    Partial<Record<"user" | "agent", ImportedAvatarAnimationSample>>
   >({});
   const onAvatarReady = useCallback((role: "user" | "agent", index = 0) => {
     const id = `${role}:${index}`;
@@ -1361,19 +1382,25 @@ export function WorldRoomCanvas({
   );
   const onImportedAnimationSample = useCallback(
     (role: "user" | "agent", sample: ImportedAvatarAnimationSample) => {
-      setAnimationSamples((current) =>
-        current[role]?.mixerRootUuid === sample.mixerRootUuid &&
-        current[role]?.sequence === sample.sequence
-          ? current
-          : { ...current, [role]: sample },
+      const current = animationSamples.current[role];
+      if (
+        current?.mixerRootUuid === sample.mixerRootUuid &&
+        current?.sequence === sample.sequence
+      )
+        return;
+      animationSamples.current[role] = sample;
+      const owner = canvasRef.current?.closest<HTMLElement>(
+        '[data-testid="world-room-canvas"]',
       );
+      if (owner) writeAvatarAnimationSample(owner.dataset, role, sample);
     },
     [],
   );
-  const userAnimationSample = animationSamples.user;
-  const agentAnimationSample = animationSamples.agent;
+  const userAnimationSample = animationSamples.current.user;
+  const agentAnimationSample = animationSamples.current.agent;
   return (
     <Canvas
+      ref={canvasRef}
       events={createWorldPointerEvents}
       {...(screenEventSource ? { eventSource: screenEventSource } : {})}
       eventPrefix="client"
@@ -1539,6 +1566,7 @@ export function WorldRoomCanvas({
           selectedCityInstanceId={selectedCityInstanceId}
           cityFocusPosition={cityFocusPosition}
           userPosition={userPosition}
+          liveUserPosition={liveUserPosition}
           camera={camera}
           activity={activity}
           {...(agentActivities ? { agentActivities } : {})}

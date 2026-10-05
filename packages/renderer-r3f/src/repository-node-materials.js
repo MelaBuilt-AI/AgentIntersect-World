@@ -47,6 +47,8 @@ export function shaftMaterial() {
     transparent: true,
     depthWrite: false,
     side: DoubleSide,
+    // Crossed additive planes need both faces, not separate back/front draws.
+    forceSinglePass: true,
     blending: AdditiveBlending,
     toneMapped: false,
   });
