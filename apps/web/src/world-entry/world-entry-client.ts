@@ -138,6 +138,11 @@ export type WorldEntrySessionPort = {
     rosterId: string,
     input: SetConstellationAvatarInput,
   ): Promise<ConstellationState>;
+  resetConstellation(input: ConstellationMutation): Promise<ConstellationState>;
+  endWorldSession(
+    sessionId: string,
+    worldInstanceId: string,
+  ): Promise<WorldAgentSession>;
   endConstellation(input: ConstellationMutation): Promise<ConstellationState>;
 };
 
@@ -317,6 +322,22 @@ export function createWorldEntryClient(
       input: SetConstellationAvatarInput,
     ): Promise<ConstellationState> {
       return sessionClient.setConstellationAvatar(rosterId, input);
+    },
+
+    async resetSession(
+      input: ConstellationMutation,
+      singleSession?: WorldAgentSession | null,
+    ): Promise<ConstellationState> {
+      if (
+        singleSession &&
+        (singleSession.adapterId !== "hermes" || singleSession.connectionId)
+      ) {
+        await sessionClient.endWorldSession(
+          singleSession.sessionId,
+          input.worldInstanceId,
+        );
+      }
+      return sessionClient.resetConstellation(input);
     },
 
     endConstellation(

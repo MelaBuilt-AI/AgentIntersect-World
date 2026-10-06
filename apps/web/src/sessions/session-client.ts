@@ -625,6 +625,12 @@ export class AgentSessionClient {
     );
   }
 
+  resetConstellation(
+    input: ConstellationMutation,
+  ): Promise<ConstellationState> {
+    return this.post("/api/constellation/reset", input);
+  }
+
   endConstellation(input: ConstellationMutation): Promise<ConstellationState> {
     return this.post("/api/constellation/end", input);
   }

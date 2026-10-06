@@ -418,8 +418,10 @@ export function WorldEscapeMenu({
             <span className="terminal-kicker">reset_session_</span>
             <h2 id="world-escape-title">Reset current World session?</h2>
             <p>
-              This clears only this browser’s World attachment and presentation.
-              Your saved identity, avatars, and native agent history remain.
+              This ends the current World-owned agent sessions and releases all
+              agent seats so you can choose a new single-agent or multi-agent
+              session. Saved connections, identity, avatars, and native history
+              remain. Operator-persistent agents are not stopped.
             </p>
             <div className="world-escape-actions">
               <button

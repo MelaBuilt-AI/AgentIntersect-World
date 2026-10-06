@@ -74,6 +74,117 @@ async function serverWith(
 }
 
 describe("Phase 19 constellation API", () => {
+  it("resets a full roster into a durable fresh World and permits the same agent choices", async () => {
+    const endWorldSession = vi.fn(async () => undefined);
+    const stateDirectory = directory();
+    const { server, service } = await serverWith(
+      lifecyclePort({ endWorldSession }),
+      stateDirectory,
+    );
+    const adapters = ["hermes", "openclaw", "codex", "claude-code"] as const;
+    for (const [index, adapter] of adapters.entries()) {
+      expect(
+        (
+          await server.inject({
+            method: "POST",
+            url: "/constellation/agents",
+            payload: agent(index + 1, adapter),
+          })
+        ).statusCode,
+      ).toBe(201);
+    }
+    const payload = identity(4, "reset-full-world");
+    const reset = await server.inject({
+      method: "POST",
+      url: "/constellation/reset",
+      payload,
+    });
+    expect(reset.statusCode).toBe(200);
+    const fresh = reset.json().data;
+    expect(fresh.projection).toMatchObject({
+      agents: [],
+      revision: 0,
+      lifecycle: "assembling",
+      entryReady: false,
+    });
+    expect(fresh.projection.worldInstanceId).not.toBe("world-api");
+    expect(endWorldSession.mock.calls).toEqual([
+      ["api-world-session-2", "world-api"],
+      ["api-world-session-3", "world-api"],
+      ["api-world-session-4", "world-api"],
+    ]);
+    for (const [index, adapter] of adapters.entries()) {
+      const input = agent(index + 1, adapter);
+      expect(
+        (
+          await server.inject({
+            method: "POST",
+            url: "/constellation/agents",
+            payload: {
+              ...input,
+              worldInstanceId: fresh.projection.worldInstanceId,
+              agent: {
+                ...input.agent,
+                worldSessionId: `replacement-${index}`,
+                nativeRootSessionRef: `replacement-native-${index}`,
+              },
+            },
+          })
+        ).statusCode,
+      ).toBe(201);
+    }
+    const replay = await server.inject({
+      method: "POST",
+      url: "/constellation/reset",
+      payload,
+    });
+    expect(replay.statusCode).toBe(200);
+    expect(replay.json().data).toEqual(fresh);
+    expect(service.current().projection?.agents).toHaveLength(4);
+    expect(endWorldSession).toHaveBeenCalledTimes(3);
+    const reopened = await ConstellationService.open({
+      directory: stateDirectory,
+      lifecycle: lifecyclePort(),
+    });
+    expect(reopened.current().projection?.worldInstanceId).toBe(
+      fresh.projection.worldInstanceId,
+    );
+    expect(reopened.current().projection?.agents).toHaveLength(4);
+  });
+
+  it("keeps failed reset retryable without opening a replacement World", async () => {
+    const endWorldSession = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("busy"))
+      .mockResolvedValue(undefined);
+    const { server, service } = await serverWith(
+      lifecyclePort({ endWorldSession }),
+    );
+    await server.inject({
+      method: "POST",
+      url: "/constellation/agents",
+      payload: agent(1, "codex"),
+    });
+    const payload = identity(1, "reset-retry");
+    const failed = await server.inject({
+      method: "POST",
+      url: "/constellation/reset",
+      payload,
+    });
+    expect(failed.statusCode).toBe(502);
+    expect(service.current().projection).toMatchObject({
+      worldInstanceId: "world-api",
+      lifecycle: "ending",
+    });
+    const retried = await server.inject({
+      method: "POST",
+      url: "/constellation/reset",
+      payload,
+    });
+    expect(retried.statusCode).toBe(200);
+    expect(retried.json().data.projection.agents).toEqual([]);
+    expect(endWorldSession).toHaveBeenCalledTimes(2);
+  });
   it("exposes all six routes with normal envelopes and side-effect-free repeated GET", async () => {
     const validateBinding = vi.fn(async (binding) => ({
       ...binding,
