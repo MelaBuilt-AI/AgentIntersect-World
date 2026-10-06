@@ -31,7 +31,17 @@ export async function createWorldRenderer({ canvas }, antialias = false) {
     ? "webgpu"
     : "webgl2";
   canvas.dataset.rendererRevision = "186";
-  return renderer;
+  // Fiber 9 tears down canvases via forceContextLoss(), not dispose(). Its
+  // WebGL-shaped hook must also release our WebGPU renderer and owned device.
+  // Keep the hook synchronous for Fiber; the renderer's teardown is async.
+  let disposal;
+  return Object.assign(renderer, {
+    forceContextLoss() {
+      disposal ??= renderer.dispose().catch((error) => {
+        globalThis.console.error("World renderer disposal failed", error);
+      });
+    },
+  });
 }
 
 /** Keep light/fog shader bindings stable while only their values change. */

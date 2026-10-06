@@ -1,3 +1,4 @@
+import { retainModelResources } from "./model-resource-lifecycle.js";
 import {
   useFrame,
   useLoader,
@@ -522,5 +523,6 @@ function LoadedRepositoryCityModel(
     RepositoryCityGLTFLoader,
     REPOSITORY_ASSET_BY_ID.get(props.instance.assetId)!.glbUrl,
   );
+  useEffect(() => retainModelResources(gltf.scene), [gltf.scene]);
   return <RepositoryCityModel {...props} gltf={gltf} />;
 }
