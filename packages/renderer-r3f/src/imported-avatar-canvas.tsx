@@ -1,4 +1,8 @@
 import { createPreviewRenderer } from "./world-renderer.js";
+import {
+  disposeAvatarSkeletons,
+  retainModelResources,
+} from "./model-resource-lifecycle.js";
 import { prepareAvatarBounds } from "./world-preparation.js";
 import {
   Canvas,
@@ -479,6 +483,7 @@ function ImportedAvatarModel({
       activeAction.current = null;
       mixer.stopAllAction();
       mixer.uncacheRoot(scene);
+      disposeAvatarSkeletons(scene);
     },
     [mixer, scene],
   );
@@ -600,6 +605,7 @@ export function ImportedAvatarWorldModel({
   readonly representation?: ImportedAvatarWorldRepresentation | undefined;
 }) {
   const gltf = useLoader(ImportedAvatarGLTFLoader, selection.assetUrl);
+  useEffect(() => retainModelResources(gltf.scene), [gltf.scene]);
   const resolvedRotation: readonly [number, number, number] = [
     selection.rotation[0] + rotation[0],
     selection.rotation[1] + rotation[1],
@@ -659,6 +665,7 @@ export function ImportedAvatarCanvas({
   readonly scale: number;
 }) {
   const gltf = useLoader(ImportedAvatarGLTFLoader, selection.assetUrl);
+  useEffect(() => retainModelResources(gltf.scene), [gltf.scene]);
   const selectionKey = [
     selection.assetId,
     selection.clipIndex,

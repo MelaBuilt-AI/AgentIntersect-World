@@ -363,6 +363,32 @@ export function registerConstellationRoutes(
   );
 
   server.post(
+    "/constellation/reset",
+    {
+      preValidation: strictBody(envelope, [
+        "worldInstanceId",
+        "expectedRevision",
+        "idempotencyKey",
+      ]),
+      schema: {
+        tags,
+        summary: "End the current roster and start an empty World",
+        body: identityBody,
+      },
+    },
+    async (request, reply) => {
+      try {
+        return envelope.success(
+          request,
+          await service.reset(request.body as MutationBody),
+        );
+      } catch (error) {
+        return fail(error, request, reply, envelope);
+      }
+    },
+  );
+
+  server.post(
     "/constellation/end",
     {
       preValidation: strictBody(envelope, [

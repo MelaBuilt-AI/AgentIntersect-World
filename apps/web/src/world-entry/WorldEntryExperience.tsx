@@ -368,6 +368,13 @@ export function WorldEntryExperience({
   const [agentAvatar, setAgentAvatar] = useState<AvatarDraft | null>(null);
   const [constellation, setConstellation] =
     useState<ConstellationProjection | null>(null);
+  const [resetPending, setResetPending] = useState(false);
+  const resetInFlight = useRef(false);
+  const resetRequest = useRef<{
+    worldInstanceId: string;
+    expectedRevision: number;
+    idempotencyKey: string;
+  } | null>(null);
   const [constellationBusyRosterId, setConstellationBusyRosterId] = useState<
     string | null
   >(null);
@@ -2113,6 +2120,58 @@ export function WorldEntryExperience({
     dispatch({ type: "LEAVE_WORLD", destination });
   };
 
+  const resetWorldSession = async () => {
+    if (resetInFlight.current) return;
+    if (chatBusy || processingChat.current) {
+      setError(
+        "Wait for the current agent turn to finish, then retry Reset Session.",
+      );
+      return;
+    }
+    resetInFlight.current = true;
+    setResetPending(true);
+    setError("");
+    try {
+      if (!resetRequest.current) {
+        const current = (await client.currentConstellation()).projection;
+        resetRequest.current = {
+          worldInstanceId: current.worldInstanceId,
+          expectedRevision: current.revision,
+          idempotencyKey: `world-reset-${crypto.randomUUID()}`,
+        };
+      }
+      const next = await client.resetSession(
+        resetRequest.current,
+        state.sessionMode === "single" ? session : null,
+      );
+      setConstellation(next.projection);
+      setConstellationBusyRosterId(null);
+      setAcceptedAgentAvatars({});
+      setSelectedRecipientId(null);
+      setSelectedConnectionId("");
+      setRosterMovementRequests({});
+      setRosterMovementControls({});
+      setRosterWorkFocus({});
+      setAgentWorkFocus(null);
+      processedRosterMovementOutcomes.current.clear();
+      setAvatarEditingAgent(null);
+      setChangeAgentWork(null);
+      setWheelTaskOpen(false);
+      setWorkbenchOpen(false);
+      setWorldViewOpen(false);
+      setRepositoryReadiness("idle");
+      resetRequest.current = null;
+      leaveWorld("session_select");
+    } catch {
+      setError(
+        "Session reset could not finish. Wait for active agent work to finish, then retry Reset Session. Your current session has not been replaced.",
+      );
+    } finally {
+      resetInFlight.current = false;
+      setResetPending(false);
+    }
+  };
+
   const inWorld =
     state.step === "world_entering" ||
     state.step === "world_blank" ||
@@ -3397,7 +3456,7 @@ export function WorldEntryExperience({
             preferences={preferences}
             onPreferences={updatePreferences}
             onLogout={() => leaveWorld("session_select")}
-            onResetSession={() => leaveWorld("session_select")}
+            onResetSession={() => void resetWorldSession()}
             agents={worldAgentAvatars.map((a) => ({
               rosterId: a.rosterId,
               name: a.name,
@@ -3422,6 +3481,18 @@ export function WorldEntryExperience({
               setChangingAgent(true);
             }}
           />
+        ) : null}
+        {resetPending ? (
+          <div
+            className="world-loading-overlay"
+            role="status"
+            aria-live="polite"
+          >
+            <WorldLoadingIndicator
+              label="Releasing session agents"
+              reducedMotion={reducedMotion}
+            />
+          </div>
         ) : null}
         {repositoryLoading ? (
           <div className="world-loading-overlay">

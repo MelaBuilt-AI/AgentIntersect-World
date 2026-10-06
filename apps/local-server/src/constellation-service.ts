@@ -654,103 +654,141 @@ export class ConstellationService {
   }
 
   end(request: MutationIdentity): Promise<ConstellationState> {
+    return this.#enqueue(() => this.#end(request));
+  }
+
+  reset(request: MutationIdentity): Promise<ConstellationState> {
     return this.#enqueue(async () => {
       validateMutation(request);
-      const payload = this.#requirePayload(request.worldInstanceId);
       const inputHash = sha256(canonical(request));
-      const existing = payload.idempotency.find(
-        (record) => record.key === request.idempotencyKey,
+      const prior = this.#payload?.idempotency.find(
+        (record) =>
+          record.key === request.idempotencyKey &&
+          record.operation === "world-reset",
       );
-      if (existing) {
-        if (
-          existing.operation !== "world-end" ||
-          existing.inputHash !== inputHash
-        )
+      if (prior) {
+        if (prior.inputHash !== inputHash)
           throw new ConstellationServiceError(
             "conflict",
-            "Idempotency identity was reused with different input",
+            "Reset identity was reused with different input",
           );
-        if (existing.status === "completed" && existing.result)
-          return structuredClone(existing.result);
-      } else {
-        this.#assertRevision(request.expectedRevision);
-        this.#setIdempotency({
-          key: request.idempotencyKey,
-          operation: "world-end",
-          inputHash,
-          status: "pending",
-          result: null,
-        });
-        this.#payload = {
-          ...this.#requirePayload(request.worldInstanceId),
-          projection: ConstellationProjectionSchema.parse({
-            ...payload.projection,
-            lifecycle: "ending",
-            revision: payload.projection.revision + 1,
-            entryReady: false,
-            truth: "current",
-          }),
-        };
-        await this.#persist();
+        if (prior.result) return structuredClone(prior.result);
       }
-
-      const current = this.#requirePayload(request.worldInstanceId);
-      for (const agent of current.projection.agents) {
-        const prior = current.terminalOutcomes.find(
-          (outcome) => outcome.rosterId === agent.rosterId,
-        );
-        if (agent.sessionOwnership === "operator-persistent") {
-          if (!prior)
-            await this.#recordOutcome({
-              rosterId: agent.rosterId,
-              status: "skipped-operator-persistent",
-            });
-          continue;
-        }
-        if (prior?.status === "ended") continue;
-        try {
-          await this.#lifecycle.endWorldSession(
-            agent.worldSessionId,
-            request.worldInstanceId,
-          );
-          await this.#recordOutcome({
-            rosterId: agent.rosterId,
-            status: "ended",
-          });
-        } catch {
-          await this.#recordOutcome({
-            rosterId: agent.rosterId,
-            status: "failed",
-          });
-          throw new ConstellationServiceError(
-            "upstream",
-            "A World-owned session could not be ended",
-          );
-        }
-      }
-
-      const finishing = this.#requirePayload(request.worldInstanceId);
+      await this.#end(request);
       this.#payload = {
-        ...finishing,
-        projection: ConstellationProjectionSchema.parse({
-          ...finishing.projection,
-          lifecycle: "ended",
-          revision: finishing.projection.revision + 1,
-          entryReady: false,
-          truth: "current",
-        }),
+        projection: emptyProjection(randomUUID()),
+        terminalOutcomes: [],
+        idempotency: [],
       };
       const result = this.#currentState();
       this.#setIdempotency({
         key: request.idempotencyKey,
-        operation: "world-end",
+        operation: "world-reset",
         inputHash,
         status: "completed",
         result,
       });
       await this.#persist();
-      return this.#currentState();
+      return result;
     });
+  }
+
+  async #end(request: MutationIdentity): Promise<ConstellationState> {
+    validateMutation(request);
+    const payload = this.#requirePayload(request.worldInstanceId);
+    const inputHash = sha256(canonical(request));
+    const existing = payload.idempotency.find(
+      (record) => record.key === request.idempotencyKey,
+    );
+    if (existing) {
+      if (
+        existing.operation !== "world-end" ||
+        existing.inputHash !== inputHash
+      )
+        throw new ConstellationServiceError(
+          "conflict",
+          "Idempotency identity was reused with different input",
+        );
+      if (existing.status === "completed" && existing.result)
+        return structuredClone(existing.result);
+    } else {
+      this.#assertRevision(request.expectedRevision);
+      this.#setIdempotency({
+        key: request.idempotencyKey,
+        operation: "world-end",
+        inputHash,
+        status: "pending",
+        result: null,
+      });
+      this.#payload = {
+        ...this.#requirePayload(request.worldInstanceId),
+        projection: ConstellationProjectionSchema.parse({
+          ...payload.projection,
+          lifecycle: "ending",
+          revision: payload.projection.revision + 1,
+          entryReady: false,
+          truth: "current",
+        }),
+      };
+      await this.#persist();
+    }
+
+    const current = this.#requirePayload(request.worldInstanceId);
+    for (const agent of current.projection.agents) {
+      const prior = current.terminalOutcomes.find(
+        (outcome) => outcome.rosterId === agent.rosterId,
+      );
+      if (agent.sessionOwnership === "operator-persistent") {
+        if (!prior)
+          await this.#recordOutcome({
+            rosterId: agent.rosterId,
+            status: "skipped-operator-persistent",
+          });
+        continue;
+      }
+      if (prior?.status === "ended") continue;
+      try {
+        await this.#lifecycle.endWorldSession(
+          agent.worldSessionId,
+          request.worldInstanceId,
+        );
+        await this.#recordOutcome({
+          rosterId: agent.rosterId,
+          status: "ended",
+        });
+      } catch {
+        await this.#recordOutcome({
+          rosterId: agent.rosterId,
+          status: "failed",
+        });
+        throw new ConstellationServiceError(
+          "upstream",
+          "A World-owned session could not be ended",
+        );
+      }
+    }
+
+    const finishing = this.#requirePayload(request.worldInstanceId);
+    this.#payload = {
+      ...finishing,
+      projection: ConstellationProjectionSchema.parse({
+        ...finishing.projection,
+        lifecycle: "ended",
+        revision: finishing.projection.revision + 1,
+        entryReady: false,
+        truth: "current",
+      }),
+    };
+    const result = this.#currentState();
+    this.#setIdempotency({
+      key: request.idempotencyKey,
+      operation: "world-end",
+      inputHash,
+      status: "completed",
+      result,
+    });
+    await this.#persist();
+    return this.#currentState();
   }
 
   #mutate(

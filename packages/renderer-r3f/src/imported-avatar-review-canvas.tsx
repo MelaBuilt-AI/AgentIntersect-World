@@ -1,4 +1,8 @@
 import { createPreviewRenderer } from "./world-renderer.js";
+import {
+  disposeAvatarSkeletons,
+  retainModelResources,
+} from "./model-resource-lifecycle.js";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimationMixer, type AnimationAction, type Group } from "three";
@@ -175,6 +179,7 @@ function ReviewModel({
     () => () => {
       mixer.stopAllAction();
       mixer.uncacheRoot(scene);
+      disposeAvatarSkeletons(scene);
     },
     [mixer, scene],
   );
@@ -218,6 +223,7 @@ export function ImportedAvatarReviewCanvas({
   ) => void;
 }) {
   const gltf = useLoader(GLTFLoader, selection.assetUrl);
+  useEffect(() => retainModelResources(gltf.scene), [gltf.scene]);
   const [renderState, setRenderState] = useState<
     "loading" | "ready" | "refused"
   >("loading");
