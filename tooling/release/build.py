@@ -142,10 +142,53 @@ def keep_platform_natives(backend, platform):
         p.unlink()
 
 
+WINDOWS_GIT = {
+    "version": "2.56.0.windows.2",
+    "url": "https://github.com/git-for-windows/git/releases/download/v2.56.0.windows.2/PortableGit-2.56.0.2-64-bit.7z.exe",
+    "archiveSha256": "075e158ef8e1f0ab80b347e245405d3eca735c2dc88fd8e032e137d0ca61f61b",
+    "bytes": 60027568,
+}
+
+
+def windows_git(dest, cache, seven_zip, supplied_archive=None):
+    archive = supplied_archive or cache / "PortableGit-2.56.0.2-64-bit.7z.exe"
+    if not archive.exists():
+        with urllib.request.urlopen(WINDOWS_GIT["url"], timeout=120) as response, archive.open("xb") as output:
+            shutil.copyfileobj(response, output)
+    if archive.stat().st_size != WINDOWS_GIT["bytes"] or digest(archive) != WINDOWS_GIT["archiveSha256"]:
+        raise RuntimeError("Portable Git checksum/size mismatch")
+    listing = subprocess.check_output([seven_zip, "l", "-slt", str(archive)], text=True)
+    entries = listing.split("----------\n", 1)[1].strip().split("\n\n")
+    seen = set()
+    expanded = 0
+    for entry in entries:
+        fields = dict(line.split(" = ", 1) for line in entry.splitlines() if " = " in line)
+        name = fields["Path"].replace("\\", "/")
+        path = pathlib.PurePosixPath(name)
+        if path.is_absolute() or ".." in path.parts or ":" in name or name.casefold() in seen or "Symbolic Link" in fields or "Hard Link" in fields:
+            raise RuntimeError("Unsafe Portable Git member")
+        seen.add(name.casefold())
+        expanded += int(fields.get("Size", 0))
+    if len(seen) > 15000 or expanded > 2_000_000_000:
+        raise RuntimeError("Portable Git extraction exceeds its budget")
+    subprocess.run([seven_zip, "x", "-y", f"-o{dest}", str(archive)], check=True, stdout=subprocess.DEVNULL)
+    for p in dest.rglob("*"):
+        if p.is_symlink() or not (p.is_file() or p.is_dir()):
+            raise RuntimeError("Unexpected Portable Git member type")
+    for required in ["cmd/git.exe", "bin/bash.exe", "post-install.bat", "LICENSE.txt", "etc/package-versions.txt"]:
+        if not (dest / required).is_file():
+            raise RuntimeError(f"Portable Git is missing {required}")
+    (dest / "WORLD-PROVENANCE.json").write_text(json.dumps(WINDOWS_GIT, indent=2) + "\n")
+    return WINDOWS_GIT
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=pathlib.Path, required=True)
     parser.add_argument("--allow-dirty", action="store_true")
+    parser.add_argument("--platform", choices=list(PINS))
+    parser.add_argument("--seven-zip", default="7z")
+    parser.add_argument("--git-archive", type=pathlib.Path)
     a = parser.parse_args()
     out = a.out.resolve()
     if out == ROOT or ROOT in out.parents:
@@ -204,7 +247,7 @@ def main():
             }
         )
     artifacts = []
-    for platform in PINS:
+    for platform in ([a.platform] if a.platform else PINS):
         name = f"AgentIntersect-World-{version}-{platform}"
         stage = out / name
         backend = stage / "apps/local-server"
@@ -228,6 +271,11 @@ def main():
             )
         (stage / "runtime").mkdir()
         provenance = runtime(platform, stage / "runtime", cache)
+        git_provenance = None
+        if platform == "windows-x64":
+            git_provenance = windows_git(stage / "runtime/git", cache, a.seven_zip, a.git_archive)
+            shutil.copy2(ROOT / "tooling/release/GIT-SOURCES.md", stage / "GIT-SOURCES.md")
+            shutil.copy2(ROOT / "assets/brand/agentintersect.ico", stage / "agentintersect-appicon.ico")
         (stage / "DEPENDENCIES.json").write_text(
             json.dumps(dependencies, indent=2) + "\n"
         )
@@ -240,6 +288,8 @@ def main():
                     "sourceDirty": dirty,
                     "platform": platform,
                     "runtime": provenance,
+                    "git": git_provenance,
+                    "windowsInstallerVersion": "0.15.0-rc.2-windows.2" if platform == "windows-x64" else None,
                     "deploymentTool": "pnpm12.4.2",
                     "signed": False,
                 },
@@ -263,6 +313,9 @@ def main():
             if p.is_file() and (
                 p.name in [".env", "credentials.env"] or p.suffix in [".key", ".pem"]
             ):
+                # Pinned Git includes public CA bundles, not application secrets.
+                if p.suffix == ".pem" and p.is_relative_to(stage / "runtime/git") and b"PRIVATE KEY" not in p.read_bytes():
+                    continue
                 raise RuntimeError("Unexpected credential-like file")
         if platform == "linux-x64":
             package = out / (name + ".tar.gz")
@@ -329,7 +382,9 @@ def main():
                 package, "w", zipfile.ZIP_DEFLATED, compresslevel=6
             ) as z:
                 for p in sorted(stage.rglob("*")):
-                    if p.is_file():
+                    # Portable Git's empty dev/shm and dev/mqueue directories are
+                    # required before MSYS mounts /dev on first launch.
+                    if p.is_file() or p.is_dir():
                         z.write(p, str(pathlib.Path(name) / p.relative_to(stage)))
             artifacts.append(
                 {

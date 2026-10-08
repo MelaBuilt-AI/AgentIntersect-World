@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { RepositoryProject } from "./RepositoryIntakeDialog.js";
 import { RepositoryGitPanel } from "./RepositoryGitPanel.js";
+import { GitAuthorDialog } from "./GitAuthorDialog.js";
 import { SavedWorkstreamFiles } from "./SavedWorkstreamFiles.js";
 import {
   repositoryGitStatus,
   repositoryGitAction,
   type GitStatus,
+  type GitIdentity,
   selectedRepositoryProject,
 } from "./repository-workbench-client.js";
 import {
@@ -34,6 +36,7 @@ export function RepositoryWorkbench({
   const client = useMemo(() => new WorkstreamClient(), []);
   const [sourceGit, setSourceGit] = useState<GitStatus | null>(null);
   const [checkpointConfirmed, setCheckpointConfirmed] = useState(false);
+  const [authorPrompt, setAuthorPrompt] = useState(false);
   const [project, setProject] = useState<RepositoryProject | null>(null);
   const [history, setHistory] = useState<WorkstreamApiRecord[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +96,7 @@ export function RepositoryWorkbench({
       setBusy(false);
     }
   };
-  const checkpoint = async () => {
+  const checkpoint = async (identity?: GitIdentity) => {
     if (
       !checkpointConfirmed ||
       !sourceGit ||
@@ -102,11 +105,17 @@ export function RepositoryWorkbench({
       busy
     )
       return;
+    if (!identity && sourceGit.commitIdentity?.ready === false) {
+      setError(null);
+      setAuthorPrompt(true);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const result = await repositoryGitAction(project.id, "", sourceGit, {
         action: "checkpoint",
+        ...(identity ? { identity } : {}),
       });
       setSourceGit(result.status);
       setMessage(result.message);
@@ -115,6 +124,7 @@ export function RepositoryWorkbench({
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Checkpoint failed");
     } finally {
+      setAuthorPrompt(false);
       setBusy(false);
     }
   };
@@ -125,6 +135,15 @@ export function RepositoryWorkbench({
       role="dialog"
       aria-label="Repository Workbench"
     >
+      {authorPrompt && sourceGit?.commitIdentity ? (
+        <GitAuthorDialog
+          initial={sourceGit.commitIdentity}
+          busy={busy}
+          error={null}
+          onSave={checkpoint}
+          onCancel={() => setAuthorPrompt(false)}
+        />
+      ) : null}
       <header>
         <div>
           <p className="repository-workbench__eyebrow">REPOSITORY</p>

@@ -1,6 +1,8 @@
 import type { RepositoryProject } from "./RepositoryIntakeDialog.js";
 
+export type GitIdentity = { name: string; email: string };
 export type GitStatus = {
+  commitIdentity?: GitIdentity & { ready: boolean };
   head: string | null;
   branch: string;
   upstream: string | null;
@@ -28,6 +30,7 @@ export type PullRequest = {
     | null;
 };
 export type GitAction = {
+  identity?: GitIdentity;
   action: "checkpoint" | "commit" | "fetch" | "pull" | "push" | "create-pr";
   message?: string;
   files?: string[];

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { GitAuthorDialog } from "./GitAuthorDialog.js";
 import {
   repositoryGitAction,
   repositoryGitStatus,
   repositoryGithubStatus,
   type GitAction,
+  type GitIdentity,
   type GitStatus,
   type PullRequest,
 } from "./repository-workbench-client.js";
@@ -50,6 +52,7 @@ export function RepositoryGitPanel({
     error: string | null;
   } | null>(null);
   const [pending, setPending] = useState<GitAction | null>(null);
+  const [authorPrompt, setAuthorPrompt] = useState(false);
   const [tab, setTab] = useState<"changes" | "commits" | "sync" | "github">(
     "changes",
   );
@@ -110,8 +113,17 @@ export function RepositoryGitPanel({
   ]);
   const github = githubRead?.key === githubKey ? githubRead : null;
   const prs = github?.prs ?? null;
-  const confirm = async () => {
+  const confirm = async (identity?: GitIdentity) => {
     if (!pending || !status || !gitCurrent || busy) return;
+    if (
+      !identity &&
+      (pending.action === "commit" || pending.action === "checkpoint") &&
+      status.commitIdentity?.ready === false
+    ) {
+      setError(null);
+      setAuthorPrompt(true);
+      return;
+    }
     setBusy(true);
     onBusyChange?.(true);
     setError(null);
@@ -121,7 +133,7 @@ export function RepositoryGitPanel({
         projectId,
         workstreamId,
         status,
-        pending,
+        { ...pending, ...(identity ? { identity } : {}) },
       );
       setGitRead({
         projectId,
@@ -157,6 +169,7 @@ export function RepositoryGitPanel({
       setGithubRead(null);
       setVersion((value) => value + 1);
     } finally {
+      setAuthorPrompt(false);
       setBusy(false);
       onBusyChange?.(false);
     }
@@ -192,6 +205,15 @@ export function RepositoryGitPanel({
   };
   return (
     <section className="repository-git-panel" aria-label="Repository Git">
+      {authorPrompt && status?.commitIdentity ? (
+        <GitAuthorDialog
+          initial={status.commitIdentity}
+          busy={busy}
+          error={null}
+          onSave={confirm}
+          onCancel={() => setAuthorPrompt(false)}
+        />
+      ) : null}
       <div className="repository-workbench__heading">
         <h3>Git workspace</h3>
         <button

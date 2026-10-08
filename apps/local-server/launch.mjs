@@ -9,6 +9,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
+import { configureBundledGit } from "./windows-git.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.AIW_APP_PORT || 3771);
@@ -96,6 +97,7 @@ for (const signal of ["SIGINT", "SIGTERM"])
     void close();
   });
 try {
+  await configureBundledGit(resolve(here, "../../runtime/git"));
   await frontend.listen({ host: "127.0.0.1", port });
   await import("./dist/index.js");
   if (process.exitCode) throw Error("World backend did not start.");

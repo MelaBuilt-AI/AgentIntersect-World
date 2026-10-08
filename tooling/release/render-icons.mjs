@@ -8,14 +8,35 @@ const brand = fileURLToPath(new URL("../../assets/brand/", import.meta.url));
 const svg = await readFile(`${brand}agentintersect-appicon.svg`, "utf8");
 const icoSizes = [16, 24, 32, 48, 64, 128, 256];
 const browser = await chromium.launch();
-const page = await browser.newPage();
-const render = async (size) => {
-  await page.setViewportSize({ width: size, height: size });
-  await page.setContent(
-    `<style>html,body{margin:0;background:transparent}svg{display:block;width:${size}px;height:${size}px}</style>${svg}`,
+const page = await browser.newPage({
+  viewport: { width: 1024, height: 1024 },
+  deviceScaleFactor: 1,
+});
+// Render the supplied composition at its intrinsic size first. Rendering its
+// non-scaling-stroke directly at 16px makes 110px strokes swallow the artwork.
+await page.setContent(
+  `<style>html,body{margin:0;background:transparent}svg{display:block;width:1024px;height:1024px}</style>${svg}`,
+);
+const master = await page.screenshot({ omitBackground: true, type: "png" });
+const render = async (size) =>
+  Buffer.from(
+    await page.evaluate(
+      async ({ data, size }) => {
+        const image = new globalThis.Image();
+        image.src = data;
+        await image.decode();
+        const canvas = globalThis.document.createElement("canvas");
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(image, 0, 0, size, size);
+        return canvas.toDataURL("image/png").split(",")[1];
+      },
+      { data: `data:image/png;base64,${master.toString("base64")}`, size },
+    ),
+    "base64",
   );
-  return page.screenshot({ omitBackground: true, type: "png" });
-};
 const pngs = [];
 for (const size of icoSizes) pngs.push(await render(size));
 await writeFile(`${brand}agentintersect-appicon-512.png`, await render(512));
