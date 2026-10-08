@@ -289,7 +289,7 @@ def main():
                     "platform": platform,
                     "runtime": provenance,
                     "git": git_provenance,
-                    "windowsInstallerVersion": "0.15.0-rc.2-windows.2" if platform == "windows-x64" else None,
+                    "windowsInstallerVersion": "0.15.0-rc.2-windows.3" if platform == "windows-x64" else None,
                     "deploymentTool": "pnpm12.4.2",
                     "signed": False,
                 },

@@ -372,7 +372,7 @@ function optionalRead(path: string): Promise<string | null> {
 }
 
 async function syncFile(path: string): Promise<void> {
-  const handle = await open(path, "r");
+  const handle = await open(path, "r+");
   try {
     await handle.sync();
   } finally {

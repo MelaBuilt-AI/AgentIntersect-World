@@ -2,6 +2,7 @@ import { MAX_PROMPT_BYTES } from "@agentintersect-world/agent-session-protocol";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { PreviewManagerService } from "./preview-manager-service.js";
 import { WorkstreamSourceError } from "./workstream-start-source.js";
+import { WorktreeAuthorityError } from "./worktree-authority.js";
 
 import {
   WorkstreamService,
@@ -85,6 +86,19 @@ function fail(
   reply: FastifyReply,
   envelope: RouteEnvelope,
 ) {
+  if (error instanceof WorktreeAuthorityError) {
+    return reply
+      .code(error.code === "unavailable" ? 503 : 409)
+      .send(
+        envelope.failure(
+          request,
+          error.code === "unavailable" ? "unavailable" : "conflict",
+          error.code === "git-failed"
+            ? "Git could not complete the Workstream operation. Check the selected branch, commit and worktree permissions."
+            : error.message,
+        ),
+      );
+  }
   if (error instanceof WorkstreamSourceError)
     error = new WorkstreamServiceError("validation", error.message);
   if (!(error instanceof WorkstreamServiceError)) throw error;

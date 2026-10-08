@@ -1,5 +1,13 @@
 # Windows installer: bundled Git and proportional icon
 
+## Current correction — native Workstream lifecycle
+
+Aaron authorized the native Workstream fix, source-first PR/green CI/merge, and affected installer rebuilds (Discord 1557886044173766749). Reproduction on shipped Windows Node/Git showed a registered worktree rejected because Git reports forward slashes. The native lifecycle regression also exposed short-name versus real-path relative receipts and Windows read-only-handle fsync EPERM during cancellation. Normalize registration paths, derive relative receipts from the validated canonical parent, and open owned persistence files read/write before fsync. Keep all existing ownership checks and propagate bounded authority errors without raw Git stderr.
+
+The native packaged API regression must create, restore and cancel against real Git using disposable state; synthetic agent references do not claim real harness acceptance. Historical RED and corrected local GREEN are separate from final clean-package proof. Next Windows setup: `0.15.0-rc.2-windows.3`, numeric `0.15.0.5`; AppId/destination/state unchanged. Rebuild Windows ZIP/setup and Linux DEB/tar only after merged-main CI; then repin the npm bootstrap through a separate source-first PR against those fixed archive bytes. Private delivery only, no publication/provider/TEST45495 changes. Never automatically delete branches/worktrees left by earlier failed user attempts.
+
+## Previous candidates (historical)
+
 Authorized by Aaron (Discord 1557792944902373429): rebuild private Windows setup, install over the prior candidate, preserve state, include private Portable Git so project creation works without system Git, and derive the installer/shortcut icon from the supplied agentintersect_appicon.svg without distortion.
 
 Base: merged main 3c4b358. Scope: Windows packaging/launcher, icon generation, focused package tests and native isolated proof. Keep AppId/default directory/state paths unchanged. No machine/user PATH or global Git config writes; do not invent commit identity. Provider changes, public uploads/releases and TEST45495 mutation remain excluded.

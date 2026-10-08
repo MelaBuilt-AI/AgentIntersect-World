@@ -63,6 +63,7 @@ jobs:
       - run: pnpm verify:imported-avatar-current-inputs
       - run: pnpm avatar:verify:compatibility
       - run: pnpm check:core
+      - run: node --test tooling/release/workstream.test.mjs
 
   push-checks:
     needs: [scope, docs, core]
