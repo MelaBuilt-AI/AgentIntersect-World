@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createServer } from "node:net";
 import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -17,17 +17,34 @@ async function port() {
 }
 test(
   "installed-shape launcher serves real UI/API, refuses foreign origin and releases both ports",
-  { timeout: 30000 },
+  { timeout: 60000 },
   async () => {
     const front = await port(),
       back = await port();
     const state = await mkdtemp(join(tmpdir(), "aiw-package-state-"));
+    const launchEnv = { ...process.env };
+    if (
+      process.platform === "win32" &&
+      process.env.AIW_SMOKE_NO_SYSTEM_GIT === "1"
+    ) {
+      for (const key of Object.keys(launchEnv)) {
+        if (key.toLowerCase() === "path") delete launchEnv[key];
+      }
+      launchEnv.Path = join(
+        process.env.SystemRoot || "C:\\Windows",
+        "System32",
+      );
+      assert.equal(
+        spawnSync("git", ["--version"], { env: launchEnv }).error?.code,
+        "ENOENT",
+      );
+    }
     const child = spawn(
       process.execPath,
       [resolve("apps/local-server/launch.mjs"), "--no-open"],
       {
         env: {
-          ...process.env,
+          ...launchEnv,
           AIW_APP_PORT: String(front),
           AIW_PORT: String(back),
           AIW_DATA_DIR: state,
@@ -43,7 +60,9 @@ test(
       output += b;
     });
     try {
-      const deadline = Date.now() + 15000;
+      // First launch may run the bounded 30s upstream Portable Git setup before
+      // the normal 15s server-readiness window begins.
+      const deadline = Date.now() + 45000;
       while (
         !output.includes("Open World:") &&
         child.exitCode === null &&
@@ -68,6 +87,15 @@ test(
       const hidden = await fetch(origin + "/.env");
       assert.equal(hidden.status, 403);
       const repository = join(state, "sample-repository");
+      const created = await fetch(origin + "/api/repository-intake/create", {
+        method: "POST",
+        headers: { origin, "content-type": "application/json" },
+        body: JSON.stringify({
+          rootPath: join(state, "projects", "new-project"),
+          name: "new-project",
+        }),
+      });
+      assert.equal(created.status, 201, await created.text());
       await mkdir(repository);
       await writeFile(
         join(repository, "sample.ts"),

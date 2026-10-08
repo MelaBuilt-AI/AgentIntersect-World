@@ -17,6 +17,16 @@
   overflow-wrap: anywhere;
   pointer-events: auto;
 }
+.git-author-dialog {
+  inset: 0;
+  width: min(560px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  background: #08111e;
+}
+.git-author-dialog::backdrop {
+  background: #020813bd;
+}
 .repository-workbench--new {
   background: #08111e;
   max-width: 760px;

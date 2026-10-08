@@ -100,6 +100,24 @@ const Mutation = z.strictObject({
   title: z.string().trim().min(1).max(256).optional(),
   body: z.string().max(8000).optional(),
   draft: z.boolean().optional(),
+  identity: z
+    .strictObject({
+      name: z
+        .string()
+        .trim()
+        .min(1)
+        .max(200)
+        // eslint-disable-next-line no-control-regex -- reject control characters in commit metadata
+        .regex(/^[^<>\x00-\x1f\x7f]+$/),
+      email: z
+        .string()
+        .trim()
+        .min(1)
+        .max(254)
+        // eslint-disable-next-line no-control-regex -- reject control characters in commit metadata
+        .regex(/^[^\s<>\x00-\x1f\x7f]+@[^\s<>\x00-\x1f\x7f]+$/),
+    })
+    .optional(),
 });
 export class RepositoryGitService {
   #tail: Promise<unknown> = Promise.resolve();
@@ -175,7 +193,53 @@ export class RepositoryGitService {
           () => "",
         )
       ).trim() || null;
-    return { head, branch, changes, commits, remotes, upstream };
+    const commitIdentity = await this.readIdentity(cwd);
+    return {
+      head,
+      branch,
+      changes,
+      commits,
+      remotes,
+      upstream,
+      commitIdentity,
+    };
+  }
+  async readIdentity(cwd: string) {
+    const [name, email, author, committer] = await Promise.all([
+      this.git(cwd, ["config", "--get", "user.name"]).catch(() => ""),
+      this.git(cwd, ["config", "--get", "user.email"]).catch(() => ""),
+      this.git(cwd, [
+        "-c",
+        "user.useConfigOnly=true",
+        "var",
+        "GIT_AUTHOR_IDENT",
+      ]).catch(() => ""),
+      this.git(cwd, [
+        "-c",
+        "user.useConfigOnly=true",
+        "var",
+        "GIT_COMMITTER_IDENT",
+      ]).catch(() => ""),
+    ]);
+    return {
+      name: name.trim(),
+      email: email.trim(),
+      ready: !!author && !!committer,
+    };
+  }
+  async prepareIdentity(
+    cwd: string,
+    identity?: { name: string; email: string },
+  ) {
+    if (identity) {
+      await this.git(cwd, ["config", "--local", "user.name", identity.name]);
+      await this.git(cwd, ["config", "--local", "user.email", identity.email]);
+    }
+    if (!(await this.readIdentity(cwd)).ready)
+      throw new RepositoryIntakeError(
+        "conflict",
+        "Set up your commit author in Workbench before creating a checkpoint or commit. No files were staged or committed.",
+      );
   }
   async github(projectId: string, remote: string, workstreamId?: string) {
     const cwd = await this.directory(projectId, workstreamId);
@@ -387,6 +451,7 @@ export class RepositoryGitService {
             "conflict",
             "Review staged files and commit them explicitly first",
           );
+        await this.prepareIdentity(cwd, action.identity);
         await git(cwd, [
           "-c",
           "commit.gpgsign=false",
@@ -502,6 +567,7 @@ export class RepositoryGitService {
           }),
         ),
       ];
+      await this.prepareIdentity(cwd, action.identity);
       await git(cwd, ["--literal-pathspecs", "add", "--", ...selected]);
       await git(cwd, [
         "--literal-pathspecs",

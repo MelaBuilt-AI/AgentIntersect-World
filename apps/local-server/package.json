@@ -50,6 +50,7 @@
     "LICENSE",
     "NOTICE",
     "launch.mjs",
+    "windows-git.mjs",
     "admin-shell-helper.mjs"
   ],
   "license": "MIT"

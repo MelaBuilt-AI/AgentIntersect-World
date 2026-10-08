@@ -55,6 +55,142 @@ async function fixture() {
     url: `/repository-intake/projects/${project.id}/git`,
   };
 }
+it("requests a commit author before mutation and saves explicit repository-only identity", async () => {
+  const f = await fixture();
+  // Empty local values mask any developer-machine global identity.
+  for (const key of ["user.name", "user.email"])
+    await exec("git", ["-C", f.repo, "config", "--local", key, ""]);
+  const beforeConfig = await readFile(join(f.repo, ".git/config"), "utf8");
+  const request = {
+    action: "checkpoint",
+    expectedHead: null,
+    expectedBranch: "main",
+    confirm: true,
+  };
+  const status = await f.server.inject({ method: "GET", url: f.url });
+  expect(status.json().data.commitIdentity).toMatchObject({ ready: false });
+  const blocked = await f.server.inject({
+    method: "POST",
+    url: f.url,
+    payload: request,
+  });
+  expect(blocked.statusCode).toBe(409);
+  expect(blocked.json().error.message).toContain("commit author");
+  expect(await readFile(join(f.repo, ".git/config"), "utf8")).toBe(
+    beforeConfig,
+  );
+  const invalid = await f.server.inject({
+    method: "POST",
+    url: f.url,
+    payload: {
+      ...request,
+      identity: { name: "Test\nInjected", email: "test@example.invalid" },
+    },
+  });
+  expect(invalid.statusCode).toBe(400);
+  expect(await readFile(join(f.repo, ".git/config"), "utf8")).toBe(
+    beforeConfig,
+  );
+  const saved = await f.server.inject({
+    method: "POST",
+    url: f.url,
+    payload: {
+      ...request,
+      identity: {
+        name: "Explicit Test Author",
+        email: "author@example.invalid",
+      },
+    },
+  });
+  expect(saved.statusCode).toBe(200);
+  expect(saved.json().data.status.commitIdentity).toEqual({
+    name: "Explicit Test Author",
+    email: "author@example.invalid",
+    ready: true,
+  });
+  expect(
+    (
+      await exec("git", ["-C", f.repo, "log", "-1", "--format=%an <%ae>"])
+    ).stdout.trim(),
+  ).toBe("Explicit Test Author <author@example.invalid>");
+  expect(
+    (
+      await exec("git", ["-C", f.repo, "config", "--local", "user.email"])
+    ).stdout.trim(),
+  ).toBe("author@example.invalid");
+});
+
+it("blocks ordinary commits before staging, preserves global settings, and shares local author with worktrees", async () => {
+  const f = await fixture();
+  const globalConfig = join(f.root, "global.gitconfig");
+  await writeFile(
+    globalConfig,
+    "[user]\n\tname = Global Fixture\n\temail = global@example.invalid\n",
+  );
+  const env = {
+    ...process.env,
+    GIT_CONFIG_GLOBAL: globalConfig,
+    GIT_CONFIG_NOSYSTEM: "1",
+  };
+  const run: typeof workspaceCommand = async (cwd, executable, args) =>
+    (await exec(executable, [...args], { cwd, env })).stdout;
+  const service = new RepositoryGitService(async () => f.repo, run);
+  await exec("git", ["-C", f.repo, "commit", "--allow-empty", "-m", "initial"]);
+  const head = (await service.status("fixture")).head;
+  for (const key of ["user.name", "user.email"])
+    await exec("git", ["-C", f.repo, "config", "--local", key, ""]);
+  await writeFile(join(f.repo, "selected.txt"), "selected");
+  await writeFile(join(f.repo, "keep.txt"), "untouched");
+  const request = {
+    action: "commit",
+    expectedHead: head,
+    expectedBranch: "main",
+    confirm: true,
+    files: ["selected.txt"],
+    message: "Explicit commit",
+  };
+  await expect(service.mutate("fixture", request)).rejects.toThrow(
+    "commit author",
+  );
+  expect(
+    (await exec("git", ["-C", f.repo, "diff", "--cached", "--name-only"]))
+      .stdout,
+  ).toBe("");
+  const identity = { name: "Local Fixture", email: "local@example.invalid" };
+  await expect(
+    service.mutate("fixture", { ...request, expectedHead: null, identity }),
+  ).rejects.toThrow("HEAD or branch changed");
+  expect(
+    (
+      await exec("git", ["-C", f.repo, "config", "--local", "user.name"])
+    ).stdout.trim(),
+  ).toBe("");
+  const saved = await service.mutate("fixture", { ...request, identity });
+  expect(saved.status.changes.map((file) => file.path)).toEqual(["keep.txt"]);
+  expect(
+    (
+      await exec("git", ["-C", f.repo, "log", "-1", "--format=%an <%ae>"])
+    ).stdout.trim(),
+  ).toBe("Local Fixture <local@example.invalid>");
+  expect(await readFile(globalConfig, "utf8")).toBe(
+    "[user]\n\tname = Global Fixture\n\temail = global@example.invalid\n",
+  );
+  const worktree = join(f.root, "worktree");
+  await exec("git", [
+    "-C",
+    f.repo,
+    "worktree",
+    "add",
+    "-b",
+    "feature",
+    worktree,
+  ]);
+  expect(await service.readIdentity(worktree)).toEqual({
+    ...identity,
+    ready: true,
+  });
+});
+
 it("persists explicit checkpoints and commits as project milestones without auto-committing dirty work", async () => {
   const f = await fixture();
   const checkpoint = await f.server.inject({

@@ -5,7 +5,7 @@
   #error OutputPath is required
 #endif
 #ifndef ReleaseVersion
-  #define ReleaseVersion "0.15.0-rc.2"
+  #define ReleaseVersion "0.15.0-rc.2-windows.2"
 #endif
 [Setup]
 AppId=AgentIntersectWorld
@@ -26,25 +26,25 @@ LicenseFile={#PackageRoot}\LICENSE
 InfoBeforeFile=installer-notice.txt
 OutputDir={#OutputPath}
 OutputBaseFilename=AgentIntersect-World-{#ReleaseVersion}-windows-x64-setup
-VersionInfoVersion=0.15.0.2
+VersionInfoVersion=0.15.0.4
 VersionInfoProductName=AgentIntersect World
-VersionInfoProductVersion=0.15.0.2
+VersionInfoProductVersion=0.15.0.4
 VersionInfoProductTextVersion={#ReleaseVersion}
 Compression=lzma2/normal
 SolidCompression=yes
 LZMANumBlockThreads=2
 WizardStyle=modern
 SetupIconFile=..\..\assets\brand\agentintersect.ico
-UninstallDisplayIcon={app}\agentintersect.ico
+UninstallDisplayIcon={app}\agentintersect-appicon.ico
 SetupLogging=yes
 CloseApplications=yes
 RestartApplications=no
 [Files]
 Source: "{#PackageRoot}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
-Name: "{group}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect.ico"
+Name: "{group}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect-appicon.ico"
 Name: "{group}\Install Codex or Claude Code CLI"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\Install-AgentCLI.ps1"""; WorkingDir: "{app}"
-Name: "{autodesktop}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect.ico"
+Name: "{autodesktop}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect-appicon.ico"
 Name: "{group}\Uninstall AgentIntersect World"; Filename: "{uninstallexe}"
 [Run]
 Filename: "{app}\AgentIntersect-World.cmd"; Description: "Open AgentIntersect World"; Flags: postinstall shellexec skipifsilent nowait

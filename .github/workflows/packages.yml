@@ -23,7 +23,7 @@ jobs:
         env:
           TURBO_CONCURRENCY: "2"
       - run: python3 -m unittest discover -s tooling/release -p test_build.py -v
-      - run: node --test tooling/release/launch.test.mjs
+      - run: node --test tooling/release/windows-git.test.mjs tooling/release/launch.test.mjs
       - run: python3 tooling/release/build.py --out "$RUNNER_TEMP/world-packages"
       - name: Test extracted Linux archive with its bundled runtime
         run: |
@@ -95,8 +95,9 @@ jobs:
         shell: pwsh
         run: |
           $root=Join-Path $env:RUNNER_TEMP 'world-packages'
-          ./tooling/release/install-smoke.ps1 -Installer "$root\AgentIntersect-World-0.15.0-rc.2-windows-x64-setup.exe" -SmokeTest "$env:GITHUB_WORKSPACE\tooling\release\launch.test.mjs" -Receipt "$root\windows-smoke.json"
-          $file=Get-Item "$root\AgentIntersect-World-0.15.0-rc.2-windows-x64-setup.exe"
+          $env:AIW_SMOKE_NO_SYSTEM_GIT='1'
+          ./tooling/release/install-smoke.ps1 -Installer "$root\AgentIntersect-World-0.15.0-rc.2-windows.2-windows-x64-setup.exe" -SmokeTest "$env:GITHUB_WORKSPACE\tooling\release\launch.test.mjs" -Receipt "$root\windows-smoke.json"
+          $file=Get-Item "$root\AgentIntersect-World-0.15.0-rc.2-windows.2-windows-x64-setup.exe"
           ((Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLower()+'  '+$file.Name) | Set-Content "$root\WINDOWS-SHA256SUMS" -Encoding utf8NoBOM
       - uses: actions/upload-artifact@v7
         with:
