@@ -75,6 +75,30 @@ afterEach(async () => {
 });
 
 describe("Workstream API", () => {
+  it("reports a Git worktree refusal instead of an opaque server error", async () => {
+    const server = await fixture();
+    try {
+      const response = await server.inject({
+        method: "POST",
+        url: "/workstreams",
+        payload: {
+          requestId: "request-refused",
+          correlationId: "correlation-refused",
+          title: "Start from missing commit",
+          task: "Start from missing commit",
+          startPoint: "a".repeat(40),
+          repository,
+          agent,
+        },
+      });
+      expect(response.statusCode).toBe(409);
+      expect(response.json().error).toMatchObject({ code: "conflict" });
+      expect(response.json().error.message).not.toBe("Internal server error");
+      expect(response.json().error.message).toMatch(/commit/i);
+    } finally {
+      await server.close();
+    }
+  });
   it("creates, reads, and idempotently cancels one owned workstream", async () => {
     const server = await fixture();
     const createBody = {

@@ -12,7 +12,7 @@ Linux packages are not for musl/Alpine or ARM. For headless/remote sessions use 
 
 ## Windows x64
 
-Run `AgentIntersect-World-0.15.0-rc.2-windows.2-windows-x64-setup.exe`. Close World’s console before installing over the earlier copy; keep the same destination. The installer keeps its original AppId and state location. It bundles private Git for World and child processes without changing Windows PATH or your Git identity/configuration. First launch initializes this private Git tree. This is a per-user installer: a Start Menu shortcut and registered uninstaller are created. The installer is **unsigned**, so Windows SmartScreen or antivirus may warn. Verify its published SHA-256 checksum and source before running; do not assume a warning means the file was signed or vetted. No administrator access or PATH change is requested. Close the console with `quit` + Enter or Ctrl+C.
+Run `AgentIntersect-World-0.15.0-rc.2-windows.3-windows-x64-setup.exe`. Close World’s console before installing over the earlier copy; keep the same destination. The installer keeps its original AppId and state location. It bundles private Git for World and child processes without changing Windows PATH or your Git identity/configuration. First launch initializes this private Git tree. This is a per-user installer: a Start Menu shortcut and registered uninstaller are created. The installer is **unsigned**, so Windows SmartScreen or antivirus may warn. Verify its published SHA-256 checksum and source before running; do not assume a warning means the file was signed or vetted. No administrator access or PATH change is requested. Close the console with `quit` + Enter or Ctrl+C.
 
 ## State and integrations
 

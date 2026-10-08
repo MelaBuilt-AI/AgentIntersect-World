@@ -718,7 +718,10 @@ export class WorktreeAuthority {
       );
     return {
       ...boundary,
-      relativePath: relative(boundary.allowedParent, input.worktreePath),
+      relativePath: relative(
+        boundary.allowedParent,
+        join(parent, basename(input.worktreePath)),
+      ),
     };
   }
 
@@ -833,7 +836,11 @@ export class WorktreeAuthority {
       registered.exitCode !== 0 ||
       !registered.stdout
         .split(/\r?\n/)
-        .some((line) => line === `worktree ${input.worktreePath}`)
+        .some(
+          (line) =>
+            line.startsWith("worktree ") &&
+            resolve(line.slice("worktree ".length)) === input.worktreePath,
+        )
     )
       throw new WorktreeAuthorityError(
         "git-refused",
