@@ -18,7 +18,7 @@ Local candidate verification without publication:
 AIW_TEST_ARCHIVE=/path/to/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz node --test tooling/release/npm-installer/test/install.test.mjs
 ```
 
-The test uses `--archive` solely to supply the **same exact pinned archive** locally; it still checks the checksum. This unpublished candidate pairs with the clean application source `7b97db1fb2c4490cabc0d606a0cf55585390c4bb` archive, SHA-256 `aab167c13ab20ca98dd721b56a8f5d34f394913969512f1fcbca84bff7b3b9d7`. Application and bootstrap source commits are recorded separately in the private kit. Do not mix older rc.2 archive or npm tarball bytes with this pair.
+The test uses `--archive` solely to supply the **same exact pinned archive** locally; it still checks the checksum. This unpublished candidate pairs with the clean application source `aea6234ecd9c3386b346d5f35ad47dd404f387cd` archive, SHA-256 `8ac77357fdaa709226ea19b3edfeb065ad20daddab3179694b847d394f27436f`. Application and bootstrap source commits are recorded separately in the private kit. Do not mix older rc.2 archive or npm tarball bytes with this pair.
 
 For private transfer, use the exact local npm tarball and app archive from the same checksum-verified kit:
 
