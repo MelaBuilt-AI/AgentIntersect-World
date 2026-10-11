@@ -9,6 +9,18 @@ import {
   type PreviewWorkstreamBinding,
 } from "../src/preview-manager-service.js";
 
+const spawnOptions = vi.hoisted(() => [] as Array<{ windowsHide?: boolean }>);
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: (...args: Parameters<typeof actual.spawn>) => {
+      spawnOptions.push({ windowsHide: args[2]?.windowsHide });
+      return actual.spawn(...args);
+    },
+  };
+});
+
 const roots: string[] = [];
 const services: PreviewManagerService[] = [];
 
@@ -117,6 +129,18 @@ afterEach(async () => {
 });
 
 describe("PreviewManagerService", () => {
+  it("hides the preview console while serving the owned worktree", async () => {
+    const value = await fixture();
+    await value.service.approveRecipe(recipe());
+    spawnOptions.length = 0;
+    const launched = (await value.service.start(start())).preview;
+    expect(launched.state).toBe("ready");
+    expect(await (await fetch(launched.url!)).text()).toContain(
+      "exact worktree preview",
+    );
+    expect(spawnOptions).toEqual([{ windowsHide: true }]);
+  });
+
   it("relaunches a saved approved preview after shutdown, but not an explicitly stopped preview", async () => {
     const fixtureState = await fixture();
     await fixtureState.service.approveRecipe(recipe());

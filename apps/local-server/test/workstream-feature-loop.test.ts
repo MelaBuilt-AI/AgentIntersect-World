@@ -21,6 +21,38 @@ import {
   type WorkstreamAgentReference,
 } from "../src/workstream-service.js";
 
+const backgroundLaunches = vi.hoisted(
+  () => [] as Array<{ windowsHide?: boolean }>,
+);
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  const { promisify: promisifyFunction } = await import("node:util");
+  const run = promisifyFunction(actual.execFile);
+  const wrapped = Object.assign(
+    (...args: Parameters<typeof actual.execFile>) => actual.execFile(...args),
+    actual.execFile,
+  );
+  Object.defineProperty(wrapped, promisifyFunction.custom, {
+    value: async (
+      file: string,
+      args: string[],
+      options: { windowsHide?: boolean },
+    ) => {
+      if (file === "git") backgroundLaunches.push(options);
+      return run(file, args, options);
+    },
+  });
+  return {
+    ...actual,
+    execFile: wrapped,
+    spawn: (...args: Parameters<typeof actual.spawn>) => {
+      if (args[0] === "git")
+        backgroundLaunches.push(args[2] as { windowsHide?: boolean });
+      return actual.spawn(...args);
+    },
+  };
+});
+
 const executeFile = promisify(execFile);
 const roots: string[] = [];
 const services: WorkstreamService[] = [];
@@ -185,19 +217,40 @@ afterEach(async () => {
 });
 
 describe("Workstream feature loop", () => {
-  it("keeps a completed but permission-blocked dispatch blocked", async () => {
+  it("hides background Git windows while projecting a Workstream", async () => {
     const value = await fixture();
-    vi.mocked(value.port.dispatch).mockResolvedValueOnce({
-      blockedReason: "Claude Code denied a required tool permission.",
-    });
+    backgroundLaunches.length = 0;
     await value.service.create(createRequest());
     await vi.waitFor(async () =>
-      expect((await value.service.current())?.status).toBe("blocked"),
+      expect((await value.service.current())?.status).toBe("ready-for-review"),
     );
-    expect((await value.service.current())?.events.at(-1)?.summary).toContain(
-      "denied a required tool permission",
-    );
+    await value.service.current();
+    expect(backgroundLaunches.length).toBeGreaterThan(0);
+    expect(
+      backgroundLaunches.every((options) => options.windowsHide === true),
+    ).toBe(true);
   });
+  it.each([
+    "Claude Code denied a required tool permission.",
+    "Codex tool execution failed; no tool completed successfully. Review the agent response before retrying.",
+  ])(
+    "keeps a completed but blocked dispatch blocked: %s",
+    async (blockedReason) => {
+      const value = await fixture();
+      vi.mocked(value.port.dispatch).mockResolvedValueOnce({ blockedReason });
+      await value.service.create(createRequest());
+      await vi.waitFor(async () =>
+        expect((await value.service.current())?.status).toBe("blocked"),
+      );
+      expect((await value.service.current())?.events.at(-1)?.summary).toContain(
+        blockedReason,
+      );
+      const persisted = JSON.parse(
+        await readFile(join(value.store, "workstream.current.json"), "utf8"),
+      );
+      expect(persisted.payload.workstream.status).toBe("blocked");
+    },
+  );
 
   it("refuses stale, busy and foreign continuation sources before allocating or dispatching", async () => {
     const value = await fixture();

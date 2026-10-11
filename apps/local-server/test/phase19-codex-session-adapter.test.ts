@@ -21,6 +21,8 @@ import {
 type FixtureControl = {
   readonly fragmented?: boolean;
   readonly toolFlood?: boolean;
+  readonly toolsFail?: boolean;
+  readonly toolRecovery?: boolean;
   readonly version?: string;
   readonly invalidHelp?: boolean;
   readonly attestHang?: boolean;
@@ -54,7 +56,31 @@ type Fixture = {
   descendantPid(): Promise<number>;
 };
 
+const codexLaunches = vi.hoisted(() => [] as Array<{ windowsHide?: boolean }>);
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawn: (...args: Parameters<typeof actual.spawn>) => {
+      codexLaunches.push(args[2] as { windowsHide?: boolean });
+      return actual.spawn(...args);
+    },
+  };
+});
+
 const temporaryRoots: string[] = [];
+
+it("hides direct native Codex attestation and turn windows", async () => {
+  const fixture = await fixtureExecutable();
+  const native = adapter(fixture);
+  codexLaunches.length = 0;
+  await native.attest();
+  await native.createWorldSession("hidden-console");
+  expect(codexLaunches.length).toBeGreaterThan(0);
+  expect(codexLaunches.every((options) => options.windowsHide === true)).toBe(
+    true,
+  );
+});
 
 it.each([false, true])(
   "enables live web research on direct, relay and coding resumes without opening shell networking (native profile: %s)",
@@ -90,6 +116,33 @@ it.each([false, true])(
         /network_access|danger-full-access|bypass-approvals/,
       );
     }
+  },
+);
+
+it.each([false, true])(
+  "reports all-tool failure without quarantining the conversation (recovery: %s)",
+  async (recovery) => {
+    const fixture = await fixtureExecutable({
+      toolsFail: true,
+      toolRecovery: recovery,
+    });
+    const native = adapter(fixture);
+    const session = await native.createWorldSession("blocked-work");
+    const result = await native.sendText(session.id, "create homepage", {
+      mode: "collaborate",
+      rootSessionRef: session.id,
+      workingDirectory: fixture.nativeSessionRoot,
+    });
+    expect(result.finalText).toBe("fixture complete");
+    if (recovery) expect(result.blockedReason).toBeUndefined();
+    else
+      expect(result.blockedReason).toBe(
+        "Codex tool execution failed; no tool completed successfully. Review the agent response before retrying.",
+      );
+    expect(JSON.stringify(result)).not.toContain("PRIVATE_CANARY");
+    await expect(
+      native.attach(session.id, { worldInstanceId: "blocked-work" }),
+    ).resolves.toMatchObject({ id: session.id });
   },
 );
 
@@ -208,7 +261,19 @@ if (isResume) {
   threadId = "11111111-1111-4111-8111-" + String(counter).padStart(12, "0");
 }
 
-const emit = (event) => process.stdout.write(JSON.stringify(event) + "\\n");
+const emit = (event) => {
+  if (control.toolsFail && event.type === "item.completed" && event.item?.type !== "agent_message") {
+    event.item.status = "failed";
+    event.item.error = { message: "helper_unknown_error: setup refresh had errors PRIVATE_CANARY" };
+    if (event.item.type === "command_execution") event.item.exit_code = 1;
+    if (control.toolRecovery && event.item.id === "item-compound") {
+      event.item.status = "completed";
+      event.item.exit_code = 0;
+      delete event.item.error;
+    }
+  }
+  process.stdout.write(JSON.stringify(event) + "\\n");
+};
 emit({
   type: "thread.started",
   thread_id:

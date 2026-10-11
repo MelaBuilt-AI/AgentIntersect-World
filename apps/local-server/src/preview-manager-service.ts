@@ -268,7 +268,8 @@ async function optionalRead(path: string): Promise<string | null> {
 }
 
 async function syncFile(path: string): Promise<void> {
-  const handle = await open(path, "r");
+  // Windows requires write access to flush; r+ preserves the copied backup.
+  const handle = await open(path, "r+");
   try {
     await handle.sync();
   } finally {
@@ -551,6 +552,7 @@ export class PreviewManagerService {
           {
             cwd: worktreePath,
             shell: false,
+            windowsHide: true,
             detached: process.platform !== "win32",
             stdio: ["ignore", "pipe", "pipe"],
             env: processEnvironment(port),

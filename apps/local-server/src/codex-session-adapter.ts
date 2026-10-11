@@ -335,6 +335,7 @@ export class CodexSessionAdapter implements AgentAdapter {
         child =
           bridged ??
           spawn(installation.executablePath, args, {
+            windowsHide: true,
             cwd: options.workingDirectory ?? installation.nativeSessionRoot,
             env: processEnvironment(options.runtimeHome),
             detached: true,
@@ -558,6 +559,8 @@ export class CodexSessionAdapter implements AgentAdapter {
     >();
     let eventDispatch = Promise.resolve();
     let toolEventCount = 0;
+    let toolFailed = false;
+    let toolCompleted = false;
     const emit = (event: AdapterTurnEvent) => {
       // Raw bytes and text bytes bound fragments; count only retained tool activity.
       if (
@@ -656,6 +659,10 @@ export class CodexSessionAdapter implements AgentAdapter {
             item.status === "failed" ||
             (typeof item.exit_code === "number" && item.exit_code !== 0) ||
             (item.error !== undefined && item.error !== null);
+          if (event.type === "item.completed") {
+            if (failed) toolFailed = true;
+            else toolCompleted = true;
+          }
           const activityId =
             typeof item.id === "string" &&
             /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(item.id)
@@ -697,6 +704,12 @@ export class CodexSessionAdapter implements AgentAdapter {
       finalText: finalText as string,
       deltas,
       sessionRef: seenSessionId as string,
+      ...(toolFailed && !toolCompleted
+        ? {
+            blockedReason:
+              "Codex tool execution failed; no tool completed successfully. Review the agent response before retrying.",
+          }
+        : {}),
     };
   }
 
