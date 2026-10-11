@@ -454,6 +454,7 @@ function contained(parent: string, child: string): boolean {
 
 async function git(worktree: string, args: readonly string[]): Promise<string> {
   const { stdout } = await executeFile("git", [...args], {
+    windowsHide: true,
     cwd: worktree,
     encoding: "utf8",
     timeout: 10_000,

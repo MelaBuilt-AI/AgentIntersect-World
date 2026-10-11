@@ -3,13 +3,34 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { RepositoryIntakeService } from "../src/repository-intake.js";
 import { createLocalServer } from "../src/server.js";
 import {
   RepositoryGitService,
   workspaceCommand,
 } from "../src/repository-git.js";
+const commandOptions = vi.hoisted(() => [] as Array<{ windowsHide?: boolean }>);
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  const { promisify: promisifyFunction } = await import("node:util");
+  const run = promisifyFunction(actual.execFile);
+  const wrapped = Object.assign(
+    (...args: Parameters<typeof actual.execFile>) => actual.execFile(...args),
+    actual.execFile,
+  );
+  Object.defineProperty(wrapped, promisifyFunction.custom, {
+    value: async (
+      file: string,
+      args: string[],
+      options: { windowsHide?: boolean },
+    ) => {
+      commandOptions.push({ windowsHide: options?.windowsHide });
+      return run(file, args, options);
+    },
+  });
+  return { ...actual, execFile: wrapped };
+});
 const exec = promisify(execFile);
 const roots: string[] = [];
 const servers: ReturnType<typeof createLocalServer>[] = [];
@@ -18,6 +39,19 @@ afterEach(async () => {
   for (const root of roots.splice(0))
     await rm(root, { recursive: true, force: true });
 });
+it("hides the Workbench Git initialization process", async () => {
+  const root = await mkdtemp(join(tmpdir(), "aiw-git-hidden-"));
+  roots.push(root);
+  commandOptions.length = 0;
+  await workspaceCommand(root, "git", ["init", "--initial-branch=main"]);
+  expect(commandOptions).toEqual([
+    expect.objectContaining({ windowsHide: true }),
+  ]);
+  expect(await readFile(join(root, ".git/HEAD"), "utf8")).toContain(
+    "refs/heads/main",
+  );
+});
+
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), "aiw-repo-git-"));
   roots.push(root);

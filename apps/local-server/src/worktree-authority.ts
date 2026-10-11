@@ -946,6 +946,7 @@ export class WorktreeAuthority {
         );
       return await new Promise<GitResult>((resolveResult, reject) => {
         const child = spawn("git", [...args], {
+          windowsHide: true,
           shell: false,
           stdio: ["ignore", "pipe", "pipe"],
           env: {

@@ -15,6 +15,7 @@ export async function workspaceCommand(
 ): Promise<string> {
   try {
     const { stdout } = await execute(executable, [...args], {
+      windowsHide: true,
       cwd,
       encoding: "utf8",
       timeout: 60_000,
