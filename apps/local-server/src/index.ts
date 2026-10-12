@@ -5,6 +5,7 @@ import {
 import { AgentIntersectReadClient } from "@agentintersect-world/agentintersect-client/read";
 import { WorldEventStore } from "@agentintersect-world/persistence";
 import {
+  AgentCapabilityManifestSchema,
   PHASE19_ADAPTER_IDS,
   capabilitySnapshotHash,
 } from "@agentintersect-world/agent-session-protocol";
@@ -644,10 +645,25 @@ if (config !== undefined && coordinationGitConfig !== undefined) {
                     )
                   )
                     return null;
-                  const manifest = (
-                    await agentAdapterRegistry.capabilities()
-                  ).find(({ adapterId }) => adapterId === session.adapterId);
-                  if (!manifest) return null;
+                  let manifest;
+                  try {
+                    // Match chat's exact saved connection, not the harness default.
+                    const adapter = agentAdapterRegistry.require(
+                      session.adapterId,
+                      session.connectionId,
+                    );
+                    manifest = AgentCapabilityManifestSchema.parse(
+                      await adapter.attest(),
+                    );
+                    if (
+                      manifest.adapterId !== session.adapterId ||
+                      !manifest.capabilities.attach ||
+                      !manifest.capabilities.sendText
+                    )
+                      return null;
+                  } catch {
+                    return null;
+                  }
                   const worldActionsEnabled =
                     manifest.capabilities.worldActions &&
                     capabilitySnapshotHash(manifest) ===
