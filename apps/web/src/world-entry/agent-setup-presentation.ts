@@ -21,23 +21,21 @@ export function setupEnvironmentLabel(
     : "Linux (Native)";
 }
 
-export function installationRegistration(
+export function installationRegistrations(
   installation: AgentInstallation,
   registrations: readonly AgentRegistration[],
   currentDistro?: string,
-): AgentRegistration | undefined {
-  return (
-    registrations.find((r) => r.installationId === installation.id) ??
-    registrations.find(
-      (r) =>
-        r.adapterId === installation.adapterId &&
+): readonly AgentRegistration[] {
+  return registrations.filter(
+    (r) =>
+      r.installationId === installation.id ||
+      (r.adapterId === installation.adapterId &&
         r.executablePath === installation.executablePath &&
         r.homePath === installation.homePath &&
         (r.environment.id === installation.environment.id ||
           (r.environment.kind === "wsl" &&
             installation.environment.kind === "wsl" &&
             r.environment.id === "local" &&
-            installation.environment.distro === currentDistro)),
-    )
+            installation.environment.distro === currentDistro))),
   );
 }

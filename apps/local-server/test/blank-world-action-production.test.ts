@@ -64,7 +64,7 @@ async function waitFor(
   throw new Error(`timed out waiting for ${description}`);
 }
 
-async function fixture() {
+async function fixture(savedCodex = false) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "aiw-blank-actions-"));
   roots.push(root);
   const pluginRoot = path.join(root, "plugin", "agentintersect-world");
@@ -84,6 +84,74 @@ async function fixture() {
   fs.writeFileSync(capabilityPath, JSON.stringify(pluginCapability), {
     mode: 0o600,
   });
+
+  const connectionId = randomUUID();
+  if (savedCodex) {
+    const executablePath = path.join(root, "codex-fixture.mjs");
+    fs.writeFileSync(
+      executablePath,
+      `#!${process.execPath}
+import { randomUUID } from "node:crypto";
+const args = process.argv.slice(2);
+for await (const chunk of process.stdin) void chunk;
+if (args.includes("--version")) console.log("codex-cli 0.149.1");
+else if (args.includes("--help")) console.log("Usage: codex exec resume [SESSION_ID] --model --sandbox --json");
+else {
+  const resume = args.indexOf("resume");
+  const thread = resume < 0 ? randomUUID() : args[resume + 1];
+  for (const event of [
+    { type: "thread.started", thread_id: thread },
+    { type: "turn.started" },
+    { type: "item.completed", item: { id: "reply", type: "agent_message", text: "Fixture reply" } },
+    { type: "turn.completed", usage: { input_tokens: 1, cached_input_tokens: 0, output_tokens: 1 } },
+  ]) console.log(JSON.stringify(event));
+}
+`,
+      { mode: 0o700 },
+    );
+    const profilePath = path.join(root, "codex-profile");
+    fs.mkdirSync(profilePath);
+    const registration = {
+      installationId: "fixture",
+      adapterId: "codex",
+      environment: {
+        id: process.platform === "win32" ? "windows" : "linux",
+        kind: process.platform === "win32" ? "windows" : "linux",
+        label: "Native fixture",
+      },
+      homePath: root,
+      identity: {
+        id: "default",
+        label: "Default",
+        kind: "profile",
+        profilePath,
+      },
+      connectedAt: new Date().toISOString(),
+    };
+    const setupDirectory = path.join(root, "agent-setup");
+    fs.mkdirSync(setupDirectory);
+    fs.writeFileSync(
+      path.join(setupDirectory, "agent-setup.json"),
+      JSON.stringify({
+        schema: "aiw.agent-setup/1",
+        completed: true,
+        registrations: [
+          {
+            ...registration,
+            id: randomUUID(),
+            displayName: "Codex",
+            executablePath: path.join(root, "missing-codex.mjs"),
+          },
+          {
+            ...registration,
+            id: connectionId,
+            displayName: "Codex2",
+            executablePath,
+          },
+        ],
+      }),
+    );
+  }
 
   const turnBodies: Array<Record<string, unknown>> = [];
 
@@ -174,7 +242,7 @@ async function fixture() {
         AIW_PORT: String(serverPort),
         AIW_AGENTINTERSECT_ENABLED: "false",
         AIW_AGENTINTERSECT_COMMANDS_ENABLED: "false",
-        AIW_AGENT_SESSIONS_ENABLED: "true",
+        AIW_AGENT_SESSIONS_ENABLED: savedCodex ? "false" : "true",
         AIW_AGENT_SESSION_DATA_DIR: path.join(root, "agent-sessions"),
         AIW_HERMES_API_URL: `http://127.0.0.1:${hermesPort}`,
         AIW_HERMES_API_KEY: "fixture-key",
@@ -222,7 +290,15 @@ async function fixture() {
       [key: string]: unknown;
     };
   };
-  return { attach, baseUrl, proposalRoot, repositoryRoot, turnBodies };
+  return {
+    attach,
+    baseUrl,
+    proposalRoot,
+    repositoryRoot,
+    turnBodies,
+    connectionId,
+    root,
+  };
 }
 
 async function indexRepository(baseUrl: string, rootPath: string) {
@@ -258,6 +334,86 @@ afterEach(async () => {
 });
 
 describe("production blank-World movement authority", () => {
+  it("uses the exact saved Codex connection when the default adapter is unavailable", async () => {
+    const state = await fixture(true);
+    const capabilities = await fetch(
+      `${state.baseUrl}/agent-sessions/capabilities`,
+    );
+    expect((await capabilities.json()).data).toEqual([]);
+    const created = await fetch(`${state.baseUrl}/agent-sessions/world`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        connectionId: state.connectionId,
+        adapterId: "codex",
+        worldInstanceId: "saved-connection-movement",
+        displayName: "Codex2",
+        profile: "default",
+        workspaceId: "world-entry",
+        repositoryRef: "current",
+        mode: "explore",
+      }),
+    });
+    const createdBody = await created.json();
+    expect(created.status, JSON.stringify(createdBody)).toBe(201);
+    const session = createdBody.data;
+    expect(session).toMatchObject({
+      status: "ready",
+      connectionId: state.connectionId,
+    });
+    const movementUrl = `${state.baseUrl}/world-actions/${session.sessionId}`;
+    const initial = await fetch(movementUrl);
+    expect(initial.status, await initial.clone().text()).toBe(200);
+    // Native autonomous tools remain disabled; local human direction is distinct.
+    expect(await initial.json()).toMatchObject({
+      capability: { enabled: false },
+    });
+    const action = {
+      kind: "move-agent",
+      schema: "aiw.agent-movement/1",
+      actorId: session.sessionId,
+      source: "user-directed",
+      speed: 4,
+      target: { kind: "follow-user", stoppingRadius: 2 },
+    };
+    const propose = (candidate: typeof action) =>
+      fetch(`${movementUrl}/proposals`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ actions: [candidate] }),
+      });
+    const follow = await propose(action);
+    expect(follow.status, await follow.clone().text()).toBe(202);
+    const snapshot = await fetch(movementUrl);
+    expect(snapshot.status).toBe(200);
+    expect((await snapshot.json()).executions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ accepted: true })]),
+    );
+    expect(
+      (await propose({ ...action, source: "agent-autonomous" })).status,
+    ).toBe(409);
+    expect(
+      (await propose({ ...action, actorId: randomUUID() })).status,
+    ).not.toBe(202);
+
+    // A healthy default must never substitute for an unavailable saved connection.
+    fs.renameSync(
+      path.join(state.root, "codex-fixture.mjs"),
+      path.join(state.root, "missing-codex.mjs"),
+    );
+    const recoveredDefault = await fetch(
+      `${state.baseUrl}/agent-sessions/capabilities`,
+    );
+    expect((await recoveredDefault.json()).data).toEqual([
+      expect.objectContaining({ adapterId: "codex" }),
+    ]);
+    const unavailable = await fetch(movementUrl);
+    expect(unavailable.status).toBe(404);
+    expect(await unavailable.json()).toEqual({
+      error: "World session is unavailable",
+    });
+  });
+
   it("constructs an exact-session Hermes turn with bounded move and follow authority", async () => {
     const state = await fixture();
     const session = await state.attach("native-chat-movement", "current");

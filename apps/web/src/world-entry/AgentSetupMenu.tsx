@@ -10,7 +10,7 @@ import type {
 import "./agent-setup.css";
 import { LocalVoiceSetup } from "./LocalVoiceSetup.js";
 import {
-  installationRegistration,
+  installationRegistrations,
   setupEnvironmentLabel,
 } from "./agent-setup-presentation.js";
 import { InstallationSetupActions } from "./InstallationSetupActions.js";
@@ -23,7 +23,7 @@ type AttachInput = {
   replaceConnectionId?: string | undefined;
 };
 
-/** A newer discovered install of the same harness and environment, if the saved one is older. */
+/** A newer install, or the sole matching replacement for a vanished saved install. */
 function newerInstallation(
   registration: AgentRegistration,
   discovery: DiscoveryResult | null,
@@ -32,10 +32,16 @@ function newerInstallation(
     (i) =>
       i.adapterId === registration.adapterId &&
       i.environment.id === registration.environment.id &&
-      i.identities.some((identity) => identity.id === registration.identity.id),
+      i.homePath === registration.homePath &&
+      i.identities.some(
+        (identity) =>
+          identity.id === registration.identity.id &&
+          identity.profilePath === registration.identity.profilePath,
+      ),
   );
   const newest = same[0];
   const saved = same.find((i) => i.id === registration.installationId);
+  if (!saved && same.length === 1) return newest;
   return newest?.version &&
     newest.id !== registration.installationId &&
     newest.version !== saved?.version
@@ -86,6 +92,11 @@ function InstallationForm({
             identityId,
             displayName: displayName.trim(),
             ...(conversationRef ? { conversationRef } : {}),
+            ...(registration &&
+            identityId === registration.identity.id &&
+            conversationRef === (registration.conversationRef ?? "")
+              ? { replaceConnectionId: registration.id }
+              : {}),
           });
       }}
     >
@@ -227,13 +238,13 @@ function EnvironmentInstallations({
   const environment = discovery.environments.find(
     (e) => e.id === `wsl:${distro}`,
   );
-  const registration = installation
-    ? installationRegistration(
+  const matchingRegistrations = installation
+    ? installationRegistrations(
         installation,
         registrations,
         discovery.currentWslDistro,
       )
-    : undefined;
+    : [];
   return (
     <section className="agent-setup-environment" data-setup-environment={kind}>
       {kind === "wsl" && distributions.length > 1 ? (
@@ -279,15 +290,20 @@ function EnvironmentInstallations({
         </details>
       ) : null}
       {installation ? (
-        <InstallationForm
-          key={installation.id}
-          installation={installation}
-          registration={registration}
-          check={checks[registration?.id ?? ""]}
-          busy={busy}
-          onAttach={onAttach}
-          onAddAgent={onAddAgent}
-        />
+        (matchingRegistrations.length
+          ? matchingRegistrations
+          : [undefined]
+        ).map((registration) => (
+          <InstallationForm
+            key={`${installation.id}:${registration?.id ?? "new"}`}
+            installation={installation}
+            registration={registration}
+            check={checks[registration?.id ?? ""]}
+            busy={busy}
+            onAttach={onAttach}
+            onAddAgent={onAddAgent}
+          />
+        ))
       ) : (
         <p>
           {environment?.message ??
@@ -560,7 +576,9 @@ export function AgentSetupMenu({
                           })
                         }
                       >
-                        Use v{newer.version}
+                        {newer.version
+                          ? `Use v${newer.version}`
+                          : "Use discovered installation"}
                       </button>
                     ) : null;
                   })()}
