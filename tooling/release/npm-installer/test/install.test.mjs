@@ -75,7 +75,7 @@ test(
       assert.equal(
         JSON.parse(readFileSync(join(installed, "BUILD.json"), "utf8"))
           .sourceCommit,
-        "aea6234ecd9c3386b346d5f35ad47dd404f387cd",
+        "4bdb0cc6986ef87677c57da5499963fc78f67eb1",
       );
       const repeat = run();
       assert.equal(repeat.status, 0, repeat.stderr);
