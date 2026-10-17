@@ -19,7 +19,7 @@ import { pipeline } from "node:stream/promises";
 const version = "0.15.0-rc.2";
 const name = `AgentIntersect-World-${version}-linux-x64`;
 const sha256 =
-  "d9ebb915087f61da953f12923bbd798a2c47549af34c670f3ffba7d17298fe98";
+  "75a25a55f2fac11910bba77085b67092fc7b40c407b57cd6755380fbf08eb224";
 const url = `https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v${version}/${name}.tar.gz`;
 
 async function exists(path) {

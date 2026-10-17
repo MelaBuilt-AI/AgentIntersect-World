@@ -18,7 +18,7 @@ Local candidate verification without publication:
 AIW_TEST_ARCHIVE=/path/to/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz node --test tooling/release/npm-installer/test/install.test.mjs
 ```
 
-The test uses `--archive` solely to supply the **same exact pinned archive** locally; it still checks the checksum. This unpublished candidate pairs with the clean application source `4bdb0cc6986ef87677c57da5499963fc78f67eb1` archive, SHA-256 `d9ebb915087f61da953f12923bbd798a2c47549af34c670f3ffba7d17298fe98`. These are the unchanged October 12 application bytes, not a rebuild for this bootstrap update. Application and bootstrap source commits are recorded separately in the private kit. Do not mix older rc.2 archive or npm tarball bytes with this pair.
+The test uses `--archive` solely to supply the **same exact pinned archive** locally; it still checks the checksum. This unpublished candidate pairs with the clean application source `c54b0b49b2c03d9d43c648db51e6b6002ea3ee9c` archive, SHA-256 `75a25a55f2fac11910bba77085b67092fc7b40c407b57cd6755380fbf08eb224`. These October 17 application bytes include the WSL Windows-PTY packaging and spatial Work Inspector scrolling fixes from PR #43. Application and bootstrap source commits are recorded separately in the private kit. Do not mix older rc.2 archive or npm tarball bytes with this pair.
 
 For private transfer, use the exact local npm tarball and app archive from the same checksum-verified kit:
 
