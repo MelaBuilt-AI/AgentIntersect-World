@@ -134,9 +134,9 @@ def check_native_files(root):
 
 
 def keep_platform_natives(backend, platform):
-    """Drop other platforms' node-pty prebuilds and debug symbols."""
+    """Linux also needs the Windows PTY for its WSL-to-Windows admin helper."""
     for other, directory in PTY_PACKAGES.items():
-        if other != platform:
+        if platform == "windows-x64" and other != platform:
             shutil.rmtree(backend / directory)
     for p in backend.rglob("*.pdb"):
         p.unlink()

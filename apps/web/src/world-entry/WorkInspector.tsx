@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { WorldScreen, WorldScreenToggle } from "./WorldScreen.js";
+import { useSpatialScreen } from "./world-screen-context.js";
 
 import type {
   Workstream,
@@ -182,9 +183,40 @@ export function WorldWorkstreamStatus({
     readonly onStart: () => void;
   };
 }) {
+  const panel = useRef<HTMLElement>(null);
+  const spatial = useSpatialScreen("workbench");
+  useEffect(() => {
+    const element = panel.current;
+    if (!spatial || !element) return;
+    // Like the repository code screen, CSS3D can receive a wheel event without
+    // Chromium scrolling its compositor layer. HUD keeps native scrolling.
+    const wheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.shiftKey || event.deltaY === 0) return;
+      const inspector =
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>(".work-inspector")
+          : null;
+      const viewport =
+        inspector && inspector.scrollHeight > inspector.clientHeight
+          ? inspector
+          : element;
+      const scale =
+        event.deltaMode === 1
+          ? 20
+          : event.deltaMode === 2
+            ? viewport.clientHeight
+            : 1;
+      event.preventDefault();
+      event.stopPropagation();
+      viewport.scrollTop += event.deltaY * scale;
+    };
+    element.addEventListener("wheel", wheel, { passive: false });
+    return () => element.removeEventListener("wheel", wheel);
+  }, [spatial]);
   return (
     <WorldScreen id="workbench">
       <aside
+        ref={panel}
         className="world-workstream-status"
         aria-label="Current Workstream"
         data-workstream-status={workstream.status}
