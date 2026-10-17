@@ -125,7 +125,9 @@ export function WorldAdminShell({
         <header className="world-admin-shell__header">
           <WorldScreenToggle id={kind} />
           <strong>{TITLES[kind]}</strong>
-          <span role="status">{ended ? "Shell closed" : status}</span>
+          <span role="status">
+            {ended ? `Shell closed. Last status: ${status}` : status}
+          </span>
           <button
             type="button"
             className="world-action--enabled"

@@ -76,6 +76,18 @@ class NativeFilesTest(unittest.TestCase):
             self.assertTrue((root / windows / "prebuilds/conpty.node").exists())
             self.assertFalse((root / windows / "prebuilds/conpty.pdb").exists())
 
+    def test_linux_keeps_windows_pty_for_wsl_admin_powershell(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = pathlib.Path(temporary)
+            linux = BUILD.PTY_PACKAGES["linux-x64"]
+            windows = BUILD.PTY_PACKAGES["windows-x64"]
+            self.make(root, f"{linux}/prebuilds/pty.node", f"{windows}/prebuilds/conpty.node", f"{windows}/prebuilds/conpty.pdb")
+            BUILD.keep_platform_natives(root, "linux-x64")
+            self.assertTrue((root / linux / "prebuilds/pty.node").is_file())
+            self.assertTrue((root / windows / "package.json").is_file(), "WSL must resolve the Windows helper dependency before UAC")
+            self.assertTrue((root / windows / "prebuilds/conpty.node").is_file())
+            self.assertFalse((root / windows / "prebuilds/conpty.pdb").exists())
+
     def test_unexpected_native_dependency_is_refused(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = pathlib.Path(temporary)
