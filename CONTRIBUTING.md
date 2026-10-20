@@ -2,7 +2,7 @@
 
 Thanks for your interest in AgentIntersect World.
 
-The repository is preparing for a public, source-available soft launch. Packaged Windows and Linux downloads remain unavailable. The first packaged release will be announced through GitHub Releases; select **Watch → Custom → Releases** to subscribe. Delivery follows your own GitHub notification settings.
+The repository and first Windows/Linux packaged release candidate are public. See [downloads](https://agentintersect.com/download/) and [release notes](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2). Select **Watch → Custom → Releases** to subscribe to future releases; delivery follows your GitHub notification settings.
 
 ## Start small
 
