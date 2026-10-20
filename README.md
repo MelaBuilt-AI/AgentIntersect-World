@@ -4,7 +4,7 @@
 
 Local-first 3D workspace where your own coding agents (Claude Code, Codex, Hermes, OpenClaw, and friends) work on your repository as a world you can walk — not another hosted chat IDE, and not a replacement for those agents.
 
-> **Status:** Public pre-release. Packaged Windows/Linux downloads are coming. Until then, use **Watch → Custom → Releases** below for notify. Site: [agentintersect.com](https://agentintersect.com) · Field Guide: [guide.agentintersect.com](https://guide.agentintersect.com)
+> **Public preview · 0.15.0-rc.2:** [Download for Windows or Linux](https://agentintersect.com/download/) · [Release notes & checksums](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2) · [Field Guide](https://guide.agentintersect.com/getting-started/). Windows builds are unsigned.
 
 ![AgentIntersect World — repository city load through ready](docs/launch/media/repo-city.gif)
 
@@ -61,20 +61,40 @@ Cancellation or failed generation/loading keeps the previous usable World. Effec
 - Not a hosted agent product (you bring local agents)
 - Not unrelated “Intersect AI” products — this is **AgentIntersect World** by [MelaBuilt AI](https://melabuilt.ai)
 
-## Requirements (local / developer)
+## Install World
 
-- **Node.js 24+**, Corepack, Git
-- At least one supported harness installed and signed in (Claude Code, Codex, Hermes, OpenClaw, …)
-- **Packaged release targets (when shipped):** Windows and Linux
-- Windows/WSL cross-environment process execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory
+**Windows x64:** download the [setup installer](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-windows.3-windows-x64-setup.exe), compare its SHA-256 with the release manifest, run setup, then launch **AgentIntersect World**. A private Node runtime and Git are included. **This installer is unsigned**; follow your device’s security policy rather than disabling protections. A portable ZIP is also available on the release page.
 
-## Install (when Release ships)
+**Debian / Ubuntu x64:** download the `.deb` from the [release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2), then:
 
-- **Windows / Linux:** artifacts will be attached to the [latest Release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/latest) (product build not published yet)
-- Checksums will be listed in the Release notes
-- Until then: [Watch → Custom → Releases](#get-notified) for the notify path
+```sh
+sudo apt install ./AgentIntersect-World-0.15.0-rc.2-linux-x64.deb
+agentintersect-world
+```
 
-Until then, local development:
+**Other glibc-based Linux x64:** use the portable `linux-x64.tar.gz` and run its `agentintersect-world` launcher. Git is required; the application bundles Node.
+
+**Optional Linux terminal installer** (requires Node 20+ for the bootstrap):
+
+```sh
+npx -y @agentintersect-world/installer@0.15.0-rc.2 install
+~/.local/bin/agentintersect-world
+```
+
+The installer downloads the exact release archive and checks its SHA-256 before installation. It prints your installed launcher path; custom XDG roots may change that path. The npm package uses the **rc** channel, not a stable-release promise.
+
+At least one supported harness must be installed and authenticated separately. Model accounts, subscriptions and optional voice setup are not included. This release is a public preview: back up projects and application data. Earlier private kits reused this version label; check exact hashes and preserve existing state rather than assuming same-version installation upgrades older private bytes.
+
+See [public release details](docs/PUBLIC_RELEASE_0.15.0-rc.2.md) for source provenance, checksums, source material and known limitations. Windows/WSL cross-environment execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory.
+
+## Develop from source
+
+Requires **Node.js 24+**, Corepack and Git. Use an HTTPS clone for public access:
+
+```sh
+git clone https://github.com/MelaBuilt-AI/AgentIntersect-World.git
+cd AgentIntersect-World
+```
 
 ```sh
 corepack pnpm@11.15.0 install --frozen-lockfile
