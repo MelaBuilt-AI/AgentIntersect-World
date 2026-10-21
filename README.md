@@ -4,9 +4,9 @@
 
 A local-first 3D workspace for your repositories and your own AI coding agents. Explore a repository as a city, discuss ideas with **Claude Code, Codex, Hermes or OpenClaw**, give work its own branch, and inspect the changes and previews—all in one World.
 
-[Download World](https://agentintersect.com/download/) · [Field Guide](https://guide.agentintersect.com/getting-started/) · [Release notes](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2) · [Discord](https://discord.gg/8GfKXaJsyY)
+[Download World](https://agentintersect.com/download/) · [Field Guide](https://guide.agentintersect.com/getting-started/) · [Release notes](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.4) · [Discord](https://discord.gg/8GfKXaJsyY)
 
-> **Public preview · 0.15.0-rc.2** — Windows x64 and Linux x64/glibc. Windows builds are unsigned. Bring an installed, authenticated agent harness; model accounts and subscriptions are separate.
+> **Public preview · 0.15.0-rc.4** — Windows x64 and Linux x64/glibc. Windows builds are unsigned. Bring an installed, authenticated agent harness; model accounts and subscriptions are separate.
 
 ![AgentIntersect World — repository city load through ready](docs/launch/media/repo-city.gif)
 
@@ -24,35 +24,49 @@ World is built for one operator working locally—not a public multiplayer servi
 
 ## Install World
 
-**Windows x64:** download the [setup installer](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-windows.3-windows-x64-setup.exe), compare its SHA-256 with [SHA256SUMS](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/SHA256SUMS), run setup, then launch **AgentIntersect World**. A private Node runtime and Git are included. **This installer is unsigned**; follow your device’s security policy rather than disabling protections. Prefer no setup wizard? Use the [portable Windows ZIP](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-windows-x64.zip).
+**Windows x64:** download the [setup installer](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.4/AgentIntersect-World-0.15.0-rc.4-windows-x64-setup.exe), compare its SHA-256 with [SHA256SUMS](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.4/SHA256SUMS), run setup, then launch **AgentIntersect World**. A private Node runtime and Git are included. **This installer is unsigned**; follow your device’s security policy rather than disabling protections. Prefer no setup wizard? Use the [portable Windows ZIP](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.4/AgentIntersect-World-0.15.0-rc.4-windows-x64.zip).
 
-**Debian / Ubuntu x64:** download the `.deb` from the [release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2), then:
+**Debian / Ubuntu x64:** download the `.deb` from the [release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.4), then:
 
 ```sh
-sudo apt install ./AgentIntersect-World-0.15.0-rc.2-linux-x64.deb
+sudo apt install ./AgentIntersect-World-0.15.0-rc.4-linux-x64.deb
 agentintersect-world
 ```
 
-**Other glibc-based Linux x64:** use the [portable Linux archive](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz) and run its `agentintersect-world` launcher. Git is required; the application bundles Node.
+**Other glibc-based Linux x64:** use the [portable Linux archive](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.4/AgentIntersect-World-0.15.0-rc.4-linux-x64.tar.gz) and run its `agentintersect-world` launcher. Git is required; the application bundles Node.
 
 **Optional Linux terminal installer** (requires Node 20+ for the bootstrap):
 
 ```sh
-npx -y @agentintersect-world/installer@0.15.0-rc.2 install
+npx -y @agentintersect-world/installer@0.15.0-rc.4 install
 ```
 
 The installer downloads the exact release archive and checks its SHA-256 before installation. Run the launcher path it prints (normally `~/.local/bin/agentintersect-world`; custom XDG roots may change it). Use the pinned command above or the **rc** tag. npm also assigned **latest** on first publication; that tag does not make this preview a stable release.
 
-At least one supported harness must be installed and authenticated separately. Model accounts, subscriptions and optional voice setup are not included. This release is a public preview: back up projects and application data. Earlier private kits reused this version label; check exact hashes and preserve existing state rather than assuming same-version installation upgrades older private bytes.
+At least one supported harness must be installed and authenticated separately. Model accounts, subscriptions and optional voice setup are not included. This release is a public preview: back up projects and application data. Close World before upgrading, preserve the installation destination and any custom XDG roots, and keep saved state. Verify `agentintersect-world --version` reports `0.15.0-rc.4`.
 
-See [public release details](docs/PUBLIC_RELEASE_0.15.0-rc.2.md) for source provenance, checksums, source material and known limitations. Windows/WSL cross-environment execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory.
+See [public release details](docs/PUBLIC_RELEASE_0.15.0-rc.4.md) for source provenance, checksums, source material and known limitations. Windows/WSL cross-environment execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory.
+
+## Update World
+
+Close World, then use the installed launcher:
+
+```sh
+agentintersect-world update --check
+agentintersect-world update
+```
+
+For npm installs, use `~/.local/bin/agentintersect-world` if it is not on PATH. Existing installations without the update command need one installer/bootstrap upgrade first. Updates verify published artifacts and preserve saved state; Linux portable installs retain a rollback directory, Debian uses its package manager, and Windows hands off to the installer. `--yes` skips only the application confirmation, not OS permission prompts.
 
 ## Connect your agents
 
 1. After the opening logo, a new install opens **Agent Setup Menu**.
 2. **Discover Agents** — reads install / native identity metadata. It does not log in, change providers, install plugins, or start WSL distros for you.
-3. Pick harness + **native identity**, name the World connection, then **Attach to Agent Intersect World**.
-4. **Continue to Agent Select**, choose who joins this World, set avatars when asked.
+3. Pick the installation + **native identity**, and name the World connection. Open **Preview prerequisites** before attaching; check the exact profile/environment and each proposed change.
+4. For each needed action, tick **I approve this specific change to this native profile**, then **Apply approved change**. Preview again afterward to obtain the next action—approval is specific and expires.
+5. **Hermes:** approved actions can install the bundled World plugin, enable it, and configure an authenticated loopback API when World runs in that same native environment. API setup can replace the key used by other clients. Do not repeatedly approve it after an error; inspect the result first. rc.4 recognizes API settings split between `.env` and `config.yaml`.
+6. **Load native changes:** World does not silently restart gateways. Finish active work, identify the selected profile’s exact user/system service, and restart only that service if new settings/plugin need loading. Leave other profiles alone. OpenClaw requires its authenticated native gateway; configure/login through the harness itself.
+7. Recheck the selected identity, then **Attach to Agent Intersect World**. After attachment, **Continue to Agent Select**, choose who joins, and complete avatar selection. Confirm a normal greeting and a harmless tool-backed task work; discovery alone is not readiness.
 
 Later launches skip completed setup. **Escape for Menu** reopens Agent Setup without wiping saved work.
 
@@ -129,4 +143,4 @@ When reporting a problem, include the release, operating system, failed action a
 
 ## License
 
-World-owned code is [MIT licensed](LICENSE) © MelaBuilt AI. Bundled dependencies and supplied artwork retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md) and the [release’s corresponding-source material](docs/PUBLIC_RELEASE_0.15.0-rc.2.md#bundled-source-and-licenses).
+World-owned code is [MIT licensed](LICENSE) © MelaBuilt AI. Bundled dependencies and supplied artwork retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md) and the [release’s corresponding-source material](docs/PUBLIC_RELEASE_0.15.0-rc.4.md#bundled-source-and-licenses).
