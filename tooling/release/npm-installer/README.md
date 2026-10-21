@@ -1,33 +1,61 @@
 # AgentIntersect World terminal installer (Linux x64)
 
-**Release candidate preparation only:** This package and its referenced GitHub Release asset are not published yet. The following commands will work only after the matching release archive is approved, uploaded, and verified, and this npm package version is published.
+**Public preview:** npm installer `0.15.0-rc.2.1` installs World `0.15.0-rc.2`. This npm revision updates documentation only; the installer code, application archive and SHA-256 pin are unchanged.
+
+[Downloads](https://agentintersect.com/download/) · [Release and checksums](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2) · [Field Guide](https://guide.agentintersect.com/getting-started/) · [Report an issue](https://github.com/MelaBuilt-AI/AgentIntersect-World/issues)
+
+## Install
+
+Requirements: **Linux x64 with glibc, Node.js 20 or newer, npm and `tar`**. The application bundles Node 24; Git and a separately configured agent harness are needed for full workflows. ARM and musl/Alpine are unsupported.
 
 ```sh
-npx @agentintersect-world/installer@0.15.0-rc.2 install
-# or
-pnpm dlx @agentintersect-world/installer@0.15.0-rc.2 install
+npx -y @agentintersect-world/installer@0.15.0-rc.2.1 install
 ```
 
-The small npm package downloads the official, matching Linux x64 **glibc** portable archive, checks its built-in SHA-256 pin, and extracts it to `${XDG_DATA_HOME:-~/.local/share}/agentintersect-world/versions/0.15.0-rc.2`. It creates a launcher in `${XDG_BIN_HOME:-~/.local/bin}/agentintersect-world`; add that directory to `PATH` if needed. Then run `agentintersect-world`. No `sudo`, source checkout, global Node/pnpm install, provider login, service, or system configuration is performed by the installer. npm/pnpm and Node are only required for the bootstrap command; the app bundles its own runtime.
-
-The package requires Linux x64 with glibc, plus `tar`. ARM and musl/Alpine are unsupported. The application needs Git and a separately configured agent harness for full workflows. The app stores state separately in `${XDG_STATE_HOME:-~/.local/state}/agentintersect-world`; removing installed program files does not delete user state. For headless sessions, run `agentintersect-world --no-open` and use the printed loopback URL. Close with `quit` + Enter or Ctrl+C.
-
-Local candidate verification without publication:
+Run the launcher path printed by the installer, normally:
 
 ```sh
-AIW_TEST_ARCHIVE=/path/to/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz node --test tooling/release/npm-installer/test/install.test.mjs
+~/.local/bin/agentintersect-world
 ```
 
-The test uses `--archive` solely to supply the **same exact pinned archive** locally; it still checks the checksum. This unpublished candidate pairs with the clean application source `c54b0b49b2c03d9d43c648db51e6b6002ea3ee9c` archive, SHA-256 `75a25a55f2fac11910bba77085b67092fc7b40c407b57cd6755380fbf08eb224`. These October 17 application bytes include the WSL Windows-PTY packaging and spatial Work Inspector scrolling fixes from PR #43. Application and bootstrap source commits are recorded separately in the private kit. Do not mix older rc.2 archive or npm tarball bytes with this pair.
+For headless sessions, add `--no-open` and use the printed loopback URL. Close with `quit` + Enter or Ctrl+C. Do not expose the backend publicly.
 
-For private transfer, use the exact local npm tarball and app archive from the same checksum-verified kit:
+For Windows, use the setup installer or portable ZIP on the downloads page instead. Windows builds are unsigned; follow your device's security policy.
+
+## What it installs
+
+The bootstrapper downloads the official Linux x64 archive, checks its embedded SHA-256 pin, and extracts application files to `${XDG_DATA_HOME:-~/.local/share}/agentintersect-world/versions/0.15.0-rc.2`. It creates `${XDG_BIN_HOME:-~/.local/bin}/agentintersect-world`; add that directory to your own `PATH` if desired.
+
+It does not use `sudo`, change your global PATH, install a global runtime/package manager, check out source, configure provider accounts, or install a service. Model accounts and subscriptions are separate. Application state lives separately in `${XDG_STATE_HOME:-~/.local/state}/agentintersect-world`; removing program files does not delete that state.
+
+## Existing installations
+
+An existing World `0.15.0-rc.2` directory is not replaced. An “already installed” message is not an upgrade from older private candidate bytes bearing that same version. Preserve projects and state; use separate `XDG_DATA_HOME` and `XDG_BIN_HOME` roots for isolated installation tests.
+
+This documentation-only npm revision does not upgrade the application. Use the explicit version above or the `rc` channel. This remains a prerelease, regardless of any registry `latest` tag.
+
+## Verification and provenance
+
+Application source: `c54b0b49b2c03d9d43c648db51e6b6002ea3ee9c`.
+
+Pinned archive: `AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz`.
+
+SHA-256:
+
+```text
+75a25a55f2fac11910bba77085b67092fc7b40c407b57cd6755380fbf08eb224
+```
+
+The published application archive and original public-registry installation path were verified at launch. This revision retains the same executable installer and archive identity. See the release for checksums and provenance; never substitute a different archive under the same version.
+
+From the source repository, maintainers can run the pinned-archive tests:
 
 ```sh
-npx --yes --package=/absolute/path/agentintersect-world-installer-0.15.0-rc.2.tgz agentintersect-world-install install --archive /absolute/path/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz
-# or
-pnpm dlx /absolute/path/agentintersect-world-installer-0.15.0-rc.2.tgz install --archive /absolute/path/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz
+AIW_TEST_ARCHIVE=/absolute/path/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz node --test tooling/release/npm-installer/test/install.test.mjs
 ```
 
-This installer does not replace an already-installed `0.15.0-rc.2` directory. Test in a fresh home or separate `XDG_DATA_HOME` and `XDG_BIN_HOME`; an "already installed" message is not an upgrade to new candidate bytes. Keep application state separate and preserve existing projects/state. A repeat-install test only proves idempotence for the same installed candidate.
+The test-only `--archive` path still enforces the checksum. Local tests do not substitute for public-registry installation verification. This npm package is a bootstrapper, not the application payload.
 
-Before publication, confirm the hosted asset bytes equal the embedded digest and run a clean public-registry install smoke. After publication, a changed archive requires a new immutable package version/digest; this candidate remains unpublished. Local tarball tests do not prove the registry or hosted-download path. The npm package is a bootstrapper, not the application payload.
+## License
+
+MIT for the installer code. The application and bundled dependencies retain their respective license terms; see the release's third-party notices.
