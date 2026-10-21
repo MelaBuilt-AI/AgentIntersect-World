@@ -21,7 +21,7 @@ npx -y @agentintersect-world/installer@0.15.0-rc.4 install
 ~/.local/bin/agentintersect-world --version
 ```
 
-The npm command requires registry publication; if it is not available yet, use the directly attached application archives/installers. Existing updater-equipped installations can run, with World closed:
+The exact RC4 npm package is published and verified through a fresh-cache public install, including the downloaded application checksum, installed version and update check. Both `latest` and `rc` point to `0.15.0-rc.4`. Existing updater-equipped installations can run, with World closed:
 
 ```sh
 agentintersect-world update --check
