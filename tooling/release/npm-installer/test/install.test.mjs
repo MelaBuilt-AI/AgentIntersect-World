@@ -113,7 +113,7 @@ test(
         "data",
         "agentintersect-world",
         "versions",
-        "0.15.0-rc.2",
+        "0.15.0-rc.3",
       );
       assert.ok(existsSync(join(installed, "runtime", "node")));
       assert.ok(
@@ -122,7 +122,7 @@ test(
       assert.equal(
         JSON.parse(readFileSync(join(installed, "BUILD.json"), "utf8"))
           .sourceCommit,
-        "c54b0b49b2c03d9d43c648db51e6b6002ea3ee9c",
+        "39ce7448ca5fca7c84c5cbb4009bd283c5bee8cc",
       );
       const repeat = run();
       assert.equal(repeat.status, 0, repeat.stderr);

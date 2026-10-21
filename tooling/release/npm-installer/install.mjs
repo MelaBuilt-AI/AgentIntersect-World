@@ -16,10 +16,10 @@ import { dirname, join, resolve, relative } from "node:path";
 import { spawn } from "node:child_process";
 import { pipeline } from "node:stream/promises";
 
-const version = "0.15.0-rc.2";
+const version = "0.15.0-rc.3";
 const name = `AgentIntersect-World-${version}-linux-x64`;
 const sha256 =
-  "75a25a55f2fac11910bba77085b67092fc7b40c407b57cd6755380fbf08eb224";
+  "257cca28084fc3183b7f701be4d20229150453b66ec36b75e3e1d5f77535ac14";
 const url = `https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v${version}/${name}.tar.gz`;
 
 async function exists(path) {
