@@ -650,6 +650,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     // sessions.send has no per-turn cwd/system field. Preserve the server-owned
     // context in the native prompt without replacing this conversation or config.
     const message = [
+      "You are replying through AgentIntersect World, not Discord or another messaging channel. Reply directly in this World conversation with a final text answer. Do not use a messaging tool to deliver this reply or suppress it as already delivered. Use tools normally when needed for the user's task; after tool use, summarize the result here. External messaging is a separate action only when the user explicitly requests it.",
       context?.systemMessage,
       context?.workingDirectory
         ? `Working directory for this turn: ${JSON.stringify(context.nativeWorkingDirectory ?? context.workingDirectory)}. Use this directory for repository commands and delegated workers, not the agent's default workspace.`

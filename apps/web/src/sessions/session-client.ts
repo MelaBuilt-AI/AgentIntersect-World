@@ -524,6 +524,15 @@ async function data<T>(response: Response): Promise<T> {
   return body.data;
 }
 
+export class EmptyAgentReplyError extends Error {
+  constructor() {
+    super(
+      "The agent completed this turn without a text reply. Ask it to summarize here; do not repeat a work request until you check what it did.",
+    );
+    this.name = "EmptyAgentReplyError";
+  }
+}
+
 export class AgentSessionClient {
   readonly #fetcher: typeof fetch;
 
@@ -850,8 +859,9 @@ export class AgentSessionClient {
     });
     if (terminalStatus === "error")
       throw new Error(streamError || "World session turn failed.");
-    if (terminalStatus !== "completed" || !finalText)
+    if (terminalStatus !== "completed")
       throw new Error("World session stream ended without a final response.");
+    if (!finalText.trim()) throw new EmptyAgentReplyError();
     return { finalText, deltas };
   }
 

@@ -5,7 +5,7 @@
   #error OutputPath is required
 #endif
 #ifndef ReleaseVersion
-  #define ReleaseVersion "0.15.0-rc.2-windows.3"
+  #define ReleaseVersion "0.15.0-rc.3"
 #endif
 [Setup]
 AppId=AgentIntersectWorld
@@ -26,9 +26,9 @@ LicenseFile={#PackageRoot}\LICENSE
 InfoBeforeFile=installer-notice.txt
 OutputDir={#OutputPath}
 OutputBaseFilename=AgentIntersect-World-{#ReleaseVersion}-windows-x64-setup
-VersionInfoVersion=0.15.0.5
+VersionInfoVersion=0.15.0.6
 VersionInfoProductName=AgentIntersect World
-VersionInfoProductVersion=0.15.0.5
+VersionInfoProductVersion=0.15.0.6
 VersionInfoProductTextVersion={#ReleaseVersion}
 Compression=lzma2/normal
 SolidCompression=yes
@@ -43,6 +43,7 @@ RestartApplications=no
 Source: "{#PackageRoot}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect-appicon.ico"
+Name: "{group}\Update AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; Parameters: "update"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect-appicon.ico"
 Name: "{group}\Install Codex or Claude Code CLI"; Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\Install-AgentCLI.ps1"""; WorkingDir: "{app}"
 Name: "{autodesktop}\AgentIntersect World"; Filename: "{app}\AgentIntersect-World.cmd"; WorkingDir: "{app}"; IconFilename: "{app}\agentintersect-appicon.ico"
 Name: "{group}\Uninstall AgentIntersect World"; Filename: "{uninstallexe}"

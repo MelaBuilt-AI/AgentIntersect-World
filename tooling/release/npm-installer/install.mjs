@@ -12,14 +12,14 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, relative } from "node:path";
 import { spawn } from "node:child_process";
 import { pipeline } from "node:stream/promises";
 
-const version = "0.15.0-rc.2";
+const version = "0.15.0-rc.3";
 const name = `AgentIntersect-World-${version}-linux-x64`;
 const sha256 =
-  "75a25a55f2fac11910bba77085b67092fc7b40c407b57cd6755380fbf08eb224";
+  "257cca28084fc3183b7f701be4d20229150453b66ec36b75e3e1d5f77535ac14";
 const url = `https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v${version}/${name}.tar.gz`;
 
 async function exists(path) {
@@ -81,8 +81,27 @@ async function install(archive) {
   );
   const launcher = join(target, "agentintersect-world");
   const wrapper = `#!/bin/sh\n# AgentIntersect World npm installer\nexec '${launcher.replaceAll("'", "'\\''")}' "$@"\n`;
-  if ((await exists(bin)) && (await readFile(bin, "utf8")) !== wrapper) {
-    throw new Error(`Refusing to replace an unrelated command: ${bin}`);
+  const previousWrapper = (await exists(bin))
+    ? await readFile(bin, "utf8")
+    : null;
+  if (previousWrapper !== null && previousWrapper !== wrapper) {
+    const match =
+      /^#!\/bin\/sh\n# AgentIntersect World npm installer\nexec '(.+)' "\$@"\n$/.exec(
+        previousWrapper,
+      );
+    const oldLauncher = match?.[1].replaceAll("'\\''", "'");
+    const local = oldLauncher ? relative(root, oldLauncher).split("/") : [];
+    if (
+      local.length !== 2 ||
+      !/^\d+\.\d+\.\d+(?:-rc\.\d+)?$/.test(local[0]) ||
+      local[1] !== "agentintersect-world"
+    )
+      throw new Error(`Refusing to replace an unrelated command: ${bin}`);
+    const oldBuild = JSON.parse(
+      await readFile(join(dirname(oldLauncher), "BUILD.json"), "utf8"),
+    );
+    if (oldBuild.platform !== "linux-x64" || oldBuild.sourceDirty)
+      throw new Error(`Refusing to replace an unrelated command: ${bin}`);
   }
   if (await exists(target)) {
     if (!(await exists(launcher)))
@@ -125,7 +144,12 @@ async function install(archive) {
     }
   }
   await mkdir(dirname(bin), { recursive: true });
-  if (!(await exists(bin))) {
+  if (previousWrapper !== wrapper) {
+    const currentWrapper = (await exists(bin))
+      ? await readFile(bin, "utf8")
+      : null;
+    if (currentWrapper !== previousWrapper)
+      throw new Error("Launcher changed during installation; not replaced.");
     const temporary = `${bin}.${process.pid}.tmp`;
     try {
       await writeFile(temporary, wrapper, { flag: "wx", mode: 0o755 });

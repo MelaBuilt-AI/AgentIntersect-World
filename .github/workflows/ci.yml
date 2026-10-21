@@ -64,7 +64,7 @@ jobs:
       - run: pnpm avatar:verify:compatibility
       - run: pnpm check:core
       - run: python3 -m unittest discover -s tooling/release -p test_build.py -v
-      - run: node --test tooling/release/workstream.test.mjs
+      - run: node --test tooling/release/workstream.test.mjs tooling/release/update.test.mjs tooling/release/npm-installer/test/install.test.mjs
 
   push-checks:
     needs: [scope, docs, core]

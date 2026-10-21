@@ -1,7 +1,9 @@
-import { createHash, randomUUID } from "node:crypto";
-import { copyFile, readFile, stat } from "node:fs/promises";
+import { createHash, randomUUID, randomBytes } from "node:crypto";
+import { copyFile, readFile, stat, mkdir, chmod } from "node:fs/promises";
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { promisify, parseEnv } from "node:util";
+import { fileURLToPath } from "node:url";
+import { constants } from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
 import type {
@@ -36,29 +38,42 @@ export class AgentPrerequisites {
       });
     },
   ) {}
-  async snapshot(
-    registration: AgentRegistration,
-  ): Promise<{ fingerprint: string; enabled: boolean; installed: boolean }> {
+  async snapshot(registration: AgentRegistration) {
     const profile = registration.identity.profilePath;
+    const optional = (filename: string) =>
+      readFile(filename, "utf8").catch((error) => {
+        if (error.code === "ENOENT") return "";
+        throw error;
+      });
     const config = await readFile(path.join(profile, "config.yaml"), "utf8");
-    const plugin = await readFile(
-      path.join(profile, "plugins", "agentintersect-world", "__init__.py"),
-      "utf8",
-    ).catch((error) => {
-      if (error.code === "ENOENT") return "";
-      throw error;
-    });
+    const directory = path.join(profile, "plugins", "agentintersect-world");
+    const plugin = await optional(path.join(directory, "__init__.py"));
+    const manifest = await optional(path.join(directory, "plugin.yaml"));
+    const envText = await optional(path.join(profile, ".env"));
+    const env = parseEnv(envText);
     const enabled =
       (
         parse(config) as { plugins?: { enabled?: string[] } }
-      ).plugins?.enabled?.includes("agentintersect-world") ?? false;
+      )?.plugins?.enabled?.includes("agentintersect-world") ?? false;
+    const directoryExists = await stat(directory)
+      .then(() => true)
+      .catch((error) => {
+        if (error.code === "ENOENT") return false;
+        throw error;
+      });
     return {
       fingerprint: createHash("sha256")
-        .update(config)
-        .update(plugin)
+        .update(
+          JSON.stringify([config, plugin, manifest, envText, directoryExists]),
+        )
         .digest("hex"),
       enabled,
-      installed: !!plugin,
+      installed: !!plugin && !!manifest,
+      directoryExists,
+      apiConfigured:
+        env.API_SERVER_ENABLED === "true" &&
+        (env.API_SERVER_KEY?.length ?? 0) >= 32 &&
+        env.API_SERVER_HOST === "127.0.0.1",
     };
   }
   async preview(registration: AgentRegistration): Promise<PrerequisitePlan> {
@@ -98,10 +113,41 @@ export class AgentPrerequisites {
               nativePath.join(registration.identity.profilePath, "config.yaml"),
             ],
           });
-        if (!snapshot?.installed)
+        if (snapshot && !snapshot.directoryExists)
+          plan.actions.push({
+            id: randomUUID(),
+            kind: "install-hermes-world-plugin",
+            title: "Install the bundled World plugin",
+            reason:
+              "This profile does not have the World integration installed.",
+            effect:
+              "Copies the plugin shipped with this application into the selected profile. Does not overwrite an existing plugin, enable it, or restart Hermes. Preview again afterward to enable it.",
+            paths: [
+              nativePath.join(
+                registration.identity.profilePath,
+                "plugins",
+                "agentintersect-world",
+              ),
+            ],
+          });
+        else if (!snapshot?.installed)
           plan.guidance.push(
-            `Install this checkout's integrations/hermes/agentintersect-world plugin into ${nativePath.join(registration.identity.profilePath, "plugins", "agentintersect-world")} using the documented native integration procedure, then Preview again. This is a manual installation, not an automatic installer.`,
+            "The profile is unreadable or its existing World plugin is incomplete. Inspect it in the native environment; World will not overwrite existing plugin files.",
           );
+        if (snapshot && !snapshot.apiConfigured)
+          plan.actions.push({
+            id: randomUUID(),
+            kind: "configure-hermes-api",
+            title: "Set up authenticated local API (replace API key)",
+            reason:
+              "Configure or repair the API used by World. This is optional if your native API settings already work.",
+            effect:
+              "Backs up config.yaml and any .env, replaces the API key with a new random secret, enables the API on 127.0.0.1, and preserves the port. Existing API clients need the new key. No provider change or gateway restart. The secret is never shown in World.",
+            paths: [
+              nativePath.join(registration.identity.profilePath, "config.yaml"),
+              nativePath.join(registration.identity.profilePath, ".env"),
+            ],
+          });
       } else
         plan.guidance.push(
           "Configure the selected profile in its native Windows/WSL environment. Automated plugin enablement is available only when World runs in that same environment.",
@@ -144,13 +190,78 @@ export class AgentPrerequisites {
       throw new Error(
         "Native configuration or plugin changed. Preview again before approving.",
       );
-    const filename = path.join(
-      entry.registration.identity.profilePath,
-      "config.yaml",
-    );
+    const profile = entry.registration.identity.profilePath;
+    if (action.kind === "install-hermes-world-plugin") {
+      const source = fileURLToPath(
+        new URL(
+          "../../../integrations/hermes/agentintersect-world/",
+          import.meta.url,
+        ),
+      );
+      const files = ["__init__.py", "plugin.yaml"];
+      for (const name of files) await readFile(path.join(source, name));
+      const parent = path.join(profile, "plugins");
+      const destination = path.join(parent, "agentintersect-world");
+      await mkdir(parent, { recursive: true });
+      await mkdir(destination); // Exclusive: never overwrite even a partial installation.
+      for (const name of files) {
+        await copyFile(
+          path.join(source, name),
+          path.join(destination, name),
+          constants.COPYFILE_EXCL,
+        );
+        if (
+          !(await readFile(path.join(source, name))).equals(
+            await readFile(path.join(destination, name)),
+          )
+        )
+          throw new Error(
+            "Installed plugin verification failed. Inspect the profile before retrying.",
+          );
+      }
+      return entry.registration;
+    }
+    const filename = path.join(profile, "config.yaml");
     const backup = `${filename}.aiw-${id}.bak`;
-    await copyFile(filename, backup);
-    await stat(backup);
+    await copyFile(filename, backup, constants.COPYFILE_EXCL);
+    await chmod(backup, 0o600);
+    if (action.kind === "configure-hermes-api") {
+      const envFile = path.join(profile, ".env");
+      const envBackup = `${envFile}.aiw-${id}.bak`;
+      try {
+        await copyFile(envFile, envBackup, constants.COPYFILE_EXCL);
+        await chmod(envBackup, 0o600);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      const key = randomBytes(32).toString("hex");
+      try {
+        for (const [setting, value] of [
+          ["API_SERVER_KEY", key],
+          ["API_SERVER_HOST", "127.0.0.1"],
+          ["API_SERVER_ENABLED", "true"],
+        ])
+          await this.run(entry.registration, [
+            "config",
+            "set",
+            setting!,
+            value!,
+          ]);
+        const saved = parseEnv(await readFile(envFile, "utf8"));
+        if (
+          saved.API_SERVER_KEY !== key ||
+          saved.API_SERVER_HOST !== "127.0.0.1" ||
+          saved.API_SERVER_ENABLED !== "true"
+        )
+          throw new Error("API settings readback failed");
+        await chmod(envFile, 0o600);
+      } catch {
+        throw new Error(
+          `API setup did not verify. Inspect this profile and its .aiw-${id}.bak backups before retrying. No gateway was restarted; no ready registration was saved.`,
+        );
+      }
+      return entry.registration;
+    }
     try {
       await this.run(entry.registration, [
         "plugins",

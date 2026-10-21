@@ -234,7 +234,8 @@ export function createAgentSetupRuntime(options: {
       try {
         let adapter = await adapterFor(
           registration,
-          registration.adapterId !== "codex",
+          registration.adapterId !== "codex" &&
+            registration.adapterId !== "hermes",
         );
         const capability = await adapter.attest();
         if (

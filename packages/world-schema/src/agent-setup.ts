@@ -101,7 +101,10 @@ export type PrerequisitePlan = {
   target: string;
   actions: {
     id: string;
-    kind: "enable-hermes-world-plugin";
+    kind:
+      | "enable-hermes-world-plugin"
+      | "install-hermes-world-plugin"
+      | "configure-hermes-api";
     title: string;
     reason: string;
     effect: string;

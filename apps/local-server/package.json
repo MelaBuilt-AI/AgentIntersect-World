@@ -50,6 +50,8 @@
     "LICENSE",
     "NOTICE",
     "launch.mjs",
+    "cli.mjs",
+    "update.mjs",
     "windows-git.mjs",
     "admin-shell-helper.mjs"
   ],
