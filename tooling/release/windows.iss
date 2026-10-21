@@ -5,7 +5,7 @@
   #error OutputPath is required
 #endif
 #ifndef ReleaseVersion
-  #define ReleaseVersion "0.15.0-rc.3"
+  #define ReleaseVersion "0.15.0-rc.4"
 #endif
 [Setup]
 AppId=AgentIntersectWorld
@@ -26,9 +26,9 @@ LicenseFile={#PackageRoot}\LICENSE
 InfoBeforeFile=installer-notice.txt
 OutputDir={#OutputPath}
 OutputBaseFilename=AgentIntersect-World-{#ReleaseVersion}-windows-x64-setup
-VersionInfoVersion=0.15.0.6
+VersionInfoVersion=0.15.0.7
 VersionInfoProductName=AgentIntersect World
-VersionInfoProductVersion=0.15.0.6
+VersionInfoProductVersion=0.15.0.7
 VersionInfoProductTextVersion={#ReleaseVersion}
 Compression=lzma2/normal
 SolidCompression=yes

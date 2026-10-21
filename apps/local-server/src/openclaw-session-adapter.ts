@@ -102,6 +102,70 @@ function safeToolName(value: unknown): {
   return { name: name || "unknown", changed: !name || name !== raw };
 }
 
+// Read only committed source replies for this exact run, never tool arguments,
+// unrelated history, or a reply delivered to an external channel.
+function committedSourceReplyText(history: unknown, runId: string): string {
+  if (!isRecord(history) || !Array.isArray(history.messages)) return "";
+  const messages = history.messages.filter(
+    (message): message is Record<string, unknown> =>
+      isRecord(message) &&
+      isRecord(message.__openclaw) &&
+      message.__openclaw.runId === runId,
+  );
+  const finalCalls = new Set(
+    messages.flatMap((message) =>
+      message.role === "assistant" && Array.isArray(message.content)
+        ? message.content.flatMap((part) =>
+            isRecord(part) &&
+            part.type === "toolCall" &&
+            part.name === "message" &&
+            typeof part.id === "string" &&
+            isRecord(part.arguments) &&
+            part.arguments.action === "send" &&
+            part.arguments.final === true
+              ? [part.id]
+              : [],
+          )
+        : [],
+    ),
+  );
+  const receipts = new Set(
+    messages.flatMap((message) => {
+      const details = message.details;
+      return message.role === "toolResult" &&
+        message.toolName === "message" &&
+        message.isError === false &&
+        finalCalls.has(String(message.toolCallId)) &&
+        isRecord(details) &&
+        details.status === "ok" &&
+        details.deliveryStatus === "sent" &&
+        details.channel === "webchat" &&
+        details.target === "current-run" &&
+        details.sourceReplySink === "internal-ui" &&
+        details.sourceReplyTranscriptOwner === true &&
+        details.dryRun === false &&
+        typeof details.idempotencyKey === "string"
+        ? [details.idempotencyKey]
+        : [];
+    }),
+  );
+  const replies = new Map<string, string>();
+  for (const message of messages) {
+    if (
+      message.role !== "assistant" ||
+      message.api !== "openclaw-transcript" ||
+      message.provider !== "openclaw" ||
+      message.model !== "delivery-mirror" ||
+      typeof message.idempotencyKey !== "string" ||
+      !receipts.has(message.idempotencyKey)
+    )
+      continue;
+    const text = assistantText(message);
+    if (text?.trim()) replies.set(message.idempotencyKey, text);
+  }
+  return [...replies.values()].join("\n\n");
+}
+
 function assistantText(value: unknown): string | null {
   if (!isRecord(value) || !Array.isArray(value.content)) return null;
   const parts = value.content.flatMap((part) =>
@@ -307,7 +371,10 @@ class GatewayConnection {
       this.#socket.terminate();
   }
 
-  request(method: (typeof REQUIRED_METHODS)[number], params: unknown) {
+  request(
+    method: (typeof REQUIRED_METHODS)[number] | "sessions.get",
+    params: unknown,
+  ) {
     if (this.#failed) return Promise.reject(this.#failed);
     if (this.#socket.readyState !== WebSocket.OPEN)
       return Promise.reject(
@@ -650,7 +717,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
     // sessions.send has no per-turn cwd/system field. Preserve the server-owned
     // context in the native prompt without replacing this conversation or config.
     const message = [
-      "You are replying through AgentIntersect World, not Discord or another messaging channel. Reply directly in this World conversation with a final text answer. Do not use a messaging tool to deliver this reply or suppress it as already delivered. Use tools normally when needed for the user's task; after tool use, summarize the result here. External messaging is a separate action only when the user explicitly requests it.",
+      "You are replying through AgentIntersect World, not Discord or another messaging channel. Reply directly in this World conversation with a final text answer. Use the native current-conversation reply mechanism, including a current-source message tool when required by OpenClaw. Do not redirect this reply to an external channel. Use tools normally when needed for the user's task; after tool use, summarize the result here. External messaging is a separate action only when the user explicitly requests it.",
       context?.systemMessage,
       context?.workingDirectory
         ? `Working directory for this turn: ${JSON.stringify(context.nativeWorkingDirectory ?? context.workingDirectory)}. Use this directory for repository commands and delegated workers, not the agent's default workspace.`
@@ -796,7 +863,7 @@ export class OpenClawSessionAdapter implements AgentAdapter {
               redaction: { applied: false, count: 0 },
             });
           } else if (payload.state === "final") {
-            const finalText = assistantText(payload.message) ?? deltas.join("");
+            let finalText = assistantText(payload.message) ?? deltas.join("");
             if (Buffer.byteLength(finalText, "utf8") > MAX_OUTPUT_BYTES) {
               finish(gatewayFailure("OpenClaw output exceeded the bound"));
               return;
@@ -808,8 +875,17 @@ export class OpenClawSessionAdapter implements AgentAdapter {
             removeAbort?.();
             unsubscribe?.();
             removeFailure?.();
-            void eventDispatch.then(
-              () =>
+            void eventDispatch
+              .then(async () => {
+                if (!finalText.trim()) {
+                  const history = await connection.request("sessions.get", {
+                    key: binding.rootSessionRef,
+                    limit: 128,
+                  });
+                  finalText = committedSourceReplyText(history, runId);
+                }
+                if (Buffer.byteLength(finalText, "utf8") > MAX_OUTPUT_BYTES)
+                  throw gatewayFailure("OpenClaw output exceeded the bound");
                 finish(
                   {
                     finalText,
@@ -818,9 +894,9 @@ export class OpenClawSessionAdapter implements AgentAdapter {
                     sessionRef: binding.effectiveSessionRef,
                   },
                   true,
-                ),
-              () => finish(gatewayFailure()),
-            );
+                );
+              })
+              .catch(() => finish(gatewayFailure(), true));
           } else if (payload.state === "aborted")
             finish(
               gatewayFailure(
