@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { parseEnv } from "node:util";
-import { stringify } from "yaml";
+import { parse, stringify } from "yaml";
 import type { AgentRegistration } from "@agentintersect-world/world-schema/agent-setup";
 import { AgentPrerequisites } from "../src/agent-prerequisites.js";
 
@@ -80,63 +80,78 @@ it("installs the bundled plugin only after approval without overwriting native f
   }
 });
 
-it("configures an authenticated loopback API with explicit key-rotation consent and no restart", async () => {
-  const { root, profile, registration } = await fixture();
-  try {
-    const envFile = path.join(profile, ".env");
-    await writeFile(
-      envFile,
-      "UNRELATED=preserved\nAPI_SERVER_KEY=placeholder\n",
-    );
-    const calls: string[][] = [];
-    const manager = new AgentPrerequisites(async (selected, args) => {
-      expect(selected.identity.profilePath).toBe(profile);
-      calls.push([...args]);
-      expect(args.slice(0, 2)).toEqual(["config", "set"]);
-      if (args[2]!.startsWith("API_SERVER_")) {
-        const values = parseEnv(await readFile(envFile, "utf8"));
-        values[args[2]!] = args[3]!;
-        await writeFile(
-          envFile,
-          Object.entries(values)
-            .map(([k, v]) => `${k}=${v}\n`)
-            .join(""),
-        );
-      } else {
-        await writeFile(
-          path.join(profile, "config.yaml"),
-          stringify({
-            model: "preserved",
-            platforms: { api_server: { enabled: true } },
-          }),
-        );
-      }
-    });
-    const plan = await manager.preview(registration);
-    const action = plan.actions.find((a) => a.kind === "configure-hermes-api");
-    expect(
-      action,
-      "fresh installation has an authenticated API setup action",
-    ).toBeDefined();
-    if (!action) return;
-    expect(action.effect).toMatch(/replace|rotat/i);
-    expect(JSON.stringify(plan)).not.toContain("placeholder");
-    await manager.apply(plan.id, action.id, true);
-    const saved = parseEnv(await readFile(envFile, "utf8"));
-    expect(saved.API_SERVER_KEY).toMatch(/^[a-f0-9]{64}$/);
-    expect(saved.API_SERVER_HOST).toBe("127.0.0.1");
-    expect(saved.API_SERVER_ENABLED).toBe("true");
-    expect(saved.UNRELATED).toBe("preserved");
-    expect(calls.some((c) => c.includes("restart"))).toBe(false);
-    expect(await readFile(`${envFile}.aiw-${plan.id}.bak`, "utf8")).toContain(
-      "placeholder",
-    );
-    expect(
-      (await manager.preview(registration)).actions.some(
+it.each(["env", "split"])(
+  "configures an authenticated loopback API with %s storage and no restart",
+  async (storage) => {
+    const { root, profile, registration } = await fixture();
+    try {
+      const envFile = path.join(profile, ".env");
+      await writeFile(
+        envFile,
+        "UNRELATED=preserved\nAPI_SERVER_KEY=placeholder\n",
+      );
+      const calls: string[][] = [];
+      const manager = new AgentPrerequisites(async (selected, args) => {
+        expect(selected.identity.profilePath).toBe(profile);
+        calls.push([...args]);
+        expect(args.slice(0, 2)).toEqual(["config", "set"]);
+        if (storage === "env" || args[2] === "API_SERVER_KEY") {
+          const values = parseEnv(await readFile(envFile, "utf8"));
+          values[args[2]!] = args[3]!;
+          await writeFile(
+            envFile,
+            Object.entries(values)
+              .map(([k, v]) => `${k}=${v}\n`)
+              .join(""),
+          );
+        } else {
+          await writeFile(
+            path.join(profile, "config.yaml"),
+            stringify({
+              ...parse(
+                await readFile(path.join(profile, "config.yaml"), "utf8"),
+              ),
+              [args[2]!]:
+                args[2] === "API_SERVER_ENABLED" ? args[3] === "true" : args[3],
+            }),
+          );
+        }
+      });
+      const plan = await manager.preview(registration);
+      const action = plan.actions.find(
         (a) => a.kind === "configure-hermes-api",
-      ),
-    ).toBe(false);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
+      );
+      expect(
+        action,
+        "fresh installation has an authenticated API setup action",
+      ).toBeDefined();
+      if (!action) return;
+      expect(action.effect).toMatch(/replace|rotat/i);
+      expect(JSON.stringify(plan)).not.toContain("placeholder");
+      await manager.apply(plan.id, action.id, true);
+      const saved = parseEnv(await readFile(envFile, "utf8"));
+      expect(saved.API_SERVER_KEY).toMatch(/^[a-f0-9]{64}$/);
+      const config = parse(
+        await readFile(path.join(profile, "config.yaml"), "utf8"),
+      );
+      expect(saved.API_SERVER_HOST ?? config.API_SERVER_HOST).toBe("127.0.0.1");
+      expect(
+        String(saved.API_SERVER_ENABLED ?? config.API_SERVER_ENABLED),
+      ).toBe("true");
+      expect(config.model).toBe("preserved");
+      if (storage === "split") expect(saved.API_SERVER_ENABLED).toBeUndefined();
+      expect(saved.UNRELATED).toBe("preserved");
+      expect(calls.some((c) => c.includes("restart"))).toBe(false);
+      expect(await readFile(`${envFile}.aiw-${plan.id}.bak`, "utf8")).toContain(
+        "placeholder",
+      );
+      expect(
+        (await manager.preview(registration)).actions.some(
+          (a) => a.kind === "configure-hermes-api",
+        ),
+      ).toBe(false);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);

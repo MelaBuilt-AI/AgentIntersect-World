@@ -1,6 +1,6 @@
 {
   "name": "@agentintersect-world/installer",
-  "version": "0.15.0-rc.3",
+  "version": "0.15.0-rc.4",
   "description": "Verified terminal installer for AgentIntersect World on Linux x64",
   "type": "module",
   "license": "MIT",

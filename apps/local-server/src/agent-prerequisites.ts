@@ -51,10 +51,13 @@ export class AgentPrerequisites {
     const manifest = await optional(path.join(directory, "plugin.yaml"));
     const envText = await optional(path.join(profile, ".env"));
     const env = parseEnv(envText);
+    const settings = parse(config) as {
+      plugins?: { enabled?: string[] };
+      API_SERVER_ENABLED?: boolean | string;
+      API_SERVER_HOST?: string;
+    } | null;
     const enabled =
-      (
-        parse(config) as { plugins?: { enabled?: string[] } }
-      )?.plugins?.enabled?.includes("agentintersect-world") ?? false;
+      settings?.plugins?.enabled?.includes("agentintersect-world") ?? false;
     const directoryExists = await stat(directory)
       .then(() => true)
       .catch((error) => {
@@ -71,9 +74,13 @@ export class AgentPrerequisites {
       installed: !!plugin && !!manifest,
       directoryExists,
       apiConfigured:
-        env.API_SERVER_ENABLED === "true" &&
+        // Older Hermes config set stores non-secret scalars in config.yaml.
+        // Its gateway bridges these only when the setting is absent from .env.
+        String(
+          env.API_SERVER_ENABLED ?? settings?.API_SERVER_ENABLED,
+        ).toLowerCase() === "true" &&
         (env.API_SERVER_KEY?.length ?? 0) >= 32 &&
-        env.API_SERVER_HOST === "127.0.0.1",
+        (env.API_SERVER_HOST ?? settings?.API_SERVER_HOST) === "127.0.0.1",
     };
   }
   async preview(registration: AgentRegistration): Promise<PrerequisitePlan> {
@@ -250,8 +257,7 @@ export class AgentPrerequisites {
         const saved = parseEnv(await readFile(envFile, "utf8"));
         if (
           saved.API_SERVER_KEY !== key ||
-          saved.API_SERVER_HOST !== "127.0.0.1" ||
-          saved.API_SERVER_ENABLED !== "true"
+          !(await this.snapshot(entry.registration)).apiConfigured
         )
           throw new Error("API settings readback failed");
         await chmod(envFile, 0o600);

@@ -9,13 +9,31 @@ Owner authorized diagnosis, implementation, commit/push, exact-head green CI and
 - Updates: inspect and repair the npm install upgrade path, preserving saved state and unrelated commands. Versioned release artifacts remain necessary; merged commits are not automatic releases. Keep published rc.2 bytes immutable.
 - No unrelated Safari investigation, global configuration edits, operator-state deletion, or automated browser navigation journeys.
 
-## Reported evidence
+## rc.4 authorized delivery scope
+
+The owner authorized completion, commit/push, exact-head green GitHub CI, merge and new RC installers for hands-on testing. Prepare additive `0.15.0-rc.4` application artifacts and a bootstrap pinned to their verified archive. Keep existing rc.3 bytes immutable. Draft staging is for owner testing only; npm publication/dist-tag changes, release promotion and website download changes remain blocked pending acceptance.
+
+PCDGAI-DEV Hermes is now owner-accepted after the explicit default user-service restart: attachment, chat and a coding run succeeded. This establishes working native configuration, not a corrected fresh-installer flow. The split-layout regression and new candidate are still needed. OpenClaw's new correction still needs the original ordinary greeting and tool-backed reply acceptance on 30B.
+
+## rc.3 acceptance failures — promotion blocked
+
+Owner testing is required before publication. rc.3 failed real-machine acceptance; merged/CI-green packaging does not override that result. Do not promote the draft, npm tags, or live download links, and do not overwrite the existing candidate bytes.
+
+- OpenClaw on 30B: the exact failed native run recorded a successful internal webchat/current-run message-tool reply and a committed delivery-mirror assistant row, while World's final event was empty. The local follow-up recovers only an exact-run final internal reply linked to its successful receipt, without replay. The focused regression failed before the fix; 35 adapter tests, affected lint and backend TypeScript passed. This correction is not in the rc.3 payload.
+- Hermes on PCDGAI-DEV: the owner confirmed plugin enablement, a changed 64-character key in `.env`, and `API_SERVER_ENABLED: true` / `API_SERVER_HOST: 127.0.0.1` in top-level `config.yaml`. rc.3 wrongly required those non-secret settings in `.env`, so it rejected successful native writes and continued offering key replacement. The local correction recognizes the split layout with `.env` precedence for these settings and verifies it after the native CLI writes. A fixture matching the observed storage layout reproduced the exact `API setup did not verify` error before the fix; eight tests across first-run, prerequisites, setup API and Hermes recheck then passed, along with affected lint and backend TypeScript. This is fixture verification, not remote gateway loading or chat acceptance.
+- Neither follow-up is packaged or installed on the owner's machines yet. The default gateway on PCDGAI-DEV had not restarted since October 2; no gateway/profile changes were made by this diagnosis. The separate `trace` profile remains out of scope.
+
+## Earlier reported evidence (superseded where noted above)
 
 Trader's Linux/npm install attached Hermes and returned a real World reply after installing/enabling the missing plugin, replacing a rejected API key and restarting the identity-checked gateway. This is owner evidence on a remote machine, not a local test.
 
 30B's OpenClaw 2026.9.7 attached, but a greeting returned HTTP 200 with an empty assistant-final and completed terminal. Nearby native logs recorded a message-tool-only outcome. An explicit direct-reply/no-tools instruction returned `Hello from Mitts.` in World; the owner saw no earlier Discord delivery. Exact tool arguments/results are unavailable. Do not claim a proven Discord misdelivery or that the unrelated ACP authentication warnings caused this turn.
 
-## Verification
+## rc.4 local verification
+
+The complete core gate passed: formatting, lint, TypeScript, architecture (11 tests), 1,653 tests across 297 files, production build and disposable startup/API smoke. The optional voice provider was isolated through an empty `AIW_LOCAL_VOICE_DIR`, without changing native profiles. Release-builder tests passed 5/5; launcher/updater/bootstrap/Windows-Git tests passed 11 with one optional real-archive test deferred until the rc.4 CI archive exists. Application payload `3a022b0b9e2e0727dfe61dec08998d0235d11025` passed code CI and installer workflow `39605274591`, including native Windows install/API/WebSocket/uninstall. Downloaded Linux, Debian, Windows portable and setup bytes match the CI checksum receipts. The bootstrap is pinned to Linux archive SHA-256 `222bac4c594853d153b42ee4c26a41a56c54f61cdb94173e4be8a39ddf7afdf9`; all three real-archive bootstrap tests passed without skips. Applying that exact artifact over an explicit minimal old-install fixture in a path with spaces retained state/rollback, verified clean BUILD provenance and both compiled fixes, and passed installed bundled-runtime UI/API/shutdown smoke. Final bootstrap-head CI, merge and draft staging follow; owner acceptance remains required before public promotion.
+
+## rc.3 packaging verification (historical)
 
 Focused updater/npm tests pass (7 passed, 1 optional archive test skipped); five release-builder tests pass. Formatting, lint, TypeScript, architecture, production build and disposable startup/API smoke pass. The full suite returned 1,645 passes and one environment-sensitive voice failure because this operator host has the optional voice provider installed; rerunning that nine-test file with an empty disposable voice-provider directory passed without changing production code or operator files.
 

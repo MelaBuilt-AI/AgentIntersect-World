@@ -14,6 +14,7 @@ import {
 } from "../src/openclaw-session-adapter.js";
 
 type FixtureOptions = {
+  readonly sourceReplyHistory?: (runId: string) => unknown[];
   readonly protocol?: number;
   readonly serverVersion?: string;
   readonly role?: string;
@@ -136,6 +137,15 @@ async function fixtureGateway(options: FixtureOptions = {}) {
         respond({ session: sessionId ? { key, sessionId } : null });
         return;
       }
+      if (request.method === "sessions.get") {
+        const sent = calls.findLast((call) => call.method === "sessions.send");
+        respond({
+          messages:
+            options.sourceReplyHistory?.(String(sent?.params.idempotencyKey)) ??
+            [],
+        });
+        return;
+      }
       if (request.method === "sessions.send") {
         if (options.errorCanary) {
           socket.send(
@@ -172,6 +182,15 @@ async function fixtureGateway(options: FixtureOptions = {}) {
             socket.send(
               JSON.stringify({ type: "event", event: name, payload }),
             );
+          if (options.sourceReplyHistory) {
+            event("chat", {
+              state: "final",
+              runId,
+              sessionKey: key,
+              message: { role: "assistant", content: [] },
+            });
+            return;
+          }
           if (options.eventFlood) {
             for (let index = 0; index < 18; index += 1)
               event("tick", { text: "x".repeat(1_000_000) });
@@ -373,7 +392,105 @@ async function waitForCallCount(
   throw new Error(`fixture did not receive ${count} ${method} calls`);
 }
 
+// Minimal shape from the owner-captured 2026.9.7 transcript; no private bootstrap context.
+function sourceReplyHistory(
+  runId: string,
+  { final = true, channel = "webchat", isError = false } = {},
+) {
+  const meta = { runId };
+  return [
+    {
+      role: "assistant",
+      __openclaw: meta,
+      content: [
+        {
+          type: "toolCall",
+          id: "reply-call",
+          name: "message",
+          arguments: {
+            action: "send",
+            message: "UNCOMMITTED_ARGUMENT_CANARY",
+            final,
+          },
+        },
+      ],
+    },
+    {
+      role: "assistant",
+      api: "openclaw-transcript",
+      provider: "openclaw",
+      model: "delivery-mirror",
+      __openclaw: meta,
+      idempotencyKey: "reply-receipt",
+      content: [{ type: "text", text: "Hello from the source reply." }],
+    },
+    {
+      role: "toolResult",
+      toolName: "message",
+      toolCallId: "reply-call",
+      isError,
+      __openclaw: meta,
+      details: {
+        status: "ok",
+        deliveryStatus: "sent",
+        channel,
+        target: "current-run",
+        sourceReplySink: "internal-ui",
+        sourceReplyTranscriptOwner: true,
+        dryRun: false,
+        idempotencyKey: "reply-receipt",
+      },
+    },
+  ];
+}
+
 describe("OpenClawSessionAdapter", () => {
+  it("recovers the exact run's committed internal source reply without replaying the turn", async () => {
+    const gateway = await fixtureGateway({ sourceReplyHistory });
+    const native = adapter(gateway.url);
+    const session = await native.createWorldSession("source-reply-proof");
+    const result = await native.sendText(session.id, "hi", {
+      mode: "explore",
+      rootSessionRef: session.rootId,
+    });
+    expect(result.finalText).toBe("Hello from the source reply.");
+    expect(JSON.stringify(result)).not.toContain("UNCOMMITTED_ARGUMENT_CANARY");
+    expect(
+      gateway.calls.filter((call) => call.method === "sessions.send"),
+    ).toHaveLength(1);
+    expect(
+      gateway.calls.filter((call) => call.method === "sessions.get"),
+    ).toEqual([
+      { method: "sessions.get", params: { key: session.rootId, limit: 128 } },
+    ]);
+  });
+  it.each(["foreign", "progress", "external", "failed", "missing"])(
+    "does not recover %s source replies",
+    async (kind) => {
+      const gateway = await fixtureGateway({
+        sourceReplyHistory: (runId) => [
+          ...sourceReplyHistory("older-run"),
+          ...(kind === "missing"
+            ? []
+            : sourceReplyHistory(kind === "foreign" ? "other-run" : runId, {
+                final: kind !== "progress",
+                channel: kind === "external" ? "discord" : "webchat",
+                isError: kind === "failed",
+              })),
+        ],
+      });
+      const native = adapter(gateway.url);
+      const session = await native.createWorldSession("source-reply-boundary");
+      const result = await native.sendText(session.id, "hi", {
+        mode: "explore",
+        rootSessionRef: session.rootId,
+      });
+      expect(result.finalText).toBe("");
+      expect(
+        gateway.calls.filter((call) => call.method === "sessions.send"),
+      ).toHaveLength(1);
+    },
+  );
   it("bounds raw stream bytes even for ignored telemetry", async () => {
     const gateway = await fixtureGateway({ eventFlood: true });
     const native = adapter(gateway.url, { turnTimeoutMs: 5000 });
@@ -477,7 +594,7 @@ describe("OpenClawSessionAdapter", () => {
         "Reply directly in this World conversation",
       );
       expect(sent.message).toContain(
-        "Do not use a messaging tool to deliver this reply",
+        "Use the native current-conversation reply mechanism",
       );
       expect(sent.message).toContain(
         "Use tools normally when needed for the user's task",
