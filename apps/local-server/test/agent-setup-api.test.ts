@@ -21,6 +21,10 @@ it("keeps prerequisite preview/cancel and conversation listing separate from att
     path.join(root, "plugins", "agentintersect-world", "__init__.py"),
     "# fixture\n",
   );
+  await writeFile(
+    path.join(root, "plugins", "agentintersect-world", "plugin.yaml"),
+    "name: agentintersect-world\n",
+  );
   const service = new AgentSetupService({
     dataDirectory: path.join(root, "world"),
     listConversations: async () => [

@@ -36,6 +36,7 @@ import {
   type WorldAgentEvent,
   type WorldAgentSession,
 } from "../sessions/session-client.js";
+import { EmptyAgentReplyError } from "../sessions/session-client.js";
 import type { ConstellationMessageGroup } from "../sessions/session-client.js";
 import {
   createWorldEntryClient,
@@ -1637,11 +1638,17 @@ export function WorldEntryExperience({
               type: "SEND_COMPLETED",
               text: singleAnswer.finalText,
             });
-        } catch {
+        } catch (error) {
           if (mounted.current && presentationGeneration.current === generation)
             audioAgents.forEach((id) => agentAudioState(id, "failed"));
           if (mounted.current && presentationGeneration.current === generation)
-            updateChat({ type: "SEND_FAILED", message: "chat unavailable_" });
+            updateChat({
+              type: "SEND_FAILED",
+              message:
+                error instanceof EmptyAgentReplyError
+                  ? error.message
+                  : "chat unavailable_",
+            });
         } finally {
           if (groupPoll !== null) window.clearInterval(groupPoll);
           setActiveMessageRosterIds([]);

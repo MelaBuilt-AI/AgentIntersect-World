@@ -6,6 +6,7 @@ import {
   existsSync,
   rmSync,
   writeFileSync,
+  mkdirSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -27,6 +28,52 @@ function withHome(callback) {
     rmSync(home, { recursive: true, force: true });
   }
 }
+
+test("upgrades its own older wrapper while preserving the old installation and refusing unrelated commands", () =>
+  withHome((home, env) => {
+    const version = /const version = "([^"]+)"/.exec(
+      readFileSync(cli, "utf8"),
+    )[1];
+    const versions = join(home, "data", "agentintersect-world", "versions");
+    const old = join(versions, "0.14.0");
+    const current = join(versions, version);
+    for (const dir of [old, current]) {
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, "agentintersect-world"), "#!/bin/sh\nexit 0\n");
+      writeFileSync(
+        join(dir, "BUILD.json"),
+        JSON.stringify({
+          version: dir === old ? "0.14.0" : version,
+          platform: "linux-x64",
+          sourceDirty: false,
+        }),
+      );
+    }
+    mkdirSync(env.XDG_BIN_HOME, { recursive: true });
+    const bin = join(env.XDG_BIN_HOME, "agentintersect-world");
+    writeFileSync(
+      bin,
+      `#!/bin/sh\n# AgentIntersect World npm installer\nexec '${join(old, "agentintersect-world")}' "$@"\n`,
+    );
+    let result = spawnSync(process.execPath, [cli.pathname, "install"], {
+      env,
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(readFileSync(bin, "utf8").includes(current));
+    assert.ok(existsSync(join(old, "BUILD.json")));
+    writeFileSync(
+      bin,
+      "#!/bin/sh\n# AgentIntersect World npm installer\necho unrelated\n",
+    );
+    result = spawnSync(process.execPath, [cli.pathname, "install"], {
+      env,
+      encoding: "utf8",
+    });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /unrelated command/);
+    assert.match(readFileSync(bin, "utf8"), /echo unrelated/);
+  }));
 
 test("rejects an archive with the wrong digest without installing", () =>
   withHome((home, env) => {

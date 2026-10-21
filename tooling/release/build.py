@@ -182,6 +182,14 @@ def windows_git(dest, cache, seven_zip, supplied_archive=None):
     return WINDOWS_GIT
 
 
+def copy_integrations(stage):
+    relative = pathlib.Path("integrations/hermes/agentintersect-world")
+    destination = stage / relative
+    destination.mkdir(parents=True)
+    for name in ("__init__.py", "plugin.yaml"):
+        shutil.copy2(ROOT / relative / name, destination / name)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=pathlib.Path, required=True)
@@ -254,6 +262,7 @@ def main():
         backend.parent.mkdir(parents=True)
         shutil.copytree(deployed, backend, symlinks=False)
         keep_platform_natives(backend, platform)
+        copy_integrations(stage)
         shutil.copytree(ROOT / "apps/web/dist", stage / "apps/web/dist")
         shutil.copytree(
             ROOT / "examples/phase14-magic-slice",
@@ -289,7 +298,7 @@ def main():
                     "platform": platform,
                     "runtime": provenance,
                     "git": git_provenance,
-                    "windowsInstallerVersion": "0.15.0-rc.2-windows.3" if platform == "windows-x64" else None,
+                    "windowsInstallerVersion": version if platform == "windows-x64" else None,
                     "deploymentTool": "pnpm12.4.2",
                     "signed": False,
                 },
@@ -300,12 +309,12 @@ def main():
         if platform == "linux-x64":
             launcher = stage / "agentintersect-world"
             launcher.write_text(
-                '#!/bin/sh\nset -eu\nROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$ROOT/runtime/node" "$ROOT/apps/local-server/launch.mjs" "$@"\n'
+                '#!/bin/sh\nset -eu\nROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$ROOT/runtime/node" "$ROOT/apps/local-server/cli.mjs" "$@"\n'
             )
             launcher.chmod(0o755)
         else:
             (stage / "AgentIntersect-World.cmd").write_bytes(
-                b'@echo off\r\n"%~dp0runtime\\node.exe" "%~dp0apps\\local-server\\launch.mjs" %*\r\nif errorlevel 1 pause\r\n'
+                b'@echo off\r\n"%~dp0runtime\\node.exe" "%~dp0apps\\local-server\\cli.mjs" %*\r\nif errorlevel 1 pause\r\n'
             )
         for p in stage.rglob("*"):
             if p.is_symlink():
@@ -333,6 +342,7 @@ def main():
             deb_root = out / ".deb-root"
             app = deb_root / "opt/agentintersect-world"
             shutil.copytree(stage, app)
+            (app / "INSTALLATION.json").write_text(json.dumps({"type": "deb"}) + "\n")
             control = deb_root / "DEBIAN"
             control.mkdir()
             (control / "control").write_text(

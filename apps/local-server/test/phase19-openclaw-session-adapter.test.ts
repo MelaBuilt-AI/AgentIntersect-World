@@ -473,6 +473,15 @@ describe("OpenClawSessionAdapter", () => {
         "Search the web and fetch public documentation",
       );
       expect(sent.message).toContain("World relay from @Claude");
+      expect(sent.message).toContain(
+        "Reply directly in this World conversation",
+      );
+      expect(sent.message).toContain(
+        "Do not use a messaging tool to deliver this reply",
+      );
+      expect(sent.message).toContain(
+        "Use tools normally when needed for the user's task",
+      );
       expect(Object.keys(sent).sort()).toEqual([
         "idempotencyKey",
         "key",

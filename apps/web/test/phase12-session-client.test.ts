@@ -116,6 +116,26 @@ describe("Phase 12 browser client", () => {
     expect(JSON.stringify(observed)).not.toMatch(/args|preview|RAW_|Bearer/i);
   });
 
+  it("reports an empty completed turn without replaying it", async () => {
+    const sessionId = "11111111-1111-4111-8111-111111111111";
+    const session = { sessionId } as WorldAgentSession;
+    const body = [
+      `event: world.final\ndata: ${JSON.stringify({ schema: "aiw.agent-stream-terminal/0.12", sessionId, status: "completed", finalText: "" })}\n\n`,
+      `event: world.done\ndata: ${JSON.stringify({ schema: "aiw.agent-stream-terminal/0.12", sessionId, status: "completed" })}\n\n`,
+    ].join("");
+    const fetcher = vi.fn(
+      async () =>
+        new Response(body, {
+          headers: { "content-type": "text/event-stream" },
+        }),
+    );
+    const client = new AgentSessionClient(fetcher as typeof fetch);
+    await expect(client.stream(session, "hi")).rejects.toThrow(
+      "The agent completed this turn without a text reply",
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
   it("forwards explicit caller cancellation without installing its own signal", async () => {
     const session = {
       schema: "aiw.agent-session/0.12",

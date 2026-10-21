@@ -22,6 +22,14 @@ it("previews without writes and applies only the exact current one-use consent",
       path.join(profile, "plugins", "agentintersect-world", "__init__.py"),
       "# installed plugin\n",
     );
+    await writeFile(
+      path.join(profile, "plugins", "agentintersect-world", "plugin.yaml"),
+      "name: agentintersect-world\n",
+    );
+    await writeFile(
+      path.join(profile, ".env"),
+      `API_SERVER_ENABLED=true\nAPI_SERVER_HOST=127.0.0.1\nAPI_SERVER_KEY=${"a".repeat(64)}\n`,
+    );
     const registration: AgentRegistration = {
       id: "one",
       adapterId: "hermes",
@@ -31,7 +39,6 @@ it("previews without writes and applies only the exact current one-use consent",
         id: "local",
         kind: "linux",
         label: "Local",
-        status: "scanned",
       },
       executablePath: "/fixture/hermes",
       homePath: root,

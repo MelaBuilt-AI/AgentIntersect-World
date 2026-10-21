@@ -56,6 +56,15 @@ class DeploymentPrivacyTest(unittest.TestCase):
 
 
 class NativeFilesTest(unittest.TestCase):
+    def test_release_contains_the_exact_bundled_hermes_plugin(self):
+        self.assertTrue(hasattr(BUILD, "copy_integrations"), "release must ship the plugin")
+        with tempfile.TemporaryDirectory() as temporary:
+            stage = pathlib.Path(temporary)
+            BUILD.copy_integrations(stage)
+            for name in ("__init__.py", "plugin.yaml"):
+                relative = pathlib.Path("integrations/hermes/agentintersect-world") / name
+                self.assertEqual((stage / relative).read_bytes(), (BUILD.ROOT / relative).read_bytes())
+
     def make(self, root, *files):
         for directory in BUILD.PTY_PACKAGES.values():
             (root / directory).mkdir(parents=True, exist_ok=True)
