@@ -2,41 +2,63 @@
 
 **Your code becomes a place. Your agents become a presence.**
 
-Local-first 3D workspace where your own coding agents (Claude Code, Codex, Hermes, OpenClaw, and friends) work on your repository as a world you can walk — not another hosted chat IDE, and not a replacement for those agents.
+A local-first 3D workspace for your repositories and your own AI coding agents. Explore a repository as a city, discuss ideas with **Claude Code, Codex, Hermes or OpenClaw**, give work its own branch, and inspect the changes and previews—all in one World.
 
-> **Public preview · 0.15.0-rc.2:** [Download for Windows or Linux](https://agentintersect.com/download/) · [Release notes & checksums](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2) · [Field Guide](https://guide.agentintersect.com/getting-started/). Windows builds are unsigned.
+[Download World](https://agentintersect.com/download/) · [Field Guide](https://guide.agentintersect.com/getting-started/) · [Release notes](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2) · [Discord](https://discord.gg/8GfKXaJsyY)
+
+> **Public preview · 0.15.0-rc.2** — Windows x64 and Linux x64/glibc. Windows builds are unsigned. Bring an installed, authenticated agent harness; model accounts and subscriptions are separate.
 
 ![AgentIntersect World — repository city load through ready](docs/launch/media/repo-city.gif)
 
-_GIF: world load → repository city ready (~26s). Full clips linked below._
+_Development capture: World load → repository city ready. [More demos below](#demos)._
 
-## Demos
+## What you can do
 
-In-development captures.
+- **Explore your code spatially.** Load or create a repository and navigate its code city.
+- **Bring your own agents.** Choose saved native connections and a constellation of up to four agents, each with its own identity and avatar.
+- **Turn conversation into work.** Create a Workstream, inspect source and diffs, read validation results, and open an approved World View preview.
+- **Keep tools within reach.** Use the Code Wheel, HUD or spatial screens, with explicit Terminal and PowerShell controls.
+- **Make the environment yours.** Describe a custom World, tune weather and scenery, and save it for later.
 
-Inline GIF above shows the repo-city load. Full MP4s are on the [launch-demos](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/launch-demos) prerelease (GitHub’s file viewer often won’t play repo videos — use the download links):
+World is built for one operator working locally—not a public multiplayer service, a hosted model subscription, or a replacement for your native agent harness. Local-first does not mean model-offline: your chosen harness may use cloud services. Do not expose the backend to the internet.
 
-| Demo                                   | Watch / download                                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Launch reel** (city + coding, ~100s) | [launch-reel.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/launch-reel.mp4)   |
-| Repo city / `/repo load`               | [repo-city.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/repo-city.mp4)       |
-| Agent coding / embodiment              | [agent-coding.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/agent-coding.mp4) |
+## Install World
 
-## Get notified
+**Windows x64:** download the [setup installer](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-windows.3-windows-x64-setup.exe), compare its SHA-256 with [SHA256SUMS](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/SHA256SUMS), run setup, then launch **AgentIntersect World**. A private Node runtime and Git are included. **This installer is unsigned**; follow your device’s security policy rather than disabling protections. Prefer no setup wizard? Use the [portable Windows ZIP](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-windows-x64.zip).
 
-No email capture. Use GitHub:
+**Debian / Ubuntu x64:** download the `.deb` from the [release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2), then:
 
-1. Open [MelaBuilt-AI/AgentIntersect-World](https://github.com/MelaBuilt-AI/AgentIntersect-World)
-2. **Watch** → **Custom** → check **Releases** → Apply
+```sh
+sudo apt install ./AgentIntersect-World-0.15.0-rc.2-linux-x64.deb
+agentintersect-world
+```
 
-This subscribes you to new [Releases](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases), rather than every commit. A GitHub account is required; delivery follows your GitHub notification settings. Publishing a tag or pushing code is not the packaged-release announcement. The product site links here for the same path: [Watch on GitHub for release notifications](https://agentintersect.com).
+**Other glibc-based Linux x64:** use the [portable Linux archive](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-linux-x64.tar.gz) and run its `agentintersect-world` launcher. Git is required; the application bundles Node.
 
-## What it is
+**Optional Linux terminal installer** (requires Node 20+ for the bootstrap):
 
-- **Repository-as-landscape** — intake a repo and explore it as a spatial world (the “repo city”).
-- **BYO agents** — attach harnesses you already run locally; World does not log in as you or replace Claude Code / Codex.
-- **Conversation → Workstream → World View** — talk, assign work, then see agents as presence in the world.
-- **Local loopback** — built for one operator on your machine, not a multi-user internet service.
+```sh
+npx -y @agentintersect-world/installer@0.15.0-rc.2 install
+```
+
+The installer downloads the exact release archive and checks its SHA-256 before installation. Run the launcher path it prints (normally `~/.local/bin/agentintersect-world`; custom XDG roots may change it). Use the pinned command above or the **rc** tag. npm also assigned **latest** on first publication; that tag does not make this preview a stable release.
+
+At least one supported harness must be installed and authenticated separately. Model accounts, subscriptions and optional voice setup are not included. This release is a public preview: back up projects and application data. Earlier private kits reused this version label; check exact hashes and preserve existing state rather than assuming same-version installation upgrades older private bytes.
+
+See [public release details](docs/PUBLIC_RELEASE_0.15.0-rc.2.md) for source provenance, checksums, source material and known limitations. Windows/WSL cross-environment execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory.
+
+## Connect your agents
+
+1. After the opening logo, a new install opens **Agent Setup Menu**.
+2. **Discover Agents** — reads install / native identity metadata. It does not log in, change providers, install plugins, or start WSL distros for you.
+3. Pick harness + **native identity**, name the World connection, then **Attach to Agent Intersect World**.
+4. **Continue to Agent Select**, choose who joins this World, set avatars when asked.
+
+Later launches skip completed setup. **Escape for Menu** reopens Agent Setup without wiping saved work.
+
+World does **not** collect harness login credentials in the browser. Finish auth in each harness’s own app.
+
+Deep dive: [docs/AGENT_SETUP_MENU.md](docs/AGENT_SETUP_MENU.md) · full developer README preserved at [docs/launch/README.developer.md](docs/launch/README.developer.md)
 
 ## Hack your World
 
@@ -55,83 +77,32 @@ Cancellation or failed generation/loading keeps the previous usable World. Effec
 
 **Walkthrough:** [Hack your World Field Guide](https://guide.agentintersect.com/hack-your-world/) · [Feature details and supported generation limits](docs/HACK_YOUR_WORLD.md) · [Asset notices](THIRD_PARTY_NOTICES.md)
 
-## What this is not
+## Demos
 
-- Not Cursor / Windsurf (editor replacement)
-- Not a hosted agent product (you bring local agents)
-- Not unrelated “Intersect AI” products — this is **AgentIntersect World** by [MelaBuilt AI](https://melabuilt.ai)
+Development captures; these demonstrate the product, not every control in the current release.
 
-## Install World
+Inline GIF above shows the repo-city load. Full MP4s are on the [launch-demos](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/launch-demos) prerelease (GitHub’s file viewer often won’t play repo videos — use the download links):
 
-**Windows x64:** download the [setup installer](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/v0.15.0-rc.2/AgentIntersect-World-0.15.0-rc.2-windows.3-windows-x64-setup.exe), compare its SHA-256 with the release manifest, run setup, then launch **AgentIntersect World**. A private Node runtime and Git are included. **This installer is unsigned**; follow your device’s security policy rather than disabling protections. A portable ZIP is also available on the release page.
-
-**Debian / Ubuntu x64:** download the `.deb` from the [release](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/tag/v0.15.0-rc.2), then:
-
-```sh
-sudo apt install ./AgentIntersect-World-0.15.0-rc.2-linux-x64.deb
-agentintersect-world
-```
-
-**Other glibc-based Linux x64:** use the portable `linux-x64.tar.gz` and run its `agentintersect-world` launcher. Git is required; the application bundles Node.
-
-**Optional Linux terminal installer** (requires Node 20+ for the bootstrap):
-
-```sh
-npx -y @agentintersect-world/installer@0.15.0-rc.2 install
-~/.local/bin/agentintersect-world
-```
-
-The installer downloads the exact release archive and checks its SHA-256 before installation. It prints your installed launcher path; custom XDG roots may change that path. The npm package uses the **rc** channel, not a stable-release promise.
-
-At least one supported harness must be installed and authenticated separately. Model accounts, subscriptions and optional voice setup are not included. This release is a public preview: back up projects and application data. Earlier private kits reused this version label; check exact hashes and preserve existing state rather than assuming same-version installation upgrades older private bytes.
-
-See [public release details](docs/PUBLIC_RELEASE_0.15.0-rc.2.md) for source provenance, checksums, source material and known limitations. Windows/WSL cross-environment execution additionally needs native Python 3 in the target environment and a shared drive-backed World data directory.
+| Demo                                   | Watch / download                                                                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Launch reel** (city + coding, ~100s) | [launch-reel.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/launch-reel.mp4)   |
+| Repo city / `/repo load`               | [repo-city.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/repo-city.mp4)       |
+| Agent coding / embodiment              | [agent-coding.mp4](https://github.com/MelaBuilt-AI/AgentIntersect-World/releases/download/launch-demos/agent-coding.mp4) |
 
 ## Develop from source
 
-Requires **Node.js 24+**, Corepack and Git. Use an HTTPS clone for public access:
+Requires **Node.js 24.x**, Corepack and Git. Use an HTTPS clone for public access:
 
 ```sh
 git clone https://github.com/MelaBuilt-AI/AgentIntersect-World.git
 cd AgentIntersect-World
-```
-
-```sh
 corepack pnpm@11.15.0 install --frozen-lockfile
 corepack pnpm@11.15.0 dev
 ```
 
 Open the Vite URL (normally `http://127.0.0.1:5173`). Backend defaults to loopback port `3770`.
 
-## Connect your agents
-
-1. After the opening logo, a new install opens **Agent Setup Menu**.
-2. **Discover Agents** — reads install / native identity metadata. It does not log in, change providers, install plugins, or start WSL distros for you.
-3. Pick harness + **native identity**, name the World connection, then **Attach to Agent Intersect World**.
-4. **Continue to Agent Select**, choose who joins this World, set avatars when asked.
-
-Later launches skip completed setup. **Escape for Menu** reopens Agent Setup without wiping saved work.
-
-World does **not** collect harness login credentials in the browser. Finish auth in each harness’s own app.
-
-Deep dive: [docs/AGENT_SETUP_MENU.md](docs/AGENT_SETUP_MENU.md) · full developer README preserved at [docs/launch/README.developer.md](docs/launch/README.developer.md)
-
-## Links
-
-- Product: https://agentintersect.com
-- Field Guide: https://guide.agentintersect.com
-- Melabuilt: https://melabuilt.ai
-- X: [@melabuiltai](https://x.com/melabuiltai)
-- Community: [Discord](https://discord.gg/8GfKXaJsyY)
-- [Contributing](CONTRIBUTING.md) · [Private security reporting](SECURITY.md)
-- [Third-party and asset notices](THIRD_PARTY_NOTICES.md)
-- Launch drafts: [docs/launch/](docs/launch/)
-
-## License
-
-[MIT](LICENSE) © MelaBuilt AI
-
-## Development
+### Run checks
 
 ```sh
 corepack pnpm@11.15.0 test
@@ -142,3 +113,20 @@ corepack pnpm@11.15.0 lint
 See [docs/launch/README.developer.md](docs/launch/README.developer.md) for the longer agent-setup and acceptance notes.
 
 Historical engineering phase notes and proof kits live under [docs/internal/](docs/internal/) (not required for using or building World).
+
+## Follow releases
+
+To follow future releases, select **Watch → Custom → Releases** on this repository. A GitHub account is required; delivery follows your notification settings. No mailing-list signup is needed.
+
+## Community and support
+
+- [Website and downloads](https://agentintersect.com/download/) · [Field Guide](https://guide.agentintersect.com/getting-started/)
+- [Report an issue](https://github.com/MelaBuilt-AI/AgentIntersect-World/issues) · [Private security reporting](SECURITY.md)
+- [Contributing](CONTRIBUTING.md) · [Third-party and asset notices](THIRD_PARTY_NOTICES.md)
+- [MelaBuilt AI](https://melabuilt.ai) · [X / @melabuiltai](https://x.com/melabuiltai) · [Discord](https://discord.gg/8GfKXaJsyY)
+
+When reporting a problem, include the release, operating system, failed action and exact error. Remove credentials, private conversations and sensitive paths.
+
+## License
+
+World-owned code is [MIT licensed](LICENSE) © MelaBuilt AI. Bundled dependencies and supplied artwork retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md) and the [release’s corresponding-source material](docs/PUBLIC_RELEASE_0.15.0-rc.2.md#bundled-source-and-licenses).
