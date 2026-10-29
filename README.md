@@ -10,6 +10,13 @@ A local-first 3D workspace for your repositories and your own AI coding agents. 
 
 ![AgentIntersect World — repository city load through ready](docs/launch/media/repo-city.gif)
 
+<p align="center">
+  <a href="docs/launch/media/world-1.jpg"><img src="docs/launch/media/world-1.jpg" alt="Agents and spatial source screens in the blue code-rain World" width="49%"></a>
+  <a href="docs/launch/media/world-2.jpg"><img src="docs/launch/media/world-2.jpg" alt="Agents, terminals and the Code Wheel in a sunlit World" width="49%"></a>
+  <a href="docs/launch/media/world-3.jpg"><img src="docs/launch/media/world-3.jpg" alt="Mr Fluff working beside a Workstream inspector in a desert World" width="49%"></a>
+  <a href="docs/launch/media/world-4.jpg"><img src="docs/launch/media/world-4.jpg" alt="Agents beside a live website preview and completed work" width="49%"></a>
+</p>
+
 _Development capture: World load → repository city ready. [More demos below](#demos)._
 
 ## What you can do
